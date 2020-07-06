@@ -40,7 +40,7 @@ namespace Testing
     class AuxiliaryExplicitStrategiesTestElement : public Element
     {
     public:
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AuxiliaryExplicitStrateguesTestElement);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AuxiliaryExplicitStrategiesTestElement);
 
         AuxiliaryExplicitStrategiesTestElement() = default;
 
@@ -48,9 +48,7 @@ namespace Testing
             IndexType NewId,
             GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {};
 
-        AuxiliaryExplicitStrategiesTestElement(AuxiliaryExplicitStrateguesTestElement const& rOther) = delete;
-
-        ~AuxiliaryExplicitStrategiesTestElement() = default;
+        AuxiliaryExplicitStrategiesTestElement(AuxiliaryExplicitStrategiesTestElement const &rOther) = delete;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
@@ -100,7 +98,7 @@ namespace Testing
         typename GeometryType::PointsArrayType points_vect;
         points_vect.push_back(p_node);
         auto p_geom = Kratos::make_shared<Point3D<NodeType>>(p_node);
-        auto p_elem = Kratos::make_intrusive<AuxiliaryExplicitStrateguesTestElement>(1, p_geom);
+        auto p_elem = Kratos::make_intrusive<AuxiliaryExplicitStrategiesTestElement>(1, p_geom);
         rModelPart.AddElement(p_elem);
     }
 
