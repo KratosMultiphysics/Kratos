@@ -426,7 +426,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
 
     // This method is optimized to free the memory
     // Loop over all the local meshes (Is this still necessary with Submodelparts?)
-    for(auto & mesh: this->GetMeshes()) {
+    for(auto& r_mesh: this->GetMeshes()) {
         remove_from_mesh(mesh);
     }
 
