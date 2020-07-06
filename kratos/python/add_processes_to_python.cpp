@@ -48,6 +48,7 @@
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/compute_nodal_normal_divergence_process.h"
+#include "processes/compute_nodal_divergence_process.h"
 #include "processes/assign_scalar_variable_to_entities_process.h"
 #include "processes/assign_scalar_field_to_entities_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
@@ -337,6 +338,20 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Non-Historical */
     py::class_<ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalNormalDivergenceProcess")
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
+    ;
+
+    /* Historical */
+    py::class_<ComputeNodalDivergenceProcess< ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>, ComputeNodalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalDivergenceProcess")
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
+    ;
+
+    /* Non-Historical */
+    py::class_<ComputeNodalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalDivergenceProcess")
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& >())
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
     ;
