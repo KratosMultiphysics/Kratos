@@ -9,14 +9,14 @@ def StartTimeMeasuring():
     """This function starts time calculation
     """
     # Measure process time
-    time_ip = timer.clock()
+    time_ip = timer.process_time()
     return time_ip
 
 def StopTimeMeasuring(time_ip, process, report):
     """This function ends time calculation
     """
     # Measure process time
-    time_fp = timer.clock()
+    time_fp = timer.process_time()
     if( report ):
         used_time = time_fp - time_ip
         print("::[PFEM_FLUID_MODEL]:: [ %.2f" % round(used_time,2),"s", process," ] ")
