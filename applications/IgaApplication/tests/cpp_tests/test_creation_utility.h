@@ -41,27 +41,40 @@ namespace TestCreationUtility
         }
     }
 
-    NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart) {
-        NodeVector points(6);
-
-        points(0) = rModelPart.CreateNewNode(1,  0, 5,  0);
-        points(1) = rModelPart.CreateNewNode(2,  5, 5,  0);
-        points(2) = rModelPart.CreateNewNode(3, 10, 5, -4);
-        points(3) = rModelPart.CreateNewNode(4,  0, 0,  0);
-        points(4) = rModelPart.CreateNewNode(5,  5, 0,  0);
-        points(5) = rModelPart.CreateNewNode(6, 10, 0, -4);
-
-        Vector knot_u = ZeroVector(4);
-        knot_u[0] = 0.0;
-        knot_u[1] = 0.0;
-        knot_u[2] = 10.0;
-        knot_u[3] = 10.0;
-        Vector knot_v = ZeroVector(2);
-        knot_v[0] = 0.0;
-        knot_v[1] = 5.0;
-
-        int p = 2;
+    NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
+        
+        int p = PolynomialDegree;
         int q = 1;
+
+        Vector knot_u = ZeroVector(2*(p+1));
+        for(IndexType index = 0; index < knot_u.size()/2; ++index) {
+            knot_u[index] = 0.0;
+        }
+        for(IndexType index = knot_u.size()/2; index < knot_u.size(); ++index) {
+            knot_u[index] = 1.0;
+        }
+
+        Vector knot_v = ZeroVector(2*(q+1));
+        for(IndexType index = 0; index < knot_v.size()/2; ++index) {
+            knot_v[index] = 0.0;
+        }
+        for(IndexType index = knot_v.size()/2; index < knot_v.size(); ++index) {
+            knot_v[index] = 1.0;
+        }
+
+        NodeVector points((p+1)*(q+1));
+        for(IndexType index = 0; index < points.size()/2; ++index) {
+            double x = 1.0*index/PolynomialDegree;
+            double y = -0.05;
+            double z = 0.0;
+            points(index) = rModelPart.CreateNewNode(index + 1, x, y, z);
+        }
+        for(IndexType index = points.size()/2; index < points.size(); ++index) {
+            double x = 1.0*(index - PolynomialDegree -1)/PolynomialDegree;
+            double y = 0.05;
+            double z = 0.0;
+            points(index) = rModelPart.CreateNewNode(index + 1, x, y, z);
+        }
 
         return NurbsSurfaceType(
             points, p, q, knot_u, knot_v);
@@ -73,10 +86,10 @@ namespace TestCreationUtility
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
         typename GeometryType::GeometriesArrayType result_geometries;
-        if (PolynomialDegree == SizeType(2)) {
-            GenerateNurbsSurface(rModelPart).CreateQuadraturePointGeometries(
+        //if (PolynomialDegree == SizeType(3)) {
+            GenerateNurbsSurface(rModelPart,PolynomialDegree).CreateQuadraturePointGeometries(
                 result_geometries, 3, integration_points);
-        }
+        //}
         return result_geometries(0);
     }
 
