@@ -113,6 +113,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
 
     mCompressibleNavierStokesExplicit2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressibleNavierStokesExplicit3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+
+    mCompressibleBiphaseNavierStokesExplicit2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mCompressibleBiphaseNavierStokesExplicit3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    
     // Two-Fluid Navier-Stokes symbolic elements
     mTwoFluidNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoFluidNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -172,8 +176,16 @@ void KratosFluidDynamicsApplication::Register() {
 
     // Compressible fluid variables
     KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY_RATIO)
+    KRATOS_REGISTER_VARIABLE(DENSITY_MATERIAL)
+    KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_MATERIAL)
     KRATOS_REGISTER_VARIABLE(REACTION_DENSITY)
+    KRATOS_REGISTER_VARIABLE(REACTION_DENSITY_GAS)
+    KRATOS_REGISTER_VARIABLE(REACTION_DENSITY_SOLID)
     KRATOS_REGISTER_VARIABLE(REACTION_ENERGY)
+    KRATOS_REGISTER_VARIABLE(DENSITY_GAS)
+    KRATOS_REGISTER_VARIABLE(DENSITY_SOLID)
+    KRATOS_REGISTER_VARIABLE(GAS_PRESSURE)
+    KRATOS_REGISTER_VARIABLE(SOLID_CONCENTRATION)
     KRATOS_REGISTER_VARIABLE(MACH)
 
     // Turbulence statistics
@@ -261,6 +273,9 @@ void KratosFluidDynamicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D3N",mCompressibleNavierStokesExplicit2D);
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit3D4N",mCompressibleNavierStokesExplicit3D);
+
+    KRATOS_REGISTER_ELEMENT("CompressibleBiphaseNavierStokesExplicit2D3N",mCompressibleBiphaseNavierStokesExplicit2D);
+    KRATOS_REGISTER_ELEMENT("CompressibleBiphaseNavierStokesExplicit3D4N",mCompressibleBiphaseNavierStokesExplicit3D);
 
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);

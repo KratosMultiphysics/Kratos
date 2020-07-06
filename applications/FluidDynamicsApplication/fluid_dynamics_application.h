@@ -70,6 +70,7 @@
 #include "custom_elements/embedded_ausas_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
+#include "custom_elements/compressible_biphase_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/vms_adjoint_element.h"
 
@@ -379,6 +380,8 @@ private:
     const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
     const CompressibleNavierStokesExplicit<2> mCompressibleNavierStokesExplicit2D;
     const CompressibleNavierStokesExplicit<3> mCompressibleNavierStokesExplicit3D;
+    const CompressibleBiphaseNavierStokesExplicit<2> mCompressibleBiphaseNavierStokesExplicit2D;
+    const CompressibleBiphaseNavierStokesExplicit<3> mCompressibleBiphaseNavierStokesExplicit3D;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
