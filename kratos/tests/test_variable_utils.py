@@ -761,6 +761,89 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.Y, node.Y0 + 4.0 * float(node.Id))
             self.assertAlmostEqual(node.Z, node.Z0 + 5.0 * float(node.Id))
 
+    def test_distribute_condition_variable(self):
+        current_model = KratosMultiphysics.Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        for node in model_part.Nodes:
+            node.SetValue(KratosMultiphysics.AUX_MESH_VAR, node.Id)
+
+        for condition in model_part.Conditions:
+            condition.SetValue(KratosMultiphysics.DISTANCE, condition.Id)
+            vector = KratosMultiphysics.Vector(3)
+            vector[0] = condition.Id * 3
+            vector[1] = condition.Id * 3 + 1
+            vector[2] = condition.Id * 3 + 2
+            condition.SetValue(KratosMultiphysics.VELOCITY, vector)
+
+        variable_utils = KratosMultiphysics.VariableUtils()
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, False)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, False)
+
+        distance_vector = [
+            1.0, 3602.0, 10803.0, 3643056.0, 3789835.0, 1897352.0
+        ]
+        velocity_vector = [
+            3.0, 4.0, 5.0, 10806.0, 10810.0, 10814.0, 32409.0, 32415.0, 32421.0, 10929168.0, 10931112.0, 10933056.0, 11369505.0, 11371451.0, 11373397.0, 5692056.0, 5693030.0, 5694004.0
+        ]
+
+        local_index = 0
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetValue(KratosMultiphysics.DISTANCE), distance_vector[local_index])
+            self.assertEqual(node.GetValue(KratosMultiphysics.VELOCITY)[0], velocity_vector[local_index * 3])
+            self.assertEqual(node.GetValue(KratosMultiphysics.VELOCITY)[1], velocity_vector[local_index * 3 + 1])
+            self.assertEqual(node.GetValue(KratosMultiphysics.VELOCITY)[2], velocity_vector[local_index * 3 + 2])
+
+            local_index += 1
+
+    def test_distribute_condition_variable_inverse(self):
+        current_model = KratosMultiphysics.Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        for node in model_part.Nodes:
+            node.SetValue(KratosMultiphysics.AUX_MESH_VAR, 1.0 / node.Id)
+
+        for condition in model_part.Conditions:
+            condition.SetValue(KratosMultiphysics.DISTANCE, condition.Id)
+            vector = KratosMultiphysics.Vector(3)
+            vector[0] = condition.Id * 3
+            vector[1] = condition.Id * 3 + 1
+            vector[2] = condition.Id * 3 + 2
+            condition.SetValue(KratosMultiphysics.VELOCITY, vector)
+
+        variable_utils = KratosMultiphysics.VariableUtils()
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.AUX_MESH_VAR, True)
+        variable_utils.WeightedAccumulateConditionVariableOnNodes(model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.AUX_MESH_VAR, True)
+
+        distance_vector = [
+            1.0, 3602.0, 10803.0, 3643056.0, 3789835.0, 1897352.0
+        ]
+        velocity_vector = [
+            3.0, 4.0, 5.0, 10806.0, 10810.0, 10814.0, 32409.0, 32415.0, 32421.0, 10929168.0, 10931112.0, 10933056.0, 11369505.0, 11371451.0, 11373397.0, 5692056.0, 5693030.0, 5694004.0
+        ]
+
+        local_index = 0
+        for node in model_part.Nodes:
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.DISTANCE), distance_vector[local_index])
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.VELOCITY)[0], velocity_vector[local_index * 3])
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.VELOCITY)[1], velocity_vector[local_index * 3 + 1])
+            self.assertAlmostEqual(node.GetValue(KratosMultiphysics.VELOCITY)[2], velocity_vector[local_index * 3 + 2])
+
+            local_index += 1
+
+
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

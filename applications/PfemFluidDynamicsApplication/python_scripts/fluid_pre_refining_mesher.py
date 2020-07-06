@@ -96,7 +96,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
         #self.mesher.SetPreMeshingProcess(recover_volume_losses)
 
         unactive_peak_elements = False
-        unactive_sliver_elements = False
+        unactive_sliver_elements = True
         set_active_flag = KratosPfemFluid.SetActiveFlagMesherProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
         self.mesher.SetPreMeshingProcess(set_active_flag)
 

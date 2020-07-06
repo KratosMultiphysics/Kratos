@@ -1081,10 +1081,18 @@ public:
         record.default_holder = detail::is_instantiation<std::unique_ptr, holder_type>::value;
 
         set_operator_new<type>(&record);
-
+        
+// to avoid having lots of -Wunused-value warnings in each python exposing
+// based on https://github.com/pybind/pybind11/issues/2225
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
+#endif
         /* Register base classes specified via template arguments to class_, if any */
         PYBIND11_EXPAND_SIDE_EFFECTS(add_base<options>(record));
-
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
         /* Process optional arguments, if any */
         process_attributes<Extra...>::init(extra..., &record);
 
