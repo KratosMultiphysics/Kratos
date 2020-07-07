@@ -49,8 +49,6 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 2.143115472065025)
         node = (model_part.Nodes)[9]
         self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 2.1431154720650243)
-        node = (model_part.Nodes)[23]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 14.142135623730953)
 
         #gid_output = GiDOutputProcess(model_part,
         #                            "curvature_post_2D",
@@ -152,11 +150,13 @@ class TestNodalDivergence(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [(node.X-0.5)**2,0,0] )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
-        KratosMultiphysics.ComputeNodalDivergenceProcess(
+        normalize_vector_field = False
+        KratosMultiphysics.ComputeNodalNormalDivergenceProcess(
             model_part,
             KratosMultiphysics.DISPLACEMENT,
             KratosMultiphysics.DETERMINANT_F,
-            KratosMultiphysics.NODAL_AREA).Execute()
+            KratosMultiphysics.NODAL_AREA,
+            normalize_vector_field).Execute()
 
         node = (model_part.Nodes)[19]
         self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DETERMINANT_F), 0.2)
@@ -164,8 +164,6 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DETERMINANT_F), -0.85)
         node = (model_part.Nodes)[9]
         self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DETERMINANT_F), -0.2)
-        node = (model_part.Nodes)[23]
-        self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DETERMINANT_F), -0.0)
 
     def test_nodal_divergence_3d_cube(self):
         current_model = KratosMultiphysics.Model()
@@ -181,11 +179,13 @@ class TestNodalDivergence(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [0,0,(node.Z-0.5)**2] )
             node.SetValue(KratosMultiphysics.NODAL_AREA, 0.0)
 
-        KratosMultiphysics.ComputeNodalDivergenceProcess(
+        normalize_vector_field = False
+        KratosMultiphysics.ComputeNodalNormalDivergenceProcess(
             model_part,
             KratosMultiphysics.DISPLACEMENT,
             KratosMultiphysics.DETERMINANT_F,
-            KratosMultiphysics.NODAL_AREA).Execute()
+            KratosMultiphysics.NODAL_AREA,
+            normalize_vector_field).Execute()
 
         node = (model_part.Nodes)[117]
         self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DETERMINANT_F), 0.666666666)
