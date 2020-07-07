@@ -954,25 +954,25 @@ public:
      */
 
     virtual void Calculate(const Variable<double>& rVariable,
-                           double& Output,
+                           double& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                           array_1d<double, 3 > & Output,
+                           array_1d<double, 3 > & rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable<Vector >& rVariable,
-                           Vector& Output,
+                           Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable<Matrix >& rVariable,
-                           Matrix& Output,
+                           Matrix& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
     }

@@ -646,10 +646,10 @@ void FluidElement<TElementData>::Calculate(
     if (rVariable == FLUID_STRESS) {
 
         // creating a new data container that goes out of scope after the function is left
-        TElementData dataLocal;
+        TElementData data_local;
 
         // transferring the velocity (among other variables)
-        dataLocal.Initialize(*this, rCurrentProcessInfo);
+        data_local.Initialize(*this, rCurrentProcessInfo);
 
         Vector gauss_weights;
         Matrix shape_functions;
@@ -659,20 +659,20 @@ void FluidElement<TElementData>::Calculate(
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const unsigned int number_of_gauss_points = gauss_weights.size();
 
-        double sumOfGaussWeights = 0.0;
+        double sum_of_gauss_weights = 0.0;
 
         for (unsigned int g = 0; g < number_of_gauss_points; g++){
 
-            this->UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            this->UpdateIntegrationPointData(data_local, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
 
-            const Vector gauss_point_contribution = dataLocal.ShearStress;
+            const Vector gauss_point_contribution = data_local.ShearStress;
 
             noalias( rOutput ) += gauss_point_contribution * gauss_weights[g];
-            sumOfGaussWeights += gauss_weights[g];
+            sum_of_gauss_weights += gauss_weights[g];
         }
 
         for (unsigned int i = 0; i < StrainSize; i++){
-            rOutput[i] = ( 1.0 / sumOfGaussWeights ) * rOutput[i];
+            rOutput[i] = ( 1.0 / sum_of_gauss_weights ) * rOutput[i];
         }
 
     } else {
