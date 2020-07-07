@@ -35,9 +35,9 @@ namespace Testing
 {
     typedef Node<3> NodeType;
 
-    KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawRHTConcrete3D, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawRHTConcrete3DUniaxialCompression, KratosParticleMechanicsFastSuite)
     {
-        const bool print_results = true;
+        const bool print_results = false;
 
         ConstitutiveLaw::Parameters cl_parameters;
         Properties material_properties;
@@ -57,6 +57,7 @@ namespace Testing
         NodeType::Pointer p_node_8 = test_model_part.CreateNewNode(8, 0.0, 1.0, 1.0);
         Hexahedra3D8<NodeType> geometry = Hexahedra3D8<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4,
             p_node_5, p_node_6, p_node_7, p_node_8);
+
         const double mp_volume = 0.000027; //30mm char length
         geometry.SetValue(MP_VOLUME, mp_volume);
 
@@ -94,7 +95,6 @@ namespace Testing
         material_properties.SetValue(RHT_COMPACTION_PRESSURE, 6000e6);
         material_properties.SetValue(FRACTURE_ENERGY, 120.0);
 
-
         test_model_part.GetProcessInfo().SetValue(DELTA_TIME, 1e12); // disable strain rate effect
         test_model_part.GetProcessInfo().SetValue(IS_EXPLICIT, true);
 
@@ -113,7 +113,6 @@ namespace Testing
         // Create the CL
         RHTConcrete3DLaw cl = RHTConcrete3DLaw();
 
-
         // Set strain for the test
         const double strain_min = -20000.0;
         const double strain_increments = 500.0;
@@ -121,10 +120,12 @@ namespace Testing
 
         Matrix result_matrix(strain_steps,7);
         Matrix strain_matrix;
+        std::vector<std::vector<double>> ref_results(strain_steps);
 
-        // results: p el f res yield converged eps_star damage
-        if (print_results) std::cout << "\n\np\tvm*\teps_hard_ratio\teps\teps_rate\tdamage\talpha\n";
+        if (print_results) std::cout <<
+            "\n\npressure\tvm/pressure\teps_hard_ratio\teps\teps_rate\tdamage\talpha\n";
 
+        // Run the CL
         for (size_t i = 0; i < strain_steps; ++i)
         {
             // Initialize the CL
@@ -138,8 +139,6 @@ namespace Testing
             strain_vector[0] = (strain_min+ i*strain_increments) / 1e6;
             strain_matrix = ZeroMatrix(3);
             strain_matrix(0, 0) = strain_vector[0]; // exx
-
-            //KRATOS_WATCH(strain_matrix)
 
             Matrix F = IdentityMatrix(3) + strain_matrix;
             const double detF = MathUtils<double>::Det(F);
@@ -160,32 +159,24 @@ namespace Testing
 
             // Check MP_DAMAGE
             cl.GetValue(MP_DAMAGE, value_damage);
-            //KRATOS_CHECK_NEAR(ref_temperature, value, tolerance);
 
             // Check MP_EQUIVALENT_PLASTIC_STRAIN
             cl.GetValue(MP_HARDENING_RATIO, value_hard_ratio);
 
             // Check MP_EQUIVALENT_PLASTIC_STRAIN
             cl.GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, value_eps);
-            //KRATOS_CHECK_NEAR(ref_plastic_strain, value, tolerance * tolerance);
 
             // Check MP_EQUIVALENT_PLASTIC_STRAIN_RATE
             cl.GetValue(MP_EQUIVALENT_PLASTIC_STRAIN_RATE, value_eps_rate);
-            //KRATOS_CHECK_NEAR(ref_plastic_strain_rate, value, tolerance * tolerance);
 
             // Check MP_EQUIVALENT_STRESS
             cl.GetValue(MP_EQUIVALENT_STRESS, value_vmstress);
-            //KRATOS_CHECK_NEAR(ref_equivalent_stress, value, tolerance);
 
             // Check MP_PRESSURE
             cl.GetValue(MP_PRESSURE, value_pressure);
-            //KRATOS_CHECK_NEAR(ref_equivalent_stress, value, tolerance);
 
             // Check MP_COMPACTION_RATIO
             cl.GetValue(MP_COMPACTION_RATIO, value_alpha);
-            //KRATOS_CHECK_NEAR(ref_equivalent_stress, value, tolerance);
-
-            KRATOS_WATCH(material_properties[DENSITY])
 
             result_matrix(i, 0) = value_pressure / 1e6;
             result_matrix(i, 1) = value_vmstress / material_properties[RHT_COMPRESSIVE_STRENGTH];
@@ -196,18 +187,67 @@ namespace Testing
             result_matrix(i, 6) = value_alpha;
 
             if (print_results) {
+                std::cout << "ref_results[" << i << "] = {";
                 for (size_t j = 0; j < result_matrix.size2(); ++j) {
                     if (j > 0) std::cout << ", ";
-                    std::cout << result_matrix(i, j);
+                    std::cout << std::fixed << std::setprecision(9) << result_matrix(i, j);
                 }
-                std::cout << "\n";
+                std::cout << "};\n";
             }
-
-            int test = 1;
         }
 
+        // Assemble reference results
+        // Result:         Pressure     , VM/pressure, eps/eps_hard, eps       , eps_rate   ,  damage    , alpha
+        ref_results[0] = { 204.615514977, 4.697978205, 1.000000000, 0.010051313, 0.000000000, 1.000000000, 1.172607454 };
+        ref_results[1] = { 199.946090557, 4.632285894, 1.000000000, 0.009763872, 0.000000000, 1.000000000, 1.173025007 };
+        ref_results[2] = { 195.283860293, 4.566095072, 1.000000000, 0.009476780, 0.000000000, 1.000000000, 1.173442588 };
+        ref_results[3] = { 190.628798380, 4.499388219, 1.000000000, 0.009190048, 0.000000000, 1.000000000, 1.173860197 };
+        ref_results[4] = { 185.980879151, 4.432146799, 1.000000000, 0.008903690, 0.000000000, 1.000000000, 1.174277833 };
+        ref_results[5] = { 181.340077068, 4.364351200, 1.000000000, 0.008617719, 0.000000000, 1.000000000, 1.174695497 };
+        ref_results[6] = { 176.706366726, 4.297454222, 1.000000000, 0.008331120, 0.000000000, 0.977959760, 1.175113188 };
+        ref_results[7] = { 172.079722849, 4.234227581, 1.000000000, 0.008041957, 0.000000000, 0.893189623, 1.175530905 };
+        ref_results[8] = { 167.460120294, 4.170465575, 1.000000000, 0.007753168, 0.000000000, 0.808947286, 1.175948649 };
+        ref_results[9] = { 162.847534042, 4.106147385, 1.000000000, 0.007464767, 0.000000000, 0.725253395, 1.176366419 };
+        ref_results[10] = { 158.241939205, 4.041250868, 1.000000000, 0.007176771, 0.000000000, 0.642129923, 1.176784215 };
+        ref_results[11] = { 153.643311020, 3.975752462, 1.000000000, 0.006889195, 0.000000000, 0.559600287, 1.177202037 };
+        ref_results[12] = { 149.051624851, 3.909627044, 1.000000000, 0.006602057, 0.000000000, 0.477689484, 1.177619885 };
+        ref_results[13] = { 144.466856186, 3.842847769, 1.000000000, 0.006315376, 0.000000000, 0.396424257, 1.178037758 };
+        ref_results[14] = { 139.888980639, 3.775385924, 1.000000000, 0.006029172, 0.000000000, 0.315833259, 1.178455656 };
+        ref_results[15] = { 135.317973946, 3.707210717, 1.000000000, 0.005743466, 0.000000000, 0.235947262, 1.178873579 };
+        ref_results[16] = { 130.753811966, 3.638289057, 1.000000000, 0.005458281, 0.000000000, 0.156799388, 1.179291526 };
+        ref_results[17] = { 126.196470677, 3.568585333, 1.000000000, 0.005173643, 0.000000000, 0.078425359, 1.179709499 };
+        ref_results[18] = { 121.645926182, 3.498061099, 1.000000000, 0.004889578, 0.000000000, 0.000863809, 1.180127495 };
+        ref_results[19] = { 117.102154701, 3.339999999, 0.976398008, 0.004666667, 0.000000000, 0.014449873, 1.180545516 };
+        ref_results[20] = { 112.565132574, 3.180952380, 0.951718157, 0.004444444, 0.000000000, 0.144411475, 1.180963560 };
+        ref_results[21] = { 108.034836258, 3.021904761, 0.926157641, 0.004222222, 0.000000000, 0.083624128, 1.181381628 };
+        ref_results[22] = { 103.511242331, 2.862857142, 0.899642126, 0.004000000, 0.000000000, 0.023532063, 1.181799720 };
+        ref_results[23] = { 98.994327482, 2.703809523, 0.872087144, 0.003777778, 0.000000000, 0.000000000, 1.182217835 };
+        ref_results[24] = { 94.484068522, 2.544761904, 0.843396167, 0.003555556, 0.000000000, 0.000000000, 1.182635972 };
+        ref_results[25] = { 89.980442371, 2.385714285, 0.813458205, 0.003333333, 0.000000000, 0.000000000, 1.183054133 };
+        ref_results[26] = { 85.483426068, 2.226666666, 0.782144771, 0.003111111, 0.000000000, 0.000000000, 1.183472316 };
+        ref_results[27] = { 80.992996762, 2.067619047, 0.749306023, 0.002888889, 0.000000000, 0.000000000, 1.183890522 };
+        ref_results[28] = { 76.509131718, 1.908571429, 0.714765781, 0.002666667, 0.000000000, 0.000000000, 1.184308750 };
+        ref_results[29] = { 72.031808310, 1.749523810, 0.678315024, 0.002444444, 0.000000000, 0.000000000, 1.184727001 };
+        ref_results[30] = { 67.561004024, 1.590476191, 0.639703272, 0.002222222, 0.000000000, 0.000000000, 1.185145273 };
+        ref_results[31] = { 63.096696458, 1.431428572, 0.598626964, 0.002000000, 0.000000000, 0.000000000, 1.185563567 };
+        ref_results[32] = { 58.638863317, 1.272380953, 0.554713543, 0.001777778, 0.000000000, 0.000000000, 1.185981882 };
+        ref_results[33] = { 54.187482416, 1.113333334, 0.507499161, 0.001555556, 0.000000000, 0.000000000, 1.186400219 };
+        ref_results[34] = { 49.742531678, 0.954285713, 0.456396759, 0.001333333, 0.000000000, 0.000000000, 1.186818577 };
+        ref_results[35] = { 45.303989134, 0.795238094, 0.400649118, 0.001111111, 0.000000000, 0.000000000, 1.187236956 };
+        ref_results[36] = { 40.871832922, 0.636190476, 0.339257677, 0.000888889, 0.000000000, 0.000000000, 1.187655356 };
+        ref_results[37] = { 36.446041284, 0.477142858, 0.270870653, 0.000666667, 0.000000000, 0.000000000, 1.188073776 };
+        ref_results[38] = { 29.720080934, 0.706706107, 0.124273995, 0.000172960, 0.000000000, 0.000000000, 1.188400000 };
+        ref_results[39] = { 14.849653534, 0.477142857, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 1.188400000 };
+        ref_results[40] = { 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 0.000000000, 1.188400000 };
 
-
+        // Check results
+        for (size_t i = 0; i < result_matrix.size1(); i++)
+        {
+            for (size_t j = 0; j < result_matrix.size2(); j++)
+            {
+                KRATOS_CHECK_NEAR(result_matrix(i,j), ref_results[i][j], 1e-6);
+            }
+        }
     }
 } // namespace Testing
 } // namespace Kratos
