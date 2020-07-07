@@ -48,7 +48,6 @@
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "processes/compute_nodal_normal_divergence_process.h"
-#include "processes/compute_nodal_divergence_process.h"
 #include "processes/assign_scalar_variable_to_entities_process.h"
 #include "processes/assign_scalar_field_to_entities_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
