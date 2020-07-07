@@ -957,24 +957,28 @@ public:
                            double& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_ERROR << "Asking for the elemental calculation of "  << rVariable.Name() << ". This is not implemented." << std::endl;
     }
 
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_ERROR << "Asking for the elemental calculation of "  << rVariable.Name() << ". This is not implemented." << std::endl;
     }
 
     virtual void Calculate(const Variable<Vector >& rVariable,
                            Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_ERROR << "Asking for the elemental calculation of "  << rVariable.Name() << ". This is not implemented." << std::endl;
     }
 
     virtual void Calculate(const Variable<Matrix >& rVariable,
                            Matrix& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_ERROR << "Asking for the elemental calculation of "  << rVariable.Name() << ". This is not implemented." << std::endl;
     }
 
     /**
