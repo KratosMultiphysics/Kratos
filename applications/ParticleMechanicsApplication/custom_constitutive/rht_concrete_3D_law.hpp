@@ -40,6 +40,9 @@ namespace Kratos
  *                  Chalmers University of Technology.
  *              [4] Pekmezi, G., Littlefield, D., and Martin, B. 'Implementation and Validation of the RHT Concrete Model',
  *                  Proceedings of the 14th Annual Early Career Technical Conference, Birmingham, Alabama, November 2014.
+ *              [5] Christian Heckoetter, Juergen Sievers (2016). 'Weiterentwicklung der Analysemethodik zur Beruecksichtigung
+ *                  komplexer Last- annahmen bei hochdynamischen Einwirkungen auf Stahlbetonstrukturen.
+ *                  https://www.grs.de/sites/default/files/pdf/grs-346.pdf
  */
 class RHTConcrete3DLaw : public HyperElastic3DLaw
 {

@@ -192,7 +192,6 @@ namespace Kratos
 					if (std::abs(consistency_condition)< mat_props[RHT_COMPRESSIVE_STRENGTH]/1e6)
 					{
 						is_converged = true;
-
 						break;
 					}
 				}
@@ -716,6 +715,7 @@ namespace Kratos
 
 
 		// Alternate method with reduced mesh sensitivity - regularised fracture energy assuming linear softening
+		// ref [5] eqn 4.27
 		double eps_failure = 2.0 * rMatProps[FRACTURE_ENERGY] / rMatProps[RHT_RELATIVE_TENSILE_STRENGTH] /
 			rMatProps[RHT_COMPRESSIVE_STRENGTH] / mCharacteristicLength;
 
