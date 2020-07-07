@@ -165,6 +165,7 @@ private:
     const Variable<array_1d<double,3>>* mpOriginVariable;  /// The scalar variable list to compute
     const Variable<double>* mpDivergenceVariable;          /// The resultant divergence variable
     const Variable<double>* mpAreaVariable;                /// The auxiliar area variable
+    bool mNonHistoricalOriginVariable = false;                   /// If the origin variable is non-historical
 
     ///@}
     ///@name Private Operators
@@ -194,16 +195,6 @@ private:
      */
     void PonderateDivergence();
 
-    /**
-     * @brief This computes and nolmalizes the divergence
-     */
-    virtual void ComputeDivergence(
-        const Element::GeometryType& rThisGeometry,
-        const Matrix& rDN_DX,
-        const Variable<array_1d<double,3>>& rVariable,
-        double& rDivergence
-    );
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -219,14 +210,6 @@ private:
     ///@{
 
     /// Assignment operator.
-
-    ///@}
-
-protected:
-    ///@name Member Variables
-    ///@{
-
-    bool mNonHistoricalOriginVariable = false;                   /// If the origin variable is non-historical
 
     ///@}
 
