@@ -1053,6 +1053,7 @@ void UpdatedLagrangian::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+        GetGeometry().SetValue(MP_VOLUME, mMP.volume);
         mConstitutiveLawVector->InitializeMaterial(
             GetProperties(), GetGeometry(), N);
 
