@@ -45,8 +45,6 @@ namespace Kratos {
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -89,12 +87,6 @@ namespace Kratos {
 			vel_original(0,0) = 0.0; vel_original(0,1) = 0.1;
 			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2;
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3;
-
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pProp->GetValue(DYNAMIC_VISCOSITY);
-			}
 
 			Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
 
@@ -152,9 +144,7 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
 			modelPart.AddNodalSolutionStepVariable(REACTION);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
@@ -201,12 +191,6 @@ namespace Kratos {
 			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2; vel_original(1,2) = 0.3;
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3; vel_original(2,2) = 0.4;
 			vel_original(3,0) = 0.3; vel_original(3,1) = 0.4; vel_original(3,2) = 0.5;
-
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-                it_node->FastGetSolutionStepValue(DENSITY) = pProp->GetValue(DENSITY);
-                it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pProp->GetValue(DYNAMIC_VISCOSITY);
-            }
 
 			Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
 

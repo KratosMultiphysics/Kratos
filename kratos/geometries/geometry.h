@@ -661,7 +661,7 @@ public:
     }
 
     ///@}
-    ///@name  Geometry Data
+    ///@name Geometry Data and Geometry Shape Function Container
     ///@{
 
     /**
@@ -673,6 +673,18 @@ public:
     GeometryData const& GetGeometryData() const
     {
         return *mpGeometryData;
+    }
+
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     *        E.g. QuadraturePointGeometries.
+     */
+    virtual void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&  rGeometryShapeFunctionContainer)
+    {
+        KRATOS_ERROR <<
+            "Calling SetGeometryShapeFunctionContainer from base geometry class."
+            << std::endl;
     }
 
     ///@}
