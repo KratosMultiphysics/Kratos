@@ -1,20 +1,38 @@
 # -*- coding: utf-8 -*-
+# make script backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
+
 import re, glob, subprocess, time, os, warnings, json
 import numpy as np
-import tau_python
-from tau_python import tau_msg
-from tau_python import tau_solver_unsteady_get_physical_time
-import PyPara, PySurfDeflect
+try:
+    import tau_python
+    from tau_python import tau_msg
+    import PyPara, PySurfDeflect
+    tau_available = True
+except:
+    tau_available = False
+    warnings.warn('tau modules not available')
+
 from scipy.io import netcdf
 
-with open('/work/piquee/MembraneWing/kratos_fsi_big/tau_settings.json') as json_file:
-    tau_settings = json.load(json_file)
+# Assign default settings
+start_step = 200
+echo_level = 0
+rotate = False
 
-start_step = tau_settings["start_step"]
-tau_path = tau_settings["tau_path"]
+# Read settings
+try:
+    with open('/work/piquee/MembraneWing/kratos_fsi_big/tau_settings.json') as json_file:
+        tau_settings = json.load(json_file)
+
+    start_step = tau_settings["start_step"]
+    tau_path = tau_settings["tau_path"]
+    echo_level = tau_settings["echo_level"]
+    rotate = tau_settings["rotate"]
+except:
+    warnings.warn('tau_settings.json not found')
+
 working_path = os.getcwd() + '/'
-echo_level = tau_settings["echo_level"]
-rotate = tau_settings["rotate"]
 
 # Remove output files and deform mesh files from previous simulations
 def RemoveFilesFromPreviousSimulations():
@@ -74,7 +92,7 @@ def ComputeFluidForces(working_path, step):
 
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, step, para_path_mod):
+def GetFluidMesh(working_path, step):
     # Read mesh from interface file
     X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 20)
 
@@ -82,7 +100,7 @@ def GetFluidMesh(working_path, step, para_path_mod):
     nodal_coords = ReadNodalCoordinates(X, Y, Z)
 
     # Save element types in a numpy array
-    element_types = ReadElementTypes(len(elem_connectivities)/4)
+    element_types = ReadElementTypes(int(len(elem_connectivities)/4))
 
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
@@ -122,7 +140,7 @@ def ComputeRelativeDisplacements(total_displacements, step, start_step):
         previous_total_displacements = np.zeros(len(total_displacements))
 
     # Declaring and initializing relative_displacements vector
-    number_of_nodes = len(total_displacements)/3
+    number_of_nodes = int(len(total_displacements)/3)
     relative_displacements = np.zeros([number_of_nodes, 3])
 
     # Loop over nodes
@@ -179,7 +197,6 @@ def ReadTauOutput(working_path, step, velocity):
 
     # Read mesh info
     NodesNr = mesh_info[0]
-    ElemsNr = mesh_info[1]
 
     X, Y, Z = SaveCoordinatesList(nodal_data, position_info, NodesNr)
     P = SavePressure(nodal_data, position_info, NodesNr, velocity)
@@ -191,7 +208,7 @@ def ReadTauOutput(working_path, step, velocity):
 def CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities):
     nodal_forces = np.zeros(3*len(X))
     # Loop over cells
-    for cell in range(len(elem_connectivities)/4):
+    for cell in range(int(len(elem_connectivities)/4)):
         # Get the node ids of the cell
         node_ids = GetCellNodeIds(elem_connectivities, cell)
 
@@ -223,13 +240,7 @@ def ReadNodalCoordinates(X, Y, Z):
 
 # Save element types in a numpy array
 def ReadElementTypes(ElemsNr):
-    # array to store the element types
-    element_types = np.zeros(ElemsNr, dtype=int)
-
-    for i in xrange(0, ElemsNr):
-        element_types[i] = 9
-
-    return element_types
+    return np.full(ElemsNr, 9, dtype=int)
 
 
 # Check if file exist and remove it, otherwise print a warning
@@ -257,7 +268,6 @@ def ModifyFilesIOLines(line, working_path, step, para_path_mod, start_step):
         line = 'Boundary mapping filename:' + parameter_filename + ' \n'
     elif 'Restart-data prefix:' in line:
         output_filename = FindOutputFilename(working_path, step)
-        print 'output_filename = ', output_filename
         CheckIfPathExists(output_filename)
         line = 'Restart-data prefix:' + output_filename + ' \n'
 
@@ -351,6 +361,7 @@ def FindOutputFilename(working_path, step):
         ouput_file_pattern = "airfoilSol.pval.deform_i="
     else:
         ouput_file_pattern = "airfoilSol.pval.unsteady_i="
+    CheckIfPathExists(FindFilename(outputs_path, ouput_file_pattern, step + 1))
     return FindFilename(outputs_path, ouput_file_pattern, step + 1)
 
 
@@ -453,7 +464,7 @@ def FindInitialMeshFilename(mesh_path, pattern):
 def FindFilename(path, pattern, step):
     files_list = glob.glob(path + "*")
     if echo_level > 0:
-        print 'files_list =', files_list
+        print('files_list = ', files_list)
     for file in files_list:
         if file.startswith('%s' % path + '%s' % pattern + '%s' % step):
             return file

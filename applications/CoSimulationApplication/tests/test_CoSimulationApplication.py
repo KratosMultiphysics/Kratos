@@ -29,6 +29,7 @@ if numpy_available:
     from test_convergence_criteria import TestConvergenceCriteriaWrapper
     from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
     from test_co_simulation_coupled_solver import TestCoupledSolverGetSolver
+    from test_tau_functions import TestTauFunctions
 
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
@@ -50,8 +51,9 @@ def AssembleTestSuites():
     '''
     suites = KratosUnittest.KratosSuites
     ################################################################################
-    # smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTauFunctions]))
     # if numpy_available:
     #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
     #     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
@@ -89,8 +91,8 @@ def AssembleTestSuites():
     ################################################################################
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    # allSuite.addTests(nightSuite) # already contains the smallSuite
-    allSuite.addTests(validationSuite)
+    allSuite.addTests(smallSuite) # already contains the smallSuite
+    # allSuite.addTests(validationSuite)
 
     return suites
 
