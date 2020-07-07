@@ -1,15 +1,27 @@
-## CoSimulation Application
+# CoSimulation Application
 
 The CoSimulation Application contains the core developments in coupling black-box solvers and other software-tools within Kratos Multiphysics.
 
-## Main Features:
+## Overview
+
+- [List of features](#list-of-features)
+- [Dependencies](#dependencies)
+- [Structure of the Application]()
+
+- [Basic Usage](#basic-usage)
+- [Advanced Usage](#advanced-usage)
+- [Available Mappers](#Available-Mappers)
+- [When to use which Mapper?](#When-to-use-which-Mapper)
+- [FAQ](#faq)
+
+## List of features
 
 - Various features available for CoSimulation:
-    - [Coupling Algorithms](python_scripts/coupled_solvers)
-    - [Wrappers for various solvers and other software-tools](python_scripts/solver_wrappers)
-    - [Convergence Accelerators](python_scripts/convergence_accelerators)
-    - [Convergence Criteria](python_scripts/convergence_criteria)
-    - [Predictors](python_scripts/predictors)
+  - [Coupling Algorithms](python_scripts/coupled_solvers)
+  - [Wrappers for various solvers and other software-tools](python_scripts/solver_wrappers)
+  - [Convergence Accelerators](python_scripts/convergence_accelerators)
+  - [Convergence Criteria](python_scripts/convergence_criteria)
+  - [Predictors](python_scripts/predictors)
 
 - Besides the above mentioned functionalities the modular design of the application makes it straight forward to add a new or customized version of e.g. a ConvergenceAccelerator. It is not necessary to have those custom python scripts inside the CoSimulation, it is sufficient that they are in a directory that is included in the _PYTHONPATH_.
 
@@ -19,12 +31,20 @@ The CoSimulation Application contains the core developments in coupling black-bo
 
 - The [MappingApplication](../MappingApplication) is used for mapping between nonmatching grids.
 
+## Dependencies
+
+The CoSimulation Application itself doesn't have any dependencies (except the `KratosCore` / `KratosMPICore` for serial/MPI-compilation).
+
+For running coupled simulations the solvers to be used have to be available. Those dependencies are python-only.
+
 ## Examples
+
 This section is currently under construction.
 Please refer to the [tests](tests) for examples of how the coupling can be configured.
 Especially the [Mok-FSI](tests/fsi_mok) and the [Wall-FSI](tests/fsi_wall) tests are very suitable for getting a basic understanding.
 
 ## How to couple a new (external) solver / software-tool?
+
 The CoSimulation Application is very modular and designed to be extended to coupling of more solvers / software-tools.This requires basically two components:
 
 The interface between the CoSimulation and a solver is the done with the [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py). This wrapper is specific to every solver and calls the solver-custom methods based on the input of CoSimulation.
