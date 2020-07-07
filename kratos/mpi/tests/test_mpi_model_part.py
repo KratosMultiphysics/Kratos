@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
