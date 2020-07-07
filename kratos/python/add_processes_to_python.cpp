@@ -342,20 +342,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
     ;
 
-    /* Historical */
-    py::class_<ComputeNodalDivergenceProcess< ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>, ComputeNodalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalDivergenceProcess")
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& >())
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
-    ;
-
-    /* Non-Historical */
-    py::class_<ComputeNodalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalDivergenceProcess")
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& >())
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
-    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
-    ;
-
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
