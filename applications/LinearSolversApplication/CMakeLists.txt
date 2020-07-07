@@ -117,7 +117,7 @@ if(USE_COTIRE MATCHES ON)
 endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/EigenSolversApplication.py KratosMultiphysics/EigenSolversApplication/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/EigenSolversApplication.py KratosMultiphysics/LinearSolversApplication/__init__.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
