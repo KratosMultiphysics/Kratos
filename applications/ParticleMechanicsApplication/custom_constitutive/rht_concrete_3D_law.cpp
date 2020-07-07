@@ -624,13 +624,16 @@ namespace Kratos
 		array_1d<double, 2> rate_factors;
 		rate_factors[0] = 1.0; // tension
 		rate_factors[1] = 1.0; // compression
-		if (EPSrate > 0.0) {
+		if (EPSrate > rMaterialProperties[REFERENCE_TENSION_STRAIN_RATE]) {
 			const double beta_t = 1.0 / (10.0 + 0.5 * rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] / 1e6);
-			const double beta_c = 1.0 / (5.0 + 0.75 * rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] / 1e6);
-
 			rate_factors[0] = std::pow(EPSrate/ rMaterialProperties[REFERENCE_TENSION_STRAIN_RATE], beta_t);
-			rate_factors[1] = std::pow(EPSrate/ rMaterialProperties[REFERENCE_COMPRESSION_STRAIN_RATE], beta_c);
 		}
+
+		if (EPSrate > rMaterialProperties[REFERENCE_COMPRESSION_STRAIN_RATE]) {
+			const double beta_c = 1.0 / (5.0 + 0.75 * rMaterialProperties[RHT_COMPRESSIVE_STRENGTH] / 1e6);
+			rate_factors[1] = std::pow(EPSrate / rMaterialProperties[REFERENCE_COMPRESSION_STRAIN_RATE], beta_c);
+		}
+
 		return rate_factors;
 	}
 
