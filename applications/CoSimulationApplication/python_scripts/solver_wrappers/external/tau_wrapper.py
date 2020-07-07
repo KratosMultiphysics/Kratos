@@ -53,6 +53,9 @@ class TAUWrapper(CoSimulationSolverWrapper):
         cs_tools.CreateModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
         cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
+        self.time = wrapper_settings["start_time"].GetDouble()
+        self.time_step = wrapper_settings["time_step"].GetDouble()
+
     def Initialize(self):
         print('TAUWrapper Initialize')
         super(TAUWrapper, self).Initialize()
@@ -76,7 +79,8 @@ class TAUWrapper(CoSimulationSolverWrapper):
             print(data_config["time"])
             return data_config["time"]
         else:
-            return 100.0
+            self.time += self.time_step
+            return self.time
 
     def InitializeSolutionStep(self):
         print('TAUWrapper InitializeSolutionStep')

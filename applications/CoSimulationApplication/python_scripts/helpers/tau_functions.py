@@ -13,8 +13,7 @@ except:
     tau_available = False
     warnings.warn('tau modules not available')
 
-# from scipy.io import netcdf
-import netcdf4
+from scipy.io import netcdf
 
 # Assign default settings
 start_step = 200

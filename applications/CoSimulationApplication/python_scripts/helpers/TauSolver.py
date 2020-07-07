@@ -4,6 +4,8 @@ import numpy as np
 import CoSimIO
 import PyPara, PyPrep, PySolv, PyDeform, PyCopyCluster, PyMotionExternalDelegate
 from tau_python import tau_solver_unsteady_get_physical_time
+from tau_python import tau_mpi_rank
+rank = tau_mpi_rank()
 
 with open('tau_settings.json') as json_file:
     tau_settings = json.load(json_file)
@@ -18,8 +20,10 @@ rotate = tau_settings["rotate"]
 # tau_functions can only be imported after appending kratos' path
 import tau_functions as TauFunctions
 
-# Remove output files and deform mesh files from previous simulations
-TauFunctions.RemoveFilesFromPreviousSimulations()
+if tau_mpi_rank() == 0:
+    # Remove output files and deform mesh files from previous simulations
+    TauFunctions.RemoveFilesFromPreviousSimulations()
+tau_parallel_sync()
 
 # Definition of the parameter file
 if rotate:
@@ -76,10 +80,12 @@ step = start_step
 def AdvanceInTime(current_time):
     # Preprocessing needs to be done before getting the time and time step
     TauFunctions.PrintBlockHeader("Start Preprocessing at time %s" %(str(time)))
-    Prep.run(write_dualgrid=False,free_primgrid=False)
+    Prep.run(write_dualgrid=1,free_primgrid=False)
+    tau_parallel_sync()
     TauFunctions.PrintBlockHeader("Stop Preprocessing at time %s" %(str(time)))
     TauFunctions.PrintBlockHeader("Initialize Solver at time %s" %(str(time)))
     Solver.init(verbose = 1, reset_steps = True, n_time_steps = 1)
+    tau_parallel_sync()
 
     if rotate:
         motionString = MyMotionStringGenerator(step - start_step)
@@ -103,6 +109,7 @@ def SolveSolutionStep():
     if tau_settings["echo_level"] > 0:
         print("TAU SOLVER SolveSolutionStep")
     Solver.outer_loop()
+    tau_parallel_sync()
     Solver.output()
     tau_plt_init_tecplot_params(para_path_mod)
     tau_solver_write_output_conditional()
@@ -174,18 +181,47 @@ settings = {
     "communication_format" : "file"
 }
 
-CoSimIO.Connect(connection_name, settings)
 
-CoSimIO.Register_AdvanceInTime(connection_name, AdvanceInTime)
-CoSimIO.Register_InitializeSolutionStep(connection_name, InitializeSolutionStep)
-CoSimIO.Register_SolveSolutionStep(connection_name, SolveSolutionStep)
-CoSimIO.Register_FinalizeSolutionStep(connection_name, FinalizeSolutionStep)
-CoSimIO.Register_ImportData(connection_name, ImportData)
-CoSimIO.Register_ExportData(connection_name, ExportData)
-CoSimIO.Register_ExportMesh(connection_name, ExportMesh)
+if rank == 0:
+    CoSimIO.Connect(connection_name, settings)
 
-# Run the coupled simulation, this returns after the entire CoSim is done
-CoSimIO.Run(connection_name)
+n_steps = int(Para.get_para_value('Unsteady physical time steps'))
+coupling_interface_imported = False
+for i in range(n_steps):
+    AdvanceInTime(0.0)
+    InitializeSolutionStep()
 
-CoSimIO.Disconnect(connection_name)
+    SolveSolutionStep()
+
+    if not coupling_interface_imported:
+        ExportMesh(connection_name, "Fluid.Interface")
+        coupling_interface_imported = True
+
+    ExportData(connection_name, "Interface_force")
+    ImportData(connection_name, "Interface_disp")
+
+    FinalizeSolutionStep()
+
+if rank == 0:
+    CoSimIO.Disconnect(connection_name)
+
+'''
+if tau_mpi_rank() == 0:
+    import tau_python
+    for i in sorted(dir(tau_python)):
+        print(i)
+
+    CoSimIO.Register_AdvanceInTime(connection_name, AdvanceInTime)
+    CoSimIO.Register_InitializeSolutionStep(connection_name, InitializeSolutionStep)
+    CoSimIO.Register_SolveSolutionStep(connection_name, SolveSolutionStep)
+    CoSimIO.Register_FinalizeSolutionStep(connection_name, FinalizeSolutionStep)
+    CoSimIO.Register_ImportData(connection_name, ImportData)
+    CoSimIO.Register_ExportData(connection_name, ExportData)
+    CoSimIO.Register_ExportMesh(connection_name, ExportMesh)
+
+    # Run the coupled simulation, this returns after the entire CoSim is done
+    CoSimIO.Run(connection_name)
+
+    CoSimIO.Disconnect(connection_name)
+'''
 tau("exit")
