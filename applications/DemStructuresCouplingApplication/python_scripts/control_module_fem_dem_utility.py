@@ -16,21 +16,25 @@ class ControlModuleFemDemUtility(object):
         if test_number == 1: # CTW16
             compression_length = 0.00381
             # face_area = 0.008062
+            alternate_axis_loading = False
+            limit_velocity = -50.0
         elif test_number == 2: # CTW10
             compression_length = 0.00381
             # face_area = 0.007601
+            alternate_axis_loading = False
+            limit_velocity = -50.0
         else: # Blind test
             compression_length = 0.009144
             # face_area = 0.088343
+            alternate_axis_loading = True
+            limit_velocity = -15.0
 
         if fem_main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             self.fem_submodel_part = Model["Structure.Parts_Solid_part"]
             settings = KratosMultiphysics.Parameters( """
             {
-                "alternate_axis_loading": true,
                 "target_stress_table_id" : 1,
                 "initial_velocity" : 0.0,
-                "limit_velocity" : -15.0,
                 "velocity_factor" : 1.0,
                 "compression_length" : 1.0,
                 "young_modulus" : 7.0e9,
@@ -39,7 +43,10 @@ class ControlModuleFemDemUtility(object):
                 "start_time" : 0.0,
                 "stress_averaging_time": 1.0e-5
             }  """ )
-
+            settings.AddEmptyValue("alternate_axis_loading")
+            settings["alternate_axis_loading"].SetBool(alternate_axis_loading)
+            settings.AddEmptyValue("limit_velocity")
+            settings["limit_velocity"].SetDouble(limit_velocity)
             self.components_utility_list.append(DemFem.ControlModuleFemDem2DUtilities(self.fem_submodel_part, self.dem_main_model_part, settings))
         else:
             self.top_fem_model_part = Model["Structure.SurfacePressure3D_top_pressure"]
