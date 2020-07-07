@@ -304,11 +304,12 @@ namespace MPMSearchElementUtility
                     }
                     pelem->Set(ACTIVE);
 
+                    auto p_quadrature_point_geometry = element_itr->pGetGeometry();
                     array_1d<double, 3> local_coordinates;
-                    pGeometry->PointLocalCoordinates(local_coordinates, rCoordinates);
+                    p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
                     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                        element_itr->pGetGeometry(), local_coordinates,
-                        element_itr->GetGeometry().IntegrationPoints()[0].Weight(), pelem->GetGeometry());
+                        p_quadrature_point_geometry, local_coordinates,
+                        p_quadrature_point_geometry.IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
                     auto& r_geometry = element_itr->GetGeometry();
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
