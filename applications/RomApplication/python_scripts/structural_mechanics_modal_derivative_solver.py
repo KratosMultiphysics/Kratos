@@ -45,6 +45,7 @@ class ModalDerivativeSolver(MechanicalSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "derivative_type"               : "static",
+            "derivative_parameter_type"     : "modal_coordinates",
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
             "mass_orthonormalize"           : true,
@@ -95,11 +96,28 @@ class ModalDerivativeSolver(MechanicalSolver):
             err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
 
+        derivative_parameter_type = self.settings["derivative_parameter_type"].GetString()
+        derivative_parameter_type_flag = 0
+        if  derivative_parameter_type == "modal_coordinates":
+            derivative_parameter_type_flag = 0
+        elif derivative_parameter_type == "mass_parameter":
+            derivative_parameter_type_flag = 1
+        elif derivative_parameter_type == "stiffness_parameter":
+            derivative_parameter_type_flag = 2
+        else:
+            err_msg  = '\"derivative_parameter_type\" can only be \"modal_coordinate\", \"mass_parameter\" or \"stiffness_parameter\"'
+            raise Exception(err_msg)
+
+        if not derivative_type_flag and derivative_parameter_type_flag == 1:
+            err_msg  = '\"derivative_parameter_type\" can only be \"mass_parameter\" when \"derivetive_type\" is selected to be \"dynamic\"'
+            raise Exception(err_msg)
+
         mass_orthonormalize_flag = self.settings["mass_orthonormalize"].GetBool()
 
         return RomApplication.ModalDerivativeStrategy(computing_model_part,
                                                           mechanical_scheme,
                                                           builder_and_solver,
                                                           derivative_type_flag,
+                                                          derivative_parameter_type_flag,
                                                           mass_orthonormalize_flag)
     

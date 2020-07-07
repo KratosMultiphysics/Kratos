@@ -72,11 +72,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
              BaseSchemeType::Pointer,
              BuilderAndSolverType::Pointer,
              bool,
+             int,
              bool>(),
                 py::arg("model_part"),
                 py::arg("scheme"),
                 py::arg("builder_and_solver"),
                 py::arg("derivative_type_flag"),
+                py::arg("derivative_parameter_type"),
                 py::arg("mass_orthonormalize_flag"))
         ;
 

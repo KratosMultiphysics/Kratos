@@ -43,6 +43,11 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
         
+        derivative_parameter_type = self.project_parameters["solver_settings"]["derivative_parameter_type"].GetString()
+        derivative_parameter_type_flag = True
+        if derivative_parameter_type != "modal_coordinates":
+            derivative_parameter_type_flag = False
+
         rom_parameters_filename = self.project_parameters["solver_settings"]["rom_parameters_filename"].GetString()
         with open(rom_parameters_filename) as rom_parameters_file:
             data = json.load(rom_parameters_file)
@@ -55,11 +60,13 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                 eigenvalues = [0]*number_of_initial_rom_dofs
                             
             number_of_extended_rom_dofs = None
-            if derivative_type_flag:
+            if derivative_type_flag and derivative_parameter_type_flag:
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ))
-            else:
+            elif not derivative_type_flag and derivative_parameter_type_flag: 
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs + number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ) / 2)
-                
+            elif not derivative_parameter_type_flag:
+                number_of_extended_rom_dofs = int(2*number_of_initial_rom_dofs)
+
             kratos_eigenvalues = KratosMultiphysics.Vector(number_of_initial_rom_dofs)
             for i in range(number_of_initial_rom_dofs):
                 kratos_eigenvalues[i] = eigenvalues[i]
