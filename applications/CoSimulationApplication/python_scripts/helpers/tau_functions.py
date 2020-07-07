@@ -7,7 +7,7 @@ from tau_python import tau_solver_unsteady_get_physical_time
 import PyPara, PySurfDeflect
 from scipy.io import netcdf
 
-with open('tau_settings.json') as json_file:
+with open('/work/piquee/MembraneWing/kratos_fsi_big/tau_settings.json') as json_file:
     tau_settings = json.load(json_file)
 
 start_step = tau_settings["start_step"]
@@ -482,6 +482,9 @@ class MotionStringGenerator(object):
 		self.pitchDeg = pitchDeg
 		self.thetaDeg = thetaDeg
 		self.thetaRate = thetaRate
+		print 'deltaT = ', deltaT
+		print 'thetaDeg = ', thetaDeg
+		print 'thetaRate = ', thetaRate
 
 
 	def GetMotionString(self,step):
@@ -502,6 +505,10 @@ class MotionStringGenerator(object):
 		dy    = 0.
 		dz    = 0.
 		motionString=" ".join(map(str, [p,q,r,phi,theta,psi,u,v,w,dx,dy,dz]))
+		print 'step = ', step
+        	print 'motionString = ', motionString
+        	print 'q = ', self.pitchFreq
+        	print 'theta = ', self.thetaInstant
 
 		return motionString
 
