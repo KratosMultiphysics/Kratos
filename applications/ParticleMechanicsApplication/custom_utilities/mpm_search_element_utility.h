@@ -297,7 +297,8 @@ namespace MPMSearchElementUtility
                             element_itr->SetValuesOnIntegrationPoints(MP_COORD, { xg_nudged }, rMPMModelPart.GetProcessInfo());
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: To prevent spurious explicit stresses, Material Point "
                                 << element_itr->Id() << " was nudged." << std::endl;
-                        } else { is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                        } else {
+                            is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Material Point " << element_itr->Id()
                                 << " lies exactly on an element edge and may give spurious results." << std::endl;
                         }
@@ -309,7 +310,7 @@ namespace MPMSearchElementUtility
                     p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
                     CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                         p_quadrature_point_geometry, local_coordinates,
-                        p_quadrature_point_geometry.IntegrationPoints()[0].Weight(), pelem->GetGeometry());
+                        p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
                     auto& r_geometry = element_itr->GetGeometry();
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
