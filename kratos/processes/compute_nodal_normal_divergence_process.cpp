@@ -317,6 +317,9 @@ array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetHistoric
 {
     const auto& vector_field = rNode.FastGetSolutionStepValue(rVariable);
     const double norm = norm_2(vector_field);
+    #ifdef KRATOS_DEBUG
+    KRATOS_WARNING_IF("NodalNormalDivergenceProcess", norm < 1.0e-12) << "Unexpected zero norm" <<std::endl;
+    #endif
     return vector_field / norm;
 }
 
@@ -327,6 +330,9 @@ array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetNonHisto
 {
     const auto& vector_field = rNode.GetValue(rVariable);
     const double norm = norm_2(vector_field);
+    #ifdef KRATOS_DEBUG
+    KRATOS_WARNING_IF("NodalNormalDivergenceProcess", norm < 1.0e-12) << "Unexpected zero norm" <<std::endl;
+    #endif
     return vector_field / norm;
 }
 
