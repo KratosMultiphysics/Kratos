@@ -155,11 +155,13 @@ ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveA
     const Variable<array_1d<double,3>>& rOriginVariable,
     const Variable<double>& rDivergenceVariable,
     const Variable<double>& rAreaVariable,
+    const bool NormalizeDivergence,
     const bool NonHistoricalOriginVariable
     ) : mrModelPart(rModelPart),
         mpOriginVariable(&rOriginVariable),
         mpDivergenceVariable(&rDivergenceVariable),
         mpAreaVariable(&rAreaVariable),
+        mNormalizeDivergece(NormalizeDivergence),
         mNonHistoricalOriginVariable(NonHistoricalOriginVariable)
 {
     KRATOS_TRY
@@ -190,11 +192,13 @@ ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveA
     const Variable<array_1d<double,3>>& rOriginVariable,
     const Variable<double>& rDivergenceVariable,
     const Variable<double>& rAreaVariable,
+    const bool NormalizeDivergence,
     const bool NonHistoricalOriginVariable
     ) : mrModelPart(rModelPart),
         mpOriginVariable(&rOriginVariable),
         mpDivergenceVariable(&rDivergenceVariable),
         mpAreaVariable(&rAreaVariable),
+        mNormalizeDivergece(NormalizeDivergence),
         mNonHistoricalOriginVariable(NonHistoricalOriginVariable)
 {
     KRATOS_TRY
@@ -288,6 +292,45 @@ void ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::
             rNode.GetValue(*mpDivergenceVariable) /=
                 rNode.GetValue(*mpAreaVariable);
         });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool THistorical>
+array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetHistoricalNormalVectorField(
+    const Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    const auto& vector_field = rNode.FastGetSolutionStepValue(rVariable);
+    const double norm = norm_2(vector_field);
+    return vector_field / norm;
+}
+
+template <bool THistorical>
+array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetNonHistoricalNormalVectorField(
+    const Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    const auto& vector_field = rNode.GetValue(rVariable);
+    const double norm = norm_2(vector_field);
+    return vector_field / norm;
+}
+
+template <bool THistorical>
+array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetHistoricalVectorField(
+    const Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template <bool THistorical>
+array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetNonHistoricalVectorField(
+    const Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    return rNode.GetValue(rVariable);
 }
 
 /***********************************************************************************/
