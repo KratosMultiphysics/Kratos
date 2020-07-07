@@ -538,8 +538,13 @@ namespace Kratos
                 double effective_stress = std::sqrt(3.0 / 2.0 *
                     CalculateMatrixDoubleContraction(rDeviatoricStress));
                 if (std::abs(effective_stress) < tolerance)  effective_stress = tolerance;
-                const double temp = 27.0 * MathUtils<double>::Det(rDeviatoricStress)
+                double temp = 27.0 * MathUtils<double>::Det(rDeviatoricStress)
                     / 2.0 / effective_stress / effective_stress / effective_stress;
+                if (std::abs(temp) - 1.0 < tolerance)
+                {
+                    if (temp < 0.0) temp = -1.0;
+                    else temp = 1.0;
+                }
                 return std::acos(temp) / 3.0;
             }
 
