@@ -43,7 +43,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
         
-        derivative_parameter_type = self.project_parameters["solver_settings"]["derivative_parameter_type"].GetString()
+        derivative_parameter_type = self.project_parameters["solver_settings"]["derivative_parameter"].GetString()
         derivative_parameter_type_flag = True
         if derivative_parameter_type != "modal_coordinates":
             derivative_parameter_type_flag = False

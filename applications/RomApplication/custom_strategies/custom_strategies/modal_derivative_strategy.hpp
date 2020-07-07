@@ -126,7 +126,8 @@ public:
         bool MassOrthonormalizeFlag
         )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
-        mDerivativeTypeFlag(DerivativeTypeFlag), 
+        mDerivativeTypeFlag(DerivativeTypeFlag),
+        mDerivativeParameterType(DerivativeParameterType),
         mMassOrthonormalizeFlag(MassOrthonormalizeFlag)
     {
         KRATOS_TRY
@@ -158,8 +159,6 @@ public:
         mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
     
         rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
-
-        rModelPart.GetProcessInfo()[DERIVATIVE_PARAMETER_TYPE] = DerivativeParameterType;
 
         if ( mDerivativeTypeFlag && DerivativeParameterType == 0 )
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis*( mNumberInitialBasis + 1 ), true);
@@ -407,8 +406,7 @@ public:
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
         TSystemVectorType basis;
         TSparseSpace::Resize(basis, rA.size1());
-        unsigned int derivative_parameter_type = r_model_part.GetProcessInfo()[DERIVATIVE_PARAMETER_TYPE];
-               
+
         // Build system matrices
         // Build mass matrix
         if (mMassOrthonormalizeFlag || mDerivativeTypeFlag)
@@ -422,8 +420,8 @@ public:
         if (mDerivativeTypeFlag)
         {   // Dynamic derivatives
             
-            // Build stiffness matrix separately            
-            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);            
+            // Build stiffness matrix separately
+            this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rStiffnessMatrix);   
         } 
         else
         {   // Static derivatives
@@ -432,12 +430,12 @@ public:
             this->pGetBuilderAndSolver()->BuildLHS(p_scheme,r_model_part,rA);
         }
 
-        if (derivative_parameter_type == 0) // modal coordinates
+        if (mDerivativeParameterType == 0) // modal coordinates
             this->BuildRHSAndSolveModalCoordinates();
-        if (derivative_parameter_type > 0) // mass parameter
+        if (mDerivativeParameterType > 0) // mass parameter
             this->BuildRHSAndSolveMaterialParameter();
 
-        // KRATOS_WATCH(r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR])
+        KRATOS_WATCH(r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR])
 
         // this->ComputeReducedMatrices();
 
@@ -491,12 +489,12 @@ public:
             this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
             // Compute the derivative of the eigenvalue
-            const double deigenvalue_i_dbasis_j = prec_inner_prod(basis, rb);
-            r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dbasis_j;
+            const double deigenvalue_i_dparameter = prec_inner_prod(basis, rb);
+            r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dparameter;
 
             // Dynamic derivative RHS
             if (mDerivativeTypeFlag)
-                rb -= deigenvalue_i_dbasis_j * prec_prod(rMassMatrix, basis);
+                rb -= deigenvalue_i_dparameter * prec_prod(rMassMatrix, basis);
 
             Timer::Stop("BuildRHS");
             const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
@@ -608,12 +606,12 @@ public:
                 this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
                 // Compute the derivative of the eigenvalue
-                const double deigenvalue_i_dparameter = prec_inner_prod(basis, rb);
-                r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dparameter;
+                const double deigenvalue_i_dbasis_j = prec_inner_prod(basis, rb);
+                r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dbasis_j;
 
                 // Dynamic derivative RHS
                 if (mDerivativeTypeFlag)
-                    rb -= deigenvalue_i_dparameter * prec_prod(rMassMatrix, basis);
+                    rb -= deigenvalue_i_dbasis_j * prec_prod(rMassMatrix, basis);
 
                 Timer::Stop("BuildRHS");
                 const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
@@ -1026,6 +1024,8 @@ private:
     TBuilderAndSolverPointerType mpBuilderAndSolver;
 
     bool mDerivativeTypeFlag;
+
+    int mDerivativeParameterType;
 
     bool mMassOrthonormalizeFlag;
 
