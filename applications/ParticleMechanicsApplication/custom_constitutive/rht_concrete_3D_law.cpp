@@ -160,9 +160,9 @@ namespace Kratos
 					const double eps_fail = CalculateFailureStrain(pressure,
 						damage_trial, rate_factors, mat_props);
 					// Calculate damage increment, ref[1]eqn21, ref[2]
-					delta_damage = (delta_eps - eps_harden_limit) / eps_fail;
-					if (delta_damage > 0.0) damage_trial = mDamage + delta_damage;
+					damage_trial = (eps_trial - eps_harden_limit) / eps_fail;
 					if (damage_trial > 1.0) damage_trial = 1.0;
+					if (damage_trial < mDamage) damage_trial = mDamage; // Reversal of damage not allowed!
 
 					const double limit_residual = CalculateResidualLimit(pressure, mat_props);
 					// Our current surface lies in between the failure and residual surface.
