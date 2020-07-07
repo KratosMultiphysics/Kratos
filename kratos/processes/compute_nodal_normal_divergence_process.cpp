@@ -10,6 +10,9 @@
 //  Main authors:    Mohammad R. Hashemi (based on the work by Riccardo Rossi and Vicente Mataix Ferrandiz)
 //
 
+/* Sysytem includes */
+#include <functional>
+
 /* Project includes */
 #include "processes/compute_nodal_normal_divergence_process.h"
 
@@ -30,6 +33,13 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
     const auto it_element_begin = mrModelPart.ElementsBegin();
 
     if (!mNonHistoricalOriginVariable) {
+        std::function<array_1d<double,3>(const Node<3>&, const Variable<array_1d<double,3>>&)> get_vector_field;
+        if (mNormalizeDivergece) {
+            get_vector_field = GetHistoricalNormalVectorField;
+        } else {
+            get_vector_field = GetHistoricalVectorField;
+        }
+
         // Iterate over the elements
         #pragma omp parallel for firstprivate(J0, InvJ0, DN_DX)
         for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
@@ -61,11 +71,9 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
 
                 double divergence = 0.0;
                 for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
-                    const auto& vector_field = r_geometry[i_node].FastGetSolutionStepValue(*mpOriginVariable);
+                    const auto& vector_field = get_vector_field(r_geometry[i_node], *mpOriginVariable);
 
-                    const double norm = norm_2(vector_field);
-
-                    divergence += inner_prod( row(DN_DX, i_node), vector_field ) / norm;
+                    divergence += inner_prod( row(DN_DX, i_node), vector_field );
                 }
 
                 const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
@@ -85,6 +93,13 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             }
         }
     } else{
+        std::function<array_1d<double,3>(const Node<3>&, const Variable<array_1d<double,3>>&)> get_vector_field;
+        if (mNormalizeDivergece) {
+            get_vector_field = GetNonHistoricalNormalVectorField;
+        } else {
+            get_vector_field = GetNonHistoricalVectorField;
+        }
+
         // Iterate over the elements
         #pragma omp parallel for firstprivate(J0, InvJ0, DN_DX)
         for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
@@ -116,11 +131,9 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
 
                 double divergence = 0.0;
                 for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
-                    const auto& vector_field = r_geometry[i_node].GetValue(*mpOriginVariable);
+                    const auto& vector_field = get_vector_field(r_geometry[i_node], *mpOriginVariable);
 
-                    const double norm = norm_2(vector_field);
-
-                    divergence += inner_prod( row(DN_DX, i_node), vector_field ) / norm;
+                    divergence += inner_prod( row(DN_DX, i_node), vector_field );
                 }
 
                 const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
