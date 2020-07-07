@@ -435,7 +435,7 @@ public:
         if (mDerivativeParameterType > 0) // mass parameter
             this->BuildRHSAndSolveMaterialParameter();
 
-        KRATOS_WATCH(r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR])
+        // KRATOS_WATCH(r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR])
 
         // this->ComputeReducedMatrices();
 
