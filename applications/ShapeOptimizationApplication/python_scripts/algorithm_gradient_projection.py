@@ -15,7 +15,7 @@ from __future__ import print_function, absolute_import, division
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
-from KratosMultiphysics.EigenSolversApplication import dense_linear_solver_factory
+from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
 
 # Additional imports
 from .algorithm_base import OptimizationAlgorithm
