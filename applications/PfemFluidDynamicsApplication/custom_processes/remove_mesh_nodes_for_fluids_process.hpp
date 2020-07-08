@@ -728,32 +728,6 @@ namespace Kratos
 				}
 			}
 
-			// unsigned int erased_nodes = 0;
-			// for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
-			// 	 ie != mrModelPart.ElementsEnd(); ie++)
-			// {
-			// 	unsigned int rigidNodes = 0;
-			// 	//coordinates
-			// 	for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
-			// 	{
-			// 		if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
-			// 		{
-			// 			rigidNodes++;
-			// 		}
-			// 	}
-
-			// 	if (dimension == 2)
-			// 	{
-			// 		if (rigidNodes > 0)
-			// 			EraseCriticalNodes2D(ie->GetGeometry(), erased_nodes, inside_nodes_removed);
-			// 	}
-			// 	else if (dimension == 3)
-			// 	{
-			// 		if (rigidNodes > 1)
-			// 			EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
-			// 	}
-			// }
-
 			if (erased_nodes > 0)
 			{
 				if (mEchoLevel > 1)
