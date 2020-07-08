@@ -42,12 +42,24 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         else:
             err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
-        
-        derivative_parameter_type = self.project_parameters["solver_settings"]["derivative_parameter"].GetString()
+
+        derivative_parameter = self.project_parameters["solver_settings"]["derivative_parameter"].GetString()
         derivative_parameter_type_flag = True
-        if derivative_parameter_type != "modal_coordinates":
+        if derivative_parameter != "modal_coordinates":
             derivative_parameter_type_flag = False
 
+        sub_model_parts_list = self.project_parameters["solver_settings"]["sub_model_parts_list"].GetStringArray()
+        num_sub_model_parts = len(sub_model_parts_list)
+        if not derivative_parameter_type_flag and num_sub_model_parts == 0:
+            err_msg  = '"sub_model_parts_list" is empty for "derivative_parameter": "'+derivative_parameter+'".'
+            err_msg  += ' Please provide at least one SubModelPart'
+            raise Exception(err_msg)
+
+        for sub_model_part_name in sub_model_parts_list:
+            if not computing_model_part.HasSubModelPart(sub_model_part_name):
+                err_msg  = '"'+sub_model_part_name+'" is not a SubModelPart of "'+computing_model_part.Name+'"'
+                raise Exception(err_msg)
+        
         rom_parameters_filename = self.project_parameters["solver_settings"]["rom_parameters_filename"].GetString()
         with open(rom_parameters_filename) as rom_parameters_file:
             rom_parameters = json.load(rom_parameters_file)
@@ -58,14 +70,14 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                 eigenvalues = rom_parameters["eigenvalues"]
             else:
                 eigenvalues = [0]*number_of_initial_rom_dofs
-
+            
             number_of_extended_rom_dofs = None
             if derivative_type_flag and derivative_parameter_type_flag:
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ))
             elif not derivative_type_flag and derivative_parameter_type_flag: 
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs + number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ) / 2)
             elif not derivative_parameter_type_flag:
-                number_of_extended_rom_dofs = int(2*number_of_initial_rom_dofs)
+                number_of_extended_rom_dofs = int((1+num_sub_model_parts)*number_of_initial_rom_dofs)
 
             kratos_eigenvalues = KratosMultiphysics.Vector(number_of_initial_rom_dofs)
             for i in range(number_of_initial_rom_dofs):
