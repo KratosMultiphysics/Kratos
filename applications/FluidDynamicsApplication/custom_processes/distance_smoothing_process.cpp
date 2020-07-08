@@ -40,7 +40,9 @@ DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Distan
     ModelPart& rModelPart,
     typename TLinearSolver::Pointer plinear_solver)
     : Process(),
-      mrModelPart(rModelPart)
+      mrModelPart(rModelPart),
+      mrModel(rModelPart.GetModel()),
+      mAuxModelPartName("smoothing_model_part")//mrModelPart.FullName()+"_Smoothing"")
 {
     // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
     CreateAuxModelPart();
@@ -71,13 +73,11 @@ DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Distan
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateAuxModelPart()
 {
-    Model& current_model = mrModelPart.GetModel();
-    const std::string smoothing_model_part_name = mrModelPart.Name()+"_Smoothing";
-    if(current_model.HasModelPart( smoothing_model_part_name ))
-        current_model.DeleteModelPart( smoothing_model_part_name );
+    if(mrModel.HasModelPart( mAuxModelPartName ))
+        mrModel.DeleteModelPart( mAuxModelPartName );
 
     // Generate AuxModelPart
-    ModelPart& r_smoothing_model_part = current_model.CreateModelPart( smoothing_model_part_name );
+    ModelPart& r_smoothing_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
     Element::Pointer p_smoothing_element = Kratos::make_intrusive<DistanceSmoothingElement<TDim>>();
 
@@ -155,8 +155,7 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Clear()
 {
-    Model& r_model = mrModelPart.GetModel();
-    ModelPart& r_smoothing_model_part = r_model.GetModelPart( mrModelPart.Name()+"_Smoothing" );
+    ModelPart& r_smoothing_model_part = mrModel.GetModelPart( mAuxModelPartName );
     r_smoothing_model_part.Nodes().clear();
     r_smoothing_model_part.Conditions().clear();
     r_smoothing_model_part.Elements().clear();
@@ -171,8 +170,7 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::C
     // Generate a linear solver strategy
     auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
 
-    Model& r_model = mrModelPart.GetModel();
-    ModelPart& r_smoothing_model_part = r_model.GetModelPart( mrModelPart.Name()+"_Smoothing" );
+    ModelPart& r_smoothing_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
     const bool CalculateReactions = false;
     const bool ReformDofAtEachIteration = false;

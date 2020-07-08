@@ -85,10 +85,8 @@ public:
     /// Destructor.
     ~DistanceSmoothingProcess() override
     {
-        Model& current_model = mrModelPart.GetModel();
-        const std::string smoothing_model_part_name = mrModelPart.Name()+"_Smoothing";
-        if(current_model.HasModelPart( smoothing_model_part_name ))
-            current_model.DeleteModelPart( smoothing_model_part_name );
+        if(mrModel.HasModelPart( mAuxModelPartName ))
+            mrModel.DeleteModelPart( mAuxModelPartName );
     }
 
     ///@}
@@ -144,6 +142,8 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    Model& mrModel;
+    std::string mAuxModelPartName;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
