@@ -408,8 +408,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                         const double zeta = 1.0e-2;
                         const double gamma = 0.1;
 
-                        const double cos_theta_s = 0.342020143;
-                        const double cos_theta_d = cos_theta_s + zeta/gamma * slip_velocity;
+                        const double cos_theta_s = -0.342020143;
+                        const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
 
                         KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
                             << "cos_theta_d is larger than one." << std::endl;
