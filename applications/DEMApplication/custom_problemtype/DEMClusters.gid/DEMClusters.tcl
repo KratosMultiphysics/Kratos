@@ -47,7 +47,7 @@ proc InitGIDProject { dir } {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Center the geometry" ] 1 PRE [list CenterGeometry] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Center the mesh" ] 1 PRE [list CenterMesh] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 2 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 3 PRE [list GenerateClusterFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate cluster and visualize" ] 4 PRE [list OneClickGo] "" ""
@@ -450,12 +450,17 @@ proc CenterGeometry { } {
 
     # set mass [lrange $all 0 0]
     set a [join [lrange $all 1 1]]
-    W $a
     set centerX [lindex $a 0]
     set centerY [lindex $a 1]
     set centerZ [lindex $a 2]
 
-    GiD_Process Mescape Utilities Move Volumes MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 $last_volume escape Mescape
+    set nodeslist [GiD_Geometry list point 1:]
+
+    W $nodeslist
+    W [GiD_Info listmassproperties Points $nodeslist]
+
+
+    #GiD_Process Mescape Utilities Move Volumes MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 $last_volume escape Mescape
 }
 
 
@@ -463,21 +468,19 @@ proc CenterGeometry { } {
 proc CenterMesh { } {
 
     set tetrahedra [GiD_Mesh list -element_type {tetrahedra} element]
-    set all [GiD_Tools mesh mass_properties $tetrahedra]
+    set triangles [GiD_Mesh list -element_type {triangle} element]
+    # set all [GiD_Tools mesh mass_properties $tetrahedra]
+    set all [GiD_Tools mesh mass_properties -boundary_elements $triangles]
     # Only GID 14.9d+
 
-    # set mass [lrange $all 0 0]
+    set cdg [join [lrange $all 1 1]]
+    set centerX [lindex $cdg 0]
+    set centerY [lindex $cdg 1]
+    set centerZ [lindex $cdg 2]
 
-    set a [join [lrange $all 1 1]]
-    W $a
-    set centerX [lindex $a 0]
-    set centerY [lindex $a 1]
-    set centerZ [lindex $a 2]
+    GiD_Process Mescape Utilities Move Elements MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 {*}$tetrahedra escape Mescape
+    GiD_Process Mescape Utilities Move Elements MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 {*}$triangles escape Mescape
 
-
-    foreach id $tetrahedra { ;
-    GiD_Process Mescape Utilities Move Elements MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 $id escape Mescape
-    }
 
 }
 

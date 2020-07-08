@@ -16,19 +16,21 @@ The __SphereTree Toolkit__ authors may be contacted at the following e-mail addr
 
 
 # Set up
-Once downloaded and added as problemtype, it is required to put the required executables in the exec folder.
+Once downloaded and added as problemtype for GiD, the required executables must be copied to the exec folder.
 - For Windows the precompiled executables can be found [here](http://isg.cs.tcd.ie/spheretree/downloads/spheretree-1.0-win32.zip)
-- For Linux, the precompiled executables already located in the exec folder.
+- For Linux, the precompiled executables are already located in the exec folder.
 
 # Use
 Once the geometry has been generated and meshed, the user can choose between step-by-step process or automatically generated the final cluster file.
 
 The step-by-step process go as follows:
+- Make sure the center of the geometry is located at the origin. It can be done using GiD utilities.
+- Mesh the geometry.
 - Click on calculate in order to generate the OBJ and MSH files
 - Define the options for the spheretree algorithms or use the default options (recommended)
 - Select generate SPH (see examples for execution time references)
 - Select generate CLU
-- Select visualize cluster over mesh. The cluster will always be approximately centered at the origin.
+- Select visualize cluster over mesh. The cluster will be centered at the origin.
 
 # Examples
 Both examples are created on a Intel i7 laptop.
@@ -50,7 +52,7 @@ branch: 200, time: 14 min
 
 
 - Candy, 268 tetrahedra
-branch: 20, time:1 min
+branch: 20, time: 1 min
 branch: 200, time: 7 min
 
 <span>
@@ -71,6 +73,6 @@ branch: 200, time: 7 min
 In order to avoid typical issues when generating the cluster.
 - If possible, avoid generating the geometry from an existing mesh (May contain incorrectly defined faces)
 - If using a copy of an existing geometry via save as, save and reload the problem before continuing.
-- The mesh is not automatically generated. The user must specify the mesh size and generate the mesh prior to create the SPH file or the cluster.
+- The mesh is not automatically generated. The user must specify the meshing parameters and generate the mesh prior to create the SPH file or the cluster.
 
 
