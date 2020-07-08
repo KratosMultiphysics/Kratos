@@ -141,13 +141,14 @@ namespace Kratos
 			const Matrix flow_direction = stress_deviatoric /
 				(eff_stress_trial / std::sqrt(3.0 / 2.0));
 
-			double limit_failure, shear_mod_plastic, eps_harden_limit, eps_hard_ratio,
-				limit_current_surface;
-			double delta_damage = 0.0;
+
 			double damage_trial = mDamage;
+			double eps_hard_ratio;
 
 			while (!is_converged)
 			{
+				double limit_failure, shear_mod_plastic, eps_harden_limit, limit_current_surface;
+
 				const array_1d<double, 2> rate_factors = CalculateRateFactors(eps_rate, mat_props);
 
 				limit_elastic = CalculateElasticLimit(pressure, lode_angle, rate_factors, eps_trial, mat_props);
@@ -364,8 +365,6 @@ namespace Kratos
 		const SizeType iteration_limit = 100;
 		IndexType iteration = 1;
 		bool is_converged = false;
-		bool alpha_smoothing = true; // used to prevent stick-slipping in solving alpha
-		//double pressure = -1.0 * MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(rStress) / 3.0;
 		double pressure = mPressure;
 		double pressure_old = mPressure;
 		double alpha_trial;
@@ -382,7 +381,7 @@ namespace Kratos
 			alpha_trial = std::min(alpha_trial, mAlpha);
 			alpha_trial = std::min(alpha_trial, rMatProps[RHT_EOS_ALPHA0]);
 			alpha_trial = std::max(1.0, alpha_trial);
-			if (iteration > 1) alpha_trial = 0.5* (alpha_trial + alpha_old);
+			if (iteration > 1) alpha_trial = 0.5* (alpha_trial + alpha_old); // used to prevent stick-slipping in solving alpha
 
 			const double nu = alpha_trial * rMatProps[DENSITY] /
 				rMatProps[RHT_EOS_ALPHA0] / mDensityInitial - 1.0;
