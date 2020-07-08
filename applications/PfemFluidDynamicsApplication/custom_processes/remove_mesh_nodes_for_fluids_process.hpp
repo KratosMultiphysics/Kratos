@@ -470,11 +470,10 @@ namespace Kratos
 				if (contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT))
 					on_contact_tip = true;
 
-				unsigned int neighErasedNodes = 0;
-
 				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED))
 				// if( in->IsNot(NEW_ENTITY) )
 				{
+					unsigned int neighErasedNodes = 0;
 					radius = 0.6 * initialMeanRadius;
 
 					work_point[0] = in->X();
