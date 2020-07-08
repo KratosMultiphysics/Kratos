@@ -27,6 +27,8 @@ namespace Kratos
 {
 /**
  * The Riedel-Hiermaier-Thoma (RHT) strain-rate senstive plastic 3D material law.
+ * The original softening law of ref [1] is replaced with a linear law
+ * driven by regularized fracture energy from ref [5].
  * Requires a strain vector to be provided by the element, which
  * should ideally be objective to enable large displacements.
  * Only suitable for explicit time integration because calculate
