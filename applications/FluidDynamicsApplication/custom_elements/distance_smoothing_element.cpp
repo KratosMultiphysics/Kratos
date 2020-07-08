@@ -46,11 +46,6 @@ namespace Kratos
     constexpr static std::array<unsigned int, 3> mNode0ID2D = {1, 2, 0};
     constexpr static std::array<unsigned int, 3> mNode1ID2D = {2, 0, 1};
 
-    //constexpr static unsigned int num_dim  = 3;
-    //constexpr static unsigned int num_nodes  = num_dim + 1;
-    //constexpr static unsigned int num_faces = num_nodes;
-    //constexpr static unsigned int num_face_nodes = num_nodes - 1;
-
 /**
  * Constructor.
  */

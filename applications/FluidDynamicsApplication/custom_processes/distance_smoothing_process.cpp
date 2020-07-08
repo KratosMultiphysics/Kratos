@@ -11,14 +11,24 @@
 //
 
 // Project includes
+#include "includes/define.h"
+#include "containers/model.h"
+#include "includes/checks.h"
+#include "spaces/ublas_space.h"
+#include "modeler/connectivity_preserve_modeler.h"
 #include "utilities/variable_utils.h"
 #include "includes/global_pointer_variables.h"
 #include "utilities/parallel_utilities.h"
 #include "factories/linear_solver_factory.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "distance_smoothing_process.h"
+#include "custom_elements/distance_smoothing_element.h"
 
 
 namespace Kratos
@@ -43,7 +53,7 @@ DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Distan
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::DistanceSmoothingProcess(
     ModelPart& rModelPart,
-    Parameters& rParameters)
+    Parameters Parameters)
     : Process(),
       mrModelPart(rModelPart)
 {
@@ -51,7 +61,7 @@ DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Distan
     CreateAuxModelPart();
 
     typename TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
-        rParameters["linear_solver_settings"]);
+        Parameters["linear_solver_settings"]);
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
@@ -61,15 +71,15 @@ DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Distan
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::DistanceSmoothingProcess(
     Model &rModel,
-    Parameters &rParameters)
+    Parameters Parameters)
     : Process(),
-      mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString()))
+      mrModelPart(rModel.GetModelPart(Parameters["model_part_name"].GetString()))
 {
     // Generate an auxilary model part and populate it by elements of type DistanceSmoothingElement
     CreateAuxModelPart();
 
     typename TLinearSolver::Pointer plinear_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(
-        rParameters["linear_solver_settings"]);
+        Parameters["linear_solver_settings"]);
 
     auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
@@ -160,27 +170,6 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
 }
 
 template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteInitialize()
-{
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-}
-
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteBeforeSolutionLoop() {
-    this->ExecuteInitializeSolutionStep();
-    this->ExecuteFinalizeSolutionStep();
-}
-
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteInitializeSolutionStep() {
-}
-
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::ExecuteFinalizeSolutionStep() {
-}
-
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Clear()
 {
     Model& r_model = mrModelPart.GetModel();
@@ -202,9 +191,9 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::C
     Model& r_model = mrModelPart.GetModel();
     ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
 
-    bool CalculateReactions = false;
-    bool ReformDofAtEachIteration = false;
-    bool CalculateNormDxFlag = false;
+    const bool CalculateReactions = false;
+    const bool ReformDofAtEachIteration = false;
+    const bool CalculateNormDxFlag = false;
 
     mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
         r_smoothing_model_part,

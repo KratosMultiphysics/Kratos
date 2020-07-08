@@ -18,19 +18,7 @@
 #include <iostream>
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "containers/model.h"
-#include "includes/checks.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "modeler/connectivity_preserve_modeler.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-
-// Application includes
-#include "custom_elements/distance_smoothing_element.h"
 
 namespace Kratos
 {
@@ -70,9 +58,6 @@ public:
     /// Pointer definition of DistanceSmoothingProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceSmoothingProcess);
 
-    //typedef UblasSpace<double, CompressedMatrix, Vector> TSparseSpace;
-    //typedef UblasSpace<double, Matrix, Vector> TDenseSpace;
-    //typedef LinearSolver<TSparseSpace, TDenseSpace > TLinearSolver;
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef typename SchemeType::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
@@ -90,12 +75,12 @@ public:
     /// Constructor with Kratos parameters.
     DistanceSmoothingProcess(
         ModelPart& rModelPart,
-        Parameters& rParameters);
+        Parameters Parameters);
 
     /// Constructor with Kratos model
     DistanceSmoothingProcess(
         Model& rModel,
-        Parameters& rParameters);
+        Parameters Parameters);
 
     /// Destructor.
     ~DistanceSmoothingProcess() override
@@ -110,14 +95,6 @@ public:
     ///@{
 
     void Execute() override;
-
-    void ExecuteInitialize() override;
-
-    void ExecuteBeforeSolutionLoop() override;
-
-    void ExecuteInitializeSolutionStep() override;
-
-    void ExecuteFinalizeSolutionStep() override;
 
     void Clear();
 
