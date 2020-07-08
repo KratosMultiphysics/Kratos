@@ -547,7 +547,6 @@ namespace Kratos
                 .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool, int>())
                 .def("Predict", &BaseExplicitSolvingStrategyType::Predict)
                 .def("Initialize", &BaseExplicitSolvingStrategyType::Initialize)
-                .def("Solve", &BaseExplicitSolvingStrategyType::Solve)
                 .def("IsConverged", &BaseExplicitSolvingStrategyType::IsConverged)
                 .def("CalculateOutputData", &BaseExplicitSolvingStrategyType::CalculateOutputData)
                 .def("SetEchoLevel", &BaseExplicitSolvingStrategyType::SetEchoLevel)

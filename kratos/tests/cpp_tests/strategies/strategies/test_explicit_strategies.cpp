@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -37,20 +37,18 @@ namespace Testing
     typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType > ExplicitBuilderAndSolverType;
     typedef ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyRK4Type;
 
-    class AuxiliaryExplicitStrateguesTestElement : public Element
+    class AuxiliaryExplicitStrategiesTestElement : public Element
     {
     public:
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AuxiliaryExplicitStrateguesTestElement);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AuxiliaryExplicitStrategiesTestElement);
 
-        AuxiliaryExplicitStrateguesTestElement() = default;
+        AuxiliaryExplicitStrategiesTestElement() = default;
 
-        AuxiliaryExplicitStrateguesTestElement(
+        AuxiliaryExplicitStrategiesTestElement(
             IndexType NewId,
             GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {};
 
-        AuxiliaryExplicitStrateguesTestElement(AuxiliaryExplicitStrateguesTestElement const& rOther) = delete;
-
-        ~AuxiliaryExplicitStrateguesTestElement() = default;
+        AuxiliaryExplicitStrategiesTestElement(AuxiliaryExplicitStrategiesTestElement const &rOther) = delete;
 
         void GetDofList(
             DofsVectorType& rElementalDofList,
@@ -83,7 +81,7 @@ namespace Testing
     };
 
 
-    void GenerateTestModelPart(ModelPart& rModelPart)
+    void GenerateTestExplicitStrategiesModelPart(ModelPart& rModelPart)
     {
         // Model part settings
         rModelPart.SetBufferSize(2);
@@ -100,7 +98,7 @@ namespace Testing
         typename GeometryType::PointsArrayType points_vect;
         points_vect.push_back(p_node);
         auto p_geom = Kratos::make_shared<Point3D<NodeType>>(p_node);
-        auto p_elem = Kratos::make_intrusive<AuxiliaryExplicitStrateguesTestElement>(1, p_geom);
+        auto p_elem = Kratos::make_intrusive<AuxiliaryExplicitStrategiesTestElement>(1, p_geom);
         rModelPart.AddElement(p_elem);
     }
 
@@ -111,11 +109,11 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
     {
         Model current_model;
-        ModelPart& r_model_part = current_model.CreateModelPart("TestModelPArt");
+        ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart");
 
         // Set the test model part
         const double delta_time = 1.5; // Set time step
-        GenerateTestModelPart(r_model_part); // Create the geometry
+        GenerateTestExplicitStrategiesModelPart(r_model_part); // Create the geometry
 
         // Create the RK4 explicit strategy
         const bool move_mesh_flag = false;

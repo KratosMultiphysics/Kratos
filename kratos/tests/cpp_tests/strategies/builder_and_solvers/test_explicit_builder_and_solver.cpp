@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -43,7 +43,7 @@ typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType > ExplicitBuil
 /**
  * @brief It generates a truss structure with an expected solution
  */
-static inline void GenerateTestModelPart(
+static inline void GenerateTestExplicitBuilderAndSolverModelPart(
     ModelPart& rModelPart,
     const bool FixDofs = false)
 {
@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExplicitBlockBuilderAndSolverInitialization, KratosCor
     // Generate the test model part
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart", 3);
-    GenerateTestModelPart(r_model_part);
+    GenerateTestExplicitBuilderAndSolverModelPart(r_model_part);
 
     // Test the explicit builder and solver dof set set up
     auto p_builder_and_solver = Kratos::make_unique<ExplicitBuilderAndSolverType>();

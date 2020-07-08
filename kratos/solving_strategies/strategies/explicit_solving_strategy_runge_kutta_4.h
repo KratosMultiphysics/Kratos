@@ -194,16 +194,17 @@ protected:
         // Set the previous step solution in the current buffer position
         // Note that we set the 0 position of the buffer to be equal to the values in step n (not n+1)
         // Additionally, we save in an auxiliary vector the value of the fixed DOFs, which is also taken from the previous time step
-#pragma omp parallel for firstprivate(dof_size)
-        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            double& r_u_0 = it_dof->GetSolutionStepValue(0);
-            const double& r_u_1 = it_dof->GetSolutionStepValue(1);
-            if (it_dof->IsFixed()) {
-                u_n(i_dof) = r_u_1;
+        IndexPartition<int>(r_dof_set.size()).for_each(
+            [&](int i_dof){
+                auto it_dof = r_dof_set.begin() + i_dof;
+                double& r_u_0 = it_dof->GetSolutionStepValue(0);
+                const double& r_u_1 = it_dof->GetSolutionStepValue(1);
+                if (it_dof->IsFixed()) {
+                    u_n(i_dof) = r_u_1;
+                }
+                r_u_0 = r_u_1;
             }
-            r_u_0 = r_u_1;
-        }
+        );
 
         // Calculate the RK4 intermediate sub steps
         PerformRungeKuttaIntermediateSubStep(1, mA21, u_n, rk_k1);
@@ -212,19 +213,20 @@ protected:
         PerformRungeKuttaLastSubStep(rk_k4);
 
         // Do the final solution update
-#pragma omp parallel for firstprivate(dof_size)
-        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            // Do the DOF update
-            double& r_u = it_dof->GetSolutionStepValue(0);
-            const double& r_u_old = it_dof->GetSolutionStepValue(1);
-            if (!it_dof->IsFixed()) {
-                const double mass = r_lumped_mass_vector(i_dof);
-                r_u = r_u_old + (dt / mass) * (mB1 * rk_k1(i_dof) + mB2 * rk_k2(i_dof) + mB3 * rk_k3(i_dof) + mB4 * rk_k4(i_dof));
-            } else {
-                r_u = u_n(i_dof);
+        IndexPartition<int>(r_dof_set.size()).for_each(
+            [&](int i_dof){
+                auto it_dof = r_dof_set.begin() + i_dof;
+                // Do the DOF update
+                double& r_u = it_dof->GetSolutionStepValue(0);
+                const double& r_u_old = it_dof->GetSolutionStepValue(1);
+                if (!it_dof->IsFixed()) {
+                    const double mass = r_lumped_mass_vector(i_dof);
+                    r_u = r_u_old + (dt / mass) * (mB1 * rk_k1(i_dof) + mB2 * rk_k2(i_dof) + mB3 * rk_k3(i_dof) + mB4 * rk_k4(i_dof));
+                } else {
+                    r_u = u_n(i_dof);
+                }
             }
-        }
+        );
     }
 
     /**
@@ -268,7 +270,6 @@ protected:
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Get model part and information
@@ -284,23 +285,24 @@ protected:
         InitializeRungeKuttaIntermediateSubStep();
         p_explicit_bs->BuildRHS(r_model_part);
 
-#pragma omp parallel for firstprivate(dof_size)
-        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            // Save current value in the corresponding vector
-            const double& r_res = it_dof->GetSolutionStepReactionValue();
-            rIntermediateStepResidualVector(i_dof) = r_res;
-            // Do the DOF update
-            double& r_u = it_dof->GetSolutionStepValue(0);
-            const double& r_u_old = it_dof->GetSolutionStepValue(1);
-            if (!it_dof->IsFixed()) {
-                const double mass = r_lumped_mass_vector(i_dof);
-                r_u = r_u_old + SubStepCoefficient * (dt / mass) * r_res;
-            } else {
-                const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
-                r_u = r_u_old + SubStepCoefficient * delta_u;
+        IndexPartition<int>(r_dof_set.size()).for_each(
+            [&](int i_dof){
+                auto it_dof = r_dof_set.begin() + i_dof;
+                // Save current value in the corresponding vector
+                const double& r_res = it_dof->GetSolutionStepReactionValue();
+                rIntermediateStepResidualVector(i_dof) = r_res;
+                // Do the DOF update
+                double& r_u = it_dof->GetSolutionStepValue(0);
+                const double& r_u_old = it_dof->GetSolutionStepValue(1);
+                if (!it_dof->IsFixed()) {
+                    const double mass = r_lumped_mass_vector(i_dof);
+                    r_u = r_u_old + SubStepCoefficient * (dt / mass) * r_res;
+                } else {
+                    const double delta_u = rFixedDofsValues(i_dof) - r_u_old;
+                    r_u = r_u_old + SubStepCoefficient * delta_u;
+                }
             }
-        }
+        );
 
         FinalizeRungeKuttaIntermediateSubStep();
     }
@@ -315,7 +317,6 @@ protected:
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
 
         // Get model part
         auto& r_model_part = BaseType::GetModelPart();
@@ -328,13 +329,14 @@ protected:
         InitializeRungeKuttaLastSubStep();
         p_explicit_bs->BuildRHS(r_model_part);
 
-#pragma omp parallel for firstprivate(dof_size)
-        for (int i_dof = 0; i_dof < dof_size; ++i_dof) {
-            const auto it_dof = r_dof_set.begin() + i_dof;
-            // Save current value in the corresponding vector
-            const double& r_res = it_dof->GetSolutionStepReactionValue();
-            rLastStepResidualVector(i_dof) = r_res;
-        }
+        IndexPartition<int>(r_dof_set.size()).for_each(
+            [&](int i_dof){
+                const auto it_dof = r_dof_set.begin() + i_dof;
+                // Save current value in the corresponding vector
+                const double& r_res = it_dof->GetSolutionStepReactionValue();
+                rLastStepResidualVector(i_dof) = r_res;
+            }
+        );
 
         FinalizeRungeKuttaLastSubStep();
     }

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -14,13 +14,15 @@
 #if !defined(KRATOS_EXPLICIT_SOLVING_STRATEGY)
 #define KRATOS_EXPLICIT_SOLVING_STRATEGY
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder_and_solver.h"
 
 namespace Kratos
@@ -56,10 +58,13 @@ public:
     ///@{
 
     // The explicit builder and solver definition
-    typedef ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace>   ExplicitBuilderAndSolverType;
+    typedef ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace> ExplicitBuilderAndSolverType;
 
     // The explicit builder and solver pointer definition
     typedef typename ExplicitBuilderAndSolverType::Pointer ExplicitBuilderAndSolverPointerType;
+
+    // The DOF type from the explicit builder and solver class
+    typedef typename ExplicitBuilderAndSolverType::DofType DofType;
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategy);
@@ -182,25 +187,6 @@ public:
             // Set the mInitializeWasPerformed flag
             mInitializeWasPerformed = true;
         }
-    }
-
-    /**
-     * @brief The problem of interest is solved.
-     * @details
-     * {
-     * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
-     * All those functions can otherwise be called separately.
-     * }
-     */
-    virtual double Solve()
-    {
-        Initialize();
-        InitializeSolutionStep();
-        Predict();
-        SolveSolutionStep();
-        FinalizeSolutionStep();
-
-        return 0.0;
     }
 
     /**
@@ -413,19 +399,16 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-
         auto& r_nodes_array = GetModelPart().Nodes();
-        const int n_nodes = static_cast<int>(r_nodes_array.size());
+        block_for_each(
+            r_nodes_array,
+            [](Node<3>& rNode){
+                noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+                noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            }
+        );
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_nodes_array.begin() + i_node;
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-        }
-
-        KRATOS_INFO_IF("ExplicitSolvingStrategy", this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0) << " MESH MOVED " << std::endl;
+        KRATOS_INFO_IF("ExplicitSolvingStrategy", this->GetEchoLevel() > 0) << "Mesh moved." << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -456,20 +439,17 @@ public:
     {
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = pGetExplicitBuilderAndSolver();
-        const auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
+        auto& r_dof_set = p_explicit_bs->GetDofSet();
 
         // Calculate the explicit residual
         p_explicit_bs->BuildRHS(GetModelPart());
 
         // Calculate the residual norm
         double res_norm = 0.0;
-#pragma omp parallel for firstprivate(dof_size) reduction(+:res_norm)
-        for (int i_dof = 0; i_dof < static_cast<int>(dof_size); ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            // Save current value in the corresponding vector
-            res_norm += it_dof->GetSolutionStepReactionValue();
-        }
+        res_norm = block_for_each<SumReduction<double>>(
+            r_dof_set,
+            [](DofType &rDof){return rDof.GetSolutionStepReactionValue();}
+        );
 
         return res_norm;
     }
@@ -484,17 +464,8 @@ public:
 
         // Check if displacement var is needed
         if (mMoveMeshFlag == true) {
-            for (const auto& r_node : GetModelPart().Nodes()) {
-                KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(DISPLACEMENT)) << "ERROR:: Problem on node with Id " << r_node.Id() <<
-                "\nIt is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use (False) or add DISPLACEMENT to the list of variables" << std::endl;
-            }
+            VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
         }
-
-        // Check NODAL_AREA variable. It is needed to do the solution update
-            for (const auto& r_node : GetModelPart().Nodes()) {
-                KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(NODAL_AREA)) << "ERROR:: Problem on node with Id " << r_node.Id() <<
-                "\nIt is impossible to do the solution update since the NODAL_AREA var is not in the rModelPart. Add NODAL_AREA to the list of variables" << std::endl;
-            }
 
         // Elements check
         for (const auto& r_elem :  GetModelPart().Elements()) {
@@ -574,7 +545,7 @@ protected:
      * This method returns the DELTA_TIME from the ProcessInfo container
      * @return const double
      */
-    virtual inline const double GetDeltaTime()
+    virtual inline double GetDeltaTime()
     {
         return GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
     }
@@ -626,13 +597,13 @@ private:
     {
         // Initialize the DOF values
         auto& r_dof_set = mpExplicitBuilderAndSolver->GetDofSet();
-        const unsigned int n_dofs = r_dof_set.size();
-#pragma omp parallel for
-        for (int i_dof = 0; i_dof < n_dofs; ++i_dof) {
-            auto it_dof = r_dof_set.begin() + i_dof;
-            auto &r_value = it_dof->GetSolutionStepValue();
-            r_value = 0.0;
-        }
+        block_for_each(
+            r_dof_set,
+            [](DofType& rDof){
+                auto &r_value = rDof.GetSolutionStepValue();
+                r_value = 0.0;
+            }
+        );
     }
 
     /**
@@ -644,14 +615,11 @@ private:
     template <class TContainerType>
     void InitializeContainer(TContainerType &rContainer)
     {
-        const auto it_begin = rContainer.begin();
-        const unsigned int size = rContainer.size();
         const auto& r_process_info = GetModelPart().GetProcessInfo();
-#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
-        for(int i = 0; i < static_cast<int>(size); ++i) {
-            auto it = it_begin + i;
-            it->Initialize(r_process_info);
-        }
+        block_for_each(
+            rContainer,
+            [&](typename TContainerType::value_type& rEntity){rEntity.Initialize(r_process_info);}
+        );
     }
 
     /**
@@ -663,14 +631,11 @@ private:
     template <class TContainerType>
     void InitializeSolutionStepContainer(TContainerType &rContainer)
     {
-        const auto it_begin = rContainer.begin();
-        const unsigned int size = rContainer.size();
         const auto& r_process_info = GetModelPart().GetProcessInfo();
-#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
-        for(int i = 0; i < static_cast<int>(size); ++i) {
-            auto it = it_begin + i;
-            it->InitializeSolutionStep(r_process_info);
-        }
+        block_for_each(
+            rContainer,
+            [&](typename TContainerType::value_type& rEntity){rEntity.InitializeSolutionStep(r_process_info);}
+        );
     }
 
     /**
@@ -682,14 +647,11 @@ private:
     template <class TContainerType>
     void FinalizeSolutionStepContainer(TContainerType &rContainer)
     {
-        const auto it_begin = rContainer.begin();
-        const unsigned int size = rContainer.size();
         const auto& r_process_info = GetModelPart().GetProcessInfo();
-#pragma omp parallel for firstprivate(it_begin, size, r_process_info)
-        for(int i = 0; i < static_cast<int>(size); ++i) {
-            auto it = it_begin + i;
-            it->FinalizeSolutionStep(r_process_info);
-        }
+        block_for_each(
+            rContainer,
+            [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeSolutionStep(r_process_info);}
+        );
     }
 
     ///@}
