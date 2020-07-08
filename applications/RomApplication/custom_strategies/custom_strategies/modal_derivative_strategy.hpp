@@ -116,61 +116,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // /// Constructor.
-    // ModalDerivativeStrategy(
-    //     ModelPart& rModelPart,
-    //     TSchemePointerType pScheme,
-    //     TBuilderAndSolverPointerType pBuilderAndSolver,
-    //     bool DerivativeTypeFlag,
-    //     int DerivativeParameterType,
-    //     bool MassOrthonormalizeFlag
-    //     )
-    //     : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
-    //     mDerivativeTypeFlag(DerivativeTypeFlag),
-    //     mDerivativeParameterType(DerivativeParameterType),
-    //     mMassOrthonormalizeFlag(MassOrthonormalizeFlag)
-    // {
-    //     KRATOS_TRY
-
-    //     // assign the scheme
-    //     mpScheme = pScheme;
-
-    //     // assign the builder & solver
-    //     mpBuilderAndSolver = pBuilderAndSolver;
-
-    //     // ensure initialization of system matrices in InitializeSolutionStep()
-    //     mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-
-    //     // default echo level (mute)
-    //     this->SetEchoLevel(0);
-
-    //     // default rebuild level (build at each solution step)
-    //     this->SetRebuildLevel(1);
-        
-    //     // TSystemMatrixType* Auxmp = new TSystemMatrixType;
-    //     // mpA = Kratos::shared_ptr<TSystemMatrixType>(AuxpA);
-    //     TSystemVectorType* AuxpInitialVariables = new TSystemVectorType;
-    //     mpInitialVariables = Kratos::shared_ptr<TSystemVectorType>(AuxpInitialVariables);
-    //     // TSystemVectorType* Auxpb = new TSystemVectorType;
-    //     // mpb = Kratos::shared_ptr<TSystemVectorType>(Auxpb);
-
-    //     mInitializeWasPerformed = false;
-    //     mSolutionStepIsInitialized = false;
-
-    //     mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
-    
-    //     rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
-
-    //     if ( mDerivativeTypeFlag && DerivativeParameterType == 0 )
-    //         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis*( mNumberInitialBasis + 1 ), true);
-    //     else if ( !mDerivativeTypeFlag && DerivativeParameterType == 0 )
-    //         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
-    //     else if ( DerivativeParameterType > 0 )
-    //         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(2*mNumberInitialBasis);
-        
-    //     KRATOS_CATCH("")
-    // }
-
     // Constructor.
     ModalDerivativeStrategy(
         ModelPart& rModelPart,
