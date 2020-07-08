@@ -48,12 +48,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
         else:
             self.assertLessEqual(abs(eigenvalue - 11.959)/11.959, 5.0e-3)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_lowest_power_in_core(self):
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
-
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -65,7 +61,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                            "solver_type"             : "EigenSolversApplication.sparse_lu",
+                            "solver_type"             : "LinearSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -76,12 +72,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_highest_power_in_core(self):
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
-
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -93,7 +85,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                        "solver_type"             : "EigenSolversApplication.sparse_lu",
+                        "solver_type"             : "LinearSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -127,8 +119,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_eigen_eigensystem_solver(self):
-        self.skipTestIfApplicationsNotAvailable("EigenSolversApplication")
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -145,11 +137,11 @@ class TestEigenSolvers(KratosUnittest.TestCase):
 
     def test_FEAST_with_eigen_solver(self):
         try:
-            import KratosMultiphysics.EigenSolversApplication
-            if not KratosMultiphysics.EigenSolversApplication.HasFEAST():
+            import KratosMultiphysics.LinearSolversApplication
+            if not KratosMultiphysics.LinearSolversApplication.HasFEAST():
                 self.skipTests("FEAST is not available")
         except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
+            self.skipTest("KratosMultiphysics.LinearSolversApplication is not available")
         self._RunParametrized("""
             {
                 "test_list" : [
