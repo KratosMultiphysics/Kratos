@@ -405,15 +405,18 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                         const double slip_velocity = inner_prod(slip_vector,
                             GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                        const double zeta = 1.0e1;
+                        const double zeta = 1.0e-2;
                         const double gamma = 0.1;
 
-                        const double cos_theta_s = 0.7071;
+                        const double cos_theta_s = 0.342020143;
                         const double cos_theta_d = cos_theta_s + zeta/gamma * slip_velocity;
+
+                        KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
+                            << "cos_theta_d is larger than one." << std::endl;
 
                         const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
 
-                        corrected_gradient = norm_grad_phi*( -0.7071*solid_normal + 0.7071*slip_vector);
+                        corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
 
                     }
 
