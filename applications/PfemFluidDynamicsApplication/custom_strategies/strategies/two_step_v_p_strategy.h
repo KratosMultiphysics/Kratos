@@ -261,8 +261,6 @@ namespace Kratos
       /* 	momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations,fixedTimeStep); */
       /* }else{ */
 
-      // this->UnactiveSliverElements(); //this is done in set_active_flag_mesher_process which is activated from fluid_pre_refining_mesher.py
-
       this->SetBlockedFlag();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
@@ -318,7 +316,6 @@ namespace Kratos
         }
       }
 
-      // this->UnsetBlockedFlag();
       /* } */
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -462,23 +459,6 @@ namespace Kratos
             (itElem)->Set(ISOLATED, true);
             (itElem)->Set(BLOCKED, false);
           }
-        }
-      }
-      KRATOS_CATCH("");
-    }
-
-    void UnsetBlockedFlag()
-    {
-      KRATOS_TRY;
-      ModelPart &rModelPart = BaseType::GetModelPart();
-#pragma omp parallel
-      {
-        ModelPart::ElementIterator ElemBegin;
-        ModelPart::ElementIterator ElemEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
-        for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-        {
-          (itElem)->Set(BLOCKED, false);
         }
       }
       KRATOS_CATCH("");

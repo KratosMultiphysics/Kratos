@@ -470,11 +470,10 @@ namespace Kratos
 				if (contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT))
 					on_contact_tip = true;
 
-				unsigned int neighErasedNodes = 0;
-
 				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED))
 				// if( in->IsNot(NEW_ENTITY) )
 				{
+					unsigned int neighErasedNodes = 0;
 					radius = 0.6 * initialMeanRadius;
 
 					work_point[0] = in->X();
@@ -727,32 +726,6 @@ namespace Kratos
 					// }
 				}
 			}
-
-			// unsigned int erased_nodes = 0;
-			// for (ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
-			// 	 ie != mrModelPart.ElementsEnd(); ie++)
-			// {
-			// 	unsigned int rigidNodes = 0;
-			// 	//coordinates
-			// 	for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
-			// 	{
-			// 		if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
-			// 		{
-			// 			rigidNodes++;
-			// 		}
-			// 	}
-
-			// 	if (dimension == 2)
-			// 	{
-			// 		if (rigidNodes > 0)
-			// 			EraseCriticalNodes2D(ie->GetGeometry(), erased_nodes, inside_nodes_removed);
-			// 	}
-			// 	else if (dimension == 3)
-			// 	{
-			// 		if (rigidNodes > 1)
-			// 			EraseCriticalNodes3D(ie->GetGeometry(), erased_nodes, inside_nodes_removed, rigidNodes);
-			// 	}
-			// }
 
 			if (erased_nodes > 0)
 			{
