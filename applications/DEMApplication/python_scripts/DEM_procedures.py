@@ -514,12 +514,6 @@ class Procedures(object):
 
         #model_part.AddNodalSolutionStepVariable(SPRAYED_MATERIAL)
 
-        # CONTROL MODULE
-        if self.DEM_parameters["PostControlModule"].GetBool():
-            model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
-            model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
-            model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
-
     @classmethod
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
 
@@ -552,12 +546,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(CHARACTERISTIC_LENGTH)
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-
-        # CONTROL MODULE
-        if DEM_parameters["PostControlModule"].GetBool():
-            model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
-            model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
-            model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,self.DEM_parameters)
@@ -597,12 +585,6 @@ class Procedures(object):
         # LOCAL AXIS
         if DEM_parameters["PostEulerAngles"].GetBool():
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
-
-        # CONTROL MODULE
-        if DEM_parameters["PostControlModule"].GetBool():
-            model_part.AddNodalSolutionStepVariable(TARGET_STRESS)
-            model_part.AddNodalSolutionStepVariable(REACTION_STRESS)
-            model_part.AddNodalSolutionStepVariable(LOADING_VELOCITY)
 
     def AddMpiVariables(self, model_part):
         pass
@@ -1237,9 +1219,9 @@ class Report(object):
             percentage = 100 * (float(step) / self.total_steps_expected)
             elapsed_time = timer.time() - self.initial_re_time
 
-            report = report + "Real time calculation: " + str(elapsed_time) + " seconds" + "\n"\
-                            + label + "In minutes: " + str(elapsed_time / 60.0) + " minutes" + "\n"\
-                            + label + "In hours: " + str(elapsed_time / 3600.0) + " hours" + "\n"\
+            report = report + label + "Elapsed real time: " + str(round(elapsed_time, 5)) + " seconds" + "\n"\
+                            + label + "In minutes: " + str(round(elapsed_time / 60.0, 2)) + " minutes" + "\n"\
+                            + label + "In hours: " + str(round(elapsed_time / 3600.0, 3)) + " hours" + "\n"\
                             + label + "Simulation time: " + str(time) + " seconds" + "\n"\
                             + label + "%s %.5f %s" % ("Percentage Completed: ", percentage, "%") + "\n"\
                             + label + "Computed time steps: " + str(step) + " out of " + str(self.total_steps_expected) + "\n" + label
@@ -1357,6 +1339,7 @@ class DEMIo(object):
         # Printing variables
         self.DEM_parameters = DEM_parameters
         self.global_variables = []
+        self.global_nonhistorical_nodal_variables = []
         self.spheres_and_clusters_variables = []
         self.spheres_and_clusters_local_axis_variables = []
         self.spheres_not_in_cluster_and_clusters_variables = []
@@ -1494,6 +1477,7 @@ class DEMIo(object):
 
     def Initialize(self, DEM_parameters):
         self.AddGlobalVariables()
+        self.AddGlobalNonHistoricalNodalVariables()
         self.AddSpheresVariables()
         self.AddSpheresAndClustersVariables()
         self.AddSpheresNotInClusterAndClustersVariables()
@@ -1520,9 +1504,15 @@ class DEMIo(object):
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
-        self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_variables)
-        self.PushPrintVar(self.PostControlModule, REACTION_STRESS, self.global_variables)
-        self.PushPrintVar(self.PostControlModule, LOADING_VELOCITY, self.global_variables)
+
+    def AddGlobalNonHistoricalNodalVariables(self):
+        self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, SMOOTHED_REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, ELASTIC_REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, SMOOTHED_ELASTIC_REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, LOADING_VELOCITY, self.global_nonhistorical_nodal_variables)
+
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
@@ -1767,6 +1757,10 @@ class DEMIo(object):
         for variable in self.global_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
+    def PrintingGlobalNonHistoricalNodalVariables(self, export_model_part, time):
+        for variable in self.global_nonhistorical_nodal_variables:
+            self.gid_io.WriteNodalResultsNonHistorical(variable, export_model_part.Nodes, time)
+
     def PrintingSpheresAndClustersVariables(self, export_model_part, time):
         for variable in self.spheres_and_clusters_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
@@ -1823,6 +1817,7 @@ class DEMIo(object):
                                    bounding_box_time_limits)
 
         self.PrintingGlobalVariables(self.mixed_model_part, time)
+        self.PrintingGlobalNonHistoricalNodalVariables(self.mixed_model_part, time)
         self.PrintingSpheresAndClustersVariables(self.mixed_spheres_and_clusters_model_part, time)
         self.PrintingSpheresNotInClusterAndClustersVariables(self.mixed_spheres_not_in_cluster_and_clusters_model_part, time)
         self.PrintingSpheresVariables(self.spheres_model_part, time)
