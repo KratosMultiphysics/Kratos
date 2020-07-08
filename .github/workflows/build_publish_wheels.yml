@@ -2,7 +2,7 @@ name: Build and Publish the Kratos Wheels
 
 on:
   push:
-    - branches: Release-*.*
+    branches: Release-*.*
     
 jobs:
   linux:
