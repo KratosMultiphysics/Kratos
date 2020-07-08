@@ -1,10 +1,10 @@
-from __future__ import print_function, absolute_import, division
+
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.StructuralMechanicsApplication as SM
-from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_process import PerturbGeometrySparseProcessPython as PerturbGeometrySparseProcessPython
-from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_process import PerturbGeometrySubgridProcessPython as PerturbGeometrySubgridProcessPython
+from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_process import PerturbGeometrySparseProcessPython
+from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_process import PerturbGeometrySubgridProcessPython
 
 try:
     import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
@@ -20,16 +20,16 @@ class SparseProcessCustom(PerturbGeometrySparseProcessPython):
     def __init__(self, mp, settings ):
         super().__init__(mp, settings)
 
-    def PerturbGeometry(self, mp ):
+    def PerturbGeometry(self, mp):
         # Apply perturbation matrix to geometry
         self.process.AssembleEigenvectors(mp, [1,0,0,0,0])
 
 class SubgridProcessCustom(PerturbGeometrySubgridProcessPython):
     "This class is derived to override the PerturbGeometry method"
-    def __init__(self, mp, settings ):
+    def __init__(self, mp, settings):
         super().__init__(mp, settings)
 
-    def PerturbGeometry(self, mp ):
+    def PerturbGeometry(self, mp):
         # Apply perturbation matrix to geometry
         self.process.AssembleEigenvectors(mp, [1,0,0,0,0])
 
@@ -37,31 +37,34 @@ class SubgridProcessCustom(PerturbGeometrySubgridProcessPython):
 # The test is passed when the first perturbation vectors from both models are equal
 class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
     @classmethod
-    def _add_dofs(self,mp):
+    def _add_dofs(cls, mp):
         # Adding dofs AND their corresponding reactions
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X, mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y, mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z, mp)
 
-    def _add_variables(self,mp):
+    @classmethod
+    def _add_variables(cls, mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
-    def _create_nodes(self,mp, NumOfNodes,length):
+    @classmethod
+    def _create_nodes(cls, mp, NumOfNodes, length):
         # Create nodes
         counter = 0
         for y in range(NumOfNodes):
             for x in range(NumOfNodes):
                 counter = counter + 1
-                mp.CreateNewNode(counter,x/(NumOfNodes-1)*length,y/(NumOfNodes-1)*length,0.0)
+                mp.CreateNewNode(counter, x/(NumOfNodes-1)*length, y/(NumOfNodes-1)*length,0.0)
 
-    def _create_elements(self,mp,NumOfNodes):
+    @classmethod
+    def _create_elements(cls, mp, NumOfNodes):
         element_name = "ShellThinElementCorotational3D4N"
         counter = 0
         for y in range( NumOfNodes-1 ):
@@ -74,19 +77,19 @@ class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
                 node4 = NumOfNodes*(y+1) + (x+1)
                 mp.CreateNewElement( element_name, counter, [ node1, node2, node3, node4 ],mp.GetProperties()[0] )
 
-    def _set_up_system(self,model,NumOfNodes,length):
+    def _set_up_system(self, model, NumOfNodes, length):
         mp = model.CreateModelPart("Structure")
         self._add_variables(mp)
-        self._create_nodes(mp,NumOfNodes,length)
+        self._create_nodes(mp,NumOfNodes, length)
         self._add_dofs(mp)
-        self._create_elements(mp,NumOfNodes)
+        self._create_elements(mp, NumOfNodes)
         return mp
 
     def _compare_random_field_vectors(self, mp1, mp2):
         nodes1 = mp1.GetNodes()
         nodes2 = mp2.GetNodes()
         sum = 0
-        for node1, node2 in zip(nodes1,nodes2):
+        for node1, node2 in zip(nodes1, nodes2):
             sum += (node1.Z0 - node2.Z0)**2
 
         self.assertLess( np.sqrt(sum), 1.0e-10)
@@ -98,7 +101,7 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
         length = 1000
         # Sparse method
         model_sparse =  KratosMultiphysics.Model()
-        mp_sparse = self._set_up_system(model_sparse ,num_of_nodes_per_egde,length )
+        mp_sparse = self._set_up_system(model_sparse, num_of_nodes_per_egde, length)
         settings = KratosMultiphysics.Parameters("""{
                     "eigensolver_settings"  : {
                         "solver_type"               : "eigen_eigensystem",
@@ -119,7 +122,7 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
         SparseProcess.PerturbGeometry(mp_sparse)
         # Subgrid method
         model_subgrid =  KratosMultiphysics.Model()
-        mp_subgrid = self._set_up_system(model_subgrid ,num_of_nodes_per_egde,length )
+        mp_subgrid = self._set_up_system(model_subgrid, num_of_nodes_per_egde, length)
         settings = KratosMultiphysics.Parameters("""{
             "eigensolver_settings"  : {
                 "solver_type"               : "dense_eigensolver",
@@ -138,7 +141,7 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
         SubgridProcess.PerturbGeometry(mp_subgrid)
 
         # Check if first random field vectors are equal
-        self._compare_random_field_vectors(mp_sparse,mp_subgrid)
+        self._compare_random_field_vectors(mp_sparse, mp_subgrid)
 
 if __name__ == '__main__':
     KratosUnittest.main()
