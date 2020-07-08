@@ -20,8 +20,8 @@
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
-
 #include "spaces/ublas_space.h"
+// #include "kratos_parameters.h"
 
 // Strategies
 #include "custom_strategies/custom_strategies/modal_derivative_strategy.hpp"
@@ -67,19 +67,30 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     // Modal Derivative strategy
+    // py::class_< ModalDerivativeStrategyType, typename ModalDerivativeStrategyType::Pointer,BaseSolvingStrategyType >(m,"ModalDerivativeStrategy")
+    //     .def(py::init<ModelPart&,
+    //          BaseSchemeType::Pointer,
+    //          BuilderAndSolverType::Pointer,
+    //          bool,
+    //          int,
+    //          bool>(),
+    //             py::arg("model_part"),
+    //             py::arg("scheme"),
+    //             py::arg("builder_and_solver"),
+    //             py::arg("derivative_type_flag"),
+    //             py::arg("derivative_parameter_type"),
+    //             py::arg("mass_orthonormalize_flag"))
+    //     ;
+
     py::class_< ModalDerivativeStrategyType, typename ModalDerivativeStrategyType::Pointer,BaseSolvingStrategyType >(m,"ModalDerivativeStrategy")
         .def(py::init<ModelPart&,
              BaseSchemeType::Pointer,
              BuilderAndSolverType::Pointer,
-             bool,
-             int,
-             bool>(),
+             Parameters>(),
                 py::arg("model_part"),
                 py::arg("scheme"),
                 py::arg("builder_and_solver"),
-                py::arg("derivative_type_flag"),
-                py::arg("derivative_parameter_type"),
-                py::arg("mass_orthonormalize_flag"))
+                py::arg("input_parameters"))
         ;
 
     //********************************************************************

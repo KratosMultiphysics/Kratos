@@ -116,27 +116,98 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    // /// Constructor.
+    // ModalDerivativeStrategy(
+    //     ModelPart& rModelPart,
+    //     TSchemePointerType pScheme,
+    //     TBuilderAndSolverPointerType pBuilderAndSolver,
+    //     bool DerivativeTypeFlag,
+    //     int DerivativeParameterType,
+    //     bool MassOrthonormalizeFlag
+    //     )
+    //     : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
+    //     mDerivativeTypeFlag(DerivativeTypeFlag),
+    //     mDerivativeParameterType(DerivativeParameterType),
+    //     mMassOrthonormalizeFlag(MassOrthonormalizeFlag)
+    // {
+    //     KRATOS_TRY
+
+    //     // assign the scheme
+    //     mpScheme = pScheme;
+
+    //     // assign the builder & solver
+    //     mpBuilderAndSolver = pBuilderAndSolver;
+
+    //     // ensure initialization of system matrices in InitializeSolutionStep()
+    //     mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+
+    //     // default echo level (mute)
+    //     this->SetEchoLevel(0);
+
+    //     // default rebuild level (build at each solution step)
+    //     this->SetRebuildLevel(1);
+        
+    //     // TSystemMatrixType* Auxmp = new TSystemMatrixType;
+    //     // mpA = Kratos::shared_ptr<TSystemMatrixType>(AuxpA);
+    //     TSystemVectorType* AuxpInitialVariables = new TSystemVectorType;
+    //     mpInitialVariables = Kratos::shared_ptr<TSystemVectorType>(AuxpInitialVariables);
+    //     // TSystemVectorType* Auxpb = new TSystemVectorType;
+    //     // mpb = Kratos::shared_ptr<TSystemVectorType>(Auxpb);
+
+    //     mInitializeWasPerformed = false;
+    //     mSolutionStepIsInitialized = false;
+
+    //     mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
+    
+    //     rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
+
+    //     if ( mDerivativeTypeFlag && DerivativeParameterType == 0 )
+    //         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis*( mNumberInitialBasis + 1 ), true);
+    //     else if ( !mDerivativeTypeFlag && DerivativeParameterType == 0 )
+    //         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
+    //     else if ( DerivativeParameterType > 0 )
+    //         rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(2*mNumberInitialBasis);
+        
+    //     KRATOS_CATCH("")
+    // }
+
+    // Constructor.
     ModalDerivativeStrategy(
         ModelPart& rModelPart,
         TSchemePointerType pScheme,
         TBuilderAndSolverPointerType pBuilderAndSolver,
-        bool DerivativeTypeFlag,
-        int DerivativeParameterType,
-        bool MassOrthonormalizeFlag
+        Parameters InputParameters
         )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
-        mDerivativeTypeFlag(DerivativeTypeFlag),
-        mDerivativeParameterType(DerivativeParameterType),
-        mMassOrthonormalizeFlag(MassOrthonormalizeFlag)
+        mpScheme(pScheme),
+        mpBuilderAndSolver(pBuilderAndSolver)
     {
         KRATOS_TRY
 
-        // assign the scheme
-        mpScheme = pScheme;
+        // Set derivative type: static or dynamic
+        std::string derivative_type = InputParameters["derivative_type"].GetString();
+        if (derivative_type == "static")
+            mDerivativeTypeFlag = false;
+        else if (derivative_type == "dynamic")
+            mDerivativeTypeFlag = true;
+        else
+            KRATOS_ERROR << "\"derivative_type\" can only be \"static\" or \"dynamic\""  << std::endl;
 
-        // assign the builder & solver
-        mpBuilderAndSolver = pBuilderAndSolver;
+        // Set derivative parameter: modal_coordinates, density, young_modulus or poisson_ratio
+        // This distinction is necessary to decide which system matrix how it is to be differentiated
+        std::string derivative_parameter = InputParameters["derivative_parameter"].GetString();
+        if (derivative_parameter == "modal_coordinates")
+            mDerivativeParameterType = 0;
+        else if (derivative_parameter == "density") // mass parameter
+            mDerivativeParameterType = 1;
+        else if (derivative_parameter == "young_modulus" || derivative_parameter == "poisson_ratio") // stiffness parameter
+            mDerivativeParameterType = 2;
+        else
+            KRATOS_ERROR << "\"derivative_parameter\" can only be \"modal_coordinate\", \"mass_parameter\" or \"stiffness_parameter\"" << std::endl;
+
+        // Derivative with respect to mass parameter is only available in combination with dynamic derivatives
+        if (!mDerivativeTypeFlag && mDerivativeParameterType == 1)
+            KRATOS_ERROR << "\"derivative_parameter\": \"" << derivative_parameter << "\" is only available when \"derivative_type\" is selected to be \"dynamic\"" << std::endl;
 
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -161,11 +232,11 @@ public:
     
         rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
 
-        if ( mDerivativeTypeFlag && DerivativeParameterType == 0 )
+        if ( mDerivativeTypeFlag && mDerivativeParameterType == 0 )
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis*( mNumberInitialBasis + 1 ), true);
-        else if ( !mDerivativeTypeFlag && DerivativeParameterType == 0 )
+        else if ( !mDerivativeTypeFlag && mDerivativeParameterType == 0 )
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
-        else if ( DerivativeParameterType > 0 )
+        else if ( mDerivativeParameterType > 0 )
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(2*mNumberInitialBasis);
         
         KRATOS_CATCH("")

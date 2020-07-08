@@ -46,6 +46,7 @@ class ModalDerivativeSolver(MechanicalSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "derivative_type"               : "static",
             "derivative_parameter"          : "modal_coordinates",
+            "sub_model_parts"               : ["a", "b"],
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
             "mass_orthonormalize"           : true,
@@ -81,7 +82,7 @@ class ModalDerivativeSolver(MechanicalSolver):
             raise Exception(err_msg)
 
         return RomApplication.ModalDerivativeScheme(derivative_parameter, finite_difference_step_size, finite_difference_type_flag)
-
+        
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
@@ -99,38 +100,43 @@ class ModalDerivativeSolver(MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
         
-        derivative_type = self.settings["derivative_type"].GetString()
-        derivative_type_flag = None
-        if  derivative_type == "static":
-            derivative_type_flag = False
-        elif derivative_type == "dynamic":
-            derivative_type_flag = True
-        else:
-            err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
-            raise Exception(err_msg)
+        # derivative_type = self.settings["derivative_type"].GetString()
+        # derivative_type_flag = None
+        # if  derivative_type == "static":
+        #     derivative_type_flag = False
+        # elif derivative_type == "dynamic":
+        #     derivative_type_flag = True
+        # else:
+        #     err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
+        #     raise Exception(err_msg)
 
-        derivative_parameter = self.settings["derivative_parameter"].GetString()
-        derivative_parameter_type = 0
-        if  derivative_parameter == "modal_coordinates":
-            derivative_parameter_type = 0
-        elif derivative_parameter == "density":
-            derivative_parameter_type = 1
-        elif derivative_parameter == "poisson_ratio" or derivative_parameter == "young_modulus":
-            derivative_parameter_type = 2
-        else:
-            err_msg  = '\"derivative_parameter_type\" can only be \"modal_coordinate\", \"mass_parameter\" or \"stiffness_parameter\"'
-            raise Exception(err_msg)
+        # derivative_parameter = self.settings["derivative_parameter"].GetString()
+        # derivative_parameter_type = 0
+        # if  derivative_parameter == "modal_coordinates":
+        #     derivative_parameter_type = 0
+        # elif derivative_parameter == "density":
+        #     derivative_parameter_type = 1
+        # elif derivative_parameter == "poisson_ratio" or derivative_parameter == "young_modulus":
+        #     derivative_parameter_type = 2
+        # else:
+        #     err_msg  = '\"derivative_parameter_type\" can only be \"modal_coordinate\", \"mass_parameter\" or \"stiffness_parameter\"'
+        #     raise Exception(err_msg)
 
-        if not derivative_type_flag and derivative_parameter_type == 1:
-            err_msg  = '\"derivative_parameter\": \"'+derivative_parameter+'\" is only available when \"derivative_type\" is selected to be \"dynamic\"'
-            raise Exception(err_msg)
+        # if not derivative_type_flag and derivative_parameter_type == 1:
+        #     err_msg  = '\"derivative_parameter\": \"'+derivative_parameter+'\" is only available when \"derivative_type\" is selected to be \"dynamic\"'
+        #     raise Exception(err_msg)
 
-        mass_orthonormalize_flag = self.settings["mass_orthonormalize"].GetBool()
+        # mass_orthonormalize_flag = self.settings["mass_orthonormalize"].GetBool()
+
+        # return RomApplication.ModalDerivativeStrategy(computing_model_part,
+        #                                                   mechanical_scheme,
+        #                                                   builder_and_solver,
+        #                                                   derivative_type_flag,
+        #                                                   derivative_parameter_type,
+        #                                                   mass_orthonormalize_flag)
 
         return RomApplication.ModalDerivativeStrategy(computing_model_part,
                                                           mechanical_scheme,
                                                           builder_and_solver,
-                                                          derivative_type_flag,
-                                                          derivative_parameter_type,
-                                                          mass_orthonormalize_flag)
+                                                          self.settings)
     
