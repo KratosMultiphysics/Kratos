@@ -45,7 +45,7 @@ class ModalDerivativeSolver(MechanicalSolver):
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "derivative_type"               : "static",
-            "derivative_parameter"          : "density",
+            "derivative_parameter"          : "modal_coordinates",
             "finite_difference_type"        : "forward",
             "finite_difference_step_size"   : 1e-3,
             "mass_orthonormalize"           : true,

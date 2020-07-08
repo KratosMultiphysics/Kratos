@@ -489,12 +489,12 @@ public:
             this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
             // Compute the derivative of the eigenvalue
-            const double deigenvalue_i_dparameter = prec_inner_prod(basis, rb);
+            const double deigenvalue_i_dparameter = inner_prod(basis, rb);
             r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dparameter;
 
             // Dynamic derivative RHS
             if (mDerivativeTypeFlag)
-                rb -= deigenvalue_i_dparameter * prec_prod(rMassMatrix, basis);
+                rb -= deigenvalue_i_dparameter * prod(rMassMatrix, basis);
 
             Timer::Stop("BuildRHS");
             const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
@@ -606,12 +606,12 @@ public:
                 this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
                 // Compute the derivative of the eigenvalue
-                const double deigenvalue_i_dbasis_j = prec_inner_prod(basis, rb);
+                const double deigenvalue_i_dbasis_j = inner_prod(basis, rb);
                 r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dbasis_j;
 
                 // Dynamic derivative RHS
                 if (mDerivativeTypeFlag)
-                    rb -= deigenvalue_i_dbasis_j * prec_prod(rMassMatrix, basis);
+                    rb -= deigenvalue_i_dbasis_j * prod(rMassMatrix, basis);
 
                 Timer::Stop("BuildRHS");
                 const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
@@ -726,12 +726,12 @@ public:
             this->GetBasis(basis_index, basis);
 
             // Apply Mass-Orthogonalization w.r.t. previous bases
-            rDx -= (prec_inner_prod(prec_prod(rMassMatrix, basis), rDx) * basis);
+            rDx -= (inner_prod(prod(rMassMatrix, basis), rDx) * basis);
 
         }
 
         // Mass-Normalization
-        rDx /= std::sqrt(prec_inner_prod(prec_prod(rMassMatrix, rDx), rDx));
+        rDx /= std::sqrt(inner_prod(prod(rMassMatrix, rDx), rDx));
         
     }
 
@@ -813,7 +813,7 @@ public:
         p_dof->FreeDof();
 
         // Component c for the null space solution
-        double c = -prec_inner_prod(rDx, prec_prod(rMassMatrix, rBasis));
+        double c = -inner_prod(rDx, prod(rMassMatrix, rBasis));
 
         // Add null space solution
         rDx += c*rBasis;
@@ -853,11 +853,11 @@ public:
             for (std::size_t j = 0; j < derivative_index; j++)
             {
                 this->GetBasis(j, basis_j);
-                Mred(i,j) = prec_inner_prod(basis_i, prec_prod(rMassMatrix, basis_j));
+                Mred(i,j) = inner_prod(basis_i, prod(rMassMatrix, basis_j));
                 if (mDerivativeTypeFlag)
-                    Kred(i,j) = prec_inner_prod(basis_i, prec_prod(rStiffnessMatrix, basis_j));
+                    Kred(i,j) = inner_prod(basis_i, prod(rStiffnessMatrix, basis_j));
                 else
-                    Kred(i,j) = prec_inner_prod(basis_i, prec_prod(rA, basis_j));
+                    Kred(i,j) = inner_prod(basis_i, prod(rA, basis_j));
             }
         }
 
