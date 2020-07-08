@@ -71,8 +71,11 @@ branch: 200, time: 7 min
 
 # Recommendations and troubleshooting
 In order to avoid typical issues when generating the cluster.
-- If possible, avoid generating the geometry from an existing mesh (May contain incorrectly defined faces)
+- The default values for the SPH algorithm are usually stable. Other configurations may require a more detailed mesh or calibration of other SPH options.
+- Do not generate the geometry from an existing mesh (avoid bad faces definition)
 - If using a copy of an existing geometry via save as, save and reload the problem before continuing.
 - The mesh is not automatically generated. The user must specify the meshing parameters and generate the mesh prior to create the SPH file or the cluster.
+- On Windows, GID may throw an error when finishing generating the SPH file, although the file is correctly generated in the problem folder.
+- For other path related problems, try reloading the problem.
 
 

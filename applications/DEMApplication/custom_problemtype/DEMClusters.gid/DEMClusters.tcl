@@ -16,7 +16,7 @@
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Current Issues ##
-
+## - Created option to capture and cancel external exec running from GiD, but GiD freezes during execution so cancel cannot be pressed.
 
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Fixed Issues ##
@@ -49,12 +49,13 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Center the mesh" ] 1 PRE [list CenterMesh] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 2 PRE [list GenerateSPHFileFromOBJFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 3 PRE [list GenerateClusterFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate cluster and visualize" ] 4 PRE [list OneClickGo] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Cancel SPH generation" ] 3 PRE [list CancelSphereTree] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 4 PRE [list GenerateClusterFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate cluster and visualize" ] 5 PRE [list OneClickGo] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over mesh" ] 5 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over mesh" ] 6 PRE [list ReadClusterFileintoMesh] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 6 PRE [list DeleteSpheresMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 7 PRE [list DeleteSpheresMesh] "" ""
 
 
         GiDMenu::UpdateMenus
@@ -70,6 +71,9 @@ proc InitGIDProject { dir } {
 
     # Save ProblemTypePath
     set ::DEMClusters::ProblemTypePath $dir
+
+    # default process 
+    set ::DEMClusters::pid 0
 
     Splash
 }
@@ -204,6 +208,13 @@ namespace eval DEMClusters {
     variable ProblemTypePath ""
 }
 
+proc CancelSphereTree { } {
+
+    package require gid_cross_platform
+    gid_cross_platform::end_process $::DEMClusters::pid
+}
+
+
 proc call_SphereTree { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
@@ -243,7 +254,6 @@ proc DEMClusters::call_makeTreeMedial { } {
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
     # set Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
-
     set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -initSpheres $initSpheres -minSpheres $minSpheres -erFact $erFact -testerLevels $testerLevels -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 $genericOBJFilename"
 
     package require platform
@@ -255,7 +265,11 @@ proc DEMClusters::call_makeTreeMedial { } {
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
-    exec $program {*}$argv
+    # exec $program {*}$argv
+
+    catch { set ::DEMClusters::pid [exec $program {*}$argv] } msg
+
+
 
     # makeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
     # set program [lindex $argv 0]
