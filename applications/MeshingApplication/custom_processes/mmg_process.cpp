@@ -131,14 +131,22 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
         // Remove not marked
         auto& r_conditions_array = mrThisModelPart.Conditions();
         const auto it_cond_begin = r_conditions_array.begin();
-        #pragma omp parallel for
+        std::vector<std::size_t> list_of_ids_to_remove;
+        // #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
             if (it_cond->IsNot(MARKER)) {
                 it_cond->Set(TO_ERASE, true);
+                list_of_ids_to_remove.push_back(it_cond->Id());
+
+
             }
         }
-        mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); // In theory with RemoveConditions is enough
+        for (auto  id_cond : list_of_ids_to_remove) {
+        // KRATOS_INFO("MmgProcess") << "Removing condition #" << id_cond << std::endl;
+            mrThisModelPart.RemoveConditionFromAllLevels(id_cond);
+        }
+        // mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); // In theory with RemoveConditions is enough
 
         // Setting to erare on the auxiliar model part
         if (mrThisModelPart.HasSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART")) {
@@ -1207,7 +1215,7 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     const auto it_elem_begin = r_elements_array.begin();
 
     // Saving the nodes that belong to an element
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for(int i_elem = 0; i_elem < static_cast<int>(r_elements_array.size()); ++i_elem ){
 
         const auto it_elem = it_elem_begin + i_elem;
@@ -1219,6 +1227,30 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
     }
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+
+    VariableUtils().SetFlag(TO_ERASE, false, mrThisModelPart.Conditions());
+    VariableUtils().SetFlag(MARKER, true, mrThisModelPart.Nodes());
+    std::vector<std::size_t> list_of_ids_to_remove;
+    // Check if there are conditions that contain any of the superflous nodes.
+    for(int i_cond = 0; i_cond < static_cast<int>(mrThisModelPart.Conditions().size()); ++i_cond ){
+        const auto it = mrThisModelPart.Conditions().begin() + i_cond;
+        auto& r_geom = it->GetGeometry();
+        for (IndexType i = 0; i < r_geom.size(); ++i){
+            if (r_geom[i].IsNot(MARKER)) {
+                it->Set(TO_ERASE, true);
+                list_of_ids_to_remove.push_back(it->Id());
+            }
+        }
+    }
+
+    for (auto  id_cond : list_of_ids_to_remove) {
+        // KRATOS_INFO("MmgProcess") << "Removing condition #" << id_cond << std::endl;
+        mrThisModelPart.RemoveConditionFromAllLevels(id_cond);
+    }
+
+
+    // mrThisModelPart.RemoveConditionFromAllLevels(TO_ERASE);
+
     const SizeType final_num = mrThisModelPart.Nodes().size();
     KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
 

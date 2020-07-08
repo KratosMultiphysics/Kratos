@@ -187,7 +187,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
     //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     for (auto& r_cond : mrModelPart.Conditions()) {
-        KRATOS_ERROR_IF(r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
+        KRATOS_WARNING_IF("TETRAHEDRAL MESH CHECK", r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
     }
 
     if (cond_switch_count > 0) {
