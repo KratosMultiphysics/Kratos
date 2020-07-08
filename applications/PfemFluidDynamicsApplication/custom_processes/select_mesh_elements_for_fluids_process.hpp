@@ -322,7 +322,7 @@ namespace Kratos
                     {
                         if (numrigid == 0 && numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
-                            Alpha *= 1.75;
+                            Alpha *= 1.5;
                         }
                         else if (numfreesurf == 0 && numisolated == 0 && previouslyIsolatedNodes == 0 && previouslyFreeSurfaceNodes == 0)
                         {
@@ -330,11 +330,11 @@ namespace Kratos
                         }
                         else if (numisolated == 0 && previouslyIsolatedNodes == 0 && numfreesurf < nds && previouslyFreeSurfaceNodes < nds)
                         {
-                            Alpha *= 1.125;
+                            Alpha *= 1.05;
                         }
                         else
                         {
-                            Alpha *= 0.975;
+                            Alpha *= 0.95;
                         }
                         // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
                         // {

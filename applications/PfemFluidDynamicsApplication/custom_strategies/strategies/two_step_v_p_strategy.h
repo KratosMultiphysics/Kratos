@@ -1590,10 +1590,10 @@ namespace Kratos
       {
         fixedTimeStep = true;
         rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);
-        if (DvErrorNorm > 10 * minTolerance)
+        if (DvErrorNorm > 0.9999)
         {
           rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
-          std::cout << "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.1" << std::endl;
+          std::cout << "           BAD PRESSURE CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: " << DvErrorNorm << " higher than 0.1" << std::endl;
           std::cout << "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS" << std::endl;
           fixedTimeStep = true;
 #pragma omp parallel
