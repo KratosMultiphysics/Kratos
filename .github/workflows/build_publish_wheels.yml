@@ -1,11 +1,9 @@
 name: Build and Publish the Kratos Wheels
 
-# on: # build the corresponding release branch
-#     release:
-#       types: [created]
-
-on: push
-
+on:
+  push:
+    - branches: Release-*.*
+    
 jobs:
   linux:
     runs-on: ubuntu-latest
@@ -20,7 +18,8 @@ jobs:
     - name: Build wheels
       run: |
         mkdir wheels
-        sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out kratosmultiphysics/kratos-wheelbuilder-linux --branch "wheels/add-action" --cpus 2 --pythons ${{ matrix.python-version }} --cotire ON
+        branch_name=${GITHUB_REF##*/}
+        sudo docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/workspace/out kratosmultiphysics/kratos-wheelbuilder-linux --branch ${branch_name} --cpus 2 --pythons ${{ matrix.python-version }} --cotire ON
 
     - uses: actions/upload-artifact@v2
       with:
@@ -41,7 +40,8 @@ jobs:
       shell: pwsh
       run: |
         mkdir wheels
-        docker run --rm --isolation=process -v $env:github_workspace\wheels:c:\out kratosmultiphysics/kratos-wheelbuilder-windows -branch wheels/add-action -pythons "${{ matrix.python-version }}" -cotire ON -cpus 1
+        branch_name=${GITHUB_REF##*/}
+        docker run --rm --isolation=process -v $env:github_workspace\wheels:c:\out kratosmultiphysics/kratos-wheelbuilder-windows -branch ${branch_name}  -pythons "${{ matrix.python-version }}" -cotire ON -cpus 1
 
     - uses: actions/upload-artifact@v2
       with:
