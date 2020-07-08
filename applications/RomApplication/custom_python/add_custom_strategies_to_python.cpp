@@ -21,7 +21,6 @@
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
-// #include "kratos_parameters.h"
 
 // Strategies
 #include "custom_strategies/custom_strategies/modal_derivative_strategy.hpp"
@@ -66,45 +65,32 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
 
-    // Modal Derivative strategy
-    // py::class_< ModalDerivativeStrategyType, typename ModalDerivativeStrategyType::Pointer,BaseSolvingStrategyType >(m,"ModalDerivativeStrategy")
-    //     .def(py::init<ModelPart&,
-    //          BaseSchemeType::Pointer,
-    //          BuilderAndSolverType::Pointer,
-    //          bool,
-    //          int,
-    //          bool>(),
-    //             py::arg("model_part"),
-    //             py::arg("scheme"),
-    //             py::arg("builder_and_solver"),
-    //             py::arg("derivative_type_flag"),
-    //             py::arg("derivative_parameter_type"),
-    //             py::arg("mass_orthonormalize_flag"))
-    //     ;
-
     py::class_< ModalDerivativeStrategyType, typename ModalDerivativeStrategyType::Pointer,BaseSolvingStrategyType >(m,"ModalDerivativeStrategy")
         .def(py::init<ModelPart&,
              BaseSchemeType::Pointer,
              BuilderAndSolverType::Pointer,
-             Parameters>(),
-                py::arg("model_part"),
-                py::arg("scheme"),
-                py::arg("builder_and_solver"),
-                py::arg("input_parameters"))
+             Parameters>())
         ;
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
 
-    // Modal Derivative scheme
+    // // Modal Derivative scheme
+    // py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
+    //     .def(py::init<Variable<double>,
+    //          double,
+    //          bool>(),
+    //          py::arg("derivative_parameter"),
+    //          py::arg("finite_difference_step_size"),
+    //          py::arg("finite_difference_type_flag"))
+    //     ;
+    // py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
+    //     .def(py::init<Parameters>())
+    //     ;
     py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
         .def(py::init<Variable<double>,
-             double,
-             bool>(),
-             py::arg("derivative_parameter"),
-             py::arg("finite_difference_step_size"),
-             py::arg("finite_difference_type_flag"))
+        Parameters>())
         ;
 
     //********************************************************************

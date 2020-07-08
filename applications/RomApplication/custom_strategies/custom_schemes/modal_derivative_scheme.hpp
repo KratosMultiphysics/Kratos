@@ -102,18 +102,25 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**
+        /**
      * @brief Default Constructor
      * @details Initiliazes the flags
      */
     /// Constructor.
-    ModalDerivativeScheme(Variable<double> DerivativeParameter, double FiniteDifferenceStepSize, bool FiniteDifferenceTypeFlag=false)
+    ModalDerivativeScheme(Variable<double> DerivativeParameter, Parameters InputParameters)
     : 
-    Scheme<TSparseSpace,TDenseSpace>(), 
-    mDerivativeParameter(DerivativeParameter),
-    mFiniteDifferenceStepSize(FiniteDifferenceStepSize), 
-    mFiniteDifferenceTypeFlag(FiniteDifferenceTypeFlag)
+    Scheme<TSparseSpace,TDenseSpace>(),
+    mDerivativeParameter(DerivativeParameter)
     {
+        KRATOS_TRY
+
+        std::string finite_difference_type = InputParameters["finite_difference_type"].GetString();
+        if (finite_difference_type == "central")
+            mFiniteDifferenceTypeFlag = true;
+        else if (finite_difference_type == "forward")
+            mFiniteDifferenceTypeFlag = false;
+        else
+            KRATOS_ERROR << "\"finite_difference_type\" can only be \"forward\" or \"central\""  << std::endl;
 
         if (mDerivativeParameter == DENSITY)
             mDerivativeMatrixType = true;
@@ -121,6 +128,8 @@ public:
             mDerivativeMatrixType = false;
         else
             KRATOS_ERROR;
+
+        KRATOS_CATCH("")
     }
 
     /// Destructor.
