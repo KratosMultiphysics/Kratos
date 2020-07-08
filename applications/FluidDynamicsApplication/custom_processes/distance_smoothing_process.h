@@ -86,8 +86,9 @@ public:
     ~DistanceSmoothingProcess() override
     {
         Model& current_model = mrModelPart.GetModel();
-        if(current_model.HasModelPart( mAuxModelPartName ))
-            current_model.DeleteModelPart( mAuxModelPartName );
+        const std::string smoothing_model_part_name = mrModelPart.Name()+"_Smoothing";
+        if(current_model.HasModelPart( smoothing_model_part_name ))
+            current_model.DeleteModelPart( smoothing_model_part_name );
     }
 
     ///@}
@@ -143,8 +144,6 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-
-    std::string mAuxModelPartName = "Aux_Smoothing_Model_Part";
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 

@@ -72,11 +72,12 @@ template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinea
 void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::CreateAuxModelPart()
 {
     Model& current_model = mrModelPart.GetModel();
-    if(current_model.HasModelPart( mAuxModelPartName ))
-        current_model.DeleteModelPart( mAuxModelPartName );
+    const std::string smoothing_model_part_name = mrModelPart.Name()+"_Smoothing";
+    if(current_model.HasModelPart( smoothing_model_part_name ))
+        current_model.DeleteModelPart( smoothing_model_part_name );
 
     // Generate AuxModelPart
-    ModelPart& r_smoothing_model_part = current_model.CreateModelPart( mrModelPart.Name()+"_Smoothing" );
+    ModelPart& r_smoothing_model_part = current_model.CreateModelPart( smoothing_model_part_name );
 
     Element::Pointer p_smoothing_element = Kratos::make_intrusive<DistanceSmoothingElement<TDim>>();
 
@@ -155,7 +156,7 @@ template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinea
 void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::Clear()
 {
     Model& r_model = mrModelPart.GetModel();
-    ModelPart& r_smoothing_model_part = r_model.GetModelPart( mAuxModelPartName );
+    ModelPart& r_smoothing_model_part = r_model.GetModelPart( mrModelPart.Name()+"_Smoothing" );
     r_smoothing_model_part.Nodes().clear();
     r_smoothing_model_part.Conditions().clear();
     r_smoothing_model_part.Elements().clear();
