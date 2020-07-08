@@ -27,6 +27,7 @@
 #include "custom_solvers/eigen_dense_llt_solver.h"
 #include "custom_solvers/eigen_dense_partial_piv_lu_solver.h"
 #include "custom_solvers/eigen_dense_direct_solver.h"
+#include "custom_solvers/eigen_dense_eigenvalue_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
 
 #if defined USE_EIGEN_MKL
@@ -82,6 +83,25 @@ void register_dense_solver(pybind11::module& m, const std::string& name)
         (m, name.c_str())
         .def(py::init<>())
         .def(py::init<Parameters>())
+    ;
+}
+
+void register_dense_eigenvalue_solver(pybind11::module& m, const std::string& name)
+{
+    namespace py = pybind11;
+
+    using LocalSpace = typename SpaceType<double>::Local;
+
+    using Type = DenseEigenvalueSolver<>;
+    using Holder = typename Type::Pointer;
+    using Base = LinearSolver<LocalSpace, LocalSpace>;
+
+    void (Base::*pointer_to_solve_dense)(Base::SparseMatrixType& rA, Base::SparseMatrixType& rDummy, Base::DenseVectorType& rX, Base::DenseMatrixType& rB) = &Base::Solve;
+
+    py::class_<Type, Holder, Base>
+        (m, name.c_str())
+        .def(py::init<Parameters>())
+        .def("Solve",pointer_to_solve_dense)
     ;
 }
 
@@ -213,6 +233,10 @@ void AddCustomSolversToPython(pybind11::module& m)
     // --- eigensystem solver
 
     register_eigensystem_solver(m, "EigensystemSolver");
+
+    // --- dense eigenvalue solver
+    register_dense_eigenvalue_solver(m, "DenseEigenvalueSolver");
+
 #if defined USE_EIGEN_FEAST
     register_feast_eigensystem_solver<FEASTEigensystemSolver<true, double, double>>(m, "FEASTSymmetricEigensystemSolver");
     register_feast_eigensystem_solver<FEASTEigensystemSolver<false, double, complex>>(m, "FEASTGeneralEigensystemSolver");
