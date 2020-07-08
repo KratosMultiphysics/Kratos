@@ -540,7 +540,7 @@ namespace Kratos
                 if (std::abs(effective_stress) < tolerance)  effective_stress = tolerance;
                 double temp = 27.0 * MathUtils<double>::Det(rDeviatoricStress)
                     / 2.0 / effective_stress / effective_stress / effective_stress;
-                if (std::abs(temp) - 1.0 < tolerance)
+                if (1.0 - std::abs(temp) < 0.0)
                 {
                     if (temp < 0.0) temp = -1.0;
                     else temp = 1.0;
