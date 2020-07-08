@@ -21,8 +21,9 @@ def ConstructSolver(configuration):
             raise NameError('The "solver_type" has to consist in "ApplicationName.solver_type"')
         app_name = splitted_name[0]
         if app_name == "EigenSolversApplication":
-            app_name = "LinearSolversApplication"
-            KM.Logger.PrintWarning("Linear-Solver-Factory", "EigenSolversApplication is a legacy application name. Please change to LinearSolversApplication")
+            if not kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication") and kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
+              app_name = "LinearSolversApplication"
+              KM.Logger.PrintWarning("Linear-Solver-Factory", "EigenSolversApplication is a legacy application name. Please change to LinearSolversApplication")
         # the following is only needed for the check in the ComplexLinearSolverFactory
         # note that the solver-configuration is NOT modified
         solver_type = splitted_name[1]
