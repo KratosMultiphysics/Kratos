@@ -1707,13 +1707,11 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
         // Convection
         inv_tau += 2.0 * norm_velocity / h;
         inv_tau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
-        // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
-        inv_tau *= rVariables.density * rVariables.specific_heat;
         // Diffusion
         inv_tau += 4.0 * rVariables.diffusivity / (h*h);
         // Limiting
         inv_tau = std::max(inv_tau, 1e-2);
-        rVariables.tau[g] = (rVariables.density*rVariables.specific_heat) / inv_tau;
+        rVariables.tau[g] = (1.0) / inv_tau;
     }
 }
 

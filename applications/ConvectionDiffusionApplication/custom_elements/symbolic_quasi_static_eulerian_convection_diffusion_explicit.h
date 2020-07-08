@@ -167,8 +167,6 @@ protected:
     {
         // scalars
         double diffusivity;
-        double density;
-        double specific_heat;
         double lumping_factor;
         double weight;
         double delta_time;

@@ -309,8 +309,6 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
     // Initialize some scalar variables
     rVariables.lumping_factor = 1.00 / double(TNumNodes);
     rVariables.diffusivity = 0.0;
-    rVariables.specific_heat = 0.0;
-    rVariables.density = 0.0;
     rVariables.dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
@@ -350,16 +348,12 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
     }
     rVariables.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetProjectionVariable());
     rVariables.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
-    rVariables.specific_heat += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetSpecificHeatVariable());
-    rVariables.density += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDensityVariable());
     rVariables.delta_time = r_process_info[DELTA_TIME];
     rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
     rVariables.unknown_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable(),1);
 }
     // divide by number of nodes scalar variables
     rVariables.diffusivity *= rVariables.lumping_factor;
-    rVariables.density *= rVariables.lumping_factor;
-    rVariables.specific_heat *= rVariables.lumping_factor;
 
     KRATOS_CATCH( "" )
 }
@@ -1390,13 +1384,11 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
         // Convection
         inv_tau += 2.0 * norm_velocity / h;
         inv_tau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
-        // Dynamic and convection terms are multiplyied by density*specific_heat to have consistent dimensions
-        inv_tau *= rVariables.density * rVariables.specific_heat;
         // Diffusion
         inv_tau += 4.0 * rVariables.diffusivity / (h*h);
         // Limiting
         inv_tau = std::max(inv_tau, 1e-2);
-        rVariables.tau[g] = (rVariables.density*rVariables.specific_heat) / inv_tau;
+        rVariables.tau[g] = (1.0) / inv_tau;
     }
 }
 
