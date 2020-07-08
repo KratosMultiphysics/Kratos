@@ -521,7 +521,7 @@ namespace Kratos
 				std::pow(Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH], rMatProps[RHT_NF]);
 	}
 
-	const double RHTConcrete3DLaw::CalculateFeElasticFactor(const double PressureStar,
+	double RHTConcrete3DLaw::CalculateFeElasticFactor(const double PressureStar,
 		const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn15
@@ -548,7 +548,7 @@ namespace Kratos
 		return fe_elastic_factor;
 	}
 
-	const double RHTConcrete3DLaw::CalculateFcCapFactor(const double PressureStar,
+	double RHTConcrete3DLaw::CalculateFcCapFactor(const double PressureStar,
 		const double EPS, const array_1d<double, 2> RateFactors,
 		const Properties& rMaterialProperties)
 	{
@@ -572,7 +572,7 @@ namespace Kratos
 		return fc_cap_factor;
 	}
 
-	const double RHTConcrete3DLaw::CalculateFrRateFactor(const double PressureStarForRate,
+	double RHTConcrete3DLaw::CalculateFrRateFactor(const double PressureStarForRate,
 		const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn10
@@ -590,7 +590,7 @@ namespace Kratos
 		return fr_rate_factor;
 	}
 
-	const double RHTConcrete3DLaw::CalculateNormalizedYield(const double PressureStar,
+	double RHTConcrete3DLaw::CalculateNormalizedYield(const double PressureStar,
 		const double RateFactor, const Properties& rMaterialProperties)
 	{
 		const double A = rMaterialProperties[RHT_A];
@@ -627,7 +627,7 @@ namespace Kratos
 		return normalized_yield;
 	}
 
-	const array_1d<double, 2> RHTConcrete3DLaw::CalculateRateFactors(const double EPSrate,
+	array_1d<double, 2> RHTConcrete3DLaw::CalculateRateFactors(const double EPSrate,
 		const Properties& rMaterialProperties)
 	{
 		// ref[1] eqn11
@@ -647,7 +647,7 @@ namespace Kratos
 		return rate_factors;
 	}
 
-	const array_1d<double, 2> RHTConcrete3DLaw::CalculateTriaxialityQs(const double PressureStar,
+	array_1d<double, 2> RHTConcrete3DLaw::CalculateTriaxialityQs(const double PressureStar,
 		const Properties& rMaterialProperties)
 	{
 		array_1d<double, 2> q_triaxiality_factors;
@@ -660,7 +660,7 @@ namespace Kratos
 		return q_triaxiality_factors;
 	}
 
-	const double RHTConcrete3DLaw::CalculateDeviatoricShapeFactorQ(const double PressureStar,
+	double RHTConcrete3DLaw::CalculateDeviatoricShapeFactorQ(const double PressureStar,
 		const Properties& rMaterialProperties)
 	{
 		double q_deviatoric_shape_factor = rMaterialProperties[RHT_Q0] +
@@ -671,7 +671,7 @@ namespace Kratos
 		return q_deviatoric_shape_factor;
 	}
 
-	const double RHTConcrete3DLaw::CalculateTriaxialityR(const double LodeAngle, const double TriaxialityQ)
+	double RHTConcrete3DLaw::CalculateTriaxialityR(const double LodeAngle, const double TriaxialityQ)
 	{
 		// ref[1] eqn8
 		double r_triaxiality;
@@ -686,7 +686,7 @@ namespace Kratos
 		return r_triaxiality;
 	}
 
-	const double RHTConcrete3DLaw::GetHugoniotTensileLimit(const double RateFactor,
+	double RHTConcrete3DLaw::GetHugoniotTensileLimit(const double RateFactor,
 		const array_1d<double, 2> TriaxialityQs, const Properties& rMaterialProperties)
 	{
 		// ref [1] eqn7
@@ -698,7 +698,7 @@ namespace Kratos
 		return HTL;
 	}
 
-	const double RHTConcrete3DLaw::CalculateFailureStrain(const double Pressure,
+	double RHTConcrete3DLaw::CalculateFailureStrain(const double Pressure,
 		const double Damage, const array_1d<double, 2>& RateFactors, const Properties& rMatProps)
 	{
 		// ref [1] eqn22
