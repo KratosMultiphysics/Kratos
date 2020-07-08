@@ -90,9 +90,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 0.0e0;
+        const double zeta = 1.0e1;
         const double surface_tension_coefficient = 0.1; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
-        const double contact_line_coefficient = -0.5*surface_tension_coefficient;
+        const double contact_line_coefficient = 0.707107*surface_tension_coefficient;
+        const double micro_length_scale = 1.0e-9;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
         this->SetValue(CONTACT_VELOCITY, 0.0); // Initialize the contact line velocity
@@ -272,6 +273,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     surface_tension_coefficient,
                     contact_line_coefficient,
                     zeta,
+                    micro_length_scale,
                     gauss_pts_curvature,
                     int_gauss_pts_weights,
                     int_shape_function_neg,
@@ -3617,11 +3619,11 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
     VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
 
-    double total_weight = 0.0;
+    //double total_weight = 0.0;
     Vector normal_avg = ZeroVector(NumDim);
 
     for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
-        total_weight += rIntWeights(intgp);
+        //total_weight += rIntWeights(intgp);
         normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
 
         for (unsigned int j = 0; j < NumNodes; j++){
@@ -3631,7 +3633,8 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         }
     }
 
-    normal_avg = 1.0/total_weight * normal_avg;
+    //normal_avg = 1.0/total_weight * normal_avg;
+    normal_avg /= norm_2(normal_avg);
 
     GeometryType::Pointer p_geom = this->pGetGeometry();
 
@@ -3720,6 +3723,154 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             //}
         }
     }
+
+    noalias(rRHS) += rhs;
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SurfaceTension(
+    const TElementData& rData,
+    const double coefficient,
+    const double coefficientS,
+    const double zeta,
+    const double micro_length_scale,
+    const Kratos::Vector& rCurvature,
+    const Kratos::Vector& rIntWeights,
+    const Matrix& rIntShapeFunctions,
+    const std::vector<Vector>& rIntNormalsNeg,
+    const std::vector<Kratos::Vector>& rCLWeights,
+    const std::vector<Matrix>& rCLShapeFunctions,
+    const std::vector<Vector>& rTangential,
+    //bool HasContactLine,
+    MatrixType& rLHS,
+    VectorType& rRHS)
+{
+    const unsigned int NumIntGP = rIntShapeFunctions.size1();
+    const unsigned int NumNodes = rIntShapeFunctions.size2();
+    const unsigned int NumDim = rIntNormalsNeg[0].size();
+
+    VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+
+    //double total_weight = 0.0;
+    Vector normal_avg = ZeroVector(NumDim);
+
+    for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
+        //total_weight += rIntWeights(intgp);
+        normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
+
+        for (unsigned int j = 0; j < NumNodes; j++){
+            for (unsigned int dim = 0; dim < NumDim; dim++){
+                rhs[ j*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,j);
+            }
+        }
+    }
+
+    //normal_avg = 1.0/total_weight * normal_avg;
+    normal_avg /= norm_2(normal_avg);
+
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
+    //if (HasContactLine){
+    for (unsigned int i_cl = 0; i_cl < rCLWeights.size(); i_cl++){
+
+        Vector contact_vector = ZeroVector(NumDim);
+        Vector wall_tangent = ZeroVector(NumDim);
+        std::vector< Vector > wall_normal;
+
+        MatrixType lhs_dissipation = ZeroMatrix(NumNodes*(NumDim+1),NumNodes*(NumDim+1));
+
+        const unsigned int n_dim = 3;  // NumDim did not compiled!
+        const unsigned int n_nodes = n_dim + 1;
+
+        Kratos::array_1d<double,n_nodes*(n_dim+1)> tempU; // Only velocity
+        for (unsigned int i = 0; i < NumNodes; i++){
+            for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                tempU[i*(n_dim+1) + dimi] = rData.Velocity(i,dimi);
+            }
+        }
+
+        const unsigned int NumCLGP = (rCLShapeFunctions[i_cl]).size1();    
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+            Vector wall_normal_gp = ZeroVector(NumDim);
+            for (unsigned int j = 0; j < NumNodes; j++){
+                wall_normal_gp += (rCLShapeFunctions[i_cl])(clgp,j)*(*p_geom)[j].FastGetSolutionStepValue(NORMAL);
+            }
+            wall_normal.push_back( wall_normal_gp );
+        }
+
+        //KRATOS_INFO("Cut Element, has contact line, NumCLGP") << NumCLGP << std::endl;
+
+        VectorType vel0_CL = ZeroVector(NumDim);
+        double weight_sum = 0.0;
+
+        MathUtils<double>::UnitCrossProduct(contact_vector, rTangential[i_cl], normal_avg);
+
+        for (unsigned int clgp = 0; clgp < NumCLGP; clgp++){
+            weight_sum += (rCLWeights[i_cl])[clgp];
+
+            //KRATOS_INFO("Cut Element, has contact line, CLWeight") << rCLWeights(clgp) << std::endl;
+            MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal[clgp], rTangential[i_cl]);
+
+            for (unsigned int i = 0; i < NumNodes; i++){
+                const VectorType Vel0 = (*p_geom)[i].FastGetSolutionStepValue(VELOCITY, 1);
+                vel0_CL += (rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i)*Vel0;
+
+                //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
+
+                for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+                    rhs[ i*(NumDim+1) + dimi ] -= coefficient*contact_vector[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i);
+                    rhs[ i*(NumDim+1) + dimi ] += coefficientS*wall_tangent[dimi]*(rCLWeights[i_cl])[clgp]*(rCLShapeFunctions[i_cl])(clgp,i); //Contac-line tangential force
+                    //KRATOS_INFO("Cut Element, has contact line, CLShapeFunction") << rCLShapeFunctions(clgp,j) << std::endl;
+                    //KRATOS_INFO("Cut Element, has contact line, RHS") << rhs[ j*(NumDim+1) + dim ] << std::endl;
+
+                    for (unsigned int j = 0; j < NumNodes; j++){
+                        //for (unsigned int dimj = 0; dimj < NumDim; dimj++){ //Be carefull not to confuse
+                            // Dimension_j is useless since the force acts in the dimension_i direction
+                            lhs_dissipation( i*(NumDim+1) + dimi, j*(NumDim+1) + dimi) += 
+                                zeta * (rCLWeights[i_cl])[clgp] * (rCLShapeFunctions[i_cl])(clgp,j) * (rCLShapeFunctions[i_cl])(clgp,i);
+                        //}
+                    }
+                }
+            }
+        }
+
+        noalias(rLHS) += lhs_dissipation;
+        noalias(rRHS) -= prod(lhs_dissipation,tempU);
+
+        const double angle = acos (inner_prod(wall_tangent,contact_vector)) * 180.0 / PI;
+        //KRATOS_INFO("HasContact") << angle << std::endl;
+        this->SetValue(CONTACT_ANGLE, angle);
+
+        vel0_CL = 1.0/weight_sum*vel0_CL;
+        const double vel_CL = inner_prod(wall_tangent,vel0_CL);
+        this->SetValue(CONTACT_VELOCITY, vel_CL);
+
+        for (unsigned int i=0; i < NumNodes; ++i){
+            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            //if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
+                //if (HasContactLine){
+                    (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
+                    (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector;
+                //}
+            //}
+        }
+    }
+
+    /* {
+        const double numerical_contact_angle = PI/6;
+        const double effective_viscosity = 0.001; //sigma N*FastGetSolutionValue(DynamicVisc)
+        const double contact_line_velocity = 0.02; //sigma N*FastGetSolutionValue(VELOCITY)
+        const double capilary_number = effective_viscosity*contact_line_velocity/coefficient;
+        const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
+
+        const double micro_contact_angle = std::pow(
+            std::pow(numerical_contact_angle, 3.0)
+            - 9*capilary_number*std::log(element_size/micro_length_scale),
+            1.0/3.0); // This relation is valid for contact_angle < 3PI/4
+
+        const Vector micro_contact_vector = - (std::cos(micro_contact_angle)*wall_tangent
+            + std::sin(micro_contact_angle)*wall_normal);
+    } */
 
     noalias(rRHS) += rhs;
 }
@@ -5471,8 +5622,8 @@ void TwoFluidNavierStokes<TElementData>::ContactSurfaceDissipation(
     VectorType& rRHS)
 {
     GeometryType::Pointer p_geom = this->pGetGeometry();
-    //GeometryType::GeometriesArrayType faces = p_geom->Faces();
-    GeometryType::GeometriesArrayType faces = p_geom->GenerateFaces();
+    GeometryType::GeometriesArrayType faces = p_geom->Faces();
+    //GeometryType::GeometriesArrayType faces = p_geom->GenerateFaces();
 
     bool not_found_contact = true;
     const unsigned int n_faces = 4;

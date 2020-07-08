@@ -130,6 +130,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TANGENT_VECTOR)                 # Auxiliary tangent vector at contact line
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VECTOR)                 # Auxiliary contact vector 
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_ANGLE)                  # Contact angle (may not be needed at nodes)  
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VECTOR_MICRO)           # Auxiliary contact vector at micro-scale
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_ANGLE_MICRO)            # Contact angle (micro-scale)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONTACT_VELOCITY)               # Contact line tangential velocity (normal to the contact-line) 
         #self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.VELOCITY_STAR)                  # Last known velocity
         #self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_STAR)                  # Last known pressure
@@ -185,8 +187,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.find_neighbouring_elements_process = self._set_find_neighbouring_elements_process()
         (self.find_neighbouring_elements_process).Execute()
 
-        self.find_neighbouring_nodes_process = self._set_find_neighbouring_nodes_process()
-        (self.find_neighbouring_nodes_process).Execute()
+        #self.find_neighbouring_nodes_process = self._set_find_neighbouring_nodes_process()
+        #(self.find_neighbouring_nodes_process).Execute()
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
@@ -345,6 +347,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "About to impose mass conservation!")
             #    (self.mass_conservation_correction).ExecuteInTimeStep();
 
+            # Smoothing the surface to filter oscillatory surface
+            (self.distance_gradient_process).Execute()
+            print("Smoothing")
+            print(time.time())
+            (self.surface_smoothing_process).Execute()
+            print(time.time())
+            for node in self.main_model_part.Nodes:
+                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            #it_number=self.linear_solver.GetIterationsNumber()
+            #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
+
             print("Level-set")
             print(time.time())
             # Perform the level-set convection according to the previous step velocity
@@ -406,7 +420,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if (TimeStep % 50 == 0):
                 print("Redistancing")
                 print(time.time())
-                layers = int(1000/100000*self.main_model_part.NumberOfElements())
+                layers = int(100/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part, 
                     KratosMultiphysics.DISTANCE, 
@@ -432,17 +446,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    it_number=self.linear_solver.GetIterationsNumber()
             #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
 
-            # Smoothing the surface to filter oscillatory surface
-            (self.distance_gradient_process).Execute()
-            print("Smoothing")
-            print(time.time())
-            (self.surface_smoothing_process).Execute()
-            print(time.time())
-            for node in self.main_model_part.Nodes:
-                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
-            #it_number=self.linear_solver.GetIterationsNumber()
-            #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
+            #################
+            ##
+            ## Previous smoothing potision
+            ##
+            #################
 
             #Slightly modify distance to prevent small-cut difficulties
             #(self.distance_modification_process).Execute()
@@ -586,11 +594,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.level_set_convection_process).Execute()
             
             # Smoothing the surface to filter oscillatory surface
-            (self.distance_gradient_process).Execute()
-            (self.surface_smoothing_process).Execute()
-            for node in self.main_model_part.Nodes:
-                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            #(self.distance_gradient_process).Execute()
+            #(self.surface_smoothing_process).Execute()
+            #for node in self.main_model_part.Nodes:
+            #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
         #    #it_number=self.linear_solver.GetIterationsNumber()
         #    #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
 

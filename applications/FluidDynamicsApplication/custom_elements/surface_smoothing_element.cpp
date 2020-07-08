@@ -233,7 +233,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
     const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry());
-    const double epsilon = 1.0e0*dt*he*he;
+    const double epsilon = 1.0e2*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
@@ -386,15 +386,38 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
                 for (unsigned int i = 0; i < num_nodes; i++){
 
-                    VectorType solid_normal = ZeroVector(num_dim);
+                    Vector solid_normal = ZeroVector(num_dim);
+                    Vector corrected_gradient = ZeroVector(num_dim);
                     if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0)
                     {
                         solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
                         const double norm = Kratos::norm_2(solid_normal);
                         solid_normal = (1.0/norm)*solid_normal;
+
+                        const double norm_grad_phi = norm_2(GradPHIold[i]);
+                        const Vector normal = GradPHIold[i]/norm_grad_phi;
+
+                        Vector contact_tangential = ZeroVector(num_dim);
+                        MathUtils<double>::UnitCrossProduct(contact_tangential, normal, solid_normal);
+                        Vector slip_vector = ZeroVector(num_dim);
+                        MathUtils<double>::UnitCrossProduct(slip_vector, solid_normal, contact_tangential);
+
+                        const double slip_velocity = inner_prod(slip_vector,
+                            GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
+
+                        const double zeta = 1.0e1;
+                        const double gamma = 0.1;
+
+                        const double cos_theta_s = 0.7071;
+                        const double cos_theta_d = cos_theta_s + zeta/gamma * slip_velocity;
+
+                        const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
+
+                        corrected_gradient = norm_grad_phi*( -0.7071*solid_normal + 0.7071*slip_vector);
+
                     }
 
-                    temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, GradPHIold[i]);
+                    temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, corrected_gradient);//GradPHIold[i]);
                 }
 
                 for (unsigned int i = 0; i < num_nodes; i++){

@@ -802,6 +802,42 @@ private:
 
     /**
      * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * Added the effect of contact line for an open interface.
+     * @param rData Element data container
+     * @param coefficient surface tension coefficient
+     * @param coefficientS solid surface contact net coefficient
+     * @param zeta dissipative coefficient at the contact line
+     * @param micro_length_scale characteristic micro length-scale
+     * @param rCurvature curvature calculated at the interface gauss points
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rIntNormalsNeg Normal vectors (negative side) associated with interface gauss points
+     * @param rCLWeights Weights associated with contact line gauss points
+     * @param rCLShapeFunctions Shape functions calculated at the contact line gauss points
+     * @param rTangential Tangential vectors (according to negative side interfaces) associated with contact line gauss points
+     * @param HasContactLine shows if there is a contact : DEPRECATED
+     * @param rLHS The contribution of contact line dissipative force to LHS
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+    void SurfaceTension(
+        const TElementData& rData,
+        const double coefficient,
+        const double coefficientS,
+        const double zeta,
+        const double micro_length_scale,
+        const Kratos::Vector& rCurvature,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const std::vector<Vector>& rIntNormalsNeg,
+        const std::vector<Kratos::Vector>& rCLWeights,
+        const std::vector<Matrix>& rCLShapeFunctions,
+        const std::vector<Vector>& rTangential,
+        //bool HasContactLine,
+        MatrixType& rLHS,
+        VectorType& rRHS);
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
      * Curvature is implicit in the formulation
      * @param coefficient surface tension coefficient
      * @param rIntWeights Weights associated with interface gauss points
