@@ -611,8 +611,8 @@ namespace Kratos
 
 			if (itNode->Is(SOLID))
 			{
-				double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
-				double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
+				const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+				const double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
 				//deviatoricCoeff=deltaT*secondLame
 				deviatoricCoeff = timeInterval * youngModulus / (1.0 + poissonRatio) * 0.5;
@@ -634,7 +634,7 @@ namespace Kratos
 				itNode->FastGetSolutionStepValue(INTERFACE_NODE) = false;
 			}
 
-			double currFirstLame = volumetricCoeff - 2.0 * deviatoricCoeff / 3.0;
+			const double currFirstLame = volumetricCoeff - 2.0 * deviatoricCoeff / 3.0;
 
 			//currFirstLame=deltaT*firstLame
 			itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT) = currFirstLame;
@@ -648,8 +648,8 @@ namespace Kratos
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			MesherUtilities MesherUtils;
-			double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
-			double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
+			const double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
+			const double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
 			double ElementalVolume = 0;
 
 #pragma omp parallel
@@ -1101,8 +1101,8 @@ namespace Kratos
 			for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 			{
 
-				double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
-				double solidNodalVolume = itNode->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
+				const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+				const double solidNodalVolume = itNode->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
 
 				double theta = 0.5;
 
@@ -1233,12 +1233,12 @@ namespace Kratos
 
 			double deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 
-			double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+			const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 			if (yieldShear > 0)
 			{
-				double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-				double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-				double exponent = -adaptiveExponent * equivalentStrainRate;
+				const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+				const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+				const double exponent = -adaptiveExponent * equivalentStrainRate;
 				if (equivalentStrainRate != 0)
 				{
 					deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
@@ -1250,7 +1250,7 @@ namespace Kratos
 				}
 			}
 
-			double currFirstLame = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
+			const double currFirstLame = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
 
 			Matrix Fgrad = itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 			Matrix FgradVel = itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
@@ -1276,15 +1276,15 @@ namespace Kratos
 				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] = SpatialVelocityGrad(1, 1);
 				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
 				{
 					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
 																						   2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
 																						   4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
+					const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+					const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+					const double exponent = -adaptiveExponent * equivalentStrainRate;
 					if (equivalentStrainRate != 0)
 					{
 						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
@@ -1296,7 +1296,7 @@ namespace Kratos
 					}
 				}
 
-				double DefVol = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+				const double DefVol = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
 
 				itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 
@@ -1336,7 +1336,7 @@ namespace Kratos
 				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
 				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
 				{
 					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE) = sqrt(2.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
@@ -1345,9 +1345,9 @@ namespace Kratos
 																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
 																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
 																						  4.0 * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]);
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
+					const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+					const double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+					const double exponent = -adaptiveExponent * equivalentStrainRate;
 					if (equivalentStrainRate != 0)
 					{
 						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
@@ -1359,7 +1359,7 @@ namespace Kratos
 					}
 				}
 
-				double DefVol = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+				const double DefVol = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
 
 				itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 
@@ -1418,10 +1418,10 @@ namespace Kratos
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
-			double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
-			double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
+			const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+			const double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
-			double currFirstLame = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
+			const double currFirstLame = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
 			double deviatoricCoeff = timeInterval * youngModulus / (1.0 + poissonRatio) * 0.5;
 
 			Matrix Fgrad = itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
@@ -1444,19 +1444,20 @@ namespace Kratos
 
 			if (dimension == 2)
 			{
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] = SpatialVelocityGrad(0, 0);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] = SpatialVelocityGrad(1, 1);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
+				auto &r_stain_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE);
+				r_stain_tensor2D[0] = SpatialVelocityGrad(0, 0);
+				r_stain_tensor2D[1] = SpatialVelocityGrad(1, 1);
+				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1)); 
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
 				{
 					itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
 																								 2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
 																								 4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]));
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
+					const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+					const double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
+					const double exponent = -adaptiveExponent * equivalentStrainRate;
 					if (equivalentStrainRate != 0)
 					{
 						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
@@ -1468,7 +1469,7 @@ namespace Kratos
 					}
 				}
 
-				double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
+				const double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 
@@ -1491,24 +1492,28 @@ namespace Kratos
 					nodalSigmaDev_xy += itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 1)[2];
 				}
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[2] = nodalSigmaTot_xy;
+				auto &r_stress_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0);
+				r_stress_tensor2D[0] = nodalSigmaTot_xx;
+				r_stress_tensor2D[1] = nodalSigmaTot_yy;
+				r_stress_tensor2D[2] = nodalSigmaTot_xy;
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[0] = nodalSigmaDev_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[1] = nodalSigmaDev_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[2] = nodalSigmaDev_xy;
+				auto &r_dev_stress_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0);
+				r_dev_stress_tensor2D[0] = nodalSigmaDev_xx;
+				r_dev_stress_tensor2D[1] = nodalSigmaDev_yy;
+				r_dev_stress_tensor2D[2] = nodalSigmaDev_xy;
 			}
 			else if (dimension == 3)
 			{
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] = SpatialVelocityGrad(0, 0);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] = SpatialVelocityGrad(1, 1);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] = SpatialVelocityGrad(2, 2);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				auto &r_stain_tensor3D = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE);
+				r_stain_tensor3D[0] = SpatialVelocityGrad(0, 0);
+				r_stain_tensor3D[1] = SpatialVelocityGrad(1, 1);
+				r_stain_tensor3D[2] = SpatialVelocityGrad(2, 2);
+				r_stain_tensor3D[3] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
+				r_stain_tensor3D[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
+				r_stain_tensor3D[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
+
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
 				{
 					itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE) = sqrt(2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
@@ -1517,9 +1522,9 @@ namespace Kratos
 																								4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3] +
 																								4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] +
 																								4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5]);
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
+					const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+					const double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
+					const double exponent = -adaptiveExponent * equivalentStrainRate;
 					if (equivalentStrainRate != 0)
 					{
 						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
@@ -1531,7 +1536,7 @@ namespace Kratos
 					}
 				}
 
-				double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
+				const double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 
@@ -1566,19 +1571,21 @@ namespace Kratos
 					nodalSigmaDev_yz += itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 1)[5];
 				}
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[2] = nodalSigmaTot_zz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[3] = nodalSigmaTot_xy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[4] = nodalSigmaTot_xz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[5] = nodalSigmaTot_yz;
+				auto &r_stress_tensor3D = itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0);
+				r_stress_tensor3D[0] = nodalSigmaTot_xx;
+				r_stress_tensor3D[1] = nodalSigmaTot_yy;
+				r_stress_tensor3D[2] = nodalSigmaTot_zz;
+				r_stress_tensor3D[3] = nodalSigmaTot_xy;
+				r_stress_tensor3D[4] = nodalSigmaTot_xz;
+				r_stress_tensor3D[5] = nodalSigmaTot_yz;
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[0] = nodalSigmaDev_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[1] = nodalSigmaDev_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[2] = nodalSigmaDev_zz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[3] = nodalSigmaDev_xy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[4] = nodalSigmaDev_xz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[5] = nodalSigmaDev_yz;
+				auto &r_dev_stress_tensor3D = itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0);
+				r_dev_stress_tensor3D[0] = nodalSigmaDev_xx;
+				r_dev_stress_tensor3D[1] = nodalSigmaDev_yy;
+				r_dev_stress_tensor3D[2] = nodalSigmaDev_zz;
+				r_dev_stress_tensor3D[3] = nodalSigmaDev_xy;
+				r_dev_stress_tensor3D[4] = nodalSigmaDev_xz;
+				r_dev_stress_tensor3D[5] = nodalSigmaDev_yz;
 			}
 		}
 
@@ -1590,10 +1597,10 @@ namespace Kratos
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
-			double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
-			double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
+			const double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+			const double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
-			double currFirstLame = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
+			const double currFirstLame = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
 			double deviatoricCoeff = timeInterval * youngModulus / (1.0 + poissonRatio) * 0.5;
 
 			Matrix Fgrad = itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
@@ -1626,19 +1633,20 @@ namespace Kratos
 
 			if (dimension == 2)
 			{
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] = SpatialVelocityGrad(0, 0);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] = SpatialVelocityGrad(1, 1);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
+				auto &r_stain_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE);
+				r_stain_tensor2D[0] = SpatialVelocityGrad(0, 0);
+				r_stain_tensor2D[1] = SpatialVelocityGrad(1, 1);
+				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1)); 
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
 				{
 					itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE) = sqrt((2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
 																								 2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
 																								 4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]));
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
+					const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+					const double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
+					const double exponent = -adaptiveExponent * equivalentStrainRate;
 					if (equivalentStrainRate != 0)
 					{
 						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
@@ -1650,7 +1658,7 @@ namespace Kratos
 					}
 				}
 
-				double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
+				const double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 
@@ -1673,24 +1681,28 @@ namespace Kratos
 					nodalSigmaDev_xy += itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 1)[2];
 				}
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[2] = nodalSigmaTot_xy;
+				auto &r_stress_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0);
+				r_stress_tensor2D[0] = nodalSigmaTot_xx;
+				r_stress_tensor2D[1] = nodalSigmaTot_yy;
+				r_stress_tensor2D[2] = nodalSigmaTot_xy;
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[0] = nodalSigmaDev_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[1] = nodalSigmaDev_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[2] = nodalSigmaDev_xy;
+				auto &r_dev_stress_tensor2D = itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0);
+				r_dev_stress_tensor2D[0] = nodalSigmaDev_xx;
+				r_dev_stress_tensor2D[1] = nodalSigmaDev_yy;
+				r_dev_stress_tensor2D[2] = nodalSigmaDev_xy;
 			}
 			else if (dimension == 3)
 			{
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] = SpatialVelocityGrad(0, 0);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] = SpatialVelocityGrad(1, 1);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] = SpatialVelocityGrad(2, 2);
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
-				itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
 
-				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+				auto &r_stain_tensor3D = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE);
+				r_stain_tensor3D[0] = SpatialVelocityGrad(0, 0);
+				r_stain_tensor3D[1] = SpatialVelocityGrad(1, 1);
+				r_stain_tensor3D[2] = SpatialVelocityGrad(2, 2);
+				r_stain_tensor3D[3] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
+				r_stain_tensor3D[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
+				r_stain_tensor3D[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
+
+				const double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
 				{
 					itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE) = sqrt(2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
@@ -1699,9 +1711,9 @@ namespace Kratos
 																								4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3] +
 																								4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] +
 																								4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5]);
-					double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent = -adaptiveExponent * equivalentStrainRate;
+					const double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+					const double equivalentStrainRate = itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
+					const double exponent = -adaptiveExponent * equivalentStrainRate;
 					if (equivalentStrainRate != 0)
 					{
 						deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
@@ -1713,7 +1725,7 @@ namespace Kratos
 					}
 				}
 
-				double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
+				const double DefVol = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 
@@ -1748,19 +1760,21 @@ namespace Kratos
 					nodalSigmaDev_yz += itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 1)[5];
 				}
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[2] = nodalSigmaTot_zz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[3] = nodalSigmaTot_xy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[4] = nodalSigmaTot_xz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0)[5] = nodalSigmaTot_yz;
+				auto &r_tensor3D = itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS, 0);
+				r_tensor3D[0] = nodalSigmaTot_xx;
+				r_tensor3D[1] = nodalSigmaTot_yy;
+				r_tensor3D[2] = nodalSigmaTot_zz;
+				r_tensor3D[3] = nodalSigmaTot_xy;
+				r_tensor3D[4] = nodalSigmaTot_xz;
+				r_tensor3D[5] = nodalSigmaTot_yz;
 
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[0] = nodalSigmaDev_xx;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[1] = nodalSigmaDev_yy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[2] = nodalSigmaDev_zz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[3] = nodalSigmaDev_xy;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[4] = nodalSigmaDev_xz;
-				itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[5] = nodalSigmaDev_yz;
+				auto &r_dev_tensor3D = itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS, 0);
+				r_dev_tensor3D[0] = nodalSigmaDev_xx;
+				r_dev_tensor3D[1] = nodalSigmaDev_yy;
+				r_dev_tensor3D[2] = nodalSigmaDev_zz;
+				r_dev_tensor3D[3] = nodalSigmaDev_xy;
+				r_dev_tensor3D[4] = nodalSigmaDev_xz;
+				r_dev_tensor3D[5] = nodalSigmaDev_yz;
 			}
 		}
 
@@ -1812,10 +1826,10 @@ namespace Kratos
 																							 2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
 																							 4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]));
 
-				double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
-				double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
+				const double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
+				const double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
 
-				double DefVol = DefX + DefY;
+				const double DefVol = DefX + DefY;
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 			}
@@ -1836,11 +1850,11 @@ namespace Kratos
 																							4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] +
 																							4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5]);
 
-				double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
-				double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
-				double DefZ = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
+				const double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
+				const double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
+				const double DefZ = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
 
-				double DefVol = DefX + DefY + DefZ;
+				const double DefVol = DefX + DefY + DefZ;
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 			}
@@ -1884,10 +1898,10 @@ namespace Kratos
 																							 2.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
 																							 4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]));
 
-				double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
-				double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
+				const double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
+				const double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
 
-				double DefVol = DefX + DefY;
+				const double DefVol = DefX + DefY;
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 			}
@@ -1908,11 +1922,11 @@ namespace Kratos
 																							4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] +
 																							4.0 * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5] * itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5]);
 
-				double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
-				double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
-				double DefZ = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
+				const double DefX = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
+				const double DefY = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
+				const double DefZ = itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
 
-				double DefVol = DefX + DefY + DefZ;
+				const double DefVol = DefX + DefY + DefZ;
 
 				itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE) = DefVol;
 			}
@@ -1937,8 +1951,8 @@ namespace Kratos
 			for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 			{
 
-				double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
-				double solidNodalVolume = itNode->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
+				const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+				const double solidNodalVolume = itNode->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
 
 				double theta = 1.0;
 

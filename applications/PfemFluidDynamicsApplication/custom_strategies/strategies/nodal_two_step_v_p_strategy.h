@@ -282,7 +282,7 @@ namespace Kratos
 
 					this->InitializeNonLinearIterations();
 				}
-				
+
 				this->CalcNodalStrainsAndStresses();
 
 				momentumConverged = this->SolveMomentumIteration(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
@@ -809,9 +809,10 @@ namespace Kratos
 
 			if (dimension == 2)
 			{
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] = SpatialVelocityGrad(0, 0);
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] = SpatialVelocityGrad(1, 1);
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
+				auto &r_stain_tensor2D = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
+				r_stain_tensor2D[0] = SpatialVelocityGrad(0, 0);
+				r_stain_tensor2D[1] = SpatialVelocityGrad(1, 1);
+				r_stain_tensor2D[2] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
 
 				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
@@ -845,22 +846,25 @@ namespace Kratos
 				double nodalSigmaDev_yy = 2.0 * deviatoricCoeff * (itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] - DefVol / 3.0);
 				double nodalSigmaDev_xy = 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
 
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[2] = nodalSigmaTot_xy;
+				auto &r_stress_tensor2D = itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0);
+				r_stress_tensor2D[0] = nodalSigmaTot_xx;
+				r_stress_tensor2D[1] = nodalSigmaTot_yy;
+				r_stress_tensor2D[2] = nodalSigmaTot_xy;
 
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[0] = nodalSigmaDev_xx;
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[1] = nodalSigmaDev_yy;
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[2] = nodalSigmaDev_xy;
+				auto &r_dev_stress_tensor2D = itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0);
+				r_dev_stress_tensor2D[0] = nodalSigmaDev_xx;
+				r_dev_stress_tensor2D[1] = nodalSigmaDev_yy;
+				r_dev_stress_tensor2D[2] = nodalSigmaDev_xy;
 			}
 			else if (dimension == 3)
 			{
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] = SpatialVelocityGrad(0, 0);
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] = SpatialVelocityGrad(1, 1);
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] = SpatialVelocityGrad(2, 2);
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
-				itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
+				auto &r_stain_tensor3D = itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
+				r_stain_tensor3D[0] = SpatialVelocityGrad(0, 0);
+				r_stain_tensor3D[1] = SpatialVelocityGrad(1, 1);
+				r_stain_tensor3D[2] = SpatialVelocityGrad(2, 2);
+				r_stain_tensor3D[3] = 0.5 * (SpatialVelocityGrad(1, 0) + SpatialVelocityGrad(0, 1));
+				r_stain_tensor3D[4] = 0.5 * (SpatialVelocityGrad(2, 0) + SpatialVelocityGrad(0, 2));
+				r_stain_tensor3D[5] = 0.5 * (SpatialVelocityGrad(2, 1) + SpatialVelocityGrad(1, 2));
 
 				double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
 				if (yieldShear > 0)
@@ -903,19 +907,21 @@ namespace Kratos
 				double nodalSigmaDev_xz = 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4];
 				double nodalSigmaDev_yz = 2.0 * deviatoricCoeff * itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5];
 
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[0] = nodalSigmaTot_xx;
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[1] = nodalSigmaTot_yy;
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[2] = nodalSigmaTot_zz;
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[3] = nodalSigmaTot_xy;
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[4] = nodalSigmaTot_xz;
-				itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0)[5] = nodalSigmaTot_yz;
+				auto &r_stress_tensor3D = itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS, 0);
+				r_stress_tensor3D[0] = nodalSigmaTot_xx;
+				r_stress_tensor3D[1] = nodalSigmaTot_yy;
+				r_stress_tensor3D[2] = nodalSigmaTot_zz;
+				r_stress_tensor3D[3] = nodalSigmaTot_xy;
+				r_stress_tensor3D[4] = nodalSigmaTot_xz;
+				r_stress_tensor3D[5] = nodalSigmaTot_yz;
 
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[0] = nodalSigmaDev_xx;
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[1] = nodalSigmaDev_yy;
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[2] = nodalSigmaDev_zz;
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[3] = nodalSigmaDev_xy;
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[4] = nodalSigmaDev_xz;
-				itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0)[5] = nodalSigmaDev_yz;
+				auto &r_dev_stress_tensor3D = itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS, 0);
+				r_dev_stress_tensor3D[0] = nodalSigmaDev_xx;
+				r_dev_stress_tensor3D[1] = nodalSigmaDev_yy;
+				r_dev_stress_tensor3D[2] = nodalSigmaDev_zz;
+				r_dev_stress_tensor3D[3] = nodalSigmaDev_xy;
+				r_dev_stress_tensor3D[4] = nodalSigmaDev_xz;
+				r_dev_stress_tensor3D[5] = nodalSigmaDev_yz;
 			}
 		}
 

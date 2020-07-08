@@ -75,12 +75,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != LocalSize)
       rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
     if (rRightHandSideVector.size() != LocalSize)
       rRightHandSideVector.resize(LocalSize);
 
-    rRightHandSideVector = ZeroVector(LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -90,7 +90,7 @@ namespace Kratos
     const unsigned int NumGauss = GaussWeights.size();
     const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
-    double theta = this->GetThetaMomentum();
+    const double theta = this->GetThetaMomentum();
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
@@ -102,7 +102,7 @@ namespace Kratos
     double VolumetricCoeff = 0;
     bool computeElement = false;
     // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
+    for (unsigned int g = 0; g < NumGauss; ++g)
     {
       const double GaussWeight = GaussWeights[g];
       totalVolume += GaussWeight;
@@ -152,7 +152,7 @@ namespace Kratos
         VolumetricCoeff *= MeanValueMass * 2.0 / (TimeStep * MeanValueStiffness);
         StiffnessMatrix = ZeroMatrix(LocalSize, LocalSize);
 
-        for (unsigned int g = 0; g < NumGauss; g++)
+        for (unsigned int g = 0; g < NumGauss; ++g)
         {
           const double GaussWeight = GaussWeights[g];
           const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -245,10 +245,10 @@ namespace Kratos
     {
       for (SizeType i = 0; i < NumNodes; ++i)
       {
-        double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
-        double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
-        double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0);
-        double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1);
+        const double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
+        const double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
+        const double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0);
+        const double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1);
         // lagDNXi=rDN_DX(i,0);
         // lagDNYi=rDN_DX(i,1);
         // lagDNXj=rDN_DX(j,0);
@@ -291,12 +291,12 @@ namespace Kratos
     {
       for (SizeType i = 0; i < NumNodes; ++i)
       {
-        double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 0);
-        double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 1);
-        double lagDNZi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 2);
-        double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 0);
-        double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 1);
-        double lagDNZj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 2);
+        const double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 0);
+        const double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 1);
+        const double lagDNZi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(i, 2) * rElementalVariables.InvFgrad(2, 2);
+        const double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 0);
+        const double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 1);
+        const double lagDNZj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 2) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 2) + rDN_DX(j, 2) * rElementalVariables.InvFgrad(2, 2);
         // lagDNXi=rDN_DX(i,0);
         // lagDNYi=rDN_DX(i,1);
         // lagDNZi=rDN_DX(i,2);
