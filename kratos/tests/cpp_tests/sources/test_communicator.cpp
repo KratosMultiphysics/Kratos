@@ -7,9 +7,7 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Philipp Bucher
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Hoang-Giang Bui
 //
 
 // Project includes
