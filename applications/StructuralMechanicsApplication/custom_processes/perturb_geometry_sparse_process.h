@@ -19,9 +19,7 @@
 // Project includes
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_processes/perturb_geometry_base_process.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "spaces/ublas_space.h"
+#include "custom_utilities/omp_node_search.h"
 
 namespace Kratos
 {
@@ -54,20 +52,17 @@ class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PerturbGeometrySparseProcess
     : public PerturbGeometryBaseProcess
 {
 public:
+
     ///@name Type Definitions
     ///@{
 
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType> LinearSolverType;
 
-    typedef typename LinearSolverType::Pointer LinearSolverPointerType;
+    typedef typename LinearSolverType::Pointer              LinearSolverPointerType;
 
-    typedef TUblasSparseSpace<double> TSparseSpaceType;
+    typedef ModelPart::NodesContainerType::ContainerType    ResultNodesContainerType;
 
-    typedef ModelPart::NodesContainerType::ContainerType                ResultNodesContainerType;
-
-    typedef typename TSparseSpaceType::MatrixType                       SparseMatrixType;
+    typedef typename TSparseSpaceType::MatrixType           SparseMatrixType;
 
     /// Pointer definition of PerturbGeometrySparseProcess
     KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySparseProcess);
@@ -76,7 +71,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor.
     PerturbGeometrySparseProcess( ModelPart& rInitialModelPart, LinearSolverPointerType pEigenSolver, Parameters Settings) :
         PerturbGeometryBaseProcess(rInitialModelPart, Settings){
             mpEigenSolver = pEigenSolver;
@@ -241,4 +236,4 @@ private:
 ///@{
 
 }
-#endif /* KRATOS_PERTUBE_GEOMETRY_SPARSE_PROCESS defined */
+#endif /* KRATOS_PERTUB_GEOMETRY_SPARSE_PROCESS defined */

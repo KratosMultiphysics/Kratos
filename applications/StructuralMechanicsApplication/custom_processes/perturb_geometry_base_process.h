@@ -18,12 +18,11 @@
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "includes/model_part.h"
-#include "custom_utilities/omp_node_search.h"
-#include "utilities/mortar_utilities.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "processes/process.h"
+#include "utilities/mortar_utilities.h"
 
 
 namespace Kratos
@@ -56,30 +55,27 @@ class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PerturbGeometryBaseProcess
     : public Process
 {
 public:
+
     ///@name Type Definitions
     ///@{
-
-    /// Pointer definition of PerturbGeometryBaseProcess
-    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometryBaseProcess);
 
     typedef TUblasSparseSpace<double> TSparseSpaceType;
     typedef TUblasDenseSpace<double> TDenseSpaceType;
 
-    typedef typename TSparseSpaceType::VectorPointerType SparseVectorPointerType;
-
-    typedef typename TSparseSpaceType::MatrixPointerType SparseMatrixPointerType;
+    typedef typename TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    typedef typename TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
+    /// Pointer definition of PerturbGeometryBaseProcess
+    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometryBaseProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor.
     PerturbGeometryBaseProcess( ModelPart& rInitialModelPart, Parameters Settings) :
         mrInitialModelPart(rInitialModelPart),
         mCorrelationLength(Settings["correlation_length"].GetDouble()),
@@ -266,4 +262,4 @@ private:
 ///@{
 
 }
-#endif /* KRATOS_PERTURBE_GEOMETRY_BASE_PROCESS defined */
+#endif /* KRATOS_PERTURB_GEOMETRY_BASE_PROCESS defined */

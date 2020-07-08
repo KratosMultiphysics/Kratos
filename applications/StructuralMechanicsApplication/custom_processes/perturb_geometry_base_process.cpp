@@ -44,13 +44,11 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
         << std::endl;
 
     std::vector<double> random_field(num_of_nodes,0.0);
-    #pragma omp parallel
-    {
-        #pragma omp for
-        for( int i = 0; i < num_of_nodes; i++ ){
-            for( int j = 0; j < num_of_random_variables; j++){
-                random_field[i] += variables[j]* rPerturbationMatrix(i,j);
-            }
+
+    #pragma omp parallel for
+    for( int i = 0; i < num_of_nodes; i++ ){
+        for( int j = 0; j < num_of_random_variables; j++){
+            random_field[i] += variables[j]* rPerturbationMatrix(i,j);
         }
     }
 
@@ -70,27 +68,25 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
         [multiplier](double& element) {element *= multiplier; } );
 
     // Apply random field to geometry
-    #pragma omp parallel
-    {
-        array_1d<double, 3> normal;
-        const auto it_node_original_begin = mrInitialModelPart.NodesBegin();
-        const auto it_node_perturb_begin = rThisModelPart.NodesBegin();
+    array_1d<double, 3> normal;
+    const auto it_node_original_begin = mrInitialModelPart.NodesBegin();
+    const auto it_node_perturb_begin = rThisModelPart.NodesBegin();
 
-        #pragma omp for private(normal)
-        for( int i = 0; i < num_of_nodes; i++){
-            auto it_node_original = it_node_original_begin + i;
-            auto it_node_perturb = it_node_perturb_begin + i;
+    #pragma omp parallel for private(normal)
+    for( int i = 0; i < num_of_nodes; i++){
+        auto it_node_original = it_node_original_begin + i;
+        auto it_node_perturb = it_node_perturb_begin + i;
 
-            // Get normal direction of original model
-            normal =  it_node_original->FastGetSolutionStepValue(NORMAL);
-            it_node_perturb->GetInitialPosition().Coordinates() += normal*random_field[i];
+        // Get normal direction of original model
+        normal =  it_node_original->FastGetSolutionStepValue(NORMAL);
+        it_node_perturb->GetInitialPosition().Coordinates() += normal*random_field[i];
 
-            //For visualization
-            // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_X) += normal(0)*random_field[i];
-            // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Y) += normal(1)*random_field[i];
-            // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Z) += normal(2)*random_field[i];
-        }
+        //For visualization
+        // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_X) += normal(0)*random_field[i];
+        // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Y) += normal(1)*random_field[i];
+        // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Z) += normal(2)*random_field[i];
     }
+
     KRATOS_INFO_IF("PerturbGeometryBaseProcess: Apply Random Field to Geometry Time", mEchoLevel > 0)
         << assemble_eigenvectors_timer.ElapsedSeconds() << std::endl;
 

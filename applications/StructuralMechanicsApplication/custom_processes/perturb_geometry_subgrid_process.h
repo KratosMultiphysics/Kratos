@@ -19,9 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_processes/perturb_geometry_base_process.h"
-#include "includes/model_part.h"
 #include "custom_utilities/omp_node_search.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -54,22 +52,15 @@ class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PerturbGeometrySubgridProcess
     : public PerturbGeometryBaseProcess
 {
 public:
+
     ///@name Type Definitions
     ///@{
-    typedef UblasSpace<double, Matrix, Vector> GlobalSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef LinearSolver<GlobalSpaceType, LocalSpaceType> LinearSolverType;
 
-    typedef typename LinearSolverType::Pointer LinearSolverPointerType;
+    typedef LinearSolver<TDenseSpaceType, TDenseSpaceType>      LinearSolverType;
 
-    typedef TUblasSparseSpace<double> TSparseSpaceType;
+    typedef typename LinearSolverType::Pointer                  LinearSolverPointerType;
 
-    typedef ModelPart::NodesContainerType::ContainerType                ResultNodesContainerType;
-
-    typedef typename TSparseSpaceType::MatrixType                       SparseMatrixType;
-
-    typedef typename TDenseSpaceType::MatrixType                        GlobalMatrixType;
+    typedef ModelPart::NodesContainerType::ContainerType        ResultNodesContainerType;
 
     /// Pointer definition of PerturbGeometrySubgridProcess
     KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySubgridProcess);
@@ -78,7 +69,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor.
     PerturbGeometrySubgridProcess( ModelPart& rInitialModelPart, LinearSolverPointerType pEigenSolver, Parameters Settings) :
         PerturbGeometryBaseProcess(rInitialModelPart, Settings){
             mpEigenSolver = pEigenSolver;
@@ -230,13 +221,11 @@ private:
     /// Copy constructor.
     PerturbGeometrySubgridProcess(PerturbGeometrySubgridProcess const& rOther) = delete;
 
-
     ///@}
 
 }; // Class PerturbGeometrySubgridProcess
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 

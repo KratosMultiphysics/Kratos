@@ -116,11 +116,11 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors(){
     double reduced_sum_eigenvalues = 0.0;
     int num_eigenvalues_required = 0;
 
-    for( int i = 0; i < eigenvalues.size(); i++)
+    for( size_t i = 0; i < eigenvalues.size(); i++)
     {
         total_sum_eigenvalues += eigenvalues(i);
     }
-    for( int i = 0; i < eigenvalues.size(); i++)
+    for( size_t i = 0; i < eigenvalues.size(); i++)
     {
         reduced_sum_eigenvalues += eigenvalues(i);
         num_eigenvalues_required++;
@@ -134,17 +134,6 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors(){
     }
 
     int num_random_variables = num_eigenvalues_required;
-
-    // // Retrieve eigenvector matrix
-    // Eigen::MatrixXd eigenvectors = es.eigenvectors();
-    // // Truncate eigenvector matrix
-    // // Attention: eigenvectors are sorted according to ascending order of eigenvalues
-    // int cut_off = num_nodes_reduced_space - num_random_variables;
-    // Eigen::MatrixXd eigenvectors_truncated = Eigen::Map<Eigen::MatrixXd,0,Eigen::OuterStride<> >(
-    // eigenvectors.real().data() + cut_off , es.eigenvectors().real().rows(), num_random_variables, Eigen::OuterStride<>(es.eigenvectors().outerStride()) ) ;
-
-    // // Retrieve and truncate eigenvalue vector
-    // Eigen::VectorXd eigenvalues = es.eigenvalues().real().tail(num_random_variables);
 
     // Get and resize final displacement matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;
@@ -177,7 +166,6 @@ int PerturbGeometrySubgridProcess::CreateEigenvectors(){
     }
     KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Assemble Random Field Time", mEchoLevel > 0)
             << assemble_random_field_time.ElapsedSeconds() << std::endl;
-
 
     return num_random_variables;
 
