@@ -98,7 +98,7 @@ class TestNormalUtils(KratosUnittest.TestCase):
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
 
             residual = math.sqrt((solution_normal[0]-normal[0])**2+(solution_normal[1]-normal[1])**2+(solution_normal[2]-normal[2])**2)
-            self.assertLess(residual, 0.1)
+            self.assertLess(residual, 0.15)
 
     def test_ComputeNodesMeanNormalModelPart(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
