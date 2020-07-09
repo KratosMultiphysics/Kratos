@@ -10,7 +10,6 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
 
 # import utilities
-from KratosMultiphysics import VariableUtils
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
@@ -48,16 +47,17 @@ class KOmegaSSTOmegaFormulation(Formulation):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        self.epsilon_model_part = CreateFormulationModelPart(self, self.element_name, self.condition_name)
+        self.omega_model_part = CreateFormulationModelPart(self, self.element_name, self.condition_name)
 
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")
 
     def Initialize(self):
-        InitializeYPlusVariablesInConditions(self.epsilon_model_part)
+        InitializeYPlusVariablesInConditions(self.omega_model_part)
+        CalculateNormalsOnConditions(self.omega_model_part)
 
         if (self.IsPeriodic()):
-            InitializePeriodicConditions(self.GetBaseModelPart(), self.epsilon_model_part, [KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE])
+            InitializePeriodicConditions(self.GetBaseModelPart(), self.omega_model_part, [KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE])
 
         solver_settings = self.settings
         linear_solver = CreateLinearSolver(
@@ -72,14 +72,14 @@ class KOmegaSSTOmegaFormulation(Formulation):
             scheme = self.scheme_type(self.settings["relaxation_factor"].GetDouble())
         else:
             scheme = CreateBossakScalarScheme(
-                self.epsilon_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
+                self.omega_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
                 self.settings["relaxation_factor"].GetDouble(),
                 KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
                 KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2,
                 KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
         self.solver = CreateResidualBasedNewtonRaphsonStrategy(
-            self.epsilon_model_part, scheme,
+            self.omega_model_part, scheme,
             linear_solver, convergence_criteria, builder_and_solver, self.settings["max_iterations"].GetInt(), False,
             False, False)
 
@@ -133,7 +133,7 @@ class KOmegaSSTOmegaFormulation(Formulation):
         return "N/A"
 
     def GetModelPart(self):
-        return self.epsilon_model_part
+        return self.omega_model_part
 
     def SetStabilizationMethod(self, stabilization_method):
         if (stabilization_method == "algebraic_flux_corrected"):

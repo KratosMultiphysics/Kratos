@@ -59,6 +59,8 @@ class KEpsilonEpsilonFormulation(Formulation):
         VariableUtils().SetNonHistoricalVariableToZero(
             KratosRANS.FRICTION_VELOCITY, self.epsilon_model_part.Conditions)
 
+        CalculateNormalsOnConditions(self.epsilon_model_part)
+
         if (self.IsPeriodic()):
             InitializePeriodicConditions(
                 self.GetBaseModelPart(), self.epsilon_model_part,

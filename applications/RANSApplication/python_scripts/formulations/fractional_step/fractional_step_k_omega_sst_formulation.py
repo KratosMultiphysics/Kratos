@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division
 # import kratos
 import KratosMultiphysics as Kratos
 
-# import RANS
-import KratosMultiphysics.RANSApplication as KratosRANS
-
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
 

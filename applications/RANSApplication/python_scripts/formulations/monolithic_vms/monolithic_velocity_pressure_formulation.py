@@ -11,7 +11,6 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
 
 # import utilities
-from KratosMultiphysics import VariableUtils
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
@@ -121,11 +120,10 @@ class MonolithicVelocityPressureFormulation(Formulation):
         CalculateNormalsOnConditions(model_part)
 
         process_info = model_part.ProcessInfo
-        domain_size = process_info[Kratos.DOMAIN_SIZE]
         bossak_alpha = process_info[Kratos.BOSSAK_ALPHA]
 
         if (self.IsPeriodic()):
-            if (domain_size == 2):
+            if (self.domain_size == 2):
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
             else:
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
@@ -138,7 +136,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
                                                    self.settings["absolute_velocity_tolerance"].GetDouble())
             scheme = steady_scheme(self.settings["velocity_relaxation"].GetDouble(),
                                    self.settings["pressure_relaxation"].GetDouble(),
-                                   domain_size)
+                                   self.domain_size)
         else:
             conv_criteria = up_criteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                         self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -146,7 +144,7 @@ class MonolithicVelocityPressureFormulation(Formulation):
                                         self.settings["absolute_pressure_tolerance"].GetDouble())
             scheme = dynamic_scheme(bossak_alpha,
                                     self.settings["move_mesh_strategy"].GetInt(),
-                                    domain_size)
+                                    self.domain_size)
 
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
                                     self.linear_solver,

@@ -1,8 +1,5 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
-
-from KratosMultiphysics import IsDistributedRun
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateWallDistanceCalculationProcess
 
 def Factory(settings, Model):

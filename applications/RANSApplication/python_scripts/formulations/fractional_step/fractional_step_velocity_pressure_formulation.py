@@ -11,7 +11,6 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
 
 # import utilities
-from KratosMultiphysics import VariableUtils
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
@@ -187,14 +186,13 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
         kappa = process_info[KratosRANS.WALL_VON_KARMAN]
         beta = process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
-        domain_size = process_info[Kratos.DOMAIN_SIZE]
-        wall_fuction_update_process = KratosRANS.RansWallFunctionUpdateProcess(
+        wall_function_update_process = KratosRANS.RansWallFunctionUpdateProcess(
                                                             model_part.GetModel(),
                                                             wall_model_part_name,
                                                             kappa,
                                                             beta,
                                                             self.echo_level)
-        self.AddProcess(wall_fuction_update_process)
+        self.AddProcess(wall_function_update_process)
 
         if (self.IsPeriodic()):
             self.__InitializePeriodicConditions()
@@ -365,12 +363,11 @@ class FractionalStepVelocityPressureFormulation(Formulation):
 
     def __InitializePeriodicConditions(self):
         base_model_part = self.GetBaseModelPart()
-        domain_size = base_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         model_part = self.fractional_step_model_part
         properties = model_part.CreateNewProperties(
             model_part.NumberOfProperties() + 1)
 
-        periodic_condition_name = "FSPeriodicCondition{0:d}D".format(domain_size)
+        periodic_condition_name = "FSPeriodicCondition{0:d}D".format(self.domain_size)
 
         current_number_of_conditions = model_part.NumberOfConditions()
         periodic_conditions_count = 0

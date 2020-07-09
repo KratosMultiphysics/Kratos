@@ -6,7 +6,6 @@ from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.RANSApplication as KratosRANS
 
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FomulationFactory
