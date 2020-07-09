@@ -320,50 +320,32 @@ class FluidSolver(PythonSolver):
                 raise Exception(err_msg)
         # Cases in which a time scheme manages the time integration
         else:
-            # Time scheme without turbulence modelling
-            if not hasattr(self, "_turbulence_model_solver"):
-                # Bossak time integration scheme
-                if self.settings["time_scheme"].GetString() == "bossak":
-                    if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            domain_size,
-                            KratosCFD.PATCH_INDEX)
-                    else:
-                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            self.settings["move_mesh_strategy"].GetInt(),
-                            domain_size)
-                # BDF2 time integration scheme
-                elif self.settings["time_scheme"].GetString() == "bdf2":
-                    scheme = KratosCFD.BDF2TurbulentScheme()
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            domain_size)
-                else:
-                    err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
-                    err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
-                    raise Exception(err_msg)
-            # Time scheme with turbulence modelling
-            else:
-                self._turbulence_model_solver.Initialize()
-                if self.settings["time_scheme"].GetString() == "bossak":
+            # Bossak time integration scheme
+            if self.settings["time_scheme"].GetString() == "bossak":
+                if self.settings["consider_periodic_conditions"].GetBool() == True:
                     scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                                self.settings["alpha"].GetDouble(),
-                                self.settings["move_mesh_strategy"].GetInt(),
-                                domain_size,
-                                self.settings["turbulence_model_solver_settings"]["velocity_pressure_relaxation_factor"].GetDouble(),
-                                self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            domain_size,
-                            self._turbulence_model_solver.GetTurbulenceSolvingProcess())
+                        self.settings["alpha"].GetDouble(),
+                        domain_size,
+                        KratosCFD.PATCH_INDEX)
+                else:
+                    scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        self.settings["move_mesh_strategy"].GetInt(),
+                        domain_size)
+            # BDF2 time integration scheme
+            elif self.settings["time_scheme"].GetString() == "bdf2":
+                scheme = KratosCFD.BDF2TurbulentScheme()
+            # Time scheme for steady state fluid solver
+            elif self.settings["time_scheme"].GetString() == "steady":
+                scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                        self.settings["velocity_relaxation"].GetDouble(),
+                        self.settings["pressure_relaxation"].GetDouble(),
+                        domain_size)
+            else:
+                err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
+                raise Exception(err_msg)
+
         return scheme
 
     def _CreateLinearSolver(self):
