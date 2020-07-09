@@ -1,6 +1,7 @@
 ---
 name: Bug report
 about: Report a bug, problem, issue or a missing feature
+labels: bug
 
 ---
 
