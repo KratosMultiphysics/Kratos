@@ -12,7 +12,7 @@ import numpy as np
 #         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 #     return PerturbGeometrySparseProcessPython(Model, settings["Parameters"])
 
-class PerturbGeometrySparseProcessPython(KratosMultiphysics.Process):
+class PerturbGeometrySparseProcess(KratosMultiphysics.Process):
     """A process to perturb the initial geometry of a structure based on a sparse correlation matrix."""
 
     def __init__(self, mp, settings ):

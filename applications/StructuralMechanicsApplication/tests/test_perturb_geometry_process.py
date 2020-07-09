@@ -3,8 +3,8 @@ import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.StructuralMechanicsApplication as SM
-from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_process import PerturbGeometrySparseProcessPython
-from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_process import PerturbGeometrySubgridProcessPython
+from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_process import PerturbGeometrySparseProcess
+from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_process import PerturbGeometrySubgridProcess
 
 try:
     import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
@@ -15,7 +15,7 @@ except ImportError:
 import numpy as np
 
 
-class SparseProcessCustom(PerturbGeometrySparseProcessPython):
+class SparseProcessCustom(PerturbGeometrySparseProcess):
     "This class is derived to override the PerturbGeometry method"
     def __init__(self, mp, settings ):
         super().__init__(mp, settings)
@@ -24,7 +24,7 @@ class SparseProcessCustom(PerturbGeometrySparseProcessPython):
         # Apply random field vectors to geometry
         self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
 
-class SubgridProcessCustom(PerturbGeometrySubgridProcessPython):
+class SubgridProcessCustom(PerturbGeometrySubgridProcess):
     "This class is derived to override the PerturbGeometry method"
     def __init__(self, mp, settings):
         super().__init__(mp, settings)
