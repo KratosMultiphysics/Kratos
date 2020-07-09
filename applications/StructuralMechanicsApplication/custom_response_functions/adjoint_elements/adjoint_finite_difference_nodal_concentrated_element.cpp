@@ -110,9 +110,11 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateS
     KRATOS_TRY;
     if (rDesignVariable == SCALAR_SENSITIVITY)
     {
-        rOutput.resize(1, 1, false);
-        const double& x = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rOutput(0, 0) = -x;
+        const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+        const SizeType local_size = number_of_nodes * 1.0;
+        rOutput = ZeroMatrix(1, local_size);
+        const double& x = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+        rOutput(0, 2) = -x;
     }
     else
     {
@@ -193,6 +195,7 @@ int AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::Check( cons
     KRATOS_CHECK_VARIABLE_KEY(NODAL_DISPLACEMENT_STIFFNESS)
     KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
     KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
+    /*
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -205,7 +208,8 @@ int AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::Check( cons
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X,rnode)
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y,rnode)
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z,rnode)
-    }
+        
+    }*/
 
     return 0;
 

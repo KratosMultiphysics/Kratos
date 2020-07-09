@@ -21,6 +21,7 @@ namespace Kratos
     AdjointTestResponseFunction::AdjointTestResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
+        mAlphaResponseWeight = 0.5;
     }
 
     AdjointTestResponseFunction::~AdjointTestResponseFunction(){}
@@ -37,9 +38,8 @@ namespace Kratos
 
         rResponseGradient.clear();
 
-        mAlphaResponseWeight = 0.5;
-        rResponseGradient(0) = mAlphaResponseWeight * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-
+        rResponseGradient(2) = mAlphaResponseWeight * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+        KRATOS_WATCH(rResponseGradient)
         KRATOS_CATCH("");
     }
 
@@ -56,8 +56,7 @@ namespace Kratos
 
         rResponseGradient.clear();
 
-        mAlphaResponseWeight = 0.5;
-        rResponseGradient(0) = (1 - mAlphaResponseWeight) * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+        rResponseGradient(2) = (1 - mAlphaResponseWeight) * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
 
         KRATOS_CATCH("");
     }
@@ -143,9 +142,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        mAlphaResponseWeight = 0.5;
-        const double& x = mrModelPart.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT_X);
-        const double& v = mrModelPart.GetNode(1).FastGetSolutionStepValue(VELOCITY_X);  
+        const double& x = mrModelPart.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT_Z);
+        const double& v = mrModelPart.GetNode(1).FastGetSolutionStepValue(VELOCITY_Z);  
         return mAlphaResponseWeight * x * x + (1 - mAlphaResponseWeight) * v * v;
 
         KRATOS_CATCH("");

@@ -29,6 +29,7 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
 
     def AddVariables(self):
         super(StructuralMechanicsAdjointDynamicSolver, self).AddVariables()
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_2)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_3)
@@ -36,7 +37,6 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):
@@ -116,16 +116,8 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
-        if response_type == "adjoint_local_stress":
-            self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif response_type == "adjoint_max_stress":
-            self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif response_type == "adjoint_nodal_displacement":
+        if response_type == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif response_type == "adjoint_linear_strain_energy":
-            self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
-        elif response_type == "adjoint_nodal_reaction":
-            self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_test":
             self.response_function = StructuralMechanicsApplication.AdjointTestResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
@@ -148,21 +140,6 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
 
-    def SolveSolutionStep(self):
-        if self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_linear_strain_energy":
-            self._SolveSolutionStepSpecialLinearStrainEnergy()
-            return True
-        else:
-            return super(StructuralMechanicsAdjointDynamicSolver, self).SolveSolutionStep()
-
-    def _SolveSolutionStepSpecialLinearStrainEnergy(self):
-        for node in self.main_model_part.Nodes:
-            adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement )
-            if self.settings["rotation_dofs"].GetBool():
-                adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
-
     def _create_mechanical_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
@@ -178,4 +155,11 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         return mechanical_solution_strategy
 
     def _create_solution_scheme(self):
-        return KratosMultiphysics.ResidualBasedAdjointBossakScheme(self.response_function)
+        scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
+        if scheme_type == "bossak":
+            scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(
+                self.settings["scheme_settings"],
+                self.response_function)
+        else:
+            raise Exception("Invalid scheme_type: " + scheme_type)
+        return scheme
