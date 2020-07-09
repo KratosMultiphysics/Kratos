@@ -35,8 +35,8 @@
 #include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_element.h"
 
 // k-epsilon turbulence model element data
-#include "custom_elements/convection_diffusion_reaction_element_data/evm_k_epsilon_high_re/epsilon_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/evm_k_epsilon_high_re/k_element_data.h"
+#include "custom_elements/convection_diffusion_reaction_element_data/evm_k_epsilon/epsilon_element_data.h"
+#include "custom_elements/convection_diffusion_reaction_element_data/evm_k_epsilon/k_element_data.h"
 
 // k-omega turbulence model element data
 #include "custom_elements/convection_diffusion_reaction_element_data/evm_k_omega/k_element_data.h"
@@ -50,8 +50,8 @@
 #include "custom_conditions/scalar_wall_flux_condition.h"
 
 // k-epsilon turbulence model condition data
-#include "custom_conditions/scalar_wall_flux_condition_data/evm_k_epsilon_high_re/epsilon_k_based_wall_condition_data.h"
-#include "custom_conditions/scalar_wall_flux_condition_data/evm_k_epsilon_high_re/epsilon_u_based_wall_condition_data.h"
+#include "custom_conditions/scalar_wall_flux_condition_data/evm_k_epsilon/epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/scalar_wall_flux_condition_data/evm_k_epsilon/epsilon_u_based_wall_condition_data.h"
 
 // k-omega turbulence model condition data
 #include "custom_conditions/scalar_wall_flux_condition_data/evm_k_omega/omega_k_based_wall_condition_data.h"
@@ -219,25 +219,25 @@ private:
 
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements
-    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonHighReElementData::KElementData<2>> mRansEvmKEpsilonHighReKAFC2D;
-    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonHighReElementData::KElementData<3>> mRansEvmKEpsilonHighReKAFC3D;
+    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonElementData::KElementData<2>> mRansEvmKEpsilonKAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonElementData::KElementData<3>> mRansEvmKEpsilonKAFC3D;
 
-    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonHighReElementData::EpsilonElementData<2>> mRansEvmKEpsilonHighReEpsilonAFC2D;
-    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonHighReElementData::EpsilonElementData<3>> mRansEvmKEpsilonHighReEpsilonAFC3D;
+    const ConvectionDiffusionReactionElement<2, 3, EvmKEpsilonElementData::EpsilonElementData<2>> mRansEvmKEpsilonEpsilonAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, EvmKEpsilonElementData::EpsilonElementData<3>> mRansEvmKEpsilonEpsilonAFC3D;
 
     /// Residual based flux corrected elements
-    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKEpsilonHighReElementData::KElementData<2>> mRansEvmKEpsilonHighReKRFC2D;
-    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKEpsilonHighReElementData::KElementData<3>> mRansEvmKEpsilonHighReKRFC3D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKEpsilonElementData::KElementData<2>> mRansEvmKEpsilonKRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKEpsilonElementData::KElementData<3>> mRansEvmKEpsilonKRFC3D;
 
-    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKEpsilonHighReElementData::EpsilonElementData<2>> mRansEvmKEpsilonHighReEpsilonRFC2D;
-    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKEpsilonHighReElementData::EpsilonElementData<3>> mRansEvmKEpsilonHighReEpsilonRFC3D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, EvmKEpsilonElementData::EpsilonElementData<2>> mRansEvmKEpsilonEpsilonRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, EvmKEpsilonElementData::EpsilonElementData<3>> mRansEvmKEpsilonEpsilonRFC3D;
 
     /// Cross wind stabilization based elements
-    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonHighReElementData::KElementData<2>> mRansEvmKEpsilonHighReKCWD2D;
-    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonHighReElementData::KElementData<3>> mRansEvmKEpsilonHighReKCWD3D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonElementData::KElementData<2>> mRansEvmKEpsilonKCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonElementData::KElementData<3>> mRansEvmKEpsilonKCWD3D;
 
-    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonHighReElementData::EpsilonElementData<2>> mRansEvmKEpsilonHighReEpsilonCWD2D;
-    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonHighReElementData::EpsilonElementData<3>> mRansEvmKEpsilonHighReEpsilonCWD3D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, EvmKEpsilonElementData::EpsilonElementData<2>> mRansEvmKEpsilonEpsilonCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKEpsilonElementData::EpsilonElementData<3>> mRansEvmKEpsilonEpsilonCWD3D;
 
     /// k-omega turbulence model elements
     /// Algebraic flux correction based elements
@@ -284,11 +284,11 @@ private:
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, EvmKOmegaSSTElementData::OmegaElementData<3>> mRansEvmKOmegaSSTOmegaCWD3D;
 
     // k-epsilon turbulence model conditions
-    const ScalarWallFluxCondition<2, 2, EvmKEpsilonHighReWallConditionData::EpsilonKBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonKBasedWall2D2N;
-    const ScalarWallFluxCondition<3, 3, EvmKEpsilonHighReWallConditionData::EpsilonKBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonKBasedWall3D3N;
+    const ScalarWallFluxCondition<2, 2, EvmKEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansEvmKEpsilonEpsilonKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansEvmKEpsilonEpsilonKBasedWall3D3N;
 
-    const ScalarWallFluxCondition<2, 2, EvmKEpsilonHighReWallConditionData::EpsilonUBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonUBasedWall2D2N;
-    const ScalarWallFluxCondition<3, 3, EvmKEpsilonHighReWallConditionData::EpsilonUBasedWallConditionData> mRansEvmKEpsilonHighReEpsilonUBasedWall3D3N;
+    const ScalarWallFluxCondition<2, 2, EvmKEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansEvmKEpsilonEpsilonUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, EvmKEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansEvmKEpsilonEpsilonUBasedWall3D3N;
 
     // k-omega turbulence model conditions
     const ScalarWallFluxCondition<2, 2, EvmKOmegaWallConditionData::OmegaKBasedWallConditionData> mRansEvmKOmegaOmegaKBasedWall2D2N;

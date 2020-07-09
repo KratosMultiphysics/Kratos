@@ -20,7 +20,7 @@ class FractionalStepKOmegaSSTFormulation(Formulation):
 
         default_settings = Kratos.Parameters(r'''
         {
-            "formulation_name": "fractional_step_k_epsilon_high_re",
+            "formulation_name": "fractional_step_k_epsilon",
             "incompressible_potential_flow_initialization_settings": {},
             "fractional_step_flow_solver_settings": {},
             "k_omega_sst_solver_settings": {},

@@ -19,7 +19,7 @@
 #include "custom_processes/rans_k_turbulent_intensity_inlet_process.h"
 #include "custom_processes/rans_nut_y_plus_wall_function_update_process.h"
 #include "custom_processes/rans_epsilon_turbulent_mixing_inlet_process.h"
-#include "custom_processes/rans_nut_k_epsilon_high_re_update_process.h"
+#include "custom_processes/rans_nut_k_epsilon_update_process.h"
 #include "custom_processes/rans_omega_turbulent_mixing_inlet_process.h"
 #include "custom_processes/rans_nut_k_omega_update_process.h"
 #include "custom_processes/rans_wall_distance_calculation_process.h"
@@ -67,9 +67,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansEpsilonTurbulentMixingLengthInletProcessType, RansEpsilonTurbulentMixingLengthInletProcessType::Pointer, Process>(m, "RansEpsilonTurbulentMixingLengthInletProcess")
         .def(py::init<Model&, Parameters&>());
 
-    using RansNutKEpsilonHighReUpdateProcessType = RansNutKEpsilonHighReUpdateProcess;
-    py::class_<RansNutKEpsilonHighReUpdateProcessType, RansNutKEpsilonHighReUpdateProcessType::Pointer, Process>(
-        m, "RansNutKEpsilonHighReUpdateProcess")
+    using RansNutKEpsilonUpdateProcessType = RansNutKEpsilonUpdateProcess;
+    py::class_<RansNutKEpsilonUpdateProcessType, RansNutKEpsilonUpdateProcessType::Pointer, Process>(
+        m, "RansNutKEpsilonUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
 

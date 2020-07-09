@@ -16,15 +16,15 @@ import run_cpp_unit_tests
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
-from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
-from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighRePeriodicTest
+from monolithic_k_epsilon_formulation_tests import MonolithicKEpsilonTest
+from monolithic_k_epsilon_formulation_tests import MonolithicKEpsilonPeriodicTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaPeriodicTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTPeriodicTest
 
 from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
-from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
+from fractional_step_k_epsilon_formulation_tests import FractionalStepKEpsilonTest
 from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
 from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
 
@@ -51,7 +51,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
 
     # adding k-epsilon high re periodic tests to small suite
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonHighRePeriodicTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonPeriodicTest]))
 
     # adding k-omega periodic tests to small suite
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaPeriodicTest]))
@@ -74,7 +74,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicVelocityPressureFormulationTest]))
 
     # adding monolithic k-epsilon high re tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonHighReTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonTest]))
 
     # adding monolithic k-omega tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaTest]))
@@ -86,7 +86,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepVelocityPressureFormulationTest]))
 
     # adding fractional step k-epsilon high re tests
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonHighReTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonTest]))
 
     # adding fractional step k-omega tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))

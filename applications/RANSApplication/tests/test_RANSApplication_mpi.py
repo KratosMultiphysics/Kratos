@@ -17,12 +17,12 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
-from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
+from monolithic_k_epsilon_formulation_tests import MonolithicKEpsilonTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
 
 from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
-from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
+from fractional_step_k_epsilon_formulation_tests import FractionalStepKEpsilonTest
 from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
 from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
 
@@ -53,7 +53,7 @@ def AssembleTestSuites():
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicVelocityPressureFormulationTest]))
 
     # adding monolithic k-epsilon high re tests
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonHighReTest]))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonTest]))
 
     # adding monolithic k-omega tests
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaTest]))
@@ -65,7 +65,7 @@ def AssembleTestSuites():
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepVelocityPressureFormulationTest]))
 
     # adding fractional step k-epsilon high re tests
-    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonHighReTest]))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKEpsilonTest]))
 
     # adding fractional step k-omega tests
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepKOmegaTest]))
