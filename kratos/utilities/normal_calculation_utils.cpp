@@ -365,7 +365,7 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
 void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(ModelPart& rModelPart)
 {
     // We iterate over nodes
-    auto& r_nodes_array = rModelPart.Nodes();
+    auto& r_nodes_array = rModelPart.GetCommunicator().LocalMesh().Nodes();
     const auto it_node_begin = r_nodes_array.begin();
     const int num_nodes = static_cast<int>(r_nodes_array.size());
 
