@@ -10,7 +10,7 @@
         "solver_type"                        : "Static",
         "model_part_name"                    : "Structure",
         "domain_size"                        : 2,
-        "echo_level"                         : 0,
+        "echo_level"                         : 1,
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",

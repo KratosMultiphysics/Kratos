@@ -42,8 +42,8 @@
 						"origin_model_part_name" : "origin",
 						"destination_model_part_name" : "destination",
 						"is_interface_sub_model_parts_specified" : true,
-						"origin_interface_sub_model_part_name" : "PointLoad2D_domainAinterface",
-						"destination_interface_sub_model_part_name" : "DISPLACEMENT_domainBinterface"
+						"origin_interface_sub_model_part_name" : "Structure.PointLoad2D_domainAinterface",
+						"destination_interface_sub_model_part_name" : "Structure.DISPLACEMENT_domainBinterface"
 					}
 				}
             }
@@ -101,19 +101,14 @@
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "DISPLACEMENT_domainBinterface",
+                        "model_part_name"   : "Structure.DISPLACEMENT_domainBinterface",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "DISPLACEMENT_domainBinterface",
+                        "model_part_name"   : "Structure.DISPLACEMENT_domainBinterface",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
-                    },
-                    "normals" : {
-                        "model_part_name"   : "DISPLACEMENT_domainBinterface",
-                        "dimension" : 2,
-                        "variable_name" : "NORMAL"
                     }
                 }
             },
@@ -125,19 +120,14 @@
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "PointLoad2D_domainAinterface",
+                        "model_part_name"   : "Structure.PointLoad2D_domainAinterface",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "PointLoad2D_domainAinterface",
+                        "model_part_name"   : "Structure.PointLoad2D_domainAinterface",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
-                    },
-                    "normals" : {
-                        "model_part_name"   : "PointLoad2D_domainAinterface",
-                        "dimension" : 2,
-                        "variable_name" : "NORMAL"
                     }
                 }
             }
