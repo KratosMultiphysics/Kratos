@@ -10,7 +10,6 @@
 //
 // This file is partly copied from "DEMApplication/custom_utilities/omp_dem_search.h" and modified
 
-
 #if !defined(KRATOS_OMP_NODE_SEARCH_H_INCLUDED )
 #define  KRATOS_OMP_NODE_SEARCH_H_INCLUDED
 
@@ -59,15 +58,14 @@ namespace Kratos
 
 /**
  * @class OMP_NodeSearch
- *
- * @ingroup EigenSolversApplication
- *
- * @brief This class searches for neighbours of one node within a certain radius
- *
+ * @ingroup StructuralMechanicsApplication
+ * @brief Node Search
+ * @details This class provides a method to search for neighbouring nodes of one node
+ * within a given radius.
  * @author Manuel Messmer
  */
 
-class OMP_NodeSearch
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
 {
     public:
       ///@name Type Definitions
@@ -77,7 +75,7 @@ class OMP_NodeSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_NodeSearch);
 
       //Configure Types
-      typedef NodeConfigure<3>                              NodeConfigureType;          //Node
+      typedef NodeConfigure                                 NodeConfigureType;
       typedef ModelPart::NodesContainerType                 NodesContainerType;
       //Bin Types
       typedef BinsObjectDynamic<NodeConfigureType>          NodeBinsType;
@@ -89,9 +87,7 @@ class OMP_NodeSearch
       ///@{
 
       /// Default constructor.
-
-      OMP_NodeSearch()
-      {
+      OMP_NodeSearch() {
           mIsInitialized = false;
       }
 
@@ -99,16 +95,18 @@ class OMP_NodeSearch
       ~OMP_NodeSearch(){
       }
 
-
       ///@}
       ///@name Operators
       ///@{
-
 
       ///@}
       ///@name Operations
       ///@{
 
+      /**
+       * @brief Initialize node search
+       * @param rStructureNodes Nodes container
+       **/
       void InitializeSearch(NodesContainerType const& rStructureNodes)
       {
         KRATOS_TRY;
@@ -121,27 +119,35 @@ class OMP_NodeSearch
         KRATOS_CATCH("");
       }
 
+      /**
+       * @brief Perform Node Search
+       * @details Searches for nodes within a given 'Radius' of the current node
+       * @param rStructureNodes Nodes Container
+       * @param Id NodeId of current node.
+       * @param Radius Search radius.
+       * @param rResults Results container.
+       **/
       void SearchNodesInRadiusExclusiveImplementation (
           NodesContainerType const& rStructureNodes,
           int const Id,
           double const Radius,
           ResultNodesContainerType& rResults )
       {
-            KRATOS_TRY
-            int MaxNumberOfNodes = rStructureNodes.size();
+        KRATOS_TRY
+        int MaxNumberOfNodes = rStructureNodes.size();
 
-            NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
 
-            ResultNodesContainerType  localResults(MaxNumberOfNodes);
-            std::size_t               NumberOfResults = 0;
+        ResultNodesContainerType localResults(MaxNumberOfNodes);
+        std::size_t NumberOfResults = 0;
 
-            ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
+        ResultNodesContainerType::iterator ResultsPointer = localResults.begin();
 
-            NumberOfResults = mBins->SearchObjectsInRadiusExclusive( nodes_array[Id],Radius,ResultsPointer,MaxNumberOfNodes);
+        NumberOfResults = mBins->SearchObjectsInRadius( nodes_array[Id],Radius,ResultsPointer,MaxNumberOfNodes);
 
-            rResults.insert(rResults.begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+        rResults.insert(rResults.begin(), localResults.begin(), localResults.begin() + NumberOfResults);
 
-          KRATOS_CATCH("")
+        KRATOS_CATCH("")
       }
 
       ///@}

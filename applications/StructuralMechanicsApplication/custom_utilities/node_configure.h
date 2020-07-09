@@ -8,9 +8,6 @@
 //
 //  Main authors:    Manuel Messmer
 //
-// This file is partly copied from "DEMApplication/custom_utilities/node_configure.h" and modified
-
-
 
 #if !defined(KRATOS_NODE_CONFIGURE_INCLUDED)
 #define  KRATOS_NODE_CONFIGURE_INCLUDED
@@ -23,28 +20,51 @@
 // Kratos includes
 #include "spatial_containers/spatial_search.h"
 
-/* Timer defines */
-#include "utilities/timer.h"
+namespace Kratos {
 
-namespace Kratos
-{
+///@name Kratos Globals
+///@{
 
-template <std::size_t TDimension>
-class NodeConfigure
-{
+///@}
+///@name Type Definitions
+///@{
 
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class NodeConfigure
+ * @ingroup StructuralMechanicsApplication
+ * @brief Configuration file for Nodes.
+ * @details This class provides a configuration file for nodes to perform a node search
+ * depending on the euclidean distance between two nodes
+ * @author Manuel Messmer
+ */
+
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeConfigure {
 public:
-
-    enum {
-        Dimension = TDimension,
-        DIMENSION = TDimension,
-        MAX_LEVEL = 16,
-        MIN_LEVEL = 2
-    };
-
-    /// Pointer definition of SpatialContainersConfigure
+    /// Pointer definition of NodeConfigure
     KRATOS_CLASS_POINTER_DEFINITION(NodeConfigure);
 
+    /**
+     * @brief Compile time definitions
+     * @param Epsilon Error tolerance for comparison operations with doubles
+     * @param Dimension Dimension of the problem. Fixed to 3.
+     **/
+    static constexpr auto Epsilon   = std::numeric_limits<double>::epsilon();
+    static constexpr auto Dimension = 3;
+
+    ///@name Type Definitions
+    ///@{
     typedef SpatialSearch                                           SearchType;
 
     typedef SearchType::PointType                                   PointType;
@@ -63,120 +83,138 @@ public:
     typedef ContactPair<PointerType>                                ContactPairType;
     typedef std::vector<ContactPairType>                            ContainerContactType;
     typedef ContainerContactType::iterator                          IteratorContactType;
-    typedef ContainerContactType::value_type                        PointerContactType;
+    //typedef ContainerContactType::value_type                        PointerContactType;
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
+    /// Default constructor
     NodeConfigure(){}
+
+    /// Default destructor
     virtual ~NodeConfigure(){}
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /** @brief Calculates the bounding box for the given object.
+     * @details For this configuation file, the bounding box is equal to the point given in 'rObject'.
+     * @param rObject Point for which the bounding box will be calculated.
+     * @param rLowPoint Lower point of the boundingbox.
+     * @param rHighPoint Higher point of the boundingbox.
+     **/
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     {
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rHighPoint[i] = rLowPoint[i]  = (*rObject)[i];
-        }
+        rHighPoint = rLowPoint  = *rObject;
     }
 
-    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
+    /** @brief Calculates the bounding box for the given object extended with a Radius.
+     * @details For this configuation file, the bounding box is equal to the point given in 'rObject' + - a radius.
+     * @param rObject Point for which the bounding box will be calculated.
+     * @param rLowPoint Lower point of the boundingbox.
+     * @param rHighPoint Higher point of the boundingbox.
+     * @param Radius The extension radius to be applied to the boundingbox.
+     **/
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double Radius)
     {
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rHighPoint[i] = rLowPoint[i]  = (*rObject)[i];
-        }
+        auto radiusExtension = PointType(Radius, Radius, Radius);
 
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rLowPoint[i]  += -Radius;
-            rHighPoint[i] += Radius;
-        }
+        rLowPoint  = PointType{*rObject - radiusExtension};
+        rHighPoint = PointType{*rObject + radiusExtension};
     }
 
+    /** @brief Calculates the Center of the object.
+     * @param rObject Point for which the bounding box will be calculated.
+     * @param rCenter The center point of the object.
+     **/
     static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter)
     {
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rCenter[i]  = (*rObject)[i];
-        }
+        rCenter  = *rObject;
     }
 
-
-    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
+    /** @brief Tests the intersection of two objects extended with a given radius.
+     * @details For this configuation file, tests if euclidean distance between the two nodes
+     * is smaller than the provided 'Radius' within an Epsilon tolerance range.
+     * @param rObj_1 First point of the test.
+     * @param rObj_2 Second point of the test.
+     * @param Radius The extension radius to be applied in the intersection.
+     * @return Boolean indicating the result of the intersection test.
+     **/
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double Radius)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1;
+        double distance;
+        Distance(rObj_1, rObj_2, distance);
 
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            rObj_2_to_rObj_1[i]  = (*rObj_1)[i] - (*rObj_2)[i];
+        if( distance > Epsilon + Radius){
+            return false;
         }
 
-        double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
-
-        double radius_sum = 2*Radius;
-
-        bool intersect = floatle(distance_2 - radius_sum*radius_sum,0);
-
-        return intersect;
+        return true;
     }
 
+    /** @brief Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
+     * @details For this configuation file, tests if one point is inside the boundingbox
+     * described by 'rLowPoint' and 'rHighPoint' within an Epsilon tolerance range.
+     * @param rObject Point of the tests.
+     * @param rLowPoint Lower point of the boundingbox.
+     * @param rHighPoint Higher point of the boundingbox.
+     * @return Boolean indicating the result of the intersection test.
+     **/
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
-        array_1d<double, 3> center_of_particle;
-
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            center_of_particle[i]  = (*rObject)[i];
+        for(std::size_t i = 0; i < Dimension; i++) {
+            if( (*rObject)[i] < rLowPoint[i] - Epsilon || (*rObject)[i] > rHighPoint[i] + Epsilon) {
+                return false;
+            }
         }
 
-        bool intersect = (
-          floatle(rLowPoint[0] ,center_of_particle[0]) &&
-          floatle(rLowPoint[1] ,center_of_particle[1]) &&
-          floatle(rLowPoint[2] ,center_of_particle[2]) &&
-          floatge(rHighPoint[0] ,center_of_particle[0]) &&
-          floatge(rHighPoint[1] ,center_of_particle[1]) &&
-          floatge(rHighPoint[2] ,center_of_particle[2]));
-
-        return  intersect;
+        return true;
     }
 
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
+    /** @brief Tests the intersection of one object with a boundingbox described by 'rLowPoint' and 'rHighPoint'.
+     * @details For this configuation file, tests if one point extended by radius is inside the boundingbox
+     * described by 'rLowPoint' and 'rHighPoint' within an Epsilon tolerance range.
+     * @param rObject Point of the tests.
+     * @param rLowPoint Lower point of the boundingbox.
+     * @param rHighPoint Higher point of the boundingbox.
+     * @param Radius The extension radius to be applied in the intersection.
+     * @return Boolean indicating the result of the intersection test.
+     **/
+    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double Radius)
     {
-        array_1d<double, 3> center_of_particle;
-
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            center_of_particle[i]  = (*rObject)[i];
+        for(std::size_t i = 0; i < Dimension; i++) {
+            if( ((*rObject)[i] + Radius) < rLowPoint[i] - Epsilon || ((*rObject)[i] - Radius) > rHighPoint[i] + Epsilon) {
+                return false;
+            }
         }
 
-        double radius = Radius;
-
-        bool intersect = (
-          floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
-          floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
-          floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
-          floatge(rHighPoint[0] + radius,center_of_particle[0]) &&
-          floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
-          floatge(rHighPoint[2] + radius,center_of_particle[2]));
-
-        return  intersect;
+        return true;
     }
 
+    /** @brief Calculates the distance betwen two objects.
+     * @param rObj_1 First point.
+     * @param rObj_2 Second point
+     * @param distance The euclidean distance between 'rObj_1' and 'rObj_2'.
+     **/
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
-        array_1d<double, 3> center_of_particle1;
-        array_1d<double, 3> center_of_particle2;
+        double pwdDistance = 0.0f;
 
-        for(std::size_t i = 0; i < 3; i++)
-        {
-            center_of_particle1[i]  = (*rObj_1)[i];
-            center_of_particle2[i]  = (*rObj_2)[i];
+        for(std::size_t i = 0; i < Dimension; i++) {
+            pwdDistance += std::pow((*rObj_1)[i] - (*rObj_2)[i], 2);
         }
-        distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
-                        (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
-                        (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
+
+        distance = std::sqrt(pwdDistance);
     }
 
     /// Turn back information as a string.
-    virtual std::string Info() const {return " Spatial Containers Configure for Particles"; }
+    virtual std::string Info() const {return " Spatial Containers Configure for Nodes to perform a Node Search"; }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const {}
@@ -186,21 +224,50 @@ public:
 
 
 protected:
+    ///@name Protected static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    static inline bool floateq(double a, double b) {
-        return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
-    }
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-    static inline bool floatle(double a, double b) {
-        return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
-    }
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-    static inline bool floatge(double a, double b) {
-        return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
-    }
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     ///@}
     ///@name Private  Access
@@ -234,14 +301,13 @@ private:
     ///@{
 
     /// input stream function
-    template <std::size_t TDimension>
-    inline std::istream& operator >> (std::istream& rIStream, NodeConfigure<TDimension> & rThis){
+
+    inline std::istream& operator >> (std::istream& rIStream, NodeConfigure& rThis){
         return rIStream;
         }
 
     /// output stream function
-    template <std::size_t TDimension>
-    inline std::ostream& operator << (std::ostream& rOStream, const NodeConfigure<TDimension>& rThis){
+    inline std::ostream& operator << (std::ostream& rOStream, const NodeConfigure& rThis){
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
