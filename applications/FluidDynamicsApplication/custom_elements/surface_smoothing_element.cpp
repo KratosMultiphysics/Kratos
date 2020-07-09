@@ -328,9 +328,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         GeometryType& r_face = faces[i_face];
         unsigned int contact_node = 0;
         const unsigned int num_face_nodes = num_nodes - 1;
+        unsigned int n_pos = 0;
+
         for (unsigned int i=0; i < num_face_nodes; ++i){
             if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
                 contact_node++;
+            }
+            if ( r_face[i].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+                n_pos++;
             }
         }
 
@@ -388,39 +393,42 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
                     Vector solid_normal = ZeroVector(num_dim);
                     Vector corrected_gradient = ZeroVector(num_dim);
-                    if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0)
-                    {
-                        solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
-                        const double norm = Kratos::norm_2(solid_normal);
-                        solid_normal = (1.0/norm)*solid_normal;
 
-                        const double norm_grad_phi = norm_2(GradPHIold[i]);
-                        const Vector normal = GradPHIold[i]/norm_grad_phi;
+                    if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0){
+                        if (n_pos > 0 && n_pos < num_face_nodes){ //cut solid surface element
+                            solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+                            const double norm = Kratos::norm_2(solid_normal);
+                            solid_normal = (1.0/norm)*solid_normal;
 
-                        Vector contact_tangential = ZeroVector(num_dim);
-                        MathUtils<double>::UnitCrossProduct(contact_tangential, normal, solid_normal);
-                        Vector slip_vector = ZeroVector(num_dim);
-                        MathUtils<double>::UnitCrossProduct(slip_vector, solid_normal, contact_tangential);
+                            const double norm_grad_phi = norm_2(GradPHIold[i]);
+                            const Vector normal = GradPHIold[i]/norm_grad_phi;
 
-                        const double slip_velocity = inner_prod(slip_vector,
-                            GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
+                            Vector contact_tangential = ZeroVector(num_dim);
+                            MathUtils<double>::UnitCrossProduct(contact_tangential, normal, solid_normal);
+                            Vector slip_vector = ZeroVector(num_dim);
+                            MathUtils<double>::UnitCrossProduct(slip_vector, solid_normal, contact_tangential);
 
-                        const double zeta = 1.0e-2;
-                        const double gamma = 0.1;
+                            const double slip_velocity = inner_prod(slip_vector,
+                                GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                        const double cos_theta_s = -0.342020143;
-                        const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
+                            const double zeta = 1.0e0;
+                            const double gamma = 0.1;
 
-                        KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
-                            << "cos_theta_d is larger than one." << std::endl;
+                            const double cos_theta_s = -0.422618262;
+                            const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
 
-                        const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
+                            KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
+                                << "cos_theta_d is larger than one." << std::endl;
 
-                        corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
+                            const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
 
+                            corrected_gradient = GradPHIold[i];//norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
+                        } else { //not a cut solid surface element
+                            corrected_gradient = GradPHIold[i];
+                        }
                     }
 
-                    temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, corrected_gradient);//GradPHIold[i]);
+                    temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, corrected_gradient);
                 }
 
                 for (unsigned int i = 0; i < num_nodes; i++){
@@ -428,7 +436,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                 }
             }
         }
-        
+
         i_face++;
     }
     ///////////////////////////////////////////////////////////////////////////////
