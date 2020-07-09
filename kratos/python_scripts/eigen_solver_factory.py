@@ -12,7 +12,7 @@ def ConstructSolver(settings):
 
     if solver_type == "eigen_eigensystem":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            KratosMultiphysics import LinearSolversApplication
+            from KratosMultiphysics import LinearSolversApplication
             eigen_solver = LinearSolversApplication.EigensystemSolver(settings)
             return eigen_solver
         else:
@@ -20,7 +20,7 @@ def ConstructSolver(settings):
 
     elif solver_type == "dense_eigensolver":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            KratosMultiphysics import LinearSolversApplication
+            from KratosMultiphysics import LinearSolversApplication
             eigen_solver = LinearSolversApplication.DenseEigenvalueSolver(settings)
             return eigen_solver
         else:
@@ -28,7 +28,7 @@ def ConstructSolver(settings):
 
     elif solver_type == "feast":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            KratosMultiphysics import LinearSolversApplication
+            from KratosMultiphysics import LinearSolversApplication
             if LinearSolversApplication.HasFEAST():
                 is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
                 eigen_solver = LinearSolversApplication.FEASTSymmetricEigensystemSolver(settings) if is_symmetric else LinearSolversApplication.FEASTGeneralEigensystemSolver(settings)
@@ -40,7 +40,7 @@ def ConstructSolver(settings):
 
     elif solver_type == "feast_complex":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            KratosMultiphysics import LinearSolversApplication
+            from KratosMultiphysics import LinearSolversApplication
             if LinearSolversApplication.HasFEAST():
                 is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
                 eigen_solver = LinearSolversApplication.ComplexFEASTSymmetricEigensystemSolver(settings) if is_symmetric else LinearSolversApplication.ComplexFEASTGeneralEigensystemSolver(settings)
