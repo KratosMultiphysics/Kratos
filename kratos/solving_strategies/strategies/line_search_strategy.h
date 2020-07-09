@@ -239,6 +239,14 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "line_search_strategy";
+    }
 
     ///@}
     ///@name Access

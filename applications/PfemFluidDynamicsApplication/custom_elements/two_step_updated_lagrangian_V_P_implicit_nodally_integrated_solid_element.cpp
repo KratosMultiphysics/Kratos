@@ -286,7 +286,7 @@ namespace Kratos
     double VolumetricCoeff = 0;
 
     // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
+    for (unsigned int g = 0; g < NumGauss; ++g)
     {
       const double GaussWeight = GaussWeights[g];
       totalVolume += GaussWeight;
