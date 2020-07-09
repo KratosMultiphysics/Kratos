@@ -128,6 +128,8 @@ public:
             mDerivativeMatrixType = false;
         else
             KRATOS_ERROR;
+        
+        mFiniteDifferenceStepSize = InputParameters["finite_difference_step_size"].GetDouble();
 
         KRATOS_CATCH("")
     }
@@ -279,7 +281,7 @@ public:
         KRATOS_TRY
         
         // Derivative of basis_i
-        std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
+        const std::size_t basis_i = rCurrentProcessInfo[BASIS_I];
         
         // Create PhiElemental
         LocalSystemVectorType PhiElemental;
@@ -303,11 +305,11 @@ public:
         // Build RHS contribution
 
         // Initialize RHS contribution
-        rRHS_Contribution.clear();
         std::vector<Dof<double>::Pointer> rElementalDofList;
         rElement.GetDofList(rElementalDofList, rCurrentProcessInfo);
         std::size_t elementalDofSize = rElementalDofList.size();
-        rRHS_Contribution.resize(elementalDofSize, 0);
+        rRHS_Contribution.resize(elementalDofSize);
+        rRHS_Contribution.clear();
         
         // Compute element LHS derivative
         Matrix element_matrix_derivative;
@@ -316,7 +318,7 @@ public:
         {   // Modal parameter            
 
             // Derivative wrt basis_j
-            std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
+            const std::size_t basis_j = rCurrentProcessInfo[BASIS_J];
 
             if (mFiniteDifferenceTypeFlag) // Central Difference
                 this->CentralDifferencingWithBasis(rElement, element_matrix_derivative, basis_j, rCurrentProcessInfo);
@@ -338,7 +340,7 @@ public:
         if (element_matrix_derivative.size1() != PhiElemental.size()){
             // TODO: this is a workaround. use a map as in ROM analysis
             // retrieve only displacement dofs from PhiElemental
-            unsigned int disp_shifter = 3;
+            const std::size_t disp_shifter = 3;
             Vector tmpPhiElemental;
             tmpPhiElemental.resize(PhiElemental.size() / 2);
             for (std::size_t iNode = 0; iNode < rElement.GetGeometry().size(); iNode++)
@@ -354,6 +356,9 @@ public:
         {
             rRHS_Contribution -= prod(element_matrix_derivative, PhiElemental);
         }
+
+        if (mDerivativeMatrixType)
+            rRHS_Contribution *= rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i];
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
@@ -412,16 +417,16 @@ protected:
 
     void ForwardDifferencingWithMaterialParameter(
         Element& rElement,
-        Matrix& rElementMatrixDerivative,
-        const Variable<double>& MaterialParameter,
+        LocalSystemMatrixType& rElementMatrixDerivative,
+        const Variable<double>& rMaterialParameter,
         const ProcessInfo& rCurrentProcessInfo)
     {
 
-        if ( rElement.GetProperties().Has(MaterialParameter) )
+        if ( rElement.GetProperties().Has(rMaterialParameter) )
         {
 
-            Matrix element_matrix_initial;
-            Matrix element_matrix_p_perturbed;
+            LocalSystemMatrixType element_matrix_initial;
+            LocalSystemMatrixType element_matrix_p_perturbed;
 
             // Compute initial matrix
             if (mDerivativeMatrixType)
@@ -431,30 +436,23 @@ protected:
             
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
-            const double initial_property_value = p_global_properties->GetValue(MaterialParameter);
+            const double initial_property_value = p_global_properties->GetValue(rMaterialParameter);
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
             rElement.SetProperties(p_local_property);
-            rElement.Initialize(rCurrentProcessInfo);
             
             // Positive perturbation
             // perturb the variable
-            p_local_property->SetValue(MaterialParameter, (initial_property_value + mFiniteDifferenceStepSize));
-            rElement.Initialize(rCurrentProcessInfo);
+            p_local_property->SetValue(rMaterialParameter, (initial_property_value + initial_property_value*mFiniteDifferenceStepSize));
             // Compute element matrix after perturbation
             if (mDerivativeMatrixType)
                 rElement.CalculateMassMatrix(element_matrix_p_perturbed, rCurrentProcessInfo);
             else
                 rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
-
-            // Reset value
-            p_local_property->SetValue(MaterialParameter, initial_property_value);
-            rElement.Initialize(rCurrentProcessInfo);
             
             // Give element original properties back
             rElement.SetProperties(p_global_properties);
-            rElement.Initialize(rCurrentProcessInfo);
 
             noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_initial) / (mFiniteDifferenceStepSize);
         }
@@ -462,30 +460,28 @@ protected:
 
     void CentralDifferencingWithMaterialParameter(
         Element& rElement,
-        Matrix& rElementMatrixDerivative,
-        const Variable<double>& MaterialParameter,
+        LocalSystemMatrixType& rElementMatrixDerivative,
+        Variable<double>& rMaterialParameter,
         const ProcessInfo& rCurrentProcessInfo)
     {
 
-        if ( rElement.GetProperties().Has(MaterialParameter) )
+        if ( rElement.GetProperties().Has(rMaterialParameter) )
         {
 
-            Matrix element_matrix_p_perturbed;
-            Matrix element_matrix_n_perturbed;
+            LocalSystemMatrixType element_matrix_p_perturbed;
+            LocalSystemMatrixType element_matrix_n_perturbed;
 
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
-            const double initial_property_value = rElement.GetProperties()[MaterialParameter];
+            const double initial_property_value = rElement.GetProperties()[rMaterialParameter];
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
             rElement.SetProperties(p_local_property);
-            rElement.Initialize(rCurrentProcessInfo);
-
+            
             // Positive perturbation
             // perturb the variable
-            p_local_property->SetValue(MaterialParameter, (initial_property_value + mFiniteDifferenceStepSize));
-            rElement.Initialize(rCurrentProcessInfo);
+            p_local_property->SetValue(rMaterialParameter, (initial_property_value + initial_property_value*mFiniteDifferenceStepSize));
             // Compute element matrix after perturbation
             if (mDerivativeMatrixType)
                 rElement.CalculateMassMatrix(element_matrix_p_perturbed, rCurrentProcessInfo);
@@ -494,29 +490,25 @@ protected:
 
             // Negative perturbation
             // perturb the variable
-            p_local_property->SetValue(MaterialParameter, (initial_property_value - mFiniteDifferenceStepSize));
-            rElement.Initialize(rCurrentProcessInfo);
+            p_local_property->SetValue(rMaterialParameter, (initial_property_value - initial_property_value*mFiniteDifferenceStepSize));
             // Compute element matrix after perturbation
             if (mDerivativeMatrixType)
                 rElement.CalculateMassMatrix(element_matrix_n_perturbed, rCurrentProcessInfo);
             else
                 rElement.CalculateLeftHandSide(element_matrix_n_perturbed, rCurrentProcessInfo);
 
-            // Reset value
-            p_local_property->SetValue(MaterialParameter, initial_property_value);
-            rElement.Initialize(rCurrentProcessInfo);
+            // Give element original properties back
+            rElement.SetProperties(p_global_properties);
 
             noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0*mFiniteDifferenceStepSize);
 
-            // Give element original properties back
-            p_local_property->SetValue(MaterialParameter, initial_property_value);
-            rElement.SetProperties(p_global_properties);
         }
+        
     }
 
     void ForwardDifferencingWithBasis(
          Element&rElement,
-         Matrix& rElementMatrixDerivative,
+         LocalSystemMatrixType& rElementMatrixDerivative,
          const std::size_t basis_j,
          const ProcessInfo& rCurrentProcessInfo)
     {
@@ -528,7 +520,7 @@ protected:
         std::size_t matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
-        Matrix element_matrix_p_perturbed;
+        LocalSystemMatrixType element_matrix_p_perturbed;
         element_matrix_p_perturbed.resize(matrix_size, matrix_size, false);
         this->PerturbElementWithBasis(rElement, 1.0, basis_j, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
@@ -537,7 +529,7 @@ protected:
         this->PerturbElementWithBasis(rElement, -1.0, basis_j, rCurrentProcessInfo);
 
         // Neutral state
-        Matrix element_matrix;
+        LocalSystemMatrixType element_matrix;
         element_matrix.resize(matrix_size, matrix_size, false);
         rElement.CalculateLeftHandSide(element_matrix, rCurrentProcessInfo);
 
@@ -552,7 +544,7 @@ protected:
 
     void CentralDifferencingWithBasis(
          Element&rElement,
-         Matrix& rElementMatrixDerivative,
+         LocalSystemMatrixType& rElementMatrixDerivative,
          const std::size_t basis_j,
          const ProcessInfo& rCurrentProcessInfo)
     {
@@ -564,13 +556,13 @@ protected:
         std::size_t matrix_size = rElementMatrixDerivative.size1();
 
         // Positive perturbation
-        Matrix element_matrix_p_perturbed;
+        LocalSystemMatrixType element_matrix_p_perturbed;
         element_matrix_p_perturbed.resize(matrix_size, matrix_size, false);
         this->PerturbElementWithBasis(rElement, 1.0, basis_j, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
 
         // Negative perturbation
-        Matrix element_matrix_n_perturbed;
+        LocalSystemMatrixType element_matrix_n_perturbed;
         element_matrix_n_perturbed.resize(matrix_size, matrix_size, false);
         this->PerturbElementWithBasis(rElement, -2.0, basis_j, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_n_perturbed, rCurrentProcessInfo);
@@ -596,6 +588,7 @@ protected:
     {
         // Initialize is necessary for updating the section properties of shell elements
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+        std::size_t disp_shifter = 3;
 
         // Loop over element nodes
         for (auto& node_i : rElement.GetGeometry()) {
@@ -615,7 +608,7 @@ protected:
 
                 // Update current nodal coordinates
                 if (node_i_num_dofs > 3 && dof_idx > 2) // disp dofs when rots included
-                    node_i.Coordinates()[dof_idx-3] += dof_perturbation;
+                    node_i.Coordinates()[dof_idx-disp_shifter] += dof_perturbation;
                 else if (node_i_num_dofs < 4 ) // disp dofs when rots excluded
                     node_i.Coordinates()[dof_idx] += dof_perturbation;
                 
