@@ -12,7 +12,6 @@ from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 import os
 
-# Check other applications dependency
 try:
     import stl
     numpy_stl_is_available = True
