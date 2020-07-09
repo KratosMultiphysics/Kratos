@@ -224,7 +224,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         N = KM.Matrix()
         gp_utilities.AssembleMatrix(N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
 
-        settings = KM.Parameters('{ "solver_type" : "EigenSolversApplication.dense_col_piv_householder_qr" }')
+        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
 
         KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
