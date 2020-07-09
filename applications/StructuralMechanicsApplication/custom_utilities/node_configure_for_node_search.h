@@ -9,8 +9,8 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_NODE_CONFIGURE_INCLUDED)
-#define  KRATOS_NODE_CONFIGURE_INCLUDED
+#if !defined(KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H)
+#define  KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H
 
 // System includes
 #include <string>
@@ -42,7 +42,7 @@ namespace Kratos {
 ///@{
 
 /**
- * @class NodeConfigure
+ * @class NodeConfigureForNodeSearch
  * @ingroup StructuralMechanicsApplication
  * @brief Configuration file for Nodes.
  * @details This class provides a configuration file for nodes to perform a node search
@@ -50,10 +50,10 @@ namespace Kratos {
  * @author Manuel Messmer
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeConfigure {
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeConfigureForNodeSearch {
 public:
-    /// Pointer definition of NodeConfigure
-    KRATOS_CLASS_POINTER_DEFINITION(NodeConfigure);
+    /// Pointer definition of NodeConfigureForNodeSearch
+    KRATOS_CLASS_POINTER_DEFINITION(NodeConfigureForNodeSearch);
 
     /**
      * @brief Compile time definitions
@@ -90,10 +90,10 @@ public:
     ///@{
 
     /// Default constructor
-    NodeConfigure(){}
+    NodeConfigureForNodeSearch(){}
 
     /// Default destructor
-    virtual ~NodeConfigure(){}
+    virtual ~NodeConfigureForNodeSearch(){}
 
     ///@}
     ///@name Operators
@@ -282,14 +282,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    NodeConfigure& operator=(NodeConfigure const& rOther);
+    NodeConfigureForNodeSearch& operator=(NodeConfigureForNodeSearch const& rOther);
 
     /// Copy constructor.
-    NodeConfigure(NodeConfigure const& rOther);
+    NodeConfigureForNodeSearch(NodeConfigureForNodeSearch const& rOther);
 
     ///@}
 
-    }; // Class NodeConfigure
+    }; // Class NodeConfigureForNodeSearch
 
     ///@}
 
@@ -302,12 +302,12 @@ private:
 
     /// input stream function
 
-    inline std::istream& operator >> (std::istream& rIStream, NodeConfigure& rThis){
+    inline std::istream& operator >> (std::istream& rIStream, NodeConfigureForNodeSearch& rThis){
         return rIStream;
         }
 
     /// output stream function
-    inline std::ostream& operator << (std::ostream& rOStream, const NodeConfigure& rThis){
+    inline std::ostream& operator << (std::ostream& rOStream, const NodeConfigureForNodeSearch& rThis){
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
@@ -318,4 +318,4 @@ private:
     ///@}
 
 }   // namespace Kratos.
-#endif	/* NODE_CONFIGURE_H */
+#endif	/* KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H */

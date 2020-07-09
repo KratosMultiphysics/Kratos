@@ -75,7 +75,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_NodeSearch);
 
       //Configure Types
-      typedef NodeConfigure                                 NodeConfigureType;
+      typedef NodeConfigureForNodeSearch                    NodeConfigureType;
       typedef ModelPart::NodesContainerType                 NodesContainerType;
       //Bin Types
       typedef BinsObjectDynamic<NodeConfigureType>          NodeBinsType;
