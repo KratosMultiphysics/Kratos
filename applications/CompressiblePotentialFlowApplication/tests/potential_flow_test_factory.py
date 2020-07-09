@@ -36,7 +36,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    @UnitTest.skipIfApplicationsNotAvailable("HDF5Application")
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication", "HDF5Application")
     def test_Naca0012SmallAdjoint(self):
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
