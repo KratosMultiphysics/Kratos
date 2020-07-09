@@ -7,7 +7,6 @@ from KratosMultiphysics.testing.utilities import GetPython3Command
 
 import os
 import subprocess
-from shutil import which
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
