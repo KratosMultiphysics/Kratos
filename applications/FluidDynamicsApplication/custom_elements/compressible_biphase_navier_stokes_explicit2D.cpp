@@ -35,7 +35,9 @@ unsigned int	conta(
 void ShockCapturing(const double mu,
                const double lambda,
                const double c_v,
+			   const double ros,
                const double h,
+			   array_1d<double,2>& ds_diff,
                array_1d<double,4>& tau,
                array_1d<double,2>& q,
                double ro_el,
@@ -44,17 +46,20 @@ void ShockCapturing(const double mu,
 {
     const int SpaceDimension = 2;
     
-   const double alpha = 5.0;                               // Algorithm constant
-   const double tol = 1e-16;                               
+   double alpha = 5.0;                               // Algorithm constant
+   const double tol = 1e-3;                               
 
     unsigned int i;
 
-    double v_sc = 0.0;
+    double a_sc = 0.0;
+	double v_sc = 0.0;
     double k_sc = 0.0;
                                           //Shock capturing viscosity
     array_1d<double,SpaceDimension> res_m;
-    double res_e = Residual(4);
-    double norm_res_m;
+    double res_ds 	= Residual(1);
+	double res_e 	= Residual(4);
+    double norm_res_ds;
+	double norm_res_m;
     double norm_res_e;
     double normgradm = 0.0;
     
@@ -62,9 +67,20 @@ void ShockCapturing(const double mu,
     res_m(0) = Residual(2); 
     res_m(1) = Residual(3);
 
-    norm_res_m = sqrt(res_m(0) * res_m(0) + res_m(1) * res_m(1));
-    
-    for (i = 4; i < 8; i++){
+	norm_res_ds = sqrt(res_ds*res_ds);
+    norm_res_m 	= sqrt(res_m(0) * res_m(0) + res_m(1) * res_m(1));
+    norm_res_e 	= sqrt(res_e*res_e);
+
+	double norm_grad_ds = 0.0;              // Frobenius norm of dust density
+    for (i = 2; i < 4; i++)      norm_grad_ds += gradU(i)*gradU(i);
+
+	norm_grad_ds = sqrt(norm_grad_ds);
+
+	if (norm_grad_ds > tol)         a_sc = 0.5*h*alpha*(norm_res_ds/norm_grad_ds);
+
+	
+	
+	for (i = 4; i < 8; i++){
         normgradm += gradU(i)*gradU(i);
     }
 
@@ -73,17 +89,23 @@ void ShockCapturing(const double mu,
     if (normgradm > tol){         
         v_sc = 0.5*h*alpha*(norm_res_m/normgradm);
     }
-    norm_res_e = sqrt(res_e*res_e);
-
-    double norm_grade = 0.0;              // Frobenius norm of total energy gradient
+    
+    
+	
+	
+	double norm_grade = 0.0;              // Frobenius norm of total energy gradient
     for (i = 8; i < 10; i++)      norm_grade += gradU(i)*gradU(i);
     
     norm_grade = sqrt(norm_grade);
     
- 
-    if (norm_grade > tol)         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
+	if (norm_grade > tol)         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
 
-    for (i = 0; i < 4; i++)       tau[i] *= (1.0 + ro_el*v_sc/mu);
+
+
+
+    for (i = 0; i < 2; i++)       ds_diff[i] = 0.0*a_sc/ros*norm_grad_ds;
+	
+	for (i = 0; i < 4; i++)       tau[i] *= (1.0 + ro_el*v_sc/mu);
 
     for (i = 0; i < 2; i++)       q[i] *= (1.0 + ro_el*c_v*k_sc/lambda);
 
@@ -156,7 +178,8 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     array_1d<double,nScalarVariables*SpaceDimension>     G;
     array_1d<double,nScalarVariables*nScalarVariables>   S;
     array_1d<double,nScalarVariables*nScalarVariables>   B;
-    array_1d<double,SpaceDimension*SpaceDimension>       tau;
+    array_1d<double,SpaceDimension>                      ds_diff;
+	array_1d<double,SpaceDimension*SpaceDimension>       tau;
     array_1d<double,SpaceDimension>                      q;
     array_1d<double,nScalarVariables*nNodalVariables>    NN;
     array_1d<double,nScalarVariables*SpaceDimension>     gradU;
@@ -309,11 +332,13 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 	
 	const double Cv2Dg3 = Cv*Cv*DG_el*DG_el*DG_el;
 	const double Cs2Ds3 = Cs*Cs*DS_el*DS_el*DS_el;
-		
-	const double p_el   = (DG_el*(2*rom*etot_el - norm2m)*R)/(2*rom*Cmixed);
+
+	const double a_d 	= 0;
+	
+	const double p_el   = (DG_el*(2*rom*etot_el - norm2m)*R)/(2*rom*Cmixed) + a_d*a_d*DS_el;
 		
 	const double pdg 	=  Cs*DS_el*etot_el*R/Cmixed2 + ((Cv*DG_el*DG_el - Cs*DS_el*DS_el)*norm2m*R)/(2*rom2*Cmixed2);
-	const double pds 	= -Cs*DG_el*etot_el*R/Cmixed2 + (DG_el*((Cs + Cv)*DG_el + 2*Cs*DS_el)*norm2m*R)/(2*rom2*Cmixed2);
+	const double pds 	= -Cs*DG_el*etot_el*R/Cmixed2 + (DG_el*((Cs + Cv)*DG_el + 2*Cs*DS_el)*norm2m*R)/(2*rom2*Cmixed2) + a_d*a_d;
 	const double pm1 	= -(DG_el*m1_el*R)/(rom*Cmixed);
 	const double pm2 	= -(DG_el*m2_el*R)/(rom*Cmixed);
 	const double pet 	= DG_el*R/Cmixed;
@@ -341,7 +366,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 	// printf("eps_g = %.3e\n", gas_concentration);
 
-    const double SpeedSound  = sqrt(gamma*R*Temperature)*sqrt(gas_density/(gas_concentration * rom));  // verificare sound_speed
+    const double SpeedSound  = sqrt(R*Temperature)*sqrt(gas_density/(gas_concentration * rom));  // verificare sound_speed
 
 	// printf("gamma = %.3e - SpeedSound = %.3e\n", gamma, SpeedSound); 
 
@@ -750,6 +775,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     for (i = 0; i < SpaceDimension; i++){
         
         q(i) = 0.0;
+		ds_diff(i) = 0.0;
 
         for (j = 0; j < SpaceDimension; j++){
 
@@ -768,19 +794,21 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
         }
     }
 
-    ShockCapturing(mu_mixture, lambda_mixture, Cv_mixture, h, tau, q, rom, gradU, Residual);
+    ShockCapturing(mu_mixture, lambda_mixture, Cv_mixture, ros, h, ds_diff, tau, q, rom, gradU, Residual);
 
     // Build diffusive term: Diffusion tensor
 
 	for ( i = 0; i < nScalarVariables*SpaceDimension; i++ )    G[i] = 0.0;
 		
 	for (i = 0; i < SpaceDimension; i++){
+
 		for (j = 0; j < SpaceDimension; j++)
 			G[(i + 2)*SpaceDimension + j] = -tau[i*SpaceDimension + j];
     }
 
 	for (j = 0; j < SpaceDimension; j++){
 
+		G[1*SpaceDimension + j] = -ds_diff[j];   // Numerical diffusivity for dust
 		G[4*SpaceDimension + j] = q[j];
 
 		for (i = 0; i < SpaceDimension; i++)
