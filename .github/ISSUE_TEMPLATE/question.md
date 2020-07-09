@@ -4,6 +4,9 @@ about: Doubts and questions
 
 ---
 
+**Description**
+What is happening?
+
 **Scope**
 Which areas of Kratos are involved
 E.g.
@@ -11,9 +14,6 @@ E.g.
 - KratosCore
 - FooApplication
 - Documentation
-
-**Description**
-What is happening?
 
 **Additional info**
 Add any other releavant information here.

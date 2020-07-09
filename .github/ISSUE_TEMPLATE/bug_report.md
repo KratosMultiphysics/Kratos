@@ -4,6 +4,9 @@ about: Report a bug, problem, issue or a missing feature
 
 ---
 
+**Description**
+A clear and concise description of the problem.
+
 **Scope**
 Where in Kratos is this bug happening. 
 E.g.
@@ -11,9 +14,6 @@ E.g.
 - KratosCore
 - FooApplication
 - Documentation
-
-**Description**
-A clear and concise description of the problem.
 
 **To Reproduce**
 Steps to reproduce the bug (if apply). Add any custom example files here if relevant.
