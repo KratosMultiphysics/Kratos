@@ -12,8 +12,8 @@ E.g.
 - FooApplication
 - Documentation
 
-**Question**
-A clear and concise description of the problem.
+**Description**
+What is happening?
 
 **Additional info**
 Add any other releavant information here.

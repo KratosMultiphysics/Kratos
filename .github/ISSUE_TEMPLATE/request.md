@@ -1,6 +1,6 @@
 ---
 name: Request
-about: petitions for implement features, make changes, etc...
+about: Petitions for implement features, make changes, etc...
 
 ---
 
