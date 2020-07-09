@@ -1,9 +1,3 @@
----
-name: Pull Request
-about: Any pull request, will be divided if github adds support for pr template queries in the future.
-
----
-
 **Description**
 A brief description of the PR.
 
