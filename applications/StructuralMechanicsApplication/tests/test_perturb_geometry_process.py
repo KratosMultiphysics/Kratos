@@ -38,7 +38,6 @@ class SubgridProcessCustom(PerturbGeometrySubgridProcessPython):
 class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
     @classmethod
     def _add_dofs(cls, mp):
-        # Adding dofs AND their corresponding reactions
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, mp)
@@ -56,7 +55,6 @@ class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
 
     @classmethod
     def _create_nodes(cls, mp, NumOfNodes, length):
-        # Create nodes
         counter = 0
         for y in range(NumOfNodes):
             for x in range(NumOfNodes):
@@ -106,16 +104,16 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
                     "eigensolver_settings"  : {
                         "solver_type"               : "eigen_eigensystem",
                         "max_iteration"             : 1000,
-                        "tolerance"                 : 1e-15,
+                        "tolerance"                 : 1e-10,
                         "number_of_eigenvalues"     : 10,
-                        "normalize_eigenvectors"    : true,
+                        "normalize_eigenvectors"    : false,
                         "echo_level"                : 0
                         },
                     "perturbation_settings" : {
                         "max_displacement"          : 1,
                         "correlation_length"        : 500,
                         "truncation_error"          : 0.1,
-                        "echo_level"                : 1
+                        "echo_level"                : 0
                     }
                 }""")
         SparseProcess = SparseProcessCustom(mp_sparse, settings)
@@ -127,14 +125,14 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
             "eigensolver_settings"  : {
                 "solver_type"               : "dense_eigensolver",
                 "ascending_order"           : false,
-                "echo_level"                : 2
+                "echo_level"                : 0
                 },
             "perturbation_settings" : {
                 "min_distance_subgrid"      : 1,
                 "max_displacement"          : 1.0,
                 "correlation_length"        : 500,
                 "truncation_error"          : 0.2,
-                "echo_level"                : 1
+                "echo_level"                : 0
             }
         }""")
         SubgridProcess = SubgridProcessCustom(mp_subgrid, settings)
