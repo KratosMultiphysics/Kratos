@@ -40,6 +40,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
         .def("RemoveDuplicates",&FEMDEMCouplingUtilities::RemoveDuplicates)
         .def("IdentifyFreeParticles",&FEMDEMCouplingUtilities::IdentifyFreeParticles)
+        .def("GetNumberOfNodes",&FEMDEMCouplingUtilities::GetNumberOfNodes)
         ;
 
     py::class_<AitkenRelaxationFEMDEMUtility>(m, "AitkenRelaxationFEMDEMUtility")
