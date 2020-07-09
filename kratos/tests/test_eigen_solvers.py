@@ -138,7 +138,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
     def test_FEAST_with_eigen_solver(self):
         from KratosMultiphysics import LinearSolversApplication
         if not LinearSolversApplication.HasFEAST():
-            self.skipTests("FEAST is not available")
+            self.skipTest("FEAST is not available")
         self._RunParametrized("""
             {
                 "test_list" : [
