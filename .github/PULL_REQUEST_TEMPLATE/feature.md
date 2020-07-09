@@ -14,4 +14,4 @@ E.g.
 - Added Foo Application
 
 **Additional info**
-Add any other information relevant to the problem here.
+Add any other releavant information here.

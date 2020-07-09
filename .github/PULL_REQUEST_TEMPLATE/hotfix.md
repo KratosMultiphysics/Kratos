@@ -14,4 +14,4 @@ E.g.
 - Fixed Y (#XXXX)
 
 **Additional info**
-Add any other information relevant to the problem here.
+Add any other releavant information here.
