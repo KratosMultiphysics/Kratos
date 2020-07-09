@@ -22,11 +22,6 @@
 namespace Kratos
 {
 
-/**
- * @brief Assemble random field and apply to initial geometry
- * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
- * @param random_field Random field vector. Stores nodal deviations.
- */
 void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart, const std::vector<double>& variables )
 {
     KRATOS_TRY;
@@ -93,10 +88,6 @@ void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart
     KRATOS_CATCH("")
 }
 
-/**
- * @brief Correlation function
- * @return Correlation value of two nodes
- */
 double PerturbGeometryBaseProcess::CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLength)
 {
     array_1d<double, 3> coorrdinate;

@@ -105,6 +105,12 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Creates Eigenvectors of a sparse correlation matrix
+     * @details Generates sparse correlation matrix. Decomposes correlation matrix.
+     * @param correlation_matrix Correlation matrix. Stores correlation value for all nodes.
+     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
+     */
     int CreateEigenvectors() override;
 
     ///@}

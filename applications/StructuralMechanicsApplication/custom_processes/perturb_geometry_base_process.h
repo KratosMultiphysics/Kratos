@@ -44,11 +44,8 @@ namespace Kratos
 
 /**
  * @class PerturbGeometryBaseProcess
- *
  * @ingroup StructuralMechanicsApplication
- *
  * @brief Base class for geometry perturbation process
- *
  * @author Manuel Messmer
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometryBaseProcess
@@ -119,8 +116,17 @@ public:
 
     virtual int CreateEigenvectors() = 0;
 
+    /**
+     * @brief Assemble random field and apply to initial geometry
+     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
+     * @param random_field Random field vector. Stores nodal deviations.
+     */
     void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables );
 
+    /**
+     * @brief Correlation function
+     * @return Correlation value of two nodes
+     */
     double CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLenth);
 
     ///@}
