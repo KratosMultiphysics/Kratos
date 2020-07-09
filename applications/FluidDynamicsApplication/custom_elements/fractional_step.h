@@ -407,9 +407,10 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        virtual void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
-                                                    VectorType& rRightHandSideVector,
-                                                    const ProcessInfo& rCurrentProcessInfo);
+        virtual void CalculateLocalFractionalVelocitySystem(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo);
 
         virtual void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
