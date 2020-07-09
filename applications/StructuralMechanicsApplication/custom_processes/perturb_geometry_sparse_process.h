@@ -48,7 +48,7 @@ namespace Kratos
  *
  * @author Manuel Messmer
  */
-class KRATOS_API(EIGEN_SOLVERS_APPLICATION) PerturbGeometrySparseProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySparseProcess
     : public PerturbGeometryBaseProcess
 {
 public:
