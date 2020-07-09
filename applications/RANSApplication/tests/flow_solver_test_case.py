@@ -15,8 +15,6 @@ class FlowSolverTestCase(UnitTest.TestCase):
 
     def testSteady(self):
         self.parameters["<TIME_SCHEME_TYPE>"] = "steady"
-        # this runs even test fails
-        # self.addCleanup(lambda: DeleteDir("Suneth"))
 
         self._runTest()
 

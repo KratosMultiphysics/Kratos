@@ -1,5 +1,6 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.RANSApplication.test_utilities import RunParametericTestCase
 
 
@@ -12,6 +13,8 @@ class IncompressiblePotentialFlowSolverFormulationTest(UnitTest.TestCase):
         self._runTest()
 
     def _runTest(self):
+        self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
+
         self.parameters = {}
         if (km.IsDistributedRun()):
             self.parameters["<PARALLEL_TYPE>"] = "MPI"
