@@ -24,13 +24,7 @@ namespace Kratos
 
 typedef ModelPart::NodesContainerType::ContainerType                 ResultNodesContainerType;
 
-/**
- * @brief Creates Eigenvectors of correlation matrix in a subgrid
- * @details Finds a subgrid (coarser mesh). Generates correlation matrix in subgrid. Decomposes correlation matrix.
- * @param correlation_matrix Correlation matrix. Stores correlation value for all nodes in the subgrid.
- * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
- */
-int PerturbGeometrySubgridProcess::CreateEigenvectors(){
+int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
     KRATOS_TRY;
 
     int num_of_nodes = mrInitialModelPart.NumberOfNodes();

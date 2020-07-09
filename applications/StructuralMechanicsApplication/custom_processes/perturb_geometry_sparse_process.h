@@ -111,7 +111,7 @@ public:
      * @param correlation_matrix Correlation matrix. Stores correlation value for all nodes.
      * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
      */
-    int CreateEigenvectors() override;
+    int CreateRandomFieldVectors() override;
 
     ///@}
     ///@name Access

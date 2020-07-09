@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-void PerturbGeometryBaseProcess::AssembleEigenvectors( ModelPart& rThisModelPart, const std::vector<double>& variables )
+void PerturbGeometryBaseProcess::ApplyRandomFieldVectorsToGeometry( ModelPart& rThisModelPart, const std::vector<double>& variables )
 {
     KRATOS_TRY;
     BuiltinTimer assemble_eigenvectors_timer;

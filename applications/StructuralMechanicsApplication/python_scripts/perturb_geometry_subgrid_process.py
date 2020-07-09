@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -42,11 +41,11 @@ class PerturbGeometrySubgridProcessPython(KratosMultiphysics.Process):
         # Initialize process
         self.process = StructuralMechanicsApplication.PerturbGeometrySubgridProcess(mp, eigen_solver, perturbation_settings)
         # Generate perturbation matrix
-        self.number_random_variables = self.process.CreateEigenvectors()
+        self.number_random_variables = self.process.CreateRandomFieldVectors()
 
 
     def PerturbGeometry(self, mp ):
         # Apply perturbation matrix to geometry
         # Random field approach requires normal distributed random numbers (mean=0, sigma=1)
         random_numbers = np.random.normal(0, 1, self.number_random_variables)
-        self.process.AssembleEigenvectors(mp, random_numbers)
+        self.process.ApplyRandomFieldVectorsToGeometry(mp, random_numbers)

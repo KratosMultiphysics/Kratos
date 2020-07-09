@@ -114,20 +114,14 @@ public:
     ///@name Operations
     ///@{
 
-    virtual int CreateEigenvectors() = 0;
+    virtual int CreateRandomFieldVectors() = 0;
 
     /**
      * @brief Assemble random field and apply to initial geometry
      * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
      * @param random_field Random field vector. Stores nodal deviations.
      */
-    void AssembleEigenvectors(ModelPart& rThisModelPart, const std::vector<double>& variables );
-
-    /**
-     * @brief Correlation function
-     * @return Correlation value of two nodes
-     */
-    double CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLenth);
+    void ApplyRandomFieldVectorsToGeometry(ModelPart& rThisModelPart, const std::vector<double>& variables );
 
     ///@}
     ///@name Access
@@ -195,6 +189,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Correlation function
+     * @return Correlation value of two nodes
+     */
+    double CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLenth);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -230,7 +230,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access

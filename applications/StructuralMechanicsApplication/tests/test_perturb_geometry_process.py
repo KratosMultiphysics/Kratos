@@ -21,8 +21,8 @@ class SparseProcessCustom(PerturbGeometrySparseProcessPython):
         super().__init__(mp, settings)
 
     def PerturbGeometry(self, mp):
-        # Apply perturbation matrix to geometry
-        self.process.AssembleEigenvectors(mp, [1,0,0,0,0])
+        # Apply random field vectors to geometry
+        self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
 
 class SubgridProcessCustom(PerturbGeometrySubgridProcessPython):
     "This class is derived to override the PerturbGeometry method"
@@ -30,8 +30,8 @@ class SubgridProcessCustom(PerturbGeometrySubgridProcessPython):
         super().__init__(mp, settings)
 
     def PerturbGeometry(self, mp):
-        # Apply perturbation matrix to geometry
-        self.process.AssembleEigenvectors(mp, [1,0,0,0,0])
+        # Apply random field vectors to geometry
+        self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
 
 # This test generates a random field for a sqaure plate with 5x5 nodes with the sparse and the subgrid method
 # The test is passed when the first perturbation vectors from both models are equal

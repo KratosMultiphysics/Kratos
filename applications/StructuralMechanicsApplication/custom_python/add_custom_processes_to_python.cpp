@@ -89,14 +89,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<PerturbGeometrySparseProcess, PerturbGeometrySparseProcess::Pointer, Process>(m,"PerturbGeometrySparseProcess")
         .def(py::init<ModelPart&,LinearSolverPointerTypeSparse, Parameters>())
-        .def("CreateEigenvectors", &PerturbGeometrySparseProcess::CreateEigenvectors)
-        .def("AssembleEigenvectors", &PerturbGeometrySparseProcess::AssembleEigenvectors)
+        .def("CreateRandomFieldVectors", &PerturbGeometrySparseProcess::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseProcess::ApplyRandomFieldVectorsToGeometry)
         ;
 
     py::class_<PerturbGeometrySubgridProcess, PerturbGeometrySubgridProcess::Pointer, Process>(m,"PerturbGeometrySubgridProcess")
         .def(py::init<ModelPart&, LinearSolverPointerTypeDense, Parameters>())
-        .def("CreateEigenvectors", &PerturbGeometrySubgridProcess::CreateEigenvectors)
-        .def("AssembleEigenvectors", &PerturbGeometrySubgridProcess::AssembleEigenvectors)
+        .def("CreateRandomFieldVectors", &PerturbGeometrySubgridProcess::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridProcess::ApplyRandomFieldVectorsToGeometry)
         ;
 
     //SPR_ERROR
