@@ -17,8 +17,11 @@ from incompressible_potential_flow_solver_formulation_tests import Incompressibl
 
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighReTest
+from monolithic_k_epsilon_high_re_formulation_tests import MonolithicKEpsilonHighRePeriodicTest
 from monolithic_k_omega_formulation_tests import MonolithicKOmegaTest
+from monolithic_k_omega_formulation_tests import MonolithicKOmegaPeriodicTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
+from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTPeriodicTest
 
 from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
 from fractional_step_k_epsilon_high_re_formulation_tests import FractionalStepKEpsilonHighReTest
@@ -43,7 +46,20 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+
+    # adding process tests to small suite
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+
+    # adding k-epsilon high re periodic tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKEpsilonHighRePeriodicTest]))
+
+    # adding k-omega periodic tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaPeriodicTest]))
+
+    # adding k-omega-sst periodic tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicKOmegaSSTPeriodicTest]))
+
+    # adding representative transient tests to small suite
     smallSuite.addTest(FractionalStepKOmegaSSTTest("testRfcVelocityTransient"))
     smallSuite.addTest(MonolithicKOmegaSSTTest("testRfcVelocityTransient"))
 

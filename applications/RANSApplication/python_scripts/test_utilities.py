@@ -1,7 +1,5 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-
 from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 
 import os
@@ -62,5 +60,3 @@ def RunParametericTestCase(settings_file_name,
 
         analysis = RANSAnalysis(model, settings)
         analysis.Run()
-
-        kratos_utilities.DeleteTimeFiles(".")

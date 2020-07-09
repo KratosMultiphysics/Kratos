@@ -12,8 +12,11 @@ class FlowSolverTestCase(UnitTest.TestCase):
         cls.print_output = print_output
         cls.parameters = {}
 
+
     def testSteady(self):
         self.parameters["<TIME_SCHEME_TYPE>"] = "steady"
+        # this runs even test fails
+        # self.addCleanup(lambda: DeleteDir("Suneth"))
 
         self._runTest()
 
@@ -27,6 +30,9 @@ class FlowSolverTestCase(UnitTest.TestCase):
             self.parameters["<PARALLEL_TYPE>"] = "MPI"
         else:
             self.parameters["<PARALLEL_TYPE>"] = "OpenMP"
+
+        self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
+
         RunParametericTestCase(self.parameters_file_name, self.working_folder,
                                self.parameters, self.print_output)
 
