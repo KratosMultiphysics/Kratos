@@ -598,26 +598,18 @@ protected:
         }
 
         // Compute the element average values
-        double avg_rho = 0.0;
-        double avg_visc = 0.0;
         array_1d<double, TDim> avg_vel = ZeroVector(TDim);
-
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            avg_rho += rData.rho(i_node);
-            avg_visc += rData.mu(i_node);
             avg_vel += row(rData.v, i_node);
         }
-
-        avg_rho /= TNumNodes;
-        avg_visc /= TNumNodes;
         avg_vel /= TNumNodes;
 
         const double v_norm = norm_2(avg_vel);
 
         // Compute the penalty constant
-        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
-                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) +
-                                avg_rho*v_norm*std::pow(rData.h, TDim-1);
+        const double pen_cons = rData.rho*std::pow(rData.h, TDim)/rData.dt +
+                                rData.rho*rData.mu*std::pow(rData.h,TDim-2) +
+                                rData.rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
         const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];
@@ -877,16 +869,9 @@ protected:
         }
         v_norm = std::sqrt(v_norm);
 
-        // Compute the element average density
-        double avg_rho = 0.0;
-        for (unsigned int j=0; j<TNumNodes; ++j) {
-            avg_rho += rData.rho(j);
-        }
-        avg_rho /= TNumNodes;
-
         // Compute the Nitsche coefficient (considering the Winter stabilization term)
         const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
-        const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*rData.h + avg_rho*rData.h*rData.h/rData.dt)/(rData.h*penalty);
+        const double cons_coef = (eff_mu + eff_mu + rData.rho*v_norm*rData.h + rData.rho*rData.h*rData.h/rData.dt)/(rData.h*penalty);
 
         // Declare auxiliar arrays
         BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);

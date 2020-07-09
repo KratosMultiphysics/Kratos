@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -124,10 +124,10 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(
     constexpr unsigned int dim = 3;
     constexpr unsigned int nnodes = 4;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
-    const double h = data.h;                                // Characteristic element size
-    const double c = data.c;                                // Wave velocity
+    const double rho = data.rho; // Density
+    const double mu = data.mu;   // Dynamic viscosity
+    const double h = data.h;     // Characteristic element size
+    const double c = data.c;     // Wave velocity
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
@@ -756,10 +756,10 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(
     constexpr unsigned int dim = 2;
     constexpr unsigned int nnodes = 3;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
-    const double h = data.h;                                // Characteristic element size
-    const double c = data.c;                                // Wave velocity
+    const double rho = data.rho; // Density
+    const double mu = data.mu;   // Dynamic viscosity
+    const double h = data.h;     // Characteristic element size
+    const double c = data.c;     // Wave velocity
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
@@ -1008,10 +1008,10 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(
     constexpr int nnodes = 4;
     constexpr int strain_size = 6;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
-    const double h = data.h;                                // Characteristic element size
-    const double c = data.c;                                // Wave velocity
+    const double rho = data.rho; // Density
+    const double mu = data.mu;   // Dynamic viscosity
+    const double h = data.h;     // Characteristic element size
+    const double c = data.c;     // Wave velocity
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
@@ -1113,10 +1113,10 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(
     constexpr int nnodes = 3;
     constexpr int strain_size = 3;
 
-    const double rho = inner_prod(data.N, data.rho);        // Density
-    const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
-    const double h = data.h;                                // Characteristic element size
-    const double c = data.c;                                // Wave velocity
+    const double rho = data.rho; // Density
+    const double mu = data.mu;   // Dynamic viscosity
+    const double h = data.h;     // Characteristic element size
+    const double c = data.c;     // Wave velocity
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
