@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -14,26 +12,26 @@ def ConstructSolver(settings):
 
     if solver_type == "eigen_eigensystem":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            import KratosMultiphysics.LinearSolversApplication as KratosSolversApp
-            eigen_solver = KratosSolversApp.EigensystemSolver(settings)
+            KratosMultiphysics import LinearSolversApplication
+            eigen_solver = LinearSolversApplication.EigensystemSolver(settings)
             return eigen_solver
         else:
             raise Exception("LinearSolversApplication not available")
 
     elif solver_type == "dense_eigensolver":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            import KratosMultiphysics.LinearSolversApplication as KratosSolversApp
-            eigen_solver = KratosSolversApp.DenseEigenvalueSolver(settings)
+            KratosMultiphysics import LinearSolversApplication
+            eigen_solver = LinearSolversApplication.DenseEigenvalueSolver(settings)
             return eigen_solver
         else:
             raise Exception("LinearSolversApplication not available")
 
     elif solver_type == "feast":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            import KratosMultiphysics.LinearSolversApplication as KratosSolversApp
-            if KratosSolversApp.HasFEAST():
+            KratosMultiphysics import LinearSolversApplication
+            if LinearSolversApplication.HasFEAST():
                 is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
-                eigen_solver = KratosSolversApp.FEASTSymmetricEigensystemSolver(settings) if is_symmetric else KratosSolversApp.FEASTGeneralEigensystemSolver(settings)
+                eigen_solver = LinearSolversApplication.FEASTSymmetricEigensystemSolver(settings) if is_symmetric else LinearSolversApplication.FEASTGeneralEigensystemSolver(settings)
                 return eigen_solver
             else:
                 raise Exception("FEAST not available in LinearSolversApplication")
@@ -42,10 +40,10 @@ def ConstructSolver(settings):
 
     elif solver_type == "feast_complex":
         if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
-            import KratosMultiphysics.LinearSolversApplication as KratosSolversApp
-            if KratosSolversApp.HasFEAST():
+            KratosMultiphysics import LinearSolversApplication
+            if LinearSolversApplication.HasFEAST():
                 is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
-                eigen_solver = KratosSolversApp.ComplexFEASTSymmetricEigensystemSolver(settings) if is_symmetric else KratosSolversApp.ComplexFEASTGeneralEigensystemSolver(settings)
+                eigen_solver = LinearSolversApplication.ComplexFEASTSymmetricEigensystemSolver(settings) if is_symmetric else LinearSolversApplication.ComplexFEASTGeneralEigensystemSolver(settings)
                 return eigen_solver
             else:
                 raise Exception("FEAST not available in LinearSolversApplication")

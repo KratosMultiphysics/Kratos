@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
@@ -135,13 +134,11 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_FEAST_with_eigen_solver(self):
-        try:
-            import KratosMultiphysics.LinearSolversApplication
-            if not KratosMultiphysics.LinearSolversApplication.HasFEAST():
-                self.skipTests("FEAST is not available")
-        except:
-            self.skipTest("KratosMultiphysics.LinearSolversApplication is not available")
+        from KratosMultiphysics import LinearSolversApplication
+        if not LinearSolversApplication.HasFEAST():
+            self.skipTests("FEAST is not available")
         self._RunParametrized("""
             {
                 "test_list" : [
