@@ -85,6 +85,7 @@ public:
                                bool CalculateReactionsFlag)
         : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag)
     {
+        KRATOS_INFO(this->Info()) << "Created fractional step strategy." << std::endl;
     }
 
     RansFractionalStepStrategy(ModelPart& rModelPart,
@@ -94,6 +95,7 @@ public:
                                const Kratos::Variable<int>& PeriodicVar)
         : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag, PeriodicVar)
     {
+        KRATOS_INFO(this->Info()) << "Created periodic fractional step strategy." << std::endl;
     }
 
     /// Destructor.

@@ -20,7 +20,6 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLine
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
-from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 
 # case specific imports
@@ -200,13 +199,7 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         self.AddProcess(wall_fuction_update_process)
 
         if (self.IsPeriodic()):
-            if (domain_size == 2):
-                periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
-            else:
-                periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
-            InitializePeriodicConditions(model_part,
-                                         self.fractional_step_model_part,
-                                         periodic_variables_list)
+            self.__InitializePeriodicConditions()
 
         self.solver_settings = CreateFractionalStepSolverSettings(
                                             self.IsPeriodic(),
@@ -371,3 +364,24 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         Kratos.Logger.PrintInfo(self.GetName(), info)
 
         return (relative_error <= relative_tolerance or absolute_error <= absolute_tolerance)
+
+    def __InitializePeriodicConditions(self):
+        base_model_part = self.GetBaseModelPart()
+        domain_size = base_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+        model_part = self.fractional_step_model_part
+        properties = model_part.CreateNewProperties(
+            model_part.NumberOfProperties() + 1)
+
+        periodic_condition_name = "FSPeriodicCondition{0:d}D".format(domain_size)
+
+        current_number_of_conditions = model_part.NumberOfConditions()
+        periodic_conditions_count = 0
+        for condition in base_model_part.Conditions:
+            if condition.Is(Kratos.PERIODIC):
+                periodic_conditions_count += 1
+                node_id_list = [node.Id for node in condition.GetNodes()]
+                periodic_condition = model_part.CreateNewCondition(
+                    periodic_condition_name, current_number_of_conditions + periodic_conditions_count, node_id_list, properties)
+                periodic_condition.Set(Kratos.PERIODIC)
+
+        Kratos.Logger.PrintInfo(self.GetName(), "Created {0:d} periodic conditions using {1:s}".format(periodic_conditions_count, periodic_condition_name))
