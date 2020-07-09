@@ -10,6 +10,7 @@ if KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
 from os import remove
 
 class WorkFolderScope:
+    # TODO use KratosUnittest.WorkFolderScope
     def __init__(self, work_folder):
         self.currentPath = os.getcwd()
         self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
