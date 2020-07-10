@@ -258,6 +258,7 @@ namespace Kratos
 
             py::class_< BaseSchemeType, typename BaseSchemeType::Pointer >(m,"Scheme")
                 .def(py::init< >())
+                .def("Create", &BaseSchemeType::Create)
                 .def("Initialize", &BaseSchemeType::Initialize)
                 .def("SchemeIsInitialized", &BaseSchemeType::SchemeIsInitialized)
                 .def("ElementsAreInitialized", &BaseSchemeType::ElementsAreInitialized)
@@ -361,20 +362,22 @@ namespace Kratos
 
             // Convergence criteria base class
             py::class_< ConvergenceCriteriaType,
-                ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
-                .def(py::init<>())
-                .def("SetActualizeRHSFlag", &ConvergenceCriteriaType::SetActualizeRHSFlag)
-                .def("GetActualizeRHSflag", &ConvergenceCriteriaType::GetActualizeRHSflag)
-                .def("PreCriteria", &ConvergenceCriteriaType::PreCriteria)
-                .def("PostCriteria", &ConvergenceCriteriaType::PostCriteria)
-                .def("Initialize", &ConvergenceCriteriaType::Initialize)
-                .def("InitializeNonLinearIteration", &ConvergenceCriteriaType::InitializeNonLinearIteration)
-                .def("InitializeSolutionStep", &ConvergenceCriteriaType::InitializeSolutionStep)
-                .def("FinalizeNonLinearIteration", &ConvergenceCriteriaType::FinalizeNonLinearIteration)
-                .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
-                .def("Check", &ConvergenceCriteriaType::Check)
-                .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
-                ;
+                    ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
+                    .def(py::init<>())
+                    .def("Create", &ConvergenceCriteriaType::Create)
+                    .def("SetActualizeRHSFlag", &ConvergenceCriteriaType::SetActualizeRHSFlag)
+                    .def("GetActualizeRHSflag", &ConvergenceCriteriaType::GetActualizeRHSflag)
+                    .def("PreCriteria", &ConvergenceCriteriaType::PreCriteria)
+                    .def("PostCriteria", &ConvergenceCriteriaType::PostCriteria)
+                    .def("Initialize", &ConvergenceCriteriaType::Initialize)
+                    .def("InitializeNonLinearIteration", &ConvergenceCriteriaType::InitializeNonLinearIteration)
+                    .def("InitializeSolutionStep", &ConvergenceCriteriaType::InitializeSolutionStep)
+                    .def("FinalizeNonLinearIteration", &ConvergenceCriteriaType::FinalizeNonLinearIteration)
+                    .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
+                    .def("Check", &ConvergenceCriteriaType::Check)
+                    .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
+                    .def("Info", &ConvergenceCriteriaType::Info)
+                    ;
 
             py::class_< DisplacementCriteria<SparseSpaceType, LocalSpaceType >,
                 typename DisplacementCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
@@ -416,6 +419,9 @@ namespace Kratos
 
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
+                .def(py::init<LinearSolverType::Pointer, Parameters >() )
+                .def(py::init<LinearSolverType::Pointer > ())
+                .def("Create", &BuilderAndSolverType::Create)
                 .def("SetCalculateReactionsFlag", &BuilderAndSolverType::SetCalculateReactionsFlag)
                 .def("GetCalculateReactionsFlag", &BuilderAndSolverType::GetCalculateReactionsFlag)
                 .def("SetDofSetIsInitializedFlag", &BuilderAndSolverType::SetDofSetIsInitializedFlag)
@@ -489,26 +495,29 @@ namespace Kratos
             typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
             py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy")
-                .def(py::init < ModelPart&, bool >())
-                .def("Predict", &BaseSolvingStrategyType::Predict)
-                .def("Initialize", &BaseSolvingStrategyType::Initialize)
-                .def("Solve", &BaseSolvingStrategyType::Solve)
-                .def("IsConverged", &BaseSolvingStrategyType::IsConverged)
-                .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData)
-                .def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel)
-                .def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel)
-                .def("SetRebuildLevel", &BaseSolvingStrategyType::SetRebuildLevel)
-                .def("GetRebuildLevel", &BaseSolvingStrategyType::GetRebuildLevel)
-                .def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag)
-                .def("MoveMeshFlag", &BaseSolvingStrategyType::MoveMeshFlag)
-                .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
-                .def("Clear", &BaseSolvingStrategyType::Clear)
-                .def("Check", &BaseSolvingStrategyType::Check)
-                .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
-                .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
-                .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
-                //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
-                ;
+                    .def(py::init<ModelPart&, Parameters >() )
+                    .def(py::init < ModelPart&, bool >())
+                    .def("Create", &BaseSolvingStrategyType::Create)
+                    .def("Predict", &BaseSolvingStrategyType::Predict)
+                    .def("Initialize", &BaseSolvingStrategyType::Initialize)
+                    .def("Solve", &BaseSolvingStrategyType::Solve)
+                    .def("IsConverged", &BaseSolvingStrategyType::IsConverged)
+                    .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData)
+                    .def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel)
+                    .def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel)
+                    .def("SetRebuildLevel", &BaseSolvingStrategyType::SetRebuildLevel)
+                    .def("GetRebuildLevel", &BaseSolvingStrategyType::GetRebuildLevel)
+                    .def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag)
+                    .def("MoveMeshFlag", &BaseSolvingStrategyType::MoveMeshFlag)
+                    .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
+                    .def("Clear", &BaseSolvingStrategyType::Clear)
+                    .def("Check", &BaseSolvingStrategyType::Check)
+                    .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
+                    .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                    //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
+                    .def("Info", &BaseSolvingStrategyType::Info)
+                    ;
 
 
             typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
@@ -529,6 +538,7 @@ namespace Kratos
 
             py::class_< ResidualBasedNewtonRaphsonStrategyType, typename ResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
                 (m,"ResidualBasedNewtonRaphsonStrategy")
+                .def(py::init<ModelPart&, Parameters >() ) 
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters>())
