@@ -38,7 +38,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install lcov
-      run: sudo apt-get install lcov
+      run: apt-get install lcov
 
     - name: Cache Build
       id: cache-build
