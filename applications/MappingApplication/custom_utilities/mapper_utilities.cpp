@@ -194,6 +194,22 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
     return false;
 }
 
+void SaveCurrentConfiguration(ModelPart::NodesContainerType& rNodes)
+{
+
+}
+
+void RestoreCurrentConfiguration(ModelPart::NodesContainerType& rNodes)
+{
+
+}
+
+void EraseNodalVariable(ModelPart::NodesContainerType& rNodes)
+{
+
+}
+
+
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
                                  const SizeType BufferSizeEstimate,

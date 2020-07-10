@@ -277,6 +277,10 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const array_1d<double, 3>& rCoords);
 
+void SaveCurrentConfiguration(ModelPart::NodesContainerType& rNodes);
+void RestoreCurrentConfiguration(ModelPart::NodesContainerType& rNodes);
+void EraseNodalVariable(ModelPart::NodesContainerType& rNodes);
+
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
                                  const SizeType BufferSizeEstimate,
