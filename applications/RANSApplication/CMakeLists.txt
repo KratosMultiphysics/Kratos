@@ -27,16 +27,6 @@ file(GLOB_RECURSE KRATOS_RANS_APPLICATION_PYTHON_INTERFACE
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
   set( KRATOS_RANS_APPLICATION_TESTING
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_k_epsilon_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_adjoint_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_vms_monolithic_adjoint_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_k_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_k_epsilon_vms_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_monolithic_k_epsilon_vms_adjoint_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_monolithic_k_epsilon_vms_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_rans_evm_k_epsilon_conditions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_rans_evm_k_epsilon_elements.cpp
   )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
