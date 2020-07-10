@@ -92,6 +92,8 @@ KRATOS_CREATE_VARIABLE(double, MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS)
 KRATOS_CREATE_VARIABLE(bool, LOCAL_COORDINATION_NUMBER_OPTION)
 KRATOS_CREATE_VARIABLE(bool, GLOBAL_COORDINATION_NUMBER_OPTION)
 KRATOS_CREATE_VARIABLE(DenseVector<int>, SEARCH_CONTROL_VECTOR)
+KRATOS_CREATE_VARIABLE(bool, AUTOMATIC_SKIN_COMPUTATION)
+KRATOS_CREATE_VARIABLE(double, SKIN_FACTOR_RADIUS)
 KRATOS_CREATE_VARIABLE(int, CLEAN_INDENT_OPTION)
 KRATOS_CREATE_VARIABLE(int, TRIHEDRON_OPTION)
 KRATOS_CREATE_VARIABLE(int, ROLLING_FRICTION_OPTION)
@@ -415,6 +417,9 @@ KRATOS_CREATE_VARIABLE(double, BOUNDING_BOX_STOP_TIME)
 //CONTROL MODULE
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TARGET_STRESS)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(REACTION_STRESS)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SMOOTHED_REACTION_STRESS)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_REACTION_STRESS)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SMOOTHED_ELASTIC_REACTION_STRESS)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOADING_VELOCITY)
 
 // for DEM-FEM 2D
@@ -480,15 +485,12 @@ template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D
 template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
 
 void KratosDEMApplication::Register() {
-    KRATOS_INFO("DEM") << std::endl;
-    KRATOS_INFO("DEM") << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
-    KRATOS_INFO("DEM") << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
-    KRATOS_INFO("DEM") << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
-    KRATOS_INFO("DEM") << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      " << std::endl;
-    KRATOS_INFO("DEM") << std::endl;
-    KRATOS_INFO("DEM") << "Importing DEMApplication... ";
-
-    KRATOS_INFO("") << "( compiled in mode \"" << Kernel::BuildType() << "\" )";
+    KRATOS_INFO("") << "\n"
+                    << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      \n"
+                    << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      \n"
+                    << "            | |_| | |___| |  | |  __/ (_| | (__|   <       \n"
+                    << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      \n"
+                    << "Importing DEMApplication... ";                    
 
     KRATOS_REGISTER_VARIABLE(CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_VARIABLE(NODE_TO_NEIGH_ELEMENT_POINTER)
@@ -533,6 +535,8 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(LOCAL_COORDINATION_NUMBER_OPTION)
     KRATOS_REGISTER_VARIABLE(GLOBAL_COORDINATION_NUMBER_OPTION)
     KRATOS_REGISTER_VARIABLE(SEARCH_CONTROL_VECTOR)
+    KRATOS_REGISTER_VARIABLE(AUTOMATIC_SKIN_COMPUTATION)
+    KRATOS_REGISTER_VARIABLE(SKIN_FACTOR_RADIUS)
     KRATOS_REGISTER_VARIABLE(CLEAN_INDENT_OPTION)
     KRATOS_REGISTER_VARIABLE(TRIHEDRON_OPTION)
     KRATOS_REGISTER_VARIABLE(NEIGH_INITIALIZED)
@@ -849,6 +853,7 @@ void KratosDEMApplication::Register() {
     //CONTROL MODULE
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TARGET_STRESS)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(REACTION_STRESS)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SMOOTHED_REACTION_STRESS)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LOADING_VELOCITY)
 
     // for DEM-FEM 2D

@@ -223,8 +223,7 @@ protected:
     void CalculateKinematicVariables(
         BaseSolidElement::KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        );
+        const GeometryType::IntegrationMethod& rIntegrationMethod) override;
 
     /**
      * @brief This method computes the deformation matrix B
@@ -244,14 +243,14 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure) override;
 
     void SetConstitutiveVariables(
         BaseSolidElement::KinematicVariables& rThisKinematicVariables,
         BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints) override;
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -263,7 +262,7 @@ protected:
         int Step = 0
         ) override;
 
-    bool UseElementProvidedStrain() const;
+    bool UseElementProvidedStrain() const override;
 
         
     ///@name Static Member Variables
@@ -290,6 +289,9 @@ protected:
     ///@name Serialization
     ///@{
 }; // Class GenericSmallStrainFemDemElement
+
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericSmallStrainFemDemElement<TDim, TyieldSurf>::VoigtSize;
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericSmallStrainFemDemElement<TDim, TyieldSurf>::NumberOfEdges;
 
 ///@}
 ///@name Type Definitions

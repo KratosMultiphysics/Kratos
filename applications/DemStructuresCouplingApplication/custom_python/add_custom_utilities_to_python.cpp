@@ -15,6 +15,7 @@
 #include "custom_utilities/stress_failure_check_utilities.hpp"
 #include "custom_utilities/post_process_utilities.hpp"
 #include "custom_utilities/sand_production_utilities.hpp"
+#include "custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.hpp"
 
 namespace Kratos {
 
@@ -53,12 +54,14 @@ namespace Kratos {
                 .def(init<ModelPart&,ModelPart&,Parameters&>())
                 .def("ExecuteInitialize", &ControlModuleFemDemUtilities::ExecuteInitialize)
                 .def("ExecuteInitializeSolutionStep", &ControlModuleFemDemUtilities::ExecuteInitializeSolutionStep)
+                .def("ExecuteFinalizeSolutionStep", &ControlModuleFemDemUtilities::ExecuteFinalizeSolutionStep)
             ;
 
             class_<ControlModuleFemDem2DUtilities> (m, "ControlModuleFemDem2DUtilities")
                 .def(init<ModelPart&,ModelPart&,Parameters&>())
                 .def("ExecuteInitialize", &ControlModuleFemDem2DUtilities::ExecuteInitialize)
                 .def("ExecuteInitializeSolutionStep", &ControlModuleFemDem2DUtilities::ExecuteInitializeSolutionStep)
+                .def("ExecuteFinalizeSolutionStep", &ControlModuleFemDem2DUtilities::ExecuteFinalizeSolutionStep)
             ;
 
             class_<StressFailureCheckUtilities> (m, "StressFailureCheckUtilities")
@@ -78,6 +81,12 @@ namespace Kratos {
                 .def("MarkSandProductionParticlesForErasing", &SandProductionUtilities::MarkSandProductionParticlesForErasing)
                 ;
 
+            class_<MultiaxialControlModuleFEMDEMGeneralized2DUtilities> (m, "MultiaxialControlModuleFEMDEMGeneralized2DUtilities")
+                .def(init<ModelPart&,ModelPart&,Parameters&>())
+                .def("ExecuteInitialize", &MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitialize)
+                .def("ExecuteInitializeSolutionStep", &MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteInitializeSolutionStep)
+                .def("ExecuteFinalizeSolutionStep", &MultiaxialControlModuleFEMDEMGeneralized2DUtilities::ExecuteFinalizeSolutionStep)
+            ;
 
 
         }

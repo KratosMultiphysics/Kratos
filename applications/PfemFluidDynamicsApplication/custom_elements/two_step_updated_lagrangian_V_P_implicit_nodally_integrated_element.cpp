@@ -698,7 +698,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1), false);
 
-  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++)
+  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
   {
     // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
     rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
@@ -785,21 +785,6 @@ int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Check(cons
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                                                                                            VectorType &rRightHandSideVector,
-                                                                                            ProcessInfo &rCurrentProcessInfo)
-{
-  KRATOS_TRY;
-
-  //this->CalculateElementalContinuityEqForPressure(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-  //this->CalculateElementalLaplacian(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-  //this->CalculateElementalLaplacianAndTau(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-  //this->CalculateVolumetricStabilizedTerms(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-  this->CalculateStabilizingTermsContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-  KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
 void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateElementalLaplacian(MatrixType &rLeftHandSideMatrix,
                                                                                                    VectorType &rRightHandSideVector,
                                                                                                    ProcessInfo &rCurrentProcessInfo)
@@ -833,7 +818,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   Tau *= (1.0 / double(NumNodes));
 
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -898,7 +883,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   double Tau = 0;
   this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -963,7 +948,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   double Tau = 0;
   this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -1072,7 +1057,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   double totalVolume = 0;
   bool computeElement = false;
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     totalVolume += GaussWeight;
@@ -1133,6 +1118,91 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 }
 
 template <unsigned int TDim>
+void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                                                                            VectorType &rRightHandSideVector,
+                                                                                                            ProcessInfo &rCurrentProcessInfo)
+{
+
+  GeometryType &rGeom = this->GetGeometry();
+  const unsigned int NumNodes = rGeom.PointsNumber();
+
+  // Check sizes and initialize
+  if (rLeftHandSideMatrix.size1() != NumNodes)
+    rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
+
+  rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+
+  if (rRightHandSideVector.size() != NumNodes)
+    rRightHandSideVector.resize(NumNodes);
+
+  rRightHandSideVector = ZeroVector(NumNodes);
+
+  ShapeFunctionDerivativesArrayType DN_DX;
+  Matrix NContainer;
+  VectorType GaussWeights;
+  this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
+  double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+  const unsigned int NumGauss = GaussWeights.size();
+  // double Tau=rGeom[0].FastGetSolutionStepValue(NODAL_TAU);
+  double factor = 1.0 / double(NumNodes);
+  double ElemSize = rGeom[0].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+  double Density = rGeom[0].FastGetSolutionStepValue(DENSITY);
+  double DeviatoricCoeff = rGeom[0].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+  for (unsigned int i = 1; i < NumNodes; i++)
+  {
+    ElemSize += rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+    Density += rGeom[i].FastGetSolutionStepValue(DENSITY);
+    DeviatoricCoeff += rGeom[i].FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+  }
+
+  ElemSize *= factor * 0.5;
+  Density *= factor;
+  DeviatoricCoeff *= factor;
+  //  Tau*=(1.0/double(NumNodes));
+
+  double maxViscousValueForStabilization = 0.1;
+  if (DeviatoricCoeff > maxViscousValueForStabilization)
+  {
+    DeviatoricCoeff = maxViscousValueForStabilization;
+  }
+
+  double Tau = 0;
+  this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
+
+  for (unsigned int g = 0; g < NumGauss; ++g)
+  {
+    const double GaussWeight = GaussWeights[g];
+    const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
+
+    // ElemSize*= 0.5;
+
+    const ShapeFunctionsType &N = row(NContainer, g);
+    double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
+
+    this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, N, BoundLHSCoeff);
+
+    //double BoundRHSCoeffDev=elementalNormalProjDefRate*Tau*8.0*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
+    double BoundRHSCoeffDev = Tau * 8.0 * DeviatoricCoeff * GaussWeight / (ElemSize * ElemSize);
+
+    double BoundRHSCoeffAcc = Tau * Density * 2 * GaussWeight / ElemSize;
+    this->ComputeElementalBoundRHSVector(rRightHandSideVector, TimeStep, BoundRHSCoeffAcc, BoundRHSCoeffDev);
+
+    double StabLaplacianWeight = Tau * GaussWeight;
+    this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabLaplacianWeight);
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+      this->AddStabilizationNodalTermsRHS(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, i);
+    }
+  }
+
+  VectorType PressureValuesForRHS = ZeroVector(NumNodes);
+  this->GetPressureValues(PressureValuesForRHS, 0);
+  noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
+}
+
+
+
+template <unsigned int TDim>
 void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateStabilizingTermsContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                                                                                         VectorType &rRightHandSideVector,
                                                                                                                         ProcessInfo &rCurrentProcessInfo)
@@ -1184,7 +1254,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
   double Tau = 0;
   this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
 
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];

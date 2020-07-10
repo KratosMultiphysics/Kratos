@@ -19,14 +19,6 @@
                 }
             }
         },
-        "coupling_operations" : {
-            "create_sub_load_condition" : {
-                "type"                      : "create_point_load_model_part",
-                "solver"                    : "structure",
-                "sub_model_part_name"       : "struct_sub",
-                "computing_model_part_name" : "Structure"
-            }
-        },
         "coupling_sequence":
         [
             {

@@ -71,6 +71,8 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
+
     typedef typename BaseType::TDataType TDataType;
 
     typedef TSparseSpace SparseSpaceType;
@@ -99,7 +101,25 @@ public:
     ///@{
 
     /**
-     * Default constructor
+     * @brief Default constructor
+     */
+    explicit ResidualBasedLinearStrategy() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedLinearStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters)
+    {
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -108,7 +128,7 @@ public:
      * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedLinearStrategy(
+    explicit ResidualBasedLinearStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -116,8 +136,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
-    )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -158,7 +177,7 @@ public:
     }
 
     /**
-     * Constructor specifying the builder and solver
+     * @brief Constructor specifying the builder and solver
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -168,7 +187,7 @@ public:
      * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedLinearStrategy(
+    explicit ResidualBasedLinearStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -177,8 +196,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
-    )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -335,6 +353,19 @@ public:
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
 
     /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
+
+    /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
@@ -374,7 +405,7 @@ public:
             for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_begin+i)->Apply(rProcessInfo);
 
-            //the following is needed since we need to eventually compute time derivatives after applying 
+            //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
             TSparseSpace::SetToZero(rDx);
             this->GetScheme()->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
@@ -698,6 +729,15 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "linear_strategy";
     }
 
     ///@}

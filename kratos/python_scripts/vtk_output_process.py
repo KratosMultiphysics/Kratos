@@ -32,7 +32,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
                 if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
                     kratos_utils.DeleteDirectoryIfExisting(folder_name)
                 if not os.path.isdir(folder_name):
-                    os.mkdir(folder_name)
+                    os.makedirs(folder_name)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         self.output_interval = settings["output_interval"].GetDouble()

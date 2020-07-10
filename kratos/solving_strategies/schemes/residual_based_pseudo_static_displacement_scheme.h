@@ -54,6 +54,8 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                        BaseType;
 
+    typedef ResidualBasedPseudoStaticDisplacementScheme<TSparseSpace, TDenseSpace> ClassType;
+
     typedef typename BaseType::TDataType                                           TDataType;
 
     typedef typename BaseType::DofsArrayType                                   DofsArrayType;
@@ -83,6 +85,15 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedPseudoStaticDisplacementScheme()
+        : DerivedBaseType(0.0),
+          mRayleighBeta(NODAL_MAUX)
+    {
+    }
 
     /**
      * @brief Constructor. The pseudo static scheme (parameters)
@@ -141,6 +152,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Performing the update of the solution
@@ -288,6 +308,15 @@ public:
         }
 
         KRATOS_CATCH( "" );
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "pseudo_static_scheme";
     }
 
     ///@}
