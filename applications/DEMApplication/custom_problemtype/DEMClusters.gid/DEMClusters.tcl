@@ -72,9 +72,6 @@ proc InitGIDProject { dir } {
     # Save ProblemTypePath
     set ::DEMClusters::ProblemTypePath $dir
 
-    # default process 
-    set ::DEMClusters::pid 0
-
     Splash
 }
 
@@ -211,7 +208,7 @@ namespace eval DEMClusters {
 proc CancelSphereTree { } {
 
     package require gid_cross_platform
-    gid_cross_platform::end_process $::DEMClusters::pid
+    gid_cross_platform::end_process [pid $::DEMClusters::pid]
 }
 
 
@@ -265,10 +262,10 @@ proc DEMClusters::call_makeTreeMedial { } {
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
+
     # exec $program {*}$argv
-
-    catch { set ::DEMClusters::pid [exec $program {*}$argv] } msg
-
+    # catch { set ::DEMClusters::pid [exec $program {*}$argv] &} msg
+    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
 
 
     # makeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
@@ -333,7 +330,8 @@ proc DEMClusters::call_makeTreeGrid { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    exec $program {*}$argv
+    #exec $program {*}$argv
+    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
 
     # makeTreeGrid ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -372,7 +370,8 @@ proc DEMClusters::call_makeTreeSpawn { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    exec $program {*}$argv
+    #exec $program {*}$argv
+    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
 
     # makeTreeSpawn ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -416,7 +415,8 @@ proc DEMClusters::call_makeTreeHubbard { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    exec $program {*}$argv
+    #exec $program {*}$argv
+    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
 
     # makeTreeHubbard ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -446,7 +446,8 @@ proc DEMClusters::call_makeTreeOctree { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    exec $program {*}$argv
+    #exec $program {*}$argv
+    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
 
     # makeTreeOctree ValidArgs:
     # -depth              Depth of the sphere-tree
