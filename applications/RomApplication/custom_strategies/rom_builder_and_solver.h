@@ -111,12 +111,7 @@ public:
             if(KratosComponents<Variable<double>>::Has(mNodalVariablesNames[k]))
             {
                 const auto& var = KratosComponents<Variable<double>>::Get(mNodalVariablesNames[k]);
-                MapPhi[var.Key()] = k;
-            }
-            else if(KratosComponents<ModelPart::VariableComponentType>::Has(mNodalVariablesNames[k]))
-            {
-                const auto& var = KratosComponents<ModelPart::VariableComponentType>::Get(mNodalVariablesNames[k]);
-                MapPhi[var.Key()] = k;
+                mMapPhi[var.Key()] = k;
             }
             else
                 KRATOS_ERROR << "variable \""<< mNodalVariablesNames[k] << "\" not valid" << std::endl;
@@ -158,7 +153,8 @@ public:
         set_type dof_global_set;
         dof_global_set.reserve(number_of_elements * 20);
 
-        #pragma omp parallel firstprivate(dof_list, second_dof_list)
+        double number_of_hrom_elements=0.0;
+        #pragma omp parallel firstprivate(dof_list, second_dof_list) reduction(+:number_of_hrom_elements)
         {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -172,7 +168,7 @@ public:
                 auto it_elem = r_elements_array.begin() + i;
                 //detect whether the element has a Hyperreduced Weight (H-ROM simulation) or not (ROM simulation)
                 if ((it_elem)->Has(HROM_WEIGHT))
-                    h_rom_simulation = true;
+                    number_of_hrom_elements++;
                 else
                     it_elem->SetValue(HROM_WEIGHT, 1.0);
                 // Gets list of Dof involved on every element
@@ -184,25 +180,25 @@ public:
             ConditionsArrayType &r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
 
-            ModelPart::ConditionsContainerType mSelectedConditions_private;
+            ModelPart::ConditionsContainerType selected_conditions_private;
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < number_of_conditions; ++i)
             {
-                auto it_cond = r_conditions_array.ptr_begin() + i;
+                auto it_cond = r_conditions_array.begin() + i;
                 // Gather the H-reduced conditions that are to be considered for assembling. Ignoring those for displaying results only
-                if ((*it_cond)->Has(HROM_WEIGHT)){
-                    mSelectedConditions_private.push_back(*it_cond);
-                    h_rom_simulation = true;
+                if (it_cond->Has(HROM_WEIGHT)){
+                    selected_conditions_private.push_back(*it_cond.base());
+                    number_of_hrom_elements++;
                 }
                 else
-                    (*it_cond)->SetValue(HROM_WEIGHT, 1.0);
+                    it_cond->SetValue(HROM_WEIGHT, 1.0);
                 // Gets list of Dof involved on every element
-                pScheme->GetDofList(*(*it_cond), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
             #pragma omp critical
             {
-                for (auto &cond : mSelectedConditions_private){
+                for (auto &cond : selected_conditions_private){
                     mSelectedConditions.push_back(&cond);
                 }
             }
@@ -226,6 +222,9 @@ public:
             {
                 dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
             }
+        }
+        if (number_of_hrom_elements>0){
+             mHromSimulation = true;
         }
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
@@ -332,7 +331,7 @@ public:
                     pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
                     old_dof_id = dof->Id();
                 }
-                Dx[dof->EquationId()] = inner_prod(  row(  *pcurrent_rom_nodal_basis    , MapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
+                Dx[dof->EquationId()] = inner_prod(  row(  *pcurrent_rom_nodal_basis    , mMapPhi[dof->GetVariable().Key()]   )     , rRomUnkowns);
             }
         }
     }
@@ -355,7 +354,7 @@ public:
             if (dofs[k]->IsFixed())
                 noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
             else
-                noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
+                noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
         }
     }
 
@@ -393,12 +392,12 @@ public:
         const int nelements = static_cast<int>(rModelPart.Elements().size());
         const auto el_begin = rModelPart.ElementsBegin();
 
-        auto &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         auto help_cond_begin = rModelPart.ConditionsBegin();
         auto help_nconditions = static_cast<int>(rModelPart.Conditions().size());
 
-        if (h_rom_simulation == true){
+        if ( mHromSimulation == true){
             // Only selected conditions are considered for the calculation on an H-ROM simualtion.
             help_cond_begin = mSelectedConditions.begin();
             help_nconditions = static_cast<int>(mSelectedConditions.size());
@@ -425,6 +424,7 @@ public:
             Matrix PhiElemental;
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
             Vector tempb = ZeroVector(mRomDofs);
+            Matrix aux;
 
             #pragma omp for nowait
             for (int k = 0; k < nelements; k++)
@@ -444,8 +444,10 @@ public:
                     const auto &geom = it_el->GetGeometry();
                     if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
+                    if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
+                        aux.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
-                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
@@ -472,8 +474,10 @@ public:
                     const auto &geom = it->GetGeometry();
                     if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                         PhiElemental.resize(dofs.size(), mRomDofs,false);
+                    if(aux.size1() != dofs.size() || aux.size2() != mRomDofs)
+                        aux.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
-                    Matrix aux = prod(LHS_Contribution, PhiElemental);
+                    noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
@@ -625,9 +629,9 @@ protected:
     std::vector<std::string> mNodalVariablesNames;
     int mNodalDofs;
     unsigned int mRomDofs;
-    std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
+    std::unordered_map<Kratos::VariableData::KeyType,int> mMapPhi;
     ModelPart::ConditionsContainerType mSelectedConditions;
-    bool h_rom_simulation = false;
+    bool mHromSimulation = false;
 
     /*@} */
     /**@name Protected Operations*/

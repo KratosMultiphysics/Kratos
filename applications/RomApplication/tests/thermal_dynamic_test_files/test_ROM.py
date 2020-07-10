@@ -18,11 +18,13 @@ class ROMDynamicConvDiff(KratosUnittest.TestCase):
             Simulation = TestConvectionDiffusionTransientROM(model,parameters)
             Simulation.Run()
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
-            ExpectedOutput = np.load('ExpectedOutput.npy')
+            ExpectedOutput = np.load('ExpectedOutput2.npy')
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
+            print(NodalArea)
             for i in range (np.shape(ObtainedOutput)[1]):
-                L2 = np.sqrt(      (sum(NodalArea*((ExpectedOutput[:,i]/ExpectedOutput[:,i] - ObtainedOutput[:,i]/ExpectedOutput[:,i] )**2)))  /     (sum(NodalArea))      )*100
-                self.assertLess(L2, 0.1) #percent
+                L2 = np.sqrt(      (sum(NodalArea*((1 - ObtainedOutput[:,i]/ExpectedOutput[:,i] )**2)))  /     (sum(NodalArea))      )*100
+                print(L2)
+                self.assertLess(L2, 1e-12) #percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 

@@ -52,3 +52,5 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     simulation = TestConvectionDiffusionTransientROM(model,parameters)
     simulation.Run()
+    ObtainedOutput = simulation.EvaluateQuantityOfInterest()
+    np.save('ExpectedOutput2.npy',ObtainedOutput)

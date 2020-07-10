@@ -41,3 +41,5 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     Simulation = TestStructuralMechanicsStaticROM(model,parameters)
     Simulation.Run()
+    ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
+    np.save('ExpectedOutput2.npy',ObtainedOutput)
