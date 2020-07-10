@@ -120,13 +120,22 @@ public:
      */
     BaseTypePointer Clone() override
     {
-      return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }
 
     /** Destructor.
      */
     ~ResidualBasedNewmarkDisplacementScheme
     () override {}
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newmark_scheme";
+    }
 
     ///@}
     ///@name Operators

@@ -704,6 +704,23 @@ public:
     }
 
     /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "builder_and_solver";
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    /**
      * @brief It sets the level of echo for the solving strategy
      * @param Level The level to set
      * @details The different levels of echo are:
@@ -726,14 +743,6 @@ public:
     {
         return mEchoLevel;
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
 
     ///@}
     ///@name Inquiry

@@ -329,6 +329,15 @@ static std::string Name()
     return "explicit_strategy";
 }
 
+/**
+ * @brief Returns the name of the class as used in the settings (snake_case format)
+ * @return The name of the class
+ */
+static std::string Name()
+{
+    return "explicit_strategy";
+}
+
 /// Turn back information as a string.
 std::string Info() const override
 {

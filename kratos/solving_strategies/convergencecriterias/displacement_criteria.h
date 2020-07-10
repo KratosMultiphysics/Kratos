@@ -264,6 +264,15 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart, rDofSet, A, Dx, b);
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "displacement_criteria";
+    }
+
     ///@}
     ///@name Access
     ///@{

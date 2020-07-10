@@ -18,6 +18,20 @@ or:
 Add the following to the main Kratos configure.sh: 
 
 	-DINCLUDE_MMG=ON                                                                  \
+	-DMMG_ROOT="path/to/mmg/"
+
+
+## Error 1: Kratos cannot find the MMG libraries automatically
+Double-check where and how the MMG libraries were compiled on your system. If MMG libraries were not written in the format "libmmg" or "libmmg3d", you can specify the correct prefix with the following configuration:
+
+	-DINCLUDE_MMG=ON                                                                  \
+	-DMMG_ROOT="path/to/mmg/"	 						  \
+	-DMMG_LIBRARY_PREFIX=""
+	
+
+## Error 2: Kratos cannot find the MMG libraries automatically even if I specify the correct prefix
+If any of the MMG libraries cannot be found, you can explicitly set them in the Kratos configure: 
+
 	-DMMG_INCLUDE_DIR="installation_directory/mmg/include/"\
 	-DMMG2D_INCLUDE_DIR="installation_directory/mmg/include/mmg/mmg2d/"\
 	-DMMG3D_INCLUDE_DIR="installation_directory/mmg/include/mmg/mmg3d/"\
@@ -26,4 +40,3 @@ Add the following to the main Kratos configure.sh:
 	-DMMG2D_LIBRARY="installation_directory/mmg/lib/libmmg2d.a" \
 	-DMMG3D_LIBRARY="installation_directoryl_libraries/mmg/lib/libmmg3d.a" \
 	-DMMGS_LIBRARY="installation_directory/mmg/lib/libmmgs.a"   \
-

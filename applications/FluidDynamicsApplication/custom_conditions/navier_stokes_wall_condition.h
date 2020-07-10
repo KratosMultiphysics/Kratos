@@ -334,6 +334,32 @@ protected:
 
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
+    /**
+     * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
+     * The (Navier) slip length is read as a nodal variable.
+     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+     * Though only tangential velocities should appear, a tangetial projection is added.
+     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    virtual void ComputeGaussPointNavierSlipRHSContribution(
+        array_1d<double, TNumNodes*(TDim+1)>& rRightHandSideVector,
+        const ConditionDataStruct& rDataStruct );
+
+    /**
+     * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
+     * The (Navier) slip length is read as a nodal variable.
+     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+     * Though only tangential velocities should appear, a tangetial projection is added.
+     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    virtual void ComputeGaussPointNavierSlipLHSContribution(
+        BoundedMatrix<double, TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
+        const ConditionDataStruct& rDataStruct);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -408,33 +434,6 @@ private:
      */
     void ComputeGaussPointBehrSlipRHSContribution(  array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
-
-
-
-    /**
-     * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rRightHandSideVector reference to the RHS vector
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    void ComputeGaussPointNavierSlipRHSContribution(    array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
-                                                        const ConditionDataStruct& rDataStruct );
-
-
-    /**
-     * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rLeftHandSideMatrix reference to the LHS matrix
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    void ComputeGaussPointNavierSlipLHSContribution(    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
-                                                        const ConditionDataStruct& rDataStruct );
 
     ///@}
     ///@name Private  Access

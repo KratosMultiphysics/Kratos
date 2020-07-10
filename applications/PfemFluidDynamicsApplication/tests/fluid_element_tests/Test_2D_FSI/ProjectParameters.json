@@ -23,7 +23,7 @@
         "material_import_settings"           : {
             "materials_filename" : "fluid_element_tests/Test_2D_FSI/PfemFluidDynamicsMaterials.json"
         },
-        "maximum_pressure_iterations"        : 6,
+        "maximum_pressure_iterations"        : 2,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
         "echo_level"                         : 0,
@@ -309,7 +309,7 @@
         }]
     },
     "_json_output_process": [{
-        "python_module" : "from_json_check_result_process",
+        "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
             "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],

@@ -380,6 +380,15 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to finalize solution step.")
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "elimination_builder_and_solver_with_constraints";
+    }
+
     ///@}
     ///@name Access
     ///@{
