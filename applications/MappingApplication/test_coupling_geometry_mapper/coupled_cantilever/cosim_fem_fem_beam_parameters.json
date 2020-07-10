@@ -48,19 +48,26 @@
 				}
             }
         },
-        "coupling_operations" : {
-            "normals_computation" : {
-                "type"      : "compute_normals",
-                "solver"    : "domainA",
-                "data_name" : "disp"
-            }
-        },
         "coupling_sequence":
         [
             {
                 "name": "domainA",
-                "input_data_list"  : [],
-                "output_data_list" : []
+                "input_data_list"  : [
+				{
+                        "data"           : "load",
+                        "from_solver"      : "domainB",
+                        "from_solver_data" : "load",
+                        "data_transfer_operator" : "mapper",
+						"data_transfer_operator_options"  : ["use_transpose"]
+                    }],
+                "output_data_list" : [
+					{
+                        "data"           : "disp",
+                        "to_solver"      : "domainB",
+                        "to_solver_data" : "disp",
+                        "data_transfer_operator" : "mapper"
+                    }
+					]
             },
             {
                 "name": "domainB",
@@ -70,14 +77,6 @@
                         "from_solver"      : "domainA",
                         "from_solver_data" : "disp",
                         "data_transfer_operator" : "mapper"
-                    },
-                    {
-                        "data"           : "normals",
-                        "from_solver"      : "domainA",
-                        "from_solver_data" : "normals",
-                        "data_transfer_operator" : "mapper",
-                        "before_data_transfer_operations" : ["normals_computation"],
-                        "data_transfer_operator_options"  : ["swap_sign"]
                     }
                 ],
                 "output_data_list": [

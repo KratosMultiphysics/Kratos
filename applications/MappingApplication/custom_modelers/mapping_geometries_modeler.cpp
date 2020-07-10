@@ -22,15 +22,15 @@ namespace Kratos
     {
         CheckParameters();
 
-        const std::string origin_model_part_name = mParameters["origin_model_part_name"].GetString();
-        ModelPart& origin_model_part = (mpModels[0]->HasModelPart(origin_model_part_name))
-            ? mpModels[0]->GetModelPart(origin_model_part_name)
-            : mpModels[0]->CreateModelPart(origin_model_part_name);
-
-        const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
-        ModelPart& destination_model_part = (mpModels.back()->HasModelPart(destination_model_part_name))
-            ? mpModels.back()->GetModelPart(destination_model_part_name)
-            : mpModels.back()->CreateModelPart(destination_model_part_name);
+        //const std::string origin_model_part_name = mParameters["origin_model_part_name"].GetString();
+        //ModelPart& origin_model_part = (mpModels[0]->HasModelPart(origin_model_part_name))
+        //    ? mpModels[0]->GetModelPart(origin_model_part_name)
+        //    : mpModels[0]->CreateModelPart(origin_model_part_name);
+        //
+        //const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
+        //ModelPart& destination_model_part = (mpModels.back()->HasModelPart(destination_model_part_name))
+        //    ? mpModels.back()->GetModelPart(destination_model_part_name)
+        //    : mpModels.back()->CreateModelPart(destination_model_part_name);
 
         ModelPart& coupling_model_part = (mpModels[0]->HasModelPart("coupling"))
             ? mpModels[0]->GetModelPart("coupling")
@@ -57,7 +57,7 @@ namespace Kratos
         if (!mParameters["debug_define_coupling_conditions_in_python"].GetBool())
         {
             std::cout << "\n\n================== MAPPING GEOMS MODELER - HARD CODING CONDITIONS FOR TESTING\n" << std::endl;
-            ModelPart& origin_interface_hard_code = origin_model_part.GetSubModelPart(origin_interface_sub_model_part_name);
+            ModelPart& origin_interface_hard_code = mpModels[0]->GetModelPart(origin_interface_sub_model_part_name);
             int nodeOffset = 327;
             for (size_t i = 1; i < 6; i++) {
                 Geometry<GeometricalObject::NodeType>::PointsArrayType points;
@@ -66,21 +66,21 @@ namespace Kratos
                 origin_interface_hard_code.CreateNewCondition("LineCondition2D2N", i + 100, points, origin_interface_hard_code.pGetProperties(0));
             }
 
-            ModelPart& dest_interface_hard_code = destination_model_part.GetSubModelPart(destination_interface_sub_model_part_name);
+            ModelPart& dest_interface_hard_code = mpModels[1]->GetModelPart(destination_interface_sub_model_part_name);
             Geometry<GeometricalObject::NodeType>::PointsArrayType points;
             points.push_back(dest_interface_hard_code.pGetNode(1));
             points.push_back(dest_interface_hard_code.pGetNode(3));
-            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 201, points, destination_model_part.pGetProperties(0));
+            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 201, points, dest_interface_hard_code.pGetProperties(0));
             points.clear();
 
             points.push_back(dest_interface_hard_code.pGetNode(3));
             points.push_back(dest_interface_hard_code.pGetNode(6));
-            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 202, points, destination_model_part.pGetProperties(0));
+            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 202, points, dest_interface_hard_code.pGetProperties(0));
             points.clear();
 
             points.push_back(dest_interface_hard_code.pGetNode(6));
             points.push_back(dest_interface_hard_code.pGetNode(10));
-            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 203, points, destination_model_part.pGetProperties(0));
+            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 203, points, dest_interface_hard_code.pGetProperties(0));
             points.clear();
         }
 
@@ -90,13 +90,13 @@ namespace Kratos
             ? coupling_model_part.GetSubModelPart("interface_origin")
             : coupling_model_part.CreateSubModelPart("interface_origin");
         CopySubModelPart(coupling_interface_origin,
-            origin_model_part.GetSubModelPart(origin_interface_sub_model_part_name));
+            mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
 
         ModelPart& coupling_interface_destination = (coupling_model_part.HasSubModelPart("interface_destination"))
             ? coupling_model_part.GetSubModelPart("interface_destination")
             : coupling_model_part.CreateSubModelPart("interface_destination");
         CopySubModelPart(coupling_interface_destination,
-            destination_model_part.GetSubModelPart(destination_interface_sub_model_part_name));
+            mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
 
         KRATOS_ERROR_IF(coupling_interface_origin.NumberOfConditions() == 0)
             << "Coupling geometries are currently determined by conditions in the coupling sub model parts,"
