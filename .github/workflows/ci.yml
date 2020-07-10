@@ -38,7 +38,7 @@ jobs:
 
     - name: Install lcov
       run: | 
-        sudo apt-get install lcov
+        apt-get install lcov
 
     - name: Cache Build
       id: cache-build
