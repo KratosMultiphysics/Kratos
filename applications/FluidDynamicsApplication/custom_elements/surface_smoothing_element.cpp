@@ -411,10 +411,10 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double slip_velocity = inner_prod(slip_vector,
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                            const double zeta = 1.0e0;
+                            const double zeta = 1.0e-2;
                             const double gamma = 0.1;
 
-                            const double cos_theta_s = -0.422618262;
+                            const double cos_theta_s = -0.819152044;
                             const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
 
                             KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
@@ -422,7 +422,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
                             const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
 
-                            corrected_gradient = GradPHIold[i];//norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
+                            corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
                         } else { //not a cut solid surface element
                             corrected_gradient = GradPHIold[i];
                         }

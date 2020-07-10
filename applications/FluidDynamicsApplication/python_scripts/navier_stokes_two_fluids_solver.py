@@ -347,6 +347,20 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "About to impose mass conservation!")
             #    (self.mass_conservation_correction).ExecuteInTimeStep();
 
+            # Recompute the distance field according to the new level-set position
+            if (TimeStep % 50 == 0):
+                print("Redistancing")
+                print(time.time())
+                layers = int(100/100000*self.main_model_part.NumberOfElements())
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+                    self.main_model_part, 
+                    KratosMultiphysics.DISTANCE, 
+                    KratosCFD.AREA_VARIABLE_AUX, 
+                    layers, 
+                    0.01)#,
+                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                print(time.time())
+
             # Smoothing the surface to filter oscillatory surface
             (self.distance_gradient_process).Execute()
             print("Smoothing")
@@ -415,20 +429,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Recompute the distance field according to the new level-set position
             #if (TimeStep % 1 == 0):
             #    (self.variational_distance_process).Execute()
-
-            # Recompute the distance field according to the new level-set position
-            if (TimeStep % 50 == 0):
-                print("Redistancing")
-                print(time.time())
-                layers = int(100/100000*self.main_model_part.NumberOfElements())
-                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosCFD.AREA_VARIABLE_AUX, 
-                    layers, 
-                    0.01)#,
-                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
-                print(time.time())
 
             # Reinitialize distance according to time dependent Eikonal equation
             #if (TimeStep % 1 == 0):
