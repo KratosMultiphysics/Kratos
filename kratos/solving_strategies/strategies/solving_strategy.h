@@ -114,9 +114,7 @@ public:
     /**
      * @brief Default constructor
      */
-    explicit SolvingStrategy() : mpModelPart(nullptr)
-    {
-    }
+    explicit SolvingStrategy() { }
 
     /**
      * @brief Default constructor. (with parameters)
@@ -370,6 +368,7 @@ public:
      */
     inline ModelPart& GetModelPart()
     {
+        KRATOS_ERROR_IF_NOT(mpModelPart) << "ModelPart in the SolvingStrategy is not initialized" << std::endl;
         return *mpModelPart;
     };
 
@@ -491,7 +490,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart* mpModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     bool mMoveMeshFlag;
 
