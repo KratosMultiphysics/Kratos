@@ -20,18 +20,13 @@ except:
 from scipy.io import netcdf
 
 # Assign default settings
-working_path = os.getcwd() + '/'
-#path = "/work/piquee/MembraneWing/kratos_fsi_big"
-with open(working_path + 'tau_settings.json') as json_file:
-    tau_settings = json.load(json_file)
-
-start_step = tau_settings["start_step"]
-echo_level = tau_settings["echo_level"]
-rotate = tau_settings["rotate"]
+start_step = 200
+echo_level = 0
+rotate = False
 
 # Read settings
 try:
-    with open(working_path + 'tau_settings.json') as json_file:
+    with open('/work/piquee/MembraneWing/kratos_fsi_big/tau_settings.json') as json_file:
         tau_settings = json.load(json_file)
 
     start_step = tau_settings["start_step"]
@@ -41,7 +36,7 @@ try:
 except:
     warnings.warn('tau_settings.json not found')
 
-
+working_path = os.getcwd() + '/'
 
 # Remove output files and deform mesh files from previous simulations
 def RemoveFilesFromPreviousSimulations():
@@ -82,18 +77,19 @@ def PrintBlockHeader(header):
 # Write membrane's displacments in a file
 def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start_step):
     # Compute relative displacements
-    relative_displacements = ComputeRelativeDisplacements(total_displacements, step, start_step)
-    return relative_displacements
+    if tau_mpi_rank() == 0:
+        relative_displacements = ComputeRelativeDisplacements(total_displacements, step, start_step)
+    tau_parallel_sync()
     # Read tau's parameter file
-#    Para = PyPara.Parafile(para_path_mod)
+    Para = PyPara.Parafile(para_path_mod)
 
     # Read the interface fluid grid
-#    print("before PySurf")
-#    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
-#    print("after PySurf")
+    print("before PySurf")
+    ids, coordinates = PySurfDeflect.read_tau_grid(Para)
+    print("after PySurf")
     # Write membrane's displacments in a file
     #if tau_mpi_rank() == 0:
-#    WriteInterfaceDeformationFile(ids, coordinates, relative_displacements)
+    WriteInterfaceDeformationFile(ids, coordinates, relative_displacements)
 
 
 # Computes fluid forces at the nodes
@@ -170,23 +166,6 @@ def ComputeRelativeDisplacements(total_displacements, step, start_step):
     previous_total_displacements = total_displacements
 
     return relative_displacements
-
-
-# Change format displacements
-def ChangeFormatDisplacements(total_displacements):
- 
-    # Declaring and initializing new displacement vector
-    number_of_nodes = int(len(total_displacements)/3)
-    new_displacements = np.zeros([number_of_nodes, 3])
-
-    # Loop over nodes
-    for node in range(number_of_nodes):
-        # Loop over xyz components
-        for j in range(3):
-            # Compute relative displacement
-            new_displacements[node, j] = total_displacements[3*node+j]
-
-    return new_displacements
 
 
 # Write membrane's displacments in a file
@@ -384,11 +363,8 @@ def FindPrimaryGridFilename(working_path, step, start_step):
     else:
         pattern = 'airfoil_Structured_scaliert.grid.def.'
         mesh_file = FindMeshFilename(mesh_path, pattern, step-start_step)
-        if 'domain' in mesh_file:
-            position = mesh_file.find('_domain_')
-            mesh_filename = mesh_file[0:position]
-        else:
-            mesh_filename = mesh_file
+        position = mesh_file.find('_domain_')
+        mesh_filename = mesh_file[0:position]
         print(mesh_filename)
         return mesh_filename
 
@@ -515,8 +491,8 @@ def FindMeshFilename(path, pattern, step):
 # Looks for a file matching the given pattern within the given path
 def FindFilename(path, pattern, step):
     files_list = glob.glob(path + "*")
-    #if echo_level > 0:
-       ###08/07/2020      ###  print('files_list = ', files_list)
+    if echo_level > 0:
+        print('files_list = ', files_list)
     for file in files_list:
         if file.startswith('%s' % path + '%s' % pattern + '%s' % step) and 'domain' not in file:
             print(file)
