@@ -43,9 +43,8 @@ ModelPart& RansKEpsilonKRFC2D3N_SetUp(Model& rModel)
 
 ModelPart& RansKEpsilonEpsilonRFC2D3N_SetUp(Model& rModel)
 {
-    ModelPart& r_model_part =
-        KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
-            rModel, "RansKEpsilonEpsilonRFC2D3N");
+    ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
+        rModel, "RansKEpsilonEpsilonRFC2D3N");
 
     StabilizationMethodTestUtilities::InitializeResidualBasedFluxCorrectedConstants(
         r_model_part.GetProcessInfo());
@@ -72,7 +71,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_GetDofList, KratosRansFastSuite)
     auto& r_model_part = RansKEpsilonKRFC2D3N_SetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(r_model_part, TURBULENT_KINETIC_ENERGY);
+    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
+        r_model_part, TURBULENT_KINETIC_ENERGY);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateLocalSystem, KratosRansFastSuite)
@@ -92,11 +92,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateLocalSystem, KratosRansF
     ref_RHS[1] = 4.49055195644842175540e+00;
     ref_RHS[2] = 4.49880538668604224029e+00;
     ref_LHS = ZeroMatrix(3, 3);
-
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << RHS[0] << std::endl
-              << RHS[1] << std::endl
-              << RHS[2] << std::endl;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -121,8 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateRightHandSide, KratosRan
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateLocalVelocityContribution,
-                          KratosRansFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateLocalVelocityContribution, KratosRansFastSuite)
 {
     // Setup:
     Model model;
@@ -148,22 +142,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateLocalVelocityContributio
     ref_RHS[0] = -2.98311916208666880266e+04;
     ref_RHS[1] = -5.37915542593372520059e+04;
     ref_RHS[2] = -1.30869844126473908545e+04;
-
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << LHS(0, 0) << std::endl
-              << LHS(0, 1) << std::endl
-              << LHS(0, 2) << std::endl
-              << LHS(1, 0) << std::endl
-              << LHS(1, 1) << std::endl
-              << LHS(1, 2) << std::endl
-              << LHS(2, 0) << std::endl
-              << LHS(2, 1) << std::endl
-              << LHS(2, 2) << std::endl;
-
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << RHS[0] << std::endl
-              << RHS[1] << std::endl
-              << RHS[2] << std::endl;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -191,17 +169,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateMassMatrix, KratosRansFa
     ref_M(2, 1) = 5.55309303949713534143e-02;
     ref_M(2, 2) = 2.22197597061637996951e-01;
 
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << M(0, 0) << std::endl
-              << M(0, 1) << std::endl
-              << M(0, 2) << std::endl
-              << M(1, 0) << std::endl
-              << M(1, 1) << std::endl
-              << M(1, 2) << std::endl
-              << M(2, 0) << std::endl
-              << M(2, 1) << std::endl
-              << M(2, 2) << std::endl;
-
     KRATOS_CHECK_MATRIX_NEAR(M, ref_M, 1e-12);
 }
 
@@ -227,17 +194,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateDampingMatrix, KratosRan
     ref_D(2, 1) = -1.68723358128409557821e+02;
     ref_D(2, 2) = 9.71958393031216814961e+02;
 
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << D(0, 0) << std::endl
-              << D(0, 1) << std::endl
-              << D(0, 2) << std::endl
-              << D(1, 0) << std::endl
-              << D(1, 1) << std::endl
-              << D(1, 2) << std::endl
-              << D(2, 0) << std::endl
-              << D(2, 1) << std::endl
-              << D(2, 2) << std::endl;
-
     KRATOS_CHECK_MATRIX_NEAR(D, ref_D, 1e-12);
 }
 
@@ -258,7 +214,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_GetDofList, KratosRansFastS
     auto& r_model_part = RansKEpsilonEpsilonRFC2D3N_SetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE);
+    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
+        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateLocalSystem, KratosRansFastSuite)
@@ -278,11 +235,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateLocalSystem, Krato
     ref_RHS[1] = 1.38615066269478447794e+04;
     ref_RHS[2] = 1.38730673656943035894e+04;
     ref_LHS = ZeroMatrix(3, 3);
-
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << RHS[0] << std::endl
-              << RHS[1] << std::endl
-              << RHS[2] << std::endl;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -335,22 +287,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateLocalVelocityContr
     ref_RHS[1] = -1.40242927389094606042e+06;
     ref_RHS[2] = -8.13739162544821156189e+04;
 
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << LHS(0, 0) << std::endl
-              << LHS(0, 1) << std::endl
-              << LHS(0, 2) << std::endl
-              << LHS(1, 0) << std::endl
-              << LHS(1, 1) << std::endl
-              << LHS(1, 2) << std::endl
-              << LHS(2, 0) << std::endl
-              << LHS(2, 1) << std::endl
-              << LHS(2, 2) << std::endl;
-
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << RHS[0] << std::endl
-              << RHS[1] << std::endl
-              << RHS[2] << std::endl;
-
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
@@ -377,17 +313,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateMassMatrix, Kratos
     ref_M(2, 1) = 5.55445971974927871218e-02;
     ref_M(2, 2) = 2.22211263864159458414e-01;
 
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << M(0, 0) << std::endl
-              << M(0, 1) << std::endl
-              << M(0, 2) << std::endl
-              << M(1, 0) << std::endl
-              << M(1, 1) << std::endl
-              << M(1, 2) << std::endl
-              << M(2, 0) << std::endl
-              << M(2, 1) << std::endl
-              << M(2, 2) << std::endl;
-
     KRATOS_CHECK_MATRIX_NEAR(M, ref_M, 1e-12);
 }
 
@@ -412,17 +337,6 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateDampingMatrix, Kra
     ref_D(2, 0) = -3.42700584373645199321e+02;
     ref_D(2, 1) = -3.42015172813990830036e+02;
     ref_D(2, 2) = 2.07986235474655586586e+03;
-
-    std::cout << std::scientific << std::setprecision(20) << std::endl
-              << D(0, 0) << std::endl
-              << D(0, 1) << std::endl
-              << D(0, 2) << std::endl
-              << D(1, 0) << std::endl
-              << D(1, 1) << std::endl
-              << D(1, 2) << std::endl
-              << D(2, 0) << std::endl
-              << D(2, 1) << std::endl
-              << D(2, 2) << std::endl;
 
     KRATOS_CHECK_MATRIX_NEAR(D, ref_D, 1e-12);
 }
