@@ -148,17 +148,6 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
-
-
-    /**
-     * @brief MassMatrix Calculate the local mass matrix.
-     * @param rFluidStress Viscous stress in the fluid given in Voigt notation
-     * @param rCurrentProcessInfo Current ProcessInfo values (input)
-     */
-    void Calculate( const Variable<Vector>& rVariable,
-                    Vector& rOutput,
-                    const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Inquiry
     ///@{
