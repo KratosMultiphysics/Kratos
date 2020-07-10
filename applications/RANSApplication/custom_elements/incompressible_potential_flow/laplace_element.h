@@ -27,22 +27,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -134,10 +118,6 @@ public:
     ~LaplaceElement() override = default;
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -215,7 +195,8 @@ public:
      * @param rResult: the elemental equation ID vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& CurrentProcessInfo) const override
     {
         if (rResult.size() != TNumNodes)
             rResult.resize(TNumNodes, false);
@@ -231,7 +212,8 @@ public:
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& CurrentProcessInfo) const override
     {
         if (rElementalDofList.size() != TNumNodes)
             rElementalDofList.resize(TNumNodes);
@@ -242,14 +224,14 @@ public:
             rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
     }
 
-    void GetValuesVector(VectorType& rValues, int Step) override
+    void GetValuesVector(VectorType& rValues, int Step) const override
     {
         if (rValues.size() != TNumNodes)
             rValues.resize(TNumNodes, false);
 
         const Variable<double>& r_variable = this->GetVariable();
 
-        GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom = this->GetGeometry();
         IndexType LocalIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
         {
@@ -280,7 +262,7 @@ public:
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculate RHS
         if (rRightHandSideVector.size() != TNumNodes)
@@ -304,7 +286,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                               const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -348,7 +330,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
+                                        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -396,14 +378,6 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -421,24 +395,8 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
     ///@name Protected Operations
     ///@{
     /**
@@ -459,36 +417,8 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -512,27 +442,10 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class LaplaceElement
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 

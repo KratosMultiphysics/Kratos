@@ -29,22 +29,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -88,6 +72,8 @@ public:
 private:
     const GeometryType& mrGeometry;
 };
+
+///@}
 } // namespace Kratos
 
 #endif
