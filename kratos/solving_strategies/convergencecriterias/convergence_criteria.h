@@ -62,6 +62,9 @@ public:
     /// Pointer definition of ConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
 
+    /// The definition of the current class
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
+
     /// Data type definition
     typedef typename TSparseSpace::DataType TDataType;
     /// Matrix type definition
@@ -87,6 +90,13 @@ public:
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
         SetEchoLevel(1);
+    }
+
+    /** Constructor with Parameters
+    */
+    explicit ConvergenceCriteria(Kratos::Parameters Settings)
+        : ConvergenceCriteria()
+    {
     }
 
     /** Copy constructor.
@@ -115,6 +125,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Get component wise element components
@@ -348,6 +367,15 @@ public:
 
         return 0;
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "convergence_criteria";
     }
 
     ///@}

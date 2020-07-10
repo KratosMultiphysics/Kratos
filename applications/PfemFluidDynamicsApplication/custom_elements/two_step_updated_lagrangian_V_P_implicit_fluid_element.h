@@ -22,6 +22,7 @@
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
+#include "includes/constitutive_law.h"
 
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
 
@@ -108,6 +109,13 @@ public:
   typedef typename BaseType::ElementalVariables ElementalVariables;
 
   typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+
+  /// Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  ///Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -283,6 +291,8 @@ protected:
   ///@name Protected member Variables
   ///@{
 
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -290,12 +300,6 @@ protected:
   ///@}
   ///@name Protected Operations
   ///@{
-
-  void ComputeMaterialParameters(double &Density,
-                                 double &DeviatoricCoeff,
-                                 double &VolumetricCoeff,
-                                 ProcessInfo &rCurrentProcessInfo,
-                                 ElementalVariables &rElementalVariables) override;
 
   /**
        * A constistent mass matrix is used.
@@ -318,24 +322,6 @@ protected:
                                        double &meanValueStiff,
                                        double &bulkCoefficient,
                                        double timeStep) override;
-
-  double ComputeNonLinearViscosity(double &equivalentStrainRate);
-
-  void ComputeMaterialParametersGranularGas(double &Density,
-                                            double &DeviatoricCoeff,
-                                            double &VolumetricCoeff,
-                                            ProcessInfo &rCurrentProcessInfo,
-                                            ElementalVariables &rElementalVariables) override;
-
-  double ComputeJopMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputeBercovierMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputePapanastasiouMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputeBarkerMuIrheologyViscosity(ElementalVariables &rElementalVariables);
-
-  double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables &rElementalVariables);
 
   void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
                              const double Weight) override;
@@ -367,9 +353,9 @@ protected:
                                   const ShapeFunctionDerivativesType &rShapeDeriv,
                                   const double Weight) override;
 
-  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                        double TimeStep,
-                                        unsigned int g) override;
+  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
+                                        const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                        double &DeviatoricCoeff, double &VolumetricCoeff) override;
 
   void CalculateTauFIC(double &TauOne,
                        double ElemSize,

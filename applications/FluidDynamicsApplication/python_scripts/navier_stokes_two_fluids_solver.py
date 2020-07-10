@@ -82,7 +82,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
+        self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 

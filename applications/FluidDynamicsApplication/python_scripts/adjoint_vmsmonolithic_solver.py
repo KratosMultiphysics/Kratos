@@ -7,8 +7,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_solver import AdjointFluidSolver
 
-from KratosMultiphysics.FluidDynamicsApplication.adjoint_turbulence_model_solver import CreateAdjointTurbulenceModel
-
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicSolver(main_model_part, custom_settings)
 
@@ -49,7 +47,6 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "automatic_time_step" : false,
                 "time_step"           : -0.1
             },
-            "adjoint_turbulence_model_solver_settings": {},
             "consider_periodic_conditions": false,
             "assign_neighbour_elements_to_conditions": false
         }""")
@@ -62,17 +59,11 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         super(AdjointVMSMonolithicSolver,self).__init__(model,custom_settings)
         self.element_has_nodal_properties = True
 
-        if not self.settings["adjoint_turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            # if not empty
-            self._adjoint_turbulence_model_solver = CreateAdjointTurbulenceModel(model, self.settings["adjoint_turbulence_model_solver_settings"])
-            self.element_name = self._adjoint_turbulence_model_solver.GetAdjointElementName()
-            self.condition_name = self._adjoint_turbulence_model_solver.GetAdjointConditionName()
-        else:
-            self.element_name = "VMSAdjointElement"
-            if self.settings["domain_size"].GetInt() == 2:
-                self.condition_name = "LineCondition"
-            elif self.settings["domain_size"].GetInt() == 3:
-                self.condition_name = "SurfaceCondition"
+        self.element_name = "VMSAdjointElement"
+        if self.settings["domain_size"].GetInt() == 2:
+            self.condition_name = "LineCondition"
+        elif self.settings["domain_size"].GetInt() == 3:
+            self.condition_name = "SurfaceCondition"
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
@@ -94,31 +85,15 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
-        # Adding variables required for the turbulence modelling
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            # TODO: THIS HAS TO BE A METHOD SetFluidModelPart() IN THE ADJOINT TURBULENCE MODEL SOLVER
-            self._adjoint_turbulence_model_solver.fluid_model_part = self.main_model_part
-            self._adjoint_turbulence_model_solver.AddVariables()
-
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
 
-    def AddDofs(self):
-        super(AdjointVMSMonolithicSolver, self).AddDofs()
-
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.AddDofs()
-
     def Initialize(self):
         # Construct and set the solution strategy
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # If there is adjoint turbulence model, initialize it
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.Initialize()
 
         # Initialize the strategy and adjoint utilities
         solution_strategy.Initialize()

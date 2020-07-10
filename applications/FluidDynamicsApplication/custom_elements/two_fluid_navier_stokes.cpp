@@ -227,53 +227,6 @@ void TwoFluidNavierStokes<TElementData>::PrintInfo(
     }
 }
 
-template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::Calculate(
-    const Variable<Vector >& rVariable,
-    Vector& rOutput,
-    const ProcessInfo& rCurrentProcessInfo )
-{
-    noalias( rOutput ) = ZeroVector( StrainSize );
-    
-    if (rVariable == FLUID_STRESS) {
-
-        // creating a new data container that goes out of scope after the function is left
-        TElementData dataLocal;
-        
-        // transferring the velocity (among other variables)
-        dataLocal.Initialize(*this, rCurrentProcessInfo);
-
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_derivatives;
-
-        // computing DN_DX values for the strain rate         
-        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-        const unsigned int number_of_gauss_points = gauss_weights.size();
-
-        double sumOfGaussWeights = 0.0;
-
-        for (unsigned int g = 0; g < number_of_gauss_points; g++){
-
-            UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-
-            const Vector gauss_point_contribution = dataLocal.ShearStress;
-
-            noalias( rOutput ) += gauss_point_contribution * gauss_weights[g];
-            sumOfGaussWeights += gauss_weights[g];
-        }
-
-        for (unsigned int i = 0; i < StrainSize; i++){
-            rOutput[i] = ( 1.0 / sumOfGaussWeights ) * rOutput[i];
-        }
-
-    } else {
-
-        Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected operations
 
@@ -1960,7 +1913,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
         negative_volume += rData.w_gauss_neg_side[igauss_neg];
     }
     const double Vol = positive_volume + negative_volume;
-    
+
     //We only enrich elements which are not almost empty/full
     if (positive_volume / Vol > min_area_ratio && negative_volume / Vol > min_area_ratio) {
 

@@ -112,7 +112,7 @@ void RVEPeriodicityUtility::AppendIdsAndWeights(
 
 MasterSlaveConstraint::Pointer RVEPeriodicityUtility::GenerateConstraint(
     IndexType& rConstraintId,
-    const VariableComponentType& rVar,
+    const DoubleVariableType& rVar,
     NodeType::Pointer pSlaveNode,
     const std::vector<IndexType>& rMasterIds,
     const Matrix& rRelationMatrix,
