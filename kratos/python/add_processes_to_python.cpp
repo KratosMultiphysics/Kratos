@@ -333,12 +333,14 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ComputeNodalNormalDivergenceProcess< ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>, ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalNormalDivergenceProcess")
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool, const bool >())
     ;
 
     /* Non-Historical */
     py::class_<ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalNormalDivergenceProcess")
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool, const bool >())
     ;
 
     // Discontinuous distance computation methods
