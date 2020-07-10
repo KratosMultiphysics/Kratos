@@ -26,6 +26,15 @@
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
 #include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
 
+// stabilized generic convection diffusion reaction elements
+#include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
+#include "custom_elements/convection_diffusion_reaction_element.h"
+#include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_element.h"
+
+// k-epsilon turbulence model element data
+#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/epsilon_element_data.h"
+#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/k_element_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -169,6 +178,28 @@ private:
     const IncompressiblePotentialFlowVelocityElement<3, 4> mIncompressiblePotentialFlowVelocity3D;
     const IncompressiblePotentialFlowPressureElement<2, 3> mIncompressiblePotentialFlowPressure2D;
     const IncompressiblePotentialFlowPressureElement<3, 4> mIncompressiblePotentialFlowPressure3D;
+
+    /// k-epsilon turbulence model elements
+    /// Algebraic flux correction based elements
+    const ConvectionDiffusionReactionElement<2, 3, KEpsilonElementData::KElementData<2>> mRansKEpsilonKAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, KEpsilonElementData::KElementData<3>> mRansKEpsilonKAFC3D;
+
+    const ConvectionDiffusionReactionElement<2, 3, KEpsilonElementData::EpsilonElementData<2>> mRansKEpsilonEpsilonAFC2D;
+    const ConvectionDiffusionReactionElement<3, 4, KEpsilonElementData::EpsilonElementData<3>> mRansKEpsilonEpsilonAFC3D;
+
+    /// Residual based flux corrected elements
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, KEpsilonElementData::KElementData<2>> mRansKEpsilonKRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, KEpsilonElementData::KElementData<3>> mRansKEpsilonKRFC3D;
+
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, KEpsilonElementData::EpsilonElementData<2>> mRansKEpsilonEpsilonRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<3, 4, KEpsilonElementData::EpsilonElementData<3>> mRansKEpsilonEpsilonRFC3D;
+
+    /// Cross wind stabilization based elements
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, KEpsilonElementData::KElementData<2>> mRansKEpsilonKCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, KEpsilonElementData::KElementData<3>> mRansKEpsilonKCWD3D;
+
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, KEpsilonElementData::EpsilonElementData<2>> mRansKEpsilonEpsilonCWD2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, KEpsilonElementData::EpsilonElementData<3>> mRansKEpsilonEpsilonCWD3D;
 
     ///@}
     ///@name Private Operators

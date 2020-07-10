@@ -29,7 +29,20 @@ KratosRANSApplication::KratosRANSApplication()
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mIncompressiblePotentialFlowPressure2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mIncompressiblePotentialFlowPressure3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
+      mIncompressiblePotentialFlowPressure3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      // k-epsilon turbulence model elements
+      mRansKEpsilonKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKEpsilonEpsilonAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonEpsilonAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKEpsilonKRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonKRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKEpsilonEpsilonRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonEpsilonRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKEpsilonKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKEpsilonEpsilonCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonEpsilonCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
 {
 }
 
@@ -73,5 +86,23 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure2D3N", mIncompressiblePotentialFlowPressure2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure3D4N", mIncompressiblePotentialFlowPressure3D);
+
+    // registering k-epsilon algebraic flux correction based elements
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKAFC2D3N", mRansKEpsilonKAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKAFC3D4N", mRansKEpsilonKAFC3D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonAFC2D3N", mRansKEpsilonEpsilonAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonAFC3D4N", mRansKEpsilonEpsilonAFC3D);
+
+    // registering k-epsilon residual fc based elements
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKRFC2D3N", mRansKEpsilonKRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKRFC3D4N", mRansKEpsilonKRFC3D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonRFC2D3N", mRansKEpsilonEpsilonRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonRFC3D4N", mRansKEpsilonEpsilonRFC3D);
+
+    // registering k-epsilon cross wind stabilized elements
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKCWD2D3N", mRansKEpsilonKCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKCWD3D4N", mRansKEpsilonKCWD3D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonCWD2D3N", mRansKEpsilonEpsilonCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonCWD3D4N", mRansKEpsilonEpsilonCWD3D);
 }
 } // namespace Kratos.
