@@ -21,7 +21,6 @@ jobs:
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
-      options: --user 1001
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
         CCACHE_COMPILERCHECK: content
@@ -38,7 +37,8 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install lcov
-      run: apt-get install lcov
+      run: | 
+        sudo apt-get install lcov
 
     - name: Cache Build
       id: cache-build
