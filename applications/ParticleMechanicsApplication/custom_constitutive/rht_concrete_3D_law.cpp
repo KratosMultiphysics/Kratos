@@ -200,11 +200,8 @@ namespace Kratos
 
 				if (std::abs(delta_eps_increment) < 1e-12)
 				{
-					if (std::abs(consistency_condition)< mat_props[RHT_COMPRESSIVE_STRENGTH]/1e6)
-					{
-						is_converged = true;
-						break;
-					}
+					is_converged = true;
+					break;
 				}
 
 				delta_eps = delta_eps_min + delta_eps_increment;
@@ -217,7 +214,10 @@ namespace Kratos
 					KRATOS_INFO("RHTConcrete3DLaw::CalculateMaterialResponseKirchhoff")
 						<< "Iteration = " << iteration << "\n"
 						<< "delta_eps_increment = " << delta_eps_increment << "\n"
-						<< "damage_trial = " << damage_trial << "\n";
+						<< "damage_trial = " << damage_trial << "\n"
+						<< "eps_trial = " << eps_trial << "\n"
+						<< "eff_stress_trial = " << eff_stress_trial << "\n"
+						<< "consistency_condition = " << consistency_condition << "\n";
 					KRATOS_ERROR << "Iteration limit exceeded\n";
 				}
 			}
@@ -385,13 +385,14 @@ namespace Kratos
 			CalculateDeviatoricSpecificEnergy(rMatProps, rStrain, rStress);
 		const double strain_hydrostatic = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(rStrain) / 3.0;
 
-		const SizeType iteration_limit = 100;
+		const SizeType iteration_limit = 500;
 		IndexType iteration = 1;
 		bool is_converged = false;
 		double pressure = mPressure;
 		double pressure_old = mPressure;
 		double alpha_trial;
 		double alpha_old = mAlpha;
+		const double tolerance = std::max(1e-3, std::abs(mPressure) / 1e6);
 
 		while (!is_converged)
 		{
@@ -426,7 +427,7 @@ namespace Kratos
 			}
 			pressure /= alpha_trial;
 
-			if (std::abs(pressure-pressure_old) < 1e-3)
+			if (std::abs(pressure-pressure_old) < tolerance)
 			{
 				is_converged = true;
 				break;
@@ -440,6 +441,7 @@ namespace Kratos
 					<< "Pressure_old = " << pressure_old << "\n"
 					<< "Alpha_trial = " << alpha_trial << "\n"
 					<< "Alpha_old = " << alpha_old << "\n"
+					<< "Density = " << rMatProps[DENSITY] << "\n"
 					<< "Error = " << (pressure - pressure_old) << "\n";
 				KRATOS_ERROR << "CalculatePressureFromEOS iteration limit exceeded\n";
 			}
