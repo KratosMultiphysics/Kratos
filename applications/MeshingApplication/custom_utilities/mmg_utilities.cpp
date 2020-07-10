@@ -4099,7 +4099,6 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         TensorArrayType metric = ZeroVector(3 * (Dimension - 1));
 
-        #pragma omp parallel for firstprivate(metric)
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -4112,7 +4111,6 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         double metric = 0.0;
 
-        #pragma omp parallel for firstprivate(metric)
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
