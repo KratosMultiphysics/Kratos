@@ -281,9 +281,13 @@ void SaveCurrentConfiguration(ModelPart& rModelPart);
 void RestoreCurrentConfiguration(ModelPart& rModelPart);
 
 template<class TDataType>
-void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rThisVariable)
+void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.Data().Erase(CURRENT_COORDINATES);
+    });
 
     KRATOS_CATCH("");
 }

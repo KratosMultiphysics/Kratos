@@ -198,12 +198,21 @@ void SaveCurrentConfiguration(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.SetValue(CURRENT_COORDINATES, rNode.Coordinates());
+    });
+
     KRATOS_CATCH("");
 }
 
 void RestoreCurrentConfiguration(ModelPart& rModelPart)
 {
     KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.Coordinates() = rNode.GetValue(CURRENT_COORDINATES);
+        rNode.Data().Erase(CURRENT_COORDINATES);
+    });
 
     KRATOS_CATCH("");
 }
