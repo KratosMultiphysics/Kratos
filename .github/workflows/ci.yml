@@ -37,6 +37,9 @@ jobs:
 
     - uses: actions/checkout@v2
 
+    - name: Install lcov
+      run: sudo apt-get install lcov
+
     - name: Cache Build
       id: cache-build
       uses: actions/cache@v1
@@ -79,5 +82,5 @@ jobs:
           lcov --remove coverage.info '/usr/*' --output-file coverage.info
           lcov --list coverage.info
           curl -s https://codecov.io/bash > codecov.sh
-          bash codecov.sh -t ${CODECOV_TOKEN} -f coverage.info || echo "Codecov did not collect coverage reports"
+          bash codecov.sh -t ${{secrets.CODECOV_TOKEN}} -f coverage.info || echo "Codecov did not collect coverage reports"
         fi
