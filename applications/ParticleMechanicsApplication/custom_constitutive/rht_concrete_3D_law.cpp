@@ -248,7 +248,6 @@ namespace Kratos
 
 	int RHTConcrete3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 	{
-		const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 		KRATOS_TRY
 
 		// Note, expected values taken from ref[1] for standard (C30/37) concrete with compressive strength of 35MPa
@@ -346,7 +345,6 @@ namespace Kratos
 		KRATOS_ERROR_IF (FRACTURE_ENERGY.Key()==0 || rMaterialProperties[FRACTURE_ENERGY] < 0.0)
 			<< "FRACTURE_ENERGY has key zero or invalid value (expected positive number ~120 N/m)" << std::endl;
 
-		if (check_base > 1) return 1;
 		return 0;
 
 		KRATOS_CATCH("");
