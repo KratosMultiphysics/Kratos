@@ -24,7 +24,12 @@
 namespace Kratos
 {
 KratosRANSApplication::KratosRANSApplication()
-    : KratosApplication("RANSApplication")
+    : KratosApplication("RANSApplication"),
+      // incompressible potential flow elements
+      mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mIncompressiblePotentialFlowPressure2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mIncompressiblePotentialFlowPressure3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
 {
 }
 
@@ -38,5 +43,12 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( RANS_IS_INLET )
     KRATOS_REGISTER_VARIABLE( RANS_IS_OUTLET )
     KRATOS_REGISTER_VARIABLE( RANS_IS_STRUCTURE )
+
+    // registering elements
+    // registering incompressible potential flow elements
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure2D3N", mIncompressiblePotentialFlowPressure2D);
+    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure3D4N", mIncompressiblePotentialFlowPressure3D);
 }
 } // namespace Kratos.
