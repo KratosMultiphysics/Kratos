@@ -84,6 +84,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """
 
         KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
+        ## only do the check in ranks zero, otherwise this can experience in race condition
+        if (KratosMultiphysics.DataCommunicator.GetDefault().Rank() != 0):
+            return
 
         if (self.comparison_type == "deterministic"):
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
@@ -228,7 +231,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         lines_ref, lines_out = self.__CompareDatFileComments(lines_ref, lines_out)
 
         # assert values are equal up to given tolerance
-        self.__CompareDelimittedFileResults(lines_ref, lines_out, " ")
+        self.__CompareDelimittedFileResults(lines_ref, lines_out, None)
 
     def __CompareCSVFile(self):
         """This function compares files with tabular data.
