@@ -171,7 +171,7 @@ template <class TContainerType>
 void TestEquationIdVector(ModelPart& rModelPart)
 {
     auto eqn_ids = std::vector<IndexType>{};
-    for (auto& r_item : GetContainer<TContainerType>(rModelPart))
+    for (const auto& r_item : GetContainer<TContainerType>(rModelPart))
     {
         r_item.EquationIdVector(eqn_ids, rModelPart.GetProcessInfo());
         KRATOS_CHECK_EQUAL(eqn_ids.size(), r_item.GetGeometry().PointsNumber());
@@ -187,7 +187,7 @@ template <class TContainerType>
 void TestGetDofList(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
     auto dofs = Element::DofsVectorType{};
-    for (auto& r_item : GetContainer<TContainerType>(rModelPart))
+    for (const auto& r_item : GetContainer<TContainerType>(rModelPart))
     {
         r_item.GetDofList(dofs, rModelPart.GetProcessInfo());
         KRATOS_CHECK_EQUAL(dofs.size(), r_item.GetGeometry().PointsNumber());

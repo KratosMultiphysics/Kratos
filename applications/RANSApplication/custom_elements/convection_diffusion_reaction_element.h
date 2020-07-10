@@ -202,7 +202,8 @@ public:
         KRATOS_CATCH("");
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& CurrentProcessInfo) const override
     {
         if (rResult.size() != TNumNodes)
             rResult.resize(TNumNodes, false);
@@ -219,7 +220,8 @@ public:
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& CurrentProcessInfo) const override
     {
         if (rElementalDofList.size() != TNumNodes)
             rElementalDofList.resize(TNumNodes);
@@ -231,17 +233,17 @@ public:
             rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0) override
+    void GetValuesVector(Vector& rValues, int Step = 0) const override
     {
         this->GetFirstDerivativesVector(rValues, Step);
     }
 
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override
     {
         if (rValues.size() != TNumNodes)
             rValues.resize(TNumNodes, false);
 
-        GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarVariable();
 
@@ -253,12 +255,12 @@ public:
         }
     }
 
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override
     {
         if (rValues.size() != TNumNodes)
             rValues.resize(TNumNodes, false);
 
-        GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarRateVariable();
 
@@ -287,7 +289,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         // Check sizes and initialize matrix
         if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
@@ -306,7 +308,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -357,7 +359,7 @@ public:
      */
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
                                             VectorType& rRightHandSideVector,
-                                            ProcessInfo& rCurrentProcessInfo) override
+                                            const ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
@@ -377,7 +379,7 @@ public:
      * @param rMassMatrix: the elemental mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
         this->CalculatePrimalMassMatrix(local_matrix, rCurrentProcessInfo);
@@ -394,7 +396,8 @@ public:
      * @param rDampingMatrix: the elemental damping matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
         this->CalculatePrimalDampingMatrix(local_matrix, rCurrentProcessInfo);
