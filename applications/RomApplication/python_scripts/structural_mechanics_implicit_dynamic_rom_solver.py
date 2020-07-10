@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -23,7 +21,7 @@ class ROMSolver(ImplicitMechanicalSolver):
     """
 
     def __init__(self, main_model_part, custom_settings):
-        super(ROMSolver, self).__init__(main_model_part, custom_settings)
+        super().__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 
     #### Private functions ####
@@ -41,7 +39,7 @@ class ROMSolver(ImplicitMechanicalSolver):
         return default_settings
 
     def AddVariables(self):
-        super(ROMSolver, self).AddVariables() #Adding nodal area variable
+        super().AddVariables() #Adding nodal area variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _create_builder_and_solver(self):

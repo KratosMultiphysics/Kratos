@@ -20,7 +20,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             Simulation = TestStructuralMechanicsStaticROM(model,parameters)
             Simulation.Run()
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
-            ExpectedOutput = np.load('ExpectedOutput2.npy')
+            ExpectedOutput = np.load('ExpectedOutputROM.npy')
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
 
             UP=0
@@ -46,7 +46,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             Simulation = TestStructuralMechanicsStaticHROM(model,parameters)
             Simulation.Run()
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
-            ExpectedOutput = np.load('ExpectedOutput2H.npy')
+            ExpectedOutput = np.load('ExpectedOutputHROM.npy')
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
             print(NodalArea)
 

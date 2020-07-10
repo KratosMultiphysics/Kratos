@@ -1,13 +1,10 @@
 import scipy
 from scipy import linalg
 import numpy as np
-import scipy.sparse.linalg as sp
-from NewRSVDT import rsvdt
-#import fbpca as facebook
 
 class RandomizedSingularValueDecomposition():
 
-    def __init__(self, COMPUTE_U=True, COMPUTE_V=True, RELATIVE_SVD=False, USE_RANDOMIZATION=False):
+    def __init__(self, COMPUTE_U=True, COMPUTE_V=True, RELATIVE_SVD=True, USE_RANDOMIZATION=True):
         self.COMPUTE_U = COMPUTE_U
         self.COMPUTE_V = COMPUTE_V
         self.RELATIVE_SVD = RELATIVE_SVD
@@ -68,8 +65,8 @@ class RandomizedSingularValueDecomposition():
         Q = B = np.array([])
 
         while nC>mu:
-            Omega=np.random.RandomState(seed = 1234).normal(size=(N, int(dR))) # seeded random generator
-            #Omega=np.random.RandomState().normal(size=(N, int(dR))) # Draw a N x dR random matrix
+            #Omega=np.random.RandomState(seed = 1234).normal(size=(N, int(dR))) # seeded random generator
+            Omega=np.random.RandomState().normal(size=(N, int(dR))) # Draw a N x dR random matrix
             nOmega = np.sqrt(np.prod(np.shape(C)))
             factorRED = 10
             self.SVD_MaxSize = max(M,N)/factorRED
@@ -187,18 +184,16 @@ class RandomizedSingularValueDecomposition():
 
 if __name__ == "__main__":
 
-    #Load a matrix
-    A = np.load('Snapshot5.npy')
-    import pdb
-    pdb.set_trace()
+    # #load a test SnapshotMatrix
 
-    RSVDT_Object = RandomizedSingularValueDecomposition()
-    U,S,V,error = RSVDT_Object.Calculate(A)
-    APPROX_A = U@np.diag(S)@V
+    # RSVDT_Object = RandomizedSingularValueDecomposition()
+    # U,S,V,error = RSVDT_Object.Calculate(SnapshotMatrix, 1e-6)
+    # APPROX_SnapshotMatrix = U@np.diag(S)@V
 
-    u,s,v = np.linalg.svd(A,full_matrices=False)
-    approx_a = u@np.diag(s)@v.T
+    # u,s,v = np.linalg.svd(SnapshotMatrix,full_matrices=False)
+    # approx_SnapshotMatrix = u@np.diag(s)@v.T
 
-    print(f"\n\n\n Norm of the difference in implementations: { np.linalg.norm(APPROX_A-approx_a)}\n\n\n")
-    print(f"error accroding to RSVDT = {error}")
+    # print(f"\n\n\n Norm of the difference in implementations: { np.linalg.norm(APPROX_SnapshotMatrix-approx_SnapshotMatrix)}\n\n\n")
+    # print(f"error accroding to RSVDT = {error}")
+    pass
 

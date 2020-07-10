@@ -1,9 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
 import KratosMultiphysics.RomApplication as romapp
@@ -14,7 +11,7 @@ def CreateSolver(model, custom_settings):
 class ROMSolver(NavierStokesSolverMonolithic):
 
     def __init__(self, model, custom_settings):
-        super(ROMSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 
     #### Private functions ####
@@ -23,7 +20,7 @@ class ROMSolver(NavierStokesSolverMonolithic):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "rom_settings": {
-            "nodal_unknowns": [ "VARIABLE_NAMES_HERE" ],
+            "nodal_unknowns": [ "TEMPERATURE" ],
             "number_of_rom_dofs": 3
             }
         }
