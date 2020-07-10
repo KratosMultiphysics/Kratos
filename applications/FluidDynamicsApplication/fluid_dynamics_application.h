@@ -361,14 +361,14 @@ private:
     const HerschelBulkleyFluid< VMS<3> > mHerschelBulkleyVMS3D;
 
     const Stokes3D mStokes3D;
-    const Stokes3DTwoFluid mStokes3DTwoFluid;
-
     /// Symbolic Stokes element
     const SymbolicStokes < SymbolicStokesData<2,3> > mSymbolicStokes2D3N;
     const SymbolicStokes < SymbolicStokesData<2,4> > mSymbolicStokes2D4N;
     const SymbolicStokes < SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
     const SymbolicStokes < SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
     const SymbolicStokes < SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
+
+    const Stokes3DTwoFluid mStokes3DTwoFluid;
 
     /// Navier-Stokes symbolic element
     const NavierStokes<2> mNavierStokes2D;
