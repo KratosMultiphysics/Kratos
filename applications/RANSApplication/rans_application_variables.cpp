@@ -14,4 +14,10 @@
 
 namespace Kratos
 {
+    // incompressible potential flow specific variables
+    KRATOS_CREATE_VARIABLE( double, VELOCITY_POTENTIAL )
+    KRATOS_CREATE_VARIABLE( double, PRESSURE_POTENTIAL )
+    KRATOS_CREATE_VARIABLE( int, RANS_IS_INLET )
+    KRATOS_CREATE_VARIABLE( int, RANS_IS_OUTLET )
+    KRATOS_CREATE_VARIABLE( int, RANS_IS_STRUCTURE )
 }

@@ -43,6 +43,13 @@ PYBIND11_MODULE(KratosRANSApplication,m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+
+    // incompressible potential flow specific variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VELOCITY_POTENTIAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_POTENTIAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RANS_IS_INLET )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RANS_IS_OUTLET )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RANS_IS_STRUCTURE )
 }
 
 } // namespace Python.

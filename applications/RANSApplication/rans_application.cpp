@@ -31,5 +31,12 @@ KratosRANSApplication::KratosRANSApplication()
 void KratosRANSApplication::Register()
 {
     KRATOS_INFO("") << "Initializing KratosRANSApplication..." << std::endl;
+
+    // incompressible potential flow specific variables
+    KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_POTENTIAL )
+    KRATOS_REGISTER_VARIABLE( RANS_IS_INLET )
+    KRATOS_REGISTER_VARIABLE( RANS_IS_OUTLET )
+    KRATOS_REGISTER_VARIABLE( RANS_IS_STRUCTURE )
 }
 } // namespace Kratos.
