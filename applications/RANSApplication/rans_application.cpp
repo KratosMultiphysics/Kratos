@@ -25,6 +25,9 @@ namespace Kratos
 {
 KratosRANSApplication::KratosRANSApplication()
     : KratosApplication("RANSApplication"),
+      // Fractionalstep elements
+      mRansFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -124,6 +127,10 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( WALL_VON_KARMAN )
 
     // registering elements
+    // registering fractional step elements
+    KRATOS_REGISTER_ELEMENT("RansFractionalStep2D3N", mRansFractionalStep2D);
+    KRATOS_REGISTER_ELEMENT("RansFractionalStep3D4N", mRansFractionalStep3D);
+
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
