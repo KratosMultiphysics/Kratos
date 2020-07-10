@@ -291,6 +291,8 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
         // CL: RHT Concrete
         KRATOS_REGISTER_CONSTITUTIVE_LAW("RHTConcrete3DLaw", mRHTConcrete3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("RHTConcretePlaneStrain2DLaw", mRHTConcretePlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("RHTConcreteAxisym2DLaw", mRHTConcreteAxisym2DLaw);
 
 
         //Register Flow Rules
