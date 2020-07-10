@@ -42,7 +42,20 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKEpsilonKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansKEpsilonEpsilonCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansKEpsilonEpsilonCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
+      mRansKEpsilonEpsilonCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      // k-omega turbulence model elements
+      mRansKOmegaKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKOmegaOmegaAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaOmegaAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKOmegaKRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaKRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKOmegaOmegaRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaOmegaRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKOmegaKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKOmegaOmegaCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
 {
 }
 
@@ -111,5 +124,24 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansKEpsilonKCWD3D4N", mRansKEpsilonKCWD3D);
     KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonCWD2D3N", mRansKEpsilonEpsilonCWD2D);
     KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonCWD3D4N", mRansKEpsilonEpsilonCWD3D);
+
+    // registering k-omega algebraic flux correction based elements
+    KRATOS_REGISTER_ELEMENT("RansKOmegaKAFC2D3N", mRansKOmegaKAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaKAFC3D4N", mRansKOmegaKAFC3D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaOmegaAFC2D3N", mRansKOmegaOmegaAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaOmegaAFC3D4N", mRansKOmegaOmegaAFC3D);
+
+    // registering k-omega residual fc based elements
+    KRATOS_REGISTER_ELEMENT("RansKOmegaKRFC2D3N", mRansKOmegaKRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaKRFC3D4N", mRansKOmegaKRFC3D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaOmegaRFC2D3N", mRansKOmegaOmegaRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaOmegaRFC3D4N", mRansKOmegaOmegaRFC3D);
+
+    // registering k-omega cross wind stabilized elements
+    KRATOS_REGISTER_ELEMENT("RansKOmegaKCWD2D3N", mRansKOmegaKCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaKCWD3D4N", mRansKOmegaKCWD3D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaOmegaCWD2D3N", mRansKOmegaOmegaCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansKOmegaOmegaCWD3D4N", mRansKOmegaOmegaCWD3D);
+
 }
 } // namespace Kratos.
