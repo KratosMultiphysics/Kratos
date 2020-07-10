@@ -103,6 +103,148 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtens
 }
 
 template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{  
+    KRATOS_TRY
+    const GeometryType& geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension = geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rResult.size() != num_dofs)
+        rResult.resize(num_dofs, false);
+
+    for(IndexType i = 0; i < geom.size(); ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType& iNode = geom[i];
+
+        rResult[index    ] = iNode.GetDof(ADJOINT_VECTOR_1_X).EquationId();
+        rResult[index + 1] = iNode.GetDof(ADJOINT_VECTOR_1_Y).EquationId();
+        rResult[index + 2] = iNode.GetDof(ADJOINT_VECTOR_1_Z).EquationId();
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if (rElementalDofList.size() != num_dofs)
+        rElementalDofList.resize(num_dofs);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType& iNode = geom[i];
+
+        rElementalDofList[index    ] = iNode.pGetDof(ADJOINT_VECTOR_1_X);
+        rElementalDofList[index + 1] = iNode.pGetDof(ADJOINT_VECTOR_1_Y);
+        rElementalDofList[index + 2] = iNode.pGetDof(ADJOINT_VECTOR_1_Z);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType& iNode = geom[i];
+
+        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
+        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Y, Step);
+        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Z, Step);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Initialize(rCurrentProcessInfo);
+    this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType & iNode = geom[i];
+
+        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
+        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_2_Y, Step);
+        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_2_Z, Step);
+    }
+
+    KRATOS_CATCH("")  
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType & iNode = geom[i];
+
+        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_3_X, Step);
+        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_3_Y, Step);
+        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_3_Z, Step);
+    }
+
+    KRATOS_CATCH("")  
+}
+
+template <class TPrimalElement>
 void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateSensitivityMatrix(
                                             const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
