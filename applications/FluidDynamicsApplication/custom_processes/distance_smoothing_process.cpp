@@ -122,7 +122,7 @@ void DistanceSmoothingProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::E
 
             auto& n_nodes = rNode.GetValue(NEIGHBOUR_NODES);
             for (unsigned int j = 0; j < n_nodes.size(); ++j) {
-                if (!(n_nodes[j].Is(CONTACT)) || !(rNode.Is(CONTACT))){
+                if ((n_nodes[j].Is(CONTACT) && rNode.Is(CONTACT)) || !(rNode.Is(CONTACT)){
                     const double dx = x_i - n_nodes[j].X();
                     const double dy = y_i - n_nodes[j].Y();
                     const double dz = z_i - n_nodes[j].Z();
