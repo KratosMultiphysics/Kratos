@@ -44,6 +44,8 @@ namespace Kratos
 
 	bool RHTConcrete3DLaw::Has(const Variable<double>& rThisVariable)
 	{
+		KRATOS_TRY
+
 		if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
 			|| rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE
 			|| rThisVariable == MP_EQUIVALENT_STRESS
@@ -53,11 +55,15 @@ namespace Kratos
 			|| rThisVariable == MP_COMPACTION_RATIO)
 			return true;
 		else return false;
+
+		KRATOS_CATCH("");
 	}
 
 
 	void RHTConcrete3DLaw::InitializeMaterial(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const Vector& rShapeFunctionsValues)
 	{
+		KRATOS_TRY
+
 		BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
 		mStrainOld = ZeroVector(GetStrainSize());
@@ -70,11 +76,15 @@ namespace Kratos
 		mHardeningRatio = 0.0;
 		mDensityInitial = rMaterialProperties[DENSITY];
 		mCharacteristicLength = std::pow(rElementGeometry.GetValue(MP_VOLUME), (1.0 / WorkingSpaceDimension()));
+
+		KRATOS_CATCH("");
 	}
 
 
 	void RHTConcrete3DLaw::CalculateMaterialResponseKirchhoff(Kratos::ConstitutiveLaw::Parameters& rValues)
 	{
+		KRATOS_TRY
+
 		// Check if the constitutive parameters are passed correctly to the law calculation
 		CheckParameters(rValues);
 
@@ -231,12 +241,15 @@ namespace Kratos
 		MPMStressPrincipalInvariantsUtility::MakeStrainStressVectorFromMatrix(
 			stress, StressVector,GetStrainSize());
 		mStrainOld = StrainVector;
+
+		KRATOS_CATCH("");
 	}
 
 
 	int RHTConcrete3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 	{
 		const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+		KRATOS_TRY
 
 		// Note, expected values taken from ref[1] for standard (C30/37) concrete with compressive strength of 35MPa
 
@@ -335,27 +348,39 @@ namespace Kratos
 
 		if (check_base > 1) return 1;
 		return 0;
+
+		KRATOS_CATCH("");
 	}
 
 
 	bool RHTConcrete3DLaw::CheckParameters(Parameters& rValues)
 	{
+		KRATOS_TRY
+
 		return rValues.CheckAllParameters();
+
+		KRATOS_CATCH("");
 	}
 
 
 	void RHTConcrete3DLaw::CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo)
 	{
+		KRATOS_TRY
+
 		const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
 			? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
 			: false;
 		KRATOS_ERROR_IF_NOT(is_explicit) << "The Johnson Cook MPM material law is currently limited to explicit time integration only";
+
+		KRATOS_CATCH("");
 	}
 
 
 	double RHTConcrete3DLaw::CalculatePressureFromEOS(const Properties& rMatProps,
 		const Matrix& rStrain, const Matrix& rStress)
 	{
+		KRATOS_TRY
+
 		// Compute pressure from RHT p-alpha EOS. Ref [2] (modified)
 
 		const double specific_energy_deviatoric =
@@ -435,11 +460,15 @@ namespace Kratos
 
 		mPressure = pressure;
 		return pressure;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateDeviatoricSpecificEnergy(const Properties& rMaterialProperties,
 		const Matrix& rStrain, const Matrix& rStress)
 	{
+		KRATOS_TRY
+
 		// Specific internal energy may be split into deviatoric and hydrostatic components
 		// https://www.continuummechanics.org/vonmisesstress.html
 
@@ -460,11 +489,15 @@ namespace Kratos
 		deviatoric_specific_energy /= rMaterialProperties[DENSITY];
 
 		return deviatoric_specific_energy;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateElasticLimit(const double Pressure, const double LodeAngle,
 		const array_1d<double, 2>& RateFactors, const double EPS, const Properties& rMatProps)
 	{
+		KRATOS_TRY
+
 		// ref[1] eqn 14
 		const double pressure_star = Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH];
 
@@ -489,11 +522,15 @@ namespace Kratos
 			r_triaxiality * fe_elastic_factor * fc_cap_factor;
 
 		return elastic_limit;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateFailureLimit(const double Pressure, const double LodeAngle,
 		const array_1d<double, 2>& RateFactors, const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		// ref[1] eqn5
 		const double pressure_star = Pressure / rMaterialProperties[RHT_COMPRESSIVE_STRENGTH];
 
@@ -510,19 +547,27 @@ namespace Kratos
 			r_triaxiality;
 
 		return failure_limit;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateResidualLimit(const double Pressure, const Properties& rMatProps)
 	{
+		KRATOS_TRY
+
 		//ref[1] eqn20
 		if (Pressure <= 0.0) return 0.0;
 		else return rMatProps[RHT_COMPRESSIVE_STRENGTH]* rMatProps[RHT_AF] *
 				std::pow(Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH], rMatProps[RHT_NF]);
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateFeElasticFactor(const double PressureStar,
 		const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		// ref[1] eqn15
 		const double gc_star = rMaterialProperties[RHT_GC_STAR];
 		const double gt_star = rMaterialProperties[RHT_GT_STAR];
@@ -545,12 +590,16 @@ namespace Kratos
 		}
 
 		return fe_elastic_factor;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateFcCapFactor(const double PressureStar,
 		const double EPS, const array_1d<double, 2> RateFactors,
 		const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		//ref [1] eqn16
 		const double degraded_shear_mod = rMaterialProperties[SHEAR_MODULUS] *
 			rMaterialProperties[RHT_SHEAR_MOD_REDUCTION_FACTOR];
@@ -569,11 +618,15 @@ namespace Kratos
 		else fc_cap_factor = 1.0;
 
 		return fc_cap_factor;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateFrRateFactor(const double PressureStarForRate,
 		const array_1d<double, 2> RateFactors, const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		// ref[1] eqn10
 
 		double fr_rate_factor;
@@ -587,11 +640,15 @@ namespace Kratos
 		else fr_rate_factor = RateFactors[0];
 
 		return fr_rate_factor;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateNormalizedYield(const double PressureStar,
 		const double RateFactor, const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		const double A = rMaterialProperties[RHT_A];
 		const double n = rMaterialProperties[RHT_N];
 		const double ft_star = rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH];
@@ -624,11 +681,15 @@ namespace Kratos
 		else normalized_yield = 0.0;
 
 		return normalized_yield;
+
+		KRATOS_CATCH("");
 	}
 
 	array_1d<double, 2> RHTConcrete3DLaw::CalculateRateFactors(const double EPSrate,
 		const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		// ref[1] eqn11
 		array_1d<double, 2> rate_factors;
 		rate_factors[0] = 1.0; // tension
@@ -644,11 +705,15 @@ namespace Kratos
 		}
 
 		return rate_factors;
+
+		KRATOS_CATCH("");
 	}
 
 	array_1d<double, 2> RHTConcrete3DLaw::CalculateTriaxialityQs(const double PressureStar,
 		const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		array_1d<double, 2> q_triaxiality_factors;
 		const double q_deviatoric_shape_factor =
 			CalculateDeviatoricShapeFactorQ(PressureStar, rMaterialProperties);
@@ -657,21 +722,29 @@ namespace Kratos
 		q_triaxiality_factors[1] = q_deviatoric_shape_factor;
 
 		return q_triaxiality_factors;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateDeviatoricShapeFactorQ(const double PressureStar,
 		const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		double q_deviatoric_shape_factor = rMaterialProperties[RHT_Q0] +
 			rMaterialProperties[RHT_B] * PressureStar;
 		if (q_deviatoric_shape_factor < 0.5) q_deviatoric_shape_factor = 0.5;
 		if (q_deviatoric_shape_factor > 1.0) q_deviatoric_shape_factor = 1.0;
 
 		return q_deviatoric_shape_factor;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateTriaxialityR(const double LodeAngle, const double TriaxialityQ)
 	{
+		KRATOS_TRY
+
 		// ref[1] eqn8
 		double r_triaxiality;
 
@@ -683,11 +756,15 @@ namespace Kratos
 			(1.0 - 2.0 * TriaxialityQ) * (1.0 - 2.0 * TriaxialityQ));
 
 		return r_triaxiality;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::GetHugoniotTensileLimit(const double RateFactor,
 		const array_1d<double, 2> TriaxialityQs, const Properties& rMaterialProperties)
 	{
+		KRATOS_TRY
+
 		// ref [1] eqn7
 		const double HTL = RateFactor * TriaxialityQs[1] * rMaterialProperties[RHT_RELATIVE_SHEAR_STRENGTH] *
 			rMaterialProperties[RHT_RELATIVE_TENSILE_STRENGTH] / 3.0 /
@@ -695,11 +772,15 @@ namespace Kratos
 				TriaxialityQs[1] * rMaterialProperties[RHT_RELATIVE_SHEAR_STRENGTH]);
 
 		return HTL;
+
+		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateFailureStrain(const double Pressure,
 		const double Damage, const array_1d<double, 2>& RateFactors, const Properties& rMatProps)
 	{
+		KRATOS_TRY
+
 		// ref [1] eqn22
 		//const double pressure_star = Pressure / rMatProps[RHT_COMPRESSIVE_STRENGTH];
 		//const double fr_rate_factor = CalculateFrRateFactor(pressure_star, RateFactors, rMatProps);
@@ -719,10 +800,14 @@ namespace Kratos
 			rMatProps[RHT_COMPRESSIVE_STRENGTH] / mCharacteristicLength;
 
 		return eps_failure;
+
+		KRATOS_CATCH("");
 	}
 
 	void RHTConcrete3DLaw::GetLawFeatures(Features& rFeatures)
 	{
+		KRATOS_TRY
+
 		//Set the type of law
 		rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
 		rFeatures.mOptions.Set(FINITE_STRAINS);
@@ -736,10 +821,14 @@ namespace Kratos
 
 		//Set the spacedimension
 		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+
+		KRATOS_CATCH("");
 	}
 
 	double& RHTConcrete3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
 	{
+		KRATOS_TRY
+
 		if (rThisVariable == MP_EQUIVALENT_STRESS) rValue = mEquivalentStress;
 		else if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN) rValue = mEquivalentPlasticStrain;
 		else if (rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE) rValue = mEquivalentPlasticStrainRate;
@@ -750,10 +839,16 @@ namespace Kratos
 		else KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in RHT concrete 3D material law function GetValue double.";
 
 		return(rValue);
+
+		KRATOS_CATCH("");
 	}
 
 	void RHTConcrete3DLaw::SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo)
 	{
+		KRATOS_TRY
+
 		KRATOS_ERROR << "Variable " << rThisVariable << " not implemented in RHT concrete 3D material law function SetValue double.";
+
+		KRATOS_CATCH("");
 	}
 } // Namespace Kratos
