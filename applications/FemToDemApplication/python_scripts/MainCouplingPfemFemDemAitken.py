@@ -123,7 +123,7 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
 
             aitken_iteration += 1
 
-            if (not is_converged): # We reset the kinematics of fluid
+            if (not is_converged and aitken_iteration != self.aitken_max_iterations): # We reset the kinematics of fluid
                 self.FSI_aitken_utility.ResetPFEMkinematicValues(self.PFEM_Solution.main_model_part)
 
         if (aitken_iteration == self.aitken_max_iterations):
