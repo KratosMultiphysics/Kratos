@@ -194,19 +194,18 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
     return false;
 }
 
-void SaveCurrentConfiguration(ModelPart::NodesContainerType& rNodes)
+void SaveCurrentConfiguration(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
 
+    KRATOS_CATCH("");
 }
 
-void RestoreCurrentConfiguration(ModelPart::NodesContainerType& rNodes)
+void RestoreCurrentConfiguration(ModelPart& rModelPart)
 {
+    KRATOS_TRY;
 
-}
-
-void EraseNodalVariable(ModelPart::NodesContainerType& rNodes)
-{
-
+    KRATOS_CATCH("");
 }
 
 
