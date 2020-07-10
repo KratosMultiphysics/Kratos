@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -13,37 +14,23 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
+#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define_python.h"
-#include "mapping_application.h"
-#include "custom_python/add_custom_mappers_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 
 
 namespace Kratos {
 namespace Python {
 
-
-PYBIND11_MODULE(KratosMappingApplication, m)
-{
-    namespace py = pybind11;
-
-    py::class_<KratosMappingApplication,
-        KratosMappingApplication::Pointer,
-        KratosApplication >(m,"KratosMappingApplication")
-        .def(py::init<>())
-        ;
-
-    AddCustomMappersToPython(m);
-    AddCustomUtilitiesToPython(m);
-}
+void AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_PYTHON defined
+#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined
