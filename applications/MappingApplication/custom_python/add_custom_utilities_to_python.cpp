@@ -30,6 +30,11 @@ namespace Python {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    auto m_mapper_utilities = m.def_submodule("MapperUtilities");
+
+    m_mapper_utilities.def("SaveCurrentConfiguration", &MapperUtilities::SaveCurrentConfiguration);
+    m_mapper_utilities.def("RestoreCurrentConfiguration", &MapperUtilities::RestoreCurrentConfiguration);
 }
 
 }  // namespace Python.
