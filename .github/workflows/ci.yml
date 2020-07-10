@@ -78,5 +78,6 @@ jobs:
           lcov --capture --directory ${GITHUB_WORKSPACE}/build/${{ matrix.build-type }} --output-file coverage.info
           lcov --remove coverage.info '/usr/*' --output-file coverage.info
           lcov --list coverage.info
-          bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+          curl -s https://codecov.io/bash > codecov.sh
+          bash codecov.sh -t ${CODECOV_TOKEN} -f coverage.info || echo "Codecov did not collect coverage reports"
         fi
