@@ -71,7 +71,12 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaSSTKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansKOmegaSSTKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansKOmegaSSTOmegaCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
+      mRansKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      // incompressible potential flow conditions
+      mIncompressiblePotentialFlowVelocityInlet2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mIncompressiblePotentialFlowVelocityInlet3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mIncompressiblePotentialFlowPressureBodyForce2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mIncompressiblePotentialFlowPressureBodyForce3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -197,6 +202,13 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTKCWD3D4N", mRansKOmegaSSTKCWD3D);
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTOmegaCWD2D3N", mRansKOmegaSSTOmegaCWD2D);
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTOmegaCWD3D4N", mRansKOmegaSSTOmegaCWD3D);
+
+    // registering conditions
+    // registering incompressible potential flow conditions
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet2D2N", mIncompressiblePotentialFlowVelocityInlet2D2N);
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet3D3N", mIncompressiblePotentialFlowVelocityInlet3D3N);
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce2D2N", mIncompressiblePotentialFlowPressureBodyForce2D2N);
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce3D3N", mIncompressiblePotentialFlowPressureBodyForce3D3N);
 
 }
 } // namespace Kratos.

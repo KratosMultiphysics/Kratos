@@ -46,6 +46,9 @@
 #include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/k_element_data.h"
 #include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/omega_element_data.h"
 
+// incompressible potential flow conditions
+#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_inlet_condition.h"
+#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_body_force_condition.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -259,6 +262,12 @@ private:
 
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, KOmegaSSTElementData::OmegaElementData<2>> mRansKOmegaSSTOmegaCWD2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, KOmegaSSTElementData::OmegaElementData<3>> mRansKOmegaSSTOmegaCWD3D;
+
+    // incompressible potential flow conditions
+    const IncompressiblePotentialFlowVelocityInletCondition<2, 2> mIncompressiblePotentialFlowVelocityInlet2D2N;
+    const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
+    const IncompressiblePotentialFlowPressureBodyForceCondition<2, 2> mIncompressiblePotentialFlowPressureBodyForce2D2N;
+    const IncompressiblePotentialFlowPressureBodyForceCondition<3, 3> mIncompressiblePotentialFlowPressureBodyForce3D3N;
 
     ///@}
     ///@name Private Operators

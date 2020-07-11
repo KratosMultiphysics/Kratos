@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include "rans_application_variables.h"
 #include <cmath>
 
 // Include base h
@@ -52,6 +53,34 @@ void CalculateGeometryData(const GeometryType& rGeometry,
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
+void CalculateConditionGeometryData(const GeometryType& rGeometry,
+                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                    Vector& rGaussWeights,
+                                    Matrix& rNContainer)
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        rGeometry.IntegrationPoints(rIntegrationMethod);
+
+    const std::size_t number_of_integration_points = integration_points.size();
+    const int dimension = rGeometry.WorkingSpaceDimension();
+    const double domain_size = rGeometry.DomainSize();
+
+    if (rGaussWeights.size() != number_of_integration_points)
+    {
+        rGaussWeights.resize(number_of_integration_points, false);
+    }
+
+    rNContainer = rGeometry.ShapeFunctionsValues(rIntegrationMethod);
+
+    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+    double det_J = (dimension == 2) ? 0.5 * domain_size : 2.0 * domain_size;
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++)
+    {
+        rGaussWeights[g] = det_J * integration_points[g].Weight();
+    }
+}
+
 double EvaluateInPoint(const GeometryType& rGeometry,
                        const Variable<double>& rVariable,
                        const Vector& rShapeFunction,
@@ -80,6 +109,24 @@ array_1d<double, 3> EvaluateInPoint(const GeometryType& rGeometry,
     }
 
     return value;
+}
+
+template <typename TDataType>
+TDataType EvaluateInParentCenter(const Variable<TDataType>& rVariable,
+                                 const ConditionType& rCondition,
+                                 const int Step)
+{
+    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
+
+    Vector parent_gauss_weights;
+    Matrix parent_shape_functions;
+    GeometryData::ShapeFunctionsGradientsType parent_shape_function_derivatives;
+    CalculateGeometryData(r_parent_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1,
+                          parent_gauss_weights, parent_shape_functions,
+                          parent_shape_function_derivatives);
+    return EvaluateInPoint(r_parent_geometry, rVariable,
+                           row(parent_shape_functions, 0), Step);
 }
 
 template <unsigned int TDim>
@@ -190,6 +237,40 @@ void CalculateGradient(array_1d<double, 3>& rOutput,
     }
 }
 
+double GetDivergence(const Geometry<ModelPart::NodeType>& rGeometry,
+                     const Variable<array_1d<double, 3>>& rVariable,
+                     const Matrix& rShapeDerivatives,
+                     const int Step)
+{
+    double value = 0.0;
+    const int number_of_nodes = rGeometry.PointsNumber();
+    const int dim = rShapeDerivatives.size2();
+
+    for (int i = 0; i < number_of_nodes; ++i)
+    {
+        const array_1d<double, 3>& r_value =
+            rGeometry[i].FastGetSolutionStepValue(rVariable, Step);
+        for (int j = 0; j < dim; ++j)
+        {
+            value += r_value[j] * rShapeDerivatives(i, j);
+        }
+    }
+
+    return value;
+}
+
+template <unsigned int TNumNodes>
+void CalculateGaussSensitivities(BoundedVector<double, TNumNodes>& rGaussSensitivities,
+                                 const BoundedVector<double, TNumNodes>& rNodalSensitivities,
+                                 const Vector& rGaussShapeFunctions)
+{
+    for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node)
+    {
+        rGaussSensitivities[i_node] =
+            rGaussShapeFunctions[i_node] * rNodalSensitivities[i_node];
+    }
+}
+
 template <unsigned int TDim>
 Vector GetVector(const array_1d<double, 3>& rVector)
 {
@@ -237,26 +318,122 @@ double CalculateLogarithmicYPlusLimit(const double Kappa,
     return y_plus;
 }
 
-double GetDivergence(const Geometry<ModelPart::NodeType>& rGeometry,
-                     const Variable<array_1d<double, 3>>& rVariable,
-                     const Matrix& rShapeDerivatives,
-                     const int Step)
+double CalculateWallHeight(const ConditionType& rCondition, const array_1d<double, 3>& rNormal)
 {
-    double value = 0.0;
-    const int number_of_nodes = rGeometry.PointsNumber();
-    const int dim = rShapeDerivatives.size2();
+    KRATOS_TRY
 
-    for (int i = 0; i < number_of_nodes; ++i)
-    {
-        const array_1d<double, 3>& r_value =
-            rGeometry[i].FastGetSolutionStepValue(rVariable, Step);
-        for (int j = 0; j < dim; ++j)
+    array_1d<double, 3> normal = rNormal / norm_2(rNormal);
+
+    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+
+    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
+    const GeometryType& r_condition_geometry = rCondition.GetGeometry();
+
+    auto calculate_cell_center = [](const GeometryType& rGeometry) -> array_1d<double, 3> {
+        const int number_of_nodes = rGeometry.PointsNumber();
+        array_1d<double, 3> cell_center = ZeroVector(3);
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
-            value += r_value[j] * rShapeDerivatives(i, j);
+            noalias(cell_center) =
+                cell_center + rGeometry[i_node].Coordinates() *
+                                  (1.0 / static_cast<double>(number_of_nodes));
+        }
+
+        return cell_center;
+    };
+
+    const array_1d<double, 3>& parent_center = calculate_cell_center(r_parent_geometry);
+
+    const array_1d<double, 3>& condition_center =
+        calculate_cell_center(r_condition_geometry);
+
+    return inner_prod(condition_center - parent_center, normal);
+
+    KRATOS_CATCH("");
+}
+
+array_1d<double, 3> CalculateWallVelocity(const ConditionType& rCondition)
+{
+    array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
+    normal /= norm_2(normal);
+
+    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
+
+    Vector parent_gauss_weights;
+    Matrix parent_shape_functions;
+    GeometryData::ShapeFunctionsGradientsType parent_shape_function_derivatives;
+    CalculateGeometryData(r_parent_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1,
+                          parent_gauss_weights, parent_shape_functions,
+                          parent_shape_function_derivatives);
+
+    const Vector& gauss_parent_shape_functions = row(parent_shape_functions, 0);
+    const array_1d<double, 3>& parent_center_velocity =
+        EvaluateInPoint(r_parent_geometry, VELOCITY, gauss_parent_shape_functions);
+    const array_1d<double, 3>& parent_center_mesh_velocity = EvaluateInPoint(
+        r_parent_geometry, MESH_VELOCITY, gauss_parent_shape_functions);
+
+    const array_1d<double, 3>& parent_center_effective_velocity =
+        parent_center_velocity - parent_center_mesh_velocity;
+    return parent_center_effective_velocity -
+           normal * inner_prod(parent_center_effective_velocity, normal);
+}
+
+void CalculateYPlusAndUtau(double& rYPlus,
+                           double& rUTau,
+                           const double WallVelocity,
+                           const double WallHeight,
+                           const double KinematicViscosity,
+                           const double Kappa,
+                           const double Beta,
+                           const int MaxIterations,
+                           const double Tolerance)
+{
+    const double limit_y_plus =
+        CalculateLogarithmicYPlusLimit(Kappa, Beta, MaxIterations, Tolerance);
+
+    // linear region
+    rUTau = std::sqrt(WallVelocity * KinematicViscosity / WallHeight);
+    rYPlus = rUTau * WallHeight / KinematicViscosity;
+    const double inv_kappa = 1.0 / Kappa;
+
+    // log region
+    if (rYPlus > limit_y_plus)
+    {
+        int iter = 0;
+        double dx = 1e10;
+        double u_plus = inv_kappa * std::log(rYPlus) + Beta;
+
+        while (iter < MaxIterations && std::fabs(dx) > Tolerance * rUTau)
+        {
+            // Newton-Raphson iteration
+            double f = rUTau * u_plus - WallVelocity;
+            double df = u_plus + inv_kappa;
+            dx = f / df;
+
+            // Update variables
+            rUTau -= dx;
+            rYPlus = WallHeight * rUTau / KinematicViscosity;
+            u_plus = inv_kappa * std::log(rYPlus) + Beta;
+            ++iter;
+        }
+        if (iter == MaxIterations)
+        {
+            std::cout << "Warning: wall condition Newton-Raphson did not "
+                         "converge. Residual is "
+                      << dx << std::endl;
         }
     }
+}
 
-    return value;
+bool IsWallFunctionActive(const ConditionType& rCondition)
+{
+    return rCondition.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE);
+}
+
+bool IsInlet(const ConditionType& rCondition)
+{
+    return rCondition.GetValue(RANS_IS_INLET);
 }
 
 // template instantiations
@@ -282,8 +459,24 @@ template void CalculateGeometryParameterDerivativesShapeSensitivity<2>(
 template void CalculateGeometryParameterDerivativesShapeSensitivity<3>(
     BoundedMatrix<double, 3, 3>&, const ShapeParameter&, const Matrix&, const Matrix&);
 
+template void CalculateGaussSensitivities<3>(BoundedVector<double, 3>&,
+                                             const BoundedVector<double, 3>&,
+                                             const Vector&);
+
+template void CalculateGaussSensitivities<4>(BoundedVector<double, 4>&,
+                                             const BoundedVector<double, 4>&,
+                                             const Vector&);
+
 template Vector GetVector<2>(const array_1d<double, 3>&);
 template Vector GetVector<3>(const array_1d<double, 3>&);
+
+template double EvaluateInParentCenter(const Variable<double>& rVariable,
+                                       const ConditionType& rCondition,
+                                       const int Step);
+
+template array_1d<double, 3> EvaluateInParentCenter(const Variable<array_1d<double, 3>>& rVariable,
+                                                    const ConditionType& rCondition,
+                                                    const int Step);
 
 } // namespace RansCalculationUtilities
 ///@}
