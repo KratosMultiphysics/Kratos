@@ -49,6 +49,9 @@
 // vms monolithic wall conditions
 #include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
 
+// fractional step wall conditions
+#include "custom_conditions/fractional_step_k_based_wall_condition.h"
+
 // incompressible potential flow conditions
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_inlet_condition.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_body_force_condition.h"
@@ -281,6 +284,10 @@ private:
     // vms monolithic k based wall conditions
     const VMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWall2D2N;
     const VMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWall3D3N;
+
+    // fractional step wall conditions
+    const FractionalStepKBasedWallCondition<2, 2> mFractionalStepKBasedWall2D2N;
+    const FractionalStepKBasedWallCondition<3, 3> mFractionalStepKBasedWall3D3N;
 
     // incompressible potential flow conditions
     const IncompressiblePotentialFlowVelocityInletCondition<2, 2> mIncompressiblePotentialFlowVelocityInlet2D2N;
