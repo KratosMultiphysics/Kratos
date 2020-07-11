@@ -17,7 +17,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 # flow solver test_classes
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
-
+from fractional_step_velocity_pressure_formulation_tests import FractionalStepVelocityPressureFormulationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -44,6 +44,9 @@ def AssembleTestSuites():
 
     # adding monolithic flow solver tests
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicVelocityPressureFormulationTest]))
+
+    # adding fractional step flow solver tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FractionalStepVelocityPressureFormulationTest]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
