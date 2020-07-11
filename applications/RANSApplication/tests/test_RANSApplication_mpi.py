@@ -14,8 +14,7 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
     raise Exception("The MPI tests currently suport only being run with 2 processors!")
 
 # Import the tests or test_classes to create the suits
-
-# Shell tests
+from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 
 
 def AssembleTestSuites():
@@ -37,6 +36,9 @@ def AssembleTestSuites():
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
+
+    # adding incompressible potential flow solver tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IncompressiblePotentialFlowSolverFormulationTest]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']
