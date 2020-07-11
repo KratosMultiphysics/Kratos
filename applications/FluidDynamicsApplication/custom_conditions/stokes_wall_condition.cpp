@@ -199,11 +199,12 @@ void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLoc
 {
     const unsigned int LocalSize = TDim+1;
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const GeometryData::IntegrationMethod integration_method = static_cast<GeometryData::IntegrationMethod> (GeometryData::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(integration_method);
     const unsigned int NumGauss = IntegrationPoints.size();
     Vector gauss_pts_J_det = ZeroVector(NumGauss);
-    rGeom.DeterminantOfJacobian(gauss_pts_J_det, GeometryData::GI_GAUSS_2);
-    MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    rGeom.DeterminantOfJacobian(gauss_pts_J_det, integration_method);
+    MatrixType NContainer = rGeom.ShapeFunctionsValues(integration_method);
 
     array_1d<double,3> Normal;
     this->CalculateNormal(Normal); //this already contains the area
