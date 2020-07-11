@@ -390,6 +390,15 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
     return Hvel;
 }
 
+// Prism3D6 version
+template<>
+double ElementSizeCalculator<3,6>::ProjectedElementSize(const Geometry<Node<3> > &rGeometry,
+                                                        const array_1d<double,3>& rVelocity){
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
+}
+
+
 // Hexahedra3D8 version.
 template<>
 double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
