@@ -386,8 +386,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateNormal(array_1d<double,3>& An );
-
 
     void ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector);
 
