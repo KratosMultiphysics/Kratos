@@ -105,22 +105,21 @@ public:
         this->mpDofUpdater->Clear();
     }
 
-    void CalculateSystemContributions(Element::Pointer rCurrentElement,
+    void CalculateSystemContributions(Element& rElement,
                                       LocalSystemMatrixType& LHS_Contribution,
                                       LocalSystemVectorType& RHS_Contribution,
-                                      Element::EquationIdVectorType& EquationId,
-                                      ProcessInfo& CurrentProcessInfo) override
+                                      Element::EquationIdVectorType& rEquationIdVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
-        rCurrentElement->CalculateLocalSystem(
-            LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+        rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
 
         Matrix SteadyLHS;
-        rCurrentElement->CalculateLocalVelocityContribution(
-            SteadyLHS, RHS_Contribution, CurrentProcessInfo);
-        rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
+        rElement.CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution,
+                                                    rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         if (SteadyLHS.size1() != 0)
             noalias(LHS_Contribution) += SteadyLHS;
@@ -128,22 +127,21 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
-                                                LocalSystemMatrixType& LHS_Contribution,
-                                                LocalSystemVectorType& RHS_Contribution,
-                                                Condition::EquationIdVectorType& EquationId,
-                                                ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions(Condition& rCondition,
+                                      LocalSystemMatrixType& LHS_Contribution,
+                                      LocalSystemVectorType& RHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationIdVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
-        rCurrentCondition->CalculateLocalSystem(
-            LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
+        rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
 
         Matrix SteadyLHS;
-        rCurrentCondition->CalculateLocalVelocityContribution(
-            SteadyLHS, RHS_Contribution, CurrentProcessInfo);
-        rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCondition.CalculateLocalVelocityContribution(
+            SteadyLHS, RHS_Contribution, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         if (SteadyLHS.size1() != 0)
             noalias(LHS_Contribution) += SteadyLHS;
@@ -151,31 +149,30 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
-                                    LocalSystemVectorType& rRHS_Contribution,
-                                    Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(Element& rElement,
+                                  LocalSystemVectorType& RHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationIdVector,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         Matrix LHS_Contribution;
-        CalculateSystemContributions(rCurrentElement, LHS_Contribution, rRHS_Contribution,
-                                     rEquationId, rCurrentProcessInfo);
+        CalculateSystemContributions(rElement, LHS_Contribution, RHS_Contribution,
+                                     rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
-                                              LocalSystemVectorType& rRHS_Contribution,
-                                              Element::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(Condition& rCondition,
+                                  LocalSystemVectorType& RHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationIdVector,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         Matrix LHS_Contribution;
-        Condition_CalculateSystemContributions(rCurrentCondition, LHS_Contribution,
-                                               rRHS_Contribution, rEquationId,
-                                               rCurrentProcessInfo);
+        CalculateSystemContributions(rCondition, LHS_Contribution, RHS_Contribution,
+                                     rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
