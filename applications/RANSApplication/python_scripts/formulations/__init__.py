@@ -2,11 +2,13 @@ __all__ = ["Factory"]
 
 import KratosMultiphysics as Kratos
 from .incompressible_potential_flow import IncompressiblePotentialFlowFormulation
+from .monolithic_vms.monolithic_velocity_pressure_formulation import MonolithicVelocityPressureFormulation
 
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
     formulations_list = [
-        ["incompressible_potential_flow", IncompressiblePotentialFlowFormulation]
+        ["incompressible_potential_flow", IncompressiblePotentialFlowFormulation],
+        ["monolithic", MonolithicVelocityPressureFormulation]
     ]
 
     formulation_names_list = [
