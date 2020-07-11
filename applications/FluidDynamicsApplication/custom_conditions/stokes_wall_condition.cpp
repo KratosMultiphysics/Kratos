@@ -201,7 +201,8 @@ void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLoc
     const GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
     const unsigned int NumGauss = IntegrationPoints.size();
-
+    Vector gauss_pts_J_det = ZeroVector(NumGauss);
+    rGeom.DeterminantOfJacobian(gauss_pts_J_det, GeometryData::GI_GAUSS_2);
     MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
     array_1d<double,3> Normal;
@@ -209,13 +210,10 @@ void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLoc
     double A = norm_2(Normal);
     Normal /= A;
 
-    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
-    double J = (TDim == 2) ? 0.5*A : 2.0*A;
-
     for (unsigned int g = 0; g < NumGauss; g++)
     {
         Vector N = row(NContainer,g);
-        double Weight = J * IntegrationPoints[g].Weight();
+        double Weight = gauss_pts_J_det[g] * IntegrationPoints[g].Weight();
 
         // Neumann boundary condition
         for (unsigned int i = 0; i < TNumNodes; i++)
