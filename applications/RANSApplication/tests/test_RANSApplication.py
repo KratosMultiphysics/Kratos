@@ -14,6 +14,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 # Import the tests o test_classes to create the suites
 import run_cpp_unit_tests
 
+from custom_process_tests import CustomProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -31,6 +32,9 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+
+    # adding process tests to small suite
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
