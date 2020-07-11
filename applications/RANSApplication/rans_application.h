@@ -49,6 +49,14 @@
 // incompressible potential flow conditions
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_inlet_condition.h"
 #include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_body_force_condition.h"
+
+// generic scalar wall flux condition
+#include "custom_conditions/scalar_wall_flux_condition.h"
+
+// k-epsilon turbulence model condition data
+#include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_u_based_wall_condition_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -268,6 +276,13 @@ private:
     const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
     const IncompressiblePotentialFlowPressureBodyForceCondition<2, 2> mIncompressiblePotentialFlowPressureBodyForce2D2N;
     const IncompressiblePotentialFlowPressureBodyForceCondition<3, 3> mIncompressiblePotentialFlowPressureBodyForce3D3N;
+
+    // k-epsilon turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansKEpsilonEpsilonUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansKEpsilonEpsilonUBasedWall3D3N;
 
     ///@}
     ///@name Private Operators
