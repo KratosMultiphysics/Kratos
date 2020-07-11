@@ -33,6 +33,8 @@ namespace KOmegaTestUtilities
 ModelPart& RansKOmegaK2D3N_SetUp(Model& rModel, const std::string& rElementName);
 
 ModelPart& RansKOmegaOmega2D3N_SetUp(Model& rModel, const std::string& rElementName);
+
+ModelPart& RansKOmegaOmega2D2N_SetUp(Model& rModel, const std::string& rConditionName);
 } // namespace KOmegaTestUtilities
 } // namespace Kratos
 

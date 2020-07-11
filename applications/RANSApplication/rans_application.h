@@ -57,6 +57,10 @@
 #include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_k_based_wall_condition_data.h"
 #include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_u_based_wall_condition_data.h"
 
+// k-omega turbulence model condition data
+#include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_k_based_wall_condition_data.h"
+#include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_u_based_wall_condition_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -283,6 +287,13 @@ private:
 
     const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansKEpsilonEpsilonUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansKEpsilonEpsilonUBasedWall3D3N;
+
+    // k-omega turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaOmegaKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaOmegaKBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
 
     ///@}
     ///@name Private Operators
