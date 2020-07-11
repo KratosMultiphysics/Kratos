@@ -10,6 +10,7 @@ elif (not IsDistributedRun()):
 else:
     raise Exception("Distributed run requires TrilinosApplication")
 
+
 def Factory(settings, Model):
     if (not isinstance(settings, Kratos.Parameters)):
         raise Exception(
@@ -73,7 +74,8 @@ def Factory(settings, Model):
     ]
 
     if (process_name not in process_names_list):
-        msg = "Unknown process_name=\"" + process_name + "\". \nFollowing process names are allowed:\n    "
+        msg = "Unknown process_name=\"" + process_name + \
+            "\". \nFollowing process names are allowed:\n    "
         msg += "\n    ".join(sorted(process_names_list))
         raise Exception(msg + "\n")
 
