@@ -7,9 +7,9 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
-
+//
 #ifndef KRATOS_RANS_ADD_TRILINOS_STRATEGIES_TO_PYTHON_H_INCLUDED
 #define KRATOS_RANS_ADD_TRILINOS_STRATEGIES_TO_PYTHON_H_INCLUDED
 
