@@ -164,7 +164,7 @@ public:
         ModelPart::ElementsContainerType& r_elements = rModelPart.Elements();
         const int number_of_elements = r_elements.size();
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
 #pragma omp parallel
         {
@@ -179,8 +179,8 @@ public:
                                                      right_hand_side, aux_matrix,
                                                      r_current_process_info);
                 this->CalculateArtificialDiffusionMatrix(artificial_diffusion, left_hand_side);
-                r_element.GetValuesVector(values);
                 r_element.EquationIdVector(equation_ids, r_current_process_info);
+                r_element.GetValuesVector(values);
 
                 const int size = artificial_diffusion.size1();
 
@@ -307,74 +307,73 @@ public:
         this->mpDofUpdater->Clear();
     }
 
-    void CalculateSystemContributions(Element::Pointer rCurrentElement,
-                                      LocalSystemMatrixType& LHS_Contribution,
-                                      LocalSystemVectorType& RHS_Contribution,
-                                      Element::EquationIdVectorType& EquationId,
-                                      ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions(Element& rElement,
+                                      LocalSystemMatrixType& rLHS_Contribution,
+                                      LocalSystemVectorType& rRHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationIdVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         const auto k = OpenMPUtils::ThisThread();
 
-        this->CalculateSystemMatrix<Element>(*rCurrentElement, LHS_Contribution, RHS_Contribution,
-                                             mAuxMatrix[k], CurrentProcessInfo);
-        rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
+        this->CalculateSystemMatrix<Element>(rElement, rLHS_Contribution, rRHS_Contribution,
+                                             mAuxMatrix[k], rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
-        this->CalculateArtificialDiffusionMatrix(mAuxMatrix[k], LHS_Contribution);
+        this->CalculateArtificialDiffusionMatrix(mAuxMatrix[k], rLHS_Contribution);
 
-        AddAntiDiffusiveFluxes(RHS_Contribution, LHS_Contribution,
-                               *rCurrentElement, mAuxMatrix[k]);
-        noalias(LHS_Contribution) += mAuxMatrix[k];
+        AddAntiDiffusiveFluxes(rRHS_Contribution, rLHS_Contribution, rElement,
+                               mAuxMatrix[k]);
+        noalias(rLHS_Contribution) += mAuxMatrix[k];
 
-        rCurrentElement->GetValuesVector(mValues[k]);
-        noalias(RHS_Contribution) -= prod(LHS_Contribution, mValues[k]);
+        rElement.GetValuesVector(mValues[k]);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mValues[k]);
 
         KRATOS_CATCH("");
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
-                                                LocalSystemMatrixType& LHS_Contribution,
-                                                LocalSystemVectorType& RHS_Contribution,
-                                                Condition::EquationIdVectorType& EquationId,
-                                                ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions(Condition& rCondition,
+                                      LocalSystemMatrixType& rLHS_Contribution,
+                                      LocalSystemVectorType& rRHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationIdVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         const auto k = OpenMPUtils::ThisThread();
 
-        this->CalculateSystemMatrix<Condition>(*rCurrentCondition,
-                                               LHS_Contribution, RHS_Contribution,
-                                               mAuxMatrix[k], CurrentProcessInfo);
-        rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
+        this->CalculateSystemMatrix<Condition>(rCondition, rLHS_Contribution, rRHS_Contribution,
+                                               mAuxMatrix[k], rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
-                                    LocalSystemVectorType& rRHS_Contribution,
-                                    Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(Element& rElement,
+                                  LocalSystemVectorType& rRHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationIdVector,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         const auto k = OpenMPUtils::ThisThread();
-        CalculateSystemContributions(rCurrentElement, mAuxMatrix[k], rRHS_Contribution,
-                                     rEquationId, rCurrentProcessInfo);
+        CalculateSystemContributions(rElement, mAuxMatrix[k], rRHS_Contribution,
+                                     rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
-                                              LocalSystemVectorType& rRHS_Contribution,
-                                              Element::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(Condition& rCondition,
+                                  LocalSystemVectorType& rRHS_Contribution,
+                                  Condition::EquationIdVectorType& rEquationIdVector,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         const auto k = OpenMPUtils::ThisThread();
-        Condition_CalculateSystemContributions(rCurrentCondition, mAuxMatrix[k], rRHS_Contribution,
-                                               rEquationId, rCurrentProcessInfo);
+        CalculateSystemContributions(rCondition, mAuxMatrix[k], rRHS_Contribution,
+                                     rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -410,7 +409,7 @@ private:
                                LocalSystemMatrixType& rLeftHandSide,
                                LocalSystemVectorType& rRightHandSide,
                                LocalSystemMatrixType& rAuxMatrix,
-                               ProcessInfo& rCurrentProcessInfo)
+                               const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
