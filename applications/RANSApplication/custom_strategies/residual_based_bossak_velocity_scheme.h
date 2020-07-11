@@ -160,77 +160,80 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculateSystemContributions(Element::Pointer pCurrentElement,
+    void CalculateSystemContributions(Element& rElement,
                                       LocalSystemMatrixType& rLHS_Contribution,
                                       LocalSystemVectorType& rRHS_Contribution,
-                                      Element::EquationIdVectorType& rEquationId,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      Element::EquationIdVectorType& rEquationIdVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         const int k = OpenMPUtils::ThisThread();
 
-        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
-        (pCurrentElement)->CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentElement)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
+        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
+        rElement.CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLocalVelocityContribution(
+            mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
 
         if (mUpdateAcceleration)
         {
-            (pCurrentElement)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
-            AddDynamicsToRHS(pCurrentElement, rRHS_Contribution, mDampingMatrix[k],
+            rElement.CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(rElement, rRHS_Contribution, mDampingMatrix[k],
                              mMassMatrix[k], rCurrentProcessInfo);
         }
         AddDynamicsToLHS(rLHS_Contribution, mDampingMatrix[k], mMassMatrix[k],
                          rCurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Calculate_RHS_Contribution(Element::Pointer pCurrentElement,
-                                    LocalSystemVectorType& rRHS_Contribution,
-                                    Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(Element& rElement,
+                                  LocalSystemVectorType& rRHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationIdVector,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         const int k = OpenMPUtils::ThisThread();
 
         // Initializing the non linear iteration for the current element
-        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
+        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // basic operations for the element considered
-        (pCurrentElement)->CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentElement)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rElement.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLocalVelocityContribution(
+            mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         // adding the dynamic contributions (static is already included)
         if (mUpdateAcceleration)
         {
-            (pCurrentElement)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
-            AddDynamicsToRHS(pCurrentElement, rRHS_Contribution, mDampingMatrix[k],
+            rElement.CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(rElement, rRHS_Contribution, mDampingMatrix[k],
                              mMassMatrix[k], rCurrentProcessInfo);
         }
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-                                                LocalSystemMatrixType& rLHS_Contribution,
-                                                LocalSystemVectorType& rRHS_Contribution,
-                                                Condition::EquationIdVectorType& rEquationId,
-                                                ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(Condition& rCondition,
+                                      LocalSystemMatrixType& rLHS_Contribution,
+                                      LocalSystemVectorType& rRHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationIdVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
         const int k = OpenMPUtils::ThisThread();
 
-        (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
-        (pCurrentCondition)->CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentCondition)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
+        rCondition.CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLocalVelocityContribution(
+            mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         if (mUpdateAcceleration)
         {
-            (pCurrentCondition)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
-            AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution,
-                             mDampingMatrix[k], mMassMatrix[k], rCurrentProcessInfo);
+            rCondition.CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(rCondition, rRHS_Contribution, mDampingMatrix[k],
+                             mMassMatrix[k], rCurrentProcessInfo);
         }
         AddDynamicsToLHS(rLHS_Contribution, mDampingMatrix[k], mMassMatrix[k],
                          rCurrentProcessInfo);
@@ -238,26 +241,27 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Condition_Calculate_RHS_Contribution(Condition::Pointer pCurrentCondition,
-                                              LocalSystemVectorType& rRHS_Contribution,
-                                              Element::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(Condition& rCondition,
+                                  LocalSystemVectorType& rRHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationIdVector,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
         const int k = OpenMPUtils::ThisThread();
 
-        (pCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
-        (pCurrentCondition)->CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentCondition)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
-        (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
+        rCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLocalVelocityContribution(
+            mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
         // adding the dynamic contributions (static is already included)
         if (mUpdateAcceleration)
         {
-            (pCurrentCondition)->CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
-            AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution,
-                             mDampingMatrix[k], mMassMatrix[k], rCurrentProcessInfo);
+            rCondition.CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
+            AddDynamicsToRHS(rCondition, rRHS_Contribution, mDampingMatrix[k],
+                             mMassMatrix[k], rCurrentProcessInfo);
         }
         KRATOS_CATCH("");
     }
@@ -351,7 +355,7 @@ protected:
     void AddDynamicsToLHS(LocalSystemMatrixType& rLHS_Contribution,
                           LocalSystemMatrixType& rDampingMatrix,
                           LocalSystemMatrixType& rMassMatrix,
-                          ProcessInfo& CurrentProcessInfo)
+                          const ProcessInfo& CurrentProcessInfo)
     {
         // multipling time scheme factor
         rLHS_Contribution *= mBossak.C1;
@@ -380,20 +384,20 @@ protected:
      *  @param[in] rM The elemental acceleration LHS matrix.
      *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
      */
-    void AddDynamicsToRHS(Element::Pointer rCurrentElement,
+    void AddDynamicsToRHS(const Element& rCurrentElement,
                           LocalSystemVectorType& rRHS_Contribution,
                           LocalSystemMatrixType& rDampingMatrix,
                           LocalSystemMatrixType& rMassMatrix,
-                          ProcessInfo& rCurrentProcessInfo)
+                          const ProcessInfo& rCurrentProcessInfo)
     {
         // adding inertia contribution
         if (rMassMatrix.size1() != 0)
         {
             const int k = OpenMPUtils::ThisThread();
-            rCurrentElement->GetSecondDerivativesVector(
+            rCurrentElement.GetSecondDerivativesVector(
                 mSecondDerivativeValuesVector[k], 0);
             (mSecondDerivativeValuesVector[k]) *= (1.00 - mBossak.Alpha);
-            rCurrentElement->GetSecondDerivativesVector(
+            rCurrentElement.GetSecondDerivativesVector(
                 mSecondDerivativeValuesVectorOld[k], 1);
             noalias(mSecondDerivativeValuesVector[k]) +=
                 mBossak.Alpha * mSecondDerivativeValuesVectorOld[k];
@@ -411,20 +415,20 @@ protected:
      *  @param[in] rM The elemental acceleration LHS matrix.
      *  @param[in] rCurrentProcessInfo ProcessInfo instance for the containing ModelPart.
      */
-    void AddDynamicsToRHS(Condition::Pointer rCurrentCondition,
+    void AddDynamicsToRHS(const Condition& rCurrentCondition,
                           LocalSystemVectorType& rRHS_Contribution,
                           LocalSystemMatrixType& rDampingMatrix,
                           LocalSystemMatrixType& rMassMatrix,
-                          ProcessInfo& rCurrentProcessInfo)
+                          const ProcessInfo& rCurrentProcessInfo)
     {
         // adding inertia contribution
         if (rMassMatrix.size1() != 0)
         {
             const int k = OpenMPUtils::ThisThread();
-            rCurrentCondition->GetSecondDerivativesVector(
+            rCurrentCondition.GetSecondDerivativesVector(
                 mSecondDerivativeValuesVector[k], 0);
             (mSecondDerivativeValuesVector[k]) *= (1.00 - mBossak.Alpha);
-            rCurrentCondition->GetSecondDerivativesVector(
+            rCurrentCondition.GetSecondDerivativesVector(
                 mSecondDerivativeValuesVectorOld[k], 1);
             noalias(mSecondDerivativeValuesVector[k]) +=
                 mBossak.Alpha * mSecondDerivativeValuesVectorOld[k];
@@ -440,8 +444,8 @@ protected:
 
         UpdateAcceleration<Variable<double>>(rModelPart, mVelocityVariables,
                                              mAccelerationVariables);
-        UpdateAcceleration<Variable<double>>(
-            rModelPart, mVelocityComponentVariables, mAccelerationComponentVariables);
+        UpdateAcceleration<Variable<double>>(rModelPart, mVelocityComponentVariables,
+                                             mAccelerationComponentVariables);
         UpdateDisplacement<Variable<double>>(rModelPart, mDisplacementVariables,
                                              mVelocityVariables, mAccelerationVariables);
         UpdateDisplacement<Variable<double>>(
