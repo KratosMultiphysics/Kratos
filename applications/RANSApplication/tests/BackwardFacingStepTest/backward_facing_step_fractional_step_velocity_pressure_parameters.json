@@ -31,7 +31,7 @@
             "scheme_type": "<TIME_SCHEME_TYPE>"
         },
         "material_import_settings": {
-            "materials_filename": "backward_facing_step_k_epsilon_material_properties.json"
+            "materials_filename": "backward_facing_step_material_properties.json"
         },
         "no_skin_parts": [],
         "formulation_settings": {

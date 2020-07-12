@@ -27,7 +27,7 @@
         },
         "solver_type": "CoupledRANS",
         "material_import_settings": {
-            "materials_filename": ""
+            "materials_filename": "channel_flow_material_properties.json"
         },
         "consider_periodic_conditions": true,
         "wall_function_settings": {
