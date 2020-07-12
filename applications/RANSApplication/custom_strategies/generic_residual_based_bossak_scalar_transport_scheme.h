@@ -11,11 +11,11 @@
 //                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_VELOCITY_SCALAR_SCHEME_H_INCLUDED)
-#define KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_VELOCITY_SCALAR_SCHEME_H_INCLUDED
+#if !defined(KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED)
+#define KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED
 
 // System includes
-#include <limits>
+#include <sstream>
 #include <vector>
 
 // External includes
@@ -26,6 +26,9 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/time_discretization.h"
+
+// Application includes
+#include "custom_strategies/generic_residual_based_steady_scalar_transport_scheme.h"
 
 namespace Kratos
 {
@@ -40,16 +43,17 @@ namespace Kratos
  * of the variable arrangements in the element or condition.
  */
 template <class TSparseSpace, class TDenseSpace>
-class GenericResidualBasedBossakVelocityScalarScheme
-    : public Scheme<TSparseSpace, TDenseSpace>
+class GenericResidualBasedBossakScalarTransportScheme
+    : public GenericResidualBasedSteadyScalarTransportScheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(GenericResidualBasedBossakVelocityScalarScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(GenericResidualBasedBossakScalarTransportScheme);
 
-    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
+    using BaseType =
+        GenericResidualBasedSteadyScalarTransportScheme<TSparseSpace, TDenseSpace>;
 
     using SystemMatrixType = typename BaseType::TSystemMatrixType;
 
@@ -63,46 +67,33 @@ public:
 
     using NodeType = ModelPart::NodeType;
 
-    using IndexType = std::size_t;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
 
-    GenericResidualBasedBossakVelocityScalarScheme(const double AlphaBossak,
-                                                   const double RelaxationFactor,
-                                                   const Variable<double>& rScalarVariable,
-                                                   const Variable<double>& rScalarRateVariable,
-                                                   const Variable<double>& rRelaxedScalarRateVariable)
-        : mAlphaBossak(AlphaBossak),
-          mUpdateAcceleration(true),
-          mRelaxationFactor(RelaxationFactor),
+    GenericResidualBasedBossakScalarTransportScheme(const double AlphaBossak,
+                                                    const double RelaxationFactor,
+                                                    const Variable<double>& rScalarVariable,
+                                                    const Variable<double>& rScalarRateVariable,
+                                                    const Variable<double>& rRelaxedScalarRateVariable)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
           mrScalarVariable(rScalarVariable),
           mrScalarRateVariable(rScalarRateVariable),
           mrRelaxedScalarRateVariable(rRelaxedScalarRateVariable)
     {
-        KRATOS_INFO("GenericResidualBasedBossakVelocityScalarScheme")
-            << " Using bossak velocity scheme with alpha_bossak = " << std::scientific
-            << mAlphaBossak << " [UpdateAcceleration: " << mUpdateAcceleration << "]\n";
-
         // Allocate auxiliary memory.
         const int num_threads = OpenMPUtils::GetNumThreads();
 
         mMassMatrix.resize(num_threads);
-        mDampingMatrix.resize(num_threads);
-        mValuesVector.resize(num_threads);
         mSecondDerivativeValuesVector.resize(num_threads);
         mSecondDerivativeValuesVectorOld.resize(num_threads);
     }
 
     /// Destructor.
-    ~GenericResidualBasedBossakVelocityScalarScheme() override = default;
-
-    ///@}
-    ///@name Operators
-    ///@{
+    ~GenericResidualBasedBossakScalarTransportScheme() override = default;
 
     ///@}
     ///@name Operations
@@ -124,7 +115,7 @@ public:
                "check if the time step is created correctly for "
                "the current model part.";
 
-        GenericResidualBasedBossakVelocityScalarScheme::CalculateBossakConstants(
+        GenericResidualBasedBossakScalarTransportScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
 
 #pragma omp critical
@@ -143,7 +134,7 @@ public:
     {
         KRATOS_TRY;
 
-        mpDofUpdater->UpdateDofs(rDofSet, rDx, mRelaxationFactor);
+        BaseType::Update(rModelPart, rDofSet, rA, rDx, rb);
 
         this->UpdateScalarRateVariables(rModelPart);
 
@@ -208,19 +199,6 @@ public:
                                        rEquationIdVector, rCurrentProcessInfo);
     }
 
-    void Clear() override
-    {
-        this->mpDofUpdater->Clear();
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
     ///@}
     ///@name Input and output
     ///@{
@@ -228,64 +206,48 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "GenericResidualBasedBossakVelocityScalarScheme";
-    }
+        std::stringstream msg;
+        msg << "Using generic residual based bossak scalar transport scheme "
+               "with\n"
+            << "     Scalar variable             : " << mrScalarVariable.Name() << "\n"
+            << "     Scalar rate variable        : " << mrScalarRateVariable.Name() << "\n"
+            << "     Relaxed scalar rate variable: "
+            << mrRelaxedScalarRateVariable.Name() << "\n"
+            << "     Relaxation factor           : " << this->mRelaxationFactor;
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
+        return msg.str();
     }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-    ///@}
-    ///@name Friends
-    ///@{
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
+private:
+    ///@name Member Variables
     ///@{
 
     struct BossakConstants
     {
         double Alpha;
         double Gamma;
-        double Beta;
         double C0;
-        double C1;
         double C2;
         double C3;
-        double C4;
-        double C5;
-        double C6;
     };
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
 
     std::vector<LocalSystemVectorType> mSecondDerivativeValuesVectorOld;
     std::vector<LocalSystemVectorType> mSecondDerivativeValuesVector;
-    std::vector<LocalSystemVectorType> mValuesVector;
-
     std::vector<LocalSystemMatrixType> mMassMatrix;
     std::vector<LocalSystemMatrixType> mDampingMatrix;
 
     const double mAlphaBossak;
-    bool mUpdateAcceleration;
+
+    const Variable<double>& mrScalarVariable;
+    const Variable<double>& mrScalarRateVariable;
+    const Variable<double>& mrRelaxedScalarRateVariable;
+
+    BossakConstants mBossak;
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
+    ///@name Private Operations
     ///@{
 
     static void CalculateBossakConstants(BossakConstants& rBossakConstants,
@@ -295,80 +257,11 @@ protected:
         TimeDiscretization::Bossak bossak(Alpha, 0.25, 0.5);
         rBossakConstants.Alpha = bossak.GetAlphaM();
         rBossakConstants.Gamma = bossak.GetGamma();
-        rBossakConstants.Beta = bossak.GetBeta();
 
         rBossakConstants.C0 =
             (1.0 - rBossakConstants.Alpha) / (rBossakConstants.Gamma * DeltaTime);
-        rBossakConstants.C1 =
-            DeltaTime / (rBossakConstants.Beta * rBossakConstants.Gamma);
         rBossakConstants.C2 = 1.0 / (rBossakConstants.Gamma * DeltaTime);
         rBossakConstants.C3 = (1.0 - rBossakConstants.Gamma) / rBossakConstants.Gamma;
-        rBossakConstants.C4 =
-            std::pow(DeltaTime, 2) * (-2.0 * rBossakConstants.Beta + 1.0) / 2.0;
-        rBossakConstants.C5 = std::pow(DeltaTime, 2) * rBossakConstants.Beta;
-        rBossakConstants.C6 = DeltaTime;
-    }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
-    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
-
-    DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
-
-    double mRelaxationFactor;
-
-    const Variable<double>& mrScalarVariable;
-    const Variable<double>& mrScalarRateVariable;
-    const Variable<double>& mrRelaxedScalarRateVariable;
-
-    BossakConstants mBossak;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    template <class TItemType>
-    void CalculateDampingSystem(TItemType& rItem,
-                                LocalSystemMatrixType& rLHS_Contribution,
-                                LocalSystemVectorType& rRHS_Contribution,
-                                typename TItemType::EquationIdVectorType& rEquationIdVector,
-                                const ProcessInfo& rCurrentProcessInfo,
-                                const int ThreadId)
-    {
-        KRATOS_TRY;
-
-        rItem.InitializeNonLinearIteration(rCurrentProcessInfo);
-        rItem.CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-        rItem.CalculateLocalVelocityContribution(
-            mDampingMatrix[ThreadId], rRHS_Contribution, rCurrentProcessInfo);
-        rItem.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
-
-        KRATOS_CATCH("");
     }
 
     template <class TItemType>
@@ -393,7 +286,7 @@ private:
     {
         KRATOS_TRY;
 
-        this->CalculateSteadySystem<TItemType>(rItem, rLHS_Contribution, rRHS_Contribution,
+        BaseType::CalculateSystemContributions(rItem, rLHS_Contribution, rRHS_Contribution,
                                                rEquationIdVector, rCurrentProcessInfo);
 
         const int k = OpenMPUtils::ThisThread();
@@ -411,44 +304,6 @@ private:
     }
 
     template <class TItemType>
-    void CalculateSteadySystem(TItemType& rItem,
-                               LocalSystemMatrixType& rLHS_Contribution,
-                               LocalSystemVectorType& rRHS_Contribution,
-                               typename TItemType::EquationIdVectorType& rEquationIdVector,
-                               const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-
-        const int k = OpenMPUtils::ThisThread();
-
-        CalculateDampingSystem<TItemType>(rItem, rLHS_Contribution, rRHS_Contribution,
-                                          rEquationIdVector, rCurrentProcessInfo, k);
-
-        if (mDampingMatrix[k].size1() != 0)
-        {
-            noalias(rLHS_Contribution) += mDampingMatrix[k];
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    template <class TItemType>
-    void CalculateSteadyRHS(TItemType& rItem,
-                            LocalSystemVectorType& rRHS_Contribution,
-                            typename TItemType::EquationIdVectorType& rEquationIdVector,
-                            const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-
-        const int k = OpenMPUtils::ThisThread();
-
-        CalculateDampingSystem<TItemType>(rItem, mDampingMatrix[k], rRHS_Contribution,
-                                          rEquationIdVector, rCurrentProcessInfo, k);
-
-        KRATOS_CATCH("");
-    }
-
-    template <class TItemType>
     void CalculateDynamicRHS(TItemType& rItem,
                              LocalSystemVectorType& rRHS_Contribution,
                              typename TItemType::EquationIdVectorType& rEquationIdVector,
@@ -458,25 +313,21 @@ private:
 
         const int k = OpenMPUtils::ThisThread();
 
-        CalculateDampingSystem<TItemType>(rItem, mDampingMatrix[k], rRHS_Contribution,
-                                          rEquationIdVector, rCurrentProcessInfo, k);
+        this->CalculateDampingSystem(rItem, this->mDampingMatrix[k], rRHS_Contribution,
+                                     rEquationIdVector, rCurrentProcessInfo, k);
 
         rItem.CalculateMassMatrix(mMassMatrix[k], rCurrentProcessInfo);
         // adding mass contribution to the dynamic stiffness
         if (mMassMatrix[k].size1() != 0) // if M matrix declared
         {
-            AddMassMatrixToRHS<TItemType>(rItem, rRHS_Contribution, k);
+            AddMassMatrixToRHS(rItem, rRHS_Contribution, k);
         }
 
         KRATOS_CATCH("");
     }
 
-    // class to hold all the derivatives for updated target variable
-
     void UpdateScalarRateVariables(ModelPart& rModelPart)
     {
-        if (!mUpdateAcceleration)
-            return;
         const int number_of_nodes = rModelPart.NumberOfNodes();
 
 #pragma omp parallel for
@@ -500,28 +351,11 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
-}; /* Class GenericResidualBasedBossakVelocityScalarScheme */
-
-///@}
-
-///@name Type Definitions
-///@{
+}; /* Class GenericResidualBasedBossakScalarTransportScheme */
 
 ///@}
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_VELOCITY_SCALAR_SCHEME_H_INCLUDED defined */
+#endif /* KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED defined */

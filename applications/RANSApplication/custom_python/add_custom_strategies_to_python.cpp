@@ -25,8 +25,8 @@
 #include "custom_utilities/solver_settings.h"
 
 // schemes
-#include "custom_strategies/generic_residual_based_bossak_velocity_scalar_scheme.h"
-#include "custom_strategies/generic_residualbased_simple_steady_scalar_scheme.h"
+#include "custom_strategies/generic_residual_based_bossak_scalar_transport_scheme.h"
+#include "custom_strategies/generic_residual_based_steady_scalar_transport_scheme.h"
 #include "custom_strategies/algebraic_flux_corrected_scalar_steady_scheme.h"
 
 // convergence criterians
@@ -53,18 +53,15 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using BaseConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
     using BaseSolvingStrategyType = SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
-    // Convergence criteria
-    using GenericConvergenceCriteriaType = GenericConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
-    py::class_<GenericConvergenceCriteriaType, typename GenericConvergenceCriteriaType::Pointer, BaseConvergenceCriteriaType>(m, "GenericScalarConvergenceCriteria")
-        .def(py::init<double, double>());
+    // strategies
+    using RansFractionalStepStrategyType = RansFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    py::class_<RansFractionalStepStrategyType, typename RansFractionalStepStrategyType::Pointer, BaseSolvingStrategyType>(m, "RansFractionalStepStrategy")
+        .def(py::init<ModelPart&, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType>&, bool, bool>())
+        .def(py::init<ModelPart&, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType>&, bool, bool, const Kratos::Variable<int>&>());
 
     // add schemes
-    using GenericResidualBasedBossakVelocityScalarSchemeType = GenericResidualBasedBossakVelocityScalarScheme<SparseSpaceType, LocalSpaceType>;
-    py::class_<GenericResidualBasedBossakVelocityScalarSchemeType, typename GenericResidualBasedBossakVelocityScalarSchemeType::Pointer, BaseSchemeType>(m, "GenericResidualBasedBossakVelocityDynamicScalarScheme")
-        .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
-
-    using GenericResidualBasedSimpleSteadyScalarSchemeType = GenericResidualBasedSimpleSteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
-    py::class_<GenericResidualBasedSimpleSteadyScalarSchemeType, typename GenericResidualBasedSimpleSteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "GenericResidualBasedSimpleSteadyScalarScheme")
+    using GenericResidualBasedSteadyScalarTransportSchemeType = GenericResidualBasedSteadyScalarTransportScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<GenericResidualBasedSteadyScalarTransportSchemeType, typename GenericResidualBasedSteadyScalarTransportSchemeType::Pointer, BaseSchemeType>(m, "GenericResidualBasedSteadyScalarTransportScheme")
         .def(py::init<const double>());
 
     using AlgebraicFluxCorrectedScalarSteadySchemeType = AlgebraicFluxCorrectedScalarSteadyScheme<SparseSpaceType, LocalSpaceType>;
@@ -73,11 +70,15 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<const double, const Flags&>())
         .def(py::init<const double, const Flags&, const Variable<int>&>());
 
-    // strategies
-    using RansFractionalStepStrategyType = RansFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    py::class_<RansFractionalStepStrategyType, typename RansFractionalStepStrategyType::Pointer, BaseSolvingStrategyType>(m, "RansFractionalStepStrategy")
-        .def(py::init<ModelPart&, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType>&, bool, bool>())
-        .def(py::init<ModelPart&, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType>&, bool, bool, const Kratos::Variable<int>&>());
+    using GenericResidualBasedBossakScalarTransportSchemeType = GenericResidualBasedBossakScalarTransportScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<GenericResidualBasedBossakScalarTransportSchemeType, typename GenericResidualBasedBossakScalarTransportSchemeType::Pointer, BaseSchemeType>(m, "GenericResidualBasedBossakScalarTransportScheme")
+        .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
+
+    // Convergence criteria
+    using GenericConvergenceCriteriaType = GenericConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    py::class_<GenericConvergenceCriteriaType, typename GenericConvergenceCriteriaType::Pointer, BaseConvergenceCriteriaType>(m, "GenericScalarConvergenceCriteria")
+        .def(py::init<double, double>());
+
 
 }
 
