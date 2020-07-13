@@ -185,9 +185,6 @@ public:
         Partitions[NumThreads] = NumTerms;
         for(int i = 1; i < NumThreads; i++)
             Partitions[i] = Partitions[i-1] + PartitionSize ;
-        Partitions.resize(2);
-        Partitions[0] = 0;
-        Partitions[1] = NumTerms;
     }
 
     /// Generate a partition for an std::vector-like array, providing iterators to the begin and end positions for each thread.
