@@ -19,7 +19,8 @@ ElementSizeCalculator<TDim,TNumNodes>::~ElementSizeCalculator() {};
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     /* Calculate node-edge distances */
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
@@ -52,7 +53,8 @@ double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node<3> >& 
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const Node<3>& r_node_0 = rGeometry[0];
     const Node<3>& r_node_1 = rGeometry[1];
@@ -91,7 +93,8 @@ double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& 
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     /* Calculate distances between each node and the opposite face */
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
@@ -193,7 +196,8 @@ double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &r
 
 // Hexahedra3D8 version. We use the distance between face centers to compute lengths.
 template<>
-double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const Node<3>& r_node_0 = rGeometry[0];
     const Node<3>& r_node_1 = rGeometry[1];
@@ -232,7 +236,8 @@ double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& 
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
     const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
@@ -245,7 +250,8 @@ double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& 
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
     const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
@@ -258,7 +264,8 @@ double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node<3> >& 
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
     const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
@@ -299,7 +306,8 @@ double ElementSizeCalculator<3,6>::AverageElementSize(const Geometry<Node<3>> &r
 
 // Hexahedra3D8 version.
 template<>
-double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
     const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
@@ -319,8 +327,10 @@ double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& 
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<2,3>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
     double Hvel = 0.0;
 
@@ -350,8 +360,10 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<2,4>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
     const double Hvel = ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry,rVelocity);
 
@@ -360,8 +372,10 @@ double ElementSizeCalculator<2,4>::ProjectedElementSize(const Geometry<Node<3> >
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<3,4>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
     double Hvel = 0.0;
 
@@ -404,8 +418,10 @@ double ElementSizeCalculator<3,6>::ProjectedElementSize(
 
 // Hexahedra3D8 version.
 template<>
-double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<3,8>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
     double Hvel = 0.0;
 
@@ -488,7 +504,8 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
 
 // Triangle2D3 version.
 template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX) {
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX)
+{
 
     double h = 0.0;
     for(unsigned int i = 0; i < 3; ++i){
@@ -503,7 +520,8 @@ double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const Bounded
 
 // Tetrahedra3D4 version.
 template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,4,3>& rDN_DX) {
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,4,3>& rDN_DX)
+{
 
     double h = 0.0;
     for(unsigned int i = 0; i < 4; ++i){
