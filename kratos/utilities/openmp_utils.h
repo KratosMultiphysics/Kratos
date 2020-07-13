@@ -104,7 +104,7 @@ public:
 #ifdef _OPENMP
         return omp_get_dynamic();
 #else
-        return 1;
+        return 0;
 #endif
     }
 
