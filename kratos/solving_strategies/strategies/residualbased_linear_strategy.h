@@ -136,16 +136,13 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
-        ) : BaseType(rModelPart, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag),
+            mpScheme(pScheme),
+            mReformDofSetAtEachStep(ReformDofSetAtEachStep),
+            mCalculateNormDxFlag(CalculateNormDxFlag),
+            mCalculateReactionsFlag(CalculateReactionFlag)
     {
         KRATOS_TRY
-
-        mCalculateReactionsFlag = CalculateReactionFlag;
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-        mCalculateNormDxFlag = CalculateNormDxFlag;
-
-        // Saving the scheme
-        mpScheme = pScheme;
 
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
@@ -193,25 +190,18 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
-        ) : BaseType(rModelPart, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag),
+            mpScheme(pScheme),
+            mpBuilderAndSolver(pNewBuilderAndSolver),
+            mReformDofSetAtEachStep(ReformDofSetAtEachStep),
+            mCalculateNormDxFlag(CalculateNormDxFlag),
+            mCalculateReactionsFlag(CalculateReactionFlag)
     {
         KRATOS_TRY
 
-        mCalculateReactionsFlag = CalculateReactionFlag;
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-        mCalculateNormDxFlag = CalculateNormDxFlag;
-
-        // Saving the scheme
-        mpScheme = pScheme;
-
-        // Setting up the  builder and solver
-        mpBuilderAndSolver = pNewBuilderAndSolver;
-
         // We check if the linear solver considered for the builder and solver is consistent
         auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
-        if (p_linear_solver != pNewLinearSolver) {
-            KRATOS_WARNING("ResidualBasedLinearStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
-        }
+        KRATOS_WARNING_IF("ResidualBasedLinearStrategy", p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
 
         // Set flag to start correcty the calculations
         mSolutionStepIsInitialized = false;
