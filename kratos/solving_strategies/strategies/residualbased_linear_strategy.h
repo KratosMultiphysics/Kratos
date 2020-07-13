@@ -132,13 +132,14 @@ public:
         // Saving the scheme
         mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
 
-        // Saving the linear solver
-        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
-
         // Setting up the default builder and solver
         const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
         if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
-            mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
+            // Defining the linear solver
+            auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+            // Defining the builder and solver
+            mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
         } else {
             KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
                             "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
