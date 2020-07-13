@@ -224,9 +224,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // We check if the linear solver considered for the builder and solver is consistent
         auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
-        if (p_linear_solver != pNewLinearSolver) {
-            KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
-        }
+        KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
 
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
