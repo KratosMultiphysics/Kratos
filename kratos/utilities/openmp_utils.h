@@ -95,19 +95,6 @@ public:
 #endif
     }
 
-    /// Wrapper for omp_in_parallel().
-    /**
-     @return Current task in enclosed in a parallel region
-     */
-    static int IsInParallel()
-    {
-#ifdef _OPENMP
-        return omp_in_parallel();
-#else
-        return 1;
-#endif
-    }
-
     /// Wrapper for omp_get_dynamic().
     /**
      @return Dynamic teams are enabled.
