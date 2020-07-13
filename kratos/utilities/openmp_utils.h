@@ -69,6 +69,70 @@ public:
 #endif
     }
 
+    /// Wrapper for omp_get_num_threads().
+    /**
+     @return Number of OpenMP threads in the current team.
+     */
+    static int GetCurrentNumberOfThreads()
+    {
+#ifdef _OPENMP
+        return omp_get_num_threads();
+#else
+        return 1;
+#endif
+    }
+
+    /// Wrapper for omp_get_num_procs().
+    /**
+     @return Number of processors available to the device.
+     */
+    static int GetNumberOfProcessors()
+    {
+#ifdef _OPENMP
+        return omp_get_num_procs();
+#else
+        return 1;
+#endif
+    }
+
+    /// Wrapper for omp_in_parallel().
+    /**
+     @return Current task in enclosed in a parallel region
+     */
+    static int IsInParallel()
+    {
+#ifdef _OPENMP
+        return omp_in_parallel();
+#else
+        return 1;
+#endif
+    }
+
+    /// Wrapper for omp_get_dynamic().
+    /**
+     @return Dynamic teams are enabled.
+     */
+    static int IsDynamic()
+    {
+#ifdef _OPENMP
+        return omp_get_dynamic();
+#else
+        return 1;
+#endif
+    }
+
+    /// Wrapper for omp_get_nested().
+    /**
+     @return Current task in enclosed in a parallel region.
+     */
+    static int IsNested()
+    {
+#ifdef _OPENMP
+        return omp_get_nested();
+#else
+        return 1;
+#endif
+    }
 
     /// Wrapper for omp_get_thread_num().
     /**
@@ -128,12 +192,18 @@ public:
         const int NumThreads,
         PartitionVector& Partitions)
     {
+#ifdef _OPENMP
         Partitions.resize(NumThreads + 1);
         int PartitionSize = NumTerms / NumThreads;
         Partitions[0] = 0;
         Partitions[NumThreads] = NumTerms;
         for(int i = 1; i < NumThreads; i++)
             Partitions[i] = Partitions[i-1] + PartitionSize ;
+#else
+        Partitions.resize(2);
+        Partitions[0] = 0;
+        Partitions[1] = NumTerms;
+#endif
     }
 
     /// Generate a partition for an std::vector-like array, providing iterators to the begin and end positions for each thread.
