@@ -7,7 +7,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wra
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
-class StructuralMechanicsAnalysis(AnalysisStage):
+class StructuralMechanicsAdjointDynamicAnalysis(AnalysisStage):
     """
     This class is the main-script of the StructuralMechanicsApplication put in a class
 
@@ -32,6 +32,20 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if not solver_settings.Has("domain_size"):
             raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the domain_size, this was removed!")
 
+        if not project_parameters["problem_data"].Has("end_time"):
+            project_parameters["problem_data"].AddEmptyValue("end_time")
+            project_parameters["problem_data"]["end_time"].SetDouble( \
+                            project_parameters["problem_data"]["start_step"].GetDouble() + \
+                            project_parameters["problem_data"]["nsteps"].GetInt()*solver_settings["time_stepping"]["time_step"].GetDouble()
+                        )
+        
+        if not project_parameters["problem_data"].Has("start_time"):
+            project_parameters["problem_data"].AddEmptyValue("start_time")
+            project_parameters["problem_data"]["start_time"].SetDouble( \
+                            project_parameters["problem_data"]["start_step"].GetDouble() \
+                            )
+        self.number_of_steps = project_parameters["problem_data"]["nsteps"].GetInt()
+    
         # Detect is a contact problem
         # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
         solver_settings = project_parameters["solver_settings"]
@@ -46,11 +60,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 solver_settings.AddEmptyValue("use_computing_model_part").SetBool(True)
 
 
-        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super(StructuralMechanicsAdjointDynamicAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(StructuralMechanicsAnalysis, self).Initialize()
+        super(StructuralMechanicsAdjointDynamicAnalysis, self).Initialize()
+
+        # dummy time step to correctly calculate DELTA_TIME
+        self._GetSolver().main_model_part.CloneTimeStep(self.time)
 
         # In case of contact problem
         if self.contact_problem:
@@ -58,6 +75,18 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             # To avoid many prints
             if self.echo_level == 0:
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
+    def RunSolutionLoop(self):
+        """Note that the adjoint problem is solved in reverse time
+        """
+        for step in range(self.number_of_steps):
+            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.InitializeSolutionStep()
+            self._GetSolver().Predict()
+            is_converged = self._GetSolver().SolveSolutionStep()
+            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
@@ -78,11 +107,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
-        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
+        super(StructuralMechanicsAdjointDynamicAnalysis, self).OutputSolutionStep()
 
 
     def Check(self):
-        super(StructuralMechanicsAnalysis, self).Check()
+        super(StructuralMechanicsAdjointDynamicAnalysis, self).Check()
 
         # performing some checks if the submodelparts used for the processes and
         # the material-assignments are being added to the ComputingModelPart
@@ -154,7 +183,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super(StructuralMechanicsAdjointDynamicAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
@@ -208,5 +237,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model, parameters)
+    simulation = StructuralMechanicsAdjointDynamicAnalysis(model, parameters)
     simulation.Run()
