@@ -869,19 +869,11 @@ namespace MPMSearchElementUtility
         GeometryType::Pointer pGeometry,
         const double Tolerance)
     {
-        if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
-        {
-            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM))
-            {
-                array_1d<double, 3> local_coords;
-                pGeometry->IsInside(rCoordinates, local_coords, Tolerance);
-                return PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, rCoordinates,
-                    local_coords, rMasterMaterialPoint, *pGeometry, Tolerance);
-            }
-        }
-        return  CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                pGeometry, rCoordinates,
-                rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+
+        array_1d<double, 3> local_coords;
+        pGeometry->IsInside(rCoordinates, local_coords, Tolerance);
+        return PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, rCoordinates,
+            local_coords, rMasterMaterialPoint, *pGeometry, Tolerance);
     }
 
 
@@ -904,18 +896,21 @@ namespace MPMSearchElementUtility
 
             if (is_found)
             {
-                //TODO here
                 const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
                     ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
-                auto p_new_geometry = (is_pqmpm)
-                    ? PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0],
-                        local_coordinates , *element_itr, r_found_geom, Tolerance)
-                    : CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                        r_found_geom, local_coordinates,
-                        element_itr->GetGeometry().IntegrationPoints()[0].Weight());
-                //CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                //    element_itr->pGetGeometry(), local_coordinates,
-                //    element_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
+                if (is_pqmpm)
+                {
+                    auto p_new_geometry = PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0],
+                        local_coordinates, *element_itr, r_found_geom, Tolerance);
+                    // Update geometry of particle element
+                    element_itr->SetGeometry(p_new_geometry);
+                }
+                else
+                {
+                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        element_itr->pGetGeometry(), local_coordinates,
+                        element_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
+                }
 
                 if (IsExplicitAndNeedsCorrection(element_itr->pGetGeometry(), rBackgroundGridModelPart.GetProcessInfo()))
                     is_found = false;
@@ -1042,16 +1037,24 @@ namespace MPMSearchElementUtility
                     }
                     pelem->Set(ACTIVE);
 
-                    //TODO here
-                    //auto p_new_geometry = CreateQuadraturePointForBinSearch(rBackgroundGridModelPart, xg[0],
-                    //    *element_itr, pelem->pGetGeometry(), Tolerance);
-
-                    auto p_quadrature_point_geometry = element_itr->pGetGeometry();
-                    array_1d<double, 3> local_coordinates;
-                    p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
-                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                        p_quadrature_point_geometry, local_coordinates,
-                        p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
+                    const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
+                        ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
+                    if (is_pqmpm)
+                    {
+                        auto p_new_geometry = CreateQuadraturePointForBinSearch(rBackgroundGridModelPart, xg[0],
+                            *element_itr, pelem->pGetGeometry(), Tolerance);
+                        // Update geometry of particle element
+                        element_itr->SetGeometry(p_new_geometry);
+                    }
+                    else
+                    {
+                        auto p_quadrature_point_geometry = element_itr->pGetGeometry();
+                        array_1d<double, 3> local_coordinates;
+                        p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                            p_quadrature_point_geometry, local_coordinates,
+                            p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
+                    }
 
                     auto& r_geometry = element_itr->GetGeometry();
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
