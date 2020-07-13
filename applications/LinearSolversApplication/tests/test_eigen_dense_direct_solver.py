@@ -4,7 +4,7 @@ import KratosMultiphysics
 
 import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.EigenSolversApplication import dense_linear_solver_factory
+from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
 
 class TestEigenDenseDirectSolver(KratosUnittest.TestCase):
     def _real_eq_system(self):

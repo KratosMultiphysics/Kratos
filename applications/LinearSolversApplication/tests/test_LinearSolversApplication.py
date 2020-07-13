@@ -1,6 +1,5 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
