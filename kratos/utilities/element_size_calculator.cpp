@@ -151,15 +151,15 @@ double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &r
     const Node<3>& r_node_5 = rGeometry[5];
 
     // Calculate face centers (top and bottom face)
-    double one_third = 1.0/3.0;
-    array_1d<double,3> low_dseta = one_third * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_2.Coordinates() );
-    array_1d<double,3> high_dseta = one_third * (r_node_3.Coordinates() + r_node_4.Coordinates() + r_node_5.Coordinates() );
+    const double one_third = 1.0/3.0;
+    const array_1d<double,3> low_dseta = one_third * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_2.Coordinates() );
+    const array_1d<double,3> high_dseta = one_third * (r_node_3.Coordinates() + r_node_4.Coordinates() + r_node_5.Coordinates() );
 
     // Calculate node-edge distances (top face)
-    double x10 = r_node_1.X() - r_node_0.X();
-    double y10 = r_node_1.Y() - r_node_0.Y();
-    double x20 = r_node_2.X() - r_node_0.X();
-    double y20 = r_node_2.Y() - r_node_0.Y();
+    const double x10 = r_node_1.X() - r_node_0.X();
+    const double y10 = r_node_1.Y() - r_node_0.Y();
+    const double x20 = r_node_2.X() - r_node_0.X();
+    const double y20 = r_node_2.Y() - r_node_0.Y();
 
     // node 0, edge 12
     double nx = -(y20-y10);
@@ -182,10 +182,10 @@ double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &r
     Hsq = ( hsq < Hsq ) ? hsq : Hsq;
 
     // Calculate distance between the face centers (dseta direction)
-    array_1d<double,3> d_dseta = high_dseta - low_dseta;
-    double h2_dseta = d_dseta[0]*d_dseta[0] + d_dseta[1]*d_dseta[1] + d_dseta[2]*d_dseta[2];
+    const array_1d<double,3> d_dseta = high_dseta - low_dseta;
+    const double h2_dseta = d_dseta[0]*d_dseta[0] + d_dseta[1]*d_dseta[1] + d_dseta[2]*d_dseta[2];
 
-    double h2 = h2_dseta < Hsq?h2_dseta:Hsq;
+    const double h2 = h2_dseta < Hsq?h2_dseta:Hsq;
 
     return std::sqrt(h2);
 }
