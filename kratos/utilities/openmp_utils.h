@@ -69,6 +69,44 @@ public:
 #endif
     }
 
+    /// Wrapper for omp_get_num_threads().
+    /**
+     @return Number of OpenMP threads in the current team.
+     */
+    static int GetCurrentNumberOfThreads()
+    {
+#ifdef _OPENMP
+        return omp_get_num_threads();
+#else
+        return 1;
+#endif
+    }
+
+    /// Wrapper for omp_get_num_procs().
+    /**
+     @return Number of processors available to the device.
+     */
+    static int GetNumberOfProcessors()
+    {
+#ifdef _OPENMP
+        return omp_get_num_procs();
+#else
+        return 1;
+#endif
+    }
+
+    /// Wrapper for omp_get_dynamic().
+    /**
+     @return Dynamic teams are enabled.
+     */
+    static int IsDynamic()
+    {
+#ifdef _OPENMP
+        return omp_get_dynamic();
+#else
+        return 0;
+#endif
+    }
 
     /// Wrapper for omp_get_thread_num().
     /**
