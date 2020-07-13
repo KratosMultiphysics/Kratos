@@ -32,65 +32,69 @@ void Timer::TimerData::PrintData(
         if(GlobalElapsedTime <= 0.0) {
             rOStream.precision(6);
             rOStream
+            << std::setw(4)
+            << std::defaultfloat
             << mRepeatNumber
             << "\t\t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMaximumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMinimumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime/static_cast<double>(mRepeatNumber)
-            << "s    \t" ;
+            << "     \t" ;
         } else {
             rOStream.precision(6);
             rOStream
+            << std::setw(4)
+            << std::defaultfloat
             << mRepeatNumber
             << "\t\t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMaximumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMinimumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime/static_cast<double>(mRepeatNumber)
-            << "s    \t"
-            << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << "     \t"
+            << std::fixed
+            << std::setprecision(3)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(3)
             << (mTotalElapsedTime/GlobalElapsedTime)*100.00 << "%" ;
         }
     }
@@ -187,19 +191,19 @@ void Timer::PrintIntervalInformation(std::ostream& rOStream, std::string const& 
     rOStream.precision(6);
     rOStream << " "
     << std::setiosflags(std::ios::scientific)
-    << std::setprecision(6)
+    << std::setprecision(4)
     << std::uppercase
-    << std::setw(6)
+    << std::setw(4)
     << StartTime << "s\t\t"
     << std::setiosflags(std::ios::scientific)
-    << std::setprecision(6)
+    << std::setprecision(4)
     << std::uppercase
-    << std::setw(6)
+    << std::setw(4)
     << StopTime << "s\t\t"
     << std::setiosflags(std::ios::scientific)
-    << std::setprecision(6)
+    << std::setprecision(4)
     << std::uppercase
-    << std::setw(6)
+    << std::setw(4)
     << StopTime - StartTime <<"s" << std::endl;
 }
 
@@ -213,11 +217,21 @@ void Timer::PrintTimingInformation()
 
 void Timer::PrintTimingInformation(std::ostream& rOStream)
 {
+    std::size_t max_string_length = 40;
+    for(auto& r_time_data : msTimeTable) {
+        if (r_time_data.first.size() > max_string_length) {
+            max_string_length = r_time_data.first.size();
+        }
+    }
     const double global_elapsed_time = ElapsedSeconds(mStartTime);
-    rOStream << "                                 Repeat #\t\tTotal           \tMax             \tMin             \tAverage           \tTime%" << std::endl;
+    std::string header = "   Repeat #\t\tTotal       \tMax         \tMin         \tAverage       \tTime%";
+    for (std::size_t i = 0; i < max_string_length - 6; i++) {
+        header.insert(0, " ");
+    }
+    rOStream << header << std::endl;
     for(auto& r_time_data : msTimeTable) {
         rOStream << r_time_data.first;
-        for(int i =  r_time_data.first.size() + 1 ; i < 40 ; i++)
+        for(int i =  r_time_data.first.size() ; i < static_cast<int>(max_string_length) ; i++)
             rOStream << ".";
 
         rOStream << " ";

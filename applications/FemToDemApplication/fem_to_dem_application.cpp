@@ -50,7 +50,21 @@ mTotalLagrangianVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Te
 mTotalLagrangianTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
 mTotalLagrangianTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
 mTotalLagrangianMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))))
+mTotalLagrangianMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))))
 {}
 
 void KratosFemToDemApplication::Register()
@@ -66,13 +80,14 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RELAXED_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FSI_INTERFACE_RESIDUAL)
 
+    KRATOS_REGISTER_VARIABLE(HARDENING_MODULUS)
     KRATOS_REGISTER_VARIABLE(PRESSURE_VOLUME)
     KRATOS_REGISTER_VARIABLE(PRESSURE_INITIAL_VOLUME)
     KRATOS_REGISTER_VARIABLE(DEM_PARTICLE_POINTER)
     KRATOS_REGISTER_VARIABLE(FRAGILE)
     KRATOS_REGISTER_VARIABLE(VOLUME_COUNTED)
     KRATOS_REGISTER_VARIABLE(ERASED_VOLUME)
-    KRATOS_REGISTER_VARIABLE(COHESION)
+    KRATOS_REGISTER_VARIABLE(COHESION_MC)
     KRATOS_REGISTER_VARIABLE(RECOMPUTE_NEIGHBOURS)
     KRATOS_REGISTER_VARIABLE(GENERATE_DEM)
     KRATOS_REGISTER_VARIABLE(DISPLACEMENT_INCREMENT)
@@ -122,20 +137,23 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_VECTOR);
 
     // Composite
-    KRATOS_REGISTER_VARIABLE(CONCRETE_STRESS_TENSOR);
-    KRATOS_REGISTER_VARIABLE(STEEL_STRESS_TENSOR);
-    KRATOS_REGISTER_VARIABLE(CONCRETE_STRESS_VECTOR);
-    KRATOS_REGISTER_VARIABLE(STEEL_STRESS_VECTOR);
-    KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS_STEEL);
-    KRATOS_REGISTER_VARIABLE(DENSITY_STEEL);
-    KRATOS_REGISTER_VARIABLE(POISSON_RATIO_STEEL);
-    KRATOS_REGISTER_VARIABLE(STEEL_VOLUMETRIC_PART);
-    KRATOS_REGISTER_VARIABLE(CONCRETE_STRESS_TENSOR_INTEGRATED);
+    KRATOS_REGISTER_VARIABLE(PLASTIC_UNIAXIAL_STRESS);
+    KRATOS_REGISTER_VARIABLE(MATRIX_STRESS_TENSOR);
+    KRATOS_REGISTER_VARIABLE(FIBER_STRESS_TENSOR);
+    KRATOS_REGISTER_VARIABLE(MATRIX_STRESS_VECTOR);
+    KRATOS_REGISTER_VARIABLE(FIBER_STRESS_VECTOR);
+    KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS_FIBER);
+    KRATOS_REGISTER_VARIABLE(DENSITY_FIBER);
+    KRATOS_REGISTER_VARIABLE(POISSON_RATIO_FIBER);
+    KRATOS_REGISTER_VARIABLE(FIBER_VOLUMETRIC_PART);
+    KRATOS_REGISTER_VARIABLE(MATRIX_STRESS_TENSOR_INTEGRATED);
+    KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_VECTOR);
+    KRATOS_REGISTER_VARIABLE(MAX_PLASTIC_STRAIN);
 
-    KRATOS_REGISTER_VARIABLE(YIELD_STRESS_C_STEEL);
-    KRATOS_REGISTER_VARIABLE(YIELD_STRESS_T_STEEL);
-    KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_STEEL);
-    KRATOS_REGISTER_VARIABLE(PLASTIC_DISSIPATION_CAPAP);
+    KRATOS_REGISTER_VARIABLE(YIELD_STRESS_C_FIBER);
+    KRATOS_REGISTER_VARIABLE(YIELD_STRESS_T_FIBER);
+    KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_FIBER);
+    KRATOS_REGISTER_VARIABLE(ACUMULATED_PLASTIC_STRAIN);
     KRATOS_REGISTER_VARIABLE(EQUIVALENT_STRESS_VM);
     KRATOS_REGISTER_VARIABLE(NODAL_DAMAGE);
     KRATOS_REGISTER_VARIABLE(IS_TAKEN);
@@ -179,6 +197,21 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_ELEMENT("TotalLagrangianTrescaFemDemElement3D", mTotalLagrangianTrescaFemDemElement3D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMohrCoulombFemDemElement2D", mTotalLagrangianMohrCoulombFemDemElement2D)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMohrCoulombFemDemElement3D", mTotalLagrangianMohrCoulombFemDemElement3D)
+
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesModifiedMohrCoulombFemDemElement2D", mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesModifiedMohrCoulombFemDemElement3D", mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement3D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesRankineFemDemElement2D", mTotalLagrangianMixturesRankineFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesRankineFemDemElement3D", mTotalLagrangianMixturesRankineFemDemElement3D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesSimoJuFemDemElement2D", mTotalLagrangianMixturesSimoJuFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesSimoJuFemDemElement3D", mTotalLagrangianMixturesSimoJuFemDemElement3D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesDruckerPragerFemDemElement2D", mTotalLagrangianMixturesDruckerPragerFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesDruckerPragerFemDemElement3D", mTotalLagrangianMixturesDruckerPragerFemDemElement3D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesVonMisesFemDemElement2D", mTotalLagrangianMixturesVonMisesFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesVonMisesFemDemElement3D", mTotalLagrangianMixturesVonMisesFemDemElement3D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesTrescaFemDemElement2D", mTotalLagrangianMixturesTrescaFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesTrescaFemDemElement3D", mTotalLagrangianMixturesTrescaFemDemElement3D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesMohrCoulombFemDemElement2D", mTotalLagrangianMixturesMohrCoulombFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianMixturesMohrCoulombFemDemElement3D", mTotalLagrangianMixturesMohrCoulombFemDemElement3D)
 
     //Register Constitutive Laws
     Serializer::Register("ElasticIsotropic3D", mElasticIsotropic3D);

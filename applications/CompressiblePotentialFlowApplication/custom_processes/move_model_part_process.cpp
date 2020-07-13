@@ -66,7 +66,7 @@ void MoveModelPartProcess::Execute()
             // X-Y plane rotation
             r_coordinates[0] = mRotationPoint[0]+cos(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
                             sin(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
-            r_coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
+            r_coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])+
                             cos(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
         }
     }

@@ -24,54 +24,10 @@ from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
 
-# =======================================================================================================
-# Define external analyzer
-# =======================================================================================================
-
-class CustomAnalyzer(AnalyzerBaseClass):
-
-    # --------------------------------------------------------------------------------------------------
-    def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
-        if communicator.isRequestingValueOf("targetDeviation"):
-            communicator.reportValue("targetDeviation", self.__ObjectiveFunction(current_design))
-
-        if communicator.isRequestingGradientOf("targetDeviation"):
-            communicator.reportGradient("targetDeviation", self.__ObjectiveGradient(current_design))
-
-    # --------------------------------------------------------------------------------------------------
-    def __ObjectiveFunction(self, current_design):
-        """ Returns the objective function to be minimized """
-        objective = 0.0
-        for node in current_design.Nodes:
-            objective = objective + abs(self.__TentFunction(node.X) - node.Z)
-        return objective
-
-    # --------------------------------------------------------------------------------------------------
-    def __ObjectiveGradient(self, current_design):
-        """ Returns the gradient of the objective function """
-        sensitivity = dict()
-        for node in current_design.Nodes:
-            delta = node.Z - self.__TentFunction(node.X)
-            if abs(delta) == 0.0:
-                sz = 0.0
-            else:
-                sz = delta / abs(delta)
-            sensitivity[node.Id] = [0.0, 0.0, sz]
-        return sensitivity
-
-    # --------------------------------------------------------------------------------------------------
-    @staticmethod
-    def __TentFunction(x):
-        """ Defines the target curve z=__TentFunction(x) """
-        if x <= 15.0:
-            return 0.0
-        elif x<= 20.0:
-            return (x - 15.0) / 5.0
-        elif x <= 25.0:
-            return 1.0 - (x - 20.0) / 5.0
-        else:
-            return 0.0
-
+try:
+    from .tent_analyzer import CustomAnalyzer
+except ImportError:
+    from tent_analyzer import CustomAnalyzer
 # =======================================================================================================
 # Perform optimization
 # =======================================================================================================
@@ -89,13 +45,9 @@ optimizer.Optimize()
 # =======================================================================================================
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
 optimization_log_filename = parameters["optimization_settings"]["output"]["optimization_log_filename"].GetString() + ".csv"
-optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 
 # Testing
-original_directory = os.getcwd()
-os.chdir(output_directory)
-
-with open(optimization_log_filename, 'r') as csvfile:
+with open(os.path.join(output_directory, optimization_log_filename), 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     last_line = None
     for line in reader:
@@ -110,13 +62,5 @@ with open(optimization_log_filename, 'r') as csvfile:
     # Check against specifications
     TestCase().assertEqual(resulting_optimization_iterations, 124)
     TestCase().assertAlmostEqual(resulting_improvement, -90.2284, 4)
-
-os.chdir(original_directory)
-
-# Cleaning
-kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
 
 # =======================================================================================================

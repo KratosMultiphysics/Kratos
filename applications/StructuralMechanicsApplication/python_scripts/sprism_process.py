@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -46,7 +44,7 @@ class SPRISMProcess(KM.Process):
                 "number_of_layers"                     : 1,
                 "export_to_mdpa"                       : false,
                 "output_name"                          : "output",
-                "computing_model_part_name"            : "computing_domain",
+                "computing_model_part_name"            : "",
                 "create_submodelparts_external_layers" : false,
                 "append_submodelparts_external_layers" : false,
                 "initialize_elements"                  : false
@@ -75,24 +73,11 @@ class SPRISMProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        # If explicit simulation we set the variable EXPLICIT_RHS_COMPUTATION
-        if self.settings["preprocess_shell_to_solidshell"].GetBool():
-            for prop in self.solid_shell_model_part.GetProperties():
-                prop.SetValue(SMA.EXPLICIT_RHS_COMPUTATION, True)
-
         # We preprocess from triangle shells to SPRISM solid-shells
         if self.settings["preprocess_shell_to_solidshell"].GetBool():
-            parameters_shell_to_solidshell = KM.Parameters("""{}""")
-            parameters_shell_to_solidshell.AddValue("element_name", self.settings["parameters_shell_to_solidshell"]["element_name"])
-            parameters_shell_to_solidshell.AddValue("new_constitutive_law_name", self.settings["parameters_shell_to_solidshell"]["new_constitutive_law_name"])
+            parameters_shell_to_solidshell = KM.Parameters(self.settings["parameters_shell_to_solidshell"])
             parameters_shell_to_solidshell.AddValue("model_part_name", self.settings["model_part_name"])
-            parameters_shell_to_solidshell.AddValue("number_of_layers", self.settings["parameters_shell_to_solidshell"]["number_of_layers"])
-            parameters_shell_to_solidshell.AddValue("export_to_mdpa", self.settings["parameters_shell_to_solidshell"]["export_to_mdpa"])
-            parameters_shell_to_solidshell.AddValue("output_name", self.settings["parameters_shell_to_solidshell"]["output_name"])
-            parameters_shell_to_solidshell.AddValue("computing_model_part_name", self.settings["parameters_shell_to_solidshell"]["computing_model_part_name"])
-            parameters_shell_to_solidshell.AddValue("create_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["create_submodelparts_external_layers"])
-            parameters_shell_to_solidshell.AddValue("append_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["append_submodelparts_external_layers"])
-            parameters_shell_to_solidshell.AddValue("initialize_elements", self.settings["parameters_shell_to_solidshell"]["initialize_elements"])
+            parameters_shell_to_solidshell["model_part_name"].SetString(self.solid_shell_model_part.Name)
 
             preprocess_shell_to_solidshell = SMA.TriangleShellToSolidShellProcess(self.main_model_part, parameters_shell_to_solidshell)
             preprocess_shell_to_solidshell.Execute()

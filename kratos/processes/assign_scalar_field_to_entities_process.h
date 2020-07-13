@@ -69,9 +69,6 @@ public:
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
 
-    /// The defition of a component of an array
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-
     /// Pointer definition of AssignScalarFieldToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToEntitiesProcess);
 

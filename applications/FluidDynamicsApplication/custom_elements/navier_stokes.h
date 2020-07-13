@@ -71,7 +71,7 @@ public:
     struct ElementDataStruct
     {
         BoundedMatrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
-        array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
+        array_1d<double,TNumNodes> p, pn, pnn;
 
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
@@ -88,6 +88,8 @@ public:
         double volume;        // In 2D: element area. In 3D: element volume
         double dt;            // Time increment
         double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
+        double mu;            // Dynamic viscosity
+        double rho;           // Density
     };
 
     ///@}
@@ -403,6 +405,11 @@ protected:
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
 
+        // Material properties
+        const auto& r_prop = GetProperties();
+        rData.rho = r_prop.GetValue(DENSITY);
+        rData.mu = r_prop.GetValue(DYNAMIC_VISCOSITY);
+
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
 
@@ -424,8 +431,6 @@ protected:
             rData.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
             rData.pn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
             rData.pnn[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
-            rData.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            rData.mu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
         }
 
     }

@@ -76,7 +76,7 @@ public:
     struct EmbeddedAusasElementDataStruct {
 
         BoundedMatrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
-        array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
+        array_1d<double,TNumNodes> p, pn, pnn;
 
         array_1d<double, TNumNodes>                 N;        // Shape functions values on Gauss pt. container
         BoundedMatrix<double, TNumNodes, TDim>     DN_DX;    // Shape functions gradients values on Gauss pt. container
@@ -93,6 +93,8 @@ public:
         double volume;        // In 2D: element area. In 3D: element volume
         double dt;            // Time increment
         double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
+        double mu;            // Dynamic viscosity
+        double rho;           // Density
 
         // No splitted elements geometry data containers
         VectorType                      w_gauss;       // No splitted element Gauss pts. weights values
@@ -447,11 +449,11 @@ protected:
         // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
         const array_1d<double,3> zero_vel = ZeroVector(3);
         for (auto &r_node : this->GetGeometry()) {
+            r_node.SetLock();
             if (!r_node.Has(EMBEDDED_VELOCITY)) {
-                r_node.SetLock();
                 r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
-                r_node.UnSetLock();
             }
+            r_node.UnSetLock();
         }
 
         KRATOS_CATCH("");
@@ -480,6 +482,11 @@ protected:
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];      // Wave velocity
 
+        // Material properties
+        const auto& r_prop = GetProperties();
+        rData.rho = r_prop.GetValue(DENSITY);
+        rData.mu = r_prop.GetValue(DYNAMIC_VISCOSITY);
+
         for (unsigned int i = 0; i < TNumNodes; i++) {
 
             const array_1d<double,3>& body_force = r_geom[i].FastGetSolutionStepValue(BODY_FORCE);
@@ -499,8 +506,6 @@ protected:
             rData.p[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE);
             rData.pn[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE,1);
             rData.pnn[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE,2);
-            rData.rho[i] = r_geom[i].FastGetSolutionStepValue(DENSITY);
-            rData.mu[i] = r_geom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
         }
 
         // Getting the nodal distances vector
@@ -1107,26 +1112,18 @@ protected:
         }
 
         // Compute the element average values
-        double avg_rho = 0.0;
-        double avg_visc = 0.0;
         array_1d<double, TDim> avg_vel = ZeroVector(TDim);
-
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            avg_rho += rData.rho(i_node);
-            avg_visc += rData.mu(i_node);
             avg_vel += row(rData.v, i_node);
         }
-
-        avg_rho /= TNumNodes;
-        avg_visc /= TNumNodes;
         avg_vel /= TNumNodes;
 
         const double v_norm = norm_2(avg_vel);
 
         // Compute the penalty constant
-        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
-                                avg_visc*std::pow(rData.h,TDim-2) +
-                                avg_rho*v_norm*std::pow(rData.h, TDim-1);
+        const double pen_cons = rData.rho*std::pow(rData.h, TDim)/rData.dt +
+                                rData.mu*std::pow(rData.h,TDim-2) +
+                                rData.rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
         const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];

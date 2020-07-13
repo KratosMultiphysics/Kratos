@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural as structural_solvers
@@ -40,7 +38,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if self.contact_problem:
             if solver_settings.Has("use_computing_model_part"):
                 if not solver_settings["use_computing_model_part"].GetBool():
-                    KM.Logger.PrintInfo("StructuralMechanicsAnalysis", 'For a contact problem the "ComputingModelPart" has to be used for now! Switching to True')
+                    KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", 'For a contact problem the "ComputingModelPart" has to be used for now! Switching to True')
                     solver_settings["use_computing_model_part"].SetBool(True)
             else:
                 solver_settings.AddEmptyValue("use_computing_model_part").SetBool(True)

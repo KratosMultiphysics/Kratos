@@ -25,7 +25,8 @@ class MPMExplicitSolver(MPMSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method"   : "explicit",
             "scheme_type"   : "central_difference",
-            "stress_update" : "usf"
+            "stress_update" : "usf",
+            "is_fix_explicit_mp_on_grid_edge" : false
         }""")
         this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultSettings())
         return this_defaults
@@ -54,6 +55,10 @@ class MPMExplicitSolver(MPMSolver):
         # Check whether compressibility is considered
         is_compressible = self.settings["compressible"].GetBool()
         grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_COMPRESSIBLE, is_compressible)
+
+        # Check if we are fixing MPs that lie directly on the edge of grid elements
+        is_fix_explicit_mp_on_grid_edge = self.settings["is_fix_explicit_mp_on_grid_edge"].GetBool()
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_FIX_EXPLICIT_MP_ON_GRID_EDGE, is_fix_explicit_mp_on_grid_edge)
 
         # Setting the time integration schemes
         scheme_type = self.settings["scheme_type"].GetString()

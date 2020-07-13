@@ -98,6 +98,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( AdaptiveResidualBasedNewtonRaphsonStrategy );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+
+    typedef AdaptiveResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -121,16 +124,33 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-
     /*@} */
     /**@name Life Cycle
     */
     /*@{ */
 
+    /**
+     * @brief Default constructor
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters)
+    {
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
     /** Constructor.
     */
     AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -142,8 +162,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values
@@ -199,8 +218,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+    /**
+     * Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param ReductionFactor The factor of reduction
+     * @param IncreaseFactor The increase factor
+     * @param NumberOfCycles The number of cycles
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -213,8 +247,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values
@@ -333,6 +366,19 @@ public:
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
+
+    /**
+    * @brief Create method
+    * @param rModelPart The model part of the problem
+    * @param ThisParameters The configuration parameters
+    */
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -733,6 +779,15 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "adaptative_newton_raphson_strategy";
+    }
+
     /*@} */
     /**@name Operators
     */
@@ -753,8 +808,6 @@ public:
 
         return mA;
     }
-
-
 
     /*@} */
     /**@name Inquiry */
