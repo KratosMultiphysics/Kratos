@@ -179,18 +179,15 @@ public:
         const int NumThreads,
         PartitionVector& Partitions)
     {
-#ifdef _OPENMP
         Partitions.resize(NumThreads + 1);
         int PartitionSize = NumTerms / NumThreads;
         Partitions[0] = 0;
         Partitions[NumThreads] = NumTerms;
         for(int i = 1; i < NumThreads; i++)
             Partitions[i] = Partitions[i-1] + PartitionSize ;
-#else
         Partitions.resize(2);
         Partitions[0] = 0;
         Partitions[1] = NumTerms;
-#endif
     }
 
     /// Generate a partition for an std::vector-like array, providing iterators to the begin and end positions for each thread.
