@@ -121,19 +121,6 @@ public:
 #endif
     }
 
-    /// Wrapper for omp_get_nested().
-    /**
-     @return Current task in enclosed in a parallel region.
-     */
-    static int IsNested()
-    {
-#ifdef _OPENMP
-        return omp_get_nested();
-#else
-        return 1;
-#endif
-    }
-
     /// Wrapper for omp_get_thread_num().
     /**
      @return The thread number for this thread, 0 if scalar run.
