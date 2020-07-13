@@ -444,6 +444,7 @@ protected:
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
             const double initial_property_value = p_global_properties->GetValue(rMaterialParameter);
+            const double property_value_step_size = initial_property_value*mFiniteDifferenceStepSize;
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
@@ -451,7 +452,7 @@ protected:
             
             // Positive perturbation
             // perturb the variable
-            p_local_property->SetValue(rMaterialParameter, (initial_property_value + initial_property_value*mFiniteDifferenceStepSize));
+            p_local_property->SetValue(rMaterialParameter, (initial_property_value + property_value_step_size));
             // Compute element matrix after perturbation
             if (mDerivativeMatrixType)
                 rElement.CalculateMassMatrix(element_matrix_p_perturbed, rCurrentProcessInfo);
@@ -461,7 +462,7 @@ protected:
             // Give element original properties back
             rElement.SetProperties(p_global_properties);
 
-            noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_initial) / (mFiniteDifferenceStepSize);
+            noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_initial) / property_value_step_size;
         }
         KRATOS_CATCH("")
     }
@@ -483,6 +484,7 @@ protected:
             // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
             const double initial_property_value = rElement.GetProperties()[rMaterialParameter];
+            const double property_value_step_size = initial_property_value*mFiniteDifferenceStepSize;
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
@@ -490,7 +492,7 @@ protected:
             
             // Positive perturbation
             // perturb the variable
-            p_local_property->SetValue(rMaterialParameter, (initial_property_value + initial_property_value*mFiniteDifferenceStepSize));
+            p_local_property->SetValue(rMaterialParameter, (initial_property_value + property_value_step_size));
             // Compute element matrix after perturbation
             if (mDerivativeMatrixType)
                 rElement.CalculateMassMatrix(element_matrix_p_perturbed, rCurrentProcessInfo);
@@ -499,7 +501,7 @@ protected:
 
             // Negative perturbation
             // perturb the variable
-            p_local_property->SetValue(rMaterialParameter, (initial_property_value - initial_property_value*mFiniteDifferenceStepSize));
+            p_local_property->SetValue(rMaterialParameter, (initial_property_value - property_value_step_size));
             // Compute element matrix after perturbation
             if (mDerivativeMatrixType)
                 rElement.CalculateMassMatrix(element_matrix_n_perturbed, rCurrentProcessInfo);
@@ -509,7 +511,7 @@ protected:
             // Give element original properties back
             rElement.SetProperties(p_global_properties);
 
-            noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0*mFiniteDifferenceStepSize);
+            noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0*property_value_step_size);
 
         }
 
