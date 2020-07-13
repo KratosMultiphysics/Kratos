@@ -525,6 +525,7 @@ namespace Kratos
             py::class_< ResidualBasedLinearStrategyType, typename ResidualBasedLinearStrategyType::Pointer,BaseSolvingStrategyType >
                 (m,"ResidualBasedLinearStrategy")
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
+                .def(py::init < ModelPart& ,  BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
                 .def(py::init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
                 .def("GetScheme", &ResidualBasedLinearStrategyType::GetScheme)
                 .def("GetResidualNorm", &ResidualBasedLinearStrategyType::GetResidualNorm)
