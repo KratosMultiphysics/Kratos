@@ -145,7 +145,6 @@ protected:
     double mAlpha;
     double mHardeningRatio;
     double mPoreCrushPressure;
-    double mDensityInitial;
     double mCharacteristicLength;
 
 
@@ -166,10 +165,11 @@ protected:
 private:
 
     double CalculatePressureFromEOS(const Properties & rMaterialProperties,
-        const Matrix & rStrainNew, const Matrix & rStressOld);
+        const Matrix & rStrainNew, const Matrix & rStressOld,
+        Kratos::ConstitutiveLaw::Parameters& rValues);
 
     double CalculateDeviatoricSpecificEnergy(const Properties& rMaterialProperties,
-        const Matrix& rStrain, const Matrix& rStress);
+        const Matrix& rStrain, const Matrix& rStress, const double CurrentDensity);
 
     double CalculateElasticLimit(const double Pressure, const double LodeAngle,
         const array_1d<double, 2>& RateFactors, const double EPS, const Properties& rMaterialProperties);
@@ -220,7 +220,6 @@ private:
         rSerializer.save("mDamage", mDamage);
         rSerializer.save("mAlpha", mAlpha);
         rSerializer.save("mPoreCrushPressure", mPoreCrushPressure);
-        rSerializer.save("mDensityInitial", mDensityInitial);
         rSerializer.save("mCharacteristicLength", mCharacteristicLength);
     }
 
@@ -235,7 +234,6 @@ private:
         rSerializer.load("mDamage", mDamage);
         rSerializer.load("mAlpha", mAlpha);
         rSerializer.load("mPoreCrushPressure", mPoreCrushPressure);
-        rSerializer.load("mDensityInitial", mDensityInitial);
         rSerializer.load("mCharacteristicLength", mCharacteristicLength);
     }
 

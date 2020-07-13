@@ -74,7 +74,6 @@ namespace Kratos
 		mEquivalentPlasticStrain = 0.0;
 		mEquivalentPlasticStrainRate = 0.0;
 		mHardeningRatio = 0.0;
-		mDensityInitial = rMaterialProperties[DENSITY];
 		mCharacteristicLength = std::pow(rElementGeometry.GetValue(MP_VOLUME), (1.0 / WorkingSpaceDimension()));
 
 		KRATOS_CATCH("");
@@ -121,7 +120,7 @@ namespace Kratos
 		Matrix stress_deviatoric = stress_deviatoric_old + 2.0 * mat_props[SHEAR_MODULUS] * strain_increment_deviatoric;
 
 		// Calculate pressure from Equation of State
-		const double pressure = CalculatePressureFromEOS(mat_props, strain_new, stress);
+		const double pressure = CalculatePressureFromEOS(mat_props, strain_new, stress,rValues);
 
 		// Prepare elastic predictor
 		const double eff_stress_trial = std::sqrt(3.0 / 2.0 *
@@ -375,24 +374,25 @@ namespace Kratos
 
 
 	double RHTConcrete3DLaw::CalculatePressureFromEOS(const Properties& rMatProps,
-		const Matrix& rStrain, const Matrix& rStress)
+		const Matrix& rStrain, const Matrix& rStress,
+		Kratos::ConstitutiveLaw::Parameters& rValues)
 	{
 		KRATOS_TRY
 
-		// Compute pressure from RHT p-alpha EOS. Ref [2] (modified)
+			// Compute pressure from RHT p-alpha EOS. Ref [2] (modified)
 
+		const double current_density = rMatProps[DENSITY] / rValues.GetDeterminantF();
 		const double specific_energy_deviatoric =
-			CalculateDeviatoricSpecificEnergy(rMatProps, rStrain, rStress);
+			CalculateDeviatoricSpecificEnergy(rMatProps, rStrain, rStress, current_density);
 		const double strain_hydrostatic = MPMStressPrincipalInvariantsUtility::CalculateMatrixTrace(rStrain) / 3.0;
 
-		const SizeType iteration_limit = 500;
+		const SizeType iteration_limit = 100;
 		IndexType iteration = 1;
 		bool is_converged = false;
 		double pressure = mPressure;
-		double pressure_old = mPressure;
+		double pressure_old = pressure;
 		double alpha_trial;
 		double alpha_old = mAlpha;
-		const double tolerance = std::max(1e-3, std::abs(mPressure) / 1e6);
 
 		while (!is_converged)
 		{
@@ -407,27 +407,27 @@ namespace Kratos
 			alpha_trial = std::max(1.0, alpha_trial);
 			if (iteration > 1) alpha_trial = 0.5* (alpha_trial + alpha_old); // used to prevent stick-slipping in solving alpha
 
-			const double nu = alpha_trial * rMatProps[DENSITY] /
-				rMatProps[RHT_EOS_ALPHA0] / mDensityInitial - 1.0;
+			const double nu = alpha_trial * current_density /
+				rMatProps[RHT_EOS_ALPHA0] / rMatProps[DENSITY] - 1.0;
 
 			if (nu >= 0.0) {
 				// Compression
 				pressure = (rMatProps[RHT_EOS_B0] + nu * rMatProps[RHT_EOS_B1]) * alpha_trial *
-					rMatProps[DENSITY] * specific_energy_deviatoric + nu * rMatProps[RHT_EOS_A1]
+					current_density * specific_energy_deviatoric + nu * rMatProps[RHT_EOS_A1]
 					+ nu * nu * rMatProps[RHT_EOS_A2] + nu * nu * nu * rMatProps[RHT_EOS_A3];
 				pressure /= (1.0 - 1.5 * strain_hydrostatic * alpha_trial *
 					(rMatProps[RHT_EOS_B0] + nu * rMatProps[RHT_EOS_B1]));
 			}
 			else {
 				// Tension
-				pressure = rMatProps[RHT_EOS_B0] * alpha_trial * rMatProps[DENSITY] *
+				pressure = rMatProps[RHT_EOS_B0] * alpha_trial * current_density *
 					specific_energy_deviatoric + nu * rMatProps[RHT_EOS_T1]
 					+ nu * nu * rMatProps[RHT_EOS_T2];
 				pressure /= (1.0 - 1.5 * strain_hydrostatic * alpha_trial * rMatProps[RHT_EOS_B0]);
 			}
 			pressure /= alpha_trial;
 
-			if (std::abs(pressure-pressure_old) < tolerance)
+			if (std::abs(pressure-pressure_old) < 1e-3)
 			{
 				is_converged = true;
 				break;
@@ -441,7 +441,7 @@ namespace Kratos
 					<< "Pressure_old = " << pressure_old << "\n"
 					<< "Alpha_trial = " << alpha_trial << "\n"
 					<< "Alpha_old = " << alpha_old << "\n"
-					<< "Density = " << rMatProps[DENSITY] << "\n"
+					<< "Density = " << current_density << "\n"
 					<< "Error = " << (pressure - pressure_old) << "\n";
 				KRATOS_ERROR << "CalculatePressureFromEOS iteration limit exceeded\n";
 			}
@@ -459,13 +459,14 @@ namespace Kratos
 				(1.0 / rMatProps[RHT_EOS_NP]));
 
 		mPressure = pressure;
+
 		return pressure;
 
 		KRATOS_CATCH("");
 	}
 
 	double RHTConcrete3DLaw::CalculateDeviatoricSpecificEnergy(const Properties& rMaterialProperties,
-		const Matrix& rStrain, const Matrix& rStress)
+		const Matrix& rStrain, const Matrix& rStress, const double CurrentDensity)
 	{
 		KRATOS_TRY
 
@@ -486,7 +487,7 @@ namespace Kratos
 				deviatoric_specific_energy += stress_dev(i, j) * strain_dev(i, j);
 			}
 		}
-		deviatoric_specific_energy /= rMaterialProperties[DENSITY];
+		deviatoric_specific_energy /= (2.0*CurrentDensity);
 
 		return deviatoric_specific_energy;
 
