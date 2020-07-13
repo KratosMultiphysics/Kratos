@@ -155,7 +155,7 @@ public:
             KRATOS_ERROR << "\"derivative_parameter\": \"" << derivative_parameter << "\" is only available when \"derivative_type\" is selected to be \"dynamic\"" << std::endl;
 
         mDerivativeSubModelPartNames = InputParameters["sub_model_parts_list"].GetStringArray();
-        
+                
         mMassOrthonormalizeFlag = InputParameters["mass_orthonormalize"].GetBool();
         mComputeBasisDerivativesFlag = InputParameters["compute_basis_derivatives"].GetBool();
 
@@ -163,12 +163,13 @@ public:
     
         rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
 
+        std::size_t number_of_sub_model_parts = mDerivativeSubModelPartNames.size();
         if ( mDerivativeTypeFlag && mDerivativeParameterType == 0 )
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis*( mNumberInitialBasis + 1 ), true);
         else if ( !mDerivativeTypeFlag && mDerivativeParameterType == 0 )
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
         else if ( mDerivativeParameterType > 0 )
-            rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(2*mNumberInitialBasis);
+            rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize((1+number_of_sub_model_parts)*mNumberInitialBasis);
 
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -694,7 +695,7 @@ public:
                     TSparseSpace::SetToZero(rDx);
 
                 // Mass orthonormalization
-                if (mMassOrthonormalizeFlag)
+                if (mMassOrthonormalizeFlag && mComputeBasisDerivativesFlag)
                     this->MassOrthonormalize(rDx);
 
                 // Assign solution to ROM_BASIS
