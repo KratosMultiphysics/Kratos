@@ -184,7 +184,6 @@ public:
     explicit ResidualBasedLinearStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         bool CalculateReactionFlag = false,
         bool ReformDofSetAtEachStep = false,
@@ -198,10 +197,6 @@ public:
             mCalculateReactionsFlag(CalculateReactionFlag)
     {
         KRATOS_TRY
-
-        // We check if the linear solver considered for the builder and solver is consistent
-        auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
-        KRATOS_WARNING_IF("ResidualBasedLinearStrategy", p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
 
         // Set flag to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -219,6 +214,38 @@ public:
 
         // By default the matrices are rebuilt at each solution step
         BaseType::SetRebuildLevel(1);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param CalculateReactionFlag The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
+    explicit ResidualBasedLinearStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+        bool CalculateReactionFlag = false,
+        bool ReformDofSetAtEachStep = false,
+        bool CalculateNormDxFlag = false,
+        bool MoveMeshFlag = false
+        ) : ResidualBasedLinearStrategy(rModelPart, pScheme, pNewBuilderAndSolver, CalculateReactionFlag, ReformDofSetAtEachStep, CalculateNormDxFlag, MoveMeshFlag)
+    {
+        KRATOS_TRY
+
+        // We check if the linear solver considered for the builder and solver is consistent
+        auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
+        KRATOS_WARNING_IF("ResidualBasedLinearStrategy", p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
 
         KRATOS_CATCH("")
     }
