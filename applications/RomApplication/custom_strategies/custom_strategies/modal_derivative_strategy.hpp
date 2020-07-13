@@ -257,7 +257,6 @@ public:
         // if the preconditioner is saved between solves, it
         // should be cleared here.
         this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
-
         if (mpA != nullptr){
             TSparseSpace::Clear(mpA);
             mpA = nullptr;
@@ -269,10 +268,6 @@ public:
         if (mpMassMatrix != nullptr){
             TSparseSpace::Clear(mpMassMatrix);
             mpMassMatrix = nullptr;
-        }
-        if (mpA != nullptr){
-            TSparseSpace::Clear(mpA);
-            mpA = nullptr;
         }
         if (mpDx != nullptr)
         {
@@ -382,7 +377,7 @@ public:
      */
     void FinalizeSolutionStep() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         const int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
         KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
@@ -675,7 +670,6 @@ public:
 
                     if (TSparseSpace::TwoNorm(rb) != 0.00)
                     {
-                        KRATOS_WATCH(TSparseSpace::TwoNorm(rb))
                         // Compute particular solution
                         this->pGetBuilderAndSolver()->SystemSolve(rA, rDx, rb);
                         // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
@@ -770,7 +764,7 @@ public:
         ModelPart& r_model_part = BaseType::GetModelPart();
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
         TSystemVectorType basis;
-        TSparseSpace::Resize(basis, mpA->size1());
+        TSparseSpace::Resize(basis, rMassMatrix.size1());
         std::size_t current_basis_index = r_model_part.GetProcessInfo()[DERIVATIVE_INDEX];
 
         // Mass-Orthogonalization using modified Gram-Schmidt method
@@ -802,6 +796,8 @@ public:
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 
+        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+
         for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
             ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
             const std::size_t NumNodeDofs = NodeDofs.size();
@@ -811,7 +807,9 @@ public:
             auto itDof = std::begin(NodeDofs);
             for (std::size_t iDOF = 0; iDOF < NumNodeDofs; iDOF++)
             {
-                rBasis((*itDof)->EquationId()) = rRomBasis(iDOF,basis_index);
+                bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
+                if ((*itDof)->IsFree() && is_active)
+                    rBasis((*itDof)->EquationId()) = rRomBasis(iDOF,basis_index);
                 itDof++;
             }
         }

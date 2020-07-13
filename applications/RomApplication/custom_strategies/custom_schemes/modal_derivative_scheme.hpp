@@ -402,17 +402,23 @@ protected:
     // This function locks element nodes for finite differencing
     void LockElementNodes(Element& rElement)
     {
+        KRATOS_TRY
+
         // Loop over element nodes
         for (auto& node_i : rElement.GetGeometry()) 
             node_i.SetLock();
+
+        KRATOS_CATCH("")
     }
 
     // This function locks element nodes for finite differencing
     void UnlockElementNodes(Element& rElement)
     {
+        KRATOS_TRY
         // Loop over element nodes
         for (auto& node_i : rElement.GetGeometry()) 
             node_i.UnSetLock();
+        KRATOS_CATCH("")
     }
 
     void ForwardDifferencingWithMaterialParameter(
@@ -421,6 +427,7 @@ protected:
         const Variable<double>& rMaterialParameter,
         const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_TRY
 
         if ( rElement.GetProperties().Has(rMaterialParameter) )
         {
@@ -456,14 +463,16 @@ protected:
 
             noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_initial) / (mFiniteDifferenceStepSize);
         }
+        KRATOS_CATCH("")
     }
 
     void CentralDifferencingWithMaterialParameter(
         Element& rElement,
         LocalSystemMatrixType& rElementMatrixDerivative,
-        Variable<double>& rMaterialParameter,
+        const Variable<double>& rMaterialParameter,
         const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_TRY
 
         if ( rElement.GetProperties().Has(rMaterialParameter) )
         {
@@ -503,6 +512,8 @@ protected:
             noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0*mFiniteDifferenceStepSize);
 
         }
+
+        KRATOS_CATCH("")
         
     }
 
@@ -512,7 +523,7 @@ protected:
          const std::size_t basis_j,
          const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
@@ -539,7 +550,7 @@ protected:
         // Unlock element nodes
         this->UnlockElementNodes(rElement);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     void CentralDifferencingWithBasis(
@@ -548,7 +559,7 @@ protected:
          const std::size_t basis_j,
          const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
@@ -575,7 +586,7 @@ protected:
 
         this->UnlockElementNodes(rElement);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     // This function perturbs the element with the vector with given eigenvector index basis_j
@@ -586,6 +597,8 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
     )
     {
+        KRATOS_TRY
+
         // Initialize is necessary for updating the section properties of shell elements
         rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
         std::size_t disp_shifter = 3;
@@ -619,6 +632,8 @@ protected:
         
         // Finalize is necessary for updating the section properties of shell elements
         rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
     }
 
     ///@}
