@@ -74,8 +74,8 @@ void PerturbGeometryBaseProcess::ApplyRandomFieldVectorsToGeometry( ModelPart& r
 
         // Get normal direction of original model
         normal =  it_node_original->FastGetSolutionStepValue(NORMAL);
-        it_node_perturb->GetInitialPosition().Coordinates() += normal*random_field[i];
-
+        noalias(it_node_perturb->GetInitialPosition().Coordinates()) += normal*random_field[i];
+        noalias(it_node_perturb->Coordinates()) += normal*random_field[i];
         //For visualization
         // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_X) += normal(0)*random_field[i];
         // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Y) += normal(1)*random_field[i];

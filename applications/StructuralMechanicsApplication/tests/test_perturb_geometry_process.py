@@ -7,10 +7,10 @@ from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_p
 from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_process import PerturbGeometrySubgridProcess
 
 try:
-    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
-    eigen_solvers_is_available = True
+    import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
+    linear_solvers_is_available = True
 except ImportError:
-    eigen_solvers_is_available = False
+    linear_solvers_is_available = False
 
 import numpy as np
 
@@ -36,6 +36,7 @@ class SubgridProcessCustom(PerturbGeometrySubgridProcess):
 # This test generates a random field for a sqaure plate with 5x5 nodes with the sparse and the subgrid method
 # The test is passed when the first perturbation vectors from both models are equal
 class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
+    ''' Base class of the test '''
     @classmethod
     def _add_dofs(cls, mp):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, mp)
@@ -93,7 +94,7 @@ class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
         self.assertLess( np.sqrt(sum), 1.0e-10)
 
 class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
-    @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
+    @KratosUnittest.skipUnless(linear_solvers_is_available,"LinearSolversApplication not available")
     def test_perturb_geometry_process(self):
         num_of_nodes_per_egde = 5
         length = 1000

@@ -7,14 +7,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 from KratosMultiphysics import eigen_solver_factory
 
 import numpy as np
-# def Factory(settings, Model):
-#     if(type(settings) != KratosMultiphysics.Parameters):
-#         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-#     return PerturbGeometrySparseProcessPython(Model, settings["Parameters"])
 
 class PerturbGeometrySparseProcess(KratosMultiphysics.Process):
     """A process to perturb the initial geometry of a structure based on a sparse correlation matrix."""
-
     def __init__(self, mp, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -46,7 +41,8 @@ class PerturbGeometrySparseProcess(KratosMultiphysics.Process):
         self.number_random_variables = self.process.CreateRandomFieldVectors()
 
     def PerturbGeometry(self, mp ):
-        # Apply perturbation matrix to geometry
+        ''' Apply perturbation matrix to geometry.
+        Random field approach requires normal distributed random numbers (mean=0, sigma=1) '''
         random_numbers = np.random.normal(0, 1, self.number_random_variables)
         self.process.ApplyRandomFieldVectorsToGeometry(mp, random_numbers)
 
