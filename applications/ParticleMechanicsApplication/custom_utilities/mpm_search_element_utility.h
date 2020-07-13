@@ -680,6 +680,8 @@ namespace MPMSearchElementUtility
         // Get volume and set up master domain bounding points
         std::vector<double> mp_volume_vec;
         rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_VOLUME, mp_volume_vec, rBackgroundGridModelPart.GetProcessInfo());
+        if (rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE] == 2 && rMasterMaterialPoint.GetProperties().Has(THICKNESS))
+            mp_volume_vec[0] /= rMasterMaterialPoint.GetProperties()[THICKNESS];
         const double side_half_length = std::pow(mp_volume_vec[0], 1.0 / double(working_dim)) / 2.0;
         std::vector<array_1d<double, 3>> master_domain_points(std::pow(2.0, working_dim));
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
