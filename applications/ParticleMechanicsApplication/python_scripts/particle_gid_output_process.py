@@ -67,11 +67,11 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
 
         if settings.Has(old_variable_name):
             if not settings.Has(new_variable_name):
-                KM.Logger.PrintWarning(cls.__name__,
-                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
-                                       'Input variable name \''
-                                       + old_variable_name + '\' is deprecated; use \''
-                                       + new_variable_name + '\' instead.')
+                KratosMultiphysics.Logger.PrintWarning(cls.__name__,
+                                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
+                                                       'Input variable name \''
+                                                       + old_variable_name + '\' is deprecated; use \''
+                                                       + new_variable_name + '\' instead.')
                 return True
             else:
                 raise NameError('Conflicting input variable names: Both the deprecated variable \''
