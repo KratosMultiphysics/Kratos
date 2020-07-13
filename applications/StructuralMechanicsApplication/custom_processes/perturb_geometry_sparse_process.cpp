@@ -33,7 +33,7 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
     const ModelPart::NodesContainerType nodes = mrInitialModelPart.Nodes();
     ResultNodesContainerType  results;
     SparseMatrixType correlation_matrix;
-    correlation_matrix.resize(number_of_nodes,number_of_nodes);
+    correlation_matrix.resize(number_of_nodes,number_of_nodes,false);
     TSparseSpaceType::SetToZero(correlation_matrix);
     // Construct and initialize searcher
     OMP_NodeSearch searcher;
@@ -75,10 +75,10 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
     // Find number of required eigenvalues to statisfy convergence criterion
     double sum_eigenvalues =  1 / eigenvalues(0);
     int number_required_eigenvalues = 0;
-    double epsilon;
+
     for( size_t i = 1; i < eigenvalues.size(); i++)
     {
-        epsilon = 1 - sum_eigenvalues / ( sum_eigenvalues + 1 / eigenvalues(i) );
+        double epsilon = 1 - sum_eigenvalues / ( sum_eigenvalues + 1 / eigenvalues(i) );
         if( epsilon < mTruncationError)
         {
             number_required_eigenvalues = i + 1;
@@ -99,10 +99,9 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
     }
 
     // Normalize required eigenvectors
-    double eucledian_norm = 0;
     for( int i =  0; i < number_required_eigenvalues; i++)
     {
-        eucledian_norm =  norm_2( row(eigenvectors,i) );
+        double eucledian_norm =  norm_2( row(eigenvectors,i) );
         row(eigenvectors,i) = 1.0 / eucledian_norm * row(eigenvectors,i);
     }
 

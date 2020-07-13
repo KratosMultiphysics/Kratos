@@ -9,8 +9,14 @@ from KratosMultiphysics import eigen_solver_factory
 import numpy as np
 
 class PerturbGeometrySubgridProcess(KratosMultiphysics.Process):
-    """A process to perturb the initial geometry of a structure based on a reduced correlation matrix."""
+    """A process to perturb the initial geometry of a structure
+    based on a reduced correlation matrix.
+    """
     def __init__(self, mp, settings ):
+        """Constructor of Process-Object
+
+        Checks parameter settings and initializes the process.
+        """
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""{
@@ -46,7 +52,8 @@ class PerturbGeometrySubgridProcess(KratosMultiphysics.Process):
 
 
     def PerturbGeometry(self, mp ):
-        ''' Apply perturbation matrix to geometry.
-        Random field approach requires normal distributed random numbers (mean=0, sigma=1) '''
+        """Apply perturbation matrix to geometry.
+        Random field approach requires normal distributed random numbers (mean=0, sigma=1)
+        """
         random_numbers = np.random.normal(0, 1, self.number_random_variables)
         self.process.ApplyRandomFieldVectorsToGeometry(mp, random_numbers)
