@@ -80,6 +80,9 @@ public:
     /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// The definition of the current class
+    typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     /// Definition of the classes from the base class
     typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::IndexType IndexType;
@@ -111,6 +114,13 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedEliminationBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolver(
@@ -140,6 +150,19 @@ public:
      */
     ~ResidualBasedEliminationBuilderAndSolver() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -926,6 +949,15 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "elimination_builder_and_solver";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -1202,20 +1234,20 @@ protected:
         )
     {
         double* values_vector = rA.value_data().begin();
-        std::size_t* index1_vector = rA.index1_data().begin();
-        std::size_t* index2_vector = rA.index2_data().begin();
+        IndexType* index1_vector = rA.index1_data().begin();
+        IndexType* index2_vector = rA.index2_data().begin();
 
-        const std::size_t left_limit = index1_vector[i];
+        const IndexType left_limit = index1_vector[i];
 
         // Find the first entry
         // We iterate over the equation ids until we find the first equation id to be considered
         // We count in which component we find an ID
-        std::size_t last_pos = 0;
-        std::size_t last_found = 0;
-        std::size_t counter = 0;
-        for(std::size_t j=0; j < EquationId.size(); ++j) {
+        IndexType last_pos = 0;
+        IndexType last_found = 0;
+        IndexType counter = 0;
+        for(IndexType j=0; j < EquationId.size(); ++j) {
             ++counter;
-            const std::size_t j_global = EquationId[j];
+            const IndexType j_global = EquationId[j];
             if (j_global < BaseType::mEquationSystemSize) {
                 last_pos = ForwardFind(j_global,left_limit,index2_vector);
                 last_found = j_global;
@@ -1234,9 +1266,9 @@ protected:
             values_vector[last_pos] += rALocal(i_local,counter - 1);
 #endif
             // Now find all of the other entries
-            std::size_t pos = 0;
-            for(std::size_t j = counter; j < EquationId.size(); ++j) {
-                std::size_t id_to_find = EquationId[j];
+            IndexType pos = 0;
+            for(IndexType j = counter; j < EquationId.size(); ++j) {
+                IndexType id_to_find = EquationId[j];
                 if (id_to_find < BaseType::mEquationSystemSize) {
                     if(id_to_find > last_found)
                         pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
@@ -1251,7 +1283,7 @@ protected:
                     #pragma omp atomic
                     r +=  v;
 #else
-                    values_vector[pos] += Alocal(i_local,j);
+                    values_vector[pos] += rALocal(i_local,j);
 #endif
                     last_found = id_to_find;
                     last_pos = pos;
@@ -1260,20 +1292,20 @@ protected:
         }
     }
 
-    inline std::size_t ForwardFind(const std::size_t id_to_find,
-                                   const std::size_t start,
-                                   const std::size_t* index_vector)
+    inline IndexType ForwardFind(const IndexType id_to_find,
+                                   const IndexType start,
+                                   const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos++;
         return pos;
     }
 
-    inline std::size_t BackwardFind(const std::size_t id_to_find,
-                                    const std::size_t start,
-                                    const std::size_t* index_vector)
+    inline IndexType BackwardFind(const IndexType id_to_find,
+                                    const IndexType start,
+                                    const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos--;
         return pos;
     }
@@ -1315,12 +1347,10 @@ private:
     {
         std::vector<std::size_t>::iterator i = v.begin();
         std::vector<std::size_t>::iterator endit = v.end();
-        while (i != endit && (*i) != candidate)
-        {
+        while (i != endit && (*i) != candidate) {
             i++;
         }
-        if (i == endit)
-        {
+        if (i == endit) {
             v.push_back(candidate);
         }
 
@@ -1336,18 +1366,15 @@ private:
         TSystemVectorType& rb,
         const LocalSystemVectorType& rRHSContribution,
         const EquationIdVectorType& rEquationId
-    )
+        )
     {
-        unsigned int local_size = rRHSContribution.size();
+        SizeType local_size = rRHSContribution.size();
 
-        if (BaseType::mCalculateReactionsFlag == false)
-        {
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                const unsigned int i_global = rEquationId[i_local];
+        if (BaseType::mCalculateReactionsFlag == false) {
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
 
-                if (i_global < BaseType::mEquationSystemSize) //free dof
-                {
+                if (i_global < BaseType::mEquationSystemSize) { // Free dof
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
@@ -1356,26 +1383,20 @@ private:
                     b_value += rhs_value;
                 }
             }
-        }
-        else
-        {
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                const unsigned int i_global = rEquationId[i_local];
+        } else {
+            TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
 
-                if (i_global < BaseType::mEquationSystemSize) //free dof
-                {
+                if (i_global < BaseType::mEquationSystemSize) { //free dof
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic
                     b_value += rhs_value;
-                }
-                else //fixed dof
-                {
-                    double& b_value = ReactionsVector[i_global - BaseType::mEquationSystemSize];
+                } else { // Fixed dof
+                    double& b_value = r_reactions_vector[i_global - BaseType::mEquationSystemSize];
                     const double& rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic

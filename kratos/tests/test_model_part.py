@@ -818,6 +818,24 @@ class TestModelPart(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'Error: The Constraint "SomeCertainlyNonExistingConstraint" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Constraints are registered:\n'):
             model_part.CreateNewMasterSlaveConstraint("SomeCertainlyNonExistingConstraint", 1, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
 
+    def test_remove_nodes(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        for i in range(0, 8):
+            model_part.CreateNewNode(i+1, i+1, i+1, i+1)
+
+        self.assertEqual(model_part.NumberOfNodes(), 8)
+        self.assertEqual(model_part.NumberOfNodes(0), 8)
+
+        for node in model_part.Nodes:
+            if node.Id % 2:
+                node.Set(KratosMultiphysics.TO_ERASE)
+
+        model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+        self.assertEqual(model_part.NumberOfNodes(), 4)
+        self.assertEqual(model_part.NumberOfNodes(0), 4)
 
 if __name__ == '__main__':
     KratosUnittest.main()

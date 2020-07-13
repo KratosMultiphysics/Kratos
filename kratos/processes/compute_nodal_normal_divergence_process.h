@@ -86,6 +86,7 @@ public:
         const Variable<array_1d<double,3> >& rOriginVariable,
         const Variable<double>& rDivergenceVariable,
         const Variable<double>& rAreaVariable = NODAL_AREA,
+        const bool NormalizeDivergence = true,
         const bool NonHistoricalOriginVariable = false
         );
 
@@ -165,6 +166,7 @@ private:
     const Variable<array_1d<double,3>>* mpOriginVariable;  /// The scalar variable list to compute
     const Variable<double>* mpDivergenceVariable;          /// The resultant divergence variable
     const Variable<double>* mpAreaVariable;                /// The auxiliar area variable
+    bool mNormalizeDivergence = true;
     bool mNonHistoricalOriginVariable = false;                   /// If the origin variable is non-historical
 
     ///@}
@@ -194,6 +196,38 @@ private:
      * @brief This divides the divergence value by the nodal area
      */
     void PonderateDivergence();
+
+    /**
+     * @brief This returns the normalized vector field
+     */
+    static array_1d<double,3> GetHistoricalNormalVectorField(
+        const Node<3>& rNode,
+        const Variable<array_1d<double,3>>& rVariable
+    );
+
+    /**
+     * @brief This returns the normalized vector field
+     */
+    static array_1d<double,3> GetNonHistoricalNormalVectorField(
+        const Node<3>& rNode,
+        const Variable<array_1d<double,3>>& rVariable
+    );
+
+    /**
+     * @brief This returns the vector field
+     */
+    static array_1d<double,3> GetHistoricalVectorField(
+        const Node<3>& rNode,
+        const Variable<array_1d<double,3>>& rVariable
+    );
+
+    /**
+     * @brief This returns the vector field
+     */
+    static array_1d<double,3> GetNonHistoricalVectorField(
+        const Node<3>& rNode,
+        const Variable<array_1d<double,3>>& rVariable
+    );
 
     ///@}
     ///@name Private  Access
