@@ -141,7 +141,8 @@ double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& 
 
 // Prism3D6 version.
 template<>
-double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &rGeometry){
+double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &rGeometry)
+{
     // Get nodes
     const Node<3>& r_node_0 = rGeometry[0];
     const Node<3>& r_node_1 = rGeometry[1];
@@ -278,7 +279,7 @@ double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& 
 
 // Prism3D6 version
 template <>
-double ElementSizeCalculator<3, 6>::AverageElementSize(const Geometry<Node<3>> &rGeometry)
+double ElementSizeCalculator<3,6>::AverageElementSize(const Geometry<Node<3>> &rGeometry)
 {
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
     const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
@@ -392,8 +393,10 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
 
 // Prism3D6 version
 template<>
-double ElementSizeCalculator<3,6>::ProjectedElementSize(const Geometry<Node<3> > &rGeometry,
-                                                        const array_1d<double,3>& rVelocity){
+double ElementSizeCalculator<3,6>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
     return 0.0; // Just to avoid warning during compilations
 }
