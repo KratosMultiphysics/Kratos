@@ -178,10 +178,9 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * Constructor specifying the builder and solver
+     * @brief Constructor specifying the builder and solver
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param pNewBuilderAndSolver The builder and solver employed
      * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
@@ -192,7 +191,6 @@ class ResidualBasedNewtonRaphsonStrategy
     explicit ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         int MaxIterations = 30,
@@ -222,10 +220,6 @@ class ResidualBasedNewtonRaphsonStrategy
         //be reshaped at each step or not
         p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
-        // We check if the linear solver considered for the builder and solver is consistent
-        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
-        KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
-
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
 
@@ -235,6 +229,43 @@ class ResidualBasedNewtonRaphsonStrategy
         mpA = TSparseSpace::CreateEmptyMatrixPointer();
         mpDx = TSparseSpace::CreateEmptyVectorPointer();
         mpb = TSparseSpace::CreateEmptyVectorPointer();
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
+    explicit ResidualBasedNewtonRaphsonStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+        int MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false)
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+    {
+        KRATOS_TRY
+
+        // Getting builder and solver
+        auto p_builder_and_solver = GetBuilderAndSolver();
+
+        // We check if the linear solver considered for the builder and solver is consistent
+        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
+        KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -292,7 +323,7 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * Constructor specifying the builder and solver and using Parameters
+     * @brief Constructor specifying the builder and solver and using Parameters
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -303,7 +334,6 @@ class ResidualBasedNewtonRaphsonStrategy
     ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters Settings)
@@ -331,12 +361,6 @@ class ResidualBasedNewtonRaphsonStrategy
         //be reshaped at each step or not
         p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
-        // We check if the linear solver considered for the builder and solver is consistent
-        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
-        if (p_linear_solver != pNewLinearSolver) {
-            KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
-        }
-
         // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
 
@@ -346,6 +370,39 @@ class ResidualBasedNewtonRaphsonStrategy
         mpA = TSparseSpace::CreateEmptyMatrixPointer();
         mpDx = TSparseSpace::CreateEmptyVectorPointer();
         mpb = TSparseSpace::CreateEmptyVectorPointer();
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Constructor specifying the builder and solver and using Parameters
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param Parameters Settings used in the strategy
+     */
+    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
+    ResidualBasedNewtonRaphsonStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+        Parameters Settings)
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, Settings)
+    {
+        KRATOS_TRY
+
+        // Getting builder and solver
+        auto p_builder_and_solver = GetBuilderAndSolver();
+
+        // We check if the linear solver considered for the builder and solver is consistent
+        auto p_linear_solver = p_builder_and_solver->GetLinearSystemSolver();
+        if (p_linear_solver != pNewLinearSolver) {
+            KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
+        }
 
         KRATOS_CATCH("")
     }
