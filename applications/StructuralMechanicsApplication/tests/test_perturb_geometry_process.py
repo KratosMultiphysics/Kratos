@@ -14,7 +14,6 @@ except ImportError:
 
 import numpy as np
 
-
 class SparseProcessCustom(PerturbGeometrySparseProcess):
     "This class is derived to override the PerturbGeometry method"
     def __init__(self, mp, settings ):
@@ -87,11 +86,11 @@ class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
     def _compare_random_field_vectors(self, mp1, mp2):
         nodes1 = mp1.GetNodes()
         nodes2 = mp2.GetNodes()
-        sum = 0
+        sum_ = 0
         for node1, node2 in zip(nodes1, nodes2):
-            sum += (node1.Z0 - node2.Z0)**2
+            sum_ += (node1.Z0 - node2.Z0)**2
 
-        self.assertLess( np.sqrt(sum), 1.0e-10)
+        self.assertLess( np.sqrt(sum_), 1.0e-10)
 
 class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
     @KratosUnittest.skipUnless(linear_solvers_is_available,"LinearSolversApplication not available")

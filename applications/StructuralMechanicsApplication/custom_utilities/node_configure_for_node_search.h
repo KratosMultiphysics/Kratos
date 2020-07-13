@@ -83,7 +83,6 @@ public:
     typedef ContactPair<PointerType>                                ContactPairType;
     typedef std::vector<ContactPairType>                            ContainerContactType;
     typedef ContainerContactType::iterator                          IteratorContactType;
-    //typedef ContainerContactType::value_type                        PointerContactType;
 
     ///@}
     ///@name Life Cycle

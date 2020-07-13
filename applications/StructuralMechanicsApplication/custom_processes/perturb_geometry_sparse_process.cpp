@@ -48,13 +48,13 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
         // Add current nodes to results
         results = { mrInitialModelPart.Nodes().GetContainer()[i] };
         // Find all neighbouring nodes
-        searcher.SearchNodesInRadiusExclusiveImplementation(nodes,it_node->GetId()-1,3*mCorrelationLength,results);
+        searcher.SearchNodesInRadius(nodes, it_node->GetId()-1, 3*mCorrelationLength, results);
         for( size_t j = 0; j < results.size(); j++){
             counter++;
             int index = results[j]->GetId() - 1;
             auto it_node_results = it_node_begin + index;
 
-            correlation_matrix(i , index ) =  CorrelationFunction( it_node, it_node_results , mCorrelationLength);
+            correlation_matrix(i, index) =  CorrelationFunction(it_node, it_node_results, mCorrelationLength);
         }
     }
 
@@ -118,7 +118,7 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
     for( int i = 0; i < number_of_nodes; i++){
         for( int j = 0; j < number_of_random_variables; j++)
         {
-            rPerturbationMatrix(i,j) = sqrt( eigenvalues(j) ) * inner_prod( row(eigenvectors,j),  row( correlation_matrix, i));
+            rPerturbationMatrix(i,j) = sqrt(eigenvalues(j)) * inner_prod(row(eigenvectors,j),  row( correlation_matrix, i));
         }
     }
 

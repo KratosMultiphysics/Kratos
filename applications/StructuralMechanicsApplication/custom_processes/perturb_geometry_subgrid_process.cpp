@@ -22,8 +22,6 @@
 namespace Kratos
 {
 
-typedef ModelPart::NodesContainerType::ContainerType                 ResultNodesContainerType;
-
 int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
     KRATOS_TRY;
 
@@ -33,7 +31,7 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
 
     // Get all nodes
     ModelPart::NodesContainerType nodes = mrInitialModelPart.Nodes();
-    // Construct and initialize searcher classs
+    // Construct and initialize searcher class
     OMP_NodeSearch searcher;
     searcher.InitializeSearch(nodes);
 
@@ -54,13 +52,12 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
     }
 
     // Generate reduced space
-    for (ModelPart::NodeIterator it_node =mrInitialModelPart.NodesBegin(); it_node != mrInitialModelPart.NodesEnd(); it_node++)
-    {
+    for (ModelPart::NodeIterator it_node = mrInitialModelPart.NodesBegin(); it_node != mrInitialModelPart.NodesEnd(); it_node++){
         if( !it_node->Is(VISITED) ) {
             it_node->Set(VISITED,true);
             reduced_space_nodes.push_back(it_node);
             results = {};
-            searcher.SearchNodesInRadiusExclusiveImplementation(nodes,it_node->GetId()-1,radius,results);
+            searcher.SearchNodesInRadius(nodes, it_node->GetId()-1, radius, results);
             for( size_t i = 0; i < results.size(); i++ ){
                 results[i]->Set(VISITED,true);
             }
@@ -81,11 +78,9 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
     {
         const auto it_node_begin = reduced_space_nodes.begin();
         #pragma omp for
-        for( int row_counter = 0; row_counter < num_nodes_reduced_space; row_counter++)
-        {
+        for( int row_counter = 0; row_counter < num_nodes_reduced_space; row_counter++){
             auto it_node = it_node_begin + row_counter;
-            for( int column_counter = 0; column_counter < num_nodes_reduced_space; column_counter++)
-            {
+            for( int column_counter = 0; column_counter < num_nodes_reduced_space; column_counter++){
                 auto it_node_2 = it_node_begin + column_counter;
                 correlation_matrix(row_counter ,column_counter ) = CorrelationFunction( *it_node, *it_node_2, mCorrelationLength);
             }
@@ -95,14 +90,10 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
         << build_cl_matrix_timer.ElapsedSeconds() << std::endl;
 
     // Construct eigensolver and solve eigenproblem
-    BuiltinTimer eigensolver_time;
-    DenseVectorType eigenvalues;
-    DenseMatrixType eigenvectors;
+    DenseVectorType eigenvalues; // Vector is resized inside the solver
+    DenseMatrixType eigenvectors; // Matrix is resized inside the solver
     DenseMatrixType dummy;
     mpEigenSolver->Solve(correlation_matrix, dummy, eigenvalues, eigenvectors);
-
-    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Eigensolver Time", mEchoLevel > 0)
-            << eigensolver_time.ElapsedSeconds() << std::endl;
 
     // Find number of required eigenvalues to statisfy convergence criterion
     // Eigenvalues are sorted in ascending order and are normalized to an euclidean length of one!!
@@ -110,16 +101,13 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
     double reduced_sum_eigenvalues = 0.0;
     int num_eigenvalues_required = 0;
 
-    for( size_t i = 0; i < eigenvalues.size(); i++)
-    {
+    for( size_t i = 0; i < eigenvalues.size(); i++){
         total_sum_eigenvalues += eigenvalues(i);
     }
-    for( size_t i = 0; i < eigenvalues.size(); i++)
-    {
+    for( size_t i = 0; i < eigenvalues.size(); i++){
         reduced_sum_eigenvalues += eigenvalues(i);
         num_eigenvalues_required++;
-        if( reduced_sum_eigenvalues > (1 - mTruncationError)*total_sum_eigenvalues)
-        {
+        if( reduced_sum_eigenvalues > (1 - mTruncationError)*total_sum_eigenvalues){
             KRATOS_INFO_IF("PerturbGeometrySubgridProcess", mEchoLevel > 0)
                 << "Truncation Error (" <<  mTruncationError
                 << ") is achieved with " << num_eigenvalues_required << " Eigenvalues" << std::endl;
@@ -129,7 +117,7 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
 
     int num_random_variables = num_eigenvalues_required;
 
-    // Get and resize final displacement matrix
+    // Get and resize final perturbation matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;
     rPerturbationMatrix.resize(num_of_nodes,num_random_variables);
 
@@ -141,12 +129,11 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
     #pragma omp parallel
     {
         const auto it_node_begin = mrInitialModelPart.NodesBegin();
+        const auto it_node_reduced_begin = reduced_space_nodes.begin();
 
         #pragma omp for firstprivate(correlation_vector)
         for( int i = 0; i < num_of_nodes; i++){
-
             auto it_node = it_node_begin + i;
-            const auto it_node_reduced_begin = reduced_space_nodes.begin();
             // Assemble correlation vector
             for( int j = 0; j < num_nodes_reduced_space; j++){
                 auto it_node_reduced = it_node_reduced_begin + j;

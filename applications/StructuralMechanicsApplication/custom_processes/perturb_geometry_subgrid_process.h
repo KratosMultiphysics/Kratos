@@ -40,12 +40,9 @@ namespace Kratos
 
 /**
  * @class PerturbGeometrySubgridProcess
- *
  * @ingroup StructuralMechanicsApplication
- *
  * @brief This class generates a random field based on a reduced correlation matrix
  * @details Random field is used to perturb initial geometry
- *
  * @author Manuel Messmer
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySubgridProcess
@@ -108,7 +105,7 @@ public:
      * @brief Creates Eigenvectors of correlation matrix in a subgrid
      * @details Finds a subgrid (coarser mesh). Generates correlation matrix in subgrid. Decomposes correlation matrix.
      * @param correlation_matrix Correlation matrix. Stores correlation value for all nodes in the subgrid.
-     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
+     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix (column-wise).
      */
     int CreateRandomFieldVectors() override;
 

@@ -118,7 +118,7 @@ public:
 
     /**
      * @brief Assemble random field and apply to initial geometry
-     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
+     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix (colum-wise).
      * @param random_field Random field vector. Stores nodal deviations.
      */
     void ApplyRandomFieldVectorsToGeometry(ModelPart& rThisModelPart, const std::vector<double>& variables );

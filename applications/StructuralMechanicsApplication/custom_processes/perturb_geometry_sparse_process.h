@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_processes/perturb_geometry_base_process.h"
 #include "custom_utilities/omp_node_search.h"
 
@@ -40,12 +39,9 @@ namespace Kratos
 
 /**
  * @class PerturbGeometrySparseProcess
- *
  * @ingroup StructuralMechanicsApplication
- *
  * @brief This class generates a random field based on a sparse correlation matrix
  * @details Random field is used to perturb initial geometry
- *
  * @author Manuel Messmer
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySparseProcess
@@ -109,7 +105,7 @@ public:
      * @brief Creates Eigenvectors of a sparse correlation matrix
      * @details Generates sparse correlation matrix. Decomposes correlation matrix.
      * @param correlation_matrix Correlation matrix. Stores correlation value for all nodes.
-     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix.
+     * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix (colum-wise).
      */
     int CreateRandomFieldVectors() override;
 

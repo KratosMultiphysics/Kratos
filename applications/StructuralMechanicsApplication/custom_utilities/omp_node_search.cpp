@@ -22,33 +22,33 @@ void OMP_NodeSearch::InitializeSearch(NodesContainerType const& rStructureNodes)
 
     KRATOS_TRY;
     if(!mIsInitialized) {
-        NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
-        mBins = new NodeBinsType(nodes_ModelPart.begin(), nodes_ModelPart.end());
+        NodesContainerType::ContainerType& nodes_model_part = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        mBins = new NodeBinsType(nodes_model_part.begin(), nodes_model_part.end());
 
         mIsInitialized = true;
     }
     KRATOS_CATCH("");
 }
 
-void OMP_NodeSearch::SearchNodesInRadiusExclusiveImplementation (
+void OMP_NodeSearch::SearchNodesInRadius(
         NodesContainerType const& rStructureNodes,
         int const Id,
         double const Radius,
         ResultNodesContainerType& rResults ) {
 
     KRATOS_TRY
-    int MaxNumberOfNodes = rStructureNodes.size();
+    int max_num_of_nodes = rStructureNodes.size();
 
     NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
 
-    ResultNodesContainerType localResults(MaxNumberOfNodes);
-    std::size_t NumberOfResults = 0;
+    ResultNodesContainerType local_results(max_num_of_nodes);
+    std::size_t num_of_results = 0;
 
-    ResultNodesContainerType::iterator ResultsPointer = localResults.begin();
+    ResultNodesContainerType::iterator ResultsPointer = local_results.begin();
 
-    NumberOfResults = mBins->SearchObjectsInRadius( nodes_array[Id],Radius,ResultsPointer,MaxNumberOfNodes);
+    num_of_results = mBins->SearchObjectsInRadius( nodes_array[Id],Radius,ResultsPointer,max_num_of_nodes);
 
-    rResults.insert(rResults.begin(), localResults.begin(), localResults.begin() + NumberOfResults);
+    rResults.insert(rResults.begin(), local_results.begin(), local_results.begin() + num_of_results);
 
     KRATOS_CATCH("")
 }

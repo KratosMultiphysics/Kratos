@@ -117,7 +117,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
        * @param Radius Search radius.
        * @param rResults Results container.
        **/
-      void SearchNodesInRadiusExclusiveImplementation (
+      void SearchNodesInRadius(
           NodesContainerType const& rStructureNodes,
           int const Id,
           double const Radius,
