@@ -25,7 +25,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSize, KratosCoreGeometriesFastSuite1)
+        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSize, KratosCoreGeometriesFastSuite)
         {
             // Case 1
             Geometry<NodeType>::PointsArrayType nodes;
