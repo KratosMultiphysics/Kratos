@@ -468,10 +468,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
         .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-        .def_static("GetCurrentNumberOfThreads", &OpenMPUtils::GetCurrentNumberOfThreads)
         .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         .def_static("IsDynamic", &OpenMPUtils::IsDynamic)
-        .def_static("IsInParallel", &OpenMPUtils::IsInParallel)
         ;
 
 
