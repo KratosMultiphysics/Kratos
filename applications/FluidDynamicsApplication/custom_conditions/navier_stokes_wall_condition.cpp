@@ -792,7 +792,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e3;//1.0e-2/mean_h;
+    double beta = 1.0e6;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
         //beta = std::max( beta ,
@@ -869,7 +869,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e3;//1.0e-2/mean_h;
+    double beta = 1.0e6;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
         //beta = std::max( beta,
