@@ -52,22 +52,8 @@
         [
             {
                 "name": "domainA",
-                "input_data_list"  : [
-				{
-                        "data"           : "load",
-                        "from_solver"      : "domainB",
-                        "from_solver_data" : "load",
-                        "data_transfer_operator" : "mapper",
-						"data_transfer_operator_options"  : ["use_transpose"]
-                    }],
-                "output_data_list" : [
-					{
-                        "data"           : "disp",
-                        "to_solver"      : "domainB",
-                        "to_solver_data" : "disp",
-                        "data_transfer_operator" : "mapper"
-                    }
-					]
+                "input_data_list"  : [],
+                "output_data_list" : []
             },
             {
                 "name": "domainB",
