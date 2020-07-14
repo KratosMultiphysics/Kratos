@@ -60,7 +60,11 @@ public:
     /// Pointer definition of ResidualBasedIncrementalAitkenStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedIncrementalAitkenStaticScheme);
 
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseSchemeType;
+
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+
+    typedef ResidualBasedIncrementalAitkenStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -83,6 +87,13 @@ public:
         })");
 
         return default_parameters;
+    }
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedIncrementalAitkenStaticScheme() : BaseType()
+    {
     }
 
     /**
@@ -115,6 +126,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseSchemeType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /// Initialize the iteration counter at the begining of each solution step
     /**

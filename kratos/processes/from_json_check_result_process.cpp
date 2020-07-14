@@ -107,6 +107,10 @@ void FromJSONCheckResultProcess::ExecuteFinalizeSolutionStep()
     IndexType check_counter = 0;
 
     if (mTimeCounter > mFrequency) {
+        // Reset error message
+        mErrorMessage = "";
+
+        // Reset time counter
         mTimeCounter = 0.0;
 
         // Check node values
@@ -272,18 +276,23 @@ void FromJSONCheckResultProcess::FailMessage(
     const int GPIndex
     )
 {
+    std::stringstream ss;
     if (ComponentIndex > -1) {
         if (GPIndex > -1) {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         } else {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << " Component " << ComponentIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         }
     } else {
         if (GPIndex > -1) {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << " in GP " << GPIndex << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         } else {
-            KRATOS_WARNING("FromJSONCheckResultProcess") << "Error checking for variable " << rVariableName << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
+            ss << "Error checking for variable " << rVariableName << ", results:\n" << rEntityType << " " << EntityId << " " << std::setprecision(mRelevantDigits) << ValueEntity << "!=" << std::setprecision(mRelevantDigits) << ValueJSON << "; rel_tol=" << mRelativeTolerance << ", abs_tol=" << mAbsoluteTolerance << std::endl;
         }
+    }
+    #pragma omp critical
+    {
+        mErrorMessage += ss.str();
     }
 }
 
@@ -479,152 +488,71 @@ void FromJSONCheckResultProcess::FillDatabase(
 {
     KRATOS_TRY;
 
-    // Iterators
-    const auto it_node_begin = rNodesArray.begin();
-    const auto it_elem_begin = rElementsArray.begin();
-
     // Get the time vector
     const Vector& r_time = rResults["TIME"].GetVector();
     const SizeType time_size = r_time.size();
 
     /* Nodal values */
-    for (auto& p_var_double : mpNodalVariableDoubleList) {
-        auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_double);
-        const std::string& r_variable_name = p_var_double->Name();
-        for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
-            const auto& r_vector = rResults[node_identifier][r_variable_name].GetVector();
-            r_var_database.SetValues(r_time, r_vector, i);
-        }
-    }
-    for (auto& p_var_array : mpNodalVariableArrayList) {
-        auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_array);
-        const std::string& r_variable_name = p_var_array->Name();
-        const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") && rResults["NODE_" + GetNodeIdentifier(*it_node_begin)].Has(r_variable_name + "_X");
-        if (is_saved_as_components) {
-            std::vector<std::string> components_name = {{"_X", "_Y", "_Z"}};
-            for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
-                const auto& r_comp_name = components_name[i_comp];
-                for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-                    const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
-                    const auto& r_vector = rResults[node_identifier][r_variable_name + r_comp_name].GetVector();
-                    r_var_database.SetValues(r_time, r_vector, i, i_comp);
-                }
-            }
-        } else {
-            Vector aux_vector_1(time_size);
-            Vector aux_vector_2(time_size);
-            Vector aux_vector_3(time_size);
+    if (rNodesArray.size() > 0) {
+        const auto it_node_begin = rNodesArray.begin();
+        for (auto& p_var_double : mpNodalVariableDoubleList) {
+            auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_double);
+            const std::string& r_variable_name = p_var_double->Name();
             for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
                 auto it_node = it_node_begin + i;
                 const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
-                const auto& r_database = rResults[node_identifier][r_variable_name];
-                for (IndexType i_step = 0; i_step < time_size; ++i_step) {
-                    const Vector& r_vector = r_database[i_step].GetVector();
-                    aux_vector_1[i_step] = r_vector[0];
-                    aux_vector_2[i_step] = r_vector[1];
-                    aux_vector_3[i_step] = r_vector[2];
-                }
-                r_var_database.SetValues(r_time, aux_vector_1, i, 0);
-                r_var_database.SetValues(r_time, aux_vector_2, i, 1);
-                r_var_database.SetValues(r_time, aux_vector_3, i, 2);
+                const auto& r_vector = rResults[node_identifier][r_variable_name].GetVector();
+                r_var_database.SetValues(r_time, r_vector, i);
             }
         }
-    }
-    for (auto& p_var_vector : mpNodalVariableVectorList) {
-        auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_vector);
-        const std::string& r_variable_name = p_var_vector->Name();
-
-        const Vector& r_vector = rResults["NODE_" + GetNodeIdentifier(*it_node_begin)][r_variable_name][0].GetVector();
-        const SizeType size_vector = r_vector.size();
-
-        Vector aux_vector(time_size);
-        std::vector<Vector> components_vector(size_vector, aux_vector);
-        for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
-            const auto& r_database = rResults[node_identifier][r_variable_name];
-            for (IndexType i_step = 0; i_step < time_size; ++i_step) {
-                const Vector& r_vector = r_database[i_step].GetVector();
-                for (IndexType i_vector = 0; i_vector < size_vector; ++i_vector) {
-                    components_vector[i_vector][i_step] = r_vector[i_vector];
-                }
-            }
-            for (IndexType i_vector = 0; i_vector < size_vector; ++i_vector) {
-                r_var_database.SetValues(r_time,components_vector[i_vector], i, i_vector);
-            }
-        }
-    }
-
-    /* GP values */
-    for (auto& p_var_double : mpGPVariableDoubleList) {
-        auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_double);
-        const std::string& r_variable_name = p_var_double->Name();
-        for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
-            const auto& r_data = rResults[element_identifier][r_variable_name];
-            for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
-                const auto& r_vector = r_data[std::to_string(i_gp)].GetVector();
-                r_var_database.SetValues(r_time, r_vector, i, 0, i_gp);
-            }
-        }
-    }
-    for (auto& p_var_array : mpGPVariableArrayList) {
-        auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_array);
-        const std::string& r_variable_name = p_var_array->Name();
-        const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") && rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())].Has(r_variable_name + "_X");
-        if (is_saved_as_components) {
-            std::vector<std::string> components_name = {{"_X", "_Y", "_Z"}};
-            for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
-                const auto& r_comp_name = components_name[i_comp];
-                for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
-                    auto it_elem = it_elem_begin + i;
-                    const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
-                    for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
-                        const auto& r_vector = rResults[element_identifier][r_variable_name + r_comp_name][std::to_string(i_gp)].GetVector();
-                        r_var_database.SetValues(r_time, r_vector, i, i_comp, i_gp);
+        for (auto& p_var_array : mpNodalVariableArrayList) {
+            auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_array);
+            const std::string& r_variable_name = p_var_array->Name();
+            const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") && rResults["NODE_" + GetNodeIdentifier(*it_node_begin)].Has(r_variable_name + "_X");
+            if (is_saved_as_components) {
+                std::vector<std::string> components_name = {{"_X", "_Y", "_Z"}};
+                for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
+                    const auto& r_comp_name = components_name[i_comp];
+                    for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
+                        auto it_node = it_node_begin + i;
+                        const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
+                        const auto& r_vector = rResults[node_identifier][r_variable_name + r_comp_name].GetVector();
+                        r_var_database.SetValues(r_time, r_vector, i, i_comp);
                     }
                 }
-            }
-        } else {
-            Vector aux_vector_1(time_size);
-            Vector aux_vector_2(time_size);
-            Vector aux_vector_3(time_size);
-            for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
-                auto it_elem = it_elem_begin + i;
-                const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
-                for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
-                    const auto& r_database = rResults[element_identifier][r_variable_name][std::to_string(i_gp)];
+            } else {
+                Vector aux_vector_1(time_size);
+                Vector aux_vector_2(time_size);
+                Vector aux_vector_3(time_size);
+                for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
+                    auto it_node = it_node_begin + i;
+                    const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
+                    const auto& r_database = rResults[node_identifier][r_variable_name];
                     for (IndexType i_step = 0; i_step < time_size; ++i_step) {
                         const Vector& r_vector = r_database[i_step].GetVector();
                         aux_vector_1[i_step] = r_vector[0];
                         aux_vector_2[i_step] = r_vector[1];
                         aux_vector_3[i_step] = r_vector[2];
                     }
-                    r_var_database.SetValues(r_time, aux_vector_1, i, 0, i_gp);
-                    r_var_database.SetValues(r_time, aux_vector_2, i, 1, i_gp);
-                    r_var_database.SetValues(r_time, aux_vector_3, i, 2, i_gp);
+                    r_var_database.SetValues(r_time, aux_vector_1, i, 0);
+                    r_var_database.SetValues(r_time, aux_vector_2, i, 1);
+                    r_var_database.SetValues(r_time, aux_vector_3, i, 2);
                 }
             }
         }
-    }
-    for (auto& p_var_vector : mpGPVariableVectorList) {
-        auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_vector);
-        const std::string& r_variable_name = p_var_vector->Name();
+        for (auto& p_var_vector : mpNodalVariableVectorList) {
+            auto& r_var_database = mDatabaseNodes.GetVariableData(*p_var_vector);
+            const std::string& r_variable_name = p_var_vector->Name();
 
-        const Vector& r_vector = rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name]["0"][0].GetVector();
-        const SizeType size_vector = r_vector.size();
+            const Vector& r_vector = rResults["NODE_" + GetNodeIdentifier(*it_node_begin)][r_variable_name][0].GetVector();
+            const SizeType size_vector = r_vector.size();
 
-        Vector aux_vector(time_size);
-        std::vector<Vector> components_vector(size_vector, aux_vector);
-        for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
-            for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
-                const auto& r_database = rResults[element_identifier][r_variable_name][std::to_string(i_gp)];
+            Vector aux_vector(time_size);
+            std::vector<Vector> components_vector(size_vector, aux_vector);
+            for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
+                auto it_node = it_node_begin + i;
+                const std::string node_identifier = "NODE_" + GetNodeIdentifier(*it_node);
+                const auto& r_database = rResults[node_identifier][r_variable_name];
                 for (IndexType i_step = 0; i_step < time_size; ++i_step) {
                     const Vector& r_vector = r_database[i_step].GetVector();
                     for (IndexType i_vector = 0; i_vector < size_vector; ++i_vector) {
@@ -632,7 +560,90 @@ void FromJSONCheckResultProcess::FillDatabase(
                     }
                 }
                 for (IndexType i_vector = 0; i_vector < size_vector; ++i_vector) {
-                    r_var_database.SetValues(r_time,components_vector[i_vector], i, i_vector, i_gp);
+                    r_var_database.SetValues(r_time,components_vector[i_vector], i, i_vector);
+                }
+            }
+        }
+    }
+
+    /* GP values */
+    if (rElementsArray.size() > 0) {
+        const auto it_elem_begin = rElementsArray.begin();
+        for (auto& p_var_double : mpGPVariableDoubleList) {
+            auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_double);
+            const std::string& r_variable_name = p_var_double->Name();
+            for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
+                auto it_elem = it_elem_begin + i;
+                const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
+                const auto& r_data = rResults[element_identifier][r_variable_name];
+                for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
+                    const auto& r_vector = r_data[std::to_string(i_gp)].GetVector();
+                    r_var_database.SetValues(r_time, r_vector, i, 0, i_gp);
+                }
+            }
+        }
+        for (auto& p_var_array : mpGPVariableArrayList) {
+            auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_array);
+            const std::string& r_variable_name = p_var_array->Name();
+            const bool is_saved_as_components = KratosComponents<Variable<double>>::Has(r_variable_name + "_X") && rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())].Has(r_variable_name + "_X");
+            if (is_saved_as_components) {
+                std::vector<std::string> components_name = {{"_X", "_Y", "_Z"}};
+                for (IndexType i_comp = 0; i_comp < 3; ++i_comp) {
+                    const auto& r_comp_name = components_name[i_comp];
+                    for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
+                        auto it_elem = it_elem_begin + i;
+                        const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
+                        for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
+                            const auto& r_vector = rResults[element_identifier][r_variable_name + r_comp_name][std::to_string(i_gp)].GetVector();
+                            r_var_database.SetValues(r_time, r_vector, i, i_comp, i_gp);
+                        }
+                    }
+                }
+            } else {
+                Vector aux_vector_1(time_size);
+                Vector aux_vector_2(time_size);
+                Vector aux_vector_3(time_size);
+                for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
+                    auto it_elem = it_elem_begin + i;
+                    const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
+                    for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
+                        const auto& r_database = rResults[element_identifier][r_variable_name][std::to_string(i_gp)];
+                        for (IndexType i_step = 0; i_step < time_size; ++i_step) {
+                            const Vector& r_vector = r_database[i_step].GetVector();
+                            aux_vector_1[i_step] = r_vector[0];
+                            aux_vector_2[i_step] = r_vector[1];
+                            aux_vector_3[i_step] = r_vector[2];
+                        }
+                        r_var_database.SetValues(r_time, aux_vector_1, i, 0, i_gp);
+                        r_var_database.SetValues(r_time, aux_vector_2, i, 1, i_gp);
+                        r_var_database.SetValues(r_time, aux_vector_3, i, 2, i_gp);
+                    }
+                }
+            }
+        }
+        for (auto& p_var_vector : mpGPVariableVectorList) {
+            auto& r_var_database = mDatabaseGP.GetVariableData(*p_var_vector);
+            const std::string& r_variable_name = p_var_vector->Name();
+
+            const Vector& r_vector = rResults["ELEMENT_" + std::to_string(it_elem_begin->Id())][r_variable_name]["0"][0].GetVector();
+            const SizeType size_vector = r_vector.size();
+
+            Vector aux_vector(time_size);
+            std::vector<Vector> components_vector(size_vector, aux_vector);
+            for (int i = 0; i < static_cast<int>(rElementsArray.size()); ++i) {
+                auto it_elem = it_elem_begin + i;
+                const std::string element_identifier = "ELEMENT_" + std::to_string(it_elem->Id());
+                for (IndexType i_gp = 0; i_gp < NumberOfGP; ++i_gp) {
+                    const auto& r_database = rResults[element_identifier][r_variable_name][std::to_string(i_gp)];
+                    for (IndexType i_step = 0; i_step < time_size; ++i_step) {
+                        const Vector& r_vector = r_database[i_step].GetVector();
+                        for (IndexType i_vector = 0; i_vector < size_vector; ++i_vector) {
+                            components_vector[i_vector][i_step] = r_vector[i_vector];
+                        }
+                    }
+                    for (IndexType i_vector = 0; i_vector < size_vector; ++i_vector) {
+                        r_var_database.SetValues(r_time,components_vector[i_vector], i, i_vector, i_gp);
+                    }
                 }
             }
         }
@@ -782,7 +793,16 @@ const ResultDatabase& FromJSONCheckResultProcess::GetNodeDatabase()
 {
     if (this->IsNot(NODES_DATABASE_INITIALIZED)) {
         InitializeDatabases();
-        KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED)) << "Is not possible to initialize the node database" << std::endl;
+
+        // If we consider any flag
+        const auto& r_flag_name = mThisParameters["check_for_flag"].GetString();
+        const Flags* p_flag = (r_flag_name != "") ? KratosComponents<Flags>::Has(r_flag_name) ? &KratosComponents<Flags>::Get(r_flag_name) : nullptr : nullptr;
+
+        // Array nodes
+        const auto& r_nodes_array = GetNodes(p_flag);
+
+        // If not empty arry we throw an error if not possible to initialize database
+        KRATOS_ERROR_IF(this->IsNot(NODES_DATABASE_INITIALIZED) && r_nodes_array.size() > 0) << "Is not possible to initialize the node database" << std::endl;
     }
 
     return mDatabaseNodes;
@@ -795,7 +815,16 @@ const ResultDatabase& FromJSONCheckResultProcess::GetGPDatabase()
 {
     if (this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) {
         InitializeDatabases();
-        KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED)) << "Is not possible to initialize the element database" << std::endl;
+
+        // If we consider any flag
+        const auto& r_flag_name = mThisParameters["check_for_flag"].GetString();
+        const Flags* p_flag = (r_flag_name != "") ? KratosComponents<Flags>::Has(r_flag_name) ? &KratosComponents<Flags>::Get(r_flag_name) : nullptr : nullptr;
+
+        // Array elements
+        const auto& r_elements_array = GetElements(p_flag);
+
+        // If not empty arry we throw an error if not possible to initialize database
+        KRATOS_ERROR_IF(this->IsNot(ELEMENTS_DATABASE_INITIALIZED) && r_elements_array.size() > 0) << "Is not possible to initialize the element database" << std::endl;
     }
 
     return mDatabaseGP;

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -7,7 +6,7 @@ import math
 
 
 class TestLoadingConditionsSurface(KratosUnittest.TestCase):
-        
+
     def _SimplestSurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -8,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestMultipointConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self, mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -264,7 +263,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         cm = KratosMultiphysics.StructuralMechanicsApplication.ApplyMultipointConstraintsProcess(
             mp)
         self._apply_mpc_constraints(mp, cm)
-        # Solving the system of equations        
+        # Solving the system of equations
         self._setup_solver(mp)
 
         while (time <= end_time):

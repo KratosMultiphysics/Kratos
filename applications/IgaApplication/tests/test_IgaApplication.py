@@ -6,6 +6,9 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Import Iga test factory tests
+from iga_test_factory import SinglePatchTest as SinglePatchTest
+
 # Import the tests o test_classes to create the suits
 from node_curve_geometry_3d_tests import NodeCurveGeometry3DTests
 from node_surface_geometry_3d_tests import NodeSurfaceGeometry3DTests

@@ -45,7 +45,7 @@
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-
+#include "utilities/properties_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -156,10 +156,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
         .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
         .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 
@@ -470,11 +466,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
         .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-    //     .staticmethod("SetNumThreads")
         .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
-    //     .staticmethod("GetNumThreads")
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-    //     .staticmethod("PrintOMPInfo")
+        .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
 
 
@@ -495,6 +489,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
 
+    // PropertiesUtilities
+    auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
+    mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
 }
 
 } // namespace Python.

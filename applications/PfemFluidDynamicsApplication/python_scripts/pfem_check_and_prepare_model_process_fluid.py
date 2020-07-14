@@ -9,14 +9,14 @@ def StartTimeMeasuring():
     """This function starts time calculation
     """
     # Measure process time
-    time_ip = timer.clock()
+    time_ip = timer.process_time()
     return time_ip
 
 def StopTimeMeasuring(time_ip, process, report):
     """This function ends time calculation
     """
     # Measure process time
-    time_fp = timer.clock()
+    time_fp = timer.process_time()
     if( report ):
         used_time = time_fp - time_ip
         print("::[PFEM_FLUID_MODEL]:: [ %.2f" % round(used_time,2),"s", process," ] ")
@@ -132,7 +132,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                         assign_flags  = [KratosMultiphysics.SOLID]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
-                    elif (body_model_part_type=="Rigid"):
+                    elif (body_model_part_type=="Rigid" or body_model_part_type=="Interface"):
                         assign_flags  = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
@@ -164,7 +164,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     body_model_part.Set(KratosMultiphysics.FLUID)
                     body_model_part.Set(KratosMultiphysics.SOLID)
                     solid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
-                if body_model_part_type == "Rigid":
+                if (body_model_part_type == "Rigid" or body_model_part_type == "Interface"):
                     body_model_part.Set(KratosMultiphysics.RIGID)
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
             clock_time = StartTimeMeasuring()

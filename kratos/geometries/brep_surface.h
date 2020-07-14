@@ -79,7 +79,7 @@ public:
     ///@{
 
     /// Constructor for untrimmed patch
-    BrepSurface( 
+    BrepSurface(
         typename NurbsSurfaceType::Pointer pSurface)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
@@ -211,7 +211,7 @@ public:
     * @param Index: trim_index or SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
-    GeometryPointer pGetGeometryPart(IndexType Index) override
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
     {
         const auto& const_this = *this;
         return std::const_pointer_cast<GeometryType>(
@@ -225,7 +225,7 @@ public:
     * @param Index: trim_index or SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
-    const GeometryPointer pGetGeometryPart(IndexType Index) const override
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
             return mpNurbsSurface;
@@ -258,7 +258,7 @@ public:
     * @param Index of the geometry part.
     * @return true if has trim or surface
     */
-    bool HasGeometryPart(IndexType Index) const override
+    bool HasGeometryPart(const IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
             return true;

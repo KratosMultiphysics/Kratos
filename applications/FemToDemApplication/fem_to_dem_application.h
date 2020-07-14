@@ -36,6 +36,7 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "custom_elements/generic_total_lagrangian_femdem_element.h"
+#include "custom_elements/generic_total_lagrangian_mixtures_femdem_element.hpp"
 
 #include "fem_to_dem_application_variables.h"
 
@@ -134,6 +135,21 @@ private:
     const GenericTotalLagrangianFemDemElement<3,5> mTotalLagrangianTrescaFemDemElement3D;
     const GenericTotalLagrangianFemDemElement<2,6> mTotalLagrangianMohrCoulombFemDemElement2D;
     const GenericTotalLagrangianFemDemElement<3,6> mTotalLagrangianMohrCoulombFemDemElement3D;
+
+    const GenericTotalLagrangianMixturesFemDemElement<2,0> mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement2D;
+    const GenericTotalLagrangianMixturesFemDemElement<3,0> mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement3D;
+    const GenericTotalLagrangianMixturesFemDemElement<2,1> mTotalLagrangianMixturesRankineFemDemElement2D;
+    const GenericTotalLagrangianMixturesFemDemElement<3,1> mTotalLagrangianMixturesRankineFemDemElement3D;
+    const GenericTotalLagrangianMixturesFemDemElement<2,2> mTotalLagrangianMixturesSimoJuFemDemElement2D;
+    const GenericTotalLagrangianMixturesFemDemElement<3,2> mTotalLagrangianMixturesSimoJuFemDemElement3D;
+    const GenericTotalLagrangianMixturesFemDemElement<2,3> mTotalLagrangianMixturesDruckerPragerFemDemElement2D;
+    const GenericTotalLagrangianMixturesFemDemElement<3,3> mTotalLagrangianMixturesDruckerPragerFemDemElement3D;
+    const GenericTotalLagrangianMixturesFemDemElement<2,4> mTotalLagrangianMixturesVonMisesFemDemElement2D;
+    const GenericTotalLagrangianMixturesFemDemElement<3,4> mTotalLagrangianMixturesVonMisesFemDemElement3D;
+    const GenericTotalLagrangianMixturesFemDemElement<2,5> mTotalLagrangianMixturesTrescaFemDemElement2D;
+    const GenericTotalLagrangianMixturesFemDemElement<3,5> mTotalLagrangianMixturesTrescaFemDemElement3D;
+    const GenericTotalLagrangianMixturesFemDemElement<2,6> mTotalLagrangianMixturesMohrCoulombFemDemElement2D;
+    const GenericTotalLagrangianMixturesFemDemElement<3,6> mTotalLagrangianMixturesMohrCoulombFemDemElement3D;
 
     //Hiperelastic and elastic laws
    const LinearPlaneStrain mLinearPlaneStrain;

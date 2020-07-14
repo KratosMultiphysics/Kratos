@@ -18,4 +18,5 @@ namespace Kratos
 {
     KRATOS_CREATE_VARIABLE( int, AUX_ID )
     KRATOS_CREATE_VARIABLE( Matrix, ROM_BASIS )
+    KRATOS_CREATE_VARIABLE( double, HROM_WEIGHT )
 }

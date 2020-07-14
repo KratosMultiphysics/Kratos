@@ -47,7 +47,10 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
 )
 
-## generate variables with the testing sources
+# Define python interface sources
+file(GLOB_RECURSE KRATOS_IGA_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+
+# Generate variables with the testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
   file(GLOB_RECURSE KRATOS_IGA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -69,6 +72,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosIgaCore)
     cotire(KratosIgaApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -92,4 +96,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosIgaApplication DESTINATION libs)
+install(TARGETS KratosIgaCore DESTINATION libs )
+install(TARGETS KratosIgaApplication DESTINATION libs )

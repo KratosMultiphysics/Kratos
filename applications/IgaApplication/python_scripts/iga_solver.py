@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -371,10 +369,9 @@ class IgaSolver(PythonSolver):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):        
+    def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
             # using a default linear solver (selecting the fastest one available)
@@ -382,7 +379,6 @@ class IgaSolver(PythonSolver):
             if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
                 from KratosMultiphysics import EigenSolversApplication
             elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
-                from KratosMultiphysics import ExternalSolversApplication
 
             linear_solvers_by_speed = [
                 "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
@@ -400,12 +396,8 @@ class IgaSolver(PythonSolver):
                     return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 
         raise Exception("Linear-Solver could not be constructed!")
-
+=======
     def _create_builder_and_solver(self):
-        linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
