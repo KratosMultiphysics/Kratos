@@ -210,17 +210,6 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.assertEqual(is_conforming, True)
 
     def test_Is_not_conforming(self):
-        model = KM.Model()
-        model_part_origin_non_conform = model.CreateModelPart("non_conforming")
-        
-        KM.ModelPartIO(self.input_file_origin, KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER).ReadModelPart(model_part_origin_non_conform)
-
-        if self.mapper_parameters.Has("interface_submodel_part_origin"):
-            interface_model_part_origin_non_conform = model_part_origin_non_conform.GetSubModelPart(
-                mapper_parameters["interface_submodel_part_origin"].GetString())
-        else:
-            interface_model_part_origin_non_conform = model_part_origin_non_conform
-
         non_conform_mapper = KratosMapping.MapperFactory.CreateMapper(
             self.model_part_origin, 
             self.model_part_destination, 
