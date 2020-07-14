@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 from KratosMultiphysics import *
 
@@ -218,8 +217,8 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
+                                element_name,
+                                displacement_results,
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -237,8 +236,8 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
+                                element_name,
+                                displacement_results,
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -256,9 +255,9 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
                                 tsai_wu_result,
@@ -275,8 +274,8 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
+                                element_name,
+                                displacement_results,
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,

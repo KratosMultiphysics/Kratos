@@ -93,7 +93,7 @@ namespace Kratos
     }
 
     template <class TPrimalCondition>
-    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step)
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step) const
     {
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();

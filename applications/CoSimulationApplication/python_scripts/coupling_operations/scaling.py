@@ -10,15 +10,14 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
-def Create(settings, solver_wrappers):
-    cs_tools.SettingsTypeCheck(settings)
-    return ScalingOperation(settings, solver_wrappers)
+def Create(*args):
+    return ScalingOperation(*args)
 
 class ScalingOperation(CoSimulationCouplingOperation):
     """This operation performs scaling of values on an InterfaceData
     The value can be given directly as a value or as a string containing an evaluable function
     """
-    def __init__(self, settings, solver_wrappers):
+    def __init__(self, settings, solver_wrappers, process_info):
         if not settings.Has("scaling_factor"):
             raise Exception('Please provide a "scaling_factor"!')
 
@@ -32,7 +31,7 @@ class ScalingOperation(CoSimulationCouplingOperation):
         # removing since the type of "scaling_factor" can be double or string and hence would fail in the validation
         settings.RemoveValue("scaling_factor")
 
-        super(ScalingOperation, self).__init__(settings)
+        super(ScalingOperation, self).__init__(settings, process_info)
 
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()

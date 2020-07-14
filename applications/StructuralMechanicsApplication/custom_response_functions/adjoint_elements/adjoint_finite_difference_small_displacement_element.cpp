@@ -48,7 +48,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
         << "AdjointFiniteDifferencingSmallDisplacementElement::CalculateStressDisplacementDerivative: Invalid element dimension! Currently only 3D SmallDisplacementElements are supported!" << std::endl;
 
     // Build vector of variables containing the DOF-variables of the primal problem
-    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+    std::vector<Variable<double>> primal_solution_variable_list {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
 
     std::vector<Matrix> stress_tensor;
     this->mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_tensor, rCurrentProcessInfo);

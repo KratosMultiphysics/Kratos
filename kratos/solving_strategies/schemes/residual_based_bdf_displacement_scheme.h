@@ -64,6 +64,7 @@ public:
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
     typedef ResidualBasedBDFScheme<TSparseSpace,TDenseSpace>               BDFBaseType;
+    typedef ResidualBasedBDFDisplacementScheme<TSparseSpace, TDenseSpace>    ClassType;
 
     /// Data type definition
     typedef typename BDFBaseType::TDataType                                  TDataType;
@@ -88,7 +89,7 @@ public:
     /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType                     ConditionsArrayType;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
+    typedef double              ComponentType;
 
     ///@}
     ///@name Life Cycle
@@ -148,6 +149,15 @@ public:
     ///@{
 
     /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
+    /**
      * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
      * @param rModelPart The model part of the problem to solve
      * @param rA LHS matrix
@@ -181,9 +191,9 @@ public:
         const int accelpos = it_node_begin->HasDofFor(ACCELERATION_X) ? it_node_begin->GetDofPosition(ACCELERATION_X) : -1;
 
         std::array<bool, 3> fixed = {false, false, false};
-        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<Variable<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<Variable<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<Variable<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
 
         #pragma omp parallel for private(fixed)
         for(int i = 0;  i < num_nodes; ++i) {
@@ -251,9 +261,9 @@ public:
 
         // Auxiliar variables
         std::array<bool, 3> predicted = {false, false, false};
-        const std::array<VariableComponent<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
-        const std::array<VariableComponent<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
-        const std::array<VariableComponent<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
+        const std::array<Variable<ComponentType>, 3> disp_components = {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+        const std::array<Variable<ComponentType>, 3> vel_components = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
+        const std::array<Variable<ComponentType>, 3> accel_components = {ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z};
 
         #pragma omp parallel for private(predicted)
         for(int i = 0;  i< num_nodes; ++i) {
@@ -345,6 +355,15 @@ public:
         KRATOS_CATCH( "" );
 
         return 0;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "bdf_displacement_scheme";
     }
 
     ///@}

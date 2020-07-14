@@ -191,7 +191,7 @@ TrussElement3D2N::CalculateBodyForces()
     KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::GetValuesVector(Vector& rValues, int Step)
+void TrussElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -211,7 +211,7 @@ void TrussElement3D2N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -231,7 +231,7 @@ void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void TrussElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -433,33 +433,6 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 
         rOutput[0] = temp_internal_stresses*GetProperties()[CROSS_AREA];
     }
-}
-
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable, std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable, std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
 }
 
 int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -667,7 +640,7 @@ void TrussElement3D2N::WriteTransformationCoordinates(
 void TrussElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
@@ -693,7 +666,7 @@ void TrussElement3D2N::AddExplicitContribution(
 
 void TrussElement3D2N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {

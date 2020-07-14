@@ -49,6 +49,8 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
 
+        self.process_info = KM.ProcessInfo()
+
         self.solver_wrappers = self.__CreateSolverWrappers()
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
@@ -67,6 +69,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         self.coupling_operations_dict = factories_helper.CreateCouplingOperations(
             self.settings["coupling_operations"],
             self.solver_wrappers,
+            self.process_info,
             self.echo_level)
 
         ### Creating the data transfer operators

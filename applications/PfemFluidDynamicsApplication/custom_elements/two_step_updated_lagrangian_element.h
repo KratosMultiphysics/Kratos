@@ -23,6 +23,7 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/constitutive_law.h"
 
 #include "pfem_fluid_dynamics_application_variables.h"
 
@@ -85,6 +86,7 @@ protected:
     MatrixType FgradVel;
     MatrixType InvFgradVel;
     MatrixType SpatialVelocityGrad;
+    MatrixType ConstitutiveMatrix;
     // Stress state
     double MeanPressure;
     VectorType CurrentTotalCauchyStress;
@@ -138,6 +140,12 @@ public:
   /* typedef Element::PropertiesType::Pointer PropertiesType::Pointer; */
 
   typedef Element::PropertiesType PropertiesType;
+
+  /// Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  /// Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
 
   ///@}
   ///@name Life Cycle
@@ -334,6 +342,8 @@ protected:
   ///@name Protected member Variables
   ///@{
 
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -357,18 +367,6 @@ protected:
   virtual void CalculateExplicitContinuityEquation(MatrixType &rLeftHandSideMatrix,
                                                    VectorType &rRightHandSideVector,
                                                    ProcessInfo &rCurrentProcessInfo){};
-
-  virtual void ComputeMaterialParameters(double &Density,
-                                         double &DeviatoricCoeff,
-                                         double &VolumetricCoeff,
-                                         ProcessInfo &rCurrentProcessInfo,
-                                         ElementalVariables &rElementalVariables){};
-
-  virtual void ComputeMaterialParametersGranularGas(double &Density,
-                                                    double &DeviatoricCoeff,
-                                                    double &VolumetricCoeff,
-                                                    ProcessInfo &rCurrentProcessInfo,
-                                                    ElementalVariables &rElementalVariables){};
 
   virtual double GetThetaMomentum()
   {
@@ -571,9 +569,9 @@ protected:
   bool CheckStrain3(VectorType &SpatialDefRate,
                     MatrixType &SpatialVelocityGrad);
 
-  virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                                double TimeStep,
-                                                unsigned int g){};
+  virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
+                                                unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                                double &DeviatoricCoeff, double &VolumetricCoeff){};
 
   /// Write the value of a variable at a point inside the element to a double
   /**

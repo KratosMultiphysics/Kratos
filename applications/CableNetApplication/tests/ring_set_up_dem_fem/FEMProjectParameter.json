@@ -110,7 +110,19 @@
 				"tolerance"        : 3e-1
 			}
 		}],
-		"list_other_processes"             :  [],
+		"list_other_processes"             :  [{
+			"python_module"   : "create_point_based_entites_process",
+			"kratos_module" : "KratosMultiphysics.CoSimulationApplication.processes",
+			"Parameters"            : {
+				"model_part_name"       : "Structure",
+				"new_sub_model_part_name"    : "struct_sub",
+				"sub_model_part_names"       : [],
+				"entity_name"                : "PointLoadCondition3D1N",
+				"entity_type"                : "condition",
+				"properties_id"              : 0,
+				"kratos_application"         : ""
+			}
+		}],
 		"json_output_process"              :  []
 	},
 	"output_processes"                 : {

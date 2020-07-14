@@ -42,7 +42,7 @@ namespace Kratos
 /** Mapping requires knowledge about the "other" side of the Interface. This class communicates the
  * data required by the mappers, hence it also includes the (local) searching
 */
-class InterfaceCommunicator
+class KRATOS_API(MAPPING_APPLICATION) InterfaceCommunicator
 {
 public:
     ///@name Type Definitions

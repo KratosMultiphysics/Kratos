@@ -522,7 +522,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -601,7 +601,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -677,7 +677,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -757,7 +757,7 @@ namespace Kratos
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
                 const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);

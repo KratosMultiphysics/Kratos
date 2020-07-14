@@ -211,17 +211,18 @@ public:
 #endif
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            return *static_cast<TDataType*>(i->second);
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
+            return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
         
 #ifdef KRATOS_DEBUG
         if(OpenMPUtils::IsInParallel() != 0)
             KRATOS_ERROR << "attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
 #endif 
         
-        mData.push_back(ValueType(&rThisVariable,new TDataType(rThisVariable.Zero())));
+        auto p_source_variable = &rThisVariable.GetSourceVariable();
+        mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
 
-        return *static_cast<TDataType*>(mData.back().second);
+        return *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex());
     }
 
     //TODO: make the variable of the constant version consistent with the one of the "classical" one
@@ -233,8 +234,8 @@ public:
         
         typename ContainerType::const_iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            return *static_cast<const TDataType*>(i->second);
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
+            return *(static_cast<const TDataType*>(i->second) + rThisVariable.GetComponentIndex());
 
         return rThisVariable.Zero();
     }
@@ -261,10 +262,13 @@ public:
 #endif
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
-            *static_cast<TDataType*>(i->second) = rValue;
-        else
-            mData.push_back(ValueType(&rThisVariable,new TDataType(rValue))); //TODO: this shall be insert not push_back
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end()) {
+            *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex()) = rValue;
+        } else {
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
+            *(static_cast<TDataType*>(mData.back().second) + rThisVariable.GetComponentIndex()) = rValue; 
+        }
     }
 
     template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
@@ -276,7 +280,7 @@ public:
     {
         typename ContainerType::iterator i;
 
-        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
         {
             i->first->Delete(i->second);
             mData.erase(i);
@@ -304,12 +308,12 @@ public:
 
     template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
     {
-        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())) != mData.end());
+        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())) != mData.end());
     }
 
     template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
-        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().Key())) != mData.end());
+        return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().SourceKey())) != mData.end());
     }
 
     bool IsEmpty() const
@@ -397,7 +401,7 @@ private:
         explicit IndexCheck(std::size_t I) : mI(I) {}
         bool operator()(const ValueType& I)
         {
-            return I.first->Key() == mI;
+            return I.first->SourceKey() == mI;
         }
     };
 

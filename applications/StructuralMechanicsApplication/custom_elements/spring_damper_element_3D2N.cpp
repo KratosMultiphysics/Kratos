@@ -150,7 +150,7 @@ void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, c
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     if ( rValues.size() != msElementSize )
@@ -177,7 +177,7 @@ void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     if ( rValues.size() != msElementSize )
@@ -202,7 +202,7 @@ void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int St
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     if ( rValues.size() != msElementSize )

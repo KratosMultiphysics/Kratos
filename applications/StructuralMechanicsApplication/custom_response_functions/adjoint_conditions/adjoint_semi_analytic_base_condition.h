@@ -120,7 +120,7 @@ public:
         return mpPrimalCondition->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override;
+    void GetValuesVector(Vector& rValues, int Step = 0 ) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -303,20 +303,6 @@ public:
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                         std::vector< array_1d<double, 3 > >& rValues,
-                         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;

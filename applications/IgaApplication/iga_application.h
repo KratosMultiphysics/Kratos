@@ -23,8 +23,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosIgaApplication
-    : public KratosApplication {
+class KRATOS_API(IGA_APPLICATION) KratosIgaApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{
@@ -83,6 +82,20 @@ private:
     ///@name Member Variables
     ///@{
 
+<<<<<<< HEAD
+=======
+    const Shell3pElement mShell3pElement;
+    const IgaTrussElement mIgaTrussElement;
+    const ShellKLDiscreteElement mShellKLDiscreteElement;
+
+    //Conditions
+    const LoadCondition mLoadCondition;
+    const PenaltyCouplingCondition mPenaltyCouplingCondition;
+
+    // Modelers
+    const IgaModeler mIgaModeler;
+
+>>>>>>> origin/master
     ///@}
     ///@name Private methods
     ///@{
