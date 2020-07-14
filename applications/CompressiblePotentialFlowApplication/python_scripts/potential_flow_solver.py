@@ -163,8 +163,8 @@ class PotentialFlowSolver(FluidSolver):
         self.formulation.SetProcessInfo(self.main_model_part)
         self.min_buffer_size = 1
         self.domain_size = custom_settings["domain_size"].GetInt()
-        # self.reference_chord = custom_settings["reference_chord"].GetDouble()
-        # self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
+        self.reference_chord = custom_settings["reference_chord"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
         self.element_has_nodal_properties = False
 
     def AddVariables(self):
