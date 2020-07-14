@@ -19,13 +19,14 @@ ElementSizeCalculator<TDim,TNumNodes>::~ElementSizeCalculator() {};
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     /* Calculate node-edge distances */
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-    double x20 = rGeometry[2].X() - rGeometry[0].X();
-    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+    const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    const double x20 = rGeometry[2].X() - rGeometry[0].X();
+    const double y20 = rGeometry[2].Y() - rGeometry[0].Y();
 
     // node 0, edge 12
     double nx = -(y20-y10);
@@ -52,7 +53,8 @@ double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node<3> >& 
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const Node<3>& r_node_0 = rGeometry[0];
     const Node<3>& r_node_1 = rGeometry[1];
@@ -60,51 +62,52 @@ double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& 
     const Node<3>& r_node_3 = rGeometry[3];
 
     // Calculate face centers
-    double x10 = (r_node_1.X() + r_node_3.X())/2.;
-    double y10 = (r_node_1.Y() + r_node_3.Y())/2.;
+    const double x10 = (r_node_1.X() + r_node_3.X())/2.;
+    const double y10 = (r_node_1.Y() + r_node_3.Y())/2.;
 
-    double x21 = (r_node_2.X() + r_node_1.X())/2.;
-    double y21 = (r_node_2.Y() + r_node_1.Y())/2.;
+    const double x21 = (r_node_2.X() + r_node_1.X())/2.;
+    const double y21 = (r_node_2.Y() + r_node_1.Y())/2.;
 
-    double x32 = (r_node_3.X() + r_node_2.X())/2.;
-    double y32 = (r_node_3.Y() + r_node_2.Y())/2.;
+    const double x32 = (r_node_3.X() + r_node_2.X())/2.;
+    const double y32 = (r_node_3.Y() + r_node_2.Y())/2.;
 
-    double x03 = (r_node_0.X() + r_node_3.X())/2.;
-    double y03 = (r_node_0.Y() + r_node_3.Y())/2.;
+    const double x03 = (r_node_0.X() + r_node_3.X())/2.;
+    const double y03 = (r_node_0.Y() + r_node_3.Y())/2.;
 
     // Distance between face centers (xi direction)
-    double dxi_x = x21 - x03;
-    double dxi_y = y21 - y03;
+    const double dxi_x = x21 - x03;
+    const double dxi_y = y21 - y03;
 
-    double h2_xi = dxi_x*dxi_x + dxi_y*dxi_y;
+    const double h2_xi = dxi_x*dxi_x + dxi_y*dxi_y;
 
     // Distance between face centers (eta direction)
-    double deta_x = x32 - x10;
-    double deta_y = y32 - y10;
+    const double deta_x = x32 - x10;
+    const double deta_y = y32 - y10;
 
-    double h2_eta = deta_x*deta_x + deta_y*deta_y;
+    const double h2_eta = deta_x*deta_x + deta_y*deta_y;
 
-    double h2 = h2_xi < h2_eta ? h2_xi : h2_eta;
+    const double h2 = h2_xi < h2_eta ? h2_xi : h2_eta;
 
     return std::sqrt(h2);
 }
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     /* Calculate distances between each node and the opposite face */
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-    double z10 = rGeometry[1].Z() - rGeometry[0].Z();
+    const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    const double z10 = rGeometry[1].Z() - rGeometry[0].Z();
 
-    double x20 = rGeometry[2].X() - rGeometry[0].X();
-    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
-    double z20 = rGeometry[2].Z() - rGeometry[0].Z();
+    const double x20 = rGeometry[2].X() - rGeometry[0].X();
+    const double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+    const double z20 = rGeometry[2].Z() - rGeometry[0].Z();
 
-    double x30 = rGeometry[3].X() - rGeometry[0].X();
-    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-    double z30 = rGeometry[3].Z() - rGeometry[0].Z();
+    const double x30 = rGeometry[3].X() - rGeometry[0].X();
+    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    const double z30 = rGeometry[3].Z() - rGeometry[0].Z();
 
     // face 123
     double nx = (y30-y10)*(z20-z10) - (z30-z10)*(y20-y10);
@@ -139,9 +142,62 @@ double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& 
     return std::sqrt(Hsq);
 }
 
+// Prism3D6 version.
+template<>
+double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &rGeometry)
+{
+    // Get nodes
+    const Node<3>& r_node_0 = rGeometry[0];
+    const Node<3>& r_node_1 = rGeometry[1];
+    const Node<3>& r_node_2 = rGeometry[2];
+    const Node<3>& r_node_3 = rGeometry[3];
+    const Node<3>& r_node_4 = rGeometry[4];
+    const Node<3>& r_node_5 = rGeometry[5];
+
+    // Calculate face centers (top and bottom face)
+    const double one_third = 1.0/3.0;
+    const array_1d<double,3> low_dseta = one_third * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_2.Coordinates() );
+    const array_1d<double,3> high_dseta = one_third * (r_node_3.Coordinates() + r_node_4.Coordinates() + r_node_5.Coordinates() );
+
+    // Calculate node-edge distances (top face)
+    const double x10 = r_node_1.X() - r_node_0.X();
+    const double y10 = r_node_1.Y() - r_node_0.Y();
+    const double x20 = r_node_2.X() - r_node_0.X();
+    const double y20 = r_node_2.Y() - r_node_0.Y();
+
+    // node 0, edge 12
+    double nx = -(y20-y10);
+    double ny = x20-x10;
+    double Hsq = x10*nx + y10*ny;
+    Hsq *= Hsq / (nx*nx + ny*ny);
+
+    // node 1, edge 20
+    nx = -y20;
+    ny = x20;
+    double hsq = x10*nx + y10*ny;
+    hsq *= hsq / (nx*nx + ny*ny);
+    Hsq = ( hsq < Hsq ) ? hsq : Hsq;
+
+    // node 2, edge 10
+    nx = -y10;
+    ny = x10;
+    hsq = x20*nx + y20*ny;
+    hsq *= hsq / (nx*nx + ny*ny);
+    Hsq = ( hsq < Hsq ) ? hsq : Hsq;
+
+    // Calculate distance between the face centers (dseta direction)
+    const array_1d<double,3> d_dseta = high_dseta - low_dseta;
+    const double h2_dseta = d_dseta[0]*d_dseta[0] + d_dseta[1]*d_dseta[1] + d_dseta[2]*d_dseta[2];
+
+    const double h2 = h2_dseta < Hsq?h2_dseta:Hsq;
+
+    return std::sqrt(h2);
+}
+
 // Hexahedra3D8 version. We use the distance between face centers to compute lengths.
 template<>
-double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
     const Node<3>& r_node_0 = rGeometry[0];
     const Node<3>& r_node_1 = rGeometry[1];
@@ -153,24 +209,24 @@ double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& 
     const Node<3>& r_node_7 = rGeometry[7];
 
     // Calculate face centers
-    array_1d<double,3> low_xi  = 0.25 * (r_node_0.Coordinates() + r_node_4.Coordinates() + r_node_3.Coordinates() + r_node_7.Coordinates());
-    array_1d<double,3> high_xi = 0.25 * (r_node_1.Coordinates() + r_node_2.Coordinates() + r_node_6.Coordinates() + r_node_5.Coordinates());
-    array_1d<double,3> low_eta  = 0.25 * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_5.Coordinates() + r_node_4.Coordinates());
-    array_1d<double,3> high_eta = 0.25 * (r_node_3.Coordinates() + r_node_7.Coordinates() + r_node_6.Coordinates() + r_node_2.Coordinates());
-    array_1d<double,3> low_dseta  = 0.25 * (r_node_0.Coordinates() + r_node_3.Coordinates() + r_node_2.Coordinates() + r_node_1.Coordinates());
-    array_1d<double,3> high_dseta = 0.25 * (r_node_4.Coordinates() + r_node_5.Coordinates() + r_node_6.Coordinates() + r_node_7.Coordinates());
+    const array_1d<double,3> low_xi  = 0.25 * (r_node_0.Coordinates() + r_node_4.Coordinates() + r_node_3.Coordinates() + r_node_7.Coordinates());
+    const array_1d<double,3> high_xi = 0.25 * (r_node_1.Coordinates() + r_node_2.Coordinates() + r_node_6.Coordinates() + r_node_5.Coordinates());
+    const array_1d<double,3> low_eta  = 0.25 * (r_node_0.Coordinates() + r_node_1.Coordinates() + r_node_5.Coordinates() + r_node_4.Coordinates());
+    const array_1d<double,3> high_eta = 0.25 * (r_node_3.Coordinates() + r_node_7.Coordinates() + r_node_6.Coordinates() + r_node_2.Coordinates());
+    const array_1d<double,3> low_dseta  = 0.25 * (r_node_0.Coordinates() + r_node_3.Coordinates() + r_node_2.Coordinates() + r_node_1.Coordinates());
+    const array_1d<double,3> high_dseta = 0.25 * (r_node_4.Coordinates() + r_node_5.Coordinates() + r_node_6.Coordinates() + r_node_7.Coordinates());
 
     // Distance between face centers (xi direction)
-    array_1d<double,3> d_xi = high_xi - low_xi;
-    double h2_xi = d_xi[0]*d_xi[0] + d_xi[1]*d_xi[1] + d_xi[2]*d_xi[2];
+    const array_1d<double,3> d_xi = high_xi - low_xi;
+    const double h2_xi = d_xi[0]*d_xi[0] + d_xi[1]*d_xi[1] + d_xi[2]*d_xi[2];
 
     // Distance between face centers (eta direction)
-    array_1d<double,3> d_eta = high_eta - low_eta;
-    double h2_eta = d_eta[0]*d_eta[0] + d_eta[1]*d_eta[1] + d_eta[2]*d_eta[2];
+    const array_1d<double,3> d_eta = high_eta - low_eta;
+    const double h2_eta = d_eta[0]*d_eta[0] + d_eta[1]*d_eta[1] + d_eta[2]*d_eta[2];
 
     // Distance between face centers (dseta direction)
-    array_1d<double,3> d_dseta = high_dseta - low_dseta;
-    double h2_dseta = d_dseta[0]*d_dseta[0] + d_dseta[1]*d_dseta[1] + d_dseta[2]*d_dseta[2];
+    const array_1d<double,3> d_dseta = high_dseta - low_dseta;
+    const double h2_dseta = d_dseta[0]*d_dseta[0] + d_dseta[1]*d_dseta[1] + d_dseta[2]*d_dseta[2];
 
     double h2 = h2_xi < h2_eta ? h2_xi : h2_eta;
     h2 = h2 < h2_dseta ? h2 : h2_dseta;
@@ -180,75 +236,101 @@ double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& 
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
 
-    double x20 = rGeometry[2].X() - rGeometry[0].X();
-    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+    const double x20 = rGeometry[2].X() - rGeometry[0].X();
+    const double y20 = rGeometry[2].Y() - rGeometry[0].Y();
 
     return std::sqrt(0.5 * (x10*y20-x20*y10) );
 }
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
 
-    double x30 = rGeometry[3].X() - rGeometry[0].X();
-    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    const double x30 = rGeometry[3].X() - rGeometry[0].X();
+    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
 
     return std::sqrt(x10*y30-x30*y10);
 }
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-    double z10 = rGeometry[1].Z() - rGeometry[0].Z();
+    const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    const double z10 = rGeometry[1].Z() - rGeometry[0].Z();
 
-    double x20 = rGeometry[2].X() - rGeometry[0].X();
-    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
-    double z20 = rGeometry[2].Z() - rGeometry[0].Z();
+    const double x20 = rGeometry[2].X() - rGeometry[0].X();
+    const double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+    const double z20 = rGeometry[2].Z() - rGeometry[0].Z();
 
-    double x30 = rGeometry[3].X() - rGeometry[0].X();
-    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-    double z30 = rGeometry[3].Z() - rGeometry[0].Z();
+    const double x30 = rGeometry[3].X() - rGeometry[0].X();
+    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    const double z30 = rGeometry[3].Z() - rGeometry[0].Z();
 
-    double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+    const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
-    return pow(detJ/6.0,1./3.);
+    return std::pow(detJ/6.0,1./3.);
+}
+
+// Prism3D6 version
+template <>
+double ElementSizeCalculator<3,6>::AverageElementSize(const Geometry<Node<3>> &rGeometry)
+{
+    const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    const double z10 = rGeometry[1].Z() - rGeometry[0].Z();
+
+    const double x20 = rGeometry[2].X() - rGeometry[0].X();
+    const double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+    const double z20 = rGeometry[2].Z() - rGeometry[0].Z();
+
+    const double x30 = rGeometry[3].X() - rGeometry[0].X();
+    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    const double z30 = rGeometry[3].Z() - rGeometry[0].Z();
+
+    const double detJ = 0.5 * (x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30);
+    return std::pow(detJ, 1. / 3.);
 }
 
 // Hexahedra3D8 version.
 template<>
-double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+{
 
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-    double z10 = rGeometry[1].Z() - rGeometry[0].Z();
+    const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    const double z10 = rGeometry[1].Z() - rGeometry[0].Z();
 
-    double x30 = rGeometry[3].X() - rGeometry[0].X();
-    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-    double z30 = rGeometry[3].Z() - rGeometry[0].Z();
+    const double x30 = rGeometry[3].X() - rGeometry[0].X();
+    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    const double z30 = rGeometry[3].Z() - rGeometry[0].Z();
 
-    double x40 = rGeometry[4].X() - rGeometry[0].X();
-    double y40 = rGeometry[4].Y() - rGeometry[0].Y();
-    double z40 = rGeometry[4].Z() - rGeometry[0].Z();
+    const double x40 = rGeometry[4].X() - rGeometry[0].X();
+    const double y40 = rGeometry[4].Y() - rGeometry[0].Y();
+    const double z40 = rGeometry[4].Z() - rGeometry[0].Z();
 
-    double detJ = x10 * y30 * z40 - x10 * y40 * z30 + y10 * z30 * x40 - y10 * x30 * z40 + z10 * x30 * y40 - z10 * y30 * x40;
-    return pow(detJ,1./3.);
+    const double detJ = x10 * y30 * z40 - x10 * y40 * z30 + y10 * z30 * x40 - y10 * x30 * z40 + z10 * x30 * y40 - z10 * y30 * x40;
+    return std::pow(detJ,1./3.);
 }
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<2,3>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
     double Hvel = 0.0;
 
@@ -269,7 +351,7 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >
 
     if (Hvel > 0.0)
     {
-        double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
+        const double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
         Hvel /= VelNorm;
     }
 
@@ -278,18 +360,22 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<2,4>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
-    double Hvel = ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry,rVelocity);
+    const double Hvel = ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry,rVelocity);
 
     return Hvel;
 }
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<3,4>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
     double Hvel = 0.0;
 
@@ -312,17 +398,30 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
 
     if (Hvel > 0.0)
     {
-        double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
+        const double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
         Hvel /= VelNorm;
     }
 
     return Hvel;
 }
 
+// Prism3D6 version
+template<>
+double ElementSizeCalculator<3,6>::ProjectedElementSize(
+    const Geometry<Node<3> > &rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
+    KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
+    return 0.0; // Just to avoid warning during compilations
+}
+
+
 // Hexahedra3D8 version.
 template<>
-double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) {
+double ElementSizeCalculator<3,8>::ProjectedElementSize(
+    const Geometry<Node<3> >& rGeometry,
+    const array_1d<double,3>& rVelocity)
+{
 
     double Hvel = 0.0;
 
@@ -405,7 +504,8 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
 
 // Triangle2D3 version.
 template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX) {
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX)
+{
 
     double h = 0.0;
     for(unsigned int i = 0; i < 3; ++i){
@@ -420,7 +520,8 @@ double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const Bounded
 
 // Tetrahedra3D4 version.
 template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,4,3>& rDN_DX) {
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,4,3>& rDN_DX)
+{
 
     double h = 0.0;
     for(unsigned int i = 0; i < 4; ++i){
@@ -439,6 +540,7 @@ double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const Bounded
 template class ElementSizeCalculator<2,3>;
 template class ElementSizeCalculator<2,4>;
 template class ElementSizeCalculator<3,4>;
+template class ElementSizeCalculator<3,6>;
 template class ElementSizeCalculator<3,8>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
