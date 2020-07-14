@@ -63,8 +63,8 @@ def SetTestSuite(suites):
           candelier_with_history_hinsberg_test,
           interpolation_test_linear,
           interpolation_test_nonlinear_time_no_substepping,
-          fluid_dem_coupling_one_way_test,
-          sdem_pfem_coupling_one_way_test
+          # fluid_dem_coupling_one_way_test,
+          # sdem_pfem_coupling_one_way_test
           ])
     )
 

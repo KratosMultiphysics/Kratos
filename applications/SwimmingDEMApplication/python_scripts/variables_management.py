@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger
 import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.FluidDynamicsApplication as Fluid
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 
@@ -169,7 +170,7 @@ class VariablesManager:
         self.fluid_vars += self.coupling_fluid_vars
 
         if parameters["pressure_grad_recovery_type"].GetInt() > 0:
-            self.fluid_vars += [Kratos.RECOVERED_PRESSURE_GRADIENT]
+            self.fluid_vars += [Fluid.RECOVERED_PRESSURE_GRADIENT]
 
         if (parameters["gradient_calculation_type"].GetInt() > 1
             or parameters["pressure_grad_recovery_type"].GetInt() > 1
