@@ -118,6 +118,12 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step) const override;
 
     void GetSecondDerivativesVector(Vector& values, int Step) const override;
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                      ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override;
     
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;

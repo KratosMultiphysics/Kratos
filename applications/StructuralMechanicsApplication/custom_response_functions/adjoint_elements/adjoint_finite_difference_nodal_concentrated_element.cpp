@@ -245,6 +245,26 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetSecondD
 }
 
 template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateFirstDerivativesLHS(
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    BaseType::CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+    noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    KRATOS_CATCH("");
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateSecondDerivativesLHS(
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    BaseType::CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+    noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    KRATOS_CATCH("");
+}
+
+template <class TPrimalElement>
 void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateSensitivityMatrix(
                                             const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
