@@ -230,6 +230,12 @@ proc call_SphereTree { } {
     }
 }
 
+    proc my_finish_proc { pid status args } { ... }
+
+    # returned user_stop must be 0 or 1 (1 to kill the process)
+
+    proc my_progress_proc { args }  { ... return $user_stop }
+
 proc DEMClusters::call_makeTreeMedial { } {
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
@@ -248,6 +254,7 @@ proc DEMClusters::call_makeTreeMedial { } {
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
+
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
     # set Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
@@ -263,9 +270,49 @@ proc DEMClusters::call_makeTreeMedial { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
+    set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
+    set outfl [open $ouputpath w+]
+
     # exec $program {*}$argv
     # catch { set ::DEMClusters::pid [exec $program {*}$argv] &} msg
-    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
+
+    # proces can be canceled but not ouput on process info screen
+    # catch {set ::DEMClusters::pid [open "|$program $argv"]} outfl
+
+    # view output using view process info but process cannot be canceled. requires tk_exec modified version of exec proc:
+    # catch {tk_exec $program {*}$argv > $ouputpath} msg
+
+    puts $outfl [set ::DEMClusters::pid [open "|$program $argv"]]
+    close $outfl
+
+    # set reader [open |[list /bin/sh -c {echo $$; exec make}]]
+    # set pid [gets $reader]
+
+
+    # w+
+    # Open the file for reading and writing. Truncate it if it exists. If it doesn't exist, create a new file.
+
+
+    # set invert [exec [info nameofexecutable] $tempFileName << "ABLE WAS I ERE I SAW ELBA"]
+    # open "|[info nameofexecutable] $tempFileName" r+
+    # catch {set ::DEMClusters::pid [open "|$program $argv"]} res
+
+
+    # status will be= ok|user_stop|timeout
+
+    # proc my_finish_proc { pid status args } { ... }
+
+    # returned user_stop must be 0 or 1 (1 to kill the process)
+
+    # proc my_progress_proc { args }  { ... return $user_stop }
+
+    # set timeout 20000 ;#seconds, 0 to no limit
+
+    # set maxmemory 0 ;#bytes 0 to no limit
+
+    # gid_cross_platform::track_process $::DEMClusters::pid 1000 [clock seconds] $timeout $maxmemory [list my_finish_proc $args] [list my_progress_proc a b]
+
+
 
 
     # makeTreeMedial -depth 1 -branch 100 -numCover 10000 -minCover 5 -initSpheres 1000 -minSpheres 200 -erFact 2 -testerLevels 2 -nopause -eval -expand -merge -burst -optimise balance -balExcess 0.001 -maxOptLevel 100 generic.obj
@@ -659,3 +706,94 @@ proc ReadClusterFileintoMesh { } {
         }
     }
 }
+
+
+
+
+
+
+ proc tk_exec_fileevent {id} {
+    global tk_exec_data
+    global tk_exec_cond
+    global tk_exec_pipe
+
+    if {[eof $tk_exec_pipe($id)]} {
+        fileevent $tk_exec_pipe($id) readable ""
+        set tk_exec_cond($id) 1
+        return
+    }
+
+    append tk_exec_data($id) [read $tk_exec_pipe($id) 1024]
+  }
+
+  proc tk_exec {args} {
+    global tk_exec_id
+    global tk_exec_data
+    global tk_exec_cond
+    global tk_exec_pipe
+    global tcl_platform
+    global env
+
+    if {![info exists tk_exec_id]} {
+        set tk_exec_id 0
+    } else {
+        incr tk_exec_id
+    }
+
+    set keepnewline 0
+
+    for {set i 0} {$i < [llength $args]} {incr i} {
+        set arg [lindex $args $i]
+        switch -glob -- $arg {
+            -keepnewline {
+                set keepnewline 1
+            }
+            -- {
+                incr i
+                break
+            }
+            -* {
+                error "unknown option: $arg"
+            }
+            * {
+                break
+            }
+        }
+    }
+
+    if {$i > 0} {
+        set args [lrange $args $i end]
+    }
+
+    if {$tcl_platform(platform) == "windows" && \
+        [info exists env(COMSPEC)]} {
+        set args [linsert $args 0 $env(COMSPEC) "/c"]
+    }
+
+    set pipe [open "|$args" r]
+
+    set tk_exec_pipe($tk_exec_id) $pipe
+    set tk_exec_data($tk_exec_id) ""
+    set tk_exec_cond($tk_exec_id) 0
+
+    fconfigure $pipe -blocking 0
+    fileevent $pipe readable "tk_exec_fileevent $tk_exec_id"
+
+    vwait tk_exec_cond($tk_exec_id)
+
+    if {$keepnewline} {
+        set data $tk_exec_data($tk_exec_id)
+    } else {
+        set data [string trimright $tk_exec_data($tk_exec_id) \n]
+    }
+
+    unset tk_exec_pipe($tk_exec_id)
+    unset tk_exec_data($tk_exec_id)
+    unset tk_exec_cond($tk_exec_id)
+
+    if {[catch {close $pipe} err]} {
+        error "pipe error: $err"
+    }
+
+    return $data
+  }
