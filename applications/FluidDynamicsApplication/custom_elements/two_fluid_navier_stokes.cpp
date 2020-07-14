@@ -85,12 +85,22 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
+        const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
+        KRATOS_INFO("TwoFluidsNavierStokes") << surface_tension_coefficient << std::endl;
+        KRATOS_INFO("TwoFluidsNavierStokes") << rCurrentProcessInfo[SURFACE_TENSION] << std::endl;
+
         if (data.IsCut()){
             GeometryType::Pointer p_geom = this->pGetGeometry();
             Matrix shape_functions_pos, shape_functions_neg;
             Matrix shape_functions_enr_pos, shape_functions_enr_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
             GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
+            Matrix int_shape_function_neg;                                       // interface shape functions
+            Matrix int_shape_function_enr_neg, int_shape_function_enr_pos;       // interface enriched shape functions
+            GeometryType::ShapeFunctionsGradientsType int_shape_derivatives_neg; // interface shape functions derivatives
+            Kratos::Vector int_gauss_pts_weights;                                // interface Gauss points weights
+            std::vector<Vector> int_normals_neg;                                 // interface normal vector based on the negative side
+            Kratos::Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
 
             ComputeSplitting(
                 data,
