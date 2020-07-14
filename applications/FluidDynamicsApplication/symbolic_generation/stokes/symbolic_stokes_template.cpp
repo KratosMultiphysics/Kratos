@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Mohit Tyagi, Daniel Diez, Pablo Becker
+//  Main author:     Mohit Tyagi
+//  Co-authors:      Daniel Diez, Pablo Becker, Ruben Zorrilla
 //
 
 #include "symbolic_stokes.h"
