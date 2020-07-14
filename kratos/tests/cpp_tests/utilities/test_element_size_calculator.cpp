@@ -25,7 +25,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase1, KratosCoreGeometriesFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase1, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
@@ -41,7 +41,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(average_size, std::pow(0.5, 1.0 / 3.0), TOLERANCE);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase2, KratosCoreGeometriesFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase2, KratosCoreFastSuite)
         {
             Geometry<NodeType>::PointsArrayType nodes;
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
