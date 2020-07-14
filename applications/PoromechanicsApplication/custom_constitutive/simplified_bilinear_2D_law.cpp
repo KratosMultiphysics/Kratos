@@ -60,7 +60,7 @@ void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
                                                                 Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
-
+	//Triangular area
     if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
         // Tensile constitutive matrix
