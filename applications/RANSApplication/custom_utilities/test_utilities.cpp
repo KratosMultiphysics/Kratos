@@ -27,6 +27,9 @@
 // Include base h
 #include "test_utilities.h"
 
+#include "includes/cfd_variables.h"
+#include "rans_application_variables.h"
+
 namespace Kratos
 {
 namespace RansApplicationTestUtilities
@@ -63,7 +66,8 @@ ModelPart& CreateTestModelPart(Model& rModel,
                                const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
                                const int BufferSize)
 {
-    ModelPart& r_model_part = rModel.CreateModelPart("test", BufferSize);
+    ModelPart& r_model_part = rModel.CreateModelPart(
+        "test" + std::to_string(rModel.GetModelPartNames().size()), BufferSize);
     rAddNodalSolutionStepVariablesFuncion(r_model_part);
 
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -102,7 +106,7 @@ ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
 {
     ModelPart& r_model_part = CreateTestModelPart(
         rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
-        [rDofVariable](ModelPart::NodeType& rNode) {
+        [&rDofVariable](ModelPart::NodeType& rNode) {
             rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
         },
         BufferSize);
