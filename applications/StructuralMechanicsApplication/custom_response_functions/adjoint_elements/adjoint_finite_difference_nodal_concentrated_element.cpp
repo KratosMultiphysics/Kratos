@@ -179,7 +179,7 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetValuesV
         rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Y, Step);
         rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Z, Step);
     }
-
+    KRATOS_WATCH(rValues[2])
     KRATOS_CATCH("")
 }
 
