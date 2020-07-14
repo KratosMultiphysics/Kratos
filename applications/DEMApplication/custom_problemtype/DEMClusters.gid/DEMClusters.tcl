@@ -270,46 +270,29 @@ proc DEMClusters::call_makeTreeMedial { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
-    set outfl [open $ouputpath w+]
+
 
     # exec $program {*}$argv
     # catch { set ::DEMClusters::pid [exec $program {*}$argv] &} msg
 
     # proces can be canceled but not ouput on process info screen
-    # catch {set ::DEMClusters::pid [open "|$program $argv"]} outfl
+    catch {set ::DEMClusters::pid [open "|$program $argv"]} msg
 
     # view output using view process info but process cannot be canceled. requires tk_exec modified version of exec proc:
+    # set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
+    # set outfl [open $ouputpath w]
     # catch {tk_exec $program {*}$argv > $ouputpath} msg
 
-    puts $outfl [set ::DEMClusters::pid [open "|$program $argv"]]
-    close $outfl
-
-    # set reader [open |[list /bin/sh -c {echo $$; exec make}]]
-    # set pid [gets $reader]
-
-
-    # w+
-    # Open the file for reading and writing. Truncate it if it exists. If it doesn't exist, create a new file.
-
-
-    # set invert [exec [info nameofexecutable] $tempFileName << "ABLE WAS I ERE I SAW ELBA"]
-    # open "|[info nameofexecutable] $tempFileName" r+
-    # catch {set ::DEMClusters::pid [open "|$program $argv"]} res
+    # puts $outfl [set ::DEMClusters::pid [open "|$program $argv"]]
+    # close $outfl
 
 
     # status will be= ok|user_stop|timeout
-
     # proc my_finish_proc { pid status args } { ... }
-
     # returned user_stop must be 0 or 1 (1 to kill the process)
-
     # proc my_progress_proc { args }  { ... return $user_stop }
-
     # set timeout 20000 ;#seconds, 0 to no limit
-
     # set maxmemory 0 ;#bytes 0 to no limit
-
     # gid_cross_platform::track_process $::DEMClusters::pid 1000 [clock seconds] $timeout $maxmemory [list my_finish_proc $args] [list my_progress_proc a b]
 
 
