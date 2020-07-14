@@ -320,7 +320,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /// Returns a list of the element's Dofs
@@ -330,7 +330,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo) override;
+        const ProcessInfo& CurrentProcessInfo) const override;
 
 
     ///@}
