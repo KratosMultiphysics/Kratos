@@ -229,7 +229,8 @@ namespace MPMSearchElementUtility
             SizeType nonzero_entries = 0;
             for (size_t i = 0; i < rIntergrationSubPoints.size(); i++) if (rN(i, j) > 0.0) nonzero_entries += 1;
             if (nonzero_entries != 1) {
-                KRATOS_INFO("MPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!";
+                KRATOS_INFO("MPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!"
+                    << "\nrN = " << rN;
                 KRATOS_ERROR << "ERROR";
             }
         }
@@ -711,11 +712,6 @@ namespace MPMSearchElementUtility
         for (size_t i = 0; i < intersected_geometries.size(); ++i)
             number_of_nodes += intersected_geometries[i]->PointsNumber();
 
-        // Prevent splitting particles over fixed nodes
-        if (DetermineIfDomainOverlapsBoundaryConditions(intersected_geometries, rCoordinates, side_half_length))
-            return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
-
         // If we are 3D, check background mesh are axis-aligned perfect rectangular prisms
         if (working_dim == 3) Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
 
@@ -751,11 +747,21 @@ namespace MPMSearchElementUtility
 
             // Transfer local data to containers
             if (trial_subpoint.Weight() > pqmpm_min_fraction) {
+                bool is_fixed = false;
                 ips[active_subpoint_index] = trial_subpoint;
                 DN_De_vector[active_subpoint_index] = DN_De;
                 for (size_t j = 0; j < N.size(); ++j) {
                     N_matrix(active_subpoint_index, active_node_index) = N[j];
                     nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
+
+                    // Prevent splitting particles over fixed nodes
+                    auto node_it = intersected_geometries[i]->pGetPoint(j);
+                    is_fixed = false;
+                    if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
+                    else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
+                    else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
+                    if (is_fixed) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
+                        rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
 
                     active_node_index += 1;
                 }
@@ -790,8 +796,11 @@ namespace MPMSearchElementUtility
                 #pragma omp critical
                 KRATOS_INFO("MPMSearchElementUtility::Check")
                     << "Volume fraction of sub-points does not approximately sum to 1.0."
-                    << " This probably means the background grid is not big enough.\n"
-                    << "Material point volume = " << mp_volume_vec[0]
+                    << " This probably means the background grid is not big enough."
+                    << "\nPosition = " << rCoordinates
+                    << "\nNumber of active sub points = " << ips_active.size()
+                    << "\nNumber of trial sub points = " << ips.size()
+                    << "\nMaterial point volume = " << mp_volume_vec[0]
                     << "\nTotal volume fraction = " << vol_sum << "\nIndividual volume fractions:\n";
                 for (size_t i = 0; i < ips_active.size(); ++i) std::cout << ips_active[i].Weight() << std::endl;
                 KRATOS_ERROR << "ERROR";
@@ -884,7 +893,7 @@ namespace MPMSearchElementUtility
         std::vector<typename Element::Pointer>& rMissingElements,
         const double Tolerance)
     {
-        #pragma omp for
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
             auto element_itr = (rMPMModelPart.ElementsBegin() + i);
             array_1d<double, 3> local_coordinates;
@@ -938,7 +947,7 @@ namespace MPMSearchElementUtility
         std::vector<typename Condition::Pointer>& rMissingConditions,
         const double Tolerance)
     {
-        #pragma omp for
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
             auto condition_itr = rMPMModelPart.Conditions().begin() + i;
 

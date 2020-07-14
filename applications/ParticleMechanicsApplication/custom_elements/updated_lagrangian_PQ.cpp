@@ -161,6 +161,7 @@ void UpdatedLagrangianPQ::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         Vector N_dummy; // this is because the shape functions are not explicitly defined at the 'master' material point anymore
+        GetGeometry().SetValue(MP_VOLUME, mMP.volume);
         mConstitutiveLawVector->InitializeMaterial(
             GetProperties(), GetGeometry(), N_dummy);
 
