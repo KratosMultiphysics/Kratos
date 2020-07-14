@@ -22,13 +22,13 @@ namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(DebugHelpersKRATOS_WATCH_VECTOR_WITH_PRECISION, KratosCoreFastSuite)
 {
-    Vector temp(4, 10.0);
+    Vector temp(1, 10.0);
     KRATOS_WATCH_VECTOR_WITH_PRECISION(temp, 12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DebugHelpersKRATOS_WATCH_MATRIX_WITH_PRECISION, KratosCoreFastSuite)
 {
-    Matrix temp(4, 4, 10.0);
+    Matrix temp(1, 1, 10.0);
     KRATOS_WATCH_MATRIX_WITH_PRECISION(temp, 12);
 }
 } // namespace Testing
