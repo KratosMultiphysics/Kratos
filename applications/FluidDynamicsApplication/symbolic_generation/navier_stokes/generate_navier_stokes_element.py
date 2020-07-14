@@ -17,7 +17,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 # to the usual Navier-Stokes equations that are intended to act as a soft artificial compressibility, which is controlled by the value of "c".
 # In the derivation of the residual equations the space variations of the density are considered to be close to 0.
 # CONVECTIVE TERM:
-# If set to true, the convective term is taken into account in the calculation of the variational form. This allows generating both 
+# If set to true, the convective term is taken into account in the calculation of the variational form. This allows generating both
 # Navier-Stokes and Stokes elements.
 
 ## Symbolic generation settings
