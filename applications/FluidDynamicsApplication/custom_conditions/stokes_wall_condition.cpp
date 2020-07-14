@@ -10,8 +10,9 @@ namespace Kratos
  * @see StokesWallCondition::EquationIdVector
  */
 template <>
-void StokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+void StokesWallCondition<2,2>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -32,8 +33,9 @@ void StokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
  * @see StokesWallCondition::EquationIdVector
  */
 template <>
-void StokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+void StokesWallCondition<3,3>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -55,8 +57,9 @@ void StokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
  * @see StokesWallCondition::EquationIdVector
  */
 template <>
-void StokesWallCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+void StokesWallCondition<3,4>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 4;
     const SizeType LocalSize = 16;
@@ -78,8 +81,9 @@ void StokesWallCondition<3,4>::EquationIdVector(EquationIdVectorType& rResult,
  * @see StokesWallCondition::GetDofList
  */
 template <>
-void StokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+void StokesWallCondition<2,2>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -101,8 +105,9 @@ void StokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
  * @see StokesWallCondition::GetDofList
  */
 template <>
-void StokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+void StokesWallCondition<3,3>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -126,8 +131,9 @@ void StokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
  * @see StokesWallCondition::GetDofList
  */
 template <>
-void StokesWallCondition<3,4>::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+void StokesWallCondition<3,4>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 4;
     const SizeType LocalSize = 16;
