@@ -25,6 +25,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
+        cls.mapper_parameters = mapper_parameters
 
         if mapper_parameters.Has("interface_submodel_part_origin"):
             cls.interface_model_part_origin = cls.model_part_origin.GetSubModelPart(
@@ -203,6 +204,35 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.assertAlmostEqual(sum_origin[0], sum_destination[0])
         self.assertAlmostEqual(sum_origin[1], sum_destination[1])
         self.assertAlmostEqual(sum_origin[2], sum_destination[2])
+
+    def test_Is_conforming(self):
+        is_conforming = self.mapper.AreMeshesConforming()
+        self.assertEqual(is_conforming, True)
+
+    def test_Is_not_conforming(self):
+        model = KM.Model()
+        model_part_origin_non_conform = model.CreateModelPart("non_conforming")
+        
+        KM.ModelPartIO(self.input_file_origin, KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER).ReadModelPart(model_part_origin_non_conform)
+
+        if self.mapper_parameters.Has("interface_submodel_part_origin"):
+            interface_model_part_origin_non_conform = model_part_origin_non_conform.GetSubModelPart(
+                mapper_parameters["interface_submodel_part_origin"].GetString())
+        else:
+            interface_model_part_origin_non_conform = model_part_origin_non_conform
+
+        non_conform_mapper = KratosMapping.MapperFactory.CreateMapper(
+            self.model_part_origin, 
+            self.model_part_destination, 
+            KM.Parameters("""{
+                "mapper_type" : \"""" + self.mapper_type + """\",
+                "search_radius": 0.00001 }"""
+            )
+        )
+
+        is_conforming = non_conform_mapper.AreMeshesConforming()
+        self.assertEqual(is_conforming, False)
+
 
     # def test_UpdateInterface(self):
     #     pass
