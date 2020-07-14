@@ -34,8 +34,5 @@ if __name__ == "__main__":
     # Create Model
     model = Model()
 
-    # To avoid too many prints
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-
     test = InterpolationTestAnalysis(model, parameters)
     test.Run()
