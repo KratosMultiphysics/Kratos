@@ -31,8 +31,8 @@ void RansVariableDifferenceNormsCalculationUtility<TDataType>::InitializeCalcula
 {
     KRATOS_TRY
 
-    const Communicator& r_communicator = mrModelPart.GetCommunicator();
-    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+    const auto& r_communicator = mrModelPart.GetCommunicator();
+    const auto& r_nodes = r_communicator.LocalMesh().Nodes();
     const int number_of_nodes = r_nodes.size();
 
     KRATOS_ERROR_IF(!mrModelPart.HasNodalSolutionStepVariable(mrVariable))
