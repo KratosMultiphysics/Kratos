@@ -190,7 +190,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -217,7 +216,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,

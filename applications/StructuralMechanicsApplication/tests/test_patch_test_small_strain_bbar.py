@@ -96,7 +96,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         if (linear):
             strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                             scheme,
-                                                                            linear_solver,
                                                                             builder_and_solver,
                                                                             compute_reactions,
                                                                             reform_step_dofs,
@@ -106,7 +105,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         else:
             strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                             scheme,
-                                                                            linear_solver,
                                                                             convergence_criterion,
                                                                             builder_and_solver,
                                                                             max_iters,
