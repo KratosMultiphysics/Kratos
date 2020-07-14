@@ -66,7 +66,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "periodic": "periodic",
             "move_mesh_flag": false,
             "formulation": {
-                "dynamic_tau": 1.0
+                "dynamic_tau": 1.0,
+                "surface_tension": false
             },
             "bfecc_convection" : false,
             "bfecc_number_substeps" : 10
@@ -93,6 +94,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+
+        if (self.settings["formulation"].Has("surface_tension")):
+            surface_tension = self.settings["formulation"]["surface_tension"].GetBool()
+            self.main_model_part.ProcessInfo.SetValue(KratosCFD.SURFACE_TENSION, surface_tension)
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.

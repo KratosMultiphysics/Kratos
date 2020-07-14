@@ -200,6 +200,10 @@ void KratosFluidDynamicsApplication::Register() {
     // Auxiliary variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DRAG_FORCE_CENTER)
 
+    // Two-phase flow with surface tension
+    KRATOS_REGISTER_VARIABLE( SURFACE_TENSION_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( SURFACE_TENSION )
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
