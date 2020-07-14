@@ -21,7 +21,7 @@ void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
                                                     Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
-
+	//Triangular area
     if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
 		rVariables.EquivalentStrain = 1.0;
@@ -60,7 +60,7 @@ void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
                                                                 Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
-	//Triangular area
+	
     if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
         // Tensile constitutive matrix

@@ -103,7 +103,7 @@ void SimplifiedBilinear3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
                                                     Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
-
+	//Triangular area
     if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
         rVariables.EquivalentStrain = 1.0;
