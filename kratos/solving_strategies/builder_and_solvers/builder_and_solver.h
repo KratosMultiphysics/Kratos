@@ -66,6 +66,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The definition of the current class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     /// Definition of the size type
     typedef std::size_t SizeType;
 
@@ -197,11 +200,21 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit BuilderAndSolver()
+    {
+    }
+
+    /**
      * @brief Default constructor with Parameters
      * @param pNewLinearSystemSolver The linear solver for the system of equations
      * @param ThisParameters The configuration parameters
      */
-    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
+    explicit BuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        )
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -229,6 +242,18 @@ public:
     {
     }
 
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    virtual ClassType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
+    }
 
     ///@}
     ///@name Operators
@@ -679,6 +704,23 @@ public:
     }
 
     /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "builder_and_solver";
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    /**
      * @brief It sets the level of echo for the solving strategy
      * @param Level The level to set
      * @details The different levels of echo are:
@@ -701,14 +743,6 @@ public:
     {
         return mEchoLevel;
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
 
     ///@}
     ///@name Inquiry

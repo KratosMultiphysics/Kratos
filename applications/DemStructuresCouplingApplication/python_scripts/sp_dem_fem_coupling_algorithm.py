@@ -50,6 +50,19 @@ class SPAlgorithm(Algorithm):
             "post_process_tool":{
                 "use_post_process_tool": false,
                 "output_frequency": 0
+            },
+            "multiaxial_control_module_fem_dem_generalized_2d_utility" : {
+                "Parameters"    : {
+                    "control_module_delta_time": 2.0e-6,
+                    "perturbation_tolerance": 1.0e-3,
+                    "perturbation_period": 10,
+                    "max_reaction_rate_factor": 10.0,
+                    "stiffness_averaging_time_interval": 2.0e-6,
+                    "velocity_averaging_time_interval": 2.0e-6,
+                    "reaction_averaging_time_interval": 2.0e-8,
+                    "output_interval": 0
+                },
+                "list_of_actuators" : []
             }
         }""")
 
@@ -64,10 +77,13 @@ class SPAlgorithm(Algorithm):
 
         self.InitializeAdditionalProcessInfoVars()
 
-        if self.test_number:
-            from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
-            self.control_module_fem_dem_utility = ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
-            self.control_module_fem_dem_utility.ExecuteInitialize()
+        from KratosMultiphysics.DemStructuresCouplingApplication.multiaxial_control_module_fem_dem_generalized_2d_utility import MultiaxialControlModuleFEMDEMGeneralized2DUtility
+        self.multiaxial_control_module = MultiaxialControlModuleFEMDEMGeneralized2DUtility(self.model, self.sp_parameters)
+        self.multiaxial_control_module.ExecuteInitialize()
+        # if self.test_number:
+        #     from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
+        #     self.control_module_fem_dem_utility = ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
+        #     self.control_module_fem_dem_utility.ExecuteInitialize()
 
         self.CreateSPMeasuringRingSubmodelpart()
 
@@ -143,8 +159,9 @@ class SPAlgorithm(Algorithm):
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
 
-            if self.test_number:
-                self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
+            # if self.test_number:
+            #     self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
+            self.multiaxial_control_module.ExecuteInitializeSolutionStep()
             self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
@@ -205,8 +222,9 @@ class SPAlgorithm(Algorithm):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
-            if self.test_number:
-                self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+            # if self.test_number:
+            #     self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+            self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
             self.structural_solution.OutputSolutionStep()
 

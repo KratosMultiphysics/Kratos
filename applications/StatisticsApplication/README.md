@@ -17,6 +17,140 @@ Following table summarize capabilities of Statistics Application.
 | [Norm methods](#norm-methods)         | [Index](#index-based)         |                                                               |                                                                              |            |
 |                                       | [Component](#component-based) |                                                               |                                                                              |            |
 
+## JSON Examples
+
+If you prefer to use statistics of a simulation using StatisticsApplication, there is `spatial_statistics_process` for spatial statistics calculations and `temporal_statistics_process` for temporal statistics. These processes can be included via JSON settings under `auxiliary_processes`.
+
+### Spatial statistics process examples
+
+Following example illustrates different methods used in different containers with different norms. `input_variable_settings` holds an array of methods for specified containers, specified norm and specified variables. They can be customized for your requirement. `output_settings` holds information about how the output should be handled.
+
+```json
+{
+                "kratos_module" : "KratosMultiphysics.StatisticsApplication",
+                "python_module" : "spatial_statistics_process",
+                "Parameters" : {
+                    "model_part_name" : "test_model_part",
+                    "input_variable_settings" : [
+                        {
+                            "method_name"    : "sum",
+                            "norm_type"      : "none",
+                            "container"      : "nodal_historical",
+                            "variable_names" : ["PRESSURE", "VELOCITY"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "mean",
+                            "norm_type"      : "none",
+                            "container"      : "nodal_non_historical",
+                            "variable_names" : ["PRESSURE", "VELOCITY"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "variance",
+                            "norm_type"      : "none",
+                            "container"      : "element_non_historical",
+                            "variable_names" : ["PRESSURE", "VELOCITY"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "rootmeansquare",
+                            "norm_type"      : "none",
+                            "container"      : "condition_non_historical",
+                            "variable_names" : ["PRESSURE", "VELOCITY"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "sum",
+                            "norm_type"      : "magnitude",
+                            "container"      : "nodal_historical",
+                            "variable_names" : ["PRESSURE", "VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "mean",
+                            "norm_type"      : "pnorm_2.5",
+                            "container"      : "nodal_non_historical",
+                            "variable_names" : ["VELOCITY", "LOAD_MESHES", "GREEN_LAGRANGE_STRAIN_TENSOR"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "variance",
+                            "norm_type"      : "component_x",
+                            "container"      : "condition_non_historical",
+                            "variable_names" : ["VELOCITY"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "rootmeansquare",
+                            "norm_type"      : "index_3",
+                            "container"      : "nodal_non_historical",
+                            "variable_names" : ["LOAD_MESHES"],
+                            "method_settings": {}
+                        },
+                        {
+                            "method_name"    : "min",
+                            "norm_type"      : "frobenius",
+                            "container"      : "nodal_non_historical",
+                            "variable_names" : ["GREEN_LAGRANGE_STRAIN_TENSOR"],
+                            "method_settings": {}
+                        }
+                    ],
+                    "output_settings" : {
+                        "output_control_variable": "STEP",
+                        "output_time_interval"   : 1,
+                        "write_kratos_version"   : false,
+                        "write_time_stamp"       : false,
+                        "output_file_settings"   : {
+                            "file_name"  : "<model_part_name>_<container>_<norm_type>_<method_name>.dat",
+                            "folder_name": "spatial_statistics_process",
+                            "write_buffer_size" : -1
+                        }
+                    }
+                }
+            }
+```
+
+### Temporal statistics process example
+
+Following is an example on how to use `temporal_statistics_process` in json. The output variables data type should be matched with the input variables order and the data type for `"norm_type" = "none"`. If `"norm_type" != "none"`, then output variables should be `scalars`. If `"container" = "nodal_historical_historical"` is used as the container type, then output variables should be added to `NodalSolutionStepVariables` list in Kratos since this container type outputs temporal statistics variables to nodal historical container. This json settings also can be added to `auxiliary_processes` list.
+
+For details about all the available statistical methods, norm_types, etc, please refer to rest of the `README.md` file.
+
+```json
+        {
+            "kratos_module": "KratosMultiphysics.StatisticsApplication",
+            "python_module": "temporal_statistics_process",
+            "Parameters": {
+                "model_part_name": "FluidModelPart.fluid_computational_model_part",
+                "input_variable_settings": [
+                    {
+                        "method_name": "variance",
+                        "norm_type": "none",
+                        "container": "nodal_historical_non_historical",
+                        "echo_level": 1,
+                        "method_settings": {
+                            "input_variables": [
+                                "VELOCITY",
+                                "PRESSURE"
+                            ],
+                            "output_mean_variables": [
+                                "VECTOR_3D_MEAN",
+                                "SCALAR_MEAN"
+                            ],
+                            "output_variance_variables": [
+                                "VECTOR_3D_VARIANCE",
+                                "SCALAR_VARIANCE"
+                            ]
+                        }
+                    }
+                ],
+                "statistics_start_point_control_variable_name": "TIME",
+                "statistics_start_point_control_value": 2.5
+            }
+        }
+```
+
 ## Method definitions
 
 There are two types of methods under each **Spatial** and **Temporal** method groups. They are namely **Value** and **Norm** methods. In these methods, `i` index refers to spatial domain element index, and `k` index refers to time step.
