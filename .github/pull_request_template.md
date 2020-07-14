@@ -13,4 +13,4 @@ E.g.
 - etc...
 
 **Additional info**
-Add any other releavant information here.
+Add any other relevant information here.

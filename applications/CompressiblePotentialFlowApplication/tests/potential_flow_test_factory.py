@@ -36,7 +36,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    @UnitTest.skipIfApplicationsNotAvailable("ExternalSolversApplication", "HDF5Application")
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication", "HDF5Application")
     def test_Naca0012SmallAdjoint(self):
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
@@ -58,7 +58,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
-    @UnitTest.skipIfApplicationsNotAvailable("ExternalSolversApplication", "LinearSolversApplication")
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_Naca0012SmallCompressible(self):
         file_name = "naca0012_small_compressible"
         settings_file_name = file_name + "_parameters.json"
