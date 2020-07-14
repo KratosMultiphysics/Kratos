@@ -18,10 +18,6 @@ class MapperTestCase(KratosUnittest.TestCase):
     """
     @classmethod
     def setUpModelParts(cls, mdpa_file_name_origin, mdpa_file_name_destination):
-        cls.current_model = KM.Model()
-        cls.model_part_origin = cls.current_model.CreateModelPart("origin")
-        cls.model_part_destination = cls.current_model.CreateModelPart("destination")
-
         cls.input_file_origin      = GetFilePath(mdpa_file_name_origin)
         cls.input_file_destination = GetFilePath(mdpa_file_name_destination)
 
