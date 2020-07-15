@@ -815,7 +815,6 @@ private:
      * @param rCLWeights Weights associated with contact line gauss points
      * @param rCLShapeFunctions Shape functions calculated at the contact line gauss points
      * @param rTangential Tangential vectors (according to negative side interfaces) associated with contact line gauss points
-     * @param HasContactLine shows if there is a contact : DEPRECATED
      * @param rLHS The contribution of contact line dissipative force to LHS
      * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
      */
@@ -832,7 +831,6 @@ private:
         const std::vector<Kratos::Vector>& rCLWeights,
         const std::vector<Matrix>& rCLShapeFunctions,
         const std::vector<Vector>& rTangential,
-        //bool HasContactLine,
         MatrixType& rLHS,
         VectorType& rRHS);
 

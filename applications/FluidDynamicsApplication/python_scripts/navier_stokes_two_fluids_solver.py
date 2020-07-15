@@ -316,6 +316,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         with open("MeanContactAngle.log", "w") as CangleLogFile:
             CangleLogFile.write( "time_step" + "\t" + "mean_contact_angle" + "\n" )
 
+        with open("MeanContactAngleMicro.log", "w") as CangleLogFile:
+            CangleLogFile.write( "time_step" + "\t" + "mean_contact_angle_micro" + "\n" )
+
         with open("ContactVelocity.log", "w") as CvelLogFile:
             CvelLogFile.write( "element_id" + "\t" + "contact_velocity" + "\n" )
 
@@ -614,6 +617,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if (TimeStep % 10 == 0):
             mean_Cangle = 0.0
+            mean_Cangle_micro = 0.0
             mean_Cvel = 0.0
             num_C = 0
             with open("ContactAngle.log", "a") as CangleLogFile, open("ContactVelocity.log", "a") as CvelLogFile:
@@ -621,17 +625,20 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 CvelLogFile.write( "\n" + str(TimeStep*DT) + "\n" )
                 for elem in self.main_model_part.Elements:
                     cangle = elem.GetValue(KratosCFD.CONTACT_ANGLE)
+                    cangle_micro = elem.GetValue(KratosCFD.CONTACT_ANGLE_MICRO)
                     cvel = elem.GetValue(KratosCFD.CONTACT_VELOCITY)
                     if (cangle != 0.0):
                         CangleLogFile.write( str(elem.Id) + "\t" + str(cangle) + "\n" )
                         CvelLogFile.write( str(elem.Id) + "\t" + str(cvel) + "\n" )
                         mean_Cangle += cangle
+                        mean_Cangle_micro += cangle_micro
                         mean_Cvel += cvel
                         num_C += 1
             
             if (num_C > 1):
-                with open("MeanContactAngle.log", "a") as meanCangleLogFile, open("MeanContactVelocity.log", "a") as meanCvelLogFile:
+                with open("MeanContactAngle.log", "a") as meanCangleLogFile, open("MeanContactAngleMicro.log", "a") as meanMicroCangleLogFile, open("MeanContactVelocity.log", "a") as meanCvelLogFile:
                     meanCangleLogFile.write( str(TimeStep*DT) + "\t" + str(mean_Cangle/num_C) + "\n" )
+                    meanMicroCangleLogFile.write( str(TimeStep*DT) + "\t" + str(mean_Cangle_micro/num_C) + "\n" )
                     meanCvelLogFile.write( str(TimeStep*DT) + "\t" + str(mean_Cvel/num_C) + "\n" )
 
         if self._TimeBufferIsInitialized():
@@ -837,12 +844,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def _set_mass_conservation_correction(self):
         #Restoring the distance function to compensate for the mass loss, proportional to curvature 
         #(could be velocity instead) but this is associated with the way diffusive surface smoothing process works!
-        surface_smoothing_process = KratosCFD.MassConservationCorrection(
+        mass_conservation_correction = KratosCFD.MassConservationCorrection(
                 self.main_model_part, 
                 True,
                 "mass_conservation.log")
 
-        return surface_smoothing_process
+        return mass_conservation_correction
 
     def _set_interface_pressure_gradient_calculation(self):
         #Calculate pressure gradient on positive and negative sides (separately) using LumpedInterfacePositiveNegativePressureGradient
