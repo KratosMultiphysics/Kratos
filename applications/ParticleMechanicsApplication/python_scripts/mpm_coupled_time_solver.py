@@ -74,7 +74,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             "scheme_type"   : "newmark",
             "stress_update" : "usl",
             "newmark_beta"  : 0.25,
-            "consistent_mass_matrix"  : true,
+            "consistent_mass_matrix"  : false,
             "time_stepping"            : {
             "time_step"                          : 1,
             "timestep_ratio"                     : 1,
@@ -139,9 +139,9 @@ class MPMCoupledTimeSolver(MPMSolver):
 
     def InitializeSolutionStep(self):
         if self.gamma_1 == 1.0:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+            self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
         else:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
+            self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         self._SearchElement()
         #print('Initializing sd1')
         #print("Subdomain 1 time = ", self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME])
@@ -167,9 +167,9 @@ class MPMCoupledTimeSolver(MPMSolver):
 
         # store interface velocities in coupling class vector
         if self.gamma_2 == 1.0:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+            self.model_sub_domain_2.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
         else:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
+            self.model_sub_domain_2.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         for j in range(1,self.time_step_ratio+1):
             #print('Advance SD2 time')
             time = self.model_sub_domain_2.ProcessInfo[KratosMultiphysics.TIME]
@@ -197,9 +197,9 @@ class MPMCoupledTimeSolver(MPMSolver):
             self._GetSolutionStrategy(2).FinalizeSolutionStep()
             self._GetSolutionStrategy(2).Clear()
         if self.gamma_1 == 1.0:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
+            self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, True)
         else:
-            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
+            self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         print('correcting sd1')
         self.coupling_utility.CorrectSubDomain1()
         return is_converged

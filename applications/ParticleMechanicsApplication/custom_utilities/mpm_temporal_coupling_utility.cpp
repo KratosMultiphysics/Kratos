@@ -20,10 +20,6 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "particle_mechanics_application_variables.h"
 
-// TODO write lagrange multiplies
-// TODO write free velocity
-// TODO write correction
-
 namespace Kratos
 {
     void MPMTemporalCouplingUtility::InitializeSubDomain1Coupling()
@@ -64,21 +60,28 @@ namespace Kratos
         {
             auto node_it = node_begin + i;
             mSubDomain1FinalDomainActiveNodes[i] = node_it->Is(ACTIVE);
-            const array_1d <double, 3> nodal_vel_or_mom = (mGamma[0] == 0.5)
+            const array_1d <double, 3>& nodal_vel_or_mom = (mGamma[0] == 0.5)
                 ? node_it->FastGetSolutionStepValue(VELOCITY)
                 : node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
-            const array_1d <double, 3> nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d <double, 3> nodal_accel_or_inertia = (mGamma[0] == 0.5)
+            const array_1d <double, 3>& nodal_disp = node_it->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d <double, 3>& nodal_accel_or_inertia = (mGamma[0] == 0.5)
                 ? node_it->FastGetSolutionStepValue(ACCELERATION)
-                : node_it->FastGetSolutionStepValue(NODAL_INERTIA);
+                : node_it->FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t k = 0; k < working_space_dim; ++k)
             {
                 mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k] = nodal_vel_or_mom[k];
                 mSubDomain1FinalDomainDisplacement[i * working_space_dim + k] = nodal_disp[k];
                 mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k] = nodal_accel_or_inertia[k];
             }
+
+            //std::cout << "node x = " << node_it->X()
+            //    << "\n\tmom_X = " << nodal_vel_or_mom[0]
+            //    << "\n\tforce_X = " << nodal_accel_or_inertia[0]
+            //    << "\n\tIs fixed = " << node_it->IsFixed(DISPLACEMENT_X) << "\n";
+
         }
-        KRATOS_WATCH(mSubDomain1FinalDomainVelocityOrMomenta)
+        //KRATOS_WATCH(mSubDomain1InitialInterfaceVelocity)
+        KRATOS_WATCH(mSubDomain1FinalDomainAccelerationOrInertia)
 
         PrepareSubDomain1CouplingQuantities(rK1);
 
@@ -180,7 +183,7 @@ namespace Kratos
         auto node_begin = r_sub_domain_1_active.NodesBegin();
 
         auto velocity_variable = (mGamma[0] == 0.5) ? VELOCITY : NODAL_MOMENTUM;
-        auto acceleration_variable = (mGamma[0] == 0.5) ? ACCELERATION : NODAL_INERTIA;
+        auto acceleration_variable = (mGamma[0] == 0.5) ? ACCELERATION : FORCE_RESIDUAL;
 
         for (size_t i = 0; i < domain_nodes; ++i)
         {
