@@ -77,3 +77,9 @@ def returnUniformAndTwoNormal(*args):
     two normal random variables
     """
     return [int(np.random.uniform(args[0],args[1])),np.random.normal(args[2], args[3], 1),np.random.normal(args[4], args[5], 1)]
+
+def returnIntegerUniform(*args):
+    """
+    Return one integer uniformly distributed random variable
+    """
+    return [int(np.random.uniform(args[0],args[1]))]
