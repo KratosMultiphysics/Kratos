@@ -33,8 +33,9 @@ void Timer::TimerData::PrintData(
             rOStream.precision(6);
             rOStream
             << std::setw(4)
-            << std::defaultfloat
+            << std::setiosflags(std::ios::fixed)
             << mRepeatNumber
+            << std::resetiosflags(std::ios::fixed)
             << "\t\t"
             << std::setiosflags(std::ios::scientific)
             << std::setprecision(4)
@@ -64,9 +65,10 @@ void Timer::TimerData::PrintData(
             rOStream.precision(6);
             rOStream
             << std::setw(4)
-            << std::defaultfloat
+            << std::setiosflags(std::ios::fixed)
             << mRepeatNumber
             << "\t\t"
+            << std::resetiosflags(std::ios::fixed)
             << std::setiosflags(std::ios::scientific)
             << std::setprecision(4)
             << std::uppercase
@@ -90,8 +92,9 @@ void Timer::TimerData::PrintData(
             << std::uppercase
             << std::setw(4)
             << mTotalElapsedTime/static_cast<double>(mRepeatNumber)
+            << std::resetiosflags(std::ios::scientific)
             << "     \t"
-            << std::fixed
+            << std::setiosflags(std::ios::fixed)
             << std::setprecision(3)
             << std::uppercase
             << std::setw(3)
@@ -261,4 +264,3 @@ bool Timer::msPrintIntervalInformation = true;
 const std::chrono::steady_clock::time_point Timer::mStartTime = std::chrono::steady_clock::now();
 
 } /// namespace Kratos
-
