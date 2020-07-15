@@ -7,11 +7,7 @@ import KratosMultiphysics.SwimmingDEMApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits:
-
-# SMALL TESTS
-#import SmallTests
-
-# NIGTHLY TESTS
+import SmallTests
 import NightTests
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
@@ -21,13 +17,13 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # SMALL TESTS
-    #small_suite = SmallTests.SetTestSuite(suites)
+    small_suite = SmallTests.SetTestSuite(suites)
 
     # NIGHTLY TESTS
     night_suite = NightTests.SetTestSuite(suites)
 
     # include small suite in night suite
-    #night_suite.addTests(small_suite)
+    night_suite.addTests(small_suite)
 
     # ALL TESTS
     all_suite = suites['all']

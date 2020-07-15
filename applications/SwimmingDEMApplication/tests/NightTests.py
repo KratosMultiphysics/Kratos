@@ -1,5 +1,10 @@
 # Definition of the classes for the NIGHTLY TESTS
 
+#Iimport Kratos
+import KratosMultiphysics
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication
+
 # Import TestFactory
 import InterpolationTestFactory as InterpolationTF
 import TestFactory as TF
@@ -62,10 +67,19 @@ def SetTestSuite(suites):
           candelier_with_history_test,
           candelier_with_history_hinsberg_test,
           interpolation_test_linear,
-          interpolation_test_nonlinear_time_no_substepping,
-          # fluid_dem_coupling_one_way_test,
-          # sdem_pfem_coupling_one_way_test
+          interpolation_test_nonlinear_time_no_substepping
           ])
     )
 
     return night_suite
+
+def AssembleTestSuites():
+    suites = KratosUnittest.KratosSuites
+    night_suite = SetTestSuite(suites)
+    suites['all'].addTests(night_suite)
+
+    return suites
+
+if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
+    KratosUnittest.runTests(AssembleTestSuites())
