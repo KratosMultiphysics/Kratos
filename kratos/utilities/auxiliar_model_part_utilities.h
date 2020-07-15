@@ -57,6 +57,15 @@ public:
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
 
+    enum class DataLocation {
+        NodeHistorical,
+        NodeNonHistorical,
+        Element,
+        Condition,
+        ModelPart,
+        ProcessInfo
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -272,6 +281,46 @@ public:
      * @param IdentifierFlag The flag that identifies the entities to remove
      */
     void RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+
+    template<class TDataType>
+    std::vector<TDataType> GetVariableData(
+        const Variable<TDataType>& rVariable,
+        const DataLocation) const
+    {
+        std::vector<TDataType> data;
+        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
+
+        return data;
+    }
+
+    template<std::size_t TSize>
+    std::vector<double> GetVariableData(
+        const Variable<array_1d<double, TSize>>& rVariable,
+        const DataLocation) const
+    {
+        std::vector<double> data;
+        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
+
+        return data;
+    }
+
+    template<class TDataType>
+    void SetVariableData(
+        const Variable<TDataType>& rVariable,
+        const DataLocation,
+        const std::vector<TDataType>& rData)
+    {
+        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
+    }
+
+    template<std::size_t TSize>
+    void SetVariableData(
+        const Variable<array_1d<double, TSize>>& rVariable,
+        const DataLocation,
+        const std::vector<double>& rData)
+    {
+        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
+    }
 
     /// Turn back information as a string.
     virtual std::string Info() const
