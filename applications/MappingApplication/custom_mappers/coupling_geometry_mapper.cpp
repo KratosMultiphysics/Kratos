@@ -223,12 +223,25 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
 {
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
+    std::cout << "\n================ Map ===================="
+        << "\n\tBEFORE MAPPING"
+        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+        << "\n";
+
     TSparseSpace::Mult(
         *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
+
+
     mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+
+    std::cout << "\n\tAFTER MAPPING"
+        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+        << "\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -239,12 +252,25 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 {
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
+    std::cout << "\n================ Inverse Map ===================="
+        << "\n\tBEFORE MAPPING"
+        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+        << "\n";
+
     TSparseSpace::TransposeMult(
         *mpMappingMatrix,
         mpInterfaceVectorContainerDestination->GetVector(),
         mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
+
+
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
+
+    std::cout << "\n\tAFTER MAPPING"
+        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+        << "\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>

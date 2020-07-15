@@ -3,22 +3,15 @@
     {
         "start_time" : 0.0,
         "end_time" : 1.0,
-        "echo_level" : 0,
+        "echo_level" : 5,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_strong",
-        "echo_level" : 0,
+        "echo_level" : 51,
         "num_coupling_iterations" : 20,
-        "convergence_accelerators" : [
-            {
-                "type"      : "mvqn",
-                "solver"    : "domainA",
-                "data_name" : "load"
-            }
-        ],
         "convergence_criteria" : [
             {
                 "type"          : "relative_norm_previous_residual",
@@ -33,7 +26,7 @@
                 "type" : "kratos_mapping",
 					"mapper_settings" : {
 					"mapper_type": "coupling_geometry",
-					"echo_level" : 0,
+					"echo_level" : 5,
 					"dual_mortar": true,
 					"consistency_scaling" : false,
 					"modeler_name" : "MappingGeometriesModeler",
@@ -42,8 +35,8 @@
 						"origin_model_part_name" : "origin",
 						"destination_model_part_name" : "destination",
 						"is_interface_sub_model_parts_specified" : true,
-						"origin_interface_sub_model_part_name" : "PointLoad2D_domainAinterface",
-						"destination_interface_sub_model_part_name" : "DISPLACEMENT_domainBinterface"
+						"origin_interface_sub_model_part_name" : "Structure.PointLoad2D_domainAinterface",
+						"destination_interface_sub_model_part_name" : "Structure.DISPLACEMENT_domainBinterface"
 					}
 				}
             }
@@ -71,7 +64,7 @@
                         "to_solver"      : "domainA",
                         "to_solver_data" : "load",
                         "data_transfer_operator" : "mapper",
-                        "data_transfer_operator_options"  : ["use_transpose"]
+                        "data_transfer_operator_options"  : ["swap_sign","use_transpose"]
                     }
                 ]
             }
@@ -93,7 +86,7 @@
                     "load" : {
                         "model_part_name"   : "Structure.DISPLACEMENT_domainBinterface",
                         "dimension" : 2,
-                        "variable_name" : "POINT_LOAD"
+                        "variable_name" : "REACTION"
                     }
                 }
             },

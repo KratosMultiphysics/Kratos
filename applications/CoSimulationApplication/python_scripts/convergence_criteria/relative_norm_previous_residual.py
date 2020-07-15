@@ -26,6 +26,8 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
         self.label = self.settings["label"].GetString()
 
+        self.iteration = 1
+
     def IsConverged(self, residual, current_data):
         res_norm = la.norm(residual)
         norm_new_data = la.norm(current_data)
@@ -37,6 +39,12 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         rel_norm = res_norm / norm_new_data
 
         is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
+
+        if self.iteration < 2:
+            print("\n\n !!!!!!!!!!!! HARDCODED FAILING ON FIRST ITERATION UNTIL ENERGY CONVERGENCE CRITERIA IS IMPLEMENTED !!!!!!!!!\n\n")
+            is_converged = False
+
+        self.iteration += 1
 
         info_msg = ""
 

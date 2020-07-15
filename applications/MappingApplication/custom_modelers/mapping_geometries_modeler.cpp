@@ -57,30 +57,35 @@ namespace Kratos
         if (!mParameters["debug_define_coupling_conditions_in_python"].GetBool())
         {
             std::cout << "\n\n================== MAPPING GEOMS MODELER - HARD CODING CONDITIONS FOR TESTING\n" << std::endl;
+            KRATOS_ERROR_IF_NOT(mpModels[0]->HasModelPart(origin_interface_sub_model_part_name)) << "ModelPart not present in Model\n";
             ModelPart& origin_interface_hard_code = mpModels[0]->GetModelPart(origin_interface_sub_model_part_name);
+            origin_interface_hard_code.CreateSubModelPart("coupling_conditions");
+            ModelPart& origin_coupling_conditions = origin_interface_hard_code.GetSubModelPart("coupling_conditions");
             int nodeOffset = 327;
             for (size_t i = 1; i < 6; i++) {
                 Geometry<GeometricalObject::NodeType>::PointsArrayType points;
                 points.push_back(origin_interface_hard_code.pGetNode(nodeOffset + i));
                 points.push_back(origin_interface_hard_code.pGetNode(nodeOffset + i + 1));
-                origin_interface_hard_code.CreateNewCondition("LineCondition2D2N", i + 100, points, origin_interface_hard_code.pGetProperties(0));
+                origin_coupling_conditions.CreateNewCondition("LineCondition2D2N", i + 1000, points, origin_interface_hard_code.pGetProperties(0));
             }
 
             ModelPart& dest_interface_hard_code = mpModels[1]->GetModelPart(destination_interface_sub_model_part_name);
+            dest_interface_hard_code.CreateSubModelPart("coupling_conditions");
+            ModelPart& dest_coupling_conditions = dest_interface_hard_code.GetSubModelPart("coupling_conditions");
             Geometry<GeometricalObject::NodeType>::PointsArrayType points;
             points.push_back(dest_interface_hard_code.pGetNode(1));
             points.push_back(dest_interface_hard_code.pGetNode(3));
-            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 201, points, dest_interface_hard_code.pGetProperties(0));
+            dest_coupling_conditions.CreateNewCondition("LineCondition2D2N", 2001, points, dest_interface_hard_code.pGetProperties(0));
             points.clear();
 
             points.push_back(dest_interface_hard_code.pGetNode(3));
             points.push_back(dest_interface_hard_code.pGetNode(6));
-            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 202, points, dest_interface_hard_code.pGetProperties(0));
+            dest_coupling_conditions.CreateNewCondition("LineCondition2D2N", 2002, points, dest_interface_hard_code.pGetProperties(0));
             points.clear();
 
             points.push_back(dest_interface_hard_code.pGetNode(6));
             points.push_back(dest_interface_hard_code.pGetNode(10));
-            dest_interface_hard_code.CreateNewCondition("LineCondition2D2N", 203, points, dest_interface_hard_code.pGetProperties(0));
+            dest_coupling_conditions.CreateNewCondition("LineCondition2D2N", 2003, points, dest_interface_hard_code.pGetProperties(0));
             points.clear();
         }
 
@@ -120,6 +125,7 @@ namespace Kratos
                 << " working space dimension = " << working_dim << " and local space dimension = "
                 << local_dim << std::endl;
         }
+
     }
 
     void MappingGeometriesModeler::CheckParameters()

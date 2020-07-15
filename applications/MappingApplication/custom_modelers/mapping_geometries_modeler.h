@@ -122,10 +122,12 @@ private:
 
     std::vector<Model*> mpModels;
 
+
     void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
     {
         rDestinationMP.SetNodes(rReferenceMP.pNodes());
-        rDestinationMP.SetConditions(rReferenceMP.pConditions());
+        ModelPart& coupling_conditions = rReferenceMP.GetSubModelPart("coupling_conditions");
+        rDestinationMP.SetConditions(coupling_conditions.pConditions());
     }
 
     void CheckParameters();
