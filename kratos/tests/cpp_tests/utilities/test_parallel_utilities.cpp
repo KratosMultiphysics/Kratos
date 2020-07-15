@@ -81,6 +81,67 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
         KRATOS_CHECK_EQUAL(output[i], -2.0 );
 }
 
+KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
+{
+
+    class ClassBasedTLS
+    {
+        public:
+        std::vector<double> TLS_Vector;
+    };
+
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize);
+    for(auto& it : data_vector)
+        it = 5.0;
+
+    //here we raise every entry of a vector to the power 0.1
+    // here the TLS is constructed on the fly. This is the "private" approach of OpenMP
+    BlockPartition<std::vector<double>>(data_vector).for_each(ClassBasedTLS(),
+                                         [](double& item, ClassBasedTLS& rTLS)
+    {
+        item = std::pow(item, 0.1);
+    });
+
+    ClassBasedTLS tls_prototype;
+    tls_prototype.TLS_Vector.resize(15);
+    //here we raise every entry of a vector to the power 0.1
+    // here the TLS is constructed beforehand. This is the "firstprivate" approach of OpenMP
+    BlockPartition<std::vector<double>>(data_vector).for_each(tls_prototype,
+                                         [](double& item, ClassBasedTLS& rTLS)
+    {
+        item = std::pow(item, 0.1);
+    });
+
+    // //error check
+    // for(auto& item : data_vector)
+    // {
+    //     KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+    // }
+
+    // //shorter form
+    // block_for_each(data_vector, [](double& item){
+    //         item = std::pow(5.0, 0.1);
+    // });
+
+    // //error check
+    // for(auto& item : data_vector)
+    // {
+    //     KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+    // }
+
+    // //here we check for a reduction (computing the sum of all the entries)
+    // auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_each<SumReduction<double>>(
+    //     [](double& item)
+    //     {
+    //         return item;
+    //     }
+    // );
+
+    // double expected_value = std::pow(5.0, 0.1)*nsize;
+    // KRATOS_CHECK_NEAR( std::abs(final_sum-expected_value)/std::abs(expected_value), 0.0, 1e-10  );
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 {
     int nsize = 1e3;

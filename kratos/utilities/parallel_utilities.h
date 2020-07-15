@@ -121,19 +121,19 @@ public:
     }
 
     template <class TThreadLocalStorage, class TUnaryFunction>
-    inline void for_each(TThreadLocalStorage GlobalTLS, TUnaryFunction &&f)
+    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
     {
         #pragma omp parallel
         {
-            // create the thread local storage
-            TThreadLocalStorage thread_local_storage(GlobalTLS);
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
             #pragma omp for
             for(int i=0; i<mNchunks; ++i)
             {
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it)
                 {
-                    f(*it, thread_local_storage); //note that we pass the value to the function, not the iterator
+                    f(*it, thread_local_storage); // note that we pass the value to the function, not the iterator
                 }
             }
         }
