@@ -84,38 +84,55 @@ namespace Kratos
             const double integration_weight = integration_points[point_number].Weight();
             const double determinat_jacobian = r_geometry_master.DeterminantOfJacobian(point_number);
 
+            Matrix LHS = ZeroMatrix(mat_size, mat_size);
+
+            for (IndexType i = 0; i < number_of_nodes_master + number_of_nodes_slave; i++) //loop over Lagrange Multipliers
+	        {
+		        for (IndexType j = 0; j < number_of_nodes_master + number_of_nodes_slave; j++) // lopp over shape functions of displacements
+		        {
+                    double NN = N[j] * NLambda[i];
+                        
+                    const unsigned int ibase = i * 3 + 3 * (number_of_nodes_master + number_of_nodes_slave);
+                    const unsigned int jbase = j * 3;
+
+                    // Matrix in following shape:
+			        // |0 H^T|
+			        // |H 0  |
+
+		            //lambda in X
+		            LHS(ibase,     jbase)     = NN;
+		            //lambda in Y
+			        LHS(ibase + 1, jbase + 1) = NN;
+			        //lambda in Z;
+			        LHS(ibase + 2, jbase + 2) = NN;
+		            //lambda in X
+		            LHS(jbase,     ibase)     = NN;
+		            //lambda in Y
+			        LHS(jbase + 1, ibase + 1) = NN;
+			        //lambda in Z;
+		            LHS(jbase + 2, ibase + 2) = NN;
+
+                    // // Depending on the solver if needed. 
+		            // if (rLeftHandSideMatrix(3 * j, ibase) <= 0.000001)
+			        // 	rLeftHandSideMatrix(i * 3, ibase) = 1e-6;
+			        // if (rLeftHandSideMatrix(3 * j + 1, ibase + 1) <= 0.000001)
+		        	// 	rLeftHandSideMatrix(i * 3 + 1, ibase + 1) = 1e-6;
+		            // if (rLeftHandSideMatrix(3 * j + 2, ibase + 2) <= 0.000001)
+		            // 	rLeftHandSideMatrix(i * 3 +2, ibase +2) = 1e-6;
+
+                    // if (rLeftHandSideMatrix(ibase, 3 * j) <= 0.000001)
+			        // 	rLeftHandSideMatrix(ibase, i * 3) = 1e-6;
+			        // if (rLeftHandSideMatrix(ibase + 1, 3 * j + 1) <= 0.000001)
+		            // 	rLeftHandSideMatrix(ibase + 1, i * 3 + 1) = 1e-6;
+			        // if (rLeftHandSideMatrix(ibase + 2, 3 * j + 2) <= 0.000001)
+			        // 	rLeftHandSideMatrix(ibase +2, i * 3 +2) = 1e-6;
+                }
+            }
+
             // Assembly (!: different than penalty)
             if (CalculateStiffnessMatrixFlag) {
 
-                for (IndexType i = 0; i < number_of_nodes_master + number_of_nodes_slave; i++) //loop over Lagrange Multipliers
-	            {
-		            for (IndexType j = 0; j < number_of_nodes_master + number_of_nodes_slave; j++) // lopp over shape functions of displacements
-		            {
-                        double NN = N[j] * NLambda[i];
-                        
-                        const unsigned int ibase = i * 3 + 3 * (number_of_nodes_master + number_of_nodes_slave);
-                        const unsigned int jbase = j * 3;
-
-                        // Matrix in following shape:
-			            // |0 H^T|
-			            // |H 0  |
-
-			            //lambda in X
-			            rLeftHandSideMatrix(ibase,     jbase)     = NN;
-			            //lambda in Y
-			            rLeftHandSideMatrix(ibase + 1, jbase + 1) = NN;
-			            //lambda in Z;
-			            rLeftHandSideMatrix(ibase + 2, jbase + 2) = NN;
-			            //lambda in X
-			            rLeftHandSideMatrix(jbase,     ibase)     = NN;
-			            //lambda in Y
-			            rLeftHandSideMatrix(jbase + 1, ibase + 1) = NN;
-			            //lambda in Z;
-			            rLeftHandSideMatrix(jbase + 2, ibase + 2) = NN;
-                    }
-                }
-
-                noalias(rLeftHandSideMatrix) += rLeftHandSideMatrix
+                noalias(rLeftHandSideMatrix) += LHS
                     * integration_weight * determinat_jacobian;
             }
             if (CalculateResidualVectorFlag) {
@@ -154,7 +171,8 @@ namespace Kratos
                     u[index + 2] = disp[2];
                 }
 
-                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, u); //warning!
+                noalias(rRightHandSideVector) -= prod(LHS, u)
+                     * integration_weight * determinat_jacobian; 
             }
         }
 
@@ -253,7 +271,6 @@ namespace Kratos
             rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
             rElementalDofList.push_back(r_node.pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
         }
-        
 
         KRATOS_CATCH("")
     }
