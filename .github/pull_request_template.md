@@ -1,7 +1,7 @@
 **Description**
 A brief description of the PR.
 
-Please mark the PR with appropiate tags: 
+Please mark the PR with appropriate tags: 
 - Api Breaker, Mpi, etc...
 
 **Changelog**
@@ -13,4 +13,4 @@ E.g.
 - etc...
 
 **Additional info**
-Add any other releavant information here.
+Add any other relevant information here.
