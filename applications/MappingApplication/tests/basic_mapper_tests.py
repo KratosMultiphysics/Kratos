@@ -213,7 +213,12 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         non_conform_parameters = self.mapper_parameters.Clone()
         non_conform_parameters.AddEmptyValue("search_radius").SetDouble(1e-6)
 
-        non_conform_mapper = KratosMapping.MapperFactory.CreateMapper(
+        if data_comm.IsDistributed():
+            map_creator = KratosMapping.MapperFactory.CreateMPIMapper
+        else:
+            map_creator = KratosMapping.MapperFactory.CreateMapper
+
+        non_conform_mapper = map_creator(
             self.model_part_origin,
             self.model_part_destination,
             non_conform_parameters
