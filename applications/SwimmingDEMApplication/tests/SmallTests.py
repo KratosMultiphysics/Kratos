@@ -5,9 +5,6 @@ import KratosMultiphysics
 import KratosMultiphysics.DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication
 
-# Import TestFactory
-import TestFactory as TF
-
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
