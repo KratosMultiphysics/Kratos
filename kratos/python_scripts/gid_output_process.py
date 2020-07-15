@@ -3,7 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KM
 from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics import * # TODO remove
-
+# Other imports
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 import os
 
 def Factory(settings, Model):
@@ -129,49 +130,26 @@ class GiDOutputProcess(KM.Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-
-    @classmethod
-    def HasDeprecatedVariable(cls, settings, old_variable_name, new_variable_name):
-
-        if settings.Has(old_variable_name):
-            if not settings.Has(new_variable_name):
-                KM.Logger.PrintWarning(cls.__name__,
-                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
-                                       'Input variable name \''
-                                       + old_variable_name + '\' is deprecated; use \''
-                                       + new_variable_name + '\' instead.')
-                return True
-            else:
-                raise NameError('Conflicting input variable names: Both the deprecated variable \''
-                                + old_variable_name + '\' and its current standard replacement \''
-                                + new_variable_name + '\' were found. Please, remove \''
-                                + old_variable_name + '\'.')
-        return False
-
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
         if settings.Has('result_file_configuration'):
             sub_settings_where_var_is = settings['result_file_configuration']
             old_name = 'output_frequency'
             new_name = 'output_interval'
 
-            if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
-                sub_settings_where_var_is.AddEmptyValue(new_name)
-                if sub_settings_where_var_is[old_name].IsInt():
-                    sub_settings_where_var_is[new_name].SetInt(sub_settings_where_var_is[old_name].GetInt())
-                else:
-                    sub_settings_where_var_is[new_name].SetDouble(sub_settings_where_var_is[old_name].GetDouble())
-
-                sub_settings_where_var_is.RemoveValue(old_name)
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
 
         if settings.Has('result_file_configuration'):
             sub_settings_where_var_is = settings['result_file_configuration']
             old_name = 'write_properties_id'
             new_name = 'write_ids'
 
-            if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
-                sub_settings_where_var_is.AddEmptyValue(new_name).SetBool(sub_settings_where_var_is[old_name].GetBool())
-                sub_settings_where_var_is.RemoveValue(old_name)
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
 
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]

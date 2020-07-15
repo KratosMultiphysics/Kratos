@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 import os
 
 def Factory(settings, model):
@@ -41,45 +42,22 @@ class VtkOutputProcess(KratosMultiphysics.Process):
 
         self.__ScheduleNextOutput() # required here esp for restart
 
-    @classmethod
-    def HasDeprecatedVariable(cls, settings, old_variable_name, new_variable_name):
-
-        if settings.Has(old_variable_name):
-            if not settings.Has(new_variable_name):
-                KratosMultiphysics.Logger.PrintWarning(cls.__name__,
-                                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
-                                                       'Input variable name \''
-                                                       + old_variable_name + '\' is deprecated; use \''
-                                                       + new_variable_name + '\' instead.')
-                return True
-            else:
-                raise NameError('Conflicting input variable names: Both the deprecated variable \''
-                                + old_variable_name + '\' and its current standard replacement \''
-                                + new_variable_name + '\' were found. Please, remove \''
-                                + old_variable_name + '\'.')
-        return False
-
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
 
         old_name = 'output_frequency'
         new_name = 'output_interval'
 
-        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
-            settings.AddEmptyValue(new_name)
-            if settings[old_name].IsInt():
-                settings[new_name].SetInt(settings[old_name].GetInt())
-            else:
-                settings[new_name].SetDouble(settings[old_name].GetDouble())
-
-            settings.RemoveValue(old_name)
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
         old_name = 'write_properties_id'
         new_name = 'write_ids'
 
-        if type(self).HasDeprecatedVariable(settings, old_name, new_name):
-            settings.AddEmptyValue(new_name).SetBool(settings[old_name].GetBool())
-            settings.RemoveValue(old_name)
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
     def PrintOutput(self):
         self.vtk_io.PrintOutput()

@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Import applications and dependencies
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 # Import time library
 from time import time
@@ -62,24 +63,6 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-    @classmethod
-    def HasDeprecatedVariable(cls, settings, old_variable_name, new_variable_name):
-
-        if settings.Has(old_variable_name):
-            if not settings.Has(new_variable_name):
-                KratosMultiphysics.Logger.PrintWarning(cls.__name__,
-                                                       '\x1b[1;31m(DEPRECATED INPUT PARAMETERS)\x1b[0m',
-                                                       'Input variable name \''
-                                                       + old_variable_name + '\' is deprecated; use \''
-                                                       + new_variable_name + '\' instead.')
-                return True
-            else:
-                raise NameError('Conflicting input variable names: Both the deprecated variable \''
-                                + old_variable_name + '\' and its current standard replacement \''
-                                + new_variable_name + '\' were found. Please, remove \''
-                                + old_variable_name + '\'.')
-        return False
-
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
 
@@ -88,15 +71,8 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
             old_name = 'output_frequency'
             new_name = 'output_interval'
 
-            if type(self).HasDeprecatedVariable(sub_settings_where_var_is, old_name, new_name):
-                sub_settings_where_var_is.AddEmptyValue(new_name)
-                if sub_settings_where_var_is[old_name].IsInt():
-                    sub_settings_where_var_is[new_name].SetInt(sub_settings_where_var_is[old_name].GetInt())
-                else:
-                    sub_settings_where_var_is[new_name].SetDouble(sub_settings_where_var_is[old_name].GetDouble())
-
-                sub_settings_where_var_is.RemoveValue(old_name)
-
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
 
     # Public Functions
     def ExecuteInitialize(self):
