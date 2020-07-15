@@ -30,7 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Node_historical, Kr
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.SetBufferSize(2);
+    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
     CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
 
