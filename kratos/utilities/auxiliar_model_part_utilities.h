@@ -38,6 +38,15 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+enum class DataLocation {
+    NodeHistorical,
+    NodeNonHistorical,
+    Element,
+    Condition,
+    ModelPart,
+    ProcessInfo
+};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -56,15 +65,6 @@ public:
 
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
-
-    enum class DataLocation {
-        NodeHistorical,
-        NodeNonHistorical,
-        Element,
-        Condition,
-        ModelPart,
-        ProcessInfo
-    };
 
     ///@}
     ///@name Life Cycle
