@@ -1,9 +1,6 @@
 import math
-import cmath
-import mpmath
+import scipy.special
 import numpy as np
-
-import candelier_parameters as pp
 
 class AnalyticSimulator:
     def __init__(self, pp):
@@ -127,7 +124,7 @@ class AnalyticSimulator:
         suma = sum([A[i] * X[i] for i in range(4)])
 
         for i in range(4):
-            NDxy += A[i] / X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))
+            NDxy += A[i] / X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
 
         NDcoors[0] = float(NDxy.real)
         NDcoors[1] = float(NDxy.imag)
@@ -137,7 +134,7 @@ class AnalyticSimulator:
             NDvel = [0.] * 3
             NDxy = 0.0
             for i in range(4):
-                NDxy += A[i] * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))
+                NDxy += A[i] * X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
             NDvel[0] = float(NDxy.real)
             NDvel[1] = float(NDxy.imag)
             NDvel[2] = float(NDw0)
@@ -170,7 +167,7 @@ class AnalyticSimulator:
         basset_dimensional_coeff = self.basset_dimensional_coeff
         pp = self.pp
         sqrt_t = math.sqrt(t)
-        FhZ = sum([(1j * A[i] / X[i] - A[i] * X[i]) * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * sqrt_t) for i in range(len(X))])
+        FhZ = sum([(1j * A[i] / X[i] - A[i] * X[i]) * X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * sqrt_t) for i in range(len(X))])
         FhZ *= basset_dimensional_coeff * C1 * math.sqrt(math.pi)
         FB[0] = float(FhZ.real)
         FB[1] = float(FhZ.imag)
