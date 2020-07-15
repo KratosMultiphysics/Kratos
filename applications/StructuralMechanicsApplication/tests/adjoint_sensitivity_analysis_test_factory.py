@@ -39,6 +39,7 @@ class AdjointSensitivityAnalysisTestFactory(KratosUnittest.TestCase):
             model_adjoint = KratosMultiphysics.Model()
             self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
             self.adjoint_analysis.Initialize()
+            test_string = "test"
 
     def test_execution(self):
         with KratosUnittest.WorkFolderScope(".", __file__):
