@@ -214,8 +214,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         non_conform_parameters.AddEmptyValue("search_radius").SetDouble(1e-6)
 
         non_conform_mapper = KratosMapping.MapperFactory.CreateMapper(
-            self.model_part_origin, 
-            self.model_part_destination, 
+            self.model_part_origin,
+            self.model_part_destination,
             non_conform_parameters
         )
 
