@@ -25,7 +25,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
-        cls.mapper_parameters = mapper_parameters
+        cls.mapper_parameters = mapper_parameters.Clone()
 
         if mapper_parameters.Has("interface_submodel_part_origin"):
             cls.interface_model_part_origin = cls.model_part_origin.GetSubModelPart(
@@ -210,13 +210,13 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.assertEqual(is_conforming, True)
 
     def test_Is_not_conforming(self):
+        non_conform_parameters = self.mapper_parameters.Clone()
+        non_conform_parameters.AddEmptyValue("search_radius").SetDouble(1e-6)
+
         non_conform_mapper = KratosMapping.MapperFactory.CreateMapper(
             self.model_part_origin, 
             self.model_part_destination, 
-            KM.Parameters("""{
-                "mapper_type" : \"""" + self.mapper_type + """\",
-                "search_radius": 0.00001 }"""
-            )
+            non_conform_parameters
         )
 
         is_conforming = non_conform_mapper.AreMeshesConforming()
