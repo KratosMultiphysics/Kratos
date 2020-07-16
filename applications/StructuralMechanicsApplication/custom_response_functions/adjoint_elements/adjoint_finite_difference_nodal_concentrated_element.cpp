@@ -179,7 +179,7 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetValuesV
         rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Y, Step);
         rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Z, Step);
     }
-    KRATOS_WATCH(rValues[2])
+    
     KRATOS_CATCH("")
 }
 
@@ -250,7 +250,7 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateF
 {
     KRATOS_TRY;
     BaseType::CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-    noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    noalias(rLeftHandSideMatrix) = rLeftHandSideMatrix;
     KRATOS_CATCH("");
 }
 
@@ -260,7 +260,7 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::CalculateS
 {
     KRATOS_TRY;
     BaseType::CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-    noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    noalias(rLeftHandSideMatrix) = rLeftHandSideMatrix;
     KRATOS_CATCH("");
 }
 
