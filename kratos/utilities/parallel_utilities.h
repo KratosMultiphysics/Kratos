@@ -66,7 +66,7 @@ public:
         ptrdiff_t mBlockPartitionSize = (it_end-it_begin) / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
-        for(int i = 1; i < mNchunks; i++) {
+        for (int i=1; i<mNchunks; i++) {
             mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
         }
     }
@@ -88,7 +88,7 @@ public:
     inline void for_each(TUnaryFunction&& f)
     {
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i) {
+        for (int i=0; i<mNchunks; ++i) {
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 f(*it); //note that we pass the value to the function, not the iterator
             }
@@ -105,7 +105,7 @@ public:
     {
         TReducer global_reducer;
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i) {
+        for (int i=0; i<mNchunks; ++i) {
             TReducer local_reducer;
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 local_reducer.LocalReduce(f(*it));
@@ -162,7 +162,7 @@ public:
         int mBlockPartitionSize = Size / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = Size;
-        for(int i = 1; i < mNchunks; i++) {
+        for (int i=1; i<mNchunks; i++) {
             mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
         }
 
@@ -177,7 +177,7 @@ public:
     {
         std::vector< std::future<void> > runners(mNchunks);
         const auto& partition = mBlockPartition;
-        for(int i=0; i<mNchunks; ++i) {
+        for (int i=0; i<mNchunks; ++i) {
             runners[i] = std::async(std::launch::async, [&partition, i,  &f]()
                 {
                     for (auto k = partition[i]; k < partition[i+1]; ++k) {
@@ -189,7 +189,7 @@ public:
         //here we impose a syncronization and we check the exceptions
         for(int i=0; i<mNchunks; ++i) {
             try {
-                    runners[i].get();
+                runners[i].get();
             }
             catch(Exception& e) {
                 KRATOS_ERROR << std::endl << "THREAD number: " << i << " caught exception " << e.what() << std::endl;
@@ -208,7 +208,7 @@ public:
     inline void for_each(TUnaryFunction &&f)
     {
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i) {
+        for (int i=0; i<mNchunks; ++i) {
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                 f(k); //note that we pass a reference to the value, not the iterator
             }
@@ -225,7 +225,7 @@ public:
     {
         TReducer global_reducer;
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i) {
+        for (int i=0; i<mNchunks; ++i) {
             TReducer local_reducer;
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                 local_reducer.LocalReduce(f(k));
