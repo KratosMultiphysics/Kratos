@@ -414,9 +414,9 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
     primal_solution_variable_list.push_back(&DISPLACEMENT_Z);
 
     if(mHasRotationDofs) {
-        primal_solution_variable_list.push_back(ROTATION_X);
-        primal_solution_variable_list.push_back(ROTATION_Y);
-        primal_solution_variable_list.push_back(ROTATION_Z);
+        primal_solution_variable_list.push_back(&ROTATION_X);
+        primal_solution_variable_list.push_back(&ROTATION_Y);
+        primal_solution_variable_list.push_back(&ROTATION_Z);
     }
 
     // in linear static analysis the derivative is computed by unit-displacements
@@ -425,14 +425,14 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
             const IndexType index = i * num_dofs_per_node;
             for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
             {
-                initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+                initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
             }
         }
         for (IndexType i = 0; i < num_nodes; ++i) {
             const IndexType index = i * num_dofs_per_node;
             for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
 
                 if (rStressVariable == STRESS_ON_GP)
                     StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
@@ -444,13 +444,13 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
 
                 stress_derivatives_vector.clear();
 
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
             }
         }
         for (IndexType i = 0; i < num_nodes; ++i) {
             const IndexType index = i * num_dofs_per_node;
             for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
         }
 
     }
@@ -463,7 +463,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
 
             for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j) {
                 // find suitable disturbance measure for each displacement component
-                double displacement = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+                double displacement = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
 
                 if (std::abs(displacement) < numeric_limit) {
                     displacement = 1e-10;
@@ -474,7 +474,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
                 }
 
                 // disturb displacement value
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) += disturbance;
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) += disturbance;
 
                 if (rStressVariable == STRESS_ON_GP) {
                     StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, perturbed_stress_vector, rCurrentProcessInfo);
@@ -488,7 +488,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
                 }
 
                 // undisturb displacement value
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) -= disturbance;
+                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) -= disturbance;
             }
         }
     }
