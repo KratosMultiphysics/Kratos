@@ -760,9 +760,7 @@ class TestParameters(KratosUnittest.TestCase):
 
         new_string_array = initial["parameter"].GetStringArray()
 
-        self.assertEqual(len(new_string_array), len(string_array))
-        self.assertEqual(new_string_array[0], string_array[0])
-        self.assertEqual(new_string_array[1], string_array[1])
+        self.assertListEqual(new_string_array, string_array)
 
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
