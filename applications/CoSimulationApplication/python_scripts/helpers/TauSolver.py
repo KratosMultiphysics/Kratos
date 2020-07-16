@@ -28,6 +28,7 @@ from tau_python import *
 
 # tau_functions can only be imported after appending kratos' path
 import tau_functions as TauFunctions
+import MotionStringGenerator as MSG
 
 if tau_mpi_rank() == 0:
     # Remove output files and deform mesh files from previous simulations
@@ -63,7 +64,7 @@ if rotate:
     thetaDeg = np.loadtxt(working_path + 'signal/APRBSDeg_membrane.dat')
     thetaRate = np.loadtxt(working_path + 'signal/APRBSRate_membrane.dat')
 
-    MyMotionStringGenerator = TauFunctions.MotionStringGenerator(
+    MyMotionStringGenerator = MSG.MotionStringGenerator(
         tau_time_step, pitchDeg, thetaDeg, thetaRate)
 
     # --- Prepare parameters for unsteady rotating simulation ---
@@ -167,11 +168,19 @@ def ImportData(conn_name, identifier):
         Para_origin = PyPara.Parafile(para_path)
         # Read the interface fluid grid
         ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin)
-
+        tau_parallel_sync()
+        if tau_mpi_rank() == 0:
+            with open('ids_coordinates' + str(step) + '.dat', 'w') as fname:
+                for i in range(len(ids)):
+                    fname.write("%f %f %f %f\n" % (ids[i],coordinates[0,i],coordinates[1,i],coordinates[2,i]))
+        tau_parallel_sync()
         # Write membrane's displacments in a file
         if tau_mpi_rank() == 0:
 ###08/07/2020      ### TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, relative_displacements)
             new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
+            with open('new_displacement' + str(step) + '.dat','w') as fname:
+                for i in range(len(new_displacements)):
+                    fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))	
             ####08/07/2020      ### print new_displacements
             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements)
         tau_parallel_sync()
@@ -192,9 +201,10 @@ def ExportData(conn_name, identifier):
     if tau_mpi_rank() == 0:
         if tau_settings["echo_level"] > 0:
             print "TAU SOLVER ExportData"
+            
     # identifier is the data-name in json
         if identifier == "Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -236,6 +246,7 @@ if rank == 0:
 
 n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
+
 for i in range(n_steps):
     AdvanceInTime(0.0)
     InitializeSolutionStep()

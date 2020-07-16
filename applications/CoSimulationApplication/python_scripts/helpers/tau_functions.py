@@ -18,6 +18,7 @@ except:
     warnings.warn('tau modules not available')
 
 from scipy.io import netcdf
+import ChangeFormat as CF
 
 # Assign default settings
 working_path = os.getcwd() + '/'
@@ -97,9 +98,9 @@ def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start
 
 
 # Computes fluid forces at the nodes
-def ComputeFluidForces(working_path, step):
+def ComputeFluidForces(working_path, step, word1, word2):
     # Read mesh and pressure from interface file
-    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 20)
+    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 20, word1, word2)
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
@@ -220,10 +221,39 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
 
 
 # Read mesh and data from tau output file
-def ReadTauOutput(working_path, step, velocity):
+def ReadTauOutput(working_path, step, velocity, word1, word2):
     # Find the interface file name
-    interface_filename = FindInterfaceFilename(working_path, step)
+    interface_filename = FindInterfaceFilename(working_path, step, word1, word2)
 
+    # Change Format of 'interface_filename' 
+    print("Looking for number 1")
+    number1 = CF.Countline(interface_filename, word1)
+    print("number 1 = ", str(number1))
+    print("Looking for number 1")
+    number2 = CF.Countline(interface_filename, word2)
+    print("number 2 = ", str(number2))
+    print("Looking for endFile")
+    endline = CF.Endline(interface_filename)
+    print("endline = ", str(endline))
+
+    with open(interface_filename,'r') as fread:
+        with open(interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat','w') as fwrite_word1:
+            with open(interface_filename[0:len(interface_filename)-4] + '.' + word2 + '.dat','w') as fwrite_word2:
+            header1 = fread.readline()
+            fwrite_word1.write(header1)
+            fwrite_word2.write(header1)
+            header2 = fread.readline()
+            fwrite_word1.write(header2)
+            fwrite_word2.write(header2)
+
+    if number1 < number2:
+        CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat', number1, number2)
+        CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word2 + '.dat', number2, endline)
+    else:
+        CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word2 + '.dat', number2, number1)
+        CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat', number1, endline)
+
+################################ ab HIER 2 FILES ########################
     # Read interface file
     position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
         interface_filename)
@@ -536,45 +566,5 @@ def CalculateDistanceVector(X,Y,Z,start,end):
 
     return distance_vector
 
-class MotionStringGenerator(object):
-	"""Auxiliary class to generate TAU motion strings for a translatory x-motion
-	and/or a pitching oscillation.
-	"""
-
-	def __init__(self, deltaT, pitchDeg, thetaDeg, thetaRate):
-		self.deltaT       = deltaT
-		self.pitchDeg = pitchDeg
-		self.thetaDeg = thetaDeg
-		self.thetaRate = thetaRate
-		#print 'deltaT = ', deltaT
-		#print 'thetaDeg = ', thetaDeg
-		#print 'thetaRate = ', thetaRate
 
 
-	def GetMotionString(self,step):
-		self.time = step*self.deltaT
-		self.thetaInstant     = self.thetaDeg[step]
-		self.pitchFreq    = self.thetaRate[step]
-
-		p     = 0.
-		q     = np.deg2rad(self.pitchFreq)
-		r     = 0.
-		phi   = 0.
-		theta = np.deg2rad(self.pitchDeg) + np.deg2rad(self.thetaInstant)
-		psi   = 0.
-		u     = 0
-		v     = 0.
-		w     = 0.
-		dx    = 0.
-		dy    = 0.
-		dz    = 0.
-		motionString=" ".join(map(str, [p,q,r,phi,theta,psi,u,v,w,dx,dy,dz]))
-		#print 'step = ', step
-        	#print 'motionString = ', motionString
-        	#print 'q = ', self.pitchFreq
-        	#print 'theta = ', self.thetaInstant
-
-		return motionString
-
-	def __call__(self, step):
-		return self.GetMotionString(step)
