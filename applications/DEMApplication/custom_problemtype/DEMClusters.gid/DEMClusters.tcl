@@ -47,7 +47,7 @@ proc InitGIDProject { dir } {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Define Options"] 0 PRE "GidOpenProblemData" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Center the mesh" ] 1 PRE [list CenterMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Center the geometry" ] 1 PRE [list CenterGeometry] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate SPH file" ] 2 PRE [list GenerateSPHFileFromOBJFile] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Cancel SPH generation" ] 3 PRE [list CancelSphereTree] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Generate CLU file" ] 4 PRE [list GenerateClusterFile] "" ""
@@ -270,8 +270,6 @@ proc DEMClusters::call_makeTreeMedial { } {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-
-
     # exec $program {*}$argv
     # catch { set ::DEMClusters::pid [exec $program {*}$argv] &} msg
 
@@ -349,7 +347,7 @@ proc DEMClusters::call_makeTreeGrid { } {
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
-    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -nopause -eval $genericOBJFilename"
+    set argv "-depth $depth -numCover $numCover -minCover $minCover -testerLevels $testerLevels -nopause -eval $genericOBJFilename"
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
@@ -389,7 +387,7 @@ proc DEMClusters::call_makeTreeSpawn { } {
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
-    set argv "-depth $depth -branch $branch -numCover $numCover -minCover $minCover -testerLevels $testerLevels -nopause -eval $genericOBJFilename"
+    set argv "-depth $depth -numCover $numCover -minCover $minCover -testerLevels $testerLevels -nopause -eval $genericOBJFilename"
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
@@ -499,13 +497,13 @@ proc CenterGeometry { } {
     set centerY [lindex $a 1]
     set centerZ [lindex $a 2]
 
+    W $a
+
     set nodeslist [GiD_Geometry list point 1:]
 
-    W $nodeslist
     W [GiD_Info listmassproperties Points $nodeslist]
 
-
-    #GiD_Process Mescape Utilities Move Volumes MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 $last_volume escape Mescape
+    GiD_Process Mescape Utilities Move Volumes MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 $last_volume escape Mescape
 }
 
 
