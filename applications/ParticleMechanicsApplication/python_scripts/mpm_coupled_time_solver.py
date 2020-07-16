@@ -630,7 +630,7 @@ class MPMCoupledTimeSolver(MPMSolver):
             if index == 1:
                 self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
             if index == 2:
-                self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
+                self.model_sub_domain_2.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
             solution_strategy = self._CreateLinearStrategy(index)
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
