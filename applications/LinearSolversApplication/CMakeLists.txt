@@ -80,39 +80,39 @@ file(
 
 ###############################################################
 ## LinearSolversApplication core library (C++ parts)
-add_library( KratosEigenSolversCore SHARED ${KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES} )
-target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
-set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
+add_library( KratosLinearSolversCore SHARED ${KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES} )
+target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
+set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
 
 ## LinearSolversApplication python module
 pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
-target_link_libraries( KratosLinearSolversApplication PRIVATE KratosEigenSolversCore )
+target_link_libraries( KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )
 set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
 
 if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
         find_library(MKL_RT_LIB mkl_rt)
         message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
-        target_link_libraries( KratosEigenSolversCore PUBLIC ${MKL_RT_LIB} )
+        target_link_libraries( KratosLinearSolversCore PUBLIC ${MKL_RT_LIB} )
     elseif( ${CMAKE_CXX_COMPILER_ID} MATCHES Clang )
         message( FATAL_ERROR "Clang does not yet support MKL" )
     else( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-        target_link_libraries( KratosEigenSolversCore PUBLIC mkl_rt )
+        target_link_libraries( KratosLinearSolversCore PUBLIC mkl_rt )
         if( USE_EIGEN_FEAST MATCHES ON )
-            target_link_libraries(KratosEigenSolversCore PUBLIC feast4 gfortran m)
+            target_link_libraries(KratosLinearSolversCore PUBLIC feast4 gfortran m)
         endif()
     endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 endif()
 
 # changing the .dll suffix to .pyd
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-    set_target_properties( KratosEigenSolversCore PROPERTIES SUFFIX .pyd )
+    set_target_properties( KratosLinearSolversCore PROPERTIES SUFFIX .pyd )
     set_target_properties( KratosLinearSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
-    cotire(KratosEigenSolversCore)
+    cotire(KratosLinearSolversCore)
     cotire(KratosLinearSolversApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -136,5 +136,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install( TARGETS KratosEigenSolversCore DESTINATION libs )
+install( TARGETS KratosLinearSolversCore DESTINATION libs )
 install( TARGETS KratosLinearSolversApplication DESTINATION libs )
