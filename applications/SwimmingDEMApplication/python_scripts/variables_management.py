@@ -213,7 +213,7 @@ class VariablesManager:
             self.dem_vars += [Kratos.BASSET_FORCE]
 
         if parameters["frame_of_reference"]["frame_type"].GetInt() and self.do_include_history_force > 0:
-            self.dem_vars += [Kratos.DISPLACEMENT_OLD]
+            self.dem_vars += [SDEM.DISPLACEMENT_OLD]
             self.dem_vars += [Kratos.VELOCITY_OLD_OLD]
 
         if (parameters["custom_dem"]["translational_integration_scheme"].GetString()
