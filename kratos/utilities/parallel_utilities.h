@@ -11,29 +11,27 @@
 //                   Denis Demidov
 //
 
-#if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED )
-#define  KRATOS_PARALLEL_UTILITIES_H_INCLUDED
-
+#if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)
+#define KRATOS_PARALLEL_UTILITIES_H_INCLUDED
 
 // System includes
-#include<iostream>
-#include<array>
-#include<vector>
-#include<tuple>
-#include<cmath>
-#include<limits>
-#include<omp.h>
-
+#include <iostream>
+#include <array>
+#include <vector>
+#include <tuple>
+#include <cmath>
+#include <limits>
 #include <future>
 #include <thread>
-#include "utilities/reduction_utilities.h"
 
 // External includes
-
+#include <omp.h>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/global_variables.h"
+#include "utilities/reduction_utilities.h"
+
 
 namespace Kratos
 {
@@ -68,8 +66,9 @@ public:
         ptrdiff_t mBlockPartitionSize = (it_end-it_begin) / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
-        for(int i = 1; i < mNchunks; i++)
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize ;
+        for(int i = 1; i < mNchunks; i++) {
+            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+        }
     }
 
     /** @param rData - the continer to be iterated upon
@@ -80,7 +79,7 @@ public:
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
     {}
 
-    virtual ~BlockPartition() {}
+    virtual ~BlockPartition() = default;
 
     /** @brief simple iteration loop. f called on every entry in rData
      * @param f - must be a unary function accepting as input TContainerType::value_type&
@@ -89,10 +88,8 @@ public:
     inline void for_each(TUnaryFunction&& f)
     {
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i)
-        {
-            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it)
-            {
+        for(int i=0; i<mNchunks; ++i) {
+            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 f(*it); //note that we pass the value to the function, not the iterator
             }
         }
@@ -108,11 +105,9 @@ public:
     {
         TReducer global_reducer;
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i)
-        {
+        for(int i=0; i<mNchunks; ++i) {
             TReducer local_reducer;
-            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it)
-            {
+            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 local_reducer.LocalReduce(f(*it));
             }
             global_reducer.ThreadSafeReduce(local_reducer);
@@ -121,10 +116,8 @@ public:
     }
 
 private:
-
     int mNchunks;
     std::array<TIteratorType, TMaxThreads> mBlockPartition;
-
 };
 
 /** @brief simplified version of the basic loop (without reduction) to enable template type deduction
@@ -133,12 +126,14 @@ private:
  *
  */
 template <class TContainerType, class TFunctionType>
-void block_for_each(TContainerType &&v, TFunctionType &&func) {
+void block_for_each(TContainerType &&v, TFunctionType &&func)
+{
     BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(func));
 }
 
 template <class TReducer, class TContainerType, class TFunctionType>
-typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &&func) {
+typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &&func)
+{
     return BlockPartition<typename std::decay<TContainerType>::type>
         (std::forward<TContainerType>(v)).template for_each<TReducer>(std::forward<TFunctionType>(func));
 }
@@ -167,33 +162,32 @@ public:
         int mBlockPartitionSize = Size / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = Size;
-        for(int i = 1; i < mNchunks; i++)
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize ;
+        for(int i = 1; i < mNchunks; i++) {
+            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+        }
 
     }
 
-    virtual ~IndexPartition() {}
+    virtual ~IndexPartition() = default;
 
     //NOT COMMENTING IN DOXYGEN - THIS SHOULD BE SORT OF HIDDEN UNTIL GIVEN PRIME TIME
     //pure c++11 version (can handle exceptions)
     template <class TUnaryFunction>
     inline void for_pure_c11(TUnaryFunction &&f)
     {
-
         std::vector< std::future<void> > runners(mNchunks);
         const auto& partition = mBlockPartition;
-        for(int i=0; i<mNchunks; ++i)
-        {
+        for(int i=0; i<mNchunks; ++i) {
             runners[i] = std::async(std::launch::async, [&partition, i,  &f]()
                 {
-                    for (auto k = partition[i]; k < partition[i+1]; ++k)
+                    for (auto k = partition[i]; k < partition[i+1]; ++k) {
                         f(k);
+                    }
                 });
         }
 
         //here we impose a syncronization and we check the exceptions
-        for(int i=0; i<mNchunks; ++i)
-        {
+        for(int i=0; i<mNchunks; ++i) {
             try {
                     runners[i].get();
             }
@@ -214,10 +208,8 @@ public:
     inline void for_each(TUnaryFunction &&f)
     {
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i)
-        {
-            for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k)
-            {
+        for(int i=0; i<mNchunks; ++i) {
+            for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                 f(k); //note that we pass a reference to the value, not the iterator
             }
         }
@@ -233,11 +225,9 @@ public:
     {
         TReducer global_reducer;
         #pragma omp parallel for
-        for(int i=0; i<mNchunks; ++i)
-        {
+        for(int i=0; i<mNchunks; ++i) {
             TReducer local_reducer;
-            for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k)
-            {
+            for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                 local_reducer.LocalReduce(f(k));
             }
             global_reducer.ThreadSafeReduce(local_reducer);
@@ -246,14 +236,10 @@ public:
     }
 
 private:
-
     int mNchunks;
-
     std::array<TIndexType, TMaxThreads> mBlockPartition;
-
 };
 
+} // namespace Kratos.
 
-}  // namespace Kratos.
-
-#endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_PARALLEL_UTILITIES_H_INCLUDED defined
