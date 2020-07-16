@@ -66,7 +66,7 @@ if( USE_EIGEN_FEAST MATCHES ON )
 endif()
 
 ## generate variables with the sources
-set( KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES
+set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp
 )
@@ -80,7 +80,7 @@ file(
 
 ###############################################################
 ## LinearSolversApplication core library (C++ parts)
-add_library( KratosEigenSolversCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES} )
+add_library( KratosEigenSolversCore SHARED ${KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES} )
 target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
 set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
 
