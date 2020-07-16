@@ -41,8 +41,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosIgaApplication
-    : public KratosApplication {
+class KRATOS_API(IGA_APPLICATION) KratosIgaApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{

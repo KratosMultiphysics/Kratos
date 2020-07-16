@@ -82,6 +82,8 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> TBuilderAndSolverType;
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              ClassType;
+
     typedef typename ModelPart::DofType                                             TDofType;
 
     typedef typename ModelPart::DofsArrayType                                  DofsArrayType;
@@ -110,12 +112,17 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit SolvingStrategy() { }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
     explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : mrModelPart(rModelPart)
+        : mpModelPart(&rModelPart)
     {
         const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
         SetMoveMeshFlag(move_mesh_flag);
@@ -129,7 +136,7 @@ public:
     explicit SolvingStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
-        ) : mrModelPart(rModelPart)
+        ) : mpModelPart(&rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
@@ -145,6 +152,19 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -339,11 +359,12 @@ public:
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return mrModelPart: The model part member variable
+     * @return mpModelPart: The model part member variable
      */
     inline ModelPart& GetModelPart()
     {
-        return mrModelPart;
+        KRATOS_ERROR_IF_NOT(mpModelPart) << "ModelPart in the SolvingStrategy is not initialized" << std::endl;
+        return *mpModelPart;
     };
 
     /**
@@ -379,6 +400,15 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "solving_strategy";
     }
 
     ///@}
@@ -455,7 +485,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     bool mMoveMeshFlag;
 
