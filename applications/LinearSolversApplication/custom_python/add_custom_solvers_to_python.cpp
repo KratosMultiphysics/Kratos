@@ -41,7 +41,7 @@
 #endif
 
 #include "factories/standard_linear_solver_factory.h"
-#include "eigen_solvers_application.h"
+#include "linear_solvers_application.h"
 
 /* Utilities */
 #include "custom_utilities/feast_condition_number_utility.h"

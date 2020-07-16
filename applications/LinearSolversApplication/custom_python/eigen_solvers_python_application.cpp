@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "eigen_solvers_application.h"
+#include "linear_solvers_application.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 
 namespace Kratos {

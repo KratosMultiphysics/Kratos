@@ -67,7 +67,7 @@ endif()
 
 ## generate variables with the sources
 set( KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp
 )
 
