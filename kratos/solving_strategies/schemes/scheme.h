@@ -60,6 +60,9 @@ public:
     /// Pointer definition of Scheme
     KRATOS_CLASS_POINTER_DEFINITION(Scheme);
 
+    /// The definition of the current class
+    typedef Scheme< TSparseSpace, TDenseSpace > ClassType;
+
     /// Data type definition
     typedef typename TSparseSpace::DataType TDataType;
     /// Matrix type definition
@@ -181,6 +184,12 @@ public:
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
     }
+    /**
+     * @brief Default Constructor with Parameters
+     */
+    explicit Scheme(Parameters ThisParameters) : Scheme()
+    {
+    }
 
     /** Copy Constructor.
      */
@@ -200,6 +209,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Clone method
@@ -1062,9 +1084,14 @@ public:
         pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "scheme";
+    }
 
     ///@}
     ///@name Access

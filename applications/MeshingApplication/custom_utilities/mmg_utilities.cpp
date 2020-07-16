@@ -901,7 +901,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     Condition::Pointer p_base_condition = nullptr;
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+            if(mEchoLevel > 1) {
+                KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+            }
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -962,7 +964,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
 
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+            if(mEchoLevel > 1) {
+                KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+            }
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -1021,7 +1025,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+        if(mEchoLevel > 1) {
+            KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+        }
         return p_condition;
     }
 
@@ -1083,7 +1089,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+        if(mEchoLevel > 1) {
+            KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+        }
         return p_condition;
     }
 

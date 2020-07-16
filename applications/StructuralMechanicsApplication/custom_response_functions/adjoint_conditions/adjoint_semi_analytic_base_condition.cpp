@@ -235,7 +235,7 @@ namespace Kratos
         this->CalculateRightHandSide(RHS, process_info);
 
         if (rDesignVariable == SHAPE_SENSITIVITY) {
-            const std::vector<FiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_SENSITIVITY_X, SHAPE_SENSITIVITY_Y, SHAPE_SENSITIVITY_Z};
+            const std::vector<const FiniteDifferenceUtility::array_1d_component_type*> coord_directions = {&SHAPE_SENSITIVITY_X, &SHAPE_SENSITIVITY_Y, &SHAPE_SENSITIVITY_Z};
             Vector derived_RHS;
 
             if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) ) {
@@ -249,7 +249,7 @@ namespace Kratos
             for(auto& node_i : mpPrimalCondition->GetGeometry()) {
                 for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i) {
                     // Get pseudo-load contribution from utility
-                    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalCondition(), RHS, coord_directions[coord_dir_i],
+                    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalCondition(), RHS, *coord_directions[coord_dir_i],
                                                                                 node_i, delta, derived_RHS, process_info);
 
                     KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;

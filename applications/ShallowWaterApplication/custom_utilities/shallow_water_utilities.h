@@ -125,34 +125,6 @@ public:
 
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
 
-    /**
-     * @brief Computes the root mean square of a double or component type of non historical variable
-     * @param rVariable reference to the variable to compute
-     * @param rWeightVariable reference to the weighting variable
-     * @param rContainer Reference to the objective container
-     */
-    template<class TVarType, class TContainerType>
-    double RootMeanSquareNonHistorical(
-        const TVarType& rVariable,
-        const Variable<double>& rWeightVariable,
-        TContainerType& rContainer)
-    {
-        double rms_sum = 0.0;
-        double weight_sum = 0.0;
-
-        const auto it_begin = rContainer.begin();
-
-        #pragma omp parallel for reduction(+:rms_sum, weight_sum)
-        for (int k = 0; k < static_cast<int>(rContainer.size()); ++k)
-        {
-            const auto it = it_begin + k;
-            rms_sum += it->GetValue(rWeightVariable) * std::pow(it->GetValue(rVariable), 2);
-            weight_sum += it->GetValue(rWeightVariable);
-        }
-
-        return std::sqrt(rms_sum / weight_sum);
-    }
-
     ///@}
     ///@name Access
     ///@{

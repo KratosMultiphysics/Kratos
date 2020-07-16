@@ -84,6 +84,18 @@ public:
 
         mApplyCM = false;
 
+        // Initialize Variables
+        const int NNodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        array_1d<double,3> zero_vector = ZeroVector(3);
+        #pragma omp parallel for
+        for(int i = 0; i<NNodes; i++) {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            it->SetValue(TARGET_STRESS,zero_vector);
+            it->SetValue(REACTION_STRESS,zero_vector);
+            it->SetValue(LOADING_VELOCITY,zero_vector);
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -200,9 +212,9 @@ public:
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(DISPLACEMENT_X) += mVelocity * DeltaTime;
                     // Save calculated velocity and reaction for print
-                    it->FastGetSolutionStepValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
-                    it->FastGetSolutionStepValue(REACTION_STRESS_X) = ReactionStress;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = mVelocity;
+                    it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
+                    it->GetValue(REACTION_STRESS_X) = ReactionStress;
+                    it->GetValue(LOADING_VELOCITY_X) = mVelocity;
                 }
             } else if (mImposedDirection == 1) { // Y direction
                 #pragma omp parallel for
@@ -210,9 +222,9 @@ public:
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(DISPLACEMENT_Y) += mVelocity * DeltaTime;
                     // Save calculated velocity and reaction for print
-                    it->FastGetSolutionStepValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Y) = ReactionStress;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity;
+                    it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
+                    it->GetValue(REACTION_STRESS_Y) = ReactionStress;
+                    it->GetValue(LOADING_VELOCITY_Y) = mVelocity;
                 }
             } else if (mImposedDirection == 2) { // Z direction
                 #pragma omp parallel for
@@ -220,9 +232,9 @@ public:
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(DISPLACEMENT_Z) += mVelocity * DeltaTime;
                     // Save calculated velocity and reaction for print
-                    it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Z) = ReactionStress;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = mVelocity;
+                    it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+                    it->GetValue(REACTION_STRESS_Z) = ReactionStress;
+                    it->GetValue(LOADING_VELOCITY_Z) = mVelocity;
                 }
             } else { // Radial direction
                 #pragma omp parallel for
@@ -234,12 +246,12 @@ public:
                     it->FastGetSolutionStepValue(DISPLACEMENT_X) += mVelocity * cos_theta * DeltaTime;
                     it->FastGetSolutionStepValue(DISPLACEMENT_Y) += mVelocity * sin_theta * DeltaTime;
                     // Save calculated velocity and reaction for print
-                    it->FastGetSolutionStepValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime) * cos_theta;
-                    it->FastGetSolutionStepValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime) * sin_theta;
-                    it->FastGetSolutionStepValue(REACTION_STRESS_X) = ReactionStress * cos_theta;
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Y) = ReactionStress * sin_theta;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = mVelocity * cos_theta;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = mVelocity * sin_theta;
+                    it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime) * cos_theta;
+                    it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime) * sin_theta;
+                    it->GetValue(REACTION_STRESS_X) = ReactionStress * cos_theta;
+                    it->GetValue(REACTION_STRESS_Y) = ReactionStress * sin_theta;
+                    it->GetValue(LOADING_VELOCITY_X) = mVelocity * cos_theta;
+                    it->GetValue(LOADING_VELOCITY_Y) = mVelocity * sin_theta;
                 }
             }
         } else {
@@ -248,25 +260,25 @@ public:
                 #pragma omp parallel for
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    it->FastGetSolutionStepValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
-                    it->FastGetSolutionStepValue(REACTION_STRESS_X) = ReactionStress;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = 0.0;
+                    it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime);
+                    it->GetValue(REACTION_STRESS_X) = ReactionStress;
+                    it->GetValue(LOADING_VELOCITY_X) = 0.0;
                 }
             } else if (mImposedDirection == 1) { // Y direction
                 #pragma omp parallel for
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    it->FastGetSolutionStepValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Y) = ReactionStress;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = 0.0;
+                    it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime);
+                    it->GetValue(REACTION_STRESS_Y) = ReactionStress;
+                    it->GetValue(LOADING_VELOCITY_Y) = 0.0;
                 }
             } else if (mImposedDirection == 2) { // Z direction
                 #pragma omp parallel for
                 for(int i = 0; i<NNodes; i++) {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    it->FastGetSolutionStepValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Z) = ReactionStress;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_Z) = 0.0;
+                    it->GetValue(TARGET_STRESS_Z) = pTargetStressTable->GetValue(CurrentTime);
+                    it->GetValue(REACTION_STRESS_Z) = ReactionStress;
+                    it->GetValue(LOADING_VELOCITY_Z) = 0.0;
                 }
             } else { // Radial direction
                 #pragma omp parallel for
@@ -275,12 +287,12 @@ public:
                     double external_radius = std::sqrt(it->X()*it->X() + it->Y()*it->Y());
                     double cos_theta = it->X()/external_radius;
                     double sin_theta = it->Y()/external_radius;
-                    it->FastGetSolutionStepValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime) * cos_theta;
-                    it->FastGetSolutionStepValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime) * sin_theta;
-                    it->FastGetSolutionStepValue(REACTION_STRESS_X) = ReactionStress * cos_theta;
-                    it->FastGetSolutionStepValue(REACTION_STRESS_Y) = ReactionStress * sin_theta;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_X) = 0.0;
-                    it->FastGetSolutionStepValue(LOADING_VELOCITY_Y) = 0.0;
+                    it->GetValue(TARGET_STRESS_X) = pTargetStressTable->GetValue(CurrentTime) * cos_theta;
+                    it->GetValue(TARGET_STRESS_Y) = pTargetStressTable->GetValue(CurrentTime) * sin_theta;
+                    it->GetValue(REACTION_STRESS_X) = ReactionStress * cos_theta;
+                    it->GetValue(REACTION_STRESS_Y) = ReactionStress * sin_theta;
+                    it->GetValue(LOADING_VELOCITY_X) = 0.0;
+                    it->GetValue(LOADING_VELOCITY_Y) = 0.0;
                 }
             }
         }

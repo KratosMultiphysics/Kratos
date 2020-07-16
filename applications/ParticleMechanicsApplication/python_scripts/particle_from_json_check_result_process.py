@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 # Importing the base class
-from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
+from KratosMultiphysics.from_json_check_result_process import LegacyFromJsonCheckResultProcess # TODO: This must be updated to the new C++ version
 from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 # Import KratosUnittest
@@ -14,7 +14,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ParticleFromJsonCheckResultProcess(Model, settings["Parameters"])
 
-class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnittest.TestCase):
+class ParticleFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnittest.TestCase):
 
     def __init__(self, model_part, params):
         super(ParticleFromJsonCheckResultProcess, self).__init__(model_part, params)

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 # importing the Kratos Library
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response
 

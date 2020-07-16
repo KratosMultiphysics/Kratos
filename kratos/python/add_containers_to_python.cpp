@@ -89,11 +89,6 @@ void  AddContainersToPython(pybind11::module& m)
     typedef Variable<array_1d<double, 6> > Array1DVariable6;
     typedef Variable<array_1d<double, 9> > Array1DVariable9;
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentVariable;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > Array1D4ComponentVariable;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > Array1D6ComponentVariable;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > Array1D9ComponentVariable;
-
     py::class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
     .def("Key", &VariableData::Key)
@@ -163,26 +158,6 @@ void  AddContainersToPython(pybind11::module& m)
     // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
-    py::class_<Array1DComponentVariable,VariableData>(m, "Array1DComponentVariable")
-    .def("__str__", PrintObject<Array1DComponentVariable>)
-    .def( "GetSourceVariable", &Array1DComponentVariable::GetSourceVariable )
-    ;
-
-    py::class_<Array1D4ComponentVariable,VariableData>(m, "Array1D4ComponentVariable")
-    .def("__str__", PrintObject<Array1D4ComponentVariable>)
-    .def( "GetSourceVariable", &Array1D4ComponentVariable::GetSourceVariable )
-    ;
-
-    py::class_<Array1D6ComponentVariable,VariableData>(m, "Array1D6ComponentVariable")
-    .def("__str__", PrintObject<Array1D6ComponentVariable>)
-    .def( "GetSourceVariable", &Array1D6ComponentVariable::GetSourceVariable )
-    ;
-
-    py::class_<Array1D9ComponentVariable,VariableData>(m, "Array1D9ComponentVariable")
-    .def("__str__", PrintObject<Array1D9ComponentVariable>)
-    .def( "GetSourceVariable", &Array1D9ComponentVariable::GetSourceVariable )
-    ;
-
     py::class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
     .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
@@ -202,10 +177,6 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DComponentVariable >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D4ComponentVariable >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D6ComponentVariable >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D9ComponentVariable >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
@@ -222,10 +193,6 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable9 >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Vector> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Matrix> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DComponentVariable >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D4ComponentVariable >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D6ComponentVariable >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D9ComponentVariable >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Quaternion<double>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<std::string> >(VariableDataValueBinder);
 

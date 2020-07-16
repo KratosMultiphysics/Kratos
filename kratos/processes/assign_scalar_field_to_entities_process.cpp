@@ -56,8 +56,6 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 
     if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of scalar variable
         InternalAssignValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName), current_time);
-    } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
-        InternalAssignValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName), current_time);
     } else if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
         InternalAssignValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName), current_time);
     } else {
