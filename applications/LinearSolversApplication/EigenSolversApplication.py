@@ -11,8 +11,8 @@
 
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
-from KratosEigenSolversApplication import *
-application = KratosEigenSolversApplication()
+from KratosLinearSolversApplication import *
+application = KratosLinearSolversApplication()
 application_name = "LinearSolversApplication"
 
 _ImportApplication(application, application_name)

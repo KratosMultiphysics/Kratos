@@ -11,7 +11,7 @@
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
-message( "**** configuring KratosEigenSolversApplication ****" )
+message( "**** configuring KratosLinearSolversApplication ****" )
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -85,9 +85,9 @@ target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
 set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
 
 ## EigenSolversApplication python module
-pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
-target_link_libraries( KratosEigenSolversApplication PRIVATE KratosEigenSolversCore )
-set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "")
+pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
+target_link_libraries( KratosLinearSolversApplication PRIVATE KratosEigenSolversCore )
+set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
 
 if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
@@ -107,13 +107,13 @@ endif()
 # changing the .dll suffix to .pyd
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set_target_properties( KratosEigenSolversCore PROPERTIES SUFFIX .pyd )
-    set_target_properties( KratosEigenSolversApplication PROPERTIES SUFFIX .pyd )
+    set_target_properties( KratosLinearSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosEigenSolversCore)
-    cotire(KratosEigenSolversApplication)
+    cotire(KratosLinearSolversApplication)
 endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
@@ -137,4 +137,4 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install( TARGETS KratosEigenSolversCore DESTINATION libs )
-install( TARGETS KratosEigenSolversApplication DESTINATION libs )
+install( TARGETS KratosLinearSolversApplication DESTINATION libs )

@@ -29,7 +29,7 @@
 namespace Kratos
 {
 
-void KratosEigenSolversApplication::Register()
+void KratosLinearSolversApplication::Register()
 {
     KRATOS_INFO("") << "    Kratos  _     _                       ____        _\n"
                     << "           | |   (_)_ __   ___  __ _ _ __/ ___|  ___ | |_   _____ _ __ ___\n"
