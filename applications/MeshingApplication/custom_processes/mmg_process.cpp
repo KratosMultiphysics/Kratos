@@ -274,6 +274,7 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
 
     // In case of considering meric tensor
     if (it_node_begin->Has(r_tensor_variable)) {
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -289,6 +290,7 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
             }
         }
     } else {
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
