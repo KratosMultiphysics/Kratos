@@ -81,7 +81,7 @@ namespace Kratos
 
         }
         //KRATOS_WATCH(mSubDomain1InitialInterfaceVelocity)
-        KRATOS_WATCH(mSubDomain1FinalDomainAccelerationOrInertia)
+        //KRATOS_WATCH(mSubDomain1FinalDomainAccelerationOrInertia)
 
         PrepareSubDomain1CouplingQuantities(rK1);
 
@@ -155,8 +155,11 @@ namespace Kratos
         }
 
         // Update sub domain 2 at the end of every small timestep
-        if (mGamma[1] == 1.0) ApplyCorrectionExplicit(r_sub_domain_2_active, link_accel_2, mSmallTimestep);
-        else ApplyCorrectionImplicit(r_sub_domain_2_active, link_accel_2, mSmallTimestep);
+        if (norm_2(lamda) > std::numeric_limits<double>::epsilon())
+        {
+            if (mGamma[1] == 1.0) ApplyCorrectionExplicit(r_sub_domain_2_active, link_accel_2, mSmallTimestep);
+            else ApplyCorrectionImplicit(r_sub_domain_2_active, link_accel_2, mSmallTimestep);
+        }
 
         // Increment small timestep counter
         mJ += 1;
@@ -227,10 +230,14 @@ namespace Kratos
         }
 
         // Correct subdomain 1
-        const double time_step_1 = mSmallTimestep * mTimeStepRatio;
-        const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
-        if (mGamma[0] == 1.0) ApplyCorrectionExplicit(r_sub_domain_1_active, link_accel_1, time_step_1,0);
-        else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
+        if (norm_2(mSubDomain1AccumulatedLinkVelocity) > std::numeric_limits<double>::epsilon())
+        {
+            const double time_step_1 = mSmallTimestep * mTimeStepRatio;
+            const Vector link_accel_1 = mSubDomain1AccumulatedLinkVelocity / mGamma[0] / time_step_1;
+            if (mGamma[0] == 1.0) ApplyCorrectionExplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
+            else ApplyCorrectionImplicit(r_sub_domain_1_active, link_accel_1, time_step_1, 0);
+        }
+
 
         mIsSubDomain1QuantitiesPrepared = false;
 
@@ -643,7 +650,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            const SizeType working_space_dimension = rModelPart.GetParentModelPart()->ElementsBegin()->WorkingSpaceDimension();
+        const SizeType working_space_dimension = rModelPart.GetParentModelPart()->ElementsBegin()->WorkingSpaceDimension();
         const Vector& explicit_ordering = (DomainIndex == 0)
             ? mSubDomain1ExplicitOrdering
             : mSubDomain2ExplicitOrdering;
@@ -651,20 +658,20 @@ namespace Kratos
         // Add correction entries
         for (size_t i = 0; i < explicit_ordering.size(); ++i)
         {
-            if (rLinkAccel[working_space_dimension*i] > std::numeric_limits<double>::epsilon())
-            {
-                auto node_it = rModelPart.pGetNode(explicit_ordering[i]);
-                array_1d<double, 3>& r_nodal_momentum = node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                array_1d<double, 3>& r_nodal_force = node_it->FastGetSolutionStepValue(FORCE_RESIDUAL);
-                const double r_nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
+            auto node_it = rModelPart.pGetNode(explicit_ordering[i]);
+            array_1d<double, 3>& r_nodal_momentum = node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
+            array_1d<double, 3>& r_nodal_force = node_it->FastGetSolutionStepValue(FORCE_RESIDUAL);
+            const double r_nodal_mass = node_it->FastGetSolutionStepValue(NODAL_MASS);
 
-                for (IndexType k = 0; k < working_space_dimension; ++k) {
+            for (IndexType k = 0; k < working_space_dimension; ++k)
+            {
+                if (std::abs(rLinkAccel[working_space_dimension * i + k]) > std::numeric_limits<double>::epsilon())
+                {
                     r_nodal_momentum[k] += r_nodal_mass * timeStep * rLinkAccel[working_space_dimension * i + k];
                     r_nodal_force[k] += r_nodal_mass * rLinkAccel[working_space_dimension * i + k];
                 }
             }
         }
-
 
         KRATOS_CATCH("")
     }
