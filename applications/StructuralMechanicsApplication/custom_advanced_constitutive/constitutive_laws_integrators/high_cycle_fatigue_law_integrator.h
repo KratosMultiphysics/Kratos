@@ -109,17 +109,9 @@ public:
         const double stress_2 = PreviousStresses[0];
         const double stress_increment_1 = stress_1 - stress_2;
         const double stress_increment_2 = CurrentStress - stress_1;
-        // KRATOS_WATCH(CurrentStress)
-        // KRATOS_WATCH(stress_1)
-        // KRATOS_WATCH(stress_2)
-        // KRATOS_WATCH(stress_increment_1)
-        // KRATOS_WATCH(stress_increment_2)
-
-        // if (stress_increment_1 >= 1.0e-3 && stress_increment_2 <= 0.0) {
         if (stress_increment_1 > 1.0e-3 && stress_increment_2 < -1.0e-3) {
             rMaximumStress = stress_1;
             rMaxIndicator = true;
-        // } else if (stress_increment_1 <= -1.0e-3 && stress_increment_2 >= 0.0) {
         } else if (stress_increment_1 < -1.0e-3 && stress_increment_2 > 1.0e-3) {
             rMinimumStress = stress_1;
             rMinIndicator = true;
@@ -232,8 +224,6 @@ public:
             const double yield_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
             rWohlerStress = (Sth + (yield_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / yield_stress;
         }
-        // KRATOS_WATCH(MaxStress)
-        // KRATOS_WATCH(Sth)
         if (MaxStress > Sth) {
             rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;

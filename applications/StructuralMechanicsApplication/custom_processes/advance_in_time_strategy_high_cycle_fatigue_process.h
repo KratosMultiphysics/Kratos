@@ -75,57 +75,28 @@ public:
 
     void Execute() override;
 
-    // /**
-    //  * @brief This method Calculates and extrapolates the
-    //  * free energy indicator over the nodes
-    //  * @param pNodeNormalizedFreeEnergyVector the indicator container
-    //  */
-    // void NormalizedFreeEnergyExtrapolation(NodeNormalizedFreeEnergy *pNodeNormalizedFreeEnergyVector);
-    
     /**
-     * returns whether this constitutive Law has specified variable
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<bool>& rThisVariable);
-
-    /**
-     * @brief This method computes the free energy 
-     * @param rStrainVector The strain vector
-     * @param rStressVector The stress vector
-     * @param Damage The damage variable
-     * @param rMatProps The material properties
-     * @param rGeometry The geometry of the element
+     * @brief This method computes the cycle time period per integration point 
+     * @param rCycleFound Bool variable indicating that a cycle has overcome at some integration point 
      */
     void CyclePeriodPerIntegrationPoint(bool& rCycleFound);
 
     /**
-     * @brief This method computes the free energy 
-     * @param rStrainVector The strain vector
-     * @param rStressVector The stress vector
-     * @param Damage The damage variable
-     * @param rMatProps The material properties
-     * @param rGeometry The geometry of the element
+     * @brief This method stablishes if stable conditions have been reached for initiating the advance strategy
+     * @param rAdvancingStrategy Bool variable indicating weather advancing strategy will start or not
+     * @param DamageIndicator Bool variable indicating that damage has iniciated at some point 
      */
     void StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator);
 
     /**
-     * @brief This method computes the free energy 
-     * @param rStrainVector The strain vector
-     * @param rStressVector The stress vector
-     * @param Damage The damage variable
-     * @param rMatProps The material properties
-     * @param rGeometry The geometry of the element
+     * @brief This method computes the time increment to be applied as an output of the advancing strategy
+     * @param rIncrement Double variable corresponding to the time increment to apply
      */
     void TimeIncrement(double& rIncrement);
 
     /**
-     * @brief This method computes the free energy 
-     * @param rStrainVector The strain vector
-     * @param rStressVector The stress vector
-     * @param Damage The damage variable
-     * @param rMatProps The material properties
-     * @param rGeometry The geometry of the element
+     * @brief This method properly applies the time increment in terms of cycle increment to all the integration points of the model
+     * @param Increment Time increment to apply along the model
      */
     void TimeAndCyclesUpdate(double Increment);
 

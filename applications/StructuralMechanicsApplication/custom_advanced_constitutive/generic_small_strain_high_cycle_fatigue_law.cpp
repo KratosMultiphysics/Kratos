@@ -79,13 +79,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
         double max_stress = mMaxStress;
-        // double max_stress = this->GetMaxStress();
         double min_stress = mMinStress;
-        // double min_stress = this->GetMinStress();
-
-        // double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);
-        // uniaxial_stress *= sign_factor;
-        
         unsigned int global_number_of_cycles = mNumberOfCyclesGlobal;
         unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
         bool max_indicator = mMaxDetected;
@@ -103,25 +97,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         unsigned int cycles_after_advance_strategy = mCyclesAfterAdvanceStrategy;
         bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
         bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
-        
-        // unsigned int global_number_of_cycles = this->GetNumberOfCyclesGlobal();
-        // unsigned int local_number_of_cycles = this->GetNumberOfCyclesLocal();
-        // bool max_indicator = this->GetMaxDetected();
-        // bool min_indicator = this->GetMinDetected();
-        // double fatigue_reduction_factor = this->GetFatigueReductionFactor();
-        // double B0 = this->GetFatigueReductionParameter();
-        // double previous_max_stress = this->GetPreviousMaxStress();
-        // double previous_min_stress = this->GetPreviousMinStress();
-        // double wohler_stress = this->GetWohlerStress();
-        // double reversion_factor_relative_error = mReversionFactorRelativeError;
-        // double max_stress_relative_error = mMaxStressRelativeError;
-        // double CyclesToFailure = mCyclesToFailure;
-        // bool new_cycle = false;
-        // double s_th = mThresholdStress;
-        // bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
-        // unsigned int cycles_after_advance_strategy = mCyclesAfterAdvanceStrategy;
-        // bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
-
 
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
 
@@ -158,9 +133,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                 previous_max_stress = max_stress;
                 previous_min_stress = min_stress;
                 mCyclesToFailure = CyclesToFailure;
-                // KRATOS_WATCH(local_number_of_cycles)
-                // KRATOS_WATCH(previous_max_stress)
-                // KRATOS_WATCH(previous_min_stress)
 
                 HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                                 max_stress,
@@ -206,16 +178,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             mPreviousMaxStress = previous_max_stress;
             mPreviousMinStress = previous_min_stress;
             mWohlerStress = wohler_stress;
-
-            // this->SetNumberOfCyclesGlobal(global_number_of_cycles);
-            // this->SetNumberOfCyclesLocal(local_number_of_cycles);
-            // this->SetMaxDetected(max_indicator);
-            // this->SetMinDetected(min_indicator);
-            // this->SetFatigueReductionParameter(B0);
-            // this->SetFatigueReductionFactor(fatigue_reduction_factor);
-            // this->SetPreviousMaxStress(previous_max_stress);
-            // this->SetPreviousMinStress(previous_min_stress);
-            // this->SetWohlerStress(wohler_stress);
             mReversionFactorRelativeError = reversion_factor_relative_error;
             mMaxStressRelativeError = max_stress_relative_error;
             mNewCycleIndicator = new_cycle;
@@ -235,13 +197,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 r_constitutive_matrix *= (1.0 - damage);
-                // mStressVector = r_integrated_stress_vector;
                 this->SetStressVector(r_integrated_stress_vector);
                 rValues.SetStressVector(r_integrated_stress_vector);
             }
         } else { // Damage case
-            // const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-            const double characteristic_length = 0.01;
+            const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector,
@@ -256,7 +216,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector,uniaxial_stress, rValues);
-                // mStressVector = r_integrated_stress_vector;
                 this->SetStressVector(r_integrated_stress_vector);
                 rValues.SetStressVector(r_integrated_stress_vector);
                 this->SetStressVector(rValues.GetStressVector());
@@ -315,11 +274,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         bool max_indicator = mMaxDetected;
         bool min_indicator = mMinDetected;
         double fatigue_reduction_factor = mFatigueReductionFactor;
-        // double max_stress = this->GetMaxStress();
-        // double min_stress = this->GetMinStress();
-        // bool max_indicator = this->GetMaxDetected();
-        // bool min_indicator = this->GetMinDetected();
-        // double fatigue_reduction_factor = this->GetFatigueReductionFactor();
         double previous_max = max_stress;
         double previous_min = min_stress;
 
@@ -330,21 +284,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
             mPreviousStresses,
             max_indicator,
             min_indicator);
-        // HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
-        //     uniaxial_stress,
-        //     max_stress,
-        //     min_stress,
-        //     this->GetPreviousStresses(),
-        //     max_indicator,
-        //     min_indicator);
         mMaxStress = max_stress;
         mMinStress = min_stress;
         mMaxDetected = max_indicator;
         mMinDetected = min_indicator;
-        // this->SetMaxStress(max_stress);
-        // this->SetMinStress(min_stress);
-        // this->SetMaxDetected(max_indicator);
-        // this->SetMinDetected(min_indicator);
 
         uniaxial_stress *= sign_factor;
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
@@ -352,8 +295,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         const double F = uniaxial_stress - threshold;
 
         if (F > tolerance) {
-            // const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
-            const double characteristic_length = 0.01;
+            const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector,
@@ -373,12 +315,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         
         Vector previous_stresses = ZeroVector(2);
         const Vector& r_aux_stresses = mPreviousStresses;
-        // const Vector& r_aux_stresses = this->GetPreviousStresses();
         previous_stresses[1] = this->GetValue(UNIAXIAL_STRESS, previous_stresses[1])*sign_factor;
         previous_stresses[0] = r_aux_stresses[1];
         mPreviousStresses = previous_stresses;
-        // this->SetPreviousStresses(previous_stresses);
-        // this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+        this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
     }
 }
 /***********************************************************************************/

@@ -31,28 +31,28 @@ namespace Kratos
 
 void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
 {
-    // KRATOS_WATCH("uno")
+    
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<bool> cycle_identificator;
     std::vector<int> cycles_after_advance_strategy;
     std::vector<double> damage;
-    bool damage_indicator = false;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     bool cycles_from_last_advance = false;
 
-    for (auto& r_elem : mrModelPart.Elements()) {
-        r_elem.GetValueOnIntegrationPoints(DAMAGE, damage, process_info);
-        r_elem.GetValueOnIntegrationPoints(CYCLES_AFTER_ADVANCE_STRATEGY, cycles_after_advance_strategy, process_info);
-		const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
-        for (unsigned int i = 0; i < number_of_ip; i++){
-                if (damage[i] > 0.0){
-                    damage_indicator = true;
-                    process_info[DAMAGE_ACTIVATION] = true;
-                }
-                if (cycles_after_advance_strategy[i] > 1){
-                    cycles_from_last_advance = true;
-                }
+    if (process_info[DAMAGE_ACTIVATION] == false) {
+        for (auto& r_elem : mrModelPart.Elements()) {
+            r_elem.GetValueOnIntegrationPoints(DAMAGE, damage, process_info);
+            r_elem.GetValueOnIntegrationPoints(CYCLES_AFTER_ADVANCE_STRATEGY, cycles_after_advance_strategy, process_info);
+            const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+            for (unsigned int i = 0; i < number_of_ip; i++){
+                    if (damage[i] > 0.0){
+                        process_info[DAMAGE_ACTIVATION] = true;
+                    }
+                    if (cycles_after_advance_strategy[i] > 1){
+                        cycles_from_last_advance = true;
+                    }
+            }
         }
     }
 
@@ -61,21 +61,20 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::Execute()
     
     if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
         bool advancing_strategy = false;
-        this->StableConditionForAdvancingStrategy(advancing_strategy, damage_indicator);  //Check if the conditions are optimal to apply the advancing strategy in 
+        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in 
                                                                         //terms of max stress and reversion factor variation.  
         double increment = 0.0;
-        // if (advancing_strategy & !damage_indicator & cycles_from_last_advance) {
         if (advancing_strategy) {
-            if (!damage_indicator) {
+            if (!process_info[DAMAGE_ACTIVATION]) {
                 this->TimeIncrement(increment);
                 if(increment > 0){
                     this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }
             } else {
-                increment = 5000.0*12.0;
-                    this->TimeAndCyclesUpdate(increment);   
-                    process_info[ADVANCE_STRATEGY_APPLIED] = true;             
+                double increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
+                this->TimeAndCyclesUpdate(increment);   
+                process_info[ADVANCE_STRATEGY_APPLIED] = true;             
             }
         }
     }
@@ -135,17 +134,14 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingSt
     double acumulated_max_stress_rel_error = 0.0;
     double acumulated_rev_factor_rel_error = 0.0;
     bool fatigue_in_course = false;
-    for (auto& r_elem : mrModelPart.Elements()) {   //Este loop se hace por todos los elementos y PI independientemente que haya habido o no cambio 
-                                                    //de ciclo, porque se debe garantizar condición de estabilidad en TODO el modelo (siempre que 
-                                                    //Smax > Sth)
-        
+    for (auto& r_elem : mrModelPart.Elements()) {   //This loop is done for all the integration points even if the cycle has not changed 
+                                                    //in order to guarantee the stable condition in the WHOLE model (when Smax > Sth)
         r_elem.Id();
         r_elem.GetValueOnIntegrationPoints(MAX_STRESS_RELATIVE_ERROR, max_stress_rel_error, process_info);
         r_elem.GetValueOnIntegrationPoints(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error, process_info);
         r_elem.GetValueOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.GetValueOnIntegrationPoints(MAX_STRESS, max_stress, process_info);        
 
-        // for (unsigned int i=0; i < max_stress_rel_error.size(); i++) {
         const int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         for (unsigned int i = 0; i < number_of_ip; i++){
             if (max_stress[i] > s_th[i]) {
@@ -155,11 +151,8 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::StableConditionForAdvancingSt
             }
         }
     }
-    // KRATOS_WATCH(acumulated_max_stress_rel_error)
-    // KRATOS_WATCH(acumulated_rev_factor_rel_error)
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-2 && acumulated_rev_factor_rel_error < 1e-2 && fatigue_in_course)) {
+    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
         rAdvancingStrategy = true;
-        // KRATOS_WATCH("lo he puesto en true")
     }
 }
 
@@ -176,7 +169,6 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrem
     std::vector<double> max_stress;
     double min_time_increment;
     double time = process_info[TIME];
-    // const double period_json = mThisParameters["fatigue"]["period"].GetDouble();
     bool current_constraints_process_list_detected = false;
 
     double user_avancing_time = mThisParameters["fatigue"]["advancing_strategy_time"].GetDouble();
@@ -210,9 +202,7 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeIncrement(double& rIncrem
         for (unsigned int i = 0; i < number_of_ip; i++){
             if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
                 double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
-                // double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period_json;
                 double user_avancing_cycles_conversion_to_time = user_avancing_cycles * period[i];
-                // double user_avancing_cycles_conversion_to_time = user_avancing_cycles * period_json;
                 if (Nf_conversion_to_time < min_time_increment){
                     min_time_increment = Nf_conversion_to_time;
                 }
@@ -253,7 +243,6 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeAndCyclesUpdate(double In
                 time_increment = std::trunc(Increment / period[i]) * period[i];
                 previous_cycle_time[i] += time_increment;
             }
-            // unsigned int local_cycles_increment = std::trunc(Increment / period_json);
             local_number_of_cycles[i] += local_cycles_increment;
             global_number_of_cycles[i] += local_cycles_increment;
         }
@@ -261,10 +250,8 @@ void AdvanceInTimeStrategyHighCycleFatigueProcess::TimeAndCyclesUpdate(double In
         r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
         r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
     }
-    r_process_info[TIME_INCREMENT] = time_increment - 0.0;
+    r_process_info[TIME_INCREMENT] = time_increment;
 
 }
-
-
 
 } // namespace Kratos
