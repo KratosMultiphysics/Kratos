@@ -656,7 +656,8 @@ namespace Kratos
             : mSubDomain2ExplicitOrdering;
 
         // Add correction entries
-        for (size_t i = 0; i < explicit_ordering.size(); ++i)
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(explicit_ordering.size()); ++i)
         {
             auto node_it = rModelPart.pGetNode(explicit_ordering[i]);
             array_1d<double, 3>& r_nodal_momentum = node_it->FastGetSolutionStepValue(NODAL_MOMENTUM);
