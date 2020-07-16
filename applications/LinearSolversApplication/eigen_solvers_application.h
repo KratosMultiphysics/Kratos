@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosLinearSolversApplication() : KratosApplication("EigenSolversApplication") {}
+    KratosLinearSolversApplication() : KratosApplication("LinearSolversApplication") {}
 
     /// Destructor.
     ~KratosLinearSolversApplication() override {}

@@ -44,7 +44,7 @@ namespace Kratos
 
 /**
  * @class DenseLinearSolverFactory
- * @ingroup EigenSolversApplication
+ * @ingroup LinearSolversApplication
  * @brief Here we add the functions needed for the registration of dense linear solvers
  * @details Defines the dense linear solver factory
  * @author Quirin Aumann

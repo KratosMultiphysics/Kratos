@@ -79,12 +79,12 @@ file(
 )
 
 ###############################################################
-## EigenSolversApplication core library (C++ parts)
+## LinearSolversApplication core library (C++ parts)
 add_library( KratosEigenSolversCore SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_CORE_SOURCES} )
 target_link_libraries( KratosEigenSolversCore PUBLIC KratosCore )
 set_target_properties( KratosEigenSolversCore PROPERTIES COMPILE_DEFINITIONS "EIGENSOLVERS_APPLICATION=EXPORT,API")
 
-## EigenSolversApplication python module
+## LinearSolversApplication python module
 pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_EIGEN_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosLinearSolversApplication PRIVATE KratosEigenSolversCore )
 set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
@@ -117,7 +117,7 @@ if(USE_COTIRE MATCHES ON)
 endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/EigenSolversApplication.py KratosMultiphysics/LinearSolversApplication/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/LinearSolversApplication.py KratosMultiphysics/LinearSolversApplication/__init__.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
