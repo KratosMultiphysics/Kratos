@@ -9,8 +9,8 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGENSOLVERS_APPLICATION_H_INCLUDED)
-#define KRATOS_EIGENSOLVERS_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_LINEARSOLVERS_APPLICATION_H_INCLUDED)
+#define KRATOS_LINEARSOLVERS_APPLICATION_H_INCLUDED
 
 // System includes
 
@@ -42,7 +42,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(EIGENSOLVERS_APPLICATION) KratosLinearSolversApplication : public KratosApplication
+class KRATOS_API(LINEARSOLVERS_APPLICATION) KratosLinearSolversApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -198,4 +198,4 @@ public:
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_EIGENSOLVERS_APPLICATION_H_INCLUDED)
+#endif // defined(KRATOS_LINEARSOLVERS_APPLICATION_H_INCLUDED)
