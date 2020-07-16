@@ -748,6 +748,22 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, r'Error: Argument must be a string'):
             tmp["parameter"].GetStringArray()
 
+    def test_set_string_array_valid(self):
+        initial = Parameters("""{
+            "parameter": ["foo", "bar"]
+        } """)
+        string_array = initial["parameter"].GetStringArray()
+
+        new_param = Parameters()
+        new_param.AddEmptyValue("new_parameter")
+        new_param["new_parameter"].SetStringArray(string_array)
+
+        new_string_array = initial["parameter"].GetStringArray()
+
+        self.assertEqual(len(new_string_array), len(string_array))
+        self.assertEqual(new_string_array[0], string_array[0])
+        self.assertEqual(new_string_array[1], string_array[1])
+
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
         tmp = Parameters(defaults)
