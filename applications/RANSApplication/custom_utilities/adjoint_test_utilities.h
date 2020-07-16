@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "processes/process.h"
 #include "utilities/geometrical_sensitivity_utility.h"
 #include "utilities/math_utils.h"
 
@@ -33,6 +34,8 @@ namespace Kratos
 namespace RansApplicationTestUtilities
 {
 using NodeType = Node<3>;
+using ElementType = ModelPart::ElementType;
+
 /**
  * @brief based on python's math.IsNear()
  */
@@ -535,6 +538,40 @@ void RunAdjointElementDataTest(
             BufferSize, Delta, RelativeTolerance, AbsoluteTolerance);
     }
 }
+
+template <class TClassType>
+void CalculateResidual(Vector& residual, TClassType& rClassTypeObject, const ProcessInfo& rProcessInfo);
+
+template <typename TContainer>
+TContainer& GetContainerItems(ModelPart& rModelPart);
+
+template <typename TContainer>
+void RunResidualSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    const std::vector<Process*>& rPrimalProcesses,
+    const std::vector<Process*>& rAdjointProcesses,
+    const std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    const std::function<void(Matrix&, typename TContainer::data_type&, const ProcessInfo&)> CalculateElementResidualScalarSensitivity,
+    const std::function<double&(NodeType&)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset = 0,
+    const int EquationOffset = 0);
+
+template <typename TContainer>
+void RunResidualSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    const std::vector<Process*>& rPrimalProcesses,
+    const std::vector<Process*>& rAdjointProcesses,
+    const std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    const std::function<void(Matrix&, typename TContainer::data_type&, const ProcessInfo&)> CalculateElementResidualVectorSensitivity,
+    const std::function<double&(NodeType&, const int)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset = 0,
+    const int EquationOffset = 0);
 
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos

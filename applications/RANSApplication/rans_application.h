@@ -67,6 +67,15 @@
 #include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_u_based_wall_condition_data.h"
 
+//// Adjoint elements and conditions includes
+
+// stabilized generic convection diffusion reaction adjoint elements
+#include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_adjoint_element.h"
+
+// k-epsilon turbulence model adjoint element data
+#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/epsilon_adjoint_element_data.h"
+#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/k_adjoint_element_data.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -308,6 +317,16 @@ private:
 
     const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
+
+    //// Adjoint elements and conditions
+    /// k-epsilon turbulence model adjoint elements
+    /// Residual based flux corrected elements
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointElement<2, 3, KEpsilonElementData::KAdjointElementData<2, 3>> mRansKEpsilonKAdjointRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointElement<3, 4, KEpsilonElementData::KAdjointElementData<3, 4>> mRansKEpsilonKAdjointRFC3D;
+
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointElement<2, 3, KEpsilonElementData::EpsilonAdjointElementData<2, 3>> mRansKEpsilonEpsilonAdjointRFC2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointElement<3, 4, KEpsilonElementData::EpsilonAdjointElementData<3, 4>> mRansKEpsilonEpsilonAdjointRFC3D;
+
 
     ///@}
     ///@name Private Operators

@@ -92,7 +92,13 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       mRansKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
+      mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      //// Adjoint elements and condition initializers
+      // k-epsilon turbulence model adjoint elements
+      mRansKEpsilonKAdjointRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonKAdjointRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mRansKEpsilonEpsilonAdjointRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonEpsilonAdjointRFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
 {
 }
 
@@ -169,6 +175,11 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE(RANS_SCALAR_2_ADJOINT_2)
     KRATOS_REGISTER_VARIABLE(RANS_SCALAR_2_ADJOINT_3)
     KRATOS_REGISTER_VARIABLE(RANS_AUX_ADJOINT_SCALAR_2)
+
+    // adjoint derivative variables
+    KRATOS_REGISTER_VARIABLE( TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE )
 
     // registering elements
     // registering fractional step elements
@@ -263,6 +274,13 @@ void KratosRANSApplication::Register()
 
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
     KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
+
+    //// Registering adjoint elements and conditions
+    // registering k-epsilon residual fc based adjoint elements
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKAdjointRFC2D3N", mRansKEpsilonKAdjointRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonKAdjointRFC3D4N", mRansKEpsilonKAdjointRFC3D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonAdjointRFC2D3N", mRansKEpsilonEpsilonAdjointRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansKEpsilonEpsilonAdjointRFC3D4N", mRansKEpsilonEpsilonAdjointRFC3D);
 
 }
 } // namespace Kratos.
