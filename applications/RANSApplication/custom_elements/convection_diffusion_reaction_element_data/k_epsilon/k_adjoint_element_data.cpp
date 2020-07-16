@@ -116,16 +116,21 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityDerivatives
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double, 3> KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityDerivatives(
+    BoundedMatrix<double, TNumNodes * TDim, TDim>& rOutput,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
-    const ShapeParameter& rDerivativeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
-    array_1d<double, 3> output = ZeroVector(3);
-    output[rDerivativeParameters.Direction] =
-        rShapeFunctions[rDerivativeParameters.NodeIndex];
-    return output;
+    rOutput.clear();
+
+    for (IndexType c = 0; c < TNumNodes; ++c)
+    {
+        for (IndexType k = 0; k < TDim; ++k)
+        {
+            rOutput(c * TDim + k, k) = rShapeFunctions[c];
+        }
+    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

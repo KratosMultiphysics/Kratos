@@ -418,8 +418,8 @@ void RunAdjointElementDataTest(
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     array_1d<double, 3> (TPrimalElementDataType::*pPrimalValueFunction)(const Vector&, const Matrix&)
         const,
-    array_1d<double, 3> (TAdjointElementDataType::*pAdjointDerivativesFunction)(
-        const Variable<array_1d<double, 3>>&, const ShapeParameter&, const Vector&, const Matrix&)
+    void (TAdjointElementDataType::*pAdjointDerivativesFunction)(
+        BoundedMatrix<double, 6, 2>&, const Variable<array_1d<double, 3>>&, const Vector&, const Matrix&)
         const,
     const int BufferSize,
     const double Delta,
@@ -441,19 +441,15 @@ void RunAdjointElementDataTest(
                 BoundedMatrix<double, 3, 2>& rOutput,
                 const TAdjointElementDataType& rElementData, const Vector& rShapeFunctions,
                 const Matrix& rShapeFunctionDerivatives, const int) {
-                ShapeParameter deriv;
+                BoundedMatrix<double, 6, 2> output;
+                (rElementData.*pAdjointDerivativesFunction)(
+                    output, rDerivativeVariable, rShapeFunctions, rShapeFunctionDerivatives);
+
                 for (int c = 0; c < 3; ++c)
                 {
                     for (int k = 0; k < 2; ++k)
                     {
-                        deriv.NodeIndex = c;
-                        deriv.Direction = k;
-
-                        const array_1d<double, 3>& r_value =
-                            (rElementData.*pAdjointDerivativesFunction)(
-                                rDerivativeVariable, deriv, rShapeFunctions,
-                                rShapeFunctionDerivatives);
-                        rOutput(c, k) = r_value[i_dim];
+                        rOutput(c, k) = output(c * 2 + k, i_dim);
                     }
                 }
             };

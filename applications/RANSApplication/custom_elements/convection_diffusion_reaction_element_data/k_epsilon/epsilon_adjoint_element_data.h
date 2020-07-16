@@ -79,9 +79,9 @@ public:
                                                const Vector& rShapeFunctions,
                                                const Matrix& rShapeFunctionDerivatives) const override;
 
-    array_1d<double, 3> CalculateEffectiveVelocityDerivatives(
+    void CalculateEffectiveVelocityDerivatives(
+        BoundedMatrix<double, TNumNodes * TDim, TDim>& rOutput,
         const Variable<array_1d<double, 3>>& rDerivativeVariable,
-        const ShapeParameter& rDerivativeParameters,
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives) const override;
 

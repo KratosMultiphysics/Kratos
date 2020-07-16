@@ -74,9 +74,9 @@ public:
      * @param rShapeFunctionDerivatives     Shape function derivatives at gauss point
      * @return double                       The derivative of effective velocity
      */
-    virtual array_1d<double, 3> CalculateEffectiveVelocityDerivatives(
+    virtual void CalculateEffectiveVelocityDerivatives(
+        BoundedMatrix<double, TNumNodes * TDim, TDim>& rOutput,
         const Variable<array_1d<double, 3>>& rDerivativeVariable,
-        const ShapeParameter& rDerivativeParameters,
         const Vector& rShapeFunctions,
         const Matrix& rShapeFunctionDerivatives) const = 0;
 
