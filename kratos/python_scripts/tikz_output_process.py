@@ -92,12 +92,6 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-        old_name = 'write_properties_id'
-        new_name = 'write_ids'
-
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
-
     def ExecuteInitialize(self):
         """ This method is executed in order to initialize the process
 

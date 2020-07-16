@@ -4,6 +4,8 @@ import time as timer
 import os
 import KratosMultiphysics as Kratos
 from Kratos import Logger
+from  KratosMultiphysics.deprecation_management import DeprecationManager
+
 import KratosMultiphysics.DEMApplication as Dem
 Logger.Print("Running under OpenMP........", label="DEM")
 import KratosMultiphysics.StructuralMechanicsApplication as Structural

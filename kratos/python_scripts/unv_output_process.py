@@ -1,5 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics import kratos_utilities
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 import os
 
 def Factory(settings, model):
@@ -58,12 +59,6 @@ class UnvOutputProcess(KratosMultiphysics.Process):
 
         old_name = 'output_frequency'
         new_name = 'output_interval'
-
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
-
-        old_name = 'write_properties_id'
-        new_name = 'write_ids'
 
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
