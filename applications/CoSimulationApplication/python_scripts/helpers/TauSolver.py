@@ -9,7 +9,7 @@ def print_on_rank_zero(*args):
 
 working_path = os.getcwd() + '/'
 #path = "/work/piquee/MembraneWing/kratos_fsi_big"
-with open(working_path + 'tau_settings.json') as json_file:
+with open(working_path + 'input/tau_settings.json') as json_file:
     tau_settings = json.load(json_file)
 
 start_step = tau_settings["start_step"]
@@ -37,9 +37,9 @@ tau_parallel_sync()
 
 # Definition of the parameter file
 if rotate:
-    para_path='airfoil_Structured_rotation.cntl'
+    para_path='input/airfoil_Structured_rotation.cntl'
 else:
-    para_path='airfoil_Structured.cntl'
+    para_path='input/airfoil_Structured.cntl'
 
 para_path_mod = para_path + ".mod"
 shutil.copy(para_path, para_path_mod)
@@ -159,7 +159,7 @@ def ImportData(conn_name, identifier):
     tau_parallel_sync()
 
     # identifier is the data-name in json
-    if identifier == "Interface_disp":
+    if identifier == "Upper_Interface_disp":
 ###08/07/2020      ###  if tau_mpi_rank() == 0:
 ###08/07/2020      ### 	    relative_displacements = TauFunctions.ExecuteBeforeMeshDeformation(displacements, step, para_path_mod, start_step)
 ###08/07/2020      ###        tau_parallel_sync()
@@ -169,25 +169,27 @@ def ImportData(conn_name, identifier):
         # Read the interface fluid grid
         ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin)
         tau_parallel_sync()
-        if tau_mpi_rank() == 0:
-            with open('ids_coordinates' + str(step) + '.dat', 'w') as fname:
-                for i in range(len(ids)):
-                    fname.write("%f %f %f %f\n" % (ids[i],coordinates[0,i],coordinates[1,i],coordinates[2,i]))
-        tau_parallel_sync()
+         
         # Write membrane's displacments in a file
         if tau_mpi_rank() == 0:
-###08/07/2020      ### TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, relative_displacements)
             new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
-            with open('new_displacement' + str(step) + '.dat','w') as fname:
-                for i in range(len(new_displacements)):
-                    fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))	
-            ####08/07/2020      ### print new_displacements
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements)
+            #with open('new_displacement' + str(step) + '.dat','w') as fname:
+            #    for i in range(len(new_displacements)):
+            #        fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))	
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
         tau_parallel_sync()
-        # Deform mesh
-        Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
+    elif identifier == "Lower_Interface_disp":
+        Para_origin = PyPara.Parafile(para_path)
+        # Read the interface fluid grid
+        ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin)
+        tau_parallel_sync()
+        if tau_mpi_rank() == 0:
+            new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
+             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
+        tau_parallel_sync()
     else:
-	raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
+
+    	raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
     tau_parallel_sync()
 
     if tau_mpi_rank() == 0:
@@ -203,8 +205,10 @@ def ExportData(conn_name, identifier):
             print "TAU SOLVER ExportData"
             
     # identifier is the data-name in json
-        if identifier == "Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+        if identifier == "Upper_Interface_force":
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP")
+        elif identifier == "Lower_Interface_force":
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN")
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -221,8 +225,10 @@ def ExportMesh(conn_name, identifier):
             print "TAU SOLVER ExportMesh"
 
         # identifier is the data-name in json
-        if identifier == "Fluid.Interface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step)
+        if identifier == "Fluid.UpperInterface":
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP")
+        elif identifier == "Fluid.LowerInterface":
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN")
         else:
             raise Exception(
                 'TauSolver::ExportMesh::identifier "{}" not valid! Please use Fluid.Interface'.format(identifier))
@@ -254,11 +260,17 @@ for i in range(n_steps):
     SolveSolutionStep()
 
     if not coupling_interface_imported:
-        ExportMesh(connection_name, "Fluid.Interface")
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+        ExportMesh(connection_name, "Fluid.UpperInterface")
+        ExportMesh(connection_name, "Fluid.LowerInterface")
         coupling_interface_imported = True
 
-    ExportData(connection_name, "Interface_force")
-    ImportData(connection_name, "Interface_disp")
+    TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+    ExportData(connection_name, "Upper_Interface_force")
+    ExportData(connection_name, "Lower_Interface_force")
+    ImportData(connection_name, "Upper_Interface_disp")
+    ImportData(connection_name, "Lower_Interface_disp")
+    Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 
     FinalizeSolutionStep()
 

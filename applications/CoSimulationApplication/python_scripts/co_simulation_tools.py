@@ -64,6 +64,7 @@ def CreateModelPartsFromCouplingData(data_list, model, solver_name):
     for data in data_list:
         splitted_name = data.model_part_name.split(".")
         main_model_part_name = splitted_name[0]
+        print('main_model_part_name =' + main_model_part_name)
         sub_model_part_names = splitted_name[1:]
         if not model.HasModelPart(main_model_part_name):
             main_model_part = model.CreateModelPart(main_model_part_name)

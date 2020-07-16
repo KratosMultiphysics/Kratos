@@ -23,7 +23,7 @@ import ChangeFormat as CF
 # Assign default settings
 working_path = os.getcwd() + '/'
 #path = "/work/piquee/MembraneWing/kratos_fsi_big"
-with open(working_path + 'tau_settings.json') as json_file:
+with open(working_path + 'input/tau_settings.json') as json_file:
     tau_settings = json.load(json_file)
 
 start_step = tau_settings["start_step"]
@@ -32,7 +32,7 @@ rotate = tau_settings["rotate"]
 
 # Read settings
 try:
-    with open(working_path + 'tau_settings.json') as json_file:
+    with open(working_path + '/input/tau_settings.json') as json_file:
         tau_settings = json.load(json_file)
 
     start_step = tau_settings["start_step"]
@@ -40,7 +40,7 @@ try:
     echo_level = tau_settings["echo_level"]
     rotate = tau_settings["rotate"]
 except:
-    warnings.warn('tau_settings.json not found')
+    warnings.warn('/input/tau_settings.json not found')
 
 
 
@@ -98,9 +98,9 @@ def ExecuteBeforeMeshDeformation(total_displacements, step, para_path_mod, start
 
 
 # Computes fluid forces at the nodes
-def ComputeFluidForces(working_path, step, word1, word2):
+def ComputeFluidForces(working_path, step, word):
     # Read mesh and pressure from interface file
-    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 20, word1, word2)
+    X, Y, Z, nodal_pressures, elem_connectivities = ReadTauOutput(working_path, step, 20, word)
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
@@ -109,9 +109,9 @@ def ComputeFluidForces(working_path, step, word1, word2):
 
 
 # GetFluidMesh is called only once at the beginning, after the first fluid solve
-def GetFluidMesh(working_path, step):
+def GetFluidMesh(working_path, step, word):
     # Read mesh from interface file
-    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 20)
+    X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, 20, word)
 
     # Transform nodal coordinates to numpy array
     nodal_coords = ReadNodalCoordinates(X, Y, Z)
@@ -191,9 +191,9 @@ def ChangeFormatDisplacements(total_displacements):
 
 
 # Write membrane's displacments in a file
-def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
+def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word):
     # Open interface_deformfile
-    ncf = netcdf.netcdf_file('interface_deformfile.nc', 'w')
+    ncf = netcdf.netcdf_file(word + '.interface_deformfile.nc', 'w')
 
     # define dimensions
     nops = 'no_of_points'
@@ -219,12 +219,9 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
     nodel_z_displacements[:] = relative_displacements[:,2]
     ncf.close()
 
-
-# Read mesh and data from tau output file
-def ReadTauOutput(working_path, step, velocity, word1, word2):
+def ChangeFormat(working_path, step, word1, word2):
     # Find the interface file name
-    interface_filename = FindInterfaceFilename(working_path, step, word1, word2)
-
+    interface_filename = FindInterfaceFilename(working_path, step)
     # Change Format of 'interface_filename' 
     print("Looking for number 1")
     number1 = CF.Countline(interface_filename, word1)
@@ -239,12 +236,12 @@ def ReadTauOutput(working_path, step, velocity, word1, word2):
     with open(interface_filename,'r') as fread:
         with open(interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat','w') as fwrite_word1:
             with open(interface_filename[0:len(interface_filename)-4] + '.' + word2 + '.dat','w') as fwrite_word2:
-            header1 = fread.readline()
-            fwrite_word1.write(header1)
-            fwrite_word2.write(header1)
-            header2 = fread.readline()
-            fwrite_word1.write(header2)
-            fwrite_word2.write(header2)
+                header1 = fread.readline()
+                fwrite_word1.write(header1)
+                fwrite_word2.write(header1)
+                header2 = fread.readline()
+                fwrite_word1.write(header2)
+                fwrite_word2.write(header2)
 
     if number1 < number2:
         CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat', number1, number2)
@@ -252,8 +249,15 @@ def ReadTauOutput(working_path, step, velocity, word1, word2):
     else:
         CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word2 + '.dat', number2, number1)
         CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat', number1, endline)
+    
 
-################################ ab HIER 2 FILES ########################
+# Read mesh and data from tau output file
+def ReadTauOutput(working_path, step, velocity, word):
+    # Find the interface file name
+    interface_filename_original = FindInterfaceFilename(working_path, step)
+
+    interface_filename = interface_filename_original[0:len(interface_filename_original)-4] + '.' + word + '.dat'
+    
     # Read interface file
     position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
         interface_filename)

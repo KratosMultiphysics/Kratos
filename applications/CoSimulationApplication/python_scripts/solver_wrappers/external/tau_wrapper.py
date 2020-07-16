@@ -50,7 +50,9 @@ class TAUWrapper(CoSimulationSolverWrapper):
 
         self.model_part_name = wrapper_settings["main_model_part_name"].GetString()
         # cs_tools.CreateMainModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
+        print(" befor CreateModelPartsFromCouplingData")
         cs_tools.CreateModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
+        print(" after CreateModelPartsFromCouplingData")
         cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
         self.time = wrapper_settings["start_time"].GetDouble()
