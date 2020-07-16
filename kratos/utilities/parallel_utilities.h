@@ -63,7 +63,7 @@ public:
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
-        : mit_begin(it_begin), mit_end(it_end), mNchunks(Nchunks)
+        : mNchunks(Nchunks)
     {
         ptrdiff_t mBlockPartitionSize = (it_end-it_begin) / mNchunks;
         mBlockPartition[0] = it_begin;
@@ -122,7 +122,6 @@ public:
 
 private:
 
-    TIteratorType mit_begin, mit_end;
     int mNchunks;
     std::array<TIteratorType, TMaxThreads> mBlockPartition;
 
@@ -163,11 +162,11 @@ public:
  */
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
-        : mSize(Size), mNchunks(Nchunks)
+        : mNchunks(Nchunks)
     {
-        int mBlockPartitionSize = mSize / mNchunks;
+        int mBlockPartitionSize = Size / mNchunks;
         mBlockPartition[0] = 0;
-        mBlockPartition[mNchunks] = mSize;
+        mBlockPartition[mNchunks] = Size;
         for(int i = 1; i < mNchunks; i++)
             mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize ;
 
@@ -248,7 +247,6 @@ public:
 
 private:
 
-    TIndexType mSize;
     int mNchunks;
 
     std::array<TIndexType, TMaxThreads> mBlockPartition;
