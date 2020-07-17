@@ -143,7 +143,7 @@ class MPMCoupledTimeSolver(MPMSolver):
         else:
             self.model_sub_domain_1.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         self._SearchElement()
-        #print('Initializing sd1')
+        print('Initializing sd1')
         #print("Subdomain 1 time = ", self.model_sub_domain_1.ProcessInfo[KratosMultiphysics.TIME])
         self._GetSolutionStrategy(1).Initialize()
         self._GetSolutionStrategy(1).InitializeSolutionStep()
@@ -152,12 +152,12 @@ class MPMCoupledTimeSolver(MPMSolver):
 
 
     def Predict(self):
-        #print('Predicting sd1')
+        print('Predicting sd1')
         self._GetSolutionStrategy(1).Predict()
 
 
     def SolveSolutionStep(self):
-        #print('solving sd1')
+        print('solving sd1')
         is_converged = self._GetSolutionStrategy(1).SolveSolutionStep()
         if self.gamma_1 == 0.5:
             K1 = self._GetSolutionStrategy(1).GetSystemMatrix()
