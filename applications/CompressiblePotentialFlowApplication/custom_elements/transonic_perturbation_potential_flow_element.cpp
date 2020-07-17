@@ -58,6 +58,12 @@ Element::Pointer TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Clo
 }
 
 template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    FindUpwindElement(rCurrentProcessInfo);
+}
+
+template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -75,15 +81,11 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
-    {
+    if (wake == 0) { // Normal element (non-wake) - eventually an embedded
         CalculateRightHandSideNormalElement(rRightHandSideVector, rCurrentProcessInfo);
-
     }
-    else // Wake element
-    {
+    else { // Wake element
         CalculateRightHandSideWakeElement(rRightHandSideVector, rCurrentProcessInfo);
-
     }
 }
 
@@ -95,13 +97,27 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
-    {
-        CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+    if (wake == 0) { // Normal element (non-wake) - eventually an embedded
+        if (r_this.IsNot(INLET)) {
+            if (rLeftHandSideMatrix.size1() != TNumNodes + 1 ||
+                rLeftHandSideMatrix.size2() != TNumNodes + 1) {
+                    rLeftHandSideMatrix.resize(TNumNodes + 1, TNumNodes + 1, false);
+                }
+
+            rLeftHandSideMatrix.clear();
+            CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+        } else {
+            if (rLeftHandSideMatrix.size1() != TNumNodes ||
+                rLeftHandSideMatrix.size2() != TNumNodes) {
+                    rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+                }
+
+            rLeftHandSideMatrix.clear();
+            CalculateLeftHandSideSubsonicElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+        }
 
     }
-    else // Wake element
-    {
+    else { // Wake element
         CalculateLeftHandSideWakeElement(rLeftHandSideMatrix, rCurrentProcessInfo);
     }
 }
@@ -116,24 +132,20 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
 
     if (wake == 0) // Normal element
     {
-        if (rResult.size() != TNumNodes)
-        {
-             rResult.resize(TNumNodes, false);
+        if (r_this.IsNot(INLET)) {
+            if (rResult.size() != TNumNodes + 1) {
+                rResult.resize(TNumNodes + 1, false);
+            }
+            GetEquationIdVectorExtendedElement(rResult);
         }
-
-        const int kutta = r_this.GetValue(KUTTA);
-
-        if (kutta == 0)
-        {
+        else {
+            if (rResult.size() != TNumNodes) {
+                rResult.resize(TNumNodes, false);
+            }
             GetEquationIdVectorNormalElement(rResult);
         }
-        else
-        {
-            GetEquationIdVectorKuttaElement(rResult);
-        }
     }
-    else // Wake element
-    {
+    else { // Wake element
         if (rResult.size() != 2 * TNumNodes)
         {
             rResult.resize(2 * TNumNodes, false);
@@ -240,7 +252,9 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
     }
     else if (rVariable == DENSITY)
     {
-        rValues[0] = ComputeDensity(rCurrentProcessInfo);
+        const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
+        const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
     }
     else if (rVariable == MACH)
     {
@@ -324,6 +338,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
         }
         rValues[0] = v;
     }
+    else if (rVariable == VECTOR_TO_UPWIND_ELEMENT)
+    {
+        rValues[0] = pGetUpwindElement()->GetGeometry().Center() - this->GetGeometry().Center();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -354,11 +372,58 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::PrintData(std::
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int TDim, int TNumNodes>
+inline GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pGetUpwindElement() const
+{
+    KRATOS_ERROR_IF(mpUpwindElement.get() == nullptr)
+        << "No upwind element found for element #" << this->Id() << std::endl;
+    return mpUpwindElement;
+}
+
+template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetWakeDistances(
     array_1d<double,
     TNumNodes>& distances) const
 {
     noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorExtendedElement(
+    EquationIdVectorType& rResult) const
+{
+    // Adding normal element contribution
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+    const int kutta = r_this.GetValue(KUTTA);
+    if(kutta == 0) {
+        GetEquationIdVectorNormalElement(rResult);
+    } else {
+        GetEquationIdVectorKuttaElement(rResult);
+    }
+
+    // Adding the additional node equation Id
+    AddUpwindEquationId(rResult);
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AddUpwindEquationId(
+    EquationIdVectorType& rResult) const
+{
+    const int additional_upwind_node_index = GetAdditionalUpwindNodeIndex();
+    const auto& r_upstream_element = *pGetUpwindElement();
+    const auto& r_upwind_geomtery = r_upstream_element.GetGeometry();
+    const int upstream_kutta = r_upstream_element.GetValue(KUTTA);
+    if (upstream_kutta == 0) { // upwind element is not kutta
+        // TODO special treatment for upwind wake elements
+        rResult[TNumNodes] = r_upwind_geomtery[additional_upwind_node_index].GetDof(VELOCITY_POTENTIAL).EquationId();
+    } else { // upwind element is kutta
+        if (!r_upwind_geomtery[additional_upwind_node_index].GetValue(TRAILING_EDGE)) {
+            // upwind node is not trailing edge
+            rResult[TNumNodes] = r_upwind_geomtery[additional_upwind_node_index].GetDof(VELOCITY_POTENTIAL).EquationId();
+        } else {
+            // upwind node is trailing edge
+            rResult[TNumNodes] = r_upwind_geomtery[additional_upwind_node_index].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+        }
+    }
 }
 
 template <int TDim, int TNumNodes>
@@ -425,6 +490,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
                 GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
         }
     }
+
 }
 
 template <int TDim, int TNumNodes>
@@ -489,38 +555,34 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofListWakeE
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSideNormalElement(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSideSubsonicElement(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
-    {
-        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-    }
-    rLeftHandSideMatrix.clear();
-
-    ElementalData<TNumNodes, TDim> data;
-
     // Calculate shape functions
+    ElementalData<TNumNodes, TDim> data;
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
 
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    for (unsigned int i = 0; i < TDim; i++)
-    {
-        velocity[i] += free_stream_velocity[i];
-    }
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
-    noalias(rLeftHandSideMatrix) +=
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
-    noalias(rLeftHandSideMatrix) += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+    BoundedMatrix<double, TNumNodes, TNumNodes> current_lhs = data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+    current_lhs += data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        for (int j = 0; j < TNumNodes; j++)
+        {
+            rLeftHandSideMatrix(i, j) = current_lhs(i, j);
+        }
+    }
 }
 
 template <int TDim, int TNumNodes>
@@ -528,29 +590,81 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rRightHandSideVector.size() != TNumNodes)
-    {
-        rRightHandSideVector.resize(TNumNodes, false);
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(r_this, rCurrentProcessInfo);
+
+    double density = 0.0;
+
+    if(r_this.IsNot(INLET)) {
+        if (rRightHandSideVector.size() != TNumNodes + 1) {
+            rRightHandSideVector.resize(TNumNodes + 1, false);
+        }
+        rRightHandSideVector.clear();
+
+        const array_1d<double, TDim> upwind_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*pGetUpwindElement(), rCurrentProcessInfo);
+        density = PotentialFlowUtilities::ComputeUpwindedDensity<TDim, TNumNodes>(velocity, upwind_velocity, rCurrentProcessInfo);
+
+    } else {
+        if (rRightHandSideVector.size() != TNumNodes) {
+            rRightHandSideVector.resize(TNumNodes, false);
+        }
+        rRightHandSideVector.clear();
+
+        const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+        density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
     }
-
-    rRightHandSideVector.clear();
-
-    ElementalData<TNumNodes, TDim> data;
-
     // Calculate shape functions
+    ElementalData<TNumNodes, TDim> data;
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
+    const BoundedVector<double, TNumNodes> current_rhs = - data.vol * density * prod(data.DN_DX, velocity);
 
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    for (unsigned int i = 0; i < TDim; i++)
+    for (int i = 0; i < TNumNodes; i++)
     {
-        velocity[i] += free_stream_velocity[i];
+        rRightHandSideVector[i] = current_rhs[i];
+    }
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSideNormalElement(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(r_this, rCurrentProcessInfo);
+    const array_1d<double, TDim> upwind_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*pGetUpwindElement(), rCurrentProcessInfo);
+
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+    const double upwind_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(upwind_velocity, rCurrentProcessInfo);
+
+    double DrhoDu2 = 0.0;
+    double DrhoDu2_up = 0.0;
+
+    const double critical_mach_sq = std::pow(rCurrentProcessInfo[CRITICAL_MACH], 2.0);
+
+    if (local_mach_number_squared < critical_mach_sq) { // subsonic, not inlet
+        // gets [TNumNodes + 1, TNumNodes + 1] size matrix
+        CalculateLeftHandSideSubsonicElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+        return;
+    }
+    else if (local_mach_number_squared >= upwind_mach_number_squared) { // supersonic, accelerating
+        // density derivatives
+        DrhoDu2 = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<TDim, TNumNodes>(
+            velocity, local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
+        DrhoDu2_up = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<TDim, TNumNodes>(
+            local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
+    }
+    else { // supersonic, deaccelerating
+        // density derivatives
+        DrhoDu2 = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<TDim, TNumNodes>(
+            local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
+        DrhoDu2_up = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<TDim, TNumNodes>(
+            upwind_velocity, local_mach_number_squared, upwind_mach_number_squared, rCurrentProcessInfo);
     }
 
-    noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
+    AssembleSupersonicLeftHandSide(rLeftHandSideMatrix, DrhoDu2, DrhoDu2_up, velocity, upwind_velocity, rCurrentProcessInfo);
 }
 
 template <int TDim, int TNumNodes>
@@ -572,16 +686,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
     GetWakeDistances(data.distances);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
+    // computing local velocity
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
 
-    // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    for (unsigned int i = 0; i < TDim; i++)
-    {
-        velocity[i] += free_stream_velocity[i];
-    }
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
@@ -623,8 +735,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     GeometryUtils::CalculateGeometryData(r_geometry, data.DN_DX, data.N, data.vol);
     GetWakeDistances(data.distances);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, TDim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<TDim,TNumNodes>(*this);
     array_1d<double, TDim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<TDim,TNumNodes>(*this);
@@ -634,6 +744,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
         upper_velocity[i] += free_stream_velocity[i];
         lower_velocity[i] += free_stream_velocity[i];
     }
+
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(upper_velocity, rCurrentProcessInfo);
+    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+
     const array_1d<double, TDim> diff_velocity = upper_velocity - lower_velocity;
 
     const BoundedVector<double, TNumNodes> upper_rhs = - data.vol * density * prod(data.DN_DX, upper_velocity);
@@ -706,16 +820,14 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
         Points, data.DN_DX, data.distances, Volumes, gp_shape_function_values,
         partitions_sign, GradientsValue, N_enriched);
 
-    const double density = ComputeDensity(rCurrentProcessInfo);
-    const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
-
     // Computing local velocity
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputeVelocity<TDim,TNumNodes>(*this);
-    for (unsigned int i = 0; i < TDim; i++)
-    {
-        velocity[i] += free_stream_velocity[i];
-    }
+    const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
+
+    const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
+
+    const double density = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
+
+    const double DrhoDu2 = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<TDim, TNumNodes>(local_mach_number_squared, rCurrentProcessInfo);
 
     const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
 
@@ -883,13 +995,112 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssignRightHand
     if (rData.distances[rRow] > 0.0)
     {
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        rRightHandSideVector[rRow + TNumNodes] = rWake_rhs(rRow);
+        // TODO: Check theory behind setting rhs to 0
+        rRightHandSideVector[rRow + TNumNodes] = 0.0; //rWake_rhs(rRow);
     }
     else
     {
-        rRightHandSideVector[rRow] = rWake_rhs(rRow);
+        // TODO: Check theory behind setting rhs to 0
+        rRightHandSideVector[rRow] = 0.0; //rWake_rhs(rRow);
         rRightHandSideVector[rRow + TNumNodes] = rLower_rhs(rRow);
     }
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleSupersonicLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const double densityDerivativeWRTVelocity,
+    const double densityDerivativeWRTUpwindVelocity,
+    const array_1d<double, TDim> velocity,
+    const array_1d<double, TDim> upwindVelocity,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    BoundedVector<double, TNumNodes + 1> DNV_assembly = AssembleDensityDerivativeAndShapeFunctions(
+        densityDerivativeWRTVelocity, densityDerivativeWRTUpwindVelocity, velocity, upwindVelocity, rCurrentProcessInfo);
+
+    // Calculate shape functions
+    ElementalData<TNumNodes, TDim> data;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    const double density = PotentialFlowUtilities::ComputeUpwindedDensity<TDim, TNumNodes>(velocity, upwindVelocity, rCurrentProcessInfo);
+
+    const BoundedVector<double, TNumNodes> DNV = prod(data.DN_DX, velocity);
+    BoundedVector<double, TNumNodes + 1> DNV_extended;
+    DNV_extended.clear();
+    for (int i = 0; i < TNumNodes; i++) {
+        DNV_extended[i] = DNV[i];
+    }
+
+    BoundedMatrix<double, TNumNodes, TNumNodes> linear_term = data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+
+    rLeftHandSideMatrix = data.vol * 2.0 * outer_prod(DNV_extended, trans(DNV_assembly));
+
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        for (int j = 0; j < TNumNodes; j++)
+        {
+            rLeftHandSideMatrix(i, j) += linear_term(i, j);
+        }
+    }
+}
+
+template <int TDim, int TNumNodes>
+BoundedVector<double, TNumNodes + 1> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssembleDensityDerivativeAndShapeFunctions(
+    const double densityDerivativeWRTVelocitySquared,
+    const double densityDerivativeWRTUpwindVelocitySquared,
+    const array_1d<double, TDim>& velocity,
+    const array_1d<double, TDim>& upwindVelocity,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& r_geom = this->GetGeometry();
+    const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
+
+    const array_1d<size_t, TNumNodes> upwind_node_key = GetAssemblyKey(r_geom, r_upwind_geom, rCurrentProcessInfo);
+
+    ElementalData<TNumNodes, TDim> currentElementdata;
+    ElementalData<TNumNodes, TDim> upwindElementdata;
+
+    GeometryUtils::CalculateGeometryData(r_geom, currentElementdata.DN_DX, currentElementdata.N, currentElementdata.vol);
+    GeometryUtils::CalculateGeometryData(r_upwind_geom, upwindElementdata.DN_DX, upwindElementdata.N, upwindElementdata.vol);
+
+    const BoundedVector<double, TNumNodes> current_DNV = densityDerivativeWRTVelocitySquared * prod(currentElementdata.DN_DX, velocity);
+    const BoundedVector<double, TNumNodes> upwind_DNV = densityDerivativeWRTUpwindVelocitySquared * prod(upwindElementdata.DN_DX, upwindVelocity);
+
+    BoundedVector<double, TNumNodes + 1> assembly_DNV;
+    assembly_DNV.clear();
+
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        assembly_DNV[i] += current_DNV[i];
+        assembly_DNV[upwind_node_key[i]] += upwind_DNV[i];
+    }
+
+    return assembly_DNV;
+}
+
+template <int TDim, int TNumNodes>
+array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAssemblyKey(
+    const GeometryType& rGeom,
+    const GeometryType& rUpwindGeom,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    array_1d<size_t, TNumNodes> upwind_node_key;
+    auto current_process_info = rCurrentProcessInfo;
+    EquationIdVectorType upwind_element_ids, current_element_ids;
+
+    upwind_node_key.clear();
+
+    pGetUpwindElement()->EquationIdVector(upwind_element_ids, current_process_info);
+    this->EquationIdVector(current_element_ids, current_process_info);
+
+    for (int i = 0; i < TNumNodes; i++) {
+        auto current_id = std::find(current_element_ids.begin(), current_element_ids.end(),
+                upwind_element_ids[i]);
+
+        upwind_node_key[i] = std::distance(current_element_ids.begin(), current_id);
+    }
+
+    return upwind_node_key;
 }
 
 template <int TDim, int TNumNodes>
@@ -920,56 +1131,132 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputePotentia
 }
 
 template <int TDim, int TNumNodes>
-double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
 {
-    // Reading free stream conditions
-    const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
+    GeometryType upwind_element_boundary;
+    FindUpwindEdge(upwind_element_boundary, rCurrentProcessInfo);
+    std::vector<size_t> upwind_element_nodes;
+    PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(upwind_element_nodes, upwind_element_boundary);
 
-    // Computing local mach number
-    double local_mach_number = PotentialFlowUtilities::ComputePerturbationLocalMachNumber<TDim, TNumNodes>(*this, rCurrentProcessInfo);
+    GlobalPointersVector<Element> upwind_element_candidates;
+    PotentialFlowUtilities::GetNodeNeighborElementCandidates<TDim, TNumNodes>(upwind_element_candidates, upwind_element_boundary);
+    SelectUpwindElement(upwind_element_nodes, upwind_element_candidates);
+}
 
-    if (local_mach_number > mach_number_limit)
-    { // Clamping the mach number to mach_number_limit
-        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
-        local_mach_number = mach_number_limit;
-    }
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEdge(GeometryType& rUpwindEdge,
+    const ProcessInfo& rCurrentProcessInfo)
+{
 
-    // Computing squares
-    const double M_inf_2 = M_inf * M_inf;
-    const double M_2 = local_mach_number * local_mach_number;
+    GeometriesArrayType element_boundary_geometry;
+    GetElementGeometryBoundary(element_boundary_geometry);
 
-    // Computing density according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
-    // Aerodynamics, The MIT Press, London
-    const double numerator = 1 + (heat_capacity_ratio - 1) * M_inf_2 / 2;
-    const double denominator = 1 + (heat_capacity_ratio - 1) * M_2 / 2;
-    const double base = numerator / denominator;
+    // free stream values
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
 
-    if (base > 0.0)
+    double minimum_edge_flux = 0.0;
+    for (SizeType i = 0; i < element_boundary_geometry.size(); i++)
     {
-        return rho_inf * pow(base, 1 / (heat_capacity_ratio - 1));
+        const auto edge_normal = GetEdgeNormal(element_boundary_geometry[i]);
+
+        const double edge_flux = inner_prod(edge_normal, free_stream_velocity);
+
+        if(edge_flux < minimum_edge_flux)
+        {
+            minimum_edge_flux = edge_flux;
+            rUpwindEdge = element_boundary_geometry[i];
+        }
     }
-    else
+}
+
+template<int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary)
+{
+    const TransonicPerturbationPotentialFlowElement& r_this = *this;
+
+    // current element geometry
+    const GeometryType& r_geom = r_this.GetGeometry();
+
+    // get element edges or faces depending on dimension of the problem
+    if(TDim == 2)
     {
-        KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
-        return rho_inf * 0.00001;
+        // current element edges
+        rElementGeometryBoundary = r_geom.GenerateEdges();
+    }
+    else if(TDim == 3)
+    {
+        // current element faces
+        rElementGeometryBoundary = r_geom.GenerateFaces();
     }
 }
 
 template <int TDim, int TNumNodes>
-double TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputeDensityDerivative(
-    const double rho,
-    const ProcessInfo& rCurrentProcessInfo) const
+array_1d<double, 3> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEdgeNormal(const GeometryType& rEdge)
 {
-    // Reading free stream conditions
-    const double rho_inf = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-    const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
+    // get local coordinates of edge center
+    array_1d<double, 3> edge_center_coordinates;
+    rEdge.PointLocalCoordinates(edge_center_coordinates, rEdge.Center());
 
-    return -pow(rho_inf, heat_capacity_ratio - 1) *
-           pow(rho, 2 - heat_capacity_ratio) / (2 * a_inf * a_inf);
+    // outward pointing normals of each edge
+    return rEdge.Normal(edge_center_coordinates);
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectUpwindElement(
+    std::vector<IndexType>& rUpwindElementNodeIds,
+    GlobalPointersVector<Element>& rUpwindElementCandidates)
+{
+    for (SizeType i = 0; i < rUpwindElementCandidates.size(); i++)
+    {
+        // get sorted node ids of neighbording elements
+        std::vector<size_t> neighbor_element_ids;
+        PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(neighbor_element_ids, rUpwindElementCandidates[i].GetGeometry());
+
+        // find element which shares the upwind element nodes with current element
+        // but is not the current element
+        if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(),
+            rUpwindElementNodeIds.begin(), rUpwindElementNodeIds.end())
+            && rUpwindElementCandidates[i].Id() != this->Id())
+        {
+            mpUpwindElement = rUpwindElementCandidates(i);
+            break;
+        }
+    }
+
+    // If no upwind element is found, the element is an INLET element and the
+    // upwind element pointer points to itself
+    if (mpUpwindElement.get() == nullptr)
+    {
+        mpUpwindElement = this;
+        this->SetFlags(INLET);
+    }
+}
+
+template<int TDim, int TNumNodes>
+int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetAdditionalUpwindNodeIndex() const
+{
+    // current and upwind element geometry
+    const GeometryType& r_geom = this->GetGeometry();
+    const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
+    std::vector<size_t> element_nodes_ids;
+    PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(element_nodes_ids, r_geom);
+
+    // Search for the Id of the upwind element node that
+    // is not contained in the current element
+    bool upstream_element_id_found = false;
+    // loop over upwind element nodes
+    for (unsigned int i = 0; i < TNumNodes; i++) {
+        if( std::find(element_nodes_ids.begin(), element_nodes_ids.end(),
+            r_upwind_geom[i].Id()) == element_nodes_ids.end() )  {
+                upstream_element_id_found = true;
+                return i;
+            }
+    }
+
+    KRATOS_ERROR_IF(!upstream_element_id_found) << "No upstream element id found for element #"
+            << this->Id() << std::endl;
+
+    return -1;
 }
 
 // serializer

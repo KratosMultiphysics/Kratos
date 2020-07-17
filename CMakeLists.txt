@@ -19,9 +19,9 @@ if(POLICY CMP0074)
 endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 7)
-set (KratosMultiphysics_MINOR_VERSION 1)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_MAJOR_VERSION 9)
+set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION "Dev")
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -46,6 +46,9 @@ if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+
+# Setting the libs folder for the shared objects built in kratos
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
@@ -260,6 +263,11 @@ include(pybind11Tools)
 set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
+# check version of Python, needs to be done after including pybind
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
+    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+endif()
+
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
@@ -353,20 +361,28 @@ if(${USE_MPI} MATCHES ON )
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif(${USE_MPI} MATCHES ON )
 
-# Find zlib (for gidpost)
-find_package(ZLIB)
+# If we do not locally compile ZLIB we will find ZLIB in the system, if we cannot find it we will enforce the local compilation
+OPTION ( FORCE_LOCAL_ZLIB_COMPILATION "Force local compilation of zlib" OFF )
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
+    # Find zlib (for gidpost)
+    find_package(ZLIB)
+    if( ZLIB_FOUND )
+        include_directories( ${ZLIB_INCLUDE_DIRS} )
+    else( ZLIB_FOUND )
+        set( FORCE_LOCAL_ZLIB_COMPILATION ON )
+    endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
-if( ZLIB_FOUND )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
-else( ZLIB_FOUND )
+# We local compilate ZLIB
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
-  add_subdirectory(external_libraries/zlib)
-  # we have to add this for zconf
+  add_subdirectory( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
+  # We have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
-endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
 # including the AMatrix
 if( AMATRIX_DIR )
@@ -462,8 +478,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

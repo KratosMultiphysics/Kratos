@@ -34,7 +34,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class EmpiricalSpringElement3D2N : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) EmpiricalSpringElement3D2N : public Element
     {
     protected:
         //const values

@@ -47,6 +47,7 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
+#include "processes/compute_nodal_normal_divergence_process.h"
 #include "processes/assign_scalar_variable_to_entities_process.h"
 #include "processes/assign_scalar_field_to_entities_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
@@ -74,7 +75,6 @@ namespace Kratos
 namespace Python
 {
 typedef Node<3> NodeType;
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
 // Discontinuous distance computation auxiliar functions
 template<std::size_t TDim>
@@ -280,7 +280,6 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
             .def(py::init< ModelPart&, Parameters& >())
-            .def(py::init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(py::init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
             .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
@@ -329,6 +328,20 @@ void  AddProcessesToPython(pybind11::module& m)
     m.attr("ComputeNonHistoricalNodalGradientProcess3D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
     m.attr("ComputeNonHistoricalNodalGradientProcessComp2D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
     m.attr("ComputeNonHistoricalNodalGradientProcessComp3D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
+
+    /* Historical */
+    py::class_<ComputeNodalNormalDivergenceProcess< ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>, ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalNormalDivergenceProcess")
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool, const bool >())
+    ;
+
+    /* Non-Historical */
+    py::class_<ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalNormalDivergenceProcess")
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool >())
+    .def(py::init<ModelPart&, Variable<array_1d<double,3> >&, Variable<double>& , Variable<double>&, const bool, const bool >())
+    ;
 
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
@@ -415,15 +428,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
     ;
-
-    //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
-    //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
-
-    //py::class_<AddDofsNodalProcess<Variable<double> >, AddDofsNodalProcess<Variable<double> >::Pointer, Process>(m,"AddDoubleDofsNodalProcess")
-    // .def(py::init<Variable<double>, NodesContainerType&, DofsContainerType&>())
-    // ;
-    //py::class_<AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >, AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >::Pointer, Process>(m,"AddArrayComponentDofsNodalProcess")
-    // ;
 
     /* Simple Mortar mapper */
     // Wrapper
@@ -608,6 +612,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     .def("IsCorrectResult", &FromJSONCheckResultProcess::IsCorrectResult)
+    .def("GetErrorMessage", &FromJSONCheckResultProcess::GetErrorMessage)
     ;
 
     from_json_check_result_process_interface.attr("CORRECT_RESULT")                 = &FromJSONCheckResultProcess::CORRECT_RESULT;
