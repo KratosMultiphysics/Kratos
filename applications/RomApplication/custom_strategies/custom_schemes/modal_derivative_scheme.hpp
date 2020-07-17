@@ -358,7 +358,7 @@ public:
         }
 
         if (mDerivativeMatrixType)
-            rRHS_Contribution *= rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i];
+            rRHS_Contribution *= -rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i];
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 

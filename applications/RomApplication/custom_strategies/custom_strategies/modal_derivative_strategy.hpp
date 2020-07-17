@@ -160,6 +160,8 @@ public:
         mComputeBasisDerivativesFlag = InputParameters["compute_basis_derivatives"].GetBool();
 
         mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
+
+        mFixedDofIndex = 0;
     
         rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
 
@@ -475,8 +477,7 @@ public:
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
         TSparseSpace::Resize(basis, rA.size1());
-        std::size_t fixed_dof_index;
-
+        
         // Get eigenvalues vector
         LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
 
@@ -487,6 +488,10 @@ public:
             // Set the BASIS_I counter for use in the scheme
             r_model_part.GetProcessInfo()[BASIS_I] = basis_i;
 
+            // Get basis_i
+            TSparseSpace::SetToZero(basis);
+            this->GetBasis(basis_i, basis);
+
             if (mDerivativeTypeFlag)
             {   // Dynamic derivatives
 
@@ -494,12 +499,10 @@ public:
 
                 // If dynamic derivatives then build system matrix for each eigenvalue
                 rA = rStiffnessMatrix - (eigenvalue_i * rMassMatrix);
-                
+
                 // Dynamic derivatives are unsymmetric
                 basis_j_start_index = 0;
 
-                // Get basis_i
-                this->GetBasis(basis_i, basis);
             } 
             else 
             {   // Static derivatives
@@ -526,12 +529,12 @@ public:
                 this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_model_part, rb);
 
                 // Compute the derivative of the eigenvalue
-                const double deigenvalue_i_dbasis_j = inner_prod(basis, rb);
+                const double deigenvalue_i_dbasis_j = -inner_prod(basis, rb);
                 r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dbasis_j;
 
                 // Dynamic derivative RHS
                 if (mDerivativeTypeFlag)
-                    rb -= deigenvalue_i_dbasis_j * prod(rMassMatrix, basis);
+                    rb += deigenvalue_i_dbasis_j * prod(rMassMatrix, basis);
 
                 Timer::Stop("BuildRHS");
                 const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
@@ -544,8 +547,9 @@ public:
 
                 Timer::Start("ApplyConstraints");
 
-                if (mDerivativeTypeFlag) // Apply dynamic derivative constraint
-                    this->ApplyDynamicDerivativeConstraint(basis, fixed_dof_index);
+                // Apply dynamic derivative constraint
+                if (mDerivativeTypeFlag) 
+                    this->ApplyDynamicDerivativeConstraint(basis);
 
                 // Apply Dirichlet conditions
                 this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
@@ -560,13 +564,17 @@ public:
                 // this->pGetBuilderAndSolver()->SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
 
                 if (mDerivativeTypeFlag) // Compute and add null space solution
-                    this->ComputeAndAddNullSpaceSolution(rDx, basis, fixed_dof_index);
+                    this->ComputeAndAddNullSpaceSolution(rDx, basis);
 
                 Timer::Stop("Solve");
                 const double stop_solve = OpenMPUtils::GetCurrentTime();
 
                 KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
                 ///////////////////////////////////////////////////////////////
+
+                // Free the constrained DOF related to the dynamic derivative
+                if (mDerivativeTypeFlag)
+                    this->FreeDynamicDerivativeConstraint();
 
                 // Mass orthonormalization
                 if (mMassOrthonormalizeFlag)
@@ -582,6 +590,9 @@ public:
             // Reset all the dofs to initial value
             this->ResetVariables();
         }
+
+        KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) 
+        << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -599,8 +610,7 @@ public:
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType basis;
         TSparseSpace::Resize(basis, rA.size1());
-        std::size_t fixed_dof_index;
-
+        
         // Get eigenvalues vector
         LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
 
@@ -609,6 +619,10 @@ public:
         {
             // Set the BASIS_I counter for use in the scheme
             r_model_part.GetProcessInfo()[BASIS_I] = basis_i;
+            
+            // Get basis_i
+            TSparseSpace::SetToZero(basis);
+            this->GetBasis(basis_i, basis);
 
             if (mDerivativeTypeFlag)
             {   // Dynamic derivatives
@@ -618,8 +632,6 @@ public:
                 // If dynamic derivatives then build system matrix for each eigenvalue
                 rA = rStiffnessMatrix - (eigenvalue_i * rMassMatrix);
 
-                // Get basis_i
-                this->GetBasis(basis_i, basis);
             } 
 
             for (std::string sub_model_part_name : mDerivativeSubModelPartNames)
@@ -638,14 +650,14 @@ public:
                 this->pGetBuilderAndSolver()->BuildRHS(p_scheme, r_sub_model_part, rb);
 
                 // Compute the derivative of the eigenvalue
-                const double deigenvalue_i_dparameter = inner_prod(basis, rb);
+                const double deigenvalue_i_dparameter = -inner_prod(basis, rb);
                 r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]] = deigenvalue_i_dparameter;
 
                 if (mComputeBasisDerivativesFlag)
                 {
                     // Dynamic derivative RHS
                     if (mDerivativeTypeFlag)
-                        rb -= deigenvalue_i_dparameter * prod(rMassMatrix, basis);
+                        rb += deigenvalue_i_dparameter * prod(rMassMatrix, basis);
 
                     Timer::Stop("BuildRHS");
                     const double stop_build_rhs = OpenMPUtils::GetCurrentTime();
@@ -659,7 +671,7 @@ public:
                     Timer::Start("ApplyConstraints");
 
                     if (mDerivativeTypeFlag) // Apply dynamic derivative constraint
-                        this->ApplyDynamicDerivativeConstraint(basis, fixed_dof_index);
+                        this->ApplyDynamicDerivativeConstraint(basis);
 
                     // Apply Dirichlet conditions
                     this->pGetBuilderAndSolver()->ApplyDirichletConditions(p_scheme, r_model_part, rA, rDx, rb);
@@ -677,7 +689,7 @@ public:
 
                         // Compute and add null space solution in case of dynamic derivative
                         if (mDerivativeTypeFlag)
-                            this->ComputeAndAddNullSpaceSolution(rDx, basis, fixed_dof_index);
+                            this->ComputeAndAddNullSpaceSolution(rDx, basis);
                     }
                     else
                     {
@@ -694,6 +706,9 @@ public:
                 else
                     TSparseSpace::SetToZero(rDx);
 
+                if (mDerivativeTypeFlag)
+                    this->FreeDynamicDerivativeConstraint();
+
                 // Mass orthonormalization
                 if (mMassOrthonormalizeFlag && mComputeBasisDerivativesFlag)
                     this->MassOrthonormalize(rDx);
@@ -706,6 +721,9 @@ public:
             }
         }
 
+        KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) 
+        << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
+        
         KRATOS_CATCH("")
     }
 
@@ -771,7 +789,8 @@ public:
         // Mass-Orthogonalization using modified Gram-Schmidt method
         for (std::size_t basis_index = 0; basis_index < current_basis_index; basis_index++){
 
-            // Get previous basis
+            // Get previous bases
+            TSparseSpace::SetToZero(basis);
             this->GetBasis(basis_index, basis);
 
             // Apply Mass-Orthogonalization w.r.t. previous bases
@@ -798,19 +817,21 @@ public:
         ModelPart& r_model_part = BaseType::GetModelPart();
 
         DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
-
+        bool is_active;
+        std::size_t num_node_dofs;
+        
         for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++) {
-            ModelPart::NodeType::DofsContainerType& NodeDofs = itNode->GetDofs();
-            const std::size_t NumNodeDofs = NodeDofs.size();
-            Matrix& rRomBasis = itNode->GetValue(ROM_BASIS);
-
+            ModelPart::NodeType::DofsContainerType& node_dofs = itNode->GetDofs();
+            num_node_dofs = node_dofs.size();
+            Matrix& r_rom_basis = itNode->GetValue(ROM_BASIS);
+                
             // fill the basis vector
-            auto itDof = std::begin(NodeDofs);
-            for (std::size_t iDOF = 0; iDOF < NumNodeDofs; iDOF++)
+            auto itDof = std::begin(node_dofs);
+            for (std::size_t iDOF = 0; iDOF < num_node_dofs; iDOF++)
             {
-                bool is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
+                is_active = !(r_dof_set.find(**itDof) == r_dof_set.end());
                 if ((*itDof)->IsFree() && is_active)
-                    rBasis((*itDof)->EquationId()) = rRomBasis(iDOF,basis_index);
+                    rBasis((*itDof)->EquationId()) = r_rom_basis(iDOF,basis_index);
                 itDof++;
             }
         }
@@ -822,12 +843,12 @@ public:
      * @brief This function applies the dynamic derivative constraint
      * @details
      * { 
-     * The dynamic derivative LHS is singular since A_ij = K - lambda_i*M ,
-     * thus the dynamic derivative constraint has to be applied with; Basis_i^T @ M @ dBasis_i_dalpha_j = 0
+     * The dynamic derivative LHS is singular since A = K - lambda_i*M,
+     * thus the dynamic derivative constraint has to be applied.
      * This function applies a Dirichlet constraint on the DOF with the maximum absolute value
      * } 
      */  
-    void ApplyDynamicDerivativeConstraint(TSystemVectorType& rBasis, std::size_t& fixed_dof_index)
+    void ApplyDynamicDerivativeConstraint(TSystemVectorType& rBasis)
     {
         KRATOS_TRY
 
@@ -842,38 +863,59 @@ public:
             if (temp_abs_value > max_abs_value)
             {
                 max_abs_value = temp_abs_value;
-                fixed_dof_index = dof_i.EquationId();
+                mFixedDofIndex = dof_i.EquationId();
             }
         }
 
         // Fix the found DOF
-        auto p_dof = r_dof_set.begin()+fixed_dof_index;
+        auto p_dof = r_dof_set.begin()+mFixedDofIndex;
         p_dof->FixDof();
 
         KRATOS_CATCH("")
     }
 
     /**
-     * @brief This function comnputes the null space solution from the null space solution
+     * @brief This function frees the constrained DOF due to the dynamic derivative constraint
+     * @details
+     * { 
+     * } 
+     */  
+    void FreeDynamicDerivativeConstraint()
+    {
+
+        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
+
+        // Free the DOF that is previously fixed
+        auto p_dof = r_dof_set.begin()+mFixedDofIndex;
+        p_dof->FreeDof();
+    }
+
+    /**
+     * @brief This function computes and adds the null space solution
      * @details
      * { 
      * } 
      */ 
-    void ComputeAndAddNullSpaceSolution(TSystemVectorType& rDx, TSystemVectorType& rBasis, std::size_t& rFixedDofIndex)
+    void ComputeAndAddNullSpaceSolution(TSystemVectorType& rDx, TSystemVectorType& rBasis)
     {
         KRATOS_TRY
 
         TSystemMatrixType& rMassMatrix = *mpMassMatrix;
-        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
-
-        // Free the DOF that is previously fixed
-        auto p_dof = r_dof_set.begin()+rFixedDofIndex;
-        p_dof->FreeDof();
 
         // Component c for the null space solution
         double c = -inner_prod(rDx, prod(rMassMatrix, rBasis));
 
-        // Add null space solution
+        // Additional term related to the mass matrix derivative
+        if (mDerivativeParameterType == 1)
+        {
+            ModelPart& r_model_part = BaseType::GetModelPart();
+            LocalSystemVectorType& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
+            const double eigenvalue_i = r_eigenvalues[r_model_part.GetProcessInfo()[BASIS_I]];
+            const double deigenvalue_i_dparameter = r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]];
+            
+            c -= (0.5*deigenvalue_i_dparameter/eigenvalue_i);
+        }
+
         rDx += c*rBasis;
 
         KRATOS_CATCH("")
@@ -1089,6 +1131,8 @@ private:
     bool mComputeBasisDerivativesFlag;
 
     std::size_t mNumberInitialBasis;
+
+    std::size_t mFixedDofIndex;
 
     std::vector<std::string> mDerivativeSubModelPartNames;
 
