@@ -1509,8 +1509,10 @@ private:
             this->GetConvectionOperator(velocity_convective_terms,
                                         effective_velocity, r_shape_derivatives);
 
-            const double effective_velocity_dot_scalar_variable_gradient = inner_prod(effective_velocity, scalar_variable_gradient);
-            const double scalar_variable_value = this->EvaluateInPoint(r_primal_variable, r_shape_functions);
+            const double effective_velocity_dot_scalar_variable_gradient =
+                inner_prod(effective_velocity, scalar_variable_gradient);
+            const double scalar_variable_value =
+                this->EvaluateInPoint(r_primal_variable, r_shape_functions);
 
             noalias(shape_derivative_dot_scalar_variable_gradient) =
                 adjoint_utilities::template MatrixVectorProduct<TNumNodes>(
@@ -1573,11 +1575,17 @@ private:
                     this->GetConvectionOperator(velocity_convective_term_derivatives,
                                                 effective_velocity, DN_DX_derivatives);
 
-                    const double effective_velocity_derivative_dot_scalar_variable_gradient = inner_prod(effective_velocity_derivative, scalar_variable_gradient);
-                    const double effective_velocity_dot_scalar_variable_gradient_derivative = inner_prod(effective_velocity, scalar_variable_gradient_derivative);
+                    const double effective_velocity_derivative_dot_scalar_variable_gradient =
+                        inner_prod(effective_velocity_derivative, scalar_variable_gradient);
+                    const double effective_velocity_dot_scalar_variable_gradient_derivative =
+                        inner_prod(effective_velocity, scalar_variable_gradient_derivative);
 
-                    noalias(shape_derivative_derivative_dot_scalar_variable_gradient) = adjoint_utilities::template MatrixVectorProduct<TNumNodes>(DN_DX_derivatives, scalar_variable_gradient);
-                    noalias(shape_derivative_dot_scalar_variable_gradient_derivative) = adjoint_utilities::template MatrixVectorProduct<TNumNodes>(r_shape_derivatives, scalar_variable_gradient_derivative);
+                    noalias(shape_derivative_derivative_dot_scalar_variable_gradient) =
+                        adjoint_utilities::template MatrixVectorProduct<TNumNodes>(
+                            DN_DX_derivatives, scalar_variable_gradient);
+                    noalias(shape_derivative_dot_scalar_variable_gradient_derivative) =
+                        adjoint_utilities::template MatrixVectorProduct<TNumNodes>(
+                            r_shape_derivatives, scalar_variable_gradient_derivative);
 
                     for (IndexType a = 0; a < TNumNodes; ++a)
                     {
@@ -1599,28 +1607,55 @@ private:
                         value += tau * tau_operator * source_term * weight_derivative;
 
                         // adding LHS contributions
-                        value -= r_shape_functions[a] * effective_velocity_dot_scalar_variable_gradient_derivative * weight;
-                        value -= r_shape_functions[a] * effective_velocity_derivative_dot_scalar_variable_gradient * weight;
-                        value -= r_shape_functions[a] * effective_velocity_dot_scalar_variable_gradient * weight_derivative;
+                        value -= r_shape_functions[a] *
+                                 effective_velocity_dot_scalar_variable_gradient_derivative *
+                                 weight;
+                        value -= r_shape_functions[a] *
+                                 effective_velocity_derivative_dot_scalar_variable_gradient *
+                                 weight;
+                        value -= r_shape_functions[a] *
+                                 effective_velocity_dot_scalar_variable_gradient *
+                                 weight_derivative;
 
-                        value -= r_shape_functions[a] * reaction_term_derivative * scalar_variable_value * weight;
-                        value -= r_shape_functions[a] * reaction_term * scalar_variable_value * weight_derivative;
+                        value -= r_shape_functions[a] * reaction_term_derivative *
+                                 scalar_variable_value * weight;
+                        value -= r_shape_functions[a] * reaction_term *
+                                 scalar_variable_value * weight_derivative;
 
-                        value -= effective_kinematic_viscosity_derivative * shape_derivative_dot_scalar_variable_gradient[a] * weight;
-                        value -= effective_kinematic_viscosity * shape_derivative_derivative_dot_scalar_variable_gradient[a] * weight;
-                        value -= effective_kinematic_viscosity * shape_derivative_dot_scalar_variable_gradient_derivative[a] * weight;
-                        value -= effective_kinematic_viscosity * shape_derivative_dot_scalar_variable_gradient[a] * weight_derivative;
+                        value -= effective_kinematic_viscosity_derivative *
+                                 shape_derivative_dot_scalar_variable_gradient[a] * weight;
+                        value -= effective_kinematic_viscosity *
+                                 shape_derivative_derivative_dot_scalar_variable_gradient[a] *
+                                 weight;
+                        value -= effective_kinematic_viscosity *
+                                 shape_derivative_dot_scalar_variable_gradient_derivative[a] *
+                                 weight;
+                        value -= effective_kinematic_viscosity *
+                                 shape_derivative_dot_scalar_variable_gradient[a] *
+                                 weight_derivative;
 
-                        value -= tau_derivative * tau_operator * effective_velocity_dot_scalar_variable_gradient * weight;
-                        value -= tau * tau_operator_derivative * effective_velocity_dot_scalar_variable_gradient * weight;
-                        value -= tau * tau_operator * effective_velocity_derivative_dot_scalar_variable_gradient * weight;
-                        value -= tau * tau_operator * effective_velocity_dot_scalar_variable_gradient_derivative * weight;
-                        value -= tau * tau_operator * effective_velocity_dot_scalar_variable_gradient * weight_derivative;
+                        value -= tau_derivative * tau_operator *
+                                 effective_velocity_dot_scalar_variable_gradient * weight;
+                        value -= tau * tau_operator_derivative *
+                                 effective_velocity_dot_scalar_variable_gradient * weight;
+                        value -= tau * tau_operator *
+                                 effective_velocity_derivative_dot_scalar_variable_gradient *
+                                 weight;
+                        value -= tau * tau_operator *
+                                 effective_velocity_dot_scalar_variable_gradient_derivative *
+                                 weight;
+                        value -= tau * tau_operator *
+                                 effective_velocity_dot_scalar_variable_gradient *
+                                 weight_derivative;
 
-                        value -= tau_derivative * tau_operator * reaction_term * scalar_variable_value * weight;
-                        value -= tau * tau_operator_derivative * reaction_term * scalar_variable_value * weight;
-                        value -= tau * tau_operator * reaction_term_derivative * scalar_variable_value * weight;
-                        value -= tau * tau_operator * reaction_term * scalar_variable_value * weight_derivative;
+                        value -= tau_derivative * tau_operator * reaction_term *
+                                 scalar_variable_value * weight;
+                        value -= tau * tau_operator_derivative * reaction_term *
+                                 scalar_variable_value * weight;
+                        value -= tau * tau_operator * reaction_term_derivative *
+                                 scalar_variable_value * weight;
+                        value -= tau * tau_operator * reaction_term *
+                                 scalar_variable_value * weight_derivative;
 
                         rOutput(block_size + k, a) += value;
                     }
