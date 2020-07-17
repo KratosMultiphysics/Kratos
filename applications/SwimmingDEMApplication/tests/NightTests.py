@@ -20,6 +20,9 @@ try:
 except ImportError:
      interpolation_imports_available = False
 
+# List of tests that are available
+available_tests = []
+
 if candelier_imports_available:
      class candelier_no_history_test(CandelierTF.TestFactory):
           file_name = "candelier_tests/candelier"
@@ -47,7 +50,7 @@ if candelier_imports_available:
      #      file_name = "candelier_tests/candelier"
      #      file_parameters = "candelier_tests/ProjectParametersWithHistoryNonInertial.json"
 
-     candelier_test_list = [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
+     available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
 
 if interpolation_imports_available:
      class interpolation_test_linear(InterpolationTF.TestFactory):
@@ -58,10 +61,8 @@ if interpolation_imports_available:
           file_name = "interpolation_tests/cube"
           file_parameters = "interpolation_tests/ProjectParametersCubeNonlinearTimeNoSubstepping.json"
 
-     interpolation_test_list = [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
+     available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 
-# List of all classes above
-available_tests = candelier_test_list + interpolation_test_list
 
 def SetTestSuite(suites):
     night_suite = suites['nightly']
