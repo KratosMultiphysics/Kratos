@@ -287,9 +287,6 @@ public:
                 }
             }
         }
-        if (number_of_hrom_elements>0){
-             mHromSimulation = true;
-        }
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
