@@ -64,8 +64,8 @@ class ModalDerivativeSolver(MechanicalSolver):
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            from KratosMultiphysics import ExternalSolversApplication
             KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using "super_lu" as default solver')
+            from KratosMultiphysics import ExternalSolversApplication
             linear_solver_configuration = KratosMultiphysics.Parameters("""{ "solver_type" : "super_lu"}""")
             return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 
