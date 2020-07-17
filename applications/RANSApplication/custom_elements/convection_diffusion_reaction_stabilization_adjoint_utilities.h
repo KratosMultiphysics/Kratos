@@ -45,11 +45,12 @@ public:
     using BoundedMatrixNNN =
         BoundedVector<BoundedMatrix<double, TNumNodes, TNumNodes>, TNumNodes>;
 
-    static BoundedVectorN MatrixVectorProduct(const BoundedMatrixND& rM,
-                                              const BoundedArray3D& rV)
+    template <unsigned int TRowSize>
+    static BoundedVector<double, TRowSize> MatrixVectorProduct(
+        const BoundedMatrix<double, TRowSize, TDim>& rM, const BoundedArray3D& rV)
     {
-        BoundedVectorN output;
-        for (IndexType i = 0; i < TNumNodes; ++i)
+        BoundedVector<double, TRowSize> output;
+        for (IndexType i = 0; i < TRowSize; ++i)
         {
             output[i] = rM(i, 0) * rV[0];
             for (IndexType j = 1; j < TDim; ++j)
@@ -59,6 +60,38 @@ public:
         }
 
         return output;
+    }
+
+    static BoundedMatrixND ConvertNDVectorToNDMatrix(const BoundedVectorND& rInput)
+    {
+        BoundedMatrixND output;
+        for (IndexType c = 0; c < TNumNodes; ++c)
+        {
+            for (IndexType k = 0; k < TDim; ++k)
+            {
+                output(c, k) = rInput[c * TDim + k];
+            }
+        }
+
+        return output;
+    }
+
+    static void CalculateEffectiveVelocityMagnitudeVelocityDerivative(
+        BoundedMatrix<double, TNumNodes, TDim>& rOutput,
+        const double EffectiveVelocityMagnitude,
+        const array_1d<double, 3>& rEffectiveVelocity,
+        const BoundedMatrixNDD& rEffectiveVelocityDerivative)
+    {
+        rOutput.clear();
+        const BoundedVectorND& r_velocity_dot_velocity_derivative =
+            MatrixVectorProduct<TNumNodes * TDim>(rEffectiveVelocityDerivative,
+                                                  rEffectiveVelocity);
+
+        if (EffectiveVelocityMagnitude > 0.0)
+        {
+            noalias(rOutput) = ConvertNDVectorToNDMatrix(r_velocity_dot_velocity_derivative);
+            noalias(rOutput) = rOutput * (1 / EffectiveVelocityMagnitude);
+        }
     }
 
     static void CalculateAbsoluteResidualUnrelatedScalarDerivatives(
@@ -72,8 +105,8 @@ public:
     {
         const double coeff = (Residual > 0.0) ? 1.0 : -1.0;
 
-        noalias(rOutput) =
-            MatrixVectorProduct(rEffectiveVelocityDerivative, rScalarGradient);
+        noalias(rOutput) = MatrixVectorProduct<TNumNodes>(
+            rEffectiveVelocityDerivative, rScalarGradient);
         noalias(rOutput) += rReactionTermDerivative * ScalarValue;
         noalias(rOutput) -= rSourceTermDerivative;
         noalias(rOutput) = rOutput * coeff;
@@ -91,25 +124,33 @@ public:
         const double coeff = (Residual > 0.0) ? 1.0 : -1.0;
 
         noalias(rOutput) = rRelaxedAccelerationDerivative;
-        noalias(rOutput) +=
-            MatrixVectorProduct(rShapeFunctionDerivatives, rEffectiveVelocity);
+        noalias(rOutput) += MatrixVectorProduct<TNumNodes>(
+            rShapeFunctionDerivatives, rEffectiveVelocity);
         noalias(rOutput) += rShapeFunctionValues * ReactionTerm;
         noalias(rOutput) = rOutput * coeff;
     }
 
     static void CalculateAbsoluteResidualVelocityDerivativeTerms(
-        BoundedVectorND& rOutput,
+        BoundedMatrixND& rOutput,
         const double Residual,
         const double ScalarValue,
         const BoundedArray3D& rScalarGradient,
-        const BoundedMatrixNDD& rRelaxedAccelerationDerivative,
+        const BoundedMatrixND& rRelaxedAccelerationDerivative,
         const BoundedMatrixNDD& rEffectiveVelocityDerivative,
         const BoundedMatrixND& rReactionTermDerivative,
         const BoundedMatrixND& rSourceTermDerivative)
     {
         const double coeff = (Residual > 0.0) ? 1.0 : -1.0;
         noalias(rOutput) = rRelaxedAccelerationDerivative;
-        noalias(rOutput) += rEffectiveVelocityDerivative;
+        noalias(rOutput) += rReactionTermDerivative * ScalarValue;
+        noalias(rOutput) -= rSourceTermDerivative;
+
+        const BoundedVectorND& r_effective_velocity_dot_scalar_gradient =
+            MatrixVectorProduct<TNumNodes * TDim>(rEffectiveVelocityDerivative, rScalarGradient);
+        noalias(rOutput) +=
+            ConvertNDVectorToNDMatrix(r_effective_velocity_dot_scalar_gradient);
+
+        noalias(rOutput) = rOutput * coeff;
     }
 
     static void CalculateTauScalarDerivatives(BoundedVectorN& rOutput,
@@ -127,26 +168,42 @@ public:
         noalias(rOutput) = rOutput * (-1.0 * std::pow(Tau, 3));
     }
 
-    static void CalculateRFCBetaUnrelatedScalarDerivatives(BoundedVectorN& rOutput,
-                                                           const double ScalarValue,
-                                                           const double AbsoluteResidual,
-                                                           const double Tau,
-                                                           const BoundedVectorN& rAbsoluteResidualUnrelatedDerivatives,
-                                                           const BoundedVectorN& rTauDerivatives)
+    static void CalculateTauVelocityDerivatives(
+        BoundedMatrixND& rOutput,
+        const double Tau,
+        const double EffectiveVelocityMagnitude,
+        const double EffectiveKinematicViscosity,
+        const double ElementLength,
+        const double ReactionTerm,
+        const BoundedMatrixND& rEffectiveVelocityMagnitudeDerivative,
+        const BoundedMatrixND& rEffectiveKinematicViscosityDerivative,
+        const BoundedMatrixND& rReactionTermDerivative)
+    {
+        noalias(rOutput) = rEffectiveVelocityMagnitudeDerivative *
+                           (4 * EffectiveVelocityMagnitude / std::pow(ElementLength, 2));
+        noalias(rOutput) +=
+            rEffectiveKinematicViscosityDerivative *
+            (144 * EffectiveKinematicViscosity / std::pow(ElementLength, 4));
+        noalias(rOutput) += rReactionTermDerivative * ReactionTerm;
+        noalias(rOutput) = rOutput * (-1.0 * std::pow(Tau, 3));
+    }
+
+    static void AddRFCBetaUnrelatedScalarDerivatives(BoundedVectorN& rOutput,
+                                                     const double ScalarValue,
+                                                     const double AbsoluteResidual,
+                                                     const double Tau,
+                                                     const BoundedVectorN& rAbsoluteResidualUnrelatedDerivatives,
+                                                     const BoundedVectorN& rTauDerivatives)
     {
         if (ScalarValue > 0.0)
         {
-            noalias(rOutput) = rAbsoluteResidualUnrelatedDerivatives * Tau;
+            noalias(rOutput) += rAbsoluteResidualUnrelatedDerivatives * Tau;
             noalias(rOutput) += rTauDerivatives * AbsoluteResidual;
             noalias(rOutput) = rOutput * (1.0 / ScalarValue);
         }
-        else
-        {
-            rOutput.clear();
-        }
     }
 
-    static void CalculateRFCBetaRelatedScalarDerivativeAdditionalTerms(
+    static void AddRFCBetaRelatedScalarDerivativeAdditionalTerms(
         BoundedVectorN& rOutput,
         const double ScalarValue,
         const double AbsoluteResidual,
@@ -156,25 +213,37 @@ public:
     {
         if (ScalarValue > 0.0)
         {
-            noalias(rOutput) = rAbsoluteResidualRelatedDerivativeAdditionalTerms * Tau;
+            noalias(rOutput) += rAbsoluteResidualRelatedDerivativeAdditionalTerms * Tau;
             noalias(rOutput) = rOutput * (1.0 / ScalarValue);
             noalias(rOutput) -= rShapeFunctionValues *
                                 (AbsoluteResidual * Tau / std::pow(ScalarValue, 2));
         }
-        else
+    }
+
+    static void AddRFCBetaVelocityDerivative(BoundedMatrixND& rOutput,
+                                             const double ScalarValue,
+                                             const double AbsoluteResidual,
+                                             const double Tau,
+                                             const BoundedMatrixND& rAbsoluteResidualDerivative,
+                                             const BoundedMatrixND& rTauDerivative)
+    {
+        if (ScalarValue > 0.0)
         {
-            rOutput.clear();
+            noalias(rOutput) += rAbsoluteResidualDerivative * Tau;
+            noalias(rOutput) += rTauDerivative * AbsoluteResidual;
+            noalias(rOutput) = rOutput * (1.0 / ScalarValue);
         }
     }
 
-    void static CalculateDiscreteUpwindOperatorResidualContributionScalarDerivatives(
-        BoundedMatrixNN& rOutput,
+    template <unsigned int TDerivativesSize>
+    void static CalculateDiscreteUpwindOperatorResidualContributionDerivatives(
+        BoundedMatrix<double, TDerivativesSize, TNumNodes>& rOutput,
         const BoundedVectorN& rNodalScalarValues,
         const BoundedMatrixNN& rInputMatrix,
-        const BoundedMatrixNNN& rInputMatrixDerivatives)
+        const BoundedVector<BoundedMatrix<double, TNumNodes, TNumNodes>, TDerivativesSize>& rInputMatrixDerivatives)
     {
         rOutput.clear();
-        for (IndexType c = 0; c < TNumNodes; ++c)
+        for (IndexType c = 0; c < TDerivativesSize; ++c)
         {
             const BoundedMatrixNN& derivatives_matrix = rInputMatrixDerivatives[c];
             for (IndexType a = 0; a < TNumNodes; ++a)
@@ -199,12 +268,13 @@ public:
         }
     }
 
-    void static CalculatePositivityPreservingMatrixResidualContributionScalarDerivatives(
-        BoundedMatrixNN& rOutput,
+    template <unsigned int TDerivativesSize>
+    void static CalculatePositivityPreservingMatrixResidualContributionDerivatives(
+        BoundedMatrix<double, TDerivativesSize, TNumNodes>& rOutput,
         const double PositivityPreservingMatrixCoefficient,
         const BoundedVectorN& rNodalScalarValues,
         const BoundedMatrixNN& rInputMatrix,
-        const BoundedMatrixNNN& rInputMatrixDerivatives)
+        const BoundedVector<BoundedMatrix<double, TNumNodes, TNumNodes>, TDerivativesSize>& rInputMatrixDerivatives)
     {
         rOutput.clear();
 
@@ -227,7 +297,7 @@ public:
                 }
             }
 
-            for (IndexType c = 0; c < TNumNodes; ++c)
+            for (IndexType c = 0; c < TDerivativesSize; ++c)
             {
                 const BoundedMatrixNN& derivatives_matrix = rInputMatrixDerivatives[c];
                 for (IndexType a = 0; a < TNumNodes; ++a)

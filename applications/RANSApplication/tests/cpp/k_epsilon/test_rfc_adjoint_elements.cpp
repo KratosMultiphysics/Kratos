@@ -56,5 +56,17 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_TURBULENT_ENERGY_DISSIP
         TURBULENT_ENERGY_DISSIPATION_RATE, calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_VELOCITY_PARTIAL_DERIVATIVE, KratosRansFastSuite1)
+{
+    const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
+                                                  const ProcessInfo& rProcessInfo) {
+        rElement.Calculate(VELOCITY_PARTIAL_DERIVATIVE, rOutput, rProcessInfo);
+    };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
+        "RansKEpsilonKRFC2D3N", "RansKEpsilonKAdjointRFC2D3N", VELOCITY,
+        calculate_sensitivity_matrix, 1e-6, 1e-5);
+}
+
 } // namespace Testing
 } // namespace Kratos
