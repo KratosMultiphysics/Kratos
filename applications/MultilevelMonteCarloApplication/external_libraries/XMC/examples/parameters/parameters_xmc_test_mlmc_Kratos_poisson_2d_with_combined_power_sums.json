@@ -24,7 +24,7 @@
         "indexValue": null,
         "qoiEstimator": ["xmc.momentEstimator.MomentEstimator"],
         "sampler": "xmc.sampleGenerator.SampleGenerator",
-        "estimatorBatchSize": 2
+        "eventGroupSize": 2
     },
     "monteCarloSamplerInputDictionary": {
         "assemblersForError": [[1,2]],
@@ -65,13 +65,13 @@
         "parameters": null,
         "printToFile": false,
         "problemId": "poisson_2d",
-        "projectParametersPath": "../xmc/classDefs_solverWrapper/problemDefs_KratosMultiphysics/poisson_2d/problem_settings/parameters_poisson_square_2d_finer.json",
+        "projectParametersPath": "../xmc/classDefs_solverWrapper/problemDefs_KratosMultiphysics/poisson_2d/problem_settings/parameters_finer.json",
         "refinementParametersPath": "../xmc/classDefs_solverWrapper/problemDefs_KratosMultiphysics/poisson_2d/problem_settings/parameters_refinement.json",
         "refinementStrategy": "stochastic_adaptive_refinement",
         "outputBatchSize" : 2,
         "taskAllAtOnce": false
     },
-    "monoCriteriaInpuctDict" :{
+    "monoCriteriaInpuctDictionary" :{
         "statisticalError": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
             "tolerance": [0.15],
