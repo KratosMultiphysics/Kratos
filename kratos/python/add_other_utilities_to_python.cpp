@@ -156,10 +156,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
         .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
         .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 
@@ -470,11 +466,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
         .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-    //     .staticmethod("SetNumThreads")
         .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
-    //     .staticmethod("GetNumThreads")
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-    //     .staticmethod("PrintOMPInfo")
+        .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
 
 

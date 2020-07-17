@@ -19,9 +19,9 @@ if(POLICY CMP0074)
 endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 7)
-set (KratosMultiphysics_MINOR_VERSION 1)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_MAJOR_VERSION 9)
+set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION "Dev")
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -475,8 +475,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
