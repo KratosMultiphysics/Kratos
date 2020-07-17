@@ -92,7 +92,7 @@ protected:
 
     void PrepareSubDomain1CouplingQuantities(const SystemMatrixType& rK1);
 
-    void SetSubDomainInterfaceVelocity(ModelPart& rModelPart, Vector& rVelocityContainer, const IndexType domainIndex);
+    void SetSubDomainInterfaceVelocity(ModelPart& rModelPart, Vector& rVelocityContainer, const IndexType domainIndex, const bool isInitialImplicit = false);
 
     void ComputeCouplingMatrix(const IndexType domainIndex, const Matrix& rEffectiveMassMatrix, Matrix& rCouplingMatrix, ModelPart& rModelPart);
 

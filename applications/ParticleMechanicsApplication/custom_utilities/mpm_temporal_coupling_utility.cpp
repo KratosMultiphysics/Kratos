@@ -31,7 +31,8 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(mActiveInterfaceNodesComputed) << "ComputeActiveInterfaceNodes not called yet" << std::endl;
 
         ModelPart& r_sub_domain_1_active = mrSubDomain1.GetSubModelPart("active_nodes");
-        SetSubDomainInterfaceVelocity(r_sub_domain_1_active, mSubDomain1InitialInterfaceVelocity, 0);
+        const bool is_initial_implicit = (mGamma[0] == 0.5) ? true : false;
+        SetSubDomainInterfaceVelocity(r_sub_domain_1_active, mSubDomain1InitialInterfaceVelocity, 0, is_initial_implicit);
 
         KRATOS_CATCH("")
     }
@@ -67,21 +68,26 @@ namespace Kratos
             const array_1d <double, 3>& nodal_accel_or_inertia = (mGamma[0] == 0.5)
                 ? node_it->FastGetSolutionStepValue(ACCELERATION)
                 : node_it->FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+            bool is_fixed = false;
+            if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
+            else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
+            else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
+
+            if (is_fixed)
+            {
+                KRATOS_WATCH(nodal_vel_or_mom)
+                KRATOS_WATCH(nodal_disp)
+                KRATOS_WATCH(nodal_accel_or_inertia)
+            }
+
             for (size_t k = 0; k < working_space_dim; ++k)
             {
                 mSubDomain1FinalDomainVelocityOrMomenta[i * working_space_dim + k] = nodal_vel_or_mom[k];
                 mSubDomain1FinalDomainDisplacement[i * working_space_dim + k] = nodal_disp[k];
                 mSubDomain1FinalDomainAccelerationOrInertia[i * working_space_dim + k] = nodal_accel_or_inertia[k];
             }
-
-            //std::cout << "node x = " << node_it->X()
-            //    << "\n\tmom_X = " << nodal_vel_or_mom[0]
-            //    << "\n\tforce_X = " << nodal_accel_or_inertia[0]
-            //    << "\n\tIs fixed = " << node_it->IsFixed(DISPLACEMENT_X) << "\n";
-
         }
-        //KRATOS_WATCH(mSubDomain1InitialInterfaceVelocity)
-        //KRATOS_WATCH(mSubDomain1FinalDomainAccelerationOrInertia)
 
         PrepareSubDomain1CouplingQuantities(rK1);
 
@@ -148,7 +154,9 @@ namespace Kratos
             Vector total_vel_1 = SubDomain1InterpolatedVelocities + prod(mCoupling1, mSubDomain1AccumulatedLinkVelocity);
             Vector interface_velocity_error = total_vel_1 - total_vel_2;
 
-            if (mPrintEquilibratedInterfaceVelocity)  std::cout << "Total vel domain 1 = " << total_vel_1  << "\nTotal vel domain 2 = " << total_vel_2 << std::endl;
+            if (mPrintEquilibratedInterfaceVelocity)
+                std::cout << "Total vel domain 1 = " << total_vel_1
+                << "\nTotal vel domain 2 = " << total_vel_2 << std::endl;
 
             KRATOS_ERROR_IF(norm_2(interface_velocity_error) > mInterfaceVelocityTolerance)
                 << "Interface velocities not equal!" << std::endl;
@@ -367,7 +375,7 @@ namespace Kratos
 
     void MPMTemporalCouplingUtility::SetSubDomainInterfaceVelocity(
         ModelPart& rModelPart,
-        Vector& rVelocityContainer, const IndexType domainIndex)
+        Vector& rVelocityContainer, const IndexType domainIndex, const bool isInitialImplicit)
     {
         KRATOS_TRY
 
@@ -375,35 +383,36 @@ namespace Kratos
         const IndexType working_space_dim = rModelPart.GetParentModelPart()->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         UtilityClearAndResizeVector(rVelocityContainer, mActiveInterfaceNodeIDs.size() * working_space_dim);
 
+        IndexType implicit_step_index = (isInitialImplicit) ? 1 : 0;
+
         // Add to vector
-        if (mGamma[domainIndex] == 0.5) // implicit
+        for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
         {
-            for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
+            auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
+            const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
+            if (nodal_mass > std::numeric_limits<double>::epsilon())
             {
-                auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
-                const array_1d <double, 3> nodal_vel = current_node->FastGetSolutionStepValue(VELOCITY);
+                bool is_fixed = false;
+                if (current_node->IsFixed(DISPLACEMENT_X)) is_fixed = true;
+                else if (current_node->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
+                else if (current_node->HasDofFor(DISPLACEMENT_Z))  if (current_node->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
+
+                const array_1d <double, 3>& nodal_vel = (mGamma[domainIndex] == 1.0)
+                    ? current_node->FastGetSolutionStepValue(NODAL_MOMENTUM) / nodal_mass
+                    : current_node->FastGetSolutionStepValue(VELOCITY, implicit_step_index);
+
+                if (is_fixed && norm_2(nodal_vel) > 1e-6)
+                {
+                    KRATOS_ERROR << "RESTRAINED NODE HAS NONZERO VELOCITY";
+                }
+
                 for (IndexType k = 0; k < working_space_dim; ++k)
                 {
                     rVelocityContainer[working_space_dim * i + k] = nodal_vel[k];
                 }
             }
         }
-        else // explicit
-        {
-            for (IndexType i = 0; i < mActiveInterfaceNodeIDs.size(); ++i)
-            {
-                auto current_node = rModelPart.pGetNode(mActiveInterfaceNodeIDs[i]);
-                const double nodal_mass = current_node->FastGetSolutionStepValue(NODAL_MASS);
-                if (nodal_mass > std::numeric_limits<double>::epsilon())
-                {
-                    const array_1d <double, 3> nodal_momentum = current_node->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                    for (IndexType k = 0; k < working_space_dim; ++k)
-                    {
-                        rVelocityContainer[working_space_dim * i + k] = nodal_momentum[k] / nodal_mass;
-                    }
-                }
-            }
-        }
+
 
         KRATOS_CATCH("")
     }
@@ -535,7 +544,7 @@ namespace Kratos
         if (is_slow_invert)
         {
             double matrix_det;
-            Kratos::MathUtils<double>::GeneralizedInvertMatrix(rMeff, rInvMeff, matrix_det);
+            Kratos::MathUtils<double>::InvertMatrix(rMeff, rInvMeff, matrix_det);
         }
         else
         {
@@ -763,7 +772,7 @@ namespace Kratos
             std::cout << "|";
             for (size_t j = 0; j < rMatrix.size2(); ++j)
             {
-                std::cout << " " << rMatrix(i, j);
+                std::cout << std::fixed << std::setprecision(3) << " " << (rMatrix(i, j));
             }
             std::cout << " |\n";
         }
