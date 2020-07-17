@@ -108,11 +108,4 @@ with open(optimization_log_filename, 'r') as csvfile:
 
 os.chdir(original_directory)
 
-# Cleaning
-kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
-kratos_utilities.DeleteFileIfExisting(response_combination_filename)
-
 # =======================================================================================================

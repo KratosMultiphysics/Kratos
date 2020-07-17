@@ -41,6 +41,8 @@ class CoSimulationSolverWrapper(object):
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
 
+    def _GetSolver(self, solver_name):
+        raise Exception('Trying to get SolverWrapper "{}" of "{}" which is not a coupled solver!'.format(solver_name, self.name))
 
     def Initialize(self):
         if self.__HasIO():

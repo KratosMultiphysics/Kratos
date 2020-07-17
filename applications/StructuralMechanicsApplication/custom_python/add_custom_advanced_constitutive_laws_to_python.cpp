@@ -1725,8 +1725,12 @@ void  AddCustomAdvancedConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw>
     (m,"SmallStrainOrthotropicDamageSimoJu2D").def(py::init<>());
 
-    py::class_< RuleOfMixturesLaw, typename RuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
-    (m,"RuleOfMixturesLaw").def(py::init<>())
+    py::class_< ParallelRuleOfMixturesLaw<3>, typename ParallelRuleOfMixturesLaw<3>::Pointer,  ConstitutiveLaw  >
+    (m,"ParallelRuleOfMixturesLaw3D").def(py::init<>())
+    ;
+
+    py::class_< ParallelRuleOfMixturesLaw<2>, typename ParallelRuleOfMixturesLaw<2>::Pointer,  ConstitutiveLaw  >
+    (m,"ParallelRuleOfMixturesLaw2D").def(py::init<>())
     ;
 
     py::class_< SerialParallelRuleOfMixturesLaw, typename SerialParallelRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >

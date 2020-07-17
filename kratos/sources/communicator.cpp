@@ -93,6 +93,21 @@ int Communicator::TotalProcesses() const
     return mrDataCommunicator.Size();
 }
 
+Communicator::SizeType Communicator::GlobalNumberOfNodes() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfNodes()));
+}
+
+Communicator::SizeType Communicator::GlobalNumberOfElements() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfElements()));
+}
+
+Communicator::SizeType Communicator::GlobalNumberOfConditions() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfConditions()));
+}
+
 Communicator::SizeType Communicator::GetNumberOfColors() const
 {
     return mNumberOfColors;
@@ -302,65 +317,6 @@ const DataCommunicator& Communicator::GetDataCommunicator() const
 }
 
 // Public Operatrions /////////////////////////////////////////////////////////
-
-void Communicator::Barrier() const
-{
-    mrDataCommunicator.Barrier();
-}
-
-bool Communicator::SumAll(int& rValue) const
-{
-    rValue = mrDataCommunicator.SumAll(rValue);
-    return true;
-}
-
-bool Communicator::SumAll(double& rValue) const
-{
-    rValue = mrDataCommunicator.SumAll(rValue);
-    return true;
-}
-
-bool Communicator::SumAll(array_1d<double, 3>& rValue) const
-{
-    rValue = mrDataCommunicator.SumAll(rValue);
-    return true;
-}
-
-bool Communicator::MinAll(int& rValue) const
-{
-    rValue = mrDataCommunicator.MinAll(rValue);
-    return true;
-}
-
-bool Communicator::MinAll(double& rValue) const
-{
-    rValue = mrDataCommunicator.MinAll(rValue);
-    return true;
-}
-
-bool Communicator::MaxAll(int& rValue) const
-{
-    rValue = mrDataCommunicator.MaxAll(rValue);
-    return true;
-}
-
-bool Communicator::MaxAll(double& rValue) const
-{
-    rValue = mrDataCommunicator.MaxAll(rValue);
-    return true;
-}
-
-bool Communicator::ScanSum(const double& send_partial, double& receive_accumulated) const
-{
-    receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
-    return true;
-}
-
-bool Communicator::ScanSum(const int& send_partial, int& receive_accumulated) const
-{
-    receive_accumulated = mrDataCommunicator.ScanSum(send_partial);
-    return true;
-}
 
 bool Communicator::SynchronizeNodalSolutionStepsData()
 {

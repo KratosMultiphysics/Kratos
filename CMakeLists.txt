@@ -19,9 +19,9 @@ if(POLICY CMP0074)
 endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 7)
-set (KratosMultiphysics_MINOR_VERSION 1)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_MAJOR_VERSION 9)
+set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION "Dev")
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -86,19 +86,22 @@ SET( CMAKE_MODULE_LINKER_FLAGS_FULLDEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
 SET( CMAKE_MODULE_LINKER_FLAGS_CUSTOM "${CMAKE_MODULE_LINKER_FLAGS}")
 
 # If build mode is not defined, assume Release
-if(DEFINED ENV{KRATOS_BUILD_TYPE})
-    list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
-    if(FOUND_MODE EQUAL -1)
-        message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
-        set(CMAKE_BUILD_TYPE Release)
-    else(FOUND_MODE EQUAL -1)
-        set(CMAKE_BUILD_TYPE $ENV{KRATOS_BUILD_TYPE})
-    endif(FOUND_MODE EQUAL -1)
-else(DEFINED ENV{KRATOS_BUILD_TYPE})
-    message("--No CMAKE_BUILD_TYPE is defined, building in 'Release' mode.")
-    set(CMAKE_BUILD_TYPE Release)
-endif(DEFINED ENV{KRATOS_BUILD_TYPE})
+if(NOT CMAKE_BUILD_TYPE)
+  if(DEFINED ENV{KRATOS_BUILD_TYPE})
+      list(FIND CMAKE_CONFIGURATION_TYPES $ENV{KRATOS_BUILD_TYPE} FOUND_MODE)
+      if(FOUND_MODE EQUAL -1)
+          message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+          set(CMAKE_BUILD_TYPE Release)
+      else(FOUND_MODE EQUAL -1)
+          set(CMAKE_BUILD_TYPE $ENV{KRATOS_BUILD_TYPE})
+      endif(FOUND_MODE EQUAL -1)
+  else(DEFINED ENV{KRATOS_BUILD_TYPE})
+      message("--No CMAKE_BUILD_TYPE is defined, building in 'Release' mode.")
+      set(CMAKE_BUILD_TYPE Release)
+  endif(DEFINED ENV{KRATOS_BUILD_TYPE})
+endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+
 
 if(USE_COTIRE MATCHES ON)
   include(cotire)
@@ -220,7 +223,7 @@ endif(${MSVC12})
 if(${MSVC})
   message("Detected compiler as MSVC")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif(${MSVC})
@@ -256,6 +259,11 @@ include(pybind11Tools)
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
 set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
 set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+
+# check version of Python, needs to be done after including pybind
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
+    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+endif()
 
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
@@ -350,20 +358,28 @@ if(${USE_MPI} MATCHES ON )
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif(${USE_MPI} MATCHES ON )
 
-# Find zlib (for gidpost)
-find_package(ZLIB)
+# If we do not locally compile ZLIB we will find ZLIB in the system, if we cannot find it we will enforce the local compilation
+OPTION ( FORCE_LOCAL_ZLIB_COMPILATION "Force local compilation of zlib" OFF )
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
+    # Find zlib (for gidpost)
+    find_package(ZLIB)
+    if( ZLIB_FOUND )
+        include_directories( ${ZLIB_INCLUDE_DIRS} )
+    else( ZLIB_FOUND )
+        set( FORCE_LOCAL_ZLIB_COMPILATION ON )
+    endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
-if( ZLIB_FOUND )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
-else( ZLIB_FOUND )
+# We local compilate ZLIB
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
-  add_subdirectory(external_libraries/zlib)
-  # we have to add this for zconf
+  add_subdirectory( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
+  # We have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
-endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
 # including the AMatrix
 if( AMATRIX_DIR )
@@ -459,8 +475,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

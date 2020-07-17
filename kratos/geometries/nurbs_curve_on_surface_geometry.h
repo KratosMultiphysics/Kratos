@@ -37,6 +37,7 @@ public:
     ///@{
 
     typedef typename TSurfaceContainerPointType::value_type NodeType;
+    typedef typename TCurveContainerPointType::value_type CurveNodeType;
 
     typedef Geometry<NodeType> BaseType;
 
@@ -180,9 +181,9 @@ public:
         mpNurbsSurface->Spans(surface_spans_u, 0);
         mpNurbsSurface->Spans(surface_spans_v, 1);
 
-        CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
             rSpans,
-            *this, Start, End,
+            *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
             1e-6);
     }
@@ -205,6 +206,26 @@ public:
 
         std::vector<double> spans;
         Spans(spans);
+
+        mpNurbsCurve->CreateIntegrationPoints(
+            rIntegrationPoints, spans, points_per_span);
+    }
+
+    /* Creates integration points according to the knot intersections
+     * of the underlying nurbs surface, within a given range.
+     * @param result integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        double StartParameter, double EndParameter) const
+    {
+        mpNurbsSurface->PolynomialDegreeU();
+
+        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
+            + mpNurbsSurface->PolynomialDegreeV() + 1;
+
+        std::vector<double> spans;
+        Spans(spans, StartParameter, EndParameter);
 
         mpNurbsCurve->CreateIntegrationPoints(
             rIntegrationPoints, spans, points_per_span);

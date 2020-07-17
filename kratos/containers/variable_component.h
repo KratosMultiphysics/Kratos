@@ -2,34 +2,29 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 
 #if !defined(KRATOS_VARIABLE_COMPONENT_H_INCLUDED )
 #define  KRATOS_VARIABLE_COMPONENT_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
-#include "variable_data.h"
-
+#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -53,12 +48,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Provide information for store or retrive a component of a variable in data container.
-/** Provide information for store or retrive a component of a
-    variable in data container. This class also provide a method to
-    extract its component value from the source variable value in
-    container.
-*/
+/**
+ * @class VariableComponent
+ * @brief Provide information for store or retrive a component of a variable in data container.
+ * @details Provide information for store or retrive a component of a variable in data container. This class also provide a method to extract its component value from the source variable value in container.
+ * @tparam TAdaptorType The adaptor variable type
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ */
 template<class TAdaptorType>
 class VariableComponent : public VariableData
 {
@@ -87,19 +84,28 @@ public:
     /// Adaptor type.
     typedef TAdaptorType AdaptorType;
 
+    typedef VariableComponent<TAdaptorType> VariableComponentType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    VariableComponent(const std::string& ComponentName, const std::string& SourceName, int ComponentIndex, const AdaptorType& NewAdaptor)
-        : BaseType(ComponentName, sizeof(DataType), true, NewAdaptor.GetComponentIndex()), mAdaptor(NewAdaptor)
+    VariableComponent(
+        const std::string& rComponentName,
+        const std::string& rSourceName,
+        int ComponentIndex,
+        const AdaptorType& rNewAdaptor,
+        const VariableComponentType* pTimeDerivativeVariable = nullptr
+        )
+        : BaseType(rComponentName, sizeof(DataType),&rNewAdaptor.GetSourceVariable(), rNewAdaptor.GetComponentIndex()), mpSourceVariable(&rNewAdaptor.GetSourceVariable()),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
-        SetKey(GenerateKey(SourceName, sizeof(DataType), true,  ComponentIndex));
+        SetKey(GenerateKey(rSourceName, sizeof(DataType), true, ComponentIndex));
     }
 
     /// Copy constructor.
     VariableComponent(const VariableComponent& rOther)
-        : BaseType(rOther), mAdaptor(rOther.mAdaptor) {}
+        : BaseType(rOther), mpSourceVariable(rOther.mpSourceVariable) {}
 
     /// Destructor.
     ~VariableComponent() override {}
@@ -114,39 +120,44 @@ public:
     ///@name Operations
     ///@{
 
-
     ///@}
     ///@name Access
     ///@{
 
-    const SourceVariableType& GetSourceVariable() const
+    /**
+     * @brief This method returns the time derivative component variable
+     * @return The reference of the time derivative component variable (if any)
+     */
+    const VariableComponentType& GetTimeDerivative() const
     {
-        return mAdaptor.GetSourceVariable();
+        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpTimeDerivativeVariable;
     }
 
-    const AdaptorType& GetAdaptor() const
+    const SourceVariableType& GetSourceVariable() const
     {
-        return mAdaptor;
+        return *mpSourceVariable;
     }
 
     DataType& GetValue(SourceType& SourceValue) const
     {
-        return mAdaptor.GetValue(SourceValue);
+        return GetValueByIndex(SourceValue,GetComponentIndex());
     }
 
     const DataType& GetValue(const SourceType& SourceValue) const
     {
-        return mAdaptor.GetValue(SourceValue);
+        return GetValueByIndex(SourceValue,GetComponentIndex());
     }
 
     static VariableComponent const& StaticObject()
     {
-        return msStaticObject;
+        static const VariableComponent<TAdaptorType> static_object("NONE", "NONE", 0, TAdaptorType::StaticObject());
+        return static_object;
     }
 
     void Print(const void* pSource, std::ostream& rOStream) const override
     {
-        rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable : " <<  *static_cast<const DataType* >(pSource) ;
+        rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable : " <<  *static_cast<const DataType* >(pSource) ;
     }
 
     ///@}
@@ -162,14 +173,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
+        buffer << Name() << " component of " <<  GetSourceVariable().Name() << " variable";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable";
+        rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable";
     }
 
     /// Print object's data.
@@ -201,7 +212,7 @@ protected:
     VariableComponent& operator=(const VariableComponent& rOther)
     {
         BaseType::operator=(rOther);
-        mAdaptor = rOther.mAdaptor;
+        mpSourceVariable = rOther.mpSourceVariable;
     }
 
     ///@}
@@ -232,12 +243,13 @@ private:
 
     static const VariableComponent  msStaticObject;
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    TAdaptorType mAdaptor;
+    const SourceVariableType* mpSourceVariable;
+
+    const VariableComponentType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
 
     ///@}
     ///@name Serialization
@@ -251,6 +263,21 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// This is the default function for getting a value by index using operator[]
+    /** It is templated so one can create specialized version of this for types without operator[]
+    **/
+    template<typename TValueType>
+    DataType& GetValueByIndex(TValueType& rValue, std::size_t index) const
+    {
+        return rValue[index];
+    }
+
+    template<typename TValueType>
+    const DataType& GetValueByIndex(const TValueType& rValue, std::size_t index) const
+    {
+        return rValue[index];
+    }
 
 
     ///@}
@@ -274,9 +301,6 @@ private:
 }; // Class VariableComponent
 
 ///@}
-
-template<class TAdaptorType>
-const VariableComponent<TAdaptorType> VariableComponent<TAdaptorType>::msStaticObject("NONE", "NONE", 0, TAdaptorType::StaticObject());
 
 ///@name Type Definitions
 ///@{
@@ -307,6 +331,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
 
 

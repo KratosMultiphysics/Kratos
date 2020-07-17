@@ -80,6 +80,9 @@ public:
     /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// The definition of the current class
+    typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     /// Definition of the classes from the base class
     typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::IndexType IndexType;
@@ -111,6 +114,13 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedEliminationBuilderAndSolver() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolver(
@@ -140,6 +150,19 @@ public:
      */
     ~ResidualBasedEliminationBuilderAndSolver() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -175,7 +198,7 @@ public:
         //getting the array of the conditions
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
@@ -205,7 +228,7 @@ public:
                 if (element_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -214,7 +237,7 @@ public:
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
                     // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
+                    pScheme->CleanMemory(*it);
 
                 }
 
@@ -234,7 +257,7 @@ public:
                 if (condition_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
@@ -243,7 +266,7 @@ public:
 #endif
 
                     // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
+                    pScheme->CleanMemory(*it);
                 }
             }
         }
@@ -286,19 +309,19 @@ public:
         //terms
         Element::EquationIdVectorType EquationId;
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS(rA, LHS_Contribution, EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -307,7 +330,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHS(rA, LHS_Contribution, EquationId);
@@ -340,7 +363,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
@@ -356,13 +379,13 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, EquationId);
 
             // clean local elemental memory
-            pScheme->CleanMemory(*it);
+            pScheme->CleanMemory(**it);
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -370,7 +393,7 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
+            pScheme->CalculateLHSContribution(**it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
             AssembleLHSCompleteOnFreeRows(rA, LHS_Contribution, EquationId);
@@ -553,7 +576,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& pConditions = rModelPart.Conditions();
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         //contributions to the system
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -579,7 +602,7 @@ public:
                 if (element_is_active)
                 {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Assemble the elemental contribution
                     AssembleRHS(rb, RHS_Contribution, EquationId);
@@ -601,7 +624,7 @@ public:
                 if (condition_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
                     AssembleRHS(rb, RHS_Contribution, EquationId);
@@ -635,7 +658,7 @@ public:
 
         Element::DofsVectorType ElementalDofList;
 
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         unsigned int nthreads = OpenMPUtils::GetNumThreads();
 
@@ -658,7 +681,7 @@ public:
             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
             // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+            pScheme->GetDofList(*it, ElementalDofList, CurrentProcessInfo);
 
             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
         }
@@ -672,7 +695,7 @@ public:
             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
             // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+            pScheme->GetDofList(*it, ElementalDofList, CurrentProcessInfo);
             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
         }
 
@@ -824,10 +847,14 @@ public:
                 ConstructMatrixStructure(pScheme, rA, rModelPart);
             }
         }
-        if (rDx.size() != BaseType::mEquationSystemSize)
+        if (rDx.size() != BaseType::mEquationSystemSize) {
             rDx.resize(BaseType::mEquationSystemSize, false);
-        if (rb.size() != BaseType::mEquationSystemSize)
+        }
+        TSparseSpace::SetToZero(rDx);
+        if (rb.size() != BaseType::mEquationSystemSize) {
             rb.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(rb);
 
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true) {
@@ -920,6 +947,15 @@ public:
 
         return 0;
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "elimination_builder_and_solver";
     }
 
     ///@}
@@ -1055,7 +1091,7 @@ protected:
         #pragma omp parallel firstprivate(ids)
         {
             // The process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
             std::vector<std::unordered_set<std::size_t> > temp_indexes(equation_size);
@@ -1074,7 +1110,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
                 auto it_elem = el_begin + i_elem;
-                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_elem, ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
@@ -1096,7 +1132,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = cond_begin + i_cond;
-                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_cond, ids, r_current_process_info);
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
@@ -1198,20 +1234,20 @@ protected:
         )
     {
         double* values_vector = rA.value_data().begin();
-        std::size_t* index1_vector = rA.index1_data().begin();
-        std::size_t* index2_vector = rA.index2_data().begin();
+        IndexType* index1_vector = rA.index1_data().begin();
+        IndexType* index2_vector = rA.index2_data().begin();
 
-        const std::size_t left_limit = index1_vector[i];
+        const IndexType left_limit = index1_vector[i];
 
         // Find the first entry
         // We iterate over the equation ids until we find the first equation id to be considered
         // We count in which component we find an ID
-        std::size_t last_pos = 0;
-        std::size_t last_found = 0;
-        std::size_t counter = 0;
-        for(std::size_t j=0; j < EquationId.size(); ++j) {
+        IndexType last_pos = 0;
+        IndexType last_found = 0;
+        IndexType counter = 0;
+        for(IndexType j=0; j < EquationId.size(); ++j) {
             ++counter;
-            const std::size_t j_global = EquationId[j];
+            const IndexType j_global = EquationId[j];
             if (j_global < BaseType::mEquationSystemSize) {
                 last_pos = ForwardFind(j_global,left_limit,index2_vector);
                 last_found = j_global;
@@ -1230,9 +1266,9 @@ protected:
             values_vector[last_pos] += rALocal(i_local,counter - 1);
 #endif
             // Now find all of the other entries
-            std::size_t pos = 0;
-            for(std::size_t j = counter; j < EquationId.size(); ++j) {
-                std::size_t id_to_find = EquationId[j];
+            IndexType pos = 0;
+            for(IndexType j = counter; j < EquationId.size(); ++j) {
+                IndexType id_to_find = EquationId[j];
                 if (id_to_find < BaseType::mEquationSystemSize) {
                     if(id_to_find > last_found)
                         pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
@@ -1247,7 +1283,7 @@ protected:
                     #pragma omp atomic
                     r +=  v;
 #else
-                    values_vector[pos] += Alocal(i_local,j);
+                    values_vector[pos] += rALocal(i_local,j);
 #endif
                     last_found = id_to_find;
                     last_pos = pos;
@@ -1256,20 +1292,20 @@ protected:
         }
     }
 
-    inline std::size_t ForwardFind(const std::size_t id_to_find,
-                                   const std::size_t start,
-                                   const std::size_t* index_vector)
+    inline IndexType ForwardFind(const IndexType id_to_find,
+                                   const IndexType start,
+                                   const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos++;
         return pos;
     }
 
-    inline std::size_t BackwardFind(const std::size_t id_to_find,
-                                    const std::size_t start,
-                                    const std::size_t* index_vector)
+    inline IndexType BackwardFind(const IndexType id_to_find,
+                                    const IndexType start,
+                                    const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos--;
         return pos;
     }
@@ -1311,12 +1347,10 @@ private:
     {
         std::vector<std::size_t>::iterator i = v.begin();
         std::vector<std::size_t>::iterator endit = v.end();
-        while (i != endit && (*i) != candidate)
-        {
+        while (i != endit && (*i) != candidate) {
             i++;
         }
-        if (i == endit)
-        {
+        if (i == endit) {
             v.push_back(candidate);
         }
 
@@ -1332,18 +1366,15 @@ private:
         TSystemVectorType& rb,
         const LocalSystemVectorType& rRHSContribution,
         const EquationIdVectorType& rEquationId
-    )
+        )
     {
-        unsigned int local_size = rRHSContribution.size();
+        SizeType local_size = rRHSContribution.size();
 
-        if (BaseType::mCalculateReactionsFlag == false)
-        {
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                const unsigned int i_global = rEquationId[i_local];
+        if (BaseType::mCalculateReactionsFlag == false) {
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
 
-                if (i_global < BaseType::mEquationSystemSize) //free dof
-                {
+                if (i_global < BaseType::mEquationSystemSize) { // Free dof
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
@@ -1352,26 +1383,20 @@ private:
                     b_value += rhs_value;
                 }
             }
-        }
-        else
-        {
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                const unsigned int i_global = rEquationId[i_local];
+        } else {
+            TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
 
-                if (i_global < BaseType::mEquationSystemSize) //free dof
-                {
+                if (i_global < BaseType::mEquationSystemSize) { //free dof
                     // ASSEMBLING THE SYSTEM VECTOR
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic
                     b_value += rhs_value;
-                }
-                else //fixed dof
-                {
-                    double& b_value = ReactionsVector[i_global - BaseType::mEquationSystemSize];
+                } else { // Fixed dof
+                    double& b_value = r_reactions_vector[i_global - BaseType::mEquationSystemSize];
                     const double& rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic

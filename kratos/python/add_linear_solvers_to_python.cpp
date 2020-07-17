@@ -51,8 +51,8 @@ namespace Python
     using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
     template <class TDataType>
     using TLocalSpaceType = UblasSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
-    template <class TDataType>
-    using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+    template <class TDataType, class TOtherDataType>
+    using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TOtherDataType>>;
     template <class TDataType>
     using TDirectSolverType = DirectSolver<TUblasSparseSpace<TDataType>, TUblasDenseSpace<TDataType>>;
 
@@ -76,13 +76,16 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
 
-    typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;
+    typedef TLinearSolverType<std::complex<double>, std::complex<double>> ComplexLinearSolverType;
+    typedef TLinearSolverType<double, std::complex<double>> MixedLinearSolverType;
     typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
     typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> ComplexSkylineLUSolverType;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
+    void (ComplexLinearSolverType::*pointer_to_complex_solve_eigen)(ComplexLinearSolverType::SparseMatrixType& rK, ComplexLinearSolverType::SparseMatrixType& rM, ComplexLinearSolverType::DenseVectorType& Eigenvalues, ComplexLinearSolverType::DenseMatrixType& Eigenvectors) = &ComplexLinearSolverType::Solve;
+    void (MixedLinearSolverType::*pointer_to_mixed_solve_eigen)(MixedLinearSolverType::SparseMatrixType& rK, MixedLinearSolverType::SparseMatrixType& rM,MixedLinearSolverType::DenseVectorType& Eigenvalues, MixedLinearSolverType::DenseMatrixType& Eigenvectors) = &MixedLinearSolverType::Solve;
 
     //****************************************************************************************************
     //preconditioners
@@ -128,8 +131,17 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init< >() )
     .def("Initialize",&ComplexLinearSolverType::Initialize)
     .def("Solve",pointer_to_complex_solve)
+    .def("Solve",pointer_to_complex_solve_eigen)
     .def("Clear",&ComplexLinearSolverType::Clear)
     .def("__str__", PrintObject<ComplexLinearSolverType>)
+    ;
+
+    py::class_<MixedLinearSolverType, MixedLinearSolverType::Pointer>(m,"MixedLinearSolver")
+    .def(py::init< >() )
+    .def("Initialize",&MixedLinearSolverType::Initialize)
+    .def("Solve",pointer_to_mixed_solve_eigen)
+    .def("Clear",&MixedLinearSolverType::Clear)
+    .def("__str__", PrintObject<MixedLinearSolverType>)
     ;
 
     py::class_<IterativeSolverType, IterativeSolverType::Pointer, LinearSolverType>(m,"IterativeSolver")

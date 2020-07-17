@@ -594,7 +594,7 @@ protected:
             }
             else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
             {
-                typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+                typedef Variable<double> component_type;
                 component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
                 component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
                 component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));

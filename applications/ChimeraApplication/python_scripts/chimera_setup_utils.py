@@ -96,8 +96,8 @@ def GetApplyChimeraProcess(model, chimera_parameters, fluid_parameters):
 
 def SetChimeraInternalPartsFlag(model, chimera_internal_parts):
     '''
-        This function sects the flag CHIMERA_INTERNAL_BOUNDARY on the specified modelparts
+        This function sets the bool variable CHIMERA_INTERNAL_BOUNDARY to true on the specified modelparts
         so that they are excluded from the extract surface operation later on.
     '''
     for mp_name in chimera_internal_parts:
-        KratosMultiphysics.VariableUtils().SetFlag(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  model[mp_name].Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosChimera.CHIMERA_INTERNAL_BOUNDARY, True,  model[mp_name].Nodes)

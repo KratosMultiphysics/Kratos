@@ -1,15 +1,11 @@
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 import os
 
 # Import Kratos core and apps
-import KratosMultiphysics
+import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
-
-has_eigensolvers_application = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
 
 def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -20,15 +16,15 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters( parameter_file.read())
+                parameters = KM.Parameters( parameter_file.read())
 
             # To avoid many prints
             if (parameters["problem_data"]["echo_level"].GetInt() == 0):
-                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
-            model = KratosMultiphysics.Model()
+            model = KM.Model()
             self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["response_settings"], model)
 
             # call response function
@@ -41,7 +37,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.response_function.CalculateValue()
             self.value = self.response_function.GetValue()
             self.response_function.CalculateGradient()
-            self.gradient = self.response_function.GetShapeGradient()
+            self.gradient = self.response_function.GetNodalGradient(KM.SHAPE_SENSITIVITY)
             self.response_function.FinalizeSolutionStep()
 
     def tearDown(self):
@@ -49,6 +45,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             self.response_function.Finalize()
 
+            # TODO this should not be written by default!
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".post.bin")
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".time")
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".h5")
@@ -122,7 +119,7 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
     def test_execution(self):
-        self.current_model = KratosMultiphysics.Model()
+        self.current_model = KM.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 2943.7499999999995)
 
@@ -136,7 +133,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "strain_energy_response"
 
     def test_execution(self):
-        self.current_model = KratosMultiphysics.Model()
+        self.current_model = KM.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 0.6062751119154768)
 
@@ -144,7 +141,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[4][1], 0.17745756668175833)
         self.assertAlmostEqual(self.gradient[4][2], -1.5466170818541692e-05)
 
-@KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: EigenSolversApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "eigenfrequency_response"
 

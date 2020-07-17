@@ -28,16 +28,7 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
     mrDestinationMainModelPart(rDestinationMainModelPart),
     mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "allocation_size"                      : 1000,
-        "bucket_size"                          : 4,
-        "search_factor"                        : 2,
-        "interpolation_type"                   : "LST",
-        "internal_variable_interpolation_list" :[]
-    })" );
-
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mAllocationSize = ThisParameters["allocation_size"].GetInt();
     mBucketSize = ThisParameters["bucket_size"].GetInt();
@@ -636,6 +627,23 @@ InternalVariablesInterpolationProcess::InterpolationTypes InternalVariablesInter
         return InterpolationTypes::SHAPE_FUNCTION_TRANSFER;
     else
         return InterpolationTypes::LEAST_SQUARE_TRANSFER;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters InternalVariablesInterpolationProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "allocation_size"                      : 1000,
+        "bucket_size"                          : 4,
+        "search_factor"                        : 2,
+        "interpolation_type"                   : "LST",
+        "internal_variable_interpolation_list" :[]
+    })" );
+
+    return default_parameters;
 }
 
 }  // namespace Kratos.

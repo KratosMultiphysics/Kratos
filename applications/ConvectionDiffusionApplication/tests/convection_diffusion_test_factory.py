@@ -1,11 +1,10 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Other imports
 import os
@@ -62,12 +61,15 @@ class ConvectionDiffusionTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class BasicConvectionDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_stationary"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class BasicConvectionDiffusionTransientTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_transient"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class BasicDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_diffusion_test_stationary"
 

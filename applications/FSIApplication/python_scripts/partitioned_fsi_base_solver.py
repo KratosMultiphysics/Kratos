@@ -482,7 +482,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             # Get the number of conditions to be set in each processor
             local_nodes_number_accumulated = -1
             local_nodes_number = len(interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes)
-            local_nodes_number_accumulated = interface_submodelpart_i.GetCommunicator().ScanSum(local_nodes_number, local_nodes_number_accumulated)
+            local_nodes_number_accumulated = interface_submodelpart_i.GetCommunicator().GetDataCommunicator().ScanSum(local_nodes_number)
 
             # Create the point load condition
             aux_count = max_cond_id + local_nodes_number_accumulated

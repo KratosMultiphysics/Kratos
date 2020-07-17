@@ -17,6 +17,8 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         material_point_model_part = current_model.CreateModelPart("dummy_name")
         material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
+        self.process_info = material_point_model_part.ProcessInfo
+
         ## Initial material model part definition
         initial_mesh_model_part = current_model.CreateModelPart("Initial_dummy_name")
         initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
@@ -38,7 +40,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         self._create_conditions(background_sub_mp)
 
         # Generate MP Elements and Conditions
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
         KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, material_point_model_part)
 
     def _create_nodes(self, initial_mp):
@@ -87,12 +89,13 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Move particle
         for mpm in material_point_model_part.Elements:
-            new_coordinate = mpm.GetValue(KratosParticle.MP_COORD) + [0.3, 0.23, 0.22]
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+            new_coordinates = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.process_info)
+            new_coordinates[0] += [0.3, 0.23, 0.22]
+            mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, new_coordinates, self.process_info)
 
         # Check outside given domain
         for mpm in material_point_model_part.Elements:
-            new_coordinate = mpm.GetValue(KratosParticle.MP_COORD)
+            new_coordinate = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.process_info)[0]
             if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < -0.5 or new_coordinate[2] > 0.5 ):
                 mpm.Set(KratosMultiphysics.TO_ERASE, True)
 
@@ -122,8 +125,9 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Move particle
         for mpm in material_point_model_part.Elements:
-            new_coordinate = mpm.GetValue(KratosParticle.MP_COORD) + [0.3, 0.23, 0.22]
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+            new_coordinates = mpm.CalculateOnIntegrationPoints(KratosParticle.MP_COORD, self.process_info)
+            new_coordinates[0] += [0.3, 0.23, 0.22]
+            mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, new_coordinates, self.process_info)
 
         # Call Search
         self._search_element(current_model)
@@ -154,12 +158,13 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Move particle
         for mpc in material_point_model_part.Conditions:
-            new_coordinate = mpc.GetValue(KratosParticle.MPC_COORD) + [-0.5, 0.5, 0.5]
-            mpc.SetValue(KratosParticle.MPC_COORD, new_coordinate)
+            new_coordinates = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)
+            new_coordinates[0] += [-0.5, 0.5, 0.5]
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_COORD, new_coordinates, self.process_info)
 
         # Check outside given domain
         for mpc in material_point_model_part.Conditions:
-            new_coordinate = mpc.GetValue(KratosParticle.MPC_COORD)
+            new_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)[0]
             if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < -0.5 or new_coordinate[2] > 0.5 ):
                 mpc.Set(KratosMultiphysics.TO_ERASE, True)
 
@@ -189,8 +194,9 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Move particle
         for mpc in material_point_model_part.Conditions:
-            new_coordinate = mpc.GetValue(KratosParticle.MPC_COORD) + [-0.5, 0.5, 0.5]
-            mpc.SetValue(KratosParticle.MPC_COORD, new_coordinate)
+            new_coordinates = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.process_info)
+            new_coordinates[0] += [-0.5, 0.5, 0.5]
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_COORD, new_coordinates, self.process_info)
 
         # Call Search
         self._search_element(current_model)

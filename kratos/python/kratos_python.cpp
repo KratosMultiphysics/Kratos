@@ -50,7 +50,9 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
-#include "add_utilities_to_python.h"
+#include "add_geometrical_utilities_to_python.h"
+#include "add_other_utilities_to_python.h"
+#include "add_variable_utils_to_python.h"
 #include "add_matrix_market_interface_to_python.h"
 #include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
@@ -59,6 +61,7 @@
 #include "add_memory_info_to_python.h"
 #include "add_constraint_to_python.h"
 #include "add_response_functions_to_python.h"
+#include "add_communicator_to_python.h"
 #include "add_data_communicator_to_python.h"
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
@@ -70,11 +73,11 @@ namespace Kratos
 namespace Python
 {
 
-char const* greet()
+std::string Hello()
 {
     std::stringstream header;
-    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
-    return header.str().c_str();
+    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << " ;-)";
+    return header.str();
 }
 
 PYBIND11_MODULE(Kratos, m)
@@ -103,9 +106,6 @@ PYBIND11_MODULE(Kratos, m)
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
 
-//     AddQuadraturesToPython();
-//     AddIntegrationPointsToPython();
-
     AddProcessesToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);
@@ -117,7 +117,9 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
-    AddUtilitiesToPython(m);
+    AddGeometricalUtilitiesToPython(m);
+    AddOtherUtilitiesToPython(m);
+    AddVariableUtilsToPython(m);
     AddProcessInfoToPython(m);
     AddConstitutiveLawToPython(m);
     AddSerializerToPython(m);
@@ -132,10 +134,11 @@ PYBIND11_MODULE(Kratos, m)
     AddLoggerToPython(m);
     AddConstraintToPython(m);
     AddResponseFunctionsToPython(m);
+    AddCommunicatorToPython(m);
     AddDataCommunicatorToPython(m);
     AddParallelEnvironmentToPython(m);
 
-    m.def("Hello", greet);
+    m.def("Hello", Hello);
 }
 
 

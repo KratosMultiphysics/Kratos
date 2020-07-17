@@ -12,10 +12,9 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
-import KratosMultiphysics as KM
+from KratosMultiphysics import _ImportApplication
 from KratosIgaApplication import *
 application = KratosIgaApplication()
 application_name = "KratosIgaApplication"
-application_folder = "IgaApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+_ImportApplication(application, application_name)

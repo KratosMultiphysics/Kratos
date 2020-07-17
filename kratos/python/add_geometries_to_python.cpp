@@ -38,10 +38,10 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/prism_3d_6.h"
-// #include "geometries/prism_3d_15.h"
+#include "geometries/prism_3d_15.h"
 #include "geometries/hexahedra_3d_8.h"
-// #include "geometries/hexahedra_3d_20.h"
-// #include "geometries/hexahedra_3d_27.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
 // Nurbs Geometries
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
@@ -58,6 +58,7 @@ namespace Python
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
 
     const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
@@ -84,6 +85,14 @@ namespace Python
     bool IsIdSelfAssigned1(GeometryType& dummy)
     {
         return(dummy.IsIdSelfAssigned());
+    }
+
+    void CreateQuadraturePointGeometries1(GeometryType& dummy,
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives)
+    {
+        return(dummy.CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives));
     }
 
     array_1d<double,3> GetNormal(
@@ -144,6 +153,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    // Quadrature points
+    .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
     .def("Normal",GetNormal)
     .def("Normal",FastGetNormal)
     .def("UnitNormal",GetUnitNormal)
@@ -197,17 +208,20 @@ void  AddGeometriesToPython(pybind11::module& m)
     ;
     py::class_<Prism3D6<NodeType>, Prism3D6<NodeType>::Pointer,  GeometryType  >(m,"Prism3D6").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
-//     py::class_<Prism3D15<NodeType>, Prism3D15<NodeType>::Pointer,  GeometryType  >(m,"Prism3D15").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
-//     ;
+    py::class_<Prism3D15<NodeType>, Prism3D15<NodeType>::Pointer,  GeometryType  >(m,"Prism3D15").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
     py::class_<Hexahedra3D8<NodeType>, Hexahedra3D8<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D8").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
-//     py::class_<Hexahedra3D20<NodeType>, Hexahedra3D20<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D20").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
-//     ;
-//     py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
-//     ;
+    py::class_<Hexahedra3D20<NodeType>, Hexahedra3D20<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D20").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
+    py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
 
     // Adding PointsArrayType to interface
     PointerVectorPythonInterface<PointsArrayType>().CreateInterface(m,"NodesVector");
+
+    // Adding GeometriesArrayType to interface
+    PointerVectorPythonInterface<GeometriesArrayType>().CreateInterface(m, "GeometriesVector");
 
     /// Nurbs Geometries
     // NurbsSurfaceGeometry3D
@@ -255,4 +269,3 @@ void  AddGeometriesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

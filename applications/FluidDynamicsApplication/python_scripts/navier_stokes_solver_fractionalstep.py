@@ -143,16 +143,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
-    def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            is_converged = super(NavierStokesSolverFractionalStep,self).SolveSolutionStep()
-            if self.compute_reactions:
-                self._GetSolutionStrategy().CalculateReactions()
-
-            return is_converged
-        else:
-            return True
-
     def _CreateScheme(self):
         pass
 
@@ -217,15 +207,34 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         # Create the fractional step strategy
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            solution_strategy = KratosCFD.FSStrategy(
+            solution_strategy = KratosCFD.FractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
                 self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool(),
                 KratosCFD.PATCH_INDEX)
         else:
-            solution_strategy = KratosCFD.FSStrategy(
+            solution_strategy = KratosCFD.FractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
-                self.settings["predictor_corrector"].GetBool())
+                self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool())
 
         return solution_strategy
+
+    def _SetNodalProperties(self):
+        # Get density and dynamic viscostity from the properties of the first element
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if rho <= 0.0:
+                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            if dyn_viscosity <= 0.0:
+                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+            kin_viscosity = dyn_viscosity / rho
+            break
+        else:
+            raise Exception("No fluid elements found in the main model part.")
+        # Transfer the obtained properties to the nodes
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

@@ -150,7 +150,7 @@ Element::Pointer ShellThinElement3D4N::Create(IndexType NewId,
             pProperties, mpCoordinateTransformation->Create(pGeom));
 }
 
-void ShellThinElement3D4N::Initialize()
+void ShellThinElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -159,7 +159,7 @@ void ShellThinElement3D4N::Initialize()
     KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes"
                                             << points_number << std::endl;
 
-    BaseShellElement::Initialize();
+    BaseShellElement::Initialize(rCurrentProcessInfo);
 
     mpCoordinateTransformation->Initialize();
 

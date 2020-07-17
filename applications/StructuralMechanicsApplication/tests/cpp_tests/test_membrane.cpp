@@ -48,6 +48,9 @@ namespace Testing
         const unsigned int number_of_nodes = pElement->GetGeometry().size();
         const unsigned int dimension = pElement->GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_dofs = number_of_nodes * dimension;
+
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+
         // Set a predifined displacement field to compute the residual
         AssignPredefinedDisplacement(pElement);
 
@@ -55,9 +58,9 @@ namespace Testing
         Vector RHS_original = ZeroVector(number_of_dofs);
         Matrix LHS_original = ZeroMatrix(number_of_dofs,number_of_dofs);
 
-        pElement->Initialize(rModelPart.GetProcessInfo()); // Initialize the element to initialize the constitutive law
-        pElement->Check(rModelPart.GetProcessInfo());
-        pElement->CalculateLocalSystem(LHS_original, RHS_original, rModelPart.GetProcessInfo());
+        pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        pElement->Check(r_process_info);
+        pElement->CalculateLocalSystem(LHS_original, RHS_original, r_process_info);
 
         const double delta = 1e-4;
 
@@ -70,7 +73,7 @@ namespace Testing
                 Vector RHS_pinged = ZeroVector(number_of_dofs);
                 Matrix LHS_pinged = ZeroMatrix(number_of_dofs, number_of_dofs);
                 // Compute pinged LHS and RHS
-                pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, rModelPart.GetProcessInfo());
+                pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_process_info);
 
                 for(unsigned int k = 0; k < number_of_dofs; k++){
                     // Compute the finite difference estimate of the sensitivity
