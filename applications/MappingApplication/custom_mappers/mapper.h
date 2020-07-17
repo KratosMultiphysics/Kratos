@@ -165,8 +165,6 @@ public:
     /**
     * @brief Quering for mesh conformity
     * returns 1 if all the nodes are conform and 0 otherwise
-    * pure virtual, has to be implemented in every derived mapper,
-    * @see MapperFactory
     */
     virtual int AreMeshesConforming() const
     {
