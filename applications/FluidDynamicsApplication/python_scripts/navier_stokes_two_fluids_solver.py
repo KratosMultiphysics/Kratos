@@ -302,13 +302,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #    elem.SetValue(KratosCFD.ENRICHED_PRESSURE_4, 0.0)
 
         with open("ZeroDistance.log", "w") as distLogFile:
-            distLogFile.write( "time_step" + "\t" + "YZero" + "\n" )
+            distLogFile.write( "time_step" + "\t" + "XZeroMin" + "\t" + "XZeroMax" + "\n" )
 
         with open("solver_iteration.log", "w") as iterLogFile:
             iterLogFile.write( "time_step" + "\t" + "iter_number" + "\n" )
 
-        with open("MaxVelocity.log", "w") as distLogFile:
-            distLogFile.write( "time_step" + "\t" + "VMax" + "\n" )
+        with open("MaxVelocity.log", "w") as velLogFile:
+            velLogFile.write( "time_step" + "\t" + "VMax" + "\n" )
 
         with open("ContactAngle.log", "w") as CangleLogFile:
             CangleLogFile.write( "element_id" + "\t" + "contact_angle" + "\n" )
@@ -488,33 +488,52 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            YPlus = 1.0
-            YMinus = 0.0
-            DistPlus = 1.0e5
-            DistMinus = -1.0e5
-            YZero = (YPlus + YMinus) / 2.0
+            XPlusMin = 0.005
+            XMinusMin = 0.0
+            DistPlusMin = 1.0e5
+            DistMinusMin = -1.0e5
+            XZeroMin = (XPlusMin + XMinusMin) / 2.0
+
+            XPlusMax = 0.01
+            XMinusMax = 0.005
+            DistPlusMax = 1.0e5
+            DistMinusMax = -1.0e5
+            XZeroMax = (XPlusMax + XMinusMax) / 2.0
 
             for node in self.main_model_part.Nodes:
-                NodeX = node.X
+                NodeY = node.Y
                 NodeZ = node.Z
-                if (abs(NodeX - 0.005) < 1.0e-6 and abs(NodeZ - 0.005) < 1.0e-6):
-                    NodeY = node.Y
-                    if (NodeY > 0.005):
+                if (abs(NodeY - 0.005) < 1.0e-6 and abs(NodeZ - 0.0) < 1.0e-6):
+                    NodeX = node.X
+                    if (NodeX < 0.005):
                         Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (Dist >= 0.0 and Dist < DistPlus):
-                            DistPlus = Dist
-                            YPlus = NodeY
-                        if (Dist <= 0.0 and Dist > DistMinus):
-                            DistMinus = Dist
-                            YMinus = NodeY
+                        if (Dist >= 0.0 and Dist < DistPlusMin):
+                            DistPlusMin = Dist
+                            XPlusMin = NodeX
+                        if (Dist <= 0.0 and Dist > DistMinusMin):
+                            DistMinusMin = Dist
+                            XMinusMin = NodeX
+                    else: #if (NodeX > 0.005):
+                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                        if (Dist >= 0.0 and Dist < DistPlusMax):
+                            DistPlusMax = Dist
+                            XPlusMax = NodeX
+                        if (Dist <= 0.0 and Dist > DistMinusMax):
+                            DistMinusMax = Dist
+                            XMinusMax = NodeX
 
-            if (abs(DistPlus - DistMinus) > 1.0e-15):
-                YZero = YMinus + (-DistMinus)/(DistPlus - DistMinus)*(YPlus - YMinus)
+            if (abs(DistPlusMin - DistMinusMin) > 1.0e-15):
+                XZeroMin = XMinusMin + (-DistMinusMin)/(DistPlusMin - DistMinusMin)*(XPlusMin - XMinusMin)
             else:
-                YZero = YMinus
+                XZeroMin = XMinusMin
+
+            if (abs(DistPlusMax - DistMinusMax) > 1.0e-15):
+                XZeroMax = XMinusMax + (-DistMinusMax)/(DistPlusMax - DistMinusMax)*(XPlusMax - XMinusMax)
+            else:
+                XZeroMax = XMinusMax
 
             with open("ZeroDistance.log", "a") as distLogFile:
-                distLogFile.write( str(TimeStep*DT) + "\t" + str(YZero) + "\n" )
+                distLogFile.write( str(TimeStep*DT) + "\t" + str(XZeroMin) + "\t" + str(XZeroMax) + "\n" )
 
             #ZPlus = 0.0
             #ZMinus = 0.0
@@ -569,8 +588,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 if (normv > VMax):
                     VMax = normv
 
-            with open("MaxVelocity.log", "a") as distLogFile:
-                distLogFile.write( str(TimeStep*DT) + "\t" + str(VMax) + "\n" )
+            with open("MaxVelocity.log", "a") as velLogFile:
+                velLogFile.write( str(TimeStep*DT) + "\t" + str(VMax) + "\n" )
 
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "ended InitializeSolutionStep")
 
