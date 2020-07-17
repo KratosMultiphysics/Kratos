@@ -20,8 +20,6 @@ try:
 except ImportError:
      interpolation_imports_available = False
 
-import importlib
-
 if candelier_imports_available:
      class candelier_no_history_test(CandelierTF.TestFactory):
           file_name = "candelier_tests/candelier"
