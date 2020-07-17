@@ -1,23 +1,105 @@
 # Contents
-- [Contents](#contents)
-  - [Basic Configuration](#basic-configuration)
-  - [Adding Applications](#adding-applications)
-  - [Adding Kratos to Path](#adding-kratos-to-path)
-  - [Examples](#examples)
-    - [Linux](#linux)
-    - [Windows](#windows)
-    - [MacOS](#macos)
-  - [Advanced Configuration](#advanced-configuration)
-    - [Building Environment](#building-environment)
-    - [Common Flags](#common-flags)
-    - [Compilation Performance](#compilation-performance)
-    - [Parallelism](#parallelism)
-    - [Logging](#logging)
-    - [External libraries](#external-libraries)
-      - [Metis](#metis)
-      - [Trilinos](#trilinos)
-  - [Applications](#applications)
+* [Cloning Kratos](#cloning-kratos)
+* [Kratos Dependencies](#kratos-dependencies)
+  * [Kratos Core Dependencies](#kratos-core-dependencies)
+    * [Linux Installation](#linux-installation)
+    * [Windows Installation](#windows-installation)
+  * [Specific Application Dependencies](#specific-application-dependencies)
+* [Basic Configuration](#basic-configuration)
+* [Adding Applications](#adding-applications)
+* [Adding Kratos to Path](#adding-kratos-to-path)
+* [Examples](#examples)
+  * [Linux](#linux)
+  * [Windows](#windows)
+  * [MacOS](#macos)
+* [Advanced Configuration](#advanced-configuration)
+  * [Building Environment](#building-environments)
+  * [Common Flags](#common-flags)
+  * [Compilation Performance](#compilation-performance)
+  * [MPI-Parallelism](#parallelism)
+  * [External Libraries](#external-libraries)
+    * [Metis](#metis)
+    * [Trilinos](#trilinos)
 
+## Cloning Kratos
+
+In order to obtain the source code of Kratos, you will need to clone the repository using git.
+
+You can install git through the following command in Linux:
+```Shell
+sudo apt-get install git
+```
+In Windows, you can download it in:
+
+* [Download Git](https://git-scm.com/downloads)
+
+
+
+Once git is installed you can fetch the code by using this command in a terminal:
+
+```Shell
+git clone https://github.com/KratosMultiphysics/Kratos Kratos
+```
+
+## Kratos Dependencies
+
+### Kratos Core Dependencies
+  These are the basic dependecies needed to compile the Kratos Core and most of the Kratos applications.
+  * Python3-dev
+  * C++11 compiler
+  * CMake
+  * Boost (dependencies are header-only, no compilation of boost libraries required)
+
+Additionaly, Visual Studio is required to compile in Windows.
+
+- #### Linux installation
+
+    The command below will install all the packages needed.
+
+    ```Shell
+    sudo apt-get install python3-dev gcc g++ cmake libboost-all-dev
+    ```
+    Newer versions of boost can be downloaded in:
+
+    http://www.boost.org/users/download/.
+
+- #### Windows installation
+
+    - Visual Studio
+
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is Visual Studio 2017, but we recommend to use Visual Studio 2019 or higher. 
+
+        * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=15)
+
+        Since *Visual Studio* is a multi-language IDE, some distributions come without C++ compiler. Please, make sure that you can create a C++ project before continuing, in case C++ packages were missing you will be prompt to download them.
+
+    - CMake
+        * [Download CMake](http://cmake.org/download/)
+
+        Once installing, please <span style="color:red"> do not forget to mark the option: '''"Add CMake to the system PATH for all users"'''</span>
+
+        Minimum required version: CMake 3.14
+        
+    - Python
+
+        You will need at least *Python* 3.5 (recommended 3.7/3.8) in your computer in order to compile *Kratos*. You can download python from its official webpage:
+
+        * [Download Python](http://www.python.org/downloads/)
+
+        Please, take special care to download a installer that suits your desired architecture <span style="color:red">x86 for 32 bits</span>  compilations and <span style="color:red">x86_64 for 64 bits</span>  compilations. Otherwise it won't work.
+
+    - Boost
+
+        The next step will consist in obtain Boost. *Kratos Multiphysics* needs *Boost* libraries to support some of its functions. You can use any version from `version 1.67` onward.
+
+        * [Download Boost](http://www.boost.org/users/download/)
+
+        Extract boost, and note the path as it will be needed in the configure stage to set the environmental variable `BOOST_ROOT`.
+
+
+### Specific Application Dependencies
+
+Some applications have additional dependencies. Please check the `README` files of the applications that are compiled
 
 ## Basic Configuration
 
@@ -86,7 +168,12 @@ set PATH=%PATH%;C:/Kratos/bin/Release/libs
 
 ## Examples
 
-This examples are also located in
+These examples are also located [in the /scripts folder](https://github.com/KratosMultiphysics/Kratos/tree/master/scripts). You can simply create your own copy:
+
+```Shell
+cp /path_to_kratos/scripts/standard_configure.sh /path_to_kratos/scripts/configure.sh
+```
+
 
 ### Linux
 
@@ -327,6 +414,11 @@ Specifies if the metis version is 5 or greater (OFF by default).
 Root directory for Metis library
 
 #### Trilinos
+On Ubuntu 18.04, the following command installs the necessary files:
+
+```Shell
+sudo apt-get install trilinos-all-dev
+```
 
 `-DTRILINOS_ROOT=String`
 
@@ -346,13 +438,3 @@ Indicates the prefix of the trilinos libraries in case they have:
 libepetra.so          -> No prefix
 libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
 ```
-
-## Applications
-
-Specific compilation information about applications can be found in their own directories:
-
-- [EigenSolvers Application](applications/EigenSolversApplication/README.md#build-instructions)
-- [HDF5 Application](applications/HDF5Application/README.md#build-instructions)
-- [MultilevelMontecarlo Application](applications/MultilevelMonteCarloApplication/README.md#external-libraries)
-- [Poromechanics Application](applications/PoromechanicsApplication/README.md#how-to-use-mpi-in-poromechanics-application)
-- [Trilinos Application (Aditional notes)](applications/TrilinosApplication/README.md#notes-for-compilation)

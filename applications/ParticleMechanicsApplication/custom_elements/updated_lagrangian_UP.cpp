@@ -431,7 +431,11 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight)
+void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, 
+    GeneralVariables& rVariables, 
+    Vector& rVolumeForce, 
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Contribution of the internal and external forces
     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
@@ -1019,35 +1023,44 @@ void UpdatedLagrangianUP::GetDofList( DofsVectorType& rElementalDofList, Process
 //************************************************************************************
 //****************MASS MATRIX*********************************************************
 
-void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     // Call the values of the shape function for the single element
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    Vector N;
+    this->MPMShapeFunctionPointValues(N, mMP.xg);
 
-    // Lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int matrix_size = number_of_nodes * dimension + number_of_nodes;
+    const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
+        ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)
+        : true;
 
-    if ( rMassMatrix.size1() != matrix_size )
-        rMassMatrix.resize( matrix_size, matrix_size, false );
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType matrix_size = dimension * number_of_nodes;
 
+    if (rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
+        rMassMatrix.resize(matrix_size, matrix_size, false);
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
-    // TOTAL MASS OF ONE MP ELEMENT
-    const double & r_total_mass = mMP.mass;
-
-    // LUMPED MATRIX
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        double temp = Variables.N[i] * r_total_mass;
-        unsigned int index_up = i * dimension + i;
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rMassMatrix( index_up+j, index_up+j ) = temp;
+    if (!is_lumped_mass_matrix) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType j = 0; j < number_of_nodes; ++j) {
+                for (IndexType k = 0; k < dimension; ++k)
+                {
+                    const IndexType index_i = i * dimension + k;
+                    const IndexType index_j = j * dimension + k;
+                    rMassMatrix(index_i, index_j) = N[i] * N[j] * mMP.mass;
+                }
+            }
+        }
+    } else {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType k = 0; k < dimension; ++k)
+            {
+                const IndexType index = i * dimension + k;
+                rMassMatrix(index, index) = N[i] * mMP.mass;
+            }
         }
     }
 
@@ -1236,6 +1249,12 @@ void UpdatedLagrangianUP::SetValuesOnIntegrationPoints(
 int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+    ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+    : false;
+    KRATOS_ERROR_IF(is_explicit)
+    << "Explicit time integration not implemented for Updated Lagrangian UP MPM Element";
 
     int correct = 0;
     correct = UpdatedLagrangian::Check(rCurrentProcessInfo);

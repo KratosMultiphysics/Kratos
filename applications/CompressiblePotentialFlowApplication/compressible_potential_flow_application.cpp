@@ -101,6 +101,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
 
   // Solver parameters
   KRATOS_REGISTER_VARIABLE(MACH_LIMIT)
+  KRATOS_REGISTER_VARIABLE(MACH_SQUARED_LIMIT)
 
   // Markers
   KRATOS_REGISTER_VARIABLE(WAKE);

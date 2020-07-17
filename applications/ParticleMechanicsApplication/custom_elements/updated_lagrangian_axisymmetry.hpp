@@ -182,6 +182,10 @@ protected:
                                      GeneralVariables& rVariables,
                                      const double& rIntegrationWeight) override;
 
+    /// Calculation of the Explicit Stresses from velocity gradient.
+    void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables) override;
+
     /**
      * Clear Nodal Forces
      */
@@ -254,6 +258,11 @@ protected:
                                       Matrix& rDeltaPosition,
                                       const double & rCurrentRadius,
                                       const double & rReferenceRadius);
+
+    /// Calculate and add RHS
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+        GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access

@@ -65,6 +65,15 @@ template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
 template <int Dim, int NumNodes>
+double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeClampedVelocitySquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeVelocityMagnitude(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
@@ -80,10 +89,22 @@ template <int Dim, int NumNodes>
 double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+double ComputeLocalSpeedofSoundSquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeSquaredSpeedofSoundFactor(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeLocalMachNumberSquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(const array_1d<double, Dim>& rVelocity, const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
 double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
@@ -98,7 +119,6 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
 
 template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
-
 } // namespace PotentialFlow
 } // namespace Kratos
 

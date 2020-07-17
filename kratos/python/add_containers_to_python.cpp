@@ -97,6 +97,9 @@ void  AddContainersToPython(pybind11::module& m)
     py::class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
     .def("Key", &VariableData::Key)
+    .def("GetSourceVariable", &VariableData::GetSourceVariable)
+    .def("GetComponentIndex()", &VariableData::GetComponentIndex)
+    .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
     ;
 
@@ -328,6 +331,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ERROR_RATIO )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_STEPS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_LAGRANGE_MULTIPLIER )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_INTEGRATION_THETA )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_LAGRANGE_MULTIPLIER )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ANGULAR_ACCELERATION )
@@ -430,8 +434,6 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_FRICTION_ANGLE )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_DISPLACEMENT )
-
-
 
     // for MultiScale application
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INITIAL_STRAIN )

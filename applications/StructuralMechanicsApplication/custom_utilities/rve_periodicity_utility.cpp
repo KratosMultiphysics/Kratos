@@ -138,9 +138,9 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
 {
     // Get the components
     const std::string& r_base_variable_name = rVariable.Name();
-    auto& r_var_x = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_X");
-    auto& r_var_y = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_Y");
-    auto& r_var_z = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(r_base_variable_name + "_Z");
+    auto& r_var_x = KratosComponents<Variable<double>>::Get(r_base_variable_name + "_X");
+    auto& r_var_y = KratosComponents<Variable<double>>::Get(r_base_variable_name + "_Y");
+    auto& r_var_z = KratosComponents<Variable<double>>::Get(r_base_variable_name + "_Z");
 
     for (auto& r_data : mAuxPairings) {
         auto& r_master_data = r_data.second;

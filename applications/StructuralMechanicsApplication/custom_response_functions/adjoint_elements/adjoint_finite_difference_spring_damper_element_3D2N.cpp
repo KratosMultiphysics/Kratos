@@ -95,7 +95,7 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const ProcessInfo& rCurrentProcessInfo )
+int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -126,7 +126,7 @@ int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const Pro
     // Verify that the dofs exist
     for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ ) {
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        NodeType& rnode = this->GetGeometry()[i];
+        const NodeType& rnode = this->GetGeometry()[i];
 
         // The displacement terms
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT,rnode)

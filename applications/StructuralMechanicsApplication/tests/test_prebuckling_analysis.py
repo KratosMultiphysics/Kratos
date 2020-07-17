@@ -91,9 +91,19 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         {
             "max_iteration"         : 1000,
             "tolerance"             : 1e-6,
-            "number_of_eigenvalues" : 2,
+            "number_of_eigenvalues" : 1,
             "echo_level"            : 0,
-            "normalize_eigenvectors": true
+            "normalize_eigenvectors": false
+        }
+        """)
+
+        buckling_settings = KratosMultiphysics.Parameters("""
+        {
+            "initial_load_increment"    : 1.0,
+            "small_load_increment"      : 0.0005,
+            "path_following_step"       : 0.5,
+            "convergence_ratio"         : 0.005,
+            "make_matrices_symmetric"   : true
         }
         """)
 
@@ -111,10 +121,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
                                                                            builder_and_solver,
                                                                            convergence_criterion,
                                                                            10,
-                                                                           1.0,
-                                                                           0.0005,
-                                                                           0.5,
-                                                                           0.005 )
+                                                                           buckling_settings )
         eig_strategy.SetEchoLevel(echo)
         LoadFactor = []
         for i in range(iterations):

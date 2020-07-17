@@ -568,7 +568,7 @@ public:
     }
 
     template <typename TDataType>
-    std::tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>> static GetNormDistribution(
+    std::tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>, std::vector<double>, std::vector<double>> static GetNormDistribution(
 
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
@@ -647,27 +647,41 @@ public:
                 min_value + (max_value - min_value) * static_cast<double>(i) /
                                 static_cast<double>(number_of_groups));
         }
-        group_limits[group_limits.size() - 1] += 1.0;
+
+        // final group limit is extended by a small amount. epsilon in numeric limits cannot be used
+        // since testing also need to have the same extending value in python. Therefore hard coded value
+        // is used
+        group_limits[group_limits.size() - 1] += 1e-16;
         group_limits.push_back(std::numeric_limits<double>::max());
 
         group_limits.shrink_to_fit();
         const int number_of_limits = group_limits.size();
 
         std::vector<int> distribution;
+        std::vector<double> group_means, group_variances;
         for (int i = 0; i < number_of_limits; ++i)
         {
             distribution.push_back(0);
+            group_means.push_back(0.0);
+            group_variances.push_back(0.0);
         }
         distribution.shrink_to_fit();
+        group_means.shrink_to_fit();
+        group_variances.shrink_to_fit();
 
 #pragma omp parallel
         {
             std::vector<int> local_distribution;
+            std::vector<double> local_means, local_variances;
             for (int i = 0; i < number_of_limits; ++i)
             {
                 local_distribution.push_back(0);
+                local_means.push_back(0.0);
+                local_variances.push_back(0.0);
             }
             local_distribution.shrink_to_fit();
+            local_means.shrink_to_fit();
+            local_variances.shrink_to_fit();
 
 #pragma omp for
             for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
@@ -681,6 +695,8 @@ public:
                     if (value_norm < group_limits[i])
                     {
                         ++local_distribution[i];
+                        local_means[i] += value_norm;
+                        local_variances[i] += std::pow(value_norm, 2);
                         break;
                     }
                 }
@@ -690,30 +706,48 @@ public:
                 for (int i = 0; i < number_of_limits; ++i)
                 {
                     distribution[i] += local_distribution[i];
+                    group_means[i] += local_means[i];
+                    group_variances[i] += local_variances[i];
                 }
             }
         }
 
         std::vector<int> global_distribution =
             rModelPart.GetCommunicator().GetDataCommunicator().SumAll(distribution);
+        std::vector<double> global_mean_distribution =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(group_means);
+        std::vector<double> global_variance_distribution =
+            rModelPart.GetCommunicator().GetDataCommunicator().SumAll(group_variances);
 
-        const int number_of_items = std::max(
-            std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1);
+        const double number_of_items = static_cast<double>(std::max(
+            std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1));
         std::vector<double> global_percentage_distributions;
         for (int i = 0; i < number_of_limits; ++i)
         {
-            global_percentage_distributions.push_back(
-                static_cast<double>(global_distribution[i]) /
-                static_cast<double>(number_of_items));
+            const double number_of_values_in_group =
+                static_cast<double>(global_distribution[i]);
+            global_percentage_distributions.push_back(number_of_values_in_group / number_of_items);
+            if (number_of_values_in_group > 0.0)
+            {
+                global_mean_distribution[i] /= number_of_values_in_group;
+                global_variance_distribution[i] /= number_of_values_in_group;
+                global_variance_distribution[i] -=
+                    std::pow(global_mean_distribution[i], 2);
+            }
         }
-        group_limits[group_limits.size() - 2] -= 1.0;
+
+        // reversing group limit is extention
+        group_limits[group_limits.size() - 2] -= 1e-16;
         group_limits[group_limits.size() - 1] = max_value;
 
-        return std::make_tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>>(
+        return std::make_tuple<double, double, std::vector<double>, std::vector<int>,
+                               std::vector<double>, std::vector<double>, std::vector<double>>(
             std::forward<double>(min_value), std::forward<double>(max_value),
             std::forward<std::vector<double>>(group_limits),
             std::forward<std::vector<int>>(global_distribution),
-            std::forward<std::vector<double>>(global_percentage_distributions));
+            std::forward<std::vector<double>>(global_percentage_distributions),
+            std::forward<std::vector<double>>(global_mean_distribution),
+            std::forward<std::vector<double>>(global_variance_distribution));
 
         KRATOS_CATCH("");
     }

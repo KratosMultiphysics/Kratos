@@ -20,7 +20,7 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             Simulation = TestStructuralMechanicsStaticROM(model,parameters)
             Simulation.Run()
             ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
-            ExpectedOutput = np.load('ExpectedOutput.npy')
+            ExpectedOutput = np.load('ExpectedOutputROM.npy')
             NodalArea = Simulation.EvaluateQuantityOfInterest2()
 
             UP=0
@@ -30,9 +30,13 @@ class ROMStaticStruct(KratosUnittest.TestCase):
                     UP += (NodalArea[i]*(   (1  - (ObtainedOutput[i] / ExpectedOutput[i] )    )**2)  )
                     DOWN +=  NodalArea[i]
             L2 = (np.sqrt(UP/DOWN)) *100
-            self.assertLess(L2, 0.1)#percent
+            self.assertLess(L2, 1e-12)#percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+            kratos_utilities.DeleteDirectoryIfExisting("vtk_output")
+            for file_name in os.listdir(os.getcwd()):
+                if file_name.endswith(".bin") or file_name.endswith(".lst") :
+                    kratos_utilities.DeleteFileIfExisting(file_name)
 
     def test_Struct_Static_HROM_2D(self):
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -41,21 +45,19 @@ class ROMStaticStruct(KratosUnittest.TestCase):
             model = KratosMultiphysics.Model()
             Simulation = TestStructuralMechanicsStaticHROM(model,parameters)
             Simulation.Run()
-            computing_model_part = Simulation._solver.GetComputingModelPart()
-            dimension = Simulation._GetSolver().settings["domain_size"].GetInt()
-            area_calculator = KratosMultiphysics.CalculateNodalAreaProcess(computing_model_part , dimension)
-            area_calculator.Execute()
-            ExpectedOutput = np.load('ExpectedOutput.npy')
+            ObtainedOutput = Simulation.EvaluateQuantityOfInterest()
+            ExpectedOutput = np.load('ExpectedOutputHROM.npy')
+            NodalArea = Simulation.EvaluateQuantityOfInterest2()
+            print(NodalArea)
+
             UP=0
             DOWN=0
-            for node in computing_model_part.Nodes:
-                NodalArea = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-                if (ExpectedOutput[(2*node.Id)-1] != 0) and (ExpectedOutput[(2*node.Id)-2] != 0):
-                    UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-2] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)  )**2)
-                    UP += NodalArea*(    (ExpectedOutput[(2*node.Id)-1] - node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)  )**2)
-                    DOWN +=  2*NodalArea
-            L2 = (np.sqrt(UP/DOWN))*100
-            self.assertLess(L2, 0.1) #percent
+            for i in range (len(ObtainedOutput)):
+                if ExpectedOutput[i] != 0:
+                    UP += (NodalArea[i]*(   (1  - (ObtainedOutput[i] / ExpectedOutput[i] )    )**2)  )
+                    DOWN +=  NodalArea[i]
+            L2 = (np.sqrt(UP/DOWN)) *100
+            self.assertLess(L2, 1e-12)#percent
             # Cleaning
             kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
             kratos_utilities.DeleteDirectoryIfExisting("vtk_output")

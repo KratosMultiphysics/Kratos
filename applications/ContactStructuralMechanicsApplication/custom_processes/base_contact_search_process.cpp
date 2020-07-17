@@ -815,7 +815,7 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
         p_auxiliar_condition->SetValue(NORMAL, rSlaveNormal);
         // We activate the condition and initialize it
         p_auxiliar_condition->Set(ACTIVE, true);
-        p_auxiliar_condition->Initialize();
+        p_auxiliar_condition->Initialize(rComputingModelPart.GetProcessInfo());
         return p_auxiliar_condition;
     }
 

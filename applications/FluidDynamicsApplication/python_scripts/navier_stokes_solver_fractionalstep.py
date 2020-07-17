@@ -143,16 +143,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
-    def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            is_converged = super(NavierStokesSolverFractionalStep,self).SolveSolutionStep()
-            if self.compute_reactions:
-                self._GetSolutionStrategy().CalculateReactions()
-
-            return is_converged
-        else:
-            return True
-
     def _CreateScheme(self):
         pass
 
@@ -217,15 +207,17 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         # Create the fractional step strategy
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            solution_strategy = KratosCFD.FSStrategy(
+            solution_strategy = KratosCFD.FractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
                 self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool(),
                 KratosCFD.PATCH_INDEX)
         else:
-            solution_strategy = KratosCFD.FSStrategy(
+            solution_strategy = KratosCFD.FractionalStepStrategy(
                 computing_model_part,
                 fractional_step_settings,
-                self.settings["predictor_corrector"].GetBool())
+                self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool())
 
         return solution_strategy

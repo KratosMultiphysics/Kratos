@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.RomApplication as romapp
@@ -12,7 +10,7 @@ import json
 class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
 
     def __init__(self,model,project_parameters):
-        super(ConvectionDiffusionAnalysisROM,self).__init__(model,project_parameters)
+        super().__init__(model,project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -28,7 +26,7 @@ class ConvectionDiffusionAnalysisROM(ConvectionDiffusionAnalysis):
 
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
-        super(ConvectionDiffusionAnalysisROM,self).ModifyInitialGeometry()
+        super().ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
         with open('RomParameters.json') as f:
             data = json.load(f)

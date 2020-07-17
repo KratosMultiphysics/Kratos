@@ -126,15 +126,6 @@ int RansApplyExactNodalPeriodicConditionProcess::Check()
             RansCheckUtilities::CheckIfVariableExistsInModelPart(
                 r_base_model_part_nodes, variable);
         }
-        else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
-                     variable_name))
-        {
-            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& variable =
-                KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                    variable_name);
-            RansCheckUtilities::CheckIfVariableExistsInModelPart(
-                r_base_model_part_nodes, variable.GetSourceVariable());
-        }
         else
         {
             KRATOS_ERROR << "Variable " << variable_name << " not found.\n";
@@ -187,14 +178,6 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
         {
             const Variable<double>& variable =
                 KratosComponents<Variable<double>>::Get(variable_name);
-            p_properties->GetValue(PERIODIC_VARIABLES).Add(variable);
-        }
-        else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
-                     variable_name))
-        {
-            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& variable =
-                KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                    variable_name);
             p_properties->GetValue(PERIODIC_VARIABLES).Add(variable);
         }
         else

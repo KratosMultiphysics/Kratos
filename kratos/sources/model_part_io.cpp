@@ -1558,7 +1558,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
 
     NodesContainerType& rThisNodes = rThisModelPart.Nodes();
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -1662,7 +1662,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
     VariablesList r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
     NodesContainerType& r_this_nodes = rThisModelPart.Nodes();
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -1805,7 +1805,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 
 template<class TObjectsContainerType>
 void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName){
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
     std::unordered_set<std::string> variables;
 
     for(auto& object :rThisObjectContainer){
@@ -2000,7 +2000,7 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -2116,7 +2116,7 @@ void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditi
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -3466,7 +3466,7 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string word;
 
@@ -3654,7 +3654,7 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string word;
 
@@ -3779,7 +3779,7 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     KRATOS_TRY
 
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string word, variable_name;
 

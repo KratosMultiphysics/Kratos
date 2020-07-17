@@ -818,7 +818,7 @@ protected:
 
             // We check now the deformation gradient
             std::vector<Matrix> deformation_gradient_matrices;
-            it_elem->GetValueOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
+            it_elem->CalculateOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
 
             for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
                 const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -20,14 +18,14 @@ class ROMSolver(ConvectionDiffusionTransientSolver):
     """
 
     def __init__(self, model, custom_settings):
-        super(ROMSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 
     #### Private functions ####
     @classmethod
     def GetDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""
-        {            
+        {
             "rom_settings": {
             "nodal_unknowns": [ "TEMPERATURE" ],
             "number_of_rom_dofs": 3
@@ -38,7 +36,7 @@ class ROMSolver(ConvectionDiffusionTransientSolver):
         return default_settings
 
     def AddVariables(self):
-        super(ROMSolver, self).AddVariables() #Adding nodal area variable
+        super().AddVariables() #Adding nodal area variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _create_builder_and_solver(self):

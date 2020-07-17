@@ -428,6 +428,7 @@ namespace Kratos
                 .def("Build", &BuilderAndSolverType::Build)
                 .def("SystemSolve", &BuilderAndSolverType::SystemSolve)
                 .def("BuildAndSolve", &BuilderAndSolverType::BuildAndSolve)
+                .def("BuildAndSolveLinearizedOnPreviousIteration", &BuilderAndSolverType::BuildAndSolveLinearizedOnPreviousIteration)
                 .def("BuildRHSAndSolve", &BuilderAndSolverType::BuildRHSAndSolve)
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                 .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
@@ -541,6 +542,10 @@ namespace Kratos
                 .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
                 .def("GetSystemVector", &ResidualBasedNewtonRaphsonStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
                 .def("GetSolutionVector", &ResidualBasedNewtonRaphsonStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
+                .def("SetUseOldStiffnessInFirstIterationFlag",
+                     &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+                .def("GetUseOldStiffnessInFirstIterationFlag",
+                     &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

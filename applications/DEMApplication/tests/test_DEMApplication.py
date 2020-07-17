@@ -57,11 +57,11 @@ def AssembleTestSuites():
 
     smallSuite.addTest(test_DEM_3D_continuum.TestDEM3DContinuum("test_DEM3D_continuum"))
 
-    smallSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
-    smallSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
-
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
+    
+    nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
+    nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
     nightSuite.addTests(smallSuite)
 
     # For very long tests that should not be in nightly and you can use to validate

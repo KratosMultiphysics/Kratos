@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication.convection_diffusion_analysis_rom import ConvectionDiffusionAnalysisROM
@@ -9,11 +7,11 @@ import numpy as np
 class TestConvectionDiffusionTransientROM(ConvectionDiffusionAnalysisROM):
 
     def __init__(self,model,project_parameters):
-        super(TestConvectionDiffusionTransientROM,self).__init__(model,project_parameters)
+        super().__init__(model,project_parameters)
         self.selected_time_step_solution_container = []
 
     def FinalizeSolutionStep(self):
-        super(TestConvectionDiffusionTransientROM,self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         ArrayOfTemperatures = []
         if self.time==500 or self.time==1200 or self.time==2500 or self.time==3000 or self.time==3600:
             for node in self._solver.GetComputingModelPart().Nodes:

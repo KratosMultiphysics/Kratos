@@ -92,7 +92,7 @@ public:
 
     typedef Variable<array_1d<double,3>> ArrayVarType;
     typedef Variable<double> DoubleVarType;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double,3>>> VarComponentType;
+    typedef Variable<double> VarComponentType;
 
     typedef array_1d<double, 3> Double3DArray;
 

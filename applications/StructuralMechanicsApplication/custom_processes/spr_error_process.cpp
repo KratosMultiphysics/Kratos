@@ -151,7 +151,7 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
     for(int i_elem = 0; i_elem < num_elem; ++i_elem){
         auto it_elem = it_elem_begin + i_elem;
 
-        it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, r_process_info);
+        it_elem->CalculateOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, r_process_info);
 
         // The error_integration_point is printed
         if (mEchoLevel > 2) {
@@ -170,7 +170,7 @@ void SPRErrorProcess<TDim>::CalculateErrorEstimation(
         it_elem->SetValue(ELEMENT_ERROR, error_energy_norm);
 
         // We compute now the energy norm
-        it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, r_process_info);
+        it_elem->CalculateOnIntegrationPoints(STRAIN_ENERGY, strain_energy, r_process_info);
 
         double energy_norm = 0.0;
         for(IndexType i = 0;i < strain_energy.size(); ++i) {
@@ -215,8 +215,8 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
 
-        it_elem->GetValueOnIntegrationPoints(*mpStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
-        it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
+        it_elem->CalculateOnIntegrationPoints(*mpStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
+        it_elem->CalculateOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
 
         KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3)
         << "\tStress: " << stress_vector[0] << std::endl

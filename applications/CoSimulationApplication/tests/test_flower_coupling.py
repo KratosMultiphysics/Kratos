@@ -16,6 +16,7 @@ class TestFLOWerCoupling(KratosUnittest.TestCase):
     '''
 
     def test_dummy_flower_solver(self):
+        self.skipTestIfApplicationsNotAvailable("MappingApplication")
         self._createTest("FLOWer_coupling", "cosim", "dummy_flower_solver")
         self._runTest()
 

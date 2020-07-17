@@ -866,162 +866,162 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamage
 template<>
 void GenericTotalLagrangianFemDemElement<3,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,1>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,2>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,3>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,4>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,5>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,6>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,1>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,2>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,3>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,4>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,5>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,6>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector, // must be assigned to the current element outside this method
     const int edge
     )
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-    rAverageVector += r_elem_neigb[edge].GetValue(ThisVariable);
+    rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
     rAverageVector *= 0.5;
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge3D(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector, // must be assigned to the current element outside this method
     const int edge
     )
@@ -1030,7 +1030,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
     int counter = 0;
 
     for (unsigned int elem = 0; elem < p_edge_neighbours.size(); elem++) {
-        rAverageVector += p_edge_neighbours[elem]->GetValue(ThisVariable);
+        rAverageVector += p_edge_neighbours[elem]->GetValue(rThisVariable);
         counter++;
     }
     rAverageVector /= (counter + 1);

@@ -37,10 +37,19 @@ Element::Pointer TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Clone(Ind
 }
 
 template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Initialize()
-{
-  KRATOS_TRY;
-  KRATOS_CATCH("");
+void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Initialize() {
+    KRATOS_TRY;
+
+    // If we are restarting, the constitutive law will be already defined
+    if (mpConstitutiveLaw == nullptr) {
+        const Properties &r_properties = this->GetProperties();
+        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+            << "In initialization of Element " << this->Info() << ": No CONSTITUTIVE_LAW defined for property "
+            << r_properties.Id() << "." << std::endl;
+        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim>
@@ -53,91 +62,6 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeNonLinearIt
 {
   KRATOS_TRY;
   KRATOS_CATCH("");
-}
-
-template <unsigned int TDim>
-void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParameters(double &Density,
-                                                                                     double &DeviatoricCoeff,
-                                                                                     double &VolumetricCoeff,
-                                                                                     ProcessInfo &currentProcessInfo,
-                                                                                     ElementalVariables &rElementalVariables)
-{
-  double timeStep = currentProcessInfo[DELTA_TIME];
-
-  Density = this->GetProperties()[DENSITY];
-  double FluidBulkModulus = this->GetProperties()[BULK_MODULUS];
-  double FluidYieldShear = this->GetProperties()[YIELD_SHEAR];
-  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
-
-  if (FluidBulkModulus == 0)
-  {
-    FluidBulkModulus = 1000000000.0;
-  }
-  VolumetricCoeff = FluidBulkModulus * timeStep;
-
-  if (FluidYieldShear != 0)
-  {
-    // std::cout<<"For a Newtonian fluid I should not enter here"<<std::endl;
-    DeviatoricCoeff = this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
-  }
-  else if (staticFrictionCoefficient != 0)
-  {
-    DeviatoricCoeff = this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables);
-    // if(regularizationCoefficient!=0 && inertialNumberThreshold==0){
-    // 	// DeviatoricCoeff=this->ComputeBercovierMuIrheologyViscosity(rElementalVariables);
-    // 	DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables);
-    // }
-    // else if(regularizationCoefficient==0 && inertialNumberThreshold!=0){
-    // 	DeviatoricCoeff=this->ComputeBarkerMuIrheologyViscosity(rElementalVariables);
-    // }else if(regularizationCoefficient!=0 && inertialNumberThreshold!=0){
-    // 	DeviatoricCoeff=this->ComputeBarkerBercovierMuIrheologyViscosity(rElementalVariables);
-    // }else{
-    // 	DeviatoricCoeff=this->ComputeJopMuIrheologyViscosity(rElementalVariables);
-    // }
-  }
-  else
-  {
-    // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
-    DeviatoricCoeff = this->GetProperties()[DYNAMIC_VISCOSITY];
-  }
-
-  // this->ComputeMaterialParametersGranularGas(rElementalVariables,VolumetricCoeff,DeviatoricCoeff);
-  // std::cout<<"Density "<<Density<<std::endl;
-  // std::cout<<"FluidBulkModulus "<<FluidBulkModulus<<std::endl;
-  // std::cout<<"staticFrictionCoefficient "<<staticFrictionCoefficient<<std::endl;
-  // std::cout<<"DeviatoricCoeff "<<DeviatoricCoeff<<std::endl;
-
-  this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
-  this->mMaterialVolumetricCoefficient = VolumetricCoeff;
-  this->mMaterialDensity = Density;
-
-  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  // for (SizeType i = 0; i < NumNodes; ++i)
-  //   {
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
-  //   }
-}
-
-template <unsigned int TDim>
-double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeNonLinearViscosity(double &equivalentStrainRate)
-{
-
-  double FluidViscosity = this->GetProperties()[DYNAMIC_VISCOSITY];
-  double FluidYieldShear = this->GetProperties()[YIELD_SHEAR];
-  double FluidAdaptiveExponent = this->GetProperties()[ADAPTIVE_EXPONENT];
-  double exponent = -FluidAdaptiveExponent * equivalentStrainRate;
-  if (equivalentStrainRate != 0)
-  {
-    FluidViscosity += (FluidYieldShear / equivalentStrainRate) * (1 - exp(exponent));
-  }
-  if (equivalentStrainRate < 0.00001 && FluidYieldShear != 0 && FluidAdaptiveExponent != 0)
-  {
-    // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-    FluidViscosity = FluidAdaptiveExponent * FluidYieldShear;
-  }
-  return FluidViscosity;
 }
 
 template <unsigned int TDim>
@@ -222,305 +146,103 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeMaterialParame
 }
 
 template <unsigned int TDim>
-double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeJopMuIrheologyViscosity(ElementalVariables &rElementalVariables)
-{
-  double FluidViscosity = 0;
+int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) {
+    KRATOS_TRY;
 
-  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
-  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
-  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
-  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
-  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
+    // Base class checks for positive Jacobian and Id > 0
+    int ierr = Element::Check(rCurrentProcessInfo);
+    if (ierr != 0) return ierr;
 
-  double meanPressure = rElementalVariables.MeanPressure;
-  if (meanPressure > 0)
-  {
-    meanPressure = 0.0000001;
-  }
+    // Check that all required variables have been registered
+    if (VELOCITY.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "VELOCITY Key is 0. Check that the application was correctly registered.", "");
+    if (ACCELERATION.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "ACCELERATION Key is 0. Check that the application was correctly registered.", "");
+    if (PRESSURE.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "PRESSURE Key is 0. Check that the application was correctly registered.", "");
+    if (BODY_FORCE.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "BODY_FORCE Key is 0. Check that the application was correctly registered.", "");
+    if (DENSITY.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "DENSITY Key is 0. Check that the application was correctly registered.", "");
+    if (DYNAMIC_VISCOSITY.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.", "");
+    if (DELTA_TIME.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,
+                           "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
 
-  double deltaFrictionCoefficient = dynamicFrictionCoefficient - staticFrictionCoefficient;
-  double inertialNumber = 0;
-  if (meanPressure != 0)
-  {
-    inertialNumber = rElementalVariables.EquivalentStrainRate * grainDiameter / sqrt(fabs(meanPressure) / grainDensity);
-  }
-  // double inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
-
-  if (rElementalVariables.EquivalentStrainRate != 0 && fabs(meanPressure) != 0)
-  {
-    double firstViscousTerm = staticFrictionCoefficient / rElementalVariables.EquivalentStrainRate;
-    double secondViscousTerm = deltaFrictionCoefficient * inertialNumber / ((inertialNumberZero + inertialNumber) * rElementalVariables.EquivalentStrainRate);
-    FluidViscosity = (firstViscousTerm + secondViscousTerm) * fabs(meanPressure);
-  }
-  else
-  {
-    FluidViscosity = 1.0;
-  }
-  return FluidViscosity;
-}
-
-template <unsigned int TDim>
-double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBercovierMuIrheologyViscosity(ElementalVariables &rElementalVariables)
-{
-  double FluidViscosity = 0;
-  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
-  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
-  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
-  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
-  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
-  double regularizationCoefficient = this->GetProperties()[REGULARIZATION_COEFFICIENT];
-
-  double meanPressure = rElementalVariables.MeanPressure;
-  if (meanPressure > 0)
-  {
-    meanPressure = 0.0000001;
-  }
-
-  double deltaFrictionCoefficient = dynamicFrictionCoefficient - staticFrictionCoefficient;
-  double inertialNumber = 0;
-  if (meanPressure != 0)
-  {
-    inertialNumber = rElementalVariables.EquivalentStrainRate * grainDiameter / sqrt(fabs(meanPressure) / grainDensity);
-  }
-
-  if (rElementalVariables.EquivalentStrainRate != 0 && fabs(meanPressure) != 0)
-  {
-    double firstViscousTerm = staticFrictionCoefficient / sqrt(pow(rElementalVariables.EquivalentStrainRate, 2) + pow(regularizationCoefficient, 2));
-    double secondViscousTerm = deltaFrictionCoefficient * inertialNumber / ((inertialNumberZero + inertialNumber) * rElementalVariables.EquivalentStrainRate);
-    FluidViscosity = (firstViscousTerm + secondViscousTerm) * fabs(meanPressure);
-  }
-  else
-  {
-    FluidViscosity = 1.0;
-  }
-
-  return FluidViscosity;
-}
-
-template <unsigned int TDim>
-double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputePapanastasiouMuIrheologyViscosity(ElementalVariables &rElementalVariables)
-{
-  double FluidViscosity = 0;
-  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
-  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
-  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
-  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
-  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
-  double regularizationCoefficient = this->GetProperties()[REGULARIZATION_COEFFICIENT];
-
-  double pressure = rElementalVariables.MeanPressure;
-  if (pressure > 0)
-  {
-    pressure = 0.0000001;
-  }
-
-  double deltaFrictionCoefficient = dynamicFrictionCoefficient - staticFrictionCoefficient;
-  double inertialNumber = 0;
-  if (rElementalVariables.MeanPressure != 0)
-  {
-    inertialNumber = rElementalVariables.EquivalentStrainRate * grainDiameter / sqrt(fabs(pressure) / grainDensity);
-  }
-
-  double exponent = -rElementalVariables.EquivalentStrainRate / regularizationCoefficient;
-
-  if (rElementalVariables.EquivalentStrainRate != 0 && fabs(pressure) != 0)
-  {
-    double firstViscousTerm = staticFrictionCoefficient * (1 - exp(exponent)) / rElementalVariables.EquivalentStrainRate;
-    double secondViscousTerm = deltaFrictionCoefficient * inertialNumber / ((inertialNumberZero + inertialNumber) * rElementalVariables.EquivalentStrainRate);
-    FluidViscosity = (firstViscousTerm + secondViscousTerm) * fabs(pressure);
-  }
-  else
-  {
-    FluidViscosity = 1.0;
-  }
-
-  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  // for (SizeType i = 0; i < NumNodes; ++i)
-  //   {
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=FluidViscosity;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=rElementalVariables.EquivalentStrainRate;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=inertialNumber;
-  // 	// std::cout<<"FluidViscosity "<<FluidViscosity<<"  StrainRate "<<rElementalVariables.EquivalentStrainRate<<"  inertialNumber "<<inertialNumber<<"  pressure "<<rElementalVariables.MeanPressure<<std::endl;
-  //   }
-
-  return FluidViscosity;
-}
-
-template <unsigned int TDim>
-double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBarkerMuIrheologyViscosity(ElementalVariables &rElementalVariables)
-{
-  double FluidViscosity = 0;
-  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
-  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
-  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
-  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
-  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
-  double inertialNumberThreshold = this->GetProperties()[INERTIAL_NUMBER_ONE];
-  double infiniteFrictionCoefficient = this->GetProperties()[INFINITE_FRICTION];
-  double alphaParameter = this->GetProperties()[ALPHA_PARAMETER];
-
-  double meanPressure = rElementalVariables.MeanPressure;
-  if (meanPressure > 0)
-  {
-    meanPressure = 0.0000001;
-  }
-
-  double inertialNumber = 0;
-  if (meanPressure != 0)
-  {
-    inertialNumber = rElementalVariables.EquivalentStrainRate * grainDiameter / sqrt(fabs(meanPressure) / grainDensity);
-  }
-
-  if (inertialNumber > inertialNumberThreshold)
-  {
-    FluidViscosity = (staticFrictionCoefficient * inertialNumberZero + dynamicFrictionCoefficient * inertialNumber + infiniteFrictionCoefficient * pow(inertialNumber, 2)) / (inertialNumberZero + inertialNumber);
-  }
-  else
-  {
-    double denominator = staticFrictionCoefficient * inertialNumberZero + dynamicFrictionCoefficient * inertialNumberThreshold + infiniteFrictionCoefficient * pow(inertialNumberThreshold, 2);
-    double exponent = alphaParameter * (inertialNumberZero + inertialNumberThreshold) * (inertialNumberZero + inertialNumberThreshold) / pow(denominator, 2);
-    double firstAconstant = inertialNumberThreshold * exp(exponent);
-    FluidViscosity = sqrt(alphaParameter / log(firstAconstant / inertialNumber));
-  }
-
-  if (rElementalVariables.EquivalentStrainRate != 0 && fabs(meanPressure) != 0)
-  {
-    FluidViscosity *= fabs(meanPressure) / rElementalVariables.EquivalentStrainRate;
-  }
-  else
-  {
-    FluidViscosity = 1.0;
-  }
-  return FluidViscosity;
-}
-
-template <unsigned int TDim>
-double TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables &rElementalVariables)
-{
-
-  double FluidViscosity = 0;
-
-  double staticFrictionCoefficient = this->GetProperties()[STATIC_FRICTION];
-  double dynamicFrictionCoefficient = this->GetProperties()[DYNAMIC_FRICTION];
-  double inertialNumberZero = this->GetProperties()[INERTIAL_NUMBER_ZERO];
-  double grainDiameter = this->GetProperties()[GRAIN_DIAMETER];
-  double grainDensity = this->GetProperties()[GRAIN_DENSITY];
-  double inertialNumberThreshold = this->GetProperties()[INERTIAL_NUMBER_ONE];
-  double infiniteFrictionCoefficient = this->GetProperties()[INFINITE_FRICTION];
-  double alphaParameter = this->GetProperties()[ALPHA_PARAMETER];
-  double regularizationCoefficient = this->GetProperties()[REGULARIZATION_COEFFICIENT];
-
-  double meanPressure = rElementalVariables.MeanPressure;
-  if (meanPressure > 0)
-  {
-    meanPressure = 0.0000001;
-  }
-
-  double inertialNumber = 0;
-  if (meanPressure != 0)
-  {
-    inertialNumber = rElementalVariables.EquivalentStrainRate * grainDiameter / sqrt(fabs(meanPressure) / grainDensity);
-  }
-
-  if (inertialNumber > inertialNumberThreshold)
-  {
-    double deltaFrictionCoefficient = dynamicFrictionCoefficient - staticFrictionCoefficient;
-    double firstViscousTerm = staticFrictionCoefficient;
-    double secondViscousTerm = deltaFrictionCoefficient * inertialNumber / (inertialNumberZero + inertialNumber);
-    FluidViscosity = (firstViscousTerm + secondViscousTerm);
-  }
-  else
-  {
-    double denominator = staticFrictionCoefficient * inertialNumberZero + dynamicFrictionCoefficient * inertialNumberThreshold + infiniteFrictionCoefficient * pow(inertialNumberThreshold, 2);
-    double exponent = alphaParameter * (inertialNumberZero + inertialNumberThreshold) * (inertialNumberZero + inertialNumberThreshold) / pow(denominator, 2);
-    double firstAconstant = inertialNumberThreshold * exp(exponent);
-    FluidViscosity = sqrt(alphaParameter / log(firstAconstant / inertialNumber));
-  }
-
-  if (rElementalVariables.EquivalentStrainRate != 0 && fabs(meanPressure) != 0)
-  {
-    double exponent = -rElementalVariables.EquivalentStrainRate / regularizationCoefficient;
-    FluidViscosity *= fabs(meanPressure) * (1 - exp(exponent)) / rElementalVariables.EquivalentStrainRate;
-  }
-  else
-  {
-    if (meanPressure == 0 && rElementalVariables.EquivalentStrainRate != 0)
-    {
-      FluidViscosity *= 1.0 / sqrt(pow(rElementalVariables.EquivalentStrainRate, 2) + pow(regularizationCoefficient, 2));
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i) {
+        if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ",
+                               this->GetGeometry()[i].Id());
+        if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ",
+                               this->GetGeometry()[i].Id());
+        if (this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ",
+                               this->GetGeometry()[i].Id());
+        if (this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ",
+                               this->GetGeometry()[i].Id());
+        if (this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,
+                               "missing DYNAMIC_VISCOSITY variable on solution step data for node ",
+                               this->GetGeometry()[i].Id());
+        if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
+            this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
+            this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ",
+                               this->GetGeometry()[i].Id());
+        if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ",
+                               this->GetGeometry()[i].Id());
     }
-    else if (meanPressure != 0 && rElementalVariables.EquivalentStrainRate == 0)
-    {
-      FluidViscosity *= fabs(meanPressure) / sqrt(0.001 + pow(regularizationCoefficient, 2));
+
+    // If this is a 2D problem, check that nodes are in XY plane
+    if (this->GetGeometry().WorkingSpaceDimension() == 2) {
+        for (unsigned int i = 0; i < this->GetGeometry().size(); ++i) {
+            if (this->GetGeometry()[i].Z() != 0.0)
+                KRATOS_THROW_ERROR(std::invalid_argument,
+                                   "Node with non-zero Z coordinate found. Id: ", this->GetGeometry()[i].Id());
+        }
     }
-    else
-    {
-      FluidViscosity = 1.0;
+
+    // Consitutive law checks
+    const auto &r_properties = this->GetProperties();
+    const auto &r_geometry = this->GetGeometry();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+
+    // Verify that the constitutive law exists
+    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+        << "Constitutive law not provided for property " << r_properties.Id() << std::endl;
+
+    // Verify that the constitutive law has the correct dimension
+    const SizeType strain_size = r_properties.GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+    if (dimension == 2) {
+        KRATOS_ERROR_IF(strain_size < 3 || strain_size > 4)
+            << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 "
+               "(el id = ) "
+            << this->Id() << std::endl;
+    } else {
+        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! "
+                                                 "expected strain size is 6 (el id = ) "
+                                              << this->Id() << std::endl;
     }
-  }
 
-  return FluidViscosity;
-}
+    // Check constitutive law
+    return mpConstitutiveLaw->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
-template <unsigned int TDim>
-int TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
-{
-  KRATOS_TRY;
-
-  // Base class checks for positive Jacobian and Id > 0
-  int ierr = Element::Check(rCurrentProcessInfo);
-  if (ierr != 0)
     return ierr;
 
-  // Check that all required variables have been registered
-  if (VELOCITY.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check that the application was correctly registered.", "");
-  if (ACCELERATION.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "ACCELERATION Key is 0. Check that the application was correctly registered.", "");
-  if (PRESSURE.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check that the application was correctly registered.", "");
-  if (BODY_FORCE.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "BODY_FORCE Key is 0. Check that the application was correctly registered.", "");
-  if (DENSITY.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "DENSITY Key is 0. Check that the application was correctly registered.", "");
-  if (DYNAMIC_VISCOSITY.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.", "");
-  if (DELTA_TIME.Key() == 0)
-    KRATOS_THROW_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
-
-  // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-  for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
-  {
-    if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-    if (this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", this->GetGeometry()[i].Id());
-    if (this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument, "missing BODY_FORCE variable on solution step data for node ", this->GetGeometry()[i].Id());
-    if (this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument, "missing DENSITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-    if (this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument, "missing DYNAMIC_VISCOSITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-    if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
-        this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-        this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument, "missing VELOCITY component degree of freedom on node ", this->GetGeometry()[i].Id());
-    if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-      KRATOS_THROW_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", this->GetGeometry()[i].Id());
-  }
-
-  // If this is a 2D problem, check that nodes are in XY plane
-  if (this->GetGeometry().WorkingSpaceDimension() == 2)
-  {
-    for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
-    {
-      if (this->GetGeometry()[i].Z() != 0.0)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Node with non-zero Z coordinate found. Id: ", this->GetGeometry()[i].Id());
-    }
-  }
-
-  return ierr;
-
-  KRATOS_CATCH("");
+    KRATOS_CATCH("");
 }
 
 template <>
@@ -1488,6 +1210,8 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeElementalVa
   }
   rElementalVariables.voigtsize = voigtsize;
 
+  rElementalVariables.ConstitutiveMatrix = ZeroMatrix(voigtsize, voigtsize);
+
   rElementalVariables.DetFgrad = 1.0;
 
   rElementalVariables.DetFgradVel = 1.0;
@@ -1528,155 +1252,95 @@ void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::InitializeElementalVa
 }
 
 template <>
-void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g)
-{
+void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchySplitted(
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
 
-  double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
-  // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-  // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
-  double DefX = rElementalVariables.SpatialDefRate[0];
-  double DefY = rElementalVariables.SpatialDefRate[1];
-  double DefXY = rElementalVariables.SpatialDefRate[2];
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-  double DefVol = rElementalVariables.VolumetricDefRate;
-  double sigmaDev_xx = 2 * CurrSecondLame * (DefX - DefVol / 3.0);
-  double sigmaDev_yy = 2 * CurrSecondLame * (DefY - DefVol / 3.0);
-  double sigmaDev_xy = 2 * CurrSecondLame * DefXY;
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
+    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
 
-  // double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
-  // double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
-  // double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
+    // Temporary workaround, to be updated
+    auto r_geometry = this->GetGeometry();
+    r_geometry[0].SetValue(THETA_MOMENTUM, 0.5);
 
-  // sigmaDev_xx=rElementalVariables.CurrentDeviatoricCauchyStress[0];
-  // sigmaDev_yy=rElementalVariables.CurrentDeviatoricCauchyStress[1];
-  // sigmaDev_xy=rElementalVariables.CurrentDeviatoricCauchyStress[2];
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-  // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-  // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-  // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] = rElementalVariables.UpdatedDeviatoricCauchyStress[2];
 
-  double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
-  double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
-  double sigmaTot_xy = sigmaDev_xy;
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
+    const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
 
-  // sigmaDev_xx= sigmaTot_xx - rElementalVariables.MeanPressure;
-  // sigmaDev_yy= sigmaTot_yy - rElementalVariables.MeanPressure;
-  // sigmaDev_xy= sigmaTot_xy;
+    DeviatoricCoeff = rElementalVariables.ConstitutiveMatrix(voigt_size - 1, voigt_size - 1);
+    VolumetricCoeff = bulk_modulus * time_step;
+    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
 
-  rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[2] = sigmaDev_xy;
-
-  rElementalVariables.UpdatedTotalCauchyStress[0] = sigmaTot_xx;
-  rElementalVariables.UpdatedTotalCauchyStress[1] = sigmaTot_yy;
-  rElementalVariables.UpdatedTotalCauchyStress[2] = sigmaTot_xy;
-
-  // double TauNorm=sqrt((0.5*sigmaDev_xx*sigmaDev_xx + 0.5*sigmaDev_yy*sigmaDev_yy + sigmaDev_xy*sigmaDev_xy));
-  // double FluidYieldShear=0;
-  // this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
-
-  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  // for (SizeType i = 0; i < NumNodes; ++i)
-  //   {
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=VolumetricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=DeviatoricCoeff;
-  // 	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=rElementalVariables.EquivalentStrainRate;
-  //   }
-
-  // if(TauNorm>FluidYieldShear){
-  //   this->SetValue(YIELDED,1.0);
-
-  //   for (SizeType i = 0; i < NumNodes; ++i){
-
-  // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 1;
-  // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
-  //   }
-  // }else{
-
-  //   this->SetValue(YIELDED,0.0);
-  //   // std::vector<double> rOutput;
-  //   // this->GetElementalValueForOutput(YIELDED,rOutput);
-
-  //   for (SizeType i = 0; i < NumNodes; ++i){
-  // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 0;
-  // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
-  //   }
-  // }
+    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
+    this->mMaterialDensity = Density;
 }
 
 template <>
-void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g)
-{
+void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(
+    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
+    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
 
-  double CurrSecondLame = this->mMaterialDeviatoricCoefficient;
-  // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-  // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law_values =
+        ConstitutiveLaw::Parameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
-  double DefX = rElementalVariables.SpatialDefRate[0];
-  double DefY = rElementalVariables.SpatialDefRate[1];
-  double DefZ = rElementalVariables.SpatialDefRate[2];
-  double DefXY = rElementalVariables.SpatialDefRate[3];
-  double DefXZ = rElementalVariables.SpatialDefRate[4];
-  double DefYZ = rElementalVariables.SpatialDefRate[5];
+    Flags &constitutive_law_options = constitutive_law_values.GetOptions();
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-  double DefVol = rElementalVariables.VolumetricDefRate;
+    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
+    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
+    constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
+    constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
 
-  double sigmaDev_xx = 2 * CurrSecondLame * (DefX - DefVol / 3.0);
-  double sigmaDev_yy = 2 * CurrSecondLame * (DefY - DefVol / 3.0);
-  double sigmaDev_zz = 2 * CurrSecondLame * (DefZ - DefVol / 3.0);
-  double sigmaDev_xy = 2 * CurrSecondLame * DefXY;
-  double sigmaDev_xz = 2 * CurrSecondLame * DefXZ;
-  double sigmaDev_yz = 2 * CurrSecondLame * DefYZ;
+    // Temporary workaround, to be updated
+    auto r_geometry = this->GetGeometry();
+    r_geometry[0].SetValue(THETA_MOMENTUM, 0.5);
 
-  // double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
-  // double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
-  // double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
-  // double sigmaTot_xy= 2*CurrSecondLame*DefXY;
-  // double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
-  // double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(constitutive_law_values);
 
-  // sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
-  // sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
-  // sigmaDev_zz+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
-  // sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[3];
-  // sigmaDev_xz+=rElementalVariables.CurrentDeviatoricCauchyStress[4];
-  // sigmaDev_yz+=rElementalVariables.CurrentDeviatoricCauchyStress[5];
+    rElementalVariables.UpdatedTotalCauchyStress[0] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[0] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[1] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[1] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[2] =
+        rElementalVariables.UpdatedDeviatoricCauchyStress[2] + rElementalVariables.MeanPressure;
+    rElementalVariables.UpdatedTotalCauchyStress[3] = rElementalVariables.UpdatedDeviatoricCauchyStress[3];
+    rElementalVariables.UpdatedTotalCauchyStress[4] = rElementalVariables.UpdatedDeviatoricCauchyStress[4];
+    rElementalVariables.UpdatedTotalCauchyStress[5] = rElementalVariables.UpdatedDeviatoricCauchyStress[5];
 
-  double sigmaTot_xx = sigmaDev_xx + rElementalVariables.MeanPressure;
-  double sigmaTot_yy = sigmaDev_yy + rElementalVariables.MeanPressure;
-  double sigmaTot_zz = sigmaDev_zz + rElementalVariables.MeanPressure;
-  double sigmaTot_xy = sigmaDev_xy;
-  double sigmaTot_xz = sigmaDev_xz;
-  double sigmaTot_yz = sigmaDev_yz;
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    const double bulk_modulus = this->GetProperties()[BULK_MODULUS];
+    const int voigt_size = (this->GetGeometry().WorkingSpaceDimension() - 1) * 3;
 
-  // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-  // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-  // sigmaTot_zz+=rElementalVariables.CurrentTotalCauchyStress[2];
-  // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[3];
-  // sigmaTot_xz+=rElementalVariables.CurrentTotalCauchyStress[4];
-  // sigmaTot_yz+=rElementalVariables.CurrentTotalCauchyStress[5];
+    DeviatoricCoeff = rElementalVariables.ConstitutiveMatrix(voigt_size - 1, voigt_size - 1);
+    VolumetricCoeff = bulk_modulus * time_step;
+    Density = mpConstitutiveLaw->CalculateValue(constitutive_law_values, DENSITY, Density);
 
-  // sigmaDev_xx= sigmaTot_xx - rElementalVariables.MeanPressure;
-  // sigmaDev_yy= sigmaTot_yy - rElementalVariables.MeanPressure;
-  // sigmaDev_zz= sigmaTot_zz - rElementalVariables.MeanPressure;
-  // sigmaDev_xy= sigmaTot_xy;
-  // sigmaDev_xz= sigmaTot_xz;
-  // sigmaDev_yz= sigmaTot_yz;
-
-  rElementalVariables.UpdatedDeviatoricCauchyStress[0] = sigmaDev_xx;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[1] = sigmaDev_yy;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[2] = sigmaDev_zz;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[3] = sigmaDev_xy;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[4] = sigmaDev_xz;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[5] = sigmaDev_yz;
-
-  rElementalVariables.UpdatedTotalCauchyStress[0] = sigmaTot_xx;
-  rElementalVariables.UpdatedTotalCauchyStress[1] = sigmaTot_yy;
-  rElementalVariables.UpdatedTotalCauchyStress[2] = sigmaTot_zz;
-  rElementalVariables.UpdatedTotalCauchyStress[3] = sigmaTot_xy;
-  rElementalVariables.UpdatedTotalCauchyStress[4] = sigmaTot_xz;
-  rElementalVariables.UpdatedTotalCauchyStress[5] = sigmaTot_yz;
+    this->mMaterialDeviatoricCoefficient = DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient = VolumetricCoeff;
+    this->mMaterialDensity = Density;
 }
 
 template <unsigned int TDim>

@@ -47,8 +47,11 @@ namespace MPMSearchElementUtility
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
+        const ProcessInfo& r_process_info = rBackgroundGridModelPart.GetProcessInfo();
+        const bool is_explicit = r_process_info.GetValue(IS_EXPLICIT);
+
         // Reset elements to inactive
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
             auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
             auto& r_geometry = element_itr->GetGeometry();
@@ -58,7 +61,6 @@ namespace MPMSearchElementUtility
                 r_geometry[j].Reset(ACTIVE);
 
         }
-
         // Search background grid and make element active
         Vector N;
         const int max_result = 1000;
@@ -84,6 +86,42 @@ namespace MPMSearchElementUtility
 
                 // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                 bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+
+
+                if (is_found && is_explicit) {
+                    // check if MP is exactly on the edge of the element, this gives spurious strains in explicit
+                    bool isOnEdge = false;
+                    for (SizeType i = 0; i < N.size(); ++i) {
+                        if (std::abs(N[i]) < std::numeric_limits<double>::epsilon()) {
+                            isOnEdge = true;
+                            break;
+                        }
+                    }
+                    if (isOnEdge) {
+                        // MP is exactly on the edge. Now we give it a little 'nudge'
+                        array_1d<double, 3> xg_nudged = array_1d<double, 3>(xg[0]);
+                        const double& delta_time = r_process_info[DELTA_TIME];
+                        std::vector<array_1d<double, 3>> mp_vel;
+                        element_itr->CalculateOnIntegrationPoints(MP_VELOCITY, mp_vel, rMPMModelPart.GetProcessInfo());
+                        array_1d<double, 3> nudge_displacement = delta_time / 1000.0 * mp_vel[0];
+                        xg_nudged += nudge_displacement;
+                        is_found = SearchStructure.FindPointOnMesh(xg_nudged, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                        // check if the nudged point is found...
+                        if (is_found){
+                            // store the nudged MP position
+                            element_itr->SetValuesOnIntegrationPoints(MP_COORD, { xg_nudged }, rMPMModelPart.GetProcessInfo());
+                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: To prevent spurious explicit stresses, Material Point " << element_itr->Id()
+                                << " was nudged by " << nudge_displacement << std::endl;
+                        }
+                        else {
+                            // find the un-nudged MP again
+                            is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Material Point " << element_itr->Id()
+                                << " lies exactly on an element edge and may give spurious results."<< std::endl;
+                        }
+                    }
+                }
+
 
                 if (is_found == true) {
                     pelem->Set(ACTIVE);
@@ -141,11 +179,9 @@ namespace MPMSearchElementUtility
             }
         }
     }
-
 } // end namespace MPMSearchElementUtility
 
 } // end namespace Kratos
 
 #endif // KRATOS_MPM_SEARCH_ELEMENT_UTILITY
-
 

@@ -23,10 +23,8 @@ def ConstructSolver(settings):
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
             if EiSA.HasFEAST():
-                if settings.Has("symmetric") and settings["symmetric"].GetBool():
-                    eigen_solver = EiSA.FEASTSymmetricEigensystemSolver(settings)
-                else:
-                    eigen_solver = EiSA.FEASTGeneralEigensystemSolver(settings)
+                is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
+                eigen_solver = EiSA.FEASTSymmetricEigensystemSolver(settings) if is_symmetric else EiSA.FEASTGeneralEigensystemSolver(settings)
                 return eigen_solver
             else:
                 raise Exception("FEAST not available in EigenSolversApplication")
@@ -36,10 +34,8 @@ def ConstructSolver(settings):
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
             import KratosMultiphysics.EigenSolversApplication as EiSA
             if EiSA.HasFEAST():
-                if settings.Has("symmetric") and settings["symmetric"].GetBool():
-                    eigen_solver = EiSA.ComplexFEASTSymmetricEigensystemSolver(settings)
-                else:
-                    eigen_solver = EiSA.ComplexFEASTGeneralEigensystemSolver(settings)
+                is_symmetric = settings["symmetric"].GetBool() if settings.Has("symmetric") else True
+                eigen_solver = EiSA.ComplexFEASTSymmetricEigensystemSolver(settings) if is_symmetric else EiSA.ComplexFEASTGeneralEigensystemSolver(settings)
                 return eigen_solver
             else:
                 raise Exception("FEAST not available in EigenSolversApplication")

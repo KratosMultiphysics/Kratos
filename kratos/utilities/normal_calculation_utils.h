@@ -25,6 +25,7 @@
 
 /* Project includes */
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "includes/deprecated_variables.h"
 
 
@@ -102,19 +103,6 @@ public:
     {
         KRATOS_TRY
 
-        //resetting the normals
-        array_1d<double,3> zero = Vector(3);
-        noalias(zero) = ZeroVector(3);
-
-        for(ConditionsArrayType::iterator it =  rConditions.begin();
-                it !=rConditions.end(); it++)
-        {
-            Element::GeometryType& rNodes = it->GetGeometry();
-            for(unsigned int in = 0; in<rNodes.size(); in++)
-                noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
-        }
-
-
         //calculating the normals and storing on the conditions
         array_1d<double,3> An;
         if(dimension == 2)
@@ -167,7 +155,36 @@ public:
       */
     void CalculateOnSimplex(ModelPart& rModelPart,
                             int Dimension)
-    {
+    {   
+        // Resetting the normals
+        const array_1d<double,3> zero = ZeroVector(3);
+
+        if (rModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
+            // If Parallel make sure normals are reset in all partitions
+            VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+
+            for(auto & cond: rModelPart.Conditions()) {
+                for(auto & node: cond.GetGeometry()) {
+                    node.Set(VISITED, true);
+                }
+            }
+
+            rModelPart.GetCommunicator().SynchronizeAndNodalFlags(VISITED);
+
+            for(auto & node: rModelPart.Nodes()) {
+                if(node.Is(VISITED)) {
+                    node.FastGetSolutionStepValue(NORMAL) = zero;
+                }
+            }
+        } else {
+            // In serial iteratre normally over the condition nodes
+            for(auto & cond: rModelPart.Conditions()) {
+                for(auto & node: cond.GetGeometry()) {
+                    node.FastGetSolutionStepValue(NORMAL) = zero;
+                }
+            }
+        }
+
         this->CalculateOnSimplex(rModelPart.Conditions(),Dimension);
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
     }
@@ -628,4 +645,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_NORMAL_CALCULATION_UTILS  defined */
-

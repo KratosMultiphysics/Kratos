@@ -100,7 +100,6 @@ void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEqua
   double Density = 0.0;
   double DeviatoricCoeff = 0;
   double VolumetricCoeff = 0;
-  // this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
 
   // Loop on integration points
   for (unsigned int g = 0; g < NumGauss; g++)
@@ -121,47 +120,16 @@ void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEqua
 
     bool computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX, g);
 
-    this->ComputeMaterialParameters(Density, DeviatoricCoeff, VolumetricCoeff, rCurrentProcessInfo, rElementalVariables);
-
-    this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g);
-
-    // std::vector<double> rOutput;
-    // this->GetElementalValueForOutput(YIELDED,rOutput);
+    this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density,
+                                           DeviatoricCoeff, VolumetricCoeff);
 
     if (computeElement == true)
     {
-      // Add integration point contribution to the local mass matrix
-      // double DynamicWeight=GaussWeight*Density;
-      // this->ComputeMassMatrix(MassMatrix,N,DynamicWeight,MeanValueMass);
-
       this->AddExternalForces(rRightHandSideVector, Density, N, GaussWeight);
 
       this->AddInternalForces(rRightHandSideVector, rDN_DX, rElementalVariables, GaussWeight);
 
-      // double lumpedDynamicWeight=GaussWeight*Density;
-      // this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);
-
-      // double MeanValueMaterial=0.0;
-      // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);
-      // double deviatoricCoeffTemp=DeviatoricCoeff;
-      // DeviatoricCoeff=0;
-      // // Add viscous term
-      // this->ComputeCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
-
-      // double staticFrictionCoefficient=0.34;
-      // double dynamicFrictionCoefficient=0.6;
-      // double inertialNumberZero=0.279;
-      // double grainDiameter=0.001;
-      // double grainDensity=2500;
-      // double meanPressure=fabs(rElementalVariables.MeanPressure);
-      // double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
-      // double smallScale=grainDiameter/sqrt(meanPressure/grainDensity);
-      // double denominator=inertialNumberZero+rElementalVariables.EquivalentStrainRate*smallScale;
-      // if(meanPressure!=0 && rElementalVariables.EquivalentStrainRate!=0){
-      //   DeviatoricCoeff=inertialNumberZero*deltaFrictionCoefficient*meanPressure*smallScale/pow(denominator,2);
-      // }
       this->ComputeCompleteTangentTerm(rElementalVariables, StiffnessMatrix, rDN_DX, DeviatoricCoeff, VolumetricCoeff, theta, GaussWeight);
-      // DeviatoricCoeff=deviatoricCoeffTemp;
     }
   }
 

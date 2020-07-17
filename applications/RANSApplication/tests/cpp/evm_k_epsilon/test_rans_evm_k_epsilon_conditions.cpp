@@ -36,8 +36,8 @@ namespace Testing
 namespace
 {
 void CreateRansEvmKEpsilonUnitTestModelPart(const std::string& rConditionName,
-                                    const std::vector<std::string>& rDofVariableNamesList,
-                                    ModelPart& rModelPart)
+                                            const std::vector<std::string>& rDofVariableNamesList,
+                                            ModelPart& rModelPart)
 {
     const auto& r_proto = KratosComponents<Condition>::Get(rConditionName);
     auto node_ids = std::vector<ModelPart::IndexType>{};
@@ -65,20 +65,17 @@ void CreateRansEvmKEpsilonUnitTestModelPart(const std::string& rConditionName,
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(dof_variable_name))
             {
-                const auto& r_variable_x =
-                    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                        dof_variable_name + "_X");
-                const auto& r_variable_y =
-                    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                        dof_variable_name + "_Y");
+                const auto& r_variable_x = KratosComponents<Variable<double>>::Get(
+                    dof_variable_name + "_X");
+                const auto& r_variable_y = KratosComponents<Variable<double>>::Get(
+                    dof_variable_name + "_Y");
                 r_node.AddDof(r_variable_x).SetEquationId(r_node.Id() * 5);
                 r_node.AddDof(r_variable_y).SetEquationId(r_node.Id() * 5);
 
                 if (coords.size2() != 2)
                 {
-                    const auto& r_variable_z =
-                        KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                            dof_variable_name + "_Z");
+                    const auto& r_variable_z = KratosComponents<Variable<double>>::Get(
+                        dof_variable_name + "_Z");
                     r_node.AddDof(r_variable_z).SetEquationId(r_node.Id() * 10);
                 }
             }
@@ -105,8 +102,8 @@ void RansEvmKEpsilonEpsilonWall2D2N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
     rModelPart.AddNodalSolutionStepVariable(RANS_Y_PLUS);
-    CreateRansEvmKEpsilonUnitTestModelPart("RansEvmKEpsilonEpsilonWall2D2N",
-                                   {"TURBULENT_ENERGY_DISSIPATION_RATE"}, rModelPart);
+    CreateRansEvmKEpsilonUnitTestModelPart(
+        "RansEvmKEpsilonEpsilonWall2D2N", {"TURBULENT_ENERGY_DISSIPATION_RATE"}, rModelPart);
 }
 
 void RansEvmKEpsilonVmsMonolithicWall2D2N_SetUp(ModelPart& rModelPart)
@@ -124,8 +121,8 @@ void RansEvmKEpsilonVmsMonolithicWall2D2N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
     rModelPart.AddNodalSolutionStepVariable(VISCOSITY);
-    CreateRansEvmKEpsilonUnitTestModelPart("RansEvmKEpsilonVmsMonolithicWall2D2N",
-                                   {"VELOCITY", "PRESSURE"}, rModelPart);
+    CreateRansEvmKEpsilonUnitTestModelPart(
+        "RansEvmKEpsilonVmsMonolithicWall2D2N", {"VELOCITY", "PRESSURE"}, rModelPart);
 }
 
 void RansEvmKEpsilonEpsilonWall2D2N_AssignTestData(ModelPart& rModelPart)

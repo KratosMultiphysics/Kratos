@@ -33,28 +33,14 @@ typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> VectorContaine
 /* PUBLIC Methods */
 /***********************************************************************************/
 template<>
-void VectorContainerType::UpdateSystemVectorFromModelPart(const DoubleVariableType& rVariable,
+void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
-void VectorContainerType::UpdateSystemVectorFromModelPart(const ComponentVariableType& rVariable,
-                                                          const Kratos::Flags& rMappingOptions)
-{
-    MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
-}
-
-template<>
-void VectorContainerType::UpdateModelPartFromSystemVector(const DoubleVariableType& rVariable,
-                                                          const Kratos::Flags& rMappingOptions)
-{
-    MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
-}
-
-template<>
-void VectorContainerType::UpdateModelPartFromSystemVector(const ComponentVariableType& rVariable,
+void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);

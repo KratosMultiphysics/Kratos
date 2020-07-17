@@ -24,6 +24,7 @@
 #include "includes/constitutive_law.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "particle_mechanics_application_variables.h"
+#include "custom_utilities/mpm_explicit_utilities.h"
 
 namespace Kratos
 {
@@ -270,6 +271,74 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
 }
 
 //************************************************************************************
+void UpdatedLagrangianAxisymmetry::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Contribution of the internal and external forces
+    if (rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS))
+    {
+        std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
+        const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
+        for (unsigned int i = 0; i < rRightHandSideVariables.size(); i++)
+        {
+            bool calculated = false;
+            if (rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR)
+            {
+                // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+                this->CalculateAndAddExternalForces(rRightHandSideVectors[i], rVariables, rVolumeForce, rIntegrationWeight);
+                calculated = true;
+            }
+
+            if (rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR)
+            {
+                // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+                this->CalculateAndAddInternalForces(rRightHandSideVectors[i], rVariables, rIntegrationWeight);
+                calculated = true;
+            }
+
+            KRATOS_ERROR_IF(calculated == false) << " ELEMENT can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
+        }
+    }
+    else
+    {
+        VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+        // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+        this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+        const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+            ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+            : false;
+        if (is_explicit)
+        {
+            this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+            Matrix Jacobian;
+            Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+            Matrix InvJ;
+            double detJ;
+            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+            Matrix DN_De;
+            this->MPMShapeFunctionsLocalGradients(DN_De); // parametric gradients
+            rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+            MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
+                rVariables.DN_DX, rVariables.N, mMP.cauchy_stress_vector, mMP.volume,
+                mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
+        }
+        else
+        {
+            // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+            this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
+        }
+
+
+    }
+}
+
+
+//************************************************************************************
 //************************************************************************************
 
 void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
@@ -309,6 +378,71 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSide
     }
 
     KRATOS_CATCH( "" )
+}
+
+void UpdatedLagrangianAxisymmetry::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo, GeneralVariables& rVariables)
+{
+    KRATOS_TRY
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+    // Define the stress measure
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+    // use element provided strain incremented from velocity gradient
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+
+
+    // Compute explicit element kinematics, strain is incremented here.
+    this->MPMShapeFunctionPointValues(rVariables.N, mMP.xg);
+    Matrix Jacobian;
+    Jacobian = this->MPMJacobian(Jacobian, mMP.xg);
+    Matrix InvJ;
+    double detJ;
+    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    Matrix DN_De;
+    this->MPMShapeFunctionsLocalGradients(DN_De); // parametric gradients
+    rVariables.DN_DX = prod(DN_De, InvJ); // cartesian gradients
+    const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+    MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+        rVariables.N, mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
+    rVariables.StressVector = mMP.cauchy_stress_vector;
+    rVariables.StrainVector = mMP.almansi_strain_vector;
+
+    // Update gradient deformation
+    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment    
+    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment    
+    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
+    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
+    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
+    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
+    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
+
+    // Update MP volume
+    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
+    {
+        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
+        mMP.volume = mMP.mass / mMP.density;
+    }
+
+    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+
+    // Set general variables to constitutivelaw parameters
+    this->SetGeneralVariables(rVariables, Values);
+
+    // Calculate Material Response
+    /* NOTE:
+    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+    mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
+
+    KRATOS_CATCH("")
 }
 
 //*************************COMPUTE ALMANSI STRAIN*************************************

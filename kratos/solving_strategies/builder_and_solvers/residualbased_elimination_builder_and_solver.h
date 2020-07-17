@@ -824,10 +824,14 @@ public:
                 ConstructMatrixStructure(pScheme, rA, rModelPart);
             }
         }
-        if (rDx.size() != BaseType::mEquationSystemSize)
+        if (rDx.size() != BaseType::mEquationSystemSize) {
             rDx.resize(BaseType::mEquationSystemSize, false);
-        if (rb.size() != BaseType::mEquationSystemSize)
+        }
+        TSparseSpace::SetToZero(rDx);
+        if (rb.size() != BaseType::mEquationSystemSize) {
             rb.resize(BaseType::mEquationSystemSize, false);
+        }
+        TSparseSpace::SetToZero(rb);
 
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true) {

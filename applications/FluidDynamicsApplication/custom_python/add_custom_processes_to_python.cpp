@@ -60,8 +60,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > VariableComponentType;
-
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"SpalartAllmarasTurbulenceModel")
     .def(py::init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
@@ -107,12 +105,15 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init <
         ModelPart&,
         ModelPart&,
-        const std::vector<Variable <double> >,
-        const std::vector<Variable< array_1d<double, 3> > >,
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >,
-        std::string,
+        const std::vector<const Variable <double>* >,
+        const std::vector<const Variable< array_1d<double, 3> >* >,
+        const std::vector<const Variable <double>* >,
+        const std::vector<const Variable< array_1d<double, 3> >* >,
+        const EmbeddedSkinVisualizationProcess::LevelSetType&,
+        const EmbeddedSkinVisualizationProcess::ShapeFunctionsType&,
         const bool >())
-    .def(py::init< ModelPart&, ModelPart&, Parameters& >())
+    .def(py::init< Model&, Parameters >())
+    .def(py::init< ModelPart&, ModelPart&, Parameters >())
     ;
 
     py::class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
@@ -136,8 +137,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
     (m, "ShockDetectionProcess")
     .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const bool, const bool >())
     .def(py::init < ModelPart&, const Variable<double>&, const Variable<array_1d<double,3>>&, const Variable<double>&, const bool, const bool >())
-    .def(py::init < ModelPart&, const VariableComponentType&, const Variable<array_1d<double,3>>&, const bool, const bool >())
-    .def(py::init < ModelPart&, const VariableComponentType&, const Variable<array_1d<double,3>>&, const Variable<double>&, const bool, const bool >())
     .def("ExecuteInitialize", &ShockDetectionProcess::ExecuteInitialize)
     .def("ExecuteInitializeSolutionStep", &ShockDetectionProcess::ExecuteInitialize)
     .def("Execute", &ShockDetectionProcess::Execute)

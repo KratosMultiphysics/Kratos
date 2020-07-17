@@ -984,49 +984,62 @@ public:
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
-     * these methods are: OPTIONAL
      */
 
     virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
                           std::vector<bool>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                           std::vector<int>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                           std::vector< array_1d<double, 3 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                           std::vector< array_1d<double, 6 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                           std::vector< Vector >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
                           std::vector< Matrix >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                         std::vector<ConstitutiveLaw::Pointer>& rOutput,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     /**
@@ -1090,48 +1103,56 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
                          std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                          std::vector<array_1d<double, 3 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                          std::vector<array_1d<double, 6 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                          std::vector<Vector>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                          std::vector<Matrix>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                          std::vector<ConstitutiveLaw::Pointer>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)

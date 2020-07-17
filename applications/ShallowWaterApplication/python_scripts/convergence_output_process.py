@@ -59,7 +59,7 @@ class ConvergenceOutputProcess(KM.Process):
 
     def Check(self):
         for variable in self.variables:
-            if not isinstance(variable, KM.DoubleVariable) and not isinstance(variable, KM.Array1DComponentVariable):
+            if not isinstance(variable, KM.DoubleVariable):
                 raise Exception("This process is expecting only double or component variables")
 
         if not isinstance(self.weight_variable, KM.DoubleVariable):

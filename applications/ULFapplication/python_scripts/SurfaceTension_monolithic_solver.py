@@ -254,7 +254,7 @@ class STMonolithicSolver:
             if self.use_spalart_allmaras:
                 self.neighbour_search.Execute()
 
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                 node.SetSolutionStepValue(NORMAL_X,0,0.0)
@@ -318,7 +318,7 @@ class STMonolithicSolver:
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
 ######################################################################################################
         #FOR PFEM
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
         if (self.domain_size == 2):
             for node in self.model_part.Nodes:
                 node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)

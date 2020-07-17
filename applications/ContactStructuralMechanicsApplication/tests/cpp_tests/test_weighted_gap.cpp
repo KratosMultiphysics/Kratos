@@ -56,7 +56,7 @@ namespace Kratos
             const double MoveMesh = 0.0
             )
         {
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
 
             rModelPart.CreateSubModelPart("SlaveModelPart");
             ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveModelPart");
@@ -179,7 +179,7 @@ namespace Kratos
             const double MoveMesh = 0.0
             )
         {
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
 
             rModelPart.CreateSubModelPart("SlaveModelPart");
             ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveModelPart");
@@ -334,7 +334,7 @@ namespace Kratos
             const double MoveMesh = 0.0
             )
         {
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
 
             rModelPart.CreateSubModelPart("SlaveModelPart");
             ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveModelPart");
@@ -704,7 +704,7 @@ namespace Kratos
             }
 
             // We set the database
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
             for (auto p_slave_cond : slave_conds) {
                 for (auto p_master_cond : master_conds) {
@@ -910,10 +910,11 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -966,10 +967,11 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1022,11 +1024,12 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1079,11 +1082,12 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1143,10 +1147,11 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1206,11 +1211,12 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1274,11 +1280,12 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);;
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 if (r_cond.Is(SLAVE)) {
                     r_cond.Set(MODIFIED, true);
-                    r_cond.AddExplicitContribution(r_process_info);
-                    r_cond.FinalizeSolutionStep(r_process_info);
+                    r_cond.AddExplicitContribution(r_const_process_info);
+                    r_cond.FinalizeSolutionStep(r_const_process_info);
                 }
             }
 
@@ -1335,9 +1342,10 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
-                r_cond.AddExplicitContribution(r_process_info);
-                r_cond.FinalizeSolutionStep(r_process_info);
+                r_cond.AddExplicitContribution(r_const_process_info);
+                r_cond.FinalizeSolutionStep(r_const_process_info);
             }
 
 //             // DEBUG
@@ -1390,10 +1398,11 @@ namespace Kratos
             const array_1d<double, 3> zero_vector = ZeroVector(3);
             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
             VariableUtils().SetVariable(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            const auto& r_const_process_info = r_model_part.GetProcessInfo();
             for (auto& r_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions()) {
                 r_cond.Set(MODIFIED, true);
-                r_cond.AddExplicitContribution(r_process_info);
-                r_cond.FinalizeSolutionStep(r_process_info);
+                r_cond.AddExplicitContribution(r_const_process_info);
+                r_cond.FinalizeSolutionStep(r_const_process_info);
             }
 
 //             // DEBUG
