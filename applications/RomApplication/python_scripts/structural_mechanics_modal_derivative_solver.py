@@ -9,6 +9,9 @@ import KratosMultiphysics.RomApplication as RomApplication
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
+# Other imports
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+
 def CreateSolver(model, custom_settings):
     return ModalDerivativeSolver(model, custom_settings)
 
@@ -55,6 +58,16 @@ class ModalDerivativeSolver(MechanicalSolver):
         }""")
         this_defaults.AddMissingParameters(super(ModalDerivativeSolver, cls).GetDefaultSettings())
         return this_defaults
+
+    def _create_linear_solver(self):
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        else:
+            from KratosMultiphysics import ExternalSolversApplication
+            KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: No linear solver was specified, using "super_lu" as default solver')
+            linear_solver_configuration = KratosMultiphysics.Parameters("""{ "solver_type" : "super_lu"}""")
+            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 
     def _create_solution_scheme(self):
 
