@@ -74,8 +74,11 @@ public:
     struct ElementDataStruct
     {
         BoundedMatrix<double, TNumNodes, TBlockSize> U;
+        BoundedMatrix<double, TNumNodes, TBlockSize> dUdt;
+        BoundedMatrix<double, TNumNodes, TBlockSize> ResProj;
         BoundedMatrix<double, TNumNodes, TDim> f_ext;
         array_1d<double, TNumNodes> r; // At the moment considering all parameters as constant in the domain (mu, nu, etc...)
+        // array_1d<double, TNumNodes> nu_sc; // Kinematic viscosity nodal values (shock capturing)
         array_1d<double, TDim> f_gauss;
         double r_gauss;
 
@@ -91,6 +94,9 @@ public:
         double lambda_sc;   // Heat conductivity (shock capturing)
         double c_v;         // Heat capacity at constant volume
         double gamma;       // Heat capacity ratio
+
+        bool UseOSS;         // Use orthogonal subscales
+        bool ShockCapturing; // Activate shock capturing
     };
 
     ///@}
@@ -217,6 +223,31 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double,3>>& rVariable,
+        std::vector<array_1d<double,3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -271,7 +302,7 @@ protected:
      */
     void EquationIdVector(
         EquationIdVectorType &rResult,
-        ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     /**
      * Determines the elemental list of DOFs
@@ -281,14 +312,6 @@ protected:
     void GetDofList(
         DofsVectorType &ElementalDofList,
         const ProcessInfo &rCurrentProcessInfo) const override;
-
-    /**
-     * @brief Calculates the shock capturing values
-     * This function is intended to calculate the shock capturing values
-     * These are the shock capturing viscosity and thermal diffusivity
-     * @param rData Reference to the element data container
-     */
-    void CalculateShockCapturingValues(ElementDataStruct &rData) const;
 
     ///@}
     ///@name Protected Operators
@@ -323,11 +346,38 @@ protected:
      * This auxiliary RHS calculated method is created to bypass the element API
      * In this way bounded vectors can be used in the explicit residual calculation
      * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
-     * @param rCurrentProcessInfo Refeecen to the current process inf
+     * @param rCurrentProcessInfo Reference to the current process info
      */
     void CalculateRightHandSideInternal(
         BoundedVector<double, TBlockSize * TNumNodes>& rRightHandSideBoundedVector,
         const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Calculate the momentum projection
+     * Auxiliary method to calculate the momentum projections for the OSS.
+     * Note that this method threadsafe adds the elemental RHS values of the L2 projection to the nodes.
+     * The division by the lumped mass matrix values requires to be done at the strategy level.
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Calculate the density projection
+     * Auxiliary method to calculate the denstiy projections for the OSS.
+     * Note that this method threadsafe adds the elemental RHS values of the L2 projection to the nodes.
+     * The division by the lumped mass matrix values requires to be done at the strategy level.
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateDensityProjection(const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Calculate the total energy projection
+     * Auxiliary method to calculate the total energy projections for the OSS.
+     * Note that this method threadsafe adds the elemental RHS values of the L2 projection to the nodes.
+     * The division by the lumped mass matrix values requires to be done at the strategy level.
+     * @param rCurrentProcessInfo Reference to the current process info
+     */
+    void CalculateTotalEnergyProjection(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access

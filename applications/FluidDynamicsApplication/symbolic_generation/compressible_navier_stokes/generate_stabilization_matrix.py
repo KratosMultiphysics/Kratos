@@ -37,8 +37,8 @@ def computeTauOnGaussPoint(params, U_gauss):
 
     # Calculate stabilization constants
     tau1_inv = (params["stab_c2"] * (norm_v + c)) / params["h"]
-    tau2_inv = ((params["stab_c1"] / (params["h"] * params["h"])) * (4.0 * nu / 3.0)) + tau1_inv
-    tau3_inv = (params["stab_c1"] * alpha / (params["h"] * params["h"])) + tau1_inv
+    tau2_inv = ((params["stab_c1"] * 4.0 * nu) / (3 * params["h"]**2)) + tau1_inv
+    tau3_inv = (params["stab_c1"] * alpha / params["h"]**2) + tau1_inv
 
     # Save the obtained values in the stabilization matrix
     Tau = zeros(params["dim"] + 2, params["dim"] + 2)
