@@ -12,9 +12,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import the tests o test_classes to create the suites
-from evm_k_epsilon_tests import EvmKEpsilonTest
-from custom_process_tests import CustomProcessTest
-from adjoint_k_epsilon_sensitivity_2d import AdjointKEpsilonSensitivity2D
 import run_cpp_unit_tests
 
 
@@ -34,25 +31,10 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(EvmKEpsilonTest('testOneElementKEpsilonSteady'))
-    smallSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElementSteady'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-
-    nightSuite.addTest(CustomProcessTest('testCheckScalarBoundsProcess'))
-    nightSuite.addTest(CustomProcessTest('testCheckVectorBoundsProcess'))
-    nightSuite.addTest(CustomProcessTest('testClipScalarVariableProcess'))
-    nightSuite.addTest(CustomProcessTest('testApplyFlagProcess'))
-    nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
-    nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
-    nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusVelocitySensitivitiesProcessFlow'))
-    nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReCalculationProcess'))
-    nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReSensitivitiesProcess'))
-    nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
-    nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
-    nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']

@@ -169,7 +169,7 @@ namespace MPMSearchElementUtility
         std::vector<typename Element::Pointer>& rMissingElements,
         const double Tolerance)
     {
-        #pragma omp for
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i) {
             auto element_itr = (rMPMModelPart.ElementsBegin() + i);
             array_1d<double, 3> local_coordinates;
@@ -183,16 +183,13 @@ namespace MPMSearchElementUtility
 
             if (is_found)
             {
-                auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                    r_found_geom, local_coordinates,
-                    element_itr->GetGeometry().IntegrationPoints()[0].Weight());
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    element_itr->pGetGeometry(), local_coordinates,
+                    element_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
 
-                if (IsExplicitAndNeedsCorrection(p_new_geometry, rBackgroundGridModelPart.GetProcessInfo()))
+                if (IsExplicitAndNeedsCorrection(element_itr->pGetGeometry(), rBackgroundGridModelPart.GetProcessInfo()))
                     is_found = false;
                 else {
-                    // Update geometry of particle element
-                    element_itr->SetGeometry(p_new_geometry);
-
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j)
                         r_found_geom.Points()[j].Set(ACTIVE);
                 }
@@ -210,7 +207,7 @@ namespace MPMSearchElementUtility
         std::vector<typename Condition::Pointer>& rMissingConditions,
         const double Tolerance)
     {
-        #pragma omp for
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i) {
             auto condition_itr = rMPMModelPart.Conditions().begin() + i;
 
@@ -300,21 +297,24 @@ namespace MPMSearchElementUtility
                             element_itr->SetValuesOnIntegrationPoints(MP_COORD, { xg_nudged }, rMPMModelPart.GetProcessInfo());
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: To prevent spurious explicit stresses, Material Point "
                                 << element_itr->Id() << " was nudged." << std::endl;
-                        } else { is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+                        } else {
+                            is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin, MaxNumberOfResults, Tolerance);
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Material Point " << element_itr->Id()
                                 << " lies exactly on an element edge and may give spurious results." << std::endl;
                         }
                     }
                     pelem->Set(ACTIVE);
-                    auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
-                        pelem->pGetGeometry(), xg[0],
-                        element_itr->GetGeometry().IntegrationPoints()[0].Weight());
 
-                    // Update geometry of particle element
-                    element_itr->SetGeometry(p_new_geometry);
+                    auto p_quadrature_point_geometry = element_itr->pGetGeometry();
+                    array_1d<double, 3> local_coordinates;
+                    p_quadrature_point_geometry->PointLocalCoordinates(local_coordinates, xg[0]);
+                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        p_quadrature_point_geometry, local_coordinates,
+                        p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 
-                    for (IndexType j = 0; j < p_new_geometry->PointsNumber(); ++j)
-                        (*p_new_geometry)[j].Set(ACTIVE);
+                    auto& r_geometry = element_itr->GetGeometry();
+                    for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
+                        r_geometry[j].Set(ACTIVE);
                 }
                 else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
