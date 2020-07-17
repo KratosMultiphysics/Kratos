@@ -61,7 +61,7 @@ def RemoveFilesFromPreviousSimulations():
 # Convert tau output to dat file using tau2plt
 def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step):
     PrintBlockHeader("Start Garthering Solution Data at time %s" % (str(time)))
-    # Execute gather 
+    # Execute gather
     command = tau_path + 'gather ' +  para_path_mod
     print(command)
     subprocess.call(command, shell=True)
@@ -175,7 +175,7 @@ def ComputeRelativeDisplacements(total_displacements, step, start_step):
 
 # Change format displacements
 def ChangeFormatDisplacements(total_displacements):
- 
+
     # Declaring and initializing new displacement vector
     number_of_nodes = int(len(total_displacements)/3)
     new_displacements = np.zeros([number_of_nodes, 3])
@@ -189,15 +189,70 @@ def ChangeFormatDisplacements(total_displacements):
 
     return new_displacements
 
+def JoinDisplacements(ids, coordinates, upper_disp, lower_disp, upper_coord, lower_coord):
+
+    # Declaring and initializing new displacement vector
+    number_of_nodes = int(len(upper_disp)/3 + len(lower_disp)/3 - 4)
+    print('number_of_nodes = ', str(number_of_nodes))
+    new_displacements = np.zeros([number_of_nodes, 3])
+
+
+    for j in range(int(len(upper_disp)/3)):
+        node_found = False
+        for i in range(len(ids)):
+            if(abs(coordinates[0,i]-upper_coord[3*j+0]) < 1e-4 and abs(coordinates[1,i]-upper_coord[3*j+1]) < 1e-4 and abs(coordinates[2,i]-upper_coord[3*j+2]) < 1e-4):
+                new_displacements[i, 0] = upper_disp[3*j+0]
+                new_displacements[i, 1] = upper_disp[3*j+1]
+                new_displacements[i, 2] = upper_disp[3*j+2]
+                node_found = True
+                print('YES! NODE FOUND FOR ID OBEN:', ids[i], j)
+        if not node_found:
+            print('ERROR: NODE NOT FOUND FOR upper_disp:', j)
+
+    for j in range(int(len(lower_disp)/3)):
+        node_found = False
+        for i in range(len(ids)):
+            if(abs(coordinates[0,i]-lower_coord[3*j+0]) < 1e-4 and abs(coordinates[1,i]-lower_coord[3*j+1]) < 1e-4 and abs(coordinates[2,i]-lower_coord[3*j+2]) < 1e-4):
+                new_displacements[i, 0] = lower_disp[3*j+0]
+                new_displacements[i, 1] = lower_disp[3*j+1]
+                new_displacements[i, 2] = lower_disp[3*j+2]
+                node_found = True
+                print('YES! NODE FOUND FOR ID UNTEN:', ids[i], j)
+        if not node_found:
+            print('ERROR: NODE NOT FOUND FOR ID lower_disp:', j)
+
+    # # Loop over nodes
+    # i = 0
+    # for node in range(int(len(upper_disp)/3)):
+    #     # Loop over xyz components
+    #     for j in range(3):
+    #         # Compute relative displacement
+    #         new_displacements[i, j] = upper_disp[3*node+j]
+    #     i +=1
+
+    # print('i = ', str(i))
+    # print('int(len(lower_disp)/3) = ', str(int(len(lower_disp)/3)))
+    # for nodelow in range(int(len(lower_disp)/3)-4):
+    #     # Loop over xyz components
+    #     for j in range(3):
+    #         # Compute relative displacement
+    #         new_displacements[i, j] = lower_disp[3*(nodelow+2)+j]
+    #     i +=1
+
+    return new_displacements
+
+
 
 # Write membrane's displacments in a file
-def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word):
+def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
     # Open interface_deformfile
-    ncf = netcdf.netcdf_file(word + '.interface_deformfile.nc', 'w')
+    ncf = netcdf.netcdf_file('interface_deformfile.nc', 'w')
 
     # define dimensions
     nops = 'no_of_points'
     number_of_points = len(ids[:])
+    print('len(ids[:] = ', str(len(ids[:])))
+    print('len(relative_displacements) = ', str(len(relative_displacements)))
     ncf.createDimension(nops, number_of_points)
 
     # define variables
@@ -222,7 +277,7 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word
 def ChangeFormat(working_path, step, word1, word2):
     # Find the interface file name
     interface_filename = FindInterfaceFilename(working_path, step)
-    # Change Format of 'interface_filename' 
+    # Change Format of 'interface_filename'
     print("Looking for number 1")
     number1 = CF.Countline(interface_filename, word1)
     print("number 1 = ", str(number1))
@@ -249,7 +304,7 @@ def ChangeFormat(working_path, step, word1, word2):
     else:
         CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word2 + '.dat', number2, number1)
         CF.WriteNewFile(interface_filename, interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat', number1, endline)
-    
+
 
 # Read mesh and data from tau output file
 def ReadTauOutput(working_path, step, velocity, word):
@@ -257,7 +312,7 @@ def ReadTauOutput(working_path, step, velocity, word):
     interface_filename_original = FindInterfaceFilename(working_path, step)
 
     interface_filename = interface_filename_original[0:len(interface_filename_original)-4] + '.' + word + '.dat'
-    
+
     # Read interface file
     position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
         interface_filename)
