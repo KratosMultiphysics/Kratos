@@ -80,7 +80,7 @@ class TAUWrapper(CoSimulationSolverWrapper):
             return data_config["time"]
         else:
             self.time += self.time_step
-            return self.time
+            return 0.0
 
     def InitializeSolutionStep(self):
         print('TAUWrapper InitializeSolutionStep')
