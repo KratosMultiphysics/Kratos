@@ -270,7 +270,7 @@ def main():
         elif o in ('--using-mpi'):
             is_mpi = True
 
-        elif o in ('--override-time-limit')
+        elif o in ('--override-time-limit'):
             # This should only be used to override a time limit for the coverage report, as generating it
             # has a strong impact in the performance.
             override_time_limit = True
