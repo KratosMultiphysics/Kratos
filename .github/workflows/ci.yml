@@ -50,11 +50,14 @@ jobs:
 
     - name: Build
       run: |
+        if [ ${{ matrix.compiler }} = gcc ] && [ ${{ matrix.compiler }} = FullDebug ]; then
+          export COVERAGE_FLAGS="-fprofile-arcs -ftest-coverage -g"
+        fi
         if [ ${{ matrix.compiler }} = gcc ]; then
           export CC=/usr/lib/ccache/gcc
           export CXX=/usr/lib/ccache/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON"
-          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Werror=comment -fprofile-arcs -ftest-coverage -g"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Werror=comment ${COVERAGE_FLAGS}"
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
@@ -74,17 +77,18 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
+        if [ ${{ matrix.compiler }} = gcc ] && [ ${{ matrix.compiler }} = FullDebug ]; then
+          python3 kratos/python_scripts/run_tests.py -l small -c python3 --override-time-limit
+        fi
 
     - name: Coverage
       run: |
-        if [ ${{ matrix.compiler }} = gcc ]; then
-          if [ ${{ matrix.build-type }} = Custom ]; then
-            lcov --capture --directory ${GITHUB_WORKSPACE}/build/${{ matrix.build-type }} --output-file coverage.info
-            lcov --remove coverage.info '/usr/*' --output-file coverage.info
-            lcov --list coverage.info
-            curl -s https://codecov.io/bash > codecov.sh
-            bash codecov.sh -t ${{secrets.CODECOV_TOKEN}} -f coverage.info || echo "Codecov did not collect coverage reports"
-          fi
+        if [ ${{ matrix.compiler }} = gcc ] && [ ${{ matrix.compiler }} = FullDebug ]; then
+          lcov --capture --directory ${GITHUB_WORKSPACE}/build/${{ matrix.build-type }} --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' --output-file coverage.info
+          lcov --list coverage.info
+          curl -s https://codecov.io/bash > codecov.sh
+          bash codecov.sh -t ${{secrets.CODECOV_TOKEN}} -f coverage.info || echo "Codecov did not collect coverage reports"
         fi
 
   windows:
