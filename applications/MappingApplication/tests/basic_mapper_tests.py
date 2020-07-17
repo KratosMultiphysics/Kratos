@@ -25,6 +25,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
+        cls.mapper_parameters = mapper_parameters.Clone()
 
         if mapper_parameters.Has("interface_submodel_part_origin"):
             cls.interface_model_part_origin = cls.model_part_origin.GetSubModelPart(
@@ -203,6 +204,29 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.assertAlmostEqual(sum_origin[0], sum_destination[0])
         self.assertAlmostEqual(sum_origin[1], sum_destination[1])
         self.assertAlmostEqual(sum_origin[2], sum_destination[2])
+
+    def test_Is_conforming(self):
+        is_conforming = self.mapper.AreMeshesConforming()
+        self.assertEqual(is_conforming, True)
+
+    def test_Is_not_conforming(self):
+        non_conform_parameters = self.mapper_parameters.Clone()
+        non_conform_parameters.AddEmptyValue("search_radius").SetDouble(1e-6)
+
+        if data_comm.IsDistributed():
+            map_creator = KratosMapping.MapperFactory.CreateMPIMapper
+        else:
+            map_creator = KratosMapping.MapperFactory.CreateMapper
+
+        non_conform_mapper = map_creator(
+            self.model_part_origin,
+            self.model_part_destination,
+            non_conform_parameters
+        )
+
+        is_conforming = non_conform_mapper.AreMeshesConforming()
+        self.assertEqual(is_conforming, False)
+
 
     # def test_UpdateInterface(self):
     #     pass
