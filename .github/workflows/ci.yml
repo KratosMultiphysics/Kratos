@@ -50,7 +50,7 @@ jobs:
 
     - name: Build
       run: |
-        if [ ${{ matrix.compiler }} = gcc ] && [ ${{ matrix.compiler }} = FullDebug ]; then
+        if [ ${{ matrix.compiler }} = gcc ] && [ ${{ matrix.build-type }} = FullDebug ]; then
           export COVERAGE_FLAGS="-fprofile-arcs -ftest-coverage -g"
         fi
         if [ ${{ matrix.compiler }} = gcc ]; then
@@ -83,7 +83,7 @@ jobs:
 
     - name: Coverage
       run: |
-        if [ ${{ matrix.compiler }} = gcc ] && [ ${{ matrix.compiler }} = FullDebug ]; then
+        if [ ${{ matrix.compiler }} = gcc ] && [ ${{ matrix.build-type }} = FullDebug ]; then
           lcov --capture --directory ${GITHUB_WORKSPACE}/build/${{ matrix.build-type }} --output-file coverage.info
           lcov --remove coverage.info '/usr/*' --output-file coverage.info
           lcov --list coverage.info
