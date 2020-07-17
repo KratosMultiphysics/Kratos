@@ -760,7 +760,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
 
     double mean_h = 0.0;
 
+    unsigned int n_pos = 0, n_neg = 0;
+
     for(unsigned int inode = 0; inode < TNumNodes; inode++){
+        if (rGeom[inode].FastGetSolutionStepValue(DISTANCE) > 0){
+            n_pos++;}
+        else{
+            n_neg++;}
 
         for (unsigned int i = 0; i < TDim; i++){
             tempU[inode*(TDim + 1) + i] = rGeom[inode].FastGetSolutionStepValue(VELOCITY)[i];
@@ -790,9 +796,12 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[0] = viscous_stress[0]*nGauss[0] + viscous_stress[3]*nGauss[1] + viscous_stress[5]*nGauss[2];
         traction[1] = viscous_stress[1]*nGauss[1] + viscous_stress[3]*nGauss[0] + viscous_stress[4]*nGauss[2];
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
-    //}    
+    //}
 
-    double beta = 1.0e4;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
+    double beta = 1.0e3;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
+    if (n_pos > 0 && n_neg > 0){
+        beta = 1.0e-3*beta;}
+
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
         //beta = std::max( beta ,
@@ -835,7 +844,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
 
     double mean_h = 0.0;
 
+    unsigned int n_pos = 0, n_neg = 0;
+
     for(unsigned int inode = 0; inode < TNumNodes; inode++){
+        if (rGeom[inode].FastGetSolutionStepValue(DISTANCE) > 0){
+            n_pos++;}
+        else{
+            n_neg++;}
 
         for (unsigned int i = 0; i < TDim; i++){
             tempU[inode*(TDim + 1) + i] = rGeom[inode].FastGetSolutionStepValue(VELOCITY)[i];
@@ -867,7 +882,10 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e4;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
+    double beta = 1.0e3;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
+    if (n_pos > 0 && n_neg > 0){
+        beta = 1.0e-3*beta;}
+
     if (sum_of_squares_v > 1.0e-12){
         vGauss /= sqrt(sum_of_squares_v);
         //beta = std::max( beta,
