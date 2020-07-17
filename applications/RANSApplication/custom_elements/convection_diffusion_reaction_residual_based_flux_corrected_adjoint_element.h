@@ -1463,6 +1463,10 @@ private:
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
         const double element_length = this->GetGeometry().Length();
+        const double discrete_upwind_operator_coefficient =
+            rCurrentProcessInfo[RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT];
+        const double diagonal_positivity_preserving_coefficient =
+            rCurrentProcessInfo[RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT];
 
         TConvectionDiffusionReactionAdjointData r_current_data(r_geometry);
         r_current_data.CalculateConstants(rCurrentProcessInfo);
@@ -1477,6 +1481,20 @@ private:
 
         const Variable<double>& r_primal_variable =
             TConvectionDiffusionReactionAdjointData::GetScalarVariable();
+
+        // RFC stabilization specific variables
+        double scalar_multiplier = 0.0;
+        BoundedMatrix<double, TNumNodes, TDim> scalar_multiplier_derivatives;
+        BoundedMatrix<double, TNumNodes, TNumNodes> primal_damping_matrix,
+            dNa_dNb, dNa_dNb_derivative;
+        BoundedVector<BoundedMatrix<double, TNumNodes, TNumNodes>, TNumNodes * TDim> primal_damping_matrix_derivatives;
+
+        scalar_multiplier_derivatives.clear();
+        primal_damping_matrix.clear();
+        for (IndexType c = 0; c < TNumNodes * TDim; ++c)
+        {
+            primal_damping_matrix_derivatives[c].clear();
+        }
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -1509,14 +1527,33 @@ private:
             this->GetConvectionOperator(velocity_convective_terms,
                                         effective_velocity, r_shape_derivatives);
 
+            // calculating primal damping matrix
+            this->AddPrimalDampingMatrixGaussPointContributions(
+                primal_damping_matrix, effective_kinematic_viscosity,
+                reaction_term, tau, weight, velocity_convective_terms,
+                r_shape_functions, r_shape_derivatives);
+
             const double effective_velocity_dot_scalar_variable_gradient =
                 inner_prod(effective_velocity, scalar_variable_gradient);
             const double scalar_variable_value =
                 this->EvaluateInPoint(r_primal_variable, r_shape_functions);
 
+            double residual = this->EvaluateInPoint(
+                TConvectionDiffusionReactionAdjointData::GetScalarRelaxedRateVariable(),
+                r_shape_functions);
+            residual += effective_velocity_dot_scalar_variable_gradient;
+            residual += reaction_term * scalar_variable_value;
+            residual -= source_term;
+
+            const double absolute_residual = std::abs(residual);
+            if (scalar_variable_value > 0.0)
+                scalar_multiplier += absolute_residual * tau / scalar_variable_value;
+
             noalias(shape_derivative_dot_scalar_variable_gradient) =
                 adjoint_utilities::template MatrixVectorProduct<TNumNodes>(
                     r_shape_derivatives, scalar_variable_gradient);
+
+            noalias(dNa_dNb) = prod(r_shape_derivatives, trans(r_shape_derivatives));
 
             const Matrix& rJ = J[g];
             const Matrix& rDN_De = DN_De[g];
@@ -1586,6 +1623,19 @@ private:
                     noalias(shape_derivative_dot_scalar_variable_gradient_derivative) =
                         adjoint_utilities::template MatrixVectorProduct<TNumNodes>(
                             r_shape_derivatives, scalar_variable_gradient_derivative);
+
+                    // calculate RFC stabilization specific derivatives
+                    const double absolute_residual_derivative =
+                        adjoint_utilities::CalculateAbsoluteResidualShapeDerivative(
+                            residual, scalar_variable_value, 0.0,
+                            reaction_term_derivative, source_term_derivative,
+                            effective_velocity_derivative_dot_scalar_variable_gradient,
+                            effective_velocity_dot_scalar_variable_gradient_derivative);
+
+                    scalar_multiplier_derivatives(c, k) +=
+                        adjoint_utilities::CalculateRFCBetaShapeDerivative(
+                            scalar_variable_value, absolute_residual, tau,
+                            absolute_residual_derivative, tau_derivative);
 
                     for (IndexType a = 0; a < TNumNodes; ++a)
                     {
@@ -1659,6 +1709,112 @@ private:
 
                         rOutput(block_size + k, a) += value;
                     }
+
+                    // construct primal damping matrix derivatives
+                    BoundedMatrix<double, TNumNodes, TNumNodes>& r_damping_matrix_derivatives =
+                        primal_damping_matrix_derivatives[block_size + k];
+
+                    noalias(dNa_dNb_derivative) =
+                        prod(r_shape_derivatives, trans(DN_DX_derivatives));
+
+                    for (IndexType a = 0; a < TNumNodes; ++a)
+                    {
+                        double tau_operator = velocity_convective_terms[a] +
+                                              reaction_term * r_shape_functions[a];
+                        double tau_operator_derivative =
+                            velocity_convective_term_derivatives[a] +
+                            reaction_term_derivative * r_shape_functions[a];
+
+                        for (IndexType b = 0; b < TNumNodes; ++b)
+                        {
+                            double value = 0.0;
+
+                            value += r_shape_functions[a] *
+                                     velocity_convective_term_derivatives[b];
+                            value += r_shape_functions[a] * reaction_term_derivative *
+                                     r_shape_functions[b];
+                            value += effective_kinematic_viscosity_derivative *
+                                     dNa_dNb(a, b);
+                            value += effective_kinematic_viscosity *
+                                     dNa_dNb_derivative(a, b);
+                            value += effective_kinematic_viscosity *
+                                     dNa_dNb_derivative(b, a);
+
+                            // Adding SUPG stabilization terms
+                            value += tau_derivative * tau_operator *
+                                     velocity_convective_terms[b];
+                            value += tau * tau_operator_derivative *
+                                     velocity_convective_terms[b];
+                            value += tau * tau_operator *
+                                     velocity_convective_term_derivatives[b];
+
+                            value += tau_derivative * tau_operator *
+                                     reaction_term * r_shape_functions[b];
+                            value += tau * tau_operator_derivative *
+                                     reaction_term * r_shape_functions[b];
+                            value += tau * tau_operator * reaction_term_derivative *
+                                     r_shape_functions[b];
+
+                            r_damping_matrix_derivatives(a, b) += value * weight;
+                        }
+                    }
+
+                    noalias(r_damping_matrix_derivatives) +=
+                        primal_damping_matrix * (weight_derivative / weight);
+                }
+            }
+        }
+
+        // adding derivatives of discrete upwind operator
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes> discrete_diffusion_matrix_residual_contribution_derivatives,
+            positivity_preserving_matrix_residual_contribution_derivatives;
+        BoundedMatrix<double, TNumNodes, TNumNodes> discrete_diffusion_matrix;
+        BoundedVector<double, TNumNodes> primal_values_vector;
+        this->GetPrimalValuesVector(primal_values_vector);
+        double matrix_norm;
+        ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
+            matrix_norm, discrete_diffusion_matrix, primal_damping_matrix);
+
+        const Vector& discrete_diffusion_matrix_residual_contribution =
+            prod(discrete_diffusion_matrix, primal_values_vector);
+
+        adjoint_utilities::template CalculateDiscreteUpwindOperatorResidualContributionDerivatives<TNumNodes * TDim>(
+            discrete_diffusion_matrix_residual_contribution_derivatives, primal_values_vector,
+            primal_damping_matrix, primal_damping_matrix_derivatives);
+
+        noalias(rOutput) -= discrete_diffusion_matrix_residual_contribution_derivatives *
+                            discrete_upwind_operator_coefficient * scalar_multiplier;
+
+        // adding derivatives of positivity preserving matrix
+        const double positivity_preserving_matrix_coefficient =
+            ConvectionDiffusionReactionStabilizationUtilities::CalculatePositivityPreservingMatrix(
+                primal_damping_matrix);
+
+        adjoint_utilities::template CalculatePositivityPreservingMatrixResidualContributionDerivatives<TNumNodes * TDim>(
+            positivity_preserving_matrix_residual_contribution_derivatives,
+            positivity_preserving_matrix_coefficient, primal_values_vector,
+            primal_damping_matrix, primal_damping_matrix_derivatives);
+
+        noalias(rOutput) -=
+            positivity_preserving_matrix_residual_contribution_derivatives *
+            diagonal_positivity_preserving_coefficient * scalar_multiplier;
+
+        for (IndexType c = 0; c < TNumNodes; ++c)
+        {
+            for (IndexType k = 0; k < TDim; ++k)
+            {
+                for (IndexType a = 0; a < TNumNodes; ++a)
+                {
+                    double value = 0.0;
+
+                    value -= scalar_multiplier_derivatives(c, k) *
+                             discrete_diffusion_matrix_residual_contribution[a] *
+                             discrete_upwind_operator_coefficient;
+                    value -= scalar_multiplier_derivatives(c, k) *
+                             primal_values_vector[a] * positivity_preserving_matrix_coefficient *
+                             diagonal_positivity_preserving_coefficient;
+
+                    rOutput(c * TDim + k, a) += value;
                 }
             }
         }
