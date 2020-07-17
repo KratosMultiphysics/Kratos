@@ -30,7 +30,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateFirstDerivativesLHS, KratosRansFastSuite1)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateFirstDerivativesLHS, KratosRansFastSuite)
 {
     const auto& calculate_sensitivity_matrix =
         [](Matrix& rOutput, ElementType& rElement, const ProcessInfo& rProcessInfo) {
@@ -43,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateFirstDerivativesLHS, Kra
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
-                          KratosRansFastSuite1)
+                          KratosRansFastSuite)
 {
     const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
                                                   const ProcessInfo& rProcessInfo) {
@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_TURBULENT_ENERGY_DISSIP
         TURBULENT_ENERGY_DISSIPATION_RATE, calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_VELOCITY_PARTIAL_DERIVATIVE, KratosRansFastSuite1)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_VELOCITY_PARTIAL_DERIVATIVE, KratosRansFastSuite)
 {
     const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
                                                   const ProcessInfo& rProcessInfo) {
@@ -66,6 +66,18 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_VELOCITY_PARTIAL_DERIVA
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
         "RansKEpsilonKRFC2D3N", "RansKEpsilonKAdjointRFC2D3N", VELOCITY,
         calculate_sensitivity_matrix, 1e-6, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateSensitivityMatrix, KratosRansFastSuite1)
+{
+    const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
+                                                  const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rOutput, rProcessInfo);
+    };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
+        "RansKEpsilonKRFC2D3N", "RansKEpsilonKAdjointRFC2D3N",
+        SHAPE_SENSITIVITY, calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
 } // namespace Testing

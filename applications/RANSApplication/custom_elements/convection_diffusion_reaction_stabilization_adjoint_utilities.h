@@ -76,6 +76,9 @@ public:
         return output;
     }
 
+    static double CalculateElementLengthShapeDerivative(const double ElementLength,
+                                                        const double DetJDerivative);
+
     static void CalculateEffectiveVelocityMagnitudeVelocityDerivative(
         BoundedMatrix<double, TNumNodes, TDim>& rOutput,
         const double EffectiveVelocityMagnitude,
@@ -91,6 +94,22 @@ public:
         {
             noalias(rOutput) = ConvertNDVectorToNDMatrix(r_velocity_dot_velocity_derivative);
             noalias(rOutput) = rOutput * (1 / EffectiveVelocityMagnitude);
+        }
+    }
+
+    static double CalculateEffectiveVelocityMagnitudeShapeDerivative(
+        const double EffectiveVelocityMagnitude,
+        const array_1d<double, 3>& rEffectiveVelocity,
+        const array_1d<double, 3>& rEffectiveVelocityDerivative)
+    {
+        if (EffectiveVelocityMagnitude > 0.0)
+        {
+            return inner_prod(rEffectiveVelocity, rEffectiveVelocityDerivative) /
+                   EffectiveVelocityMagnitude;
+        }
+        else
+        {
+            return 0.0;
         }
     }
 
@@ -153,6 +172,28 @@ public:
         noalias(rOutput) = rOutput * coeff;
     }
 
+    static double CalculateAbsoluteResidualShapeDerivative(
+        const double Residual,
+        const double ScalarValue,
+        const double RelaxedAccelerationDerivative,
+        const double ReactionTermDerivative,
+        const double SourceTermDerivative,
+        const double EffectiveVelocityDerivativeDotScalarVariableGradient,
+        const double EffectiveVelocityDotScalarVariableGradientDerivative)
+    {
+        const double coeff = (Residual > 0.0) ? 1.0 : -1.0;
+
+        double value = 0.0;
+
+        value += RelaxedAccelerationDerivative;
+        value += EffectiveVelocityDerivativeDotScalarVariableGradient;
+        value += EffectiveVelocityDotScalarVariableGradientDerivative;
+        value += ReactionTermDerivative * ScalarValue;
+        value -= SourceTermDerivative;
+
+        return value * coeff;
+    }
+
     static void CalculateTauScalarDerivatives(BoundedVectorN& rOutput,
                                               const double Tau,
                                               const double EffectiveKinematicViscosity,
@@ -186,6 +227,36 @@ public:
             (144 * EffectiveKinematicViscosity / std::pow(ElementLength, 4));
         noalias(rOutput) += rReactionTermDerivative * ReactionTerm;
         noalias(rOutput) = rOutput * (-1.0 * std::pow(Tau, 3));
+    }
+
+    static double CalculateTauShapeDerivatives(const double Tau,
+                                               const double EffectiveVelocityMagnitude,
+                                               const double EffectiveKinematicViscosity,
+                                               const double ElementLength,
+                                               const double ReactionTerm,
+                                               const double EffectiveVelocityMagnitudeDerivative,
+                                               const double EffectiveKinematicViscosityDerivative,
+                                               const double ReactionTermDerivative,
+                                               const double DetJDerivative)
+
+    {
+        const double element_length_derivative =
+            CalculateElementLengthShapeDerivative(ElementLength, DetJDerivative);
+
+        double shape_sensitivity = 0.0;
+
+        shape_sensitivity +=
+            (4 * EffectiveVelocityMagnitude / std::pow(ElementLength, 2)) *
+            (EffectiveVelocityMagnitudeDerivative -
+             EffectiveVelocityMagnitude * element_length_derivative / ElementLength);
+        shape_sensitivity +=
+            (144 * EffectiveKinematicViscosity / std::pow(ElementLength, 4)) *
+            (EffectiveKinematicViscosityDerivative -
+             2 * EffectiveKinematicViscosity * element_length_derivative / ElementLength);
+        shape_sensitivity += ReactionTerm * ReactionTermDerivative;
+        shape_sensitivity *= -1.0 * std::pow(Tau, 3);
+
+        return shape_sensitivity;
     }
 
     static void AddRFCBetaUnrelatedScalarDerivatives(BoundedVectorN& rOutput,
@@ -232,6 +303,28 @@ public:
             noalias(rOutput) += rAbsoluteResidualDerivative * Tau;
             noalias(rOutput) += rTauDerivative * AbsoluteResidual;
             noalias(rOutput) = rOutput * (1.0 / ScalarValue);
+        }
+    }
+
+    static double CalculateRFCBetaShapeDerivative(const double ScalarValue,
+                                                  const double AbsoluteResidual,
+                                                  const double Tau,
+                                                  const double AbsoluteResidualDerivative,
+                                                  const double TauDerivative)
+    {
+        if (ScalarValue > 0.0)
+        {
+            double value = 0.0;
+
+            value += AbsoluteResidualDerivative * Tau;
+            value += TauDerivative * AbsoluteResidual;
+            value /= ScalarValue;
+
+            return value;
+        }
+        else
+        {
+            return 0.0;
         }
     }
 
