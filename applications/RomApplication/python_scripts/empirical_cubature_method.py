@@ -1,5 +1,5 @@
 from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
-from KratosMultiphysics.RomApplication.RSVDT_Library import rsvdt
+from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 import KratosMultiphysics
 
 import numpy as np
@@ -14,29 +14,39 @@ except ImportError as e:
 
 class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
-    def __init__(self, ECM_tolerance = 1e-4, Filter_tolerance = 1e-16 ):
-        super(EmpiricalCubatureMethod,self).__init__()
+    def __init__(self, ECM_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False):
+        super().__init__()
         self.ECM_tolerance = ECM_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
+        self.RSVDT_Object = RandomizedSingularValueDecomposition()
+        self.Take_into_account_singular_values = Take_into_account_singular_values
 
     def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
-        super(EmpiricalCubatureMethod,self).SetUp()
+        super().SetUp()
         self.ModelPartName = ModelPartName
         self.OriginalNumberOfElements = OriginalNumberOfElements
         u , s  = self._ObtainBasis(ResidualSnapshots)
+
         self.W = np.ones(np.shape(u)[0])
-        G = u[...,:] * np.ones(len(s))
-        G = G.T
-        G = np.vstack([ G , np.ones( np.shape(G)[1] )]  )
-        b = G @ self.W
-        bEXACT = b
+        if self.Take_into_account_singular_values == True:
+            G = u[...,:] * np.ones(len(s))
+            G = G.T
+            G = np.vstack([ G , np.ones( np.shape(G)[1] )]  )
+            b = G @ self.W
+            bEXACT = b
+        else:
+            G = u.T
+            b = G @ self.W
+            bEXACT = b * s
+            self.SingularValues = s
+
         self.b = b
         self.G = G
         self.ExactNorm = np.linalg.norm(bEXACT)
 
     def Initialize(self):
-        super(EmpiricalCubatureMethod,self).Initialize()
+        super().Initialize()
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
@@ -55,7 +65,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
 
     def Calculate(self):
-        super(EmpiricalCubatureMethod,self).Calculate()
+        super().Calculate()
 
         k = 1 # number of iterations
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
@@ -95,6 +105,12 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 Aux = self.G[:,self.z] @ alpha
                 self.r = np.squeeze(self.b - Aux.T)
             self.nerror = np.linalg.norm(self.r) / np.linalg.norm(self.b)  # Relative error (using r and b)
+
+            if self.Take_into_account_singular_values == False:
+                self.nerrorACTUAL = self.SingularValues * self.r
+                self.nerrorACTUAL = np.linalg.norm(self.nerrorACTUAL / self.ExactNorm )
+
+
             self.nerrorACTUAL = self.nerror
 
             # STEP 7
@@ -160,9 +176,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             else:
                 SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
         ### Taking the SVD ###  (randomized and truncated here)
-        DATA = {}
-        DATA['TypeOfSVD'] = 0
-        u,s,_,_=rsvdt(SnapshotMatrix,0,0,0, DATA)
+        u,s,_,_ = self.RSVDT_Object.Calculate(SnapshotMatrix)
         return u, s
 
     def WriteSelectedElements(self):
