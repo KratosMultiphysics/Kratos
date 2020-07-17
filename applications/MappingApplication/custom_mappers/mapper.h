@@ -168,7 +168,10 @@ public:
     * pure virtual, has to be implemented in every derived mapper,
     * @see MapperFactory
     */
-    virtual int AreMeshesConforming() const = 0;
+    virtual int AreMeshesConforming() const
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"AreMeshesConforming\"!" << std::endl;
+    };
 
     ///@}
     ///@name Input and output
