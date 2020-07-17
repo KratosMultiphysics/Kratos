@@ -76,20 +76,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
 
-    // // Modal Derivative scheme
-    // py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
-    //     .def(py::init<Variable<double>,
-    //          double,
-    //          bool>(),
-    //          py::arg("derivative_parameter"),
-    //          py::arg("finite_difference_step_size"),
-    //          py::arg("finite_difference_type_flag"))
-    //     ;
-    // py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
-    //     .def(py::init<Parameters>())
-    //     ;
+    // Modal Derivative scheme
     py::class_< ModalDerivativeSchemeType,typename ModalDerivativeSchemeType::Pointer, BaseSchemeType>(m,"ModalDerivativeScheme")
-        .def(py::init<Variable<double>,
+        .def(py::init<Variable<double>&,
         Parameters>())
         ;
 

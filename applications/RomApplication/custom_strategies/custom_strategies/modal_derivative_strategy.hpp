@@ -139,7 +139,7 @@ public:
             KRATOS_ERROR << "\"derivative_type\" can only be \"static\" or \"dynamic\""  << std::endl;
 
         // Set derivative parameter: modal_coordinates, density, young_modulus or poisson_ratio
-        // This distinction is necessary to decide which system matrix how it is to be differentiated
+        // This distinction is necessary to decide the differentiaton type for different system matrices
         std::string derivative_parameter = InputParameters["derivative_parameter"].GetString();
         if (derivative_parameter == "modal_coordinates")
             mDerivativeParameterType = 0;
