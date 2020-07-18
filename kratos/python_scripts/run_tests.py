@@ -216,7 +216,8 @@ def main():
                 'verbose=',
                 'level=',
                 'command=',
-                'using-mpi'
+                'using-mpi',
+                'override-time-limit'
             ])
     except getopt.GetoptError as err:
         print(str(err))
