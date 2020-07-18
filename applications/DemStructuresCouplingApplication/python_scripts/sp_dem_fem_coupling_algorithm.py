@@ -4,6 +4,8 @@ import time as timer
 import os
 import KratosMultiphysics as Kratos
 from Kratos import Logger
+from  KratosMultiphysics.deprecation_management import DeprecationManager
+
 import KratosMultiphysics.DEMApplication as Dem
 Logger.Print("Running under OpenMP........", label="DEM")
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
@@ -30,7 +32,7 @@ class SPAlgorithm(Algorithm):
         # Test number 3: Blind test specimen
 
         self.post_process_step_count = 0
-        self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_frequency"].GetInt()
+        self.post_process_frequency = self.sp_parameters["post_process_tool"]["output_interval"].GetInt()
         self.use_post_process_tool = self.sp_parameters["post_process_tool"]["use_post_process_tool"].GetBool()
         if not self.use_post_process_tool:
             self.post_process_frequency = 0
@@ -49,14 +51,42 @@ class SPAlgorithm(Algorithm):
             },
             "post_process_tool":{
                 "use_post_process_tool": false,
-                "output_frequency": 0
+                "output_interval": 0
+            },
+            "multiaxial_control_module_fem_dem_generalized_2d_utility" : {
+                "Parameters"    : {
+                    "control_module_delta_time": 2.0e-6,
+                    "perturbation_tolerance": 1.0e-3,
+                    "perturbation_period": 10,
+                    "max_reaction_rate_factor": 10.0,
+                    "stiffness_averaging_time_interval": 2.0e-6,
+                    "velocity_averaging_time_interval": 2.0e-6,
+                    "reaction_averaging_time_interval": 2.0e-8,
+                    "output_interval": 0
+                },
+                "list_of_actuators" : []
             }
         }""")
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        if settings.Has('post_process_tool'):
+            sub_settings_where_var_is = settings['post_process_tool']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
 
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
         default_settings = self.GetDefaultSettings()
+        self.TranslateLegacyVariablesAccordingToCurrentStandard(self.sp_parameters)
         self.sp_parameters.ValidateAndAssignDefaults(default_settings)
 
     def Initialize(self):
@@ -64,10 +94,13 @@ class SPAlgorithm(Algorithm):
 
         self.InitializeAdditionalProcessInfoVars()
 
-        if self.test_number:
-            from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
-            self.control_module_fem_dem_utility = ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
-            self.control_module_fem_dem_utility.ExecuteInitialize()
+        from KratosMultiphysics.DemStructuresCouplingApplication.multiaxial_control_module_fem_dem_generalized_2d_utility import MultiaxialControlModuleFEMDEMGeneralized2DUtility
+        self.multiaxial_control_module = MultiaxialControlModuleFEMDEMGeneralized2DUtility(self.model, self.sp_parameters)
+        self.multiaxial_control_module.ExecuteInitialize()
+        # if self.test_number:
+        #     from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
+        #     self.control_module_fem_dem_utility = ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
+        #     self.control_module_fem_dem_utility.ExecuteInitialize()
 
         self.CreateSPMeasuringRingSubmodelpart()
 
@@ -143,8 +176,9 @@ class SPAlgorithm(Algorithm):
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
 
-            if self.test_number:
-                self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
+            # if self.test_number:
+            #     self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
+            self.multiaxial_control_module.ExecuteInitializeSolutionStep()
             self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
@@ -205,8 +239,9 @@ class SPAlgorithm(Algorithm):
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
-            if self.test_number:
-                self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+            # if self.test_number:
+            #     self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+            self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
             self.structural_solution.OutputSolutionStep()
 

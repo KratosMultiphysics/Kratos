@@ -63,29 +63,32 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticScheme);
 
     /// Base class definition
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
+    typedef Scheme<TSparseSpace,TDenseSpace>                                       BaseType;
+
+    // The current class definition
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
     /// DoF array type definition
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
+    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
 
     /// Data type definition
-    typedef typename BaseType::TDataType                         TDataType;
+    typedef typename BaseType::TDataType                                          TDataType;
     /// Matrix type definition
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
     /// Vector type definition
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
     /// Local system matrix type definition
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType                  LocalSystemVectorType;
     /// Local system vector type definition
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::LocalSystemMatrixType                  LocalSystemMatrixType;
 
     /// Elements containers definition
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
+    typedef ModelPart::ElementsContainerType                              ElementsArrayType;
     /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+    typedef ModelPart::ConditionsContainerType                          ConditionsArrayType;
 
     /// The definition of the vector containing the equation ids
-    typedef Element::EquationIdVectorType             EquationIdVectorType;
+    typedef Element::EquationIdVectorType                              EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -130,6 +133,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Performing the update of the solution.
@@ -374,6 +386,15 @@ public:
     void Clear() override
     {
         this->mpDofUpdater->Clear();
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "static_scheme";
     }
 
     ///@}
