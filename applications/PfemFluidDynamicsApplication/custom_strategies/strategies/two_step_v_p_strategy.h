@@ -970,12 +970,12 @@ namespace Kratos
       // Check convergence
       if (it == (maxIt - 1))
       {
-        KRATOS_INFO("Iteration") << it << "  Final Pressure error" << DpErrorNorm << std::endl;
+        KRATOS_INFO("Iteration") << it << "  Final Pressure error: " << DpErrorNorm << std::endl;
         ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm);
       }
       else
       {
-        KRATOS_INFO("Iteration") << it << "  Pressure error" << DpErrorNorm << std::endl;
+        KRATOS_INFO("Iteration") << it << "  Pressure error: " << DpErrorNorm << std::endl;
       }
 
       // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
