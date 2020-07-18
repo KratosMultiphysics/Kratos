@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_Calculate_VELOCITY_PARTIAL_DERIVA
         calculate_sensitivity_matrix, 1e-6, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateSensitivityMatrix, KratosRansFastSuite1)
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateSensitivityMatrix, KratosRansFastSuite)
 {
     const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
                                                   const ProcessInfo& rProcessInfo) {
