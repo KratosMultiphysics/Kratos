@@ -220,8 +220,6 @@ void SymbolicStokes< SymbolicStokesData<2,3> >::ComputeGaussPointLHSContribution
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const array_1d<double, 2> v_aux = prod(trans(rData.Velocity), N);
 
     auto& lhs = rData.lhs;
 
@@ -253,8 +251,6 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const array_1d<double, 3> v_aux = prod(trans(rData.Velocity), N);
 
     auto& lhs = rData.lhs;
 
@@ -293,8 +289,6 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const array_1d<double, 2> v_aux = prod(trans(rData.Velocity), N);
 
     auto& rhs = rData.rhs;
 
@@ -332,8 +326,6 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
-    constexpr double stab_c2 = 2.0;
-    const array_1d<double, 3> v_aux = prod(trans(rData.Velocity), N);
 
     auto& rhs = rData.rhs;
 

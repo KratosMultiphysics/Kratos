@@ -129,20 +129,15 @@ for dim in dim_vector:
         vconv_gauss = vconv.transpose()*N
 
     ## Compute the stabilization parameters
-    stab_norm_v = 0.0
     if convective_term:
+        stab_norm_v = 0.0
         for i in range(0, dim):
             stab_norm_v += vconv_gauss[i]**2
+        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_v)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
+        tau2 = mu + (stab_c2*rho*stab_norm_v*h)/stab_c1                                  # Stabilization parameter 2
     else:
-        # Note that in the Stokes case we define an auxiliary velocity for the stabilization constants calculation
-        # This is intentionally done to avoid introducing the norm of velocity in the residual linearisation
-        v_aux = DefineVector('v_aux', dim)
-        for i in range(0, dim):
-            stab_norm_v += v_aux[i]**2
-    stab_norm_v = sqrt(stab_norm_v)
-
-    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_v)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
-    tau2 = mu + (stab_c2*rho*stab_norm_v*h)/stab_c1                                    # Stabilization parameter 2
+        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
+        tau2 = (h*h) / (stab_c1 * tau1)                    # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
