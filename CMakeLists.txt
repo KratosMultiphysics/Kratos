@@ -47,6 +47,9 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
+# Setting the libs folder for the shared objects built in kratos
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
 message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
