@@ -130,11 +130,12 @@ for dim in dim_vector:
 
     ## Compute the stabilization parameters
     if convective_term:
-        stab_norm_v = 0.0
+        stab_norm_a = 0.0
         for i in range(0, dim):
-            stab_norm_v += vconv_gauss[i]**2
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_v)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
-        tau2 = mu + (stab_c2*rho*stab_norm_v*h)/stab_c1                                  # Stabilization parameter 2
+            stab_norm_a += vconv_gauss[i]**2
+        stab_norm_a = sqrt(stab_norm_a) 
+        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
+        tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
     else:
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
         tau2 = (h*h) / (stab_c1 * tau1)                    # Stabilization parameter 2
