@@ -99,46 +99,11 @@ namespace Kratos {
 			p_element->Initialize(); // Initialize the element to initialize the constitutive law
 			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
-			// Compute the error of the perturbation
-			double perturbation = 2e-2;
-			std::vector<double> error_norms;
-			std::vector<double> error_vel_norms;
-			std::vector<double> error_pres_norms;
-
-			for (unsigned int j=1; j<5; ++j) {
-				perturbation /= 2;
-				Vector perturbation_vector = ZeroVector(9);
-				for(unsigned int i=0; i<3; i++) {
-					for(unsigned int k=0; k<2; k++) {
-						p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k] = vel_original(i,k) + perturbation*perturbation_matrix(i,k);
-						perturbation_vector(i*3+k) = perturbation*perturbation_matrix(i,k);
-					}
-				}
-
-				// Compute perturbed RHS and LHS
-				Vector error = ZeroVector(9);
-				Vector RHS_obtained = ZeroVector(9);
-				Vector RHS_perturbed = ZeroVector(9);
-				Vector solution_increment = ZeroVector(9);
-
-				p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
-
-				solution_increment = prod(LHS, perturbation_vector);
-				noalias(RHS_obtained) = RHS - solution_increment;
-				noalias(error) = RHS_perturbed - RHS_obtained;
-				error_norms.push_back(norm_2(error));
-			}
-
-			// Check quadratic convergence
-			for(unsigned int i=1; i<error_norms.size(); ++i) {
-				KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
-            }
-
-			// std::cout<<std::endl;
-			// for(unsigned int i=0;i<error_norms.size();++i){
-			// 	std::cout << "Error norm "<< i << " " << error_norms[i] << std::endl;
-			// }
-
+			// Check values
+			std::vector<double> RHS_expected({224.531,273.906,-0.0944375,-138.125,98.75,-0.0351875,61.7187,-76.4063,-0.020375});
+			std::vector<double> LHS_row_0_expected({1875,625,0.166667,-1.16667e-05,-5e-06,0.166667,625,-625,0.166667});
+			KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
+			KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), LHS_row_0_expected, 1.0e-2);
 	    }
 
 		/** Checks the SymbolicStokes2D3N element.
@@ -307,48 +272,11 @@ namespace Kratos {
 			p_element->Initialize(); // Initialize the element to initialize the constitutive law
 			p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
-			// Compute the error of the perturbation
-			double perturbation = 2e-2;
-			std::vector<double> error_norms;
-			std::vector<double> error_vel_norms;
-			std::vector<double> error_pres_norms;
-
-			for (unsigned int j=1; j<5; ++j)
-			{
-				perturbation /= 2;
-				Vector perturbation_vector = ZeroVector(16);
-
-				for(unsigned int i=0; i<4; i++){
-					for(unsigned int k=0; k<3; k++){
-						p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k] = vel_original(i,k) + perturbation*perturbation_matrix(i,k);
-						perturbation_vector(i*4+k) = perturbation*perturbation_matrix(i,k);
-					}
-				}
-
-				// Compute perturbed RHS and LHS
-				Vector error = ZeroVector(16);
-				Vector RHS_obtained = ZeroVector(16);
-				Vector RHS_perturbed = ZeroVector(16);
-				Vector solution_increment = ZeroVector(16);
-
-				p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
-
-				solution_increment = prod(LHS, perturbation_vector);
-				noalias(RHS_obtained) = RHS - solution_increment;
-				noalias(error) = RHS_perturbed - RHS_obtained;
-				error_norms.push_back(norm_2(error));
-
-			}
-
-			// Check quadratic convergence
-			for(unsigned int i=1; i<error_norms.size(); ++i) {
-				KRATOS_CHECK_NEAR(error_norms[i-1]/error_norms[i], 2.0, 2.5e-1);
-            }
-
-			// std::cout<<std::endl;
-			// for(unsigned int i=0; i<error_norms.size(); ++i)
-			// 	std::cout << "Error norm "<< i << " " << error_norms[i] << std::endl;
-
+			// Check values
+			std::vector<double> RHS_expected({98.1458,110.49,122.833,-0.0620312,-66.0521,29.625,41.9687,-0.0175938,19.75,-51.2396,44.4375,-0.0126563,22.2187,34.5625,-36.4271,-0.00771875});
+			std::vector<double> LHS_row_0_expected({388.889,138.889,138.889,0.0416667,-13.8889,-1.66667e-06,-1.66667e-06,0.0416667,125,-138.889,0,0.0416667,125,0,-138.889,0.0416667});
+			KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
+			KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), LHS_row_0_expected, 1.0e-2);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D4NStationary, FluidDynamicsApplicationFastSuite)
