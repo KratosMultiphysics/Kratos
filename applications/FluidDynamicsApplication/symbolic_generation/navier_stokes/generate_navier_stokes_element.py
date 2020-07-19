@@ -167,7 +167,7 @@ for dim in dim_vector:
 
     # Convective term definition
     if convective_term:
-        convective_term = (vconv_gauss.transpose()*grad_v)
+        convective_term_gauss = (vconv_gauss.transpose()*grad_v)
 
     ## Compute galerkin functional
     # Navier-Stokes functional
@@ -176,20 +176,20 @@ for dim in dim_vector:
         if (artificial_compressibility):
             rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
         if convective_term:
-            rv_galerkin -= rho*w_gauss.transpose()*convective_term.transpose()
+            rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
     else:
         rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss  - grad_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
         if (artificial_compressibility):
             rv_galerkin -= (1/(c*c))*q_gauss*pder_gauss
         if convective_term:
-            rv_galerkin -= rho*w_gauss.transpose()*convective_term.transpose()
+            rv_galerkin -= rho*w_gauss.transpose()*convective_term_gauss.transpose()
 
     ##  Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
     vel_residual = rho*f_gauss - rho*accel_gauss - grad_p
     if convective_term:
-        vel_residual -= rho*convective_term.transpose()
+        vel_residual -= rho*convective_term_gauss.transpose()
 
     # Mass conservation residual
     if (divide_by_rho):
