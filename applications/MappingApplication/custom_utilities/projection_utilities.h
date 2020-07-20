@@ -46,7 +46,7 @@ typedef std::size_t IndexType;
 
 typedef Geometry<Node<3>> GeometryType;
 
-PairingIndex ProjectOnLine(const GeometryType& rGeometry,
+PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectOnLine(const GeometryType& rGeometry,
                            const Point& rPointToProject,
                            const double LocalCoordTol,
                            Vector& rShapeFunctionValues,
@@ -54,7 +54,7 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
                            double& rProjectionDistance,
                            const bool ComputeApproximation=true);
 
-PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
+PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectOnSurface(const GeometryType& rGeometry,
                      const Point& rPointToProject,
                      const double LocalCoordTol,
                      Vector& rShapeFunctionValues,
@@ -62,7 +62,7 @@ PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
                      double& rProjectionDistance,
                      const bool ComputeApproximation=true);
 
-PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
+PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectIntoVolume(const GeometryType& rGeometry,
                                const Point& rPointToProject,
                                const double LocalCoordTol,
                                Vector& rShapeFunctionValues,
@@ -70,7 +70,7 @@ PairingIndex ProjectIntoVolume(const GeometryType& rGeometry,
                                double& rProjectionDistance,
                                const bool ComputeApproximation=true);
 
-bool ComputeProjection(const GeometryType& rGeometry,
+bool KRATOS_API(MAPPING_APPLICATION) ComputeProjection(const GeometryType& rGeometry,
                        const Point& rPointToProject,
                        const double LocalCoordTol,
                        Vector& rShapeFunctionValues,

@@ -1,0 +1,110 @@
+{
+    "XMCAlgorithmInputDictionary": {
+        "checkInitialisation": "xmc.methodDefs_xmcAlgorithm.checkInitialisation.checkInitialisationMLMC",
+        "errorsForStoppingCriterion": [0],
+        "estimatorsForHierarchy": [[0,[1,true,true]]],
+        "predictorsForHierarchy": [],
+        "tolerancesForHierarchy": [0],
+        "positionMaxNumberIterationsCriterion": 2
+    },
+    "costEstimatorInputDictionary": {
+        "indexSetDimension": 0,
+        "order": 1
+    },
+    "hierarchyOptimiserInputDictionary": {
+        "defaultHierarchy": [[[0],5],[[1],5],[[2],5]],
+        "indexSpace": [10],
+        "optimalIndexSet": "xmc.methodDefs_hierarchyOptimiser.optimalIndexSet.incrementLevelsByOne",
+        "optimalSampleNumbers": "xmc.methodDefs_hierarchyOptimiser.optimalSampleNumbers.multiLevelDoubleAllSamples",
+        "toleranceSplittingBounds": [0.5,0.5]
+    },
+    "monteCarloIndexInputDictionary": {
+        "combinedEstimator": ["xmc.momentEstimator.CombinedMomentEstimator"],
+        "costEstimator": "xmc.momentEstimator.MomentEstimator",
+        "indexValue": null,
+        "qoiEstimator": ["xmc.momentEstimator.MomentEstimator"],
+        "sampler": "xmc.sampleGenerator.SampleGenerator",
+        "eventGroupSize": 3
+    },
+    "monteCarloSamplerInputDictionary": {
+        "assemblersForError": [[1,2]],
+        "costPredictor": null,
+        "estimatorsForAssembler": [ [[0,[1, true, false]]],[[0,[1, true, false]]],[[0,[1, true, true]]] ],
+        "estimatorsForPredictor": [[ ]],
+        "indexConstructor": "xmc.monteCarloIndex.MonteCarloIndex",
+        "indices": [],
+        "qoiPredictor": [],
+        "initialNumberBatches": 1
+    },
+    "qoiEstimatorInputDictionary": {
+        "indexSetDimension": 1,
+        "order": 1
+    },
+    "combinedEstimatorInputDictionary": {
+        "indexSetDimension": 1,
+        "order": 1
+    },
+    "randomGeneratorInputDictionary": {
+        "parameters": [2, 6],
+        "generator": "xmc.methodDefs_randomGeneratorWrapper.generator.returnBeta"
+    },
+    "samplerInputDictionary": {
+        "randomGenerator": "xmc.randomGeneratorWrapper.RandomGeneratorWrapper",
+        "solverWrapper": "xmc.classDefs_solverWrapper.KratosSolverWrapper.KratosSolverWrapper",
+        "solverWrapperIndices": null
+    },
+    "solverWrapperInputDictionary": {
+        "adaptiveRefinementJumpToFinestLevel": false,
+        "asynchronous": false,
+        "fakeRandomVariable": [0.25],
+        "index": [],
+        "mappingOutputQuantities": false,
+        "numberContributionsPerInstance": 1,
+        "numberQoI": 1,
+        "numberCombinedQoi": 0,
+        "parameters": null,
+        "printToFile": false,
+        "problemId": "poisson_2d",
+        "projectParametersPath": "../xmc/classDefs_solverWrapper/problemDefs_KratosMultiphysics/poisson_2d/problem_settings/parameters_finer.json",
+        "refinementParametersPath": "../xmc/classDefs_solverWrapper/problemDefs_KratosMultiphysics/poisson_2d/problem_settings/parameters_refinement.json",
+        "refinementStrategy": "stochastic_adaptive_refinement",
+        "outputBatchSize" : 1,
+        "taskAllAtOnce": false
+    },
+    "monoCriteriaInpuctDictionary" :{
+        "statisticalError": {
+            "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
+            "tolerance": [0.15],
+            "input": "error0"
+        },
+        "minNumberIterations": {
+            "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo",
+            "tolerance": [0],
+            "input": "algorithmCost"
+        },
+        "maxNumberIterations": {
+            "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo",
+            "tolerance": [2],
+            "input": "algorithmCost"
+        }
+    },
+    "multiCriterionInputDictionary": {
+        "interpreter": "xmc.methodDefs_multiCriterion.interpreter.interpretAsConvergenceAndIterationBounds",
+        "flag": "xmc.methodDefs_multiCriterion.flag.plainFlag"
+    },
+    "errorEstimatorInputDictionary": {
+        "error": "xmc.methodDefs_errorEstimator.errorEstimation.errorEstimationMSE",
+        "parameters": [0.95]
+    },
+    "estimationAssemblerInputDictionary": {
+        "expectationAssembler": {
+            "assembleEstimation": "xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue"
+        },
+        "discretizationErrorAssembler": {
+            "assembleEstimation": "xmc.methodDefs_estimationAssembler.assembleEstimation.assembleBias"
+        },
+        "varianceAssembler": {
+            "assembleEstimation": "xmc.methodDefs_estimationAssembler.assembleEstimation.assembleStatisticalError"
+        }
+    }
+}

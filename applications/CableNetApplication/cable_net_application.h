@@ -54,7 +54,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosCableNetApplication : public KratosApplication {
+class KRATOS_API(CABLE_NET_APPLICATION) KratosCableNetApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{

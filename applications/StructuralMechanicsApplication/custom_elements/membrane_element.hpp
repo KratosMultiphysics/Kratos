@@ -105,15 +105,15 @@ namespace Kratos
 
     void GetValuesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetFirstDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetSecondDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -122,10 +122,6 @@ namespace Kratos
       std::vector<array_1d<double, 3>>& rOutput,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
-      const Variable<array_1d<double, 3>>& rVariable,
-      std::vector<array_1d<double, 3>>& rOutput,
-      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix,ProcessInfo& rCurrentProcessInfo) override;
 
@@ -133,13 +129,13 @@ namespace Kratos
 
     void AddExplicitContribution(
       const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-      Variable<array_1d<double, 3>>& rDestinationVariable,
+      const Variable<array_1d<double, 3>>& rDestinationVariable,
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void AddExplicitContribution(
       const VectorType& rRHSVector,
       const Variable<VectorType>& rRHSVariable,
-      Variable<double >& rDestinationVariable,
+      const Variable<double >& rDestinationVariable,
       const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(const Variable<Matrix>& rVariable,
@@ -366,9 +362,6 @@ namespace Kratos
      */
     void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
 
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
         std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;

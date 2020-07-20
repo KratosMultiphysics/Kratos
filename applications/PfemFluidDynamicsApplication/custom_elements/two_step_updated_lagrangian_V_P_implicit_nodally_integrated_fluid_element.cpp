@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-/* 
+/*
    * public TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim> functions
    */
 
@@ -121,7 +121,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::Init
     voigtsize = 6;
   }
   rElementalVariables.voigtsize = voigtsize;
-
+  rElementalVariables.ConstitutiveMatrix = ZeroMatrix(voigtsize, voigtsize);
   rElementalVariables.DetFgrad = 1.0;
   rElementalVariables.DetFgradVel = 1.0;
   rElementalVariables.DeviatoricInvariant = 1.0;
