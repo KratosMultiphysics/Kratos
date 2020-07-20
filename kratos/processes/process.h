@@ -31,6 +31,21 @@
 
 namespace Kratos
 {
+    namespace Internals
+    {
+        template <typename ProcessType>
+        class RegisterThisPrototype {
+        public:
+            template <typename... TArgumentsType >
+            explicit RegisterThisPrototype(const std::string& rName, TArgumentsType ... TheseArguments)
+            {
+                typename ProcessType::Pointer p_process = Kratos::make_shared<ProcessType>(TheseArguments);
+                KratosComponents<Process>::Add(rName, p_process);
+                Serializer::Register(rName, p_process);
+            }
+        };
+
+    }
 
 ///@name Kratos Classes
 ///@{
