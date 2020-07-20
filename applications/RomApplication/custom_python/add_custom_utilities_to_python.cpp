@@ -23,7 +23,6 @@
 
 // Utilities
 #include "custom_utilities/rom_residuals_utility.h"
-#include "custom_utilities/rom_finite_difference_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -41,11 +40,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
     ;     
-
-    class_<RomFiniteDifferenceUtility, typename RomFiniteDifferenceUtility::Pointer>(m,"RomFiniteDifferenceUtility")
-    .def(init<>())
-    .def_static("CalculateLeftHandSideDOFDerivative",&RomFiniteDifferenceUtility::CalculateLeftHandSideDOFDerivative)
-    ;
 
 }
 

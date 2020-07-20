@@ -30,7 +30,6 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
-#include "custom_utilities/rom_finite_difference_utility.h"
 
 namespace Kratos
 {
