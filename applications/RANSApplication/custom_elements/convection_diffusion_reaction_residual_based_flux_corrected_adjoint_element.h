@@ -24,6 +24,7 @@
 #include "utilities/time_discretization.h"
 
 // Application includes
+#include "custom_elements/convection_diffusion_reaction_adjoint_element_data_extension.h"
 #include "custom_elements/convection_diffusion_reaction_stabilization_adjoint_utilities.h"
 #include "custom_elements/convection_diffusion_reaction_stabilization_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
@@ -78,6 +79,9 @@ public:
     using IntegrationMethod = GeometryData::IntegrationMethod;
 
     using ConvectionDiffusionReactionAdjointDataType = TConvectionDiffusionReactionAdjointData;
+
+    using DerivativeDataType =
+        ConvectionDiffusionReactionAdjointElementDataExtension<TDim, TNumNodes>;
 
     using CurrentElementType =
         ConvectionDiffusionReactionResidualBasedFluxCorrectedAdjointElement<TDim, TNumNodes, TConvectionDiffusionReactionAdjointData>;
@@ -806,6 +810,9 @@ private:
             primal_damping_matrix_derivatives[c].clear();
         }
 
+        const typename DerivativeDataType::ScalarDerivative& adjoint_data_extension =
+            r_current_data.GetScalarDerivativeData(rDerivativeVariable);
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -842,21 +849,17 @@ private:
                 this->GetDivergence(velocity, scalar_variable_gradient);
 
             // adjoint calculations
-            r_current_data.CalculateSourceTermDerivatives(
-                source_term_derivatives, rDerivativeVariable, r_shape_functions,
-                r_shape_derivatives);
+            adjoint_data_extension.CalculateSourceTermDerivatives(
+                source_term_derivatives, r_shape_functions, r_shape_derivatives);
 
-            r_current_data.CalculateReactionTermDerivatives(
-                reaction_term_derivatives, rDerivativeVariable,
-                r_shape_functions, r_shape_derivatives);
+            adjoint_data_extension.CalculateReactionTermDerivatives(
+                reaction_term_derivatives, r_shape_functions, r_shape_derivatives);
 
-            r_current_data.CalculateEffectiveVelocityDerivatives(
-                effective_velocity_derivatives, rDerivativeVariable,
-                r_shape_functions, r_shape_derivatives);
+            adjoint_data_extension.CalculateEffectiveVelocityDerivatives(
+                effective_velocity_derivatives, r_shape_functions, r_shape_derivatives);
 
-            r_current_data.CalculateEffectiveKinematicViscosityDerivatives(
-                effective_kinematic_viscosity_derivatives, rDerivativeVariable,
-                r_shape_functions, r_shape_derivatives);
+            adjoint_data_extension.CalculateEffectiveKinematicViscosityDerivatives(
+                effective_kinematic_viscosity_derivatives, r_shape_functions, r_shape_derivatives);
 
             adjoint_utilities::CalculateTauScalarDerivatives(
                 tau_derivatives, tau, effective_kinematic_viscosity,
@@ -1160,6 +1163,9 @@ private:
             primal_damping_matrix_derivatives[c].clear();
         }
 
+        const typename DerivativeDataType::VectorDerivative& adjoint_data_extension =
+            r_current_data.GetVectorDerivativeData(VELOCITY);
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -1199,18 +1205,17 @@ private:
                 this->EvaluateInPoint(r_primal_variable, r_shape_functions);
 
             // calculating derivatives
-            r_current_data.CalculateSourceTermDerivatives(
-                source_term_derivatives, VELOCITY, r_shape_functions, r_shape_derivatives);
+            adjoint_data_extension.CalculateSourceTermDerivatives(
+                source_term_derivatives, r_shape_functions, r_shape_derivatives);
 
-            r_current_data.CalculateReactionTermDerivatives(
-                reaction_term_derivatives, VELOCITY, r_shape_functions, r_shape_derivatives);
+            adjoint_data_extension.CalculateReactionTermDerivatives(
+                reaction_term_derivatives, r_shape_functions, r_shape_derivatives);
 
-            r_current_data.CalculateEffectiveKinematicViscosityDerivatives(
-                effective_kinematic_viscosity_derivatives, VELOCITY,
-                r_shape_functions, r_shape_derivatives);
+            adjoint_data_extension.CalculateEffectiveKinematicViscosityDerivatives(
+                effective_kinematic_viscosity_derivatives, r_shape_functions, r_shape_derivatives);
 
-            r_current_data.CalculateEffectiveVelocityDerivatives(
-                effective_velocity_derivatives, VELOCITY, r_shape_functions, r_shape_derivatives);
+            adjoint_data_extension.CalculateEffectiveVelocityDerivatives(
+                effective_velocity_derivatives, r_shape_functions, r_shape_derivatives);
 
             adjoint_utilities::CalculateEffectiveVelocityMagnitudeVelocityDerivative(
                 effective_velocity_magnitude_derivatives, velocity, r_velocity,
@@ -1496,6 +1501,9 @@ private:
             primal_damping_matrix_derivatives[c].clear();
         }
 
+        const typename DerivativeDataType::ShapeDerivative& adjoint_data_extension =
+            r_current_data.GetShapeDerivativeData(SHAPE_SENSITIVITY);
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -1575,22 +1583,22 @@ private:
                         detJ_derivative * inv_detJ * gauss_weights[g];
 
                     const double source_term_derivative =
-                        r_current_data.CalculateSourceTermShapeDerivatives(
+                        adjoint_data_extension.CalculateSourceTermShapeDerivatives(
                             derivative, r_shape_functions, r_shape_derivatives,
                             detJ_derivative, DN_DX_derivatives);
 
                     const double reaction_term_derivative =
-                        r_current_data.CalculateReactionTermShapeDerivatives(
+                        adjoint_data_extension.CalculateReactionTermShapeDerivatives(
                             derivative, r_shape_functions, r_shape_derivatives,
                             detJ_derivative, DN_DX_derivatives);
 
                     const double effective_kinematic_viscosity_derivative =
-                        r_current_data.CalculateEffectiveKinematicViscosityShapeDerivatives(
+                        adjoint_data_extension.CalculateEffectiveKinematicViscosityShapeDerivatives(
                             derivative, r_shape_functions, r_shape_derivatives,
                             detJ_derivative, DN_DX_derivatives);
 
                     const array_1d<double, 3>& effective_velocity_derivative =
-                        r_current_data.CalculateEffectiveVelocityShapeDerivatives(
+                        adjoint_data_extension.CalculateEffectiveVelocityShapeDerivatives(
                             derivative, r_shape_functions, r_shape_derivatives,
                             detJ_derivative, DN_DX_derivatives);
 

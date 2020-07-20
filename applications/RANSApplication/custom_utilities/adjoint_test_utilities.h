@@ -229,8 +229,8 @@ void RunAdjointElementDataTest(
     const std::function<void(ModelPart& rModelPart)>& rUpdateFunction,
     const Variable<double>& rDerivativeVariable,
     double (TPrimalElementDataType::*pPrimalValueFunction)(const Vector&, const Matrix&) const,
-    void (TAdjointElementDataType::*pAdjointDerivativesFunction)(
-        BoundedVector<double, 3>&, const Variable<double>&, const Vector&, const Matrix&) const,
+    void (TAdjointElementDataType::AdjointBaseType::ScalarDerivative::*pAdjointDerivativesFunction)(
+        BoundedVector<double, 3>&, const Vector&, const Matrix&) const,
     const int BufferSize,
     const double Delta,
     const double RelativeTolerance,
@@ -248,8 +248,8 @@ void RunAdjointElementDataTest(
             BoundedVector<double, 3>& rOutput,
             const TAdjointElementDataType& rElementData, const Vector& rShapeFunctions,
             const Matrix& rShapeFunctionDerivatives, const int) {
-            (rElementData.*pAdjointDerivativesFunction)(
-                rOutput, rDerivativeVariable, rShapeFunctions, rShapeFunctionDerivatives);
+            (rElementData.GetScalarDerivativeData(rDerivativeVariable).*
+             pAdjointDerivativesFunction)(rOutput, rShapeFunctions, rShapeFunctionDerivatives);
         };
 
     RunAdjointElementDataTest<TPrimalElementDataType, TAdjointElementDataType>(
@@ -267,9 +267,8 @@ void RunAdjointElementDataTest(
     const std::function<void(ModelPart& rModelPart)>& rUpdateFunction,
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     double (TPrimalElementDataType::*pPrimalValueFunction)(const Vector&, const Matrix&) const,
-    void (TAdjointElementDataType::*pAdjointDerivativesFunction)(
-        BoundedMatrix<double, 3, 2>&, const Variable<array_1d<double, 3>>&, const Vector&, const Matrix&)
-        const,
+    void (TAdjointElementDataType::AdjointBaseType::VectorDerivative::*pAdjointDerivativesFunction)(
+        BoundedMatrix<double, 3, 2>&, const Vector&, const Matrix&) const,
     const int BufferSize,
     const double Delta,
     const double RelativeTolerance,
@@ -287,8 +286,8 @@ void RunAdjointElementDataTest(
             BoundedMatrix<double, 3, 2>& rOutput,
             const TAdjointElementDataType& rElementData, const Vector& rShapeFunctions,
             const Matrix& rShapeFunctionDerivatives, const int) {
-            (rElementData.*pAdjointDerivativesFunction)(
-                rOutput, rDerivativeVariable, rShapeFunctions, rShapeFunctionDerivatives);
+            (rElementData.GetVectorDerivativeData(rDerivativeVariable).*
+             pAdjointDerivativesFunction)(rOutput, rShapeFunctions, rShapeFunctionDerivatives);
         };
 
     RunAdjointElementDataTest<TPrimalElementDataType, TAdjointElementDataType>(
@@ -305,7 +304,7 @@ void RunAdjointElementDataTest(
     const std::function<void(ModelPart& rModelPart)>& rSetVariableDataFunction,
     const std::function<void(ModelPart& rModelPart)>& rUpdateFunction,
     double (TPrimalElementDataType::*pPrimalValueFunction)(const Vector&, const Matrix&) const,
-    double (TAdjointElementDataType::*pAdjointDerivativesFunction)(
+    double (TAdjointElementDataType::AdjointBaseType::ShapeDerivative::*pAdjointDerivativesFunction)(
         const ShapeParameter&,
         const Vector&,
         const Matrix&,
@@ -350,9 +349,11 @@ void RunAdjointElementDataTest(
                     double detJ_deriv;
                     geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, DN_DX_deriv);
 
-                    rOutput(c, k) = (rElementData.*pAdjointDerivativesFunction)(
-                        deriv, rShapeFunctions, rShapeFunctionDerivatives,
-                        detJ_deriv, DN_DX_deriv);
+                    rOutput(c, k) =
+                        (rElementData.GetShapeDerivativeData(SHAPE_SENSITIVITY).*
+                         pAdjointDerivativesFunction)(deriv, rShapeFunctions,
+                                                      rShapeFunctionDerivatives,
+                                                      detJ_deriv, DN_DX_deriv);
                 }
             }
         };
@@ -373,8 +374,8 @@ void RunAdjointElementDataTest(
     const Variable<double>& rDerivativeVariable,
     array_1d<double, 3> (TPrimalElementDataType::*pPrimalValueFunction)(const Vector&, const Matrix&)
         const,
-    void (TAdjointElementDataType::*pAdjointDerivativesFunction)(
-        BoundedMatrix<double, 3, 2>&, const Variable<double>&, const Vector&, const Matrix&) const,
+    void (TAdjointElementDataType::AdjointBaseType::ScalarDerivative::*pAdjointDerivativesFunction)(
+        BoundedMatrix<double, 3, 2>&, const Vector&, const Matrix&) const,
     const int BufferSize,
     const double Delta,
     const double RelativeTolerance,
@@ -396,8 +397,8 @@ void RunAdjointElementDataTest(
                 const TAdjointElementDataType& rElementData, const Vector& rShapeFunctions,
                 const Matrix& rShapeFunctionDerivatives, const int) {
                 BoundedMatrix<double, 3, 2> output;
-                (rElementData.*pAdjointDerivativesFunction)(
-                    output, rDerivativeVariable, rShapeFunctions, rShapeFunctionDerivatives);
+                (rElementData.GetScalarDerivativeData(rDerivativeVariable).*
+                 pAdjointDerivativesFunction)(output, rShapeFunctions, rShapeFunctionDerivatives);
                 noalias(rOutput) = column(output, i_dim);
             };
 
@@ -418,9 +419,8 @@ void RunAdjointElementDataTest(
     const Variable<array_1d<double, 3>>& rDerivativeVariable,
     array_1d<double, 3> (TPrimalElementDataType::*pPrimalValueFunction)(const Vector&, const Matrix&)
         const,
-    void (TAdjointElementDataType::*pAdjointDerivativesFunction)(
-        BoundedMatrix<double, 6, 2>&, const Variable<array_1d<double, 3>>&, const Vector&, const Matrix&)
-        const,
+    void (TAdjointElementDataType::AdjointBaseType::VectorDerivative::*pAdjointDerivativesFunction)(
+        BoundedMatrix<double, 6, 2>&, const Vector&, const Matrix&) const,
     const int BufferSize,
     const double Delta,
     const double RelativeTolerance,
@@ -442,8 +442,8 @@ void RunAdjointElementDataTest(
                 const TAdjointElementDataType& rElementData, const Vector& rShapeFunctions,
                 const Matrix& rShapeFunctionDerivatives, const int) {
                 BoundedMatrix<double, 6, 2> output;
-                (rElementData.*pAdjointDerivativesFunction)(
-                    output, rDerivativeVariable, rShapeFunctions, rShapeFunctionDerivatives);
+                (rElementData.GetVectorDerivativeData(rDerivativeVariable).*
+                 pAdjointDerivativesFunction)(output, rShapeFunctions, rShapeFunctionDerivatives);
 
                 for (int c = 0; c < 3; ++c)
                 {
@@ -470,7 +470,7 @@ void RunAdjointElementDataTest(
     const std::function<void(ModelPart& rModelPart)>& rUpdateFunction,
     array_1d<double, 3> (TPrimalElementDataType::*pPrimalValueFunction)(const Vector&, const Matrix&)
         const,
-    array_1d<double, 3> (TAdjointElementDataType::*pAdjointDerivativesFunction)(
+    array_1d<double, 3> (TAdjointElementDataType::AdjointBaseType::ShapeDerivative::*pAdjointDerivativesFunction)(
         const ShapeParameter&,
         const Vector&,
         const Matrix&,
@@ -519,9 +519,10 @@ void RunAdjointElementDataTest(
                         geom_sensitivity.CalculateSensitivity(deriv, detJ_deriv, DN_DX_deriv);
 
                         const array_1d<double, 3>& r_value =
-                            (rElementData.*pAdjointDerivativesFunction)(
-                                deriv, rShapeFunctions, rShapeFunctionDerivatives,
-                                detJ_deriv, DN_DX_deriv);
+                            (rElementData.GetShapeDerivativeData(SHAPE_SENSITIVITY).*
+                             pAdjointDerivativesFunction)(deriv, rShapeFunctions,
+                                                          rShapeFunctionDerivatives,
+                                                          detJ_deriv, DN_DX_deriv);
                         rOutput(c, k) = r_value[i_dim];
                     }
                 }

@@ -67,7 +67,8 @@ void KEpsilon_SetVariables(ModelPart& rModelPart)
     RandomFillNodalHistoricalVariable(
         rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 100.0);
     RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
-    RandomFillNodalHistoricalVariable(rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 50.0);
+    RandomFillNodalHistoricalVariable(
+        rModelPart, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 50.0);
     RandomFillNodalHistoricalVariable(rModelPart, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
     RandomFillNodalHistoricalVariable(rModelPart, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
 
@@ -100,8 +101,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveKinemat
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityDerivatives, 1, 1e-6,
-        1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveKinematicViscosityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveKinematicViscosityDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -116,8 +117,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveKinemat
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, TURBULENT_ENERGY_DISSIPATION_RATE,
         &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityDerivatives, 1, 1e-6,
-        1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveKinematicViscosityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveKinematicViscosityDerivatives_VELOCITY,
@@ -131,8 +132,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveKinemat
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         VELOCITY, &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityDerivatives, 1, 1e-6,
-        1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateEffectiveKinematicViscosityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveKinematicViscosityDerivatives_SHAPE_SENSITIVITY,
@@ -146,8 +147,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveKinemat
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityShapeDerivatives, 1,
-        1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateEffectiveKinematicViscosityShapeDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 /// KAdjointElementData CalculateReactionTermDerivatives tests
@@ -162,7 +163,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateReactionTermDeri
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateReactionTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateReactionTermDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -176,7 +178,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateReactionTermDeri
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_ENERGY_DISSIPATION_RATE, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateReactionTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateReactionTermDerivatives_VELOCITY,
@@ -190,7 +193,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateReactionTermDeri
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, VELOCITY, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateReactionTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateReactionTermDerivatives_SHAPE_SENSITIVITY,
@@ -204,7 +208,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateReactionTermDeri
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermShapeDerivatives, 1, 1e-7, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateReactionTermShapeDerivatives,
+        1, 1e-7, 1e-6, 1e-9);
 }
 
 /// KAdjointElementData CalculateSourceTermDerivatives tests
@@ -219,7 +224,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateSourceTermDeriva
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateSourceTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateSourceTermDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -233,7 +239,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateSourceTermDeriva
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_ENERGY_DISSIPATION_RATE, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateSourceTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateSourceTermDerivatives_VELOCITY,
@@ -247,7 +254,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateSourceTermDeriva
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, VELOCITY, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateSourceTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateSourceTermDerivatives_SHAPE_SENSITIVITY,
@@ -261,7 +269,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateSourceTermDeriva
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermShapeDerivatives, 1, 1e-7, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateSourceTermShapeDerivatives,
+        1, 1e-7, 1e-6, 1e-9);
 }
 
 /// KAdjointElementData CalculateEffectiveVelocityDerivatives tests
@@ -276,7 +285,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveVelocit
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveVelocityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveVelocityDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -290,7 +300,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveVelocit
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_ENERGY_DISSIPATION_RATE, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveVelocityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveVelocityDerivatives_VELOCITY,
@@ -304,7 +315,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveVelocit
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, VELOCITY, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateEffectiveVelocityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveVelocityDerivatives_SHAPE_SENSITIVITY,
@@ -318,7 +330,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_KAdjointElementData_CalculateEffectiveVelocit
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityShapeDerivatives, 1, 1e-7, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateEffectiveVelocityShapeDerivatives,
+        1, 1e-7, 1e-6, 1e-9);
 }
 
 /// EpsilonAdjointElementData CalculateEffectiveKinematicViscosityDerivatives tests
@@ -333,8 +346,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveK
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityDerivatives, 1, 1e-6,
-        1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveKinematicViscosityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveKinematicViscosityDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -349,8 +362,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveK
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, TURBULENT_ENERGY_DISSIPATION_RATE,
         &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityDerivatives, 1, 1e-6,
-        1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveKinematicViscosityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveKinematicViscosityDerivatives_VELOCITY,
@@ -364,8 +377,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveK
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         VELOCITY, &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityDerivatives, 1, 1e-6,
-        1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateEffectiveKinematicViscosityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveKinematicViscosityDerivatives_SHAPE_SENSITIVITY,
@@ -379,8 +392,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveK
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateEffectiveKinematicViscosity,
-        &adjoint_type::CalculateEffectiveKinematicViscosityShapeDerivatives, 1,
-        1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateEffectiveKinematicViscosityShapeDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 /// EpsilonAdjointElementData CalculateReactionTermDerivatives tests
@@ -395,7 +408,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateReactionTe
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateReactionTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateReactionTermDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -409,7 +423,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateReactionTe
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_ENERGY_DISSIPATION_RATE, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateReactionTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateReactionTermDerivatives_VELOCITY,
@@ -423,7 +438,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateReactionTe
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, VELOCITY, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateReactionTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateReactionTermDerivatives_SHAPE_SENSITIVITY,
@@ -437,7 +453,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateReactionTe
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateReactionTerm,
-        &adjoint_type::CalculateReactionTermShapeDerivatives, 1, 1e-7, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateReactionTermShapeDerivatives,
+        1, 1e-7, 1e-6, 1e-9);
 }
 
 /// EpsilonAdjointElementData CalculateSourceTermDerivatives tests
@@ -452,7 +469,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateSourceTerm
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateSourceTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateSourceTermDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -466,7 +484,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateSourceTerm
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_ENERGY_DISSIPATION_RATE, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermDerivatives, 1, 1e-3, 1e-6, 1e-6);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateSourceTermDerivatives,
+        1, 1e-3, 1e-6, 1e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateSourceTermDerivatives_VELOCITY,
@@ -480,7 +499,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateSourceTerm
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, VELOCITY, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateSourceTermDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateSourceTermDerivatives_SHAPE_SENSITIVITY,
@@ -494,7 +514,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateSourceTerm
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateSourceTerm,
-        &adjoint_type::CalculateSourceTermShapeDerivatives, 1, 1e-7, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateSourceTermShapeDerivatives,
+        1, 1e-7, 1e-6, 1e-9);
 }
 
 /// EpsilonAdjointElementData CalculateEffectiveVelocityDerivatives tests
@@ -509,7 +530,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveV
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_KINETIC_ENERGY, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveVelocityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveVelocityDerivatives_TURBULENT_ENERGY_DISSIPATION_RATE,
@@ -523,7 +545,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveV
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables, KEpsilon_UpdateVariables,
         TURBULENT_ENERGY_DISSIPATION_RATE, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ScalarDerivative::CalculateEffectiveVelocityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveVelocityDerivatives_VELOCITY,
@@ -537,7 +560,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveV
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, VELOCITY, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityDerivatives, 1, 1e-6, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::VectorDerivative::CalculateEffectiveVelocityDerivatives,
+        1, 1e-6, 1e-6, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveVelocityDerivatives_SHAPE_SENSITIVITY,
@@ -551,7 +575,8 @@ KRATOS_TEST_CASE_IN_SUITE(KEpsilon_EpsilonAdjointElementData_CalculateEffectiveV
     RansApplicationTestUtilities::RunAdjointElementDataTest<primal_type, adjoint_type>(
         test_model, KEpsilon_AddVariables, KEpsilon_SetVariables,
         KEpsilon_UpdateVariables, &primal_type::CalculateEffectiveVelocity,
-        &adjoint_type::CalculateEffectiveVelocityShapeDerivatives, 1, 1e-7, 1e-6, 1e-9);
+        &adjoint_type::AdjointBaseType::ShapeDerivative::CalculateEffectiveVelocityShapeDerivatives,
+        1, 1e-7, 1e-6, 1e-9);
 }
 
 } // namespace Testing

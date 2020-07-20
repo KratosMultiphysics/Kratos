@@ -70,6 +70,10 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateGaussPointData(
 
     PrimalBaseType::CalculateGaussPointData(rShapeFunctions, rShapeFunctionDerivatives, Step);
 
+    mReactionTerm = this->CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
+    mProductionTerm = KEpsilonElementData::CalculateSourceTerm<TDim>(
+        this->mVelocityGradient, this->mTurbulentKinematicViscosity);
+
     BoundedVector<double, TNumNodes> nodal_tke;
     BoundedVector<double, TNumNodes> nodal_epsilon;
 
@@ -106,9 +110,50 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateGaussPointData(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityDerivatives(
+const typename KAdjointElementData<TDim, TNumNodes>::AdjointBaseType::ScalarDerivative& KAdjointElementData<TDim, TNumNodes>::GetScalarDerivativeData(
+    const Variable<double>& rDerivativeVariable) const
+{
+    KRATOS_TRY
+
+    if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
+    {
+        return mKDerivativeData;
+    }
+    else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
+    {
+        return mEpsilonDerivativeData;
+    }
+    else
+    {
+        KRATOS_ERROR << "Unsupported " << rDerivativeVariable.Name()
+                     << " derivative variable for " << this->GetName();
+        return mKDerivativeData;
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+const typename KAdjointElementData<TDim, TNumNodes>::AdjointBaseType::VectorDerivative& KAdjointElementData<TDim, TNumNodes>::GetVectorDerivativeData(
+    const Variable<array_1d<double, 3>>& rDerivativeVariable) const
+{
+    // Currently only velocity derivatives are required, no checks for
+    // variables are done. This is helpfull in creating unit tests
+    return mVelocityDerivativeData;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+const typename KAdjointElementData<TDim, TNumNodes>::AdjointBaseType::ShapeDerivative& KAdjointElementData<TDim, TNumNodes>::GetShapeDerivativeData(
+    const Variable<array_1d<double, 3>>& rDerivativeVariable) const
+{
+    // Currently only shape derivatives are required, no checks for
+    // variables are done. This is helpfull in creating unit tests
+    return mShapeDerivativeData;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void KAdjointElementData<TDim, TNumNodes>::KDerivativeData::CalculateEffectiveVelocityDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
-    const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
@@ -116,9 +161,17 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityDerivatives
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::EpsilonDerivativeData::CalculateEffectiveVelocityDerivatives(
+    BoundedMatrix<double, TNumNodes, TDim>& rOutput,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
+{
+    rOutput.clear();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void KAdjointElementData<TDim, TNumNodes>::VelocityDerivativeData::CalculateEffectiveVelocityDerivatives(
     BoundedMatrix<double, TNumNodes * TDim, TDim>& rOutput,
-    const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
@@ -134,7 +187,7 @@ void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityDerivatives
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double, 3> KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelocityShapeDerivatives(
+array_1d<double, 3> KAdjointElementData<TDim, TNumNodes>::ShapeDerivativeData::CalculateEffectiveVelocityShapeDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -145,57 +198,44 @@ array_1d<double, 3> KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveVelo
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::KDerivativeData::CalculateEffectiveKinematicViscosityDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
-    const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
-    if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
-    {
-        noalias(rOutput) =
-            this->mGaussTurbulentKinematicViscositySensitivitiesK * this->mInvTkeSigma;
-    }
-    else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
-    {
-        noalias(rOutput) =
-            this->mGaussTurbulentKinematicViscositySensitivitiesEpsilon * this->mInvTkeSigma;
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported partial derivative variable "
-                     << rDerivativeVariable.Name();
-    }
+    noalias(rOutput) =
+        mData.mGaussTurbulentKinematicViscositySensitivitiesK * mData.mInvTkeSigma;
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::EpsilonDerivativeData::CalculateEffectiveKinematicViscosityDerivatives(
+    BoundedVector<double, TNumNodes>& rOutput,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
+{
+    KRATOS_TRY
+
+    noalias(rOutput) =
+        mData.mGaussTurbulentKinematicViscositySensitivitiesEpsilon * mData.mInvTkeSigma;
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void KAdjointElementData<TDim, TNumNodes>::VelocityDerivativeData::CalculateEffectiveKinematicViscosityDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
-    const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
-    KRATOS_TRY
-
-    if (rDerivativeVariable == VELOCITY)
-    {
-        rOutput.clear();
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported partial derivative variable "
-                     << rDerivativeVariable.Name();
-    }
-
-    KRATOS_CATCH("");
+    rOutput.clear();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityShapeDerivatives(
+double KAdjointElementData<TDim, TNumNodes>::ShapeDerivativeData::CalculateEffectiveKinematicViscosityShapeDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -206,77 +246,80 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateEffectiveKinematicViscosit
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::KDerivativeData::CalculateReactionTermDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
-    const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
     const double reaction =
-        this->CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
+        mData.CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
 
-    rOutput.clear();
-
-    if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
+    if (reaction > 0.0)
     {
-        if (reaction > 0.0)
-        {
-            KEpsilonElementData::CalculateGaussGammaTkeSensitivity<TNumNodes>(
-                rOutput, this->mCmu, this->mGamma, this->mTurbulentKinematicViscosity,
-                this->mGaussTurbulentKinematicViscositySensitivitiesK, rShapeFunctions);
-        }
-    }
-    else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
-    {
-        if (reaction > 0.0)
-        {
-            KEpsilonElementData::CalculateGaussGammaEpsilonSensitivity<TNumNodes>(
-                rOutput, this->mGamma, this->mTurbulentKinematicViscosity,
-                this->mGaussTurbulentKinematicViscositySensitivitiesEpsilon);
-        }
+        KEpsilonElementData::CalculateGaussGammaTkeSensitivity<TNumNodes>(
+            rOutput, mData.mCmu, mData.mGamma, mData.mTurbulentKinematicViscosity,
+            mData.mGaussTurbulentKinematicViscositySensitivitiesK, rShapeFunctions);
     }
     else
     {
-        KRATOS_ERROR << "Unsupported partial derivative variable "
-                     << rDerivativeVariable.Name();
+        rOutput.clear();
     }
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::EpsilonDerivativeData::CalculateReactionTermDerivatives(
+    BoundedVector<double, TNumNodes>& rOutput,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
+{
+    KRATOS_TRY
+
+    const double reaction =
+        mData.CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
+
+    if (reaction > 0.0)
+    {
+        KEpsilonElementData::CalculateGaussGammaEpsilonSensitivity<TNumNodes>(
+            rOutput, mData.mGamma, mData.mTurbulentKinematicViscosity,
+            mData.mGaussTurbulentKinematicViscositySensitivitiesEpsilon);
+    }
+    else
+    {
+        rOutput.clear();
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void KAdjointElementData<TDim, TNumNodes>::VelocityDerivativeData::CalculateReactionTermDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
-    const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
     const double reaction =
-        this->CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
-    rOutput.clear();
+        mData.CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
 
-    if (rDerivativeVariable == VELOCITY)
+    if (reaction > 0.0)
     {
-        if (reaction > 0.0)
-        {
-            noalias(rOutput) = rShapeFunctionDerivatives * (2.0 / 3.0);
-        }
+        noalias(rOutput) = rShapeFunctionDerivatives * (2.0 / 3.0);
     }
     else
     {
-        KRATOS_ERROR << "Unsupported partial derivative variable "
-                     << rDerivativeVariable.Name();
+        rOutput.clear();
     }
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeDerivatives(
+double KAdjointElementData<TDim, TNumNodes>::ShapeDerivativeData::CalculateReactionTermShapeDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -284,12 +327,12 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeDerivativ
     const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const
 {
     const double reaction =
-        this->CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
+        mData.CalculateReactionTerm(rShapeFunctions, rShapeFunctionDerivatives);
 
     if (reaction > 0.0)
     {
         return (2.0 / 3.0) * RansCalculationUtilities::GetDivergence(
-                                 this->GetGeometry(), VELOCITY, rDN_Dx_deriv);
+                                 mData.GetGeometry(), VELOCITY, rDN_Dx_deriv);
     }
     else
     {
@@ -298,79 +341,61 @@ double KAdjointElementData<TDim, TNumNodes>::CalculateReactionTermShapeDerivativ
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::KDerivativeData::CalculateSourceTermDerivatives(
     BoundedVector<double, TNumNodes>& rOutput,
-    const Variable<double>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
-    const double production_term = KEpsilonElementData::CalculateSourceTerm<TDim>(
-        this->mVelocityGradient, this->mTurbulentKinematicViscosity);
-
-    if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
-    {
-        KEpsilonElementData::CalculateProductionScalarSensitivities<TNumNodes>(
-            rOutput, this->mTurbulentKinematicViscosity, production_term,
-            this->mGaussTurbulentKinematicViscositySensitivitiesK);
-    }
-    else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
-    {
-        KEpsilonElementData::CalculateProductionScalarSensitivities<TNumNodes>(
-            rOutput, this->mTurbulentKinematicViscosity, production_term,
-            this->mGaussTurbulentKinematicViscositySensitivitiesEpsilon);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported partial derivative variable "
-                     << rDerivativeVariable.Name();
-    }
+    KEpsilonElementData::CalculateProductionScalarSensitivities<TNumNodes>(
+        rOutput, mData.mTurbulentKinematicViscosity, mData.mProductionTerm,
+        mData.mGaussTurbulentKinematicViscositySensitivitiesK);
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermDerivatives(
+void KAdjointElementData<TDim, TNumNodes>::EpsilonDerivativeData::CalculateSourceTermDerivatives(
+    BoundedVector<double, TNumNodes>& rOutput,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
+{
+    KRATOS_TRY
+
+    KEpsilonElementData::CalculateProductionScalarSensitivities<TNumNodes>(
+        rOutput, mData.mTurbulentKinematicViscosity, mData.mProductionTerm,
+        mData.mGaussTurbulentKinematicViscositySensitivitiesEpsilon);
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void KAdjointElementData<TDim, TNumNodes>::VelocityDerivativeData::CalculateSourceTermDerivatives(
     BoundedMatrix<double, TNumNodes, TDim>& rOutput,
-    const Variable<array_1d<double, 3>>& rDerivativeVariable,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
     KRATOS_TRY
 
-    const double production_term = KEpsilonElementData::CalculateSourceTerm<TDim>(
-        this->mVelocityGradient, this->mTurbulentKinematicViscosity);
-
-    if (rDerivativeVariable == VELOCITY)
-    {
-        KEpsilonElementData::CalculateProductionVelocitySensitivities<TDim, TNumNodes>(
-            rOutput, this->mTurbulentKinematicViscosity, production_term,
-            this->mVelocityGradient, rShapeFunctionDerivatives);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported partial derivative variable "
-                     << rDerivativeVariable.Name();
-    }
+    KEpsilonElementData::CalculateProductionVelocitySensitivities<TDim, TNumNodes>(
+        rOutput, mData.mTurbulentKinematicViscosity, mData.mProductionTerm,
+        mData.mVelocityGradient, rShapeFunctionDerivatives);
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double KAdjointElementData<TDim, TNumNodes>::CalculateSourceTermShapeDerivatives(
+double KAdjointElementData<TDim, TNumNodes>::ShapeDerivativeData::CalculateSourceTermShapeDerivatives(
     const ShapeParameter& rShapeParameters,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const double detJ_deriv,
     const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv) const
 {
-    const double production_term = KEpsilonElementData::CalculateSourceTerm<TDim>(
-        this->mVelocityGradient, this->mTurbulentKinematicViscosity);
-
     return KEpsilonElementData::CalculateProductionShapeSensitivities<TDim, TNumNodes>(
-        this->mTurbulentKinematicViscosity, 0.0, production_term,
-        this->mNodalVelocity, rShapeFunctionDerivatives, rDN_Dx_deriv);
+        mData.mTurbulentKinematicViscosity, 0.0, mData.mProductionTerm,
+        mData.mNodalVelocity, rShapeFunctionDerivatives, rDN_Dx_deriv);
 }
 
 // template instantiations
