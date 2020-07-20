@@ -117,10 +117,14 @@ public:
         return global_reducer.GetValue();
     }
 
+    /** @brief loop with thread local storage. f called on every entry in rData
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a unary function accepting as input TContainerType::value_type& and the thread local storage
+     */
     template <class TThreadLocalStorage, class TUnaryFunction>
     inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
     {
-        static_assert(std::is_copy_constructible<TThreadLocalStorage>, "TThreadLocalStorage must be copy constructible!");
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
         #pragma omp parallel
         {
