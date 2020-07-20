@@ -50,8 +50,7 @@ branch: 200, time: 14 min
 </span>
 <br>
 
-<span>
-<span>
+
 - Candy, 268 tetrahedra
 branch: 20, time: 1 min
 branch: 200, time: 7 min
@@ -66,8 +65,7 @@ branch: 200, time: 7 min
 </span>
 <br>
 
-<span>
-<span>
+
 
 - Wrench, 1614 tetrahedra
 
