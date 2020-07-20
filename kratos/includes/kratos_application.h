@@ -349,27 +349,21 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
-
         rOStream << "Geometries:" << std::endl;
         KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
         rOStream << std::endl;
-
         rOStream << "Elements:" << std::endl;
         KratosComponents<Element>().PrintData(rOStream);
         rOStream << std::endl;
-
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
         rOStream << std::endl;
-
         rOStream << "MasterSlaveConstraints:" << std::endl;
         KratosComponents<MasterSlaveConstraint>().PrintData(rOStream);
         rOStream << std::endl;
-
         rOStream << "Modelers:" << std::endl;
         KratosComponents<Modeler>().PrintData(rOStream);
         rOStream << std::endl;
-
         rOStream << "Processes:" << std::endl;
         KratosComponents<Process>().PrintData(rOStream);
     }
@@ -477,9 +471,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     // Modeler
     const Modeler mModeler;
-
-    // Modeler
-    const Process mProcess;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
