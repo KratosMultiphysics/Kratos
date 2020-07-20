@@ -48,7 +48,7 @@ namespace Kratos
     KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "The Logger::Start cannot be called in a parallel region" << std::endl;
     mCurrentMessage.SetLevel(GetCurrentLevelInstance());
     mCurrentMessage << LoggerMessage::START << LoggerMessage::PROFILING;
-    GetLablesStackInstance().push_back(TheSectionLabel);
+    GetLabelsStackInstance().push_back(TheSectionLabel);
     auto full_label = CreateFullLabel();
     mCurrentMessage.SetFullLabel(full_label);
     GetCurrentLevelInstance()++;
@@ -58,7 +58,7 @@ namespace Kratos
 
   Logger& Logger::Stop(std::string const& TheSectionLabel){
     KRATOS_ERROR_IF(OpenMPUtils::IsInParallel() != 0) << "The Logger::Stop cannot be called in a parallel region" << std::endl;
-    
+
     if(GetCurrentLevelInstance() > 0){
       GetCurrentLevelInstance()--;
     }
@@ -66,7 +66,7 @@ namespace Kratos
     mCurrentMessage.SetLevel(GetCurrentLevelInstance());
     mCurrentMessage << LoggerMessage::STOP << LoggerMessage::PROFILING;
     Timer::Stop(CreateFullLabel());
-    GetLablesStackInstance().pop_back();
+    GetLabelsStackInstance().pop_back();
     return *this;
   }
 
@@ -87,7 +87,7 @@ namespace Kratos
   }
 
   std::string Logger::CreateFullLabel(){
-    auto& labels_stack = GetLablesStackInstance();
+    auto& labels_stack = GetLabelsStackInstance();
     std::string result;
     for(auto& label : labels_stack){
       result += "/" + label;

@@ -111,7 +111,7 @@ namespace Kratos
       ///@name Static Methods
       ///@{
 
-    static std::vector<std::string>& GetLablesStackInstance()
+    static std::vector<std::string>& GetLabelsStackInstance()
     {
       static std::vector<std::string> instance;
       return instance;
