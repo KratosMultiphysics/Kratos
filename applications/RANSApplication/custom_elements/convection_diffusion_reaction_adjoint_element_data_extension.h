@@ -18,11 +18,6 @@
 // External includes
 
 // Project includes
-#include "containers/variable.h"
-#include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
-#include "includes/node.h"
-#include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "utilities/geometrical_sensitivity_utility.h"
 
