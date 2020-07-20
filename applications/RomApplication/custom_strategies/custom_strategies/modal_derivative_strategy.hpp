@@ -182,13 +182,6 @@ public:
         // default rebuild level (build at each solution step)
         this->SetRebuildLevel(1);
         
-        // TSystemMatrixType* Auxmp = new TSystemMatrixType;
-        // mpA = Kratos::shared_ptr<TSystemMatrixType>(AuxpA);
-        TSystemVectorType* AuxpInitialVariables = new TSystemVectorType;
-        mpInitialVariables = Kratos::shared_ptr<TSystemVectorType>(AuxpInitialVariables);
-        // TSystemVectorType* Auxpb = new TSystemVectorType;
-        // mpb = Kratos::shared_ptr<TSystemVectorType>(Auxpb);
-
         mInitializeWasPerformed = false;
         mSolutionStepIsInitialized = false;        
         
@@ -282,11 +275,6 @@ public:
             TSparseSpace::Clear(mpb);
             mpb = nullptr;
         }
-        if (mpInitialVariables != nullptr)
-        {
-            TSparseSpace::Clear(mpInitialVariables);
-            mpInitialVariables = nullptr;
-        }
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         this->pGetBuilderAndSolver()->Clear();
@@ -344,11 +332,6 @@ public:
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
                                                                  BaseType::GetModelPart());
 
-                //setting up initial SolutionStepValue
-                DofsArrayType& r_dof_set = p_builder_and_solver->GetDofSet();
-                TSparseSpace::Resize(*mpInitialVariables, r_dof_set.size());
-                TSparseSpace::SetToZero(*mpInitialVariables);
-                this->StoreVariables();
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
 
@@ -586,9 +569,7 @@ public:
                 // Update the derivative index
                 r_model_part.GetProcessInfo()[DERIVATIVE_INDEX] += 1;
             }
-
-            // Reset all the dofs to initial value
-            this->ResetVariables();
+            
         }
 
         KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) 
@@ -724,47 +705,6 @@ public:
         KRATOS_INFO_IF("ModalDerivativeStrategy", (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)) 
         << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
         
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This function stores the initial SolutionStepValue.
-     * @details
-     * { 
-     * If an a priori analysis (e.g. a nonlinear analysis) is performed 
-     * the last equilibrium state is stored as the equilibrium state and 
-     * a starting point to compute modal derivatives,
-     * at which the linearization of the nonlinear problem is performed.
-     * }
-     */
-    void StoreVariables()
-    {
-        KRATOS_TRY
-
-        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
-        for (auto dof : r_dof_set)
-        {
-            (*mpInitialVariables)(dof.EquationId()) = dof.GetSolutionStepValue();
-        }
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This function resets the SolutionStepValue to the stored initial SolutionStepValue.
-     * @details
-     * { 
-     * Modal derivatives are computed using a semi-analytic scheme using FD. 
-     * Thus, the SolutionStepValue has to be reset to the initial value at each loop
-     * } 
-     */    
-    void ResetVariables()
-    {
-        KRATOS_TRY
-        DofsArrayType& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
-        for (auto dof : r_dof_set)
-        {
-            dof.GetSolutionStepValue() = (*mpInitialVariables)(dof.EquationId());
-        }
         KRATOS_CATCH("")
     }
 
@@ -1136,17 +1076,15 @@ private:
 
     std::vector<std::string> mDerivativeSubModelPartNames;
 
+    TSystemMatrixPointerType mpMassMatrix;
+
+    TSystemMatrixPointerType mpStiffnessMatrix;
+
     TSystemMatrixPointerType mpA;
 
     TSystemVectorPointerType mpDx;
     
     TSystemVectorPointerType mpb;
-
-    TSystemMatrixPointerType mpMassMatrix;
-
-    TSystemMatrixPointerType mpStiffnessMatrix;
-
-    TSystemVectorPointerType mpInitialVariables;
 
     bool mSolutionStepIsInitialized;
 

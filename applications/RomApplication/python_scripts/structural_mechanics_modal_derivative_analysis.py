@@ -21,12 +21,21 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
         ## Solver construction
         return solver_wrapper.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
         return "::[Modal Derivative Simulation]:: "
+    
+    def OutputSolutionStep(self):
+        """This function printed / writes output files after the solution of a step
+        """
+
+        # Creating output
+        super(StructuralMechanicsModalDerivativeAnalysis, self).OutputSolutionStep()
+
+        self.WriteNodalModes()
     
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
@@ -66,11 +75,6 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
             number_of_initial_rom_dofs = rom_parameters["rom_settings"]["number_of_rom_dofs"]
             
-            if derivative_type_flag:
-                eigenvalues = rom_parameters["eigenvalues"]
-            else:
-                eigenvalues = [0]*number_of_initial_rom_dofs
-            
             number_of_extended_rom_dofs = None
             if derivative_type_flag and derivative_parameter_type_flag:
                 number_of_extended_rom_dofs = int(number_of_initial_rom_dofs * ( number_of_initial_rom_dofs + 1 ))
@@ -79,6 +83,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             elif not derivative_parameter_type_flag:
                 number_of_extended_rom_dofs = int((1+num_sub_model_parts)*number_of_initial_rom_dofs)
 
+            eigenvalues = rom_parameters["eigenvalues"]
             kratos_eigenvalues = KratosMultiphysics.Vector(number_of_initial_rom_dofs)
             for i in range(number_of_initial_rom_dofs):
                 kratos_eigenvalues[i] = eigenvalues[i]
@@ -96,3 +101,49 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                 node.SetValue(RomApplication.ROM_BASIS, aux ) # ROM basis
                 node.SetValue(RomApplication.AUX_ID, counter) # Aux ID
                 counter+=1
+
+    def WriteNodalModes(self):
+
+        # Iniate nodal modes dictionary
+        rom_parameters = {}
+        rom_parameters["rom_settings"] = {}
+        rom_parameters["rom_settings"]["nodal_unknowns"] = ["ROTATION_X", "ROTATION_Y", "ROTATION_Z", "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"]
+        rom_parameters["nodal_modes"] = {}
+        
+        eigenvalues = self.model.GetModelPart('Structure').ProcessInfo[RomApplication.EIGENVALUE_VECTOR]
+        rom_parameters["eigenvalues"] = []
+        for eigenvalue in eigenvalues:
+            rom_parameters["eigenvalues"].append(eigenvalue)
+
+        # Loop over nodes
+        for node in self.model.GetModelPart('Structure').GetNodes():
+
+            # Create Node Id for NodalMode
+            rom_parameters["nodal_modes"][str(node.Id)] = []
+
+            # Get nodal eigenvector matrix
+            nodal_modes_mtx = node.GetValue(RomApplication.ROM_BASIS)
+            num_nodal_dofs = nodal_modes_mtx.Size1()
+            num_nodal_modes = nodal_modes_mtx.Size2()
+            
+            # Loop over nodal DOFs
+            for iDOF in range(0, num_nodal_dofs):
+                
+                # Initiate DOF modes
+                dof_modes = []
+
+                # Loop over dof modes                
+                for iMode in range(0, num_nodal_modes):
+                    dof_modes.append(nodal_modes_mtx[iDOF, iMode])
+
+                # Set nodal modes
+                rom_parameters["nodal_modes"][str(node.Id)].append(dof_modes)
+
+        keys_nodal_modes = list(rom_parameters["nodal_modes"])
+        num_modes = len(rom_parameters["nodal_modes"][keys_nodal_modes[0]][0])
+        rom_parameters["rom_settings"]["number_of_rom_dofs"] = num_modes
+        
+        with open('RomParameters.json', 'w') as f:
+            json.dump(rom_parameters,f, indent=2)
+
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Nodal modes printed in JSON format")
