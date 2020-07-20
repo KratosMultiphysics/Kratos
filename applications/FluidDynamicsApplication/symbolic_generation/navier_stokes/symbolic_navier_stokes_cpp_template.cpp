@@ -42,7 +42,7 @@ Element::Pointer SymbolicNavierStokes<TElementData>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -52,7 +52,7 @@ Element::Pointer SymbolicNavierStokes<TElementData>::Create(
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<SymbolicNavierStokes>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SymbolicNavierStokes>(NewId, pGeom, pProperties);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

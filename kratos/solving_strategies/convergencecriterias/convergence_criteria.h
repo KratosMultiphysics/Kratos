@@ -95,8 +95,10 @@ public:
     /** Constructor with Parameters
     */
     explicit ConvergenceCriteria(Kratos::Parameters Settings)
-        : ConvergenceCriteria()
     {
+        mActualizeRHSIsNeeded = false;
+        mConvergenceCriteriaIsInitialized = false;
+        SetEchoLevel(1);
     }
 
     /** Copy constructor.
