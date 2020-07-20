@@ -50,7 +50,8 @@ branch: 200, time: 14 min
 </span>
 <br>
 
-
+<span>
+<span>
 - Candy, 268 tetrahedra
 branch: 20, time: 1 min
 branch: 200, time: 7 min
@@ -62,6 +63,21 @@ branch: 200, time: 7 min
 
 <span>
 <img align="center" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/images/candy1-1.bmp" width="288">
+</span>
+<br>
+
+<span>
+<span>
+
+- Wrench, 1614 tetrahedra
+
+<span>
+<img align="center" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/images/wrench1.bmp" width="288">
+</span>
+<br>
+
+<span>
+<img align="center" src="https://github.com/KratosMultiphysics/Kratos/blob/dem-cluster_creation/applications/DEMApplication/custom_problemtype/DEMClusters.gid/images/center4.png" width="288">
 </span>
 <br>
 

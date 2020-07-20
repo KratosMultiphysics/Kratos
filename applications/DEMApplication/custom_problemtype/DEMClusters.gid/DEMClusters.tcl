@@ -156,9 +156,6 @@ proc AfterMeshGeneration {fail} {
 
 proc OneClickGo {} {
 
-    # Already centered when meshing. Geometry must be centered for visualization purposes
-    # CenterGeometry
-
     # Generate OBJ and MSH files on Calculate
     GiD_Process Mescape Utilities Calculate MEscape
 
@@ -169,7 +166,7 @@ proc OneClickGo {} {
     GenerateClusterFile
 
     # Visualize cluster
-    ReadClusterFileintoMesh
+    ReadSPHFileintoMesh
 }
 
 
@@ -495,8 +492,6 @@ proc CenterGeometry { } {
     set centerY [lindex $a 1]
     set centerZ [lindex $a 2]
 
-    W $a
-
     set nodeslist [GiD_Geometry list point 1:]
 
     W [GiD_Info listmassproperties Points $nodeslist]
@@ -521,7 +516,6 @@ proc CenterMesh { } {
 
     GiD_Process Mescape Utilities Move Elements MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 {*}$tetrahedra escape Mescape
     GiD_Process Mescape Utilities Move Elements MaintainLayers Translation FNoJoin $centerX,$centerY,$centerZ FNoJoin 0.0,0.0,0.0 {*}$triangles escape Mescape
-
 
 }
 
