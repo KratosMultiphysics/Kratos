@@ -38,22 +38,23 @@ namespace Kratos
 
 namespace TemporalMethods
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor, template <class T> class TDataStorageFunctor>
 class TemporalMinMethod
 {
 public:
-    template <typename TDataType>
+    template <class TDataType>
     class NormMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(NormMethod);
 
-        NormMethod(ModelPart& rModelPart,
-                   const std::string& rNormType,
-                   const Variable<TDataType>& rInputVariable,
-                   const int EchoLevel,
-                   const Variable<double>& rOutputVariable,
-                   const Variable<double>& rMinTimeValueVariable)
+        NormMethod(
+            ModelPart& rModelPart,
+            const std::string& rNormType,
+            const Variable<TDataType>& rInputVariable,
+            const int EchoLevel,
+            const Variable<double>& rOutputVariable,
+            const Variable<double>& rMinTimeValueVariable)
             : TemporalMethod(rModelPart, EchoLevel),
               mNormType(rNormType),
               mrInputVariable(rInputVariable),
@@ -118,8 +119,8 @@ public:
 
             auto& initializer_method =
                 TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataStorageFunctor>;
-            initializer_method(r_container, mrOutputVariable,
-                               std::numeric_limits<double>::max());
+            initializer_method(
+                r_container, mrOutputVariable, std::numeric_limits<double>::max());
             initializer_method(r_container, mrMinTimeValueVariable, 0.0);
 
             KRATOS_INFO_IF("TemporalNormMinMethod", this->GetEchoLevel() > 0)

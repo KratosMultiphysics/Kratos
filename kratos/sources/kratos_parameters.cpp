@@ -687,6 +687,21 @@ void Parameters::SetMatrix(const Matrix& rValue)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::SetStringArray(const std::vector<std::string>& rValue)
+{
+    const SizeType size = rValue.size();
+
+    nlohmann::json j_array(0.0, size);
+    (*mpValue) = j_array;
+
+    for (IndexType i = 0; i < size; ++i) {
+        (*mpValue)[i] = rValue[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::iterator Parameters::begin()
 {
     return iterator(mpValue->begin(), mpValue, mpRoot);
