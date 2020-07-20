@@ -10,6 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
 //
+//  Collaborators:    Philipp Bucher
+//
 
 #if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)
 #define KRATOS_PARALLEL_UTILITIES_H_INCLUDED
@@ -95,7 +97,7 @@ public:
         }
     }
 
-    /** @brie loop allowing reductions. f called on every entry in rData
+    /** @brief loop allowing reductions. f called on every entry in rData
      * the function f needs to return the values to be used by the reducer
      * @param TReducer template parameter specifying the reduction operation to be done
      * @param f - must be a unary function accepting as input TContainerType::value_type&
@@ -118,6 +120,8 @@ public:
     template <class TThreadLocalStorage, class TUnaryFunction>
     inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
     {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>, "TThreadLocalStorage must be copy constructible!");
+
         #pragma omp parallel
         {
             // copy the prototype to create the thread local storage
