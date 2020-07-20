@@ -180,7 +180,7 @@ int main(int argc, char * argv[]){
     double Zcdgrav=Valor3/Vmaspiedra;
     std::cout << "Centroid: " << Xcdgrav << " " << Ycdgrav << " " << Zcdgrav << "\n\n";
 
-    // Movemos el objecto y lo dejamos colocado tal que su centroide coincida con el origen:
+    // Movemos el objeto y lo dejamos colocado tal que su centroide coincida con el origen:
     // for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
     //     tcoord[0][node_counter] += Xcdgrav;
     //     tcoord[1][node_counter] += Ycdgrav;
@@ -207,15 +207,15 @@ int main(int argc, char * argv[]){
     //     } else break;
     // }
 
-    for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
-        // xcoords[spheres_counter] += Xcdgrav;
-        // ycoords[spheres_counter] += Ycdgrav;
-        // zcoords[spheres_counter] += Zcdgrav;
+    // for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+    //     // xcoords[spheres_counter] += Xcdgrav;
+    //     // ycoords[spheres_counter] += Ycdgrav;
+    //     // zcoords[spheres_counter] += Zcdgrav;
 
-        xcoords[spheres_counter] += 0.0;
-        ycoords[spheres_counter] += 0.0;
-        zcoords[spheres_counter] += 0.0;
-    }
+    //     xcoords[spheres_counter] += 0.0;
+    //     ycoords[spheres_counter] += 0.0;
+    //     zcoords[spheres_counter] += 0.0;
+    // }
 
     // Calculo del tensor de inercias de cada elemento con respecto al CDG de cada piedra o cluster
     for (int element_counter = 0; element_counter < NUM_OF_ELEMENTS; element_counter++) {
@@ -276,7 +276,7 @@ int main(int argc, char * argv[]){
     std::cout << "Eigenvalues: " << D[1][0] << " " << D[1][1] << " " << D[1][2] << '\n';
     std::cout << "Eigenvalues: " << D[2][0] << " " << D[2][1] << " " << D[2][2] << "\n\n";
 
-    // Rotamos el objeto y lo colocamos paralelo a sus ejes principales de inercia
+    // Rotamos el objeto y lo colocamos paralelo a sus ejes principales de inercia - no hace falta
 
     // for (int node_counter = 0; node_counter < NUM_OF_NODES; node_counter++) {
 
@@ -291,16 +291,16 @@ int main(int argc, char * argv[]){
 
     // Rotamos las esferas y las colocamos paralelas a sus ejes principales de inercia
 
-    // for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
+    for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
 
-    //     double temporal_array_sph[3][1];
-    //     temporal_array_sph[0][0] = Q[0][0] * xcoords[spheres_counter] + Q[1][0] * ycoords[spheres_counter] + Q[2][0] * zcoords[spheres_counter];
-    //     temporal_array_sph[1][0] = Q[0][1] * xcoords[spheres_counter] + Q[1][1] * ycoords[spheres_counter] + Q[2][1] * zcoords[spheres_counter];
-    //     temporal_array_sph[2][0] = Q[0][2] * xcoords[spheres_counter] + Q[1][2] * ycoords[spheres_counter] + Q[2][2] * zcoords[spheres_counter];
-    //     xcoords[spheres_counter] = temporal_array_sph[0][0];
-    //     ycoords[spheres_counter] = temporal_array_sph[1][0];
-    //     zcoords[spheres_counter] = temporal_array_sph[2][0];
-    // }
+        double temporal_array_sph[3][1];
+        temporal_array_sph[0][0] = Q[0][0] * xcoords[spheres_counter] + Q[1][0] * ycoords[spheres_counter] + Q[2][0] * zcoords[spheres_counter];
+        temporal_array_sph[1][0] = Q[0][1] * xcoords[spheres_counter] + Q[1][1] * ycoords[spheres_counter] + Q[2][1] * zcoords[spheres_counter];
+        temporal_array_sph[2][0] = Q[0][2] * xcoords[spheres_counter] + Q[1][2] * ycoords[spheres_counter] + Q[2][2] * zcoords[spheres_counter];
+        xcoords[spheres_counter] = temporal_array_sph[0][0];
+        ycoords[spheres_counter] = temporal_array_sph[1][0];
+        zcoords[spheres_counter] = temporal_array_sph[2][0];
+    }
 
     double Distance, CenterX, CenterY, CenterZ, Radius = 0.0;
     int extreme_sphere_1, extreme_sphere_2;
@@ -336,14 +336,6 @@ int main(int argc, char * argv[]){
     CenterX = 0.5 * (xcoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[0] + xcoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[0]);
     CenterY = 0.5 * (ycoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[1] + ycoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[1]);
     CenterZ = 0.5 * (zcoords[extreme_sphere[0]] - radii[extreme_sphere[0]] * SphDistanceUnitVect[2] + zcoords[extreme_sphere[1]] + radii[extreme_sphere[1]] * SphDistanceUnitVect[2]);
-
-
-    // for (int spheres_counter = 0; spheres_counter < NUM_OF_SPHERES; spheres_counter++) {
-    //     xcoords[spheres_counter] += Xcdgrav;
-    //     ycoords[spheres_counter] += Ycdgrav;
-    //     zcoords[spheres_counter] += Zcdgrav-CenterZ;
-    // }
-
 
     double CheckX, CheckY, CheckZ, TempRad;
     std::vector<double> extreme_radius;
