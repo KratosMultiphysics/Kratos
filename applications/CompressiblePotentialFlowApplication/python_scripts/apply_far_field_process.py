@@ -75,22 +75,6 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         self.step = self.fluid_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        
-        # if self.step > 1 and self.step < 8:           
-            # self.free_stream_mach += 0.01 
-        # if self.step > 7:# and self.step < 9:
-            # self.critical_mach += 0.02
-            # self.upwind_factor_constant -= 0.1
-        # if self.step > 9:
-        #      self.upwind_factor_constant -= 0.1
-           
-        #     self.upwind_factor_constant -= 0.1 
-        #     # self.critical_mach += 0.01          
-        #     # self.mach_number_limit += 0.01
-        #     # self.upwinding_factor_constant -= 0.1 
-        # if self.step > 4:
-        #     self.critical_mach += 0.02
-
 
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound       
         self.free_stream_velocity = KratosMultiphysics.Vector(3)    
