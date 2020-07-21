@@ -38,6 +38,7 @@ void QuaternionSetX(Quaternion<double>& ThisQuaternion, double Value) { ThisQuat
 void QuaternionSetY(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.SetY(Value); }
 void QuaternionSetZ(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.SetZ(Value); }
 void QuaternionSetW(Quaternion<double>& ThisQuaternion, double Value) { ThisQuaternion.SetW(Value); }
+Quaternion<double> MultiplyQuaternion(Quaternion<double>& ThisQuaternion, Quaternion<double>& a, Quaternion<double>& b) { return Quaternion<double>(operator*(a,b)); }
 
 void  AddQuaternionToPython(pybind11::module& m) {
 
@@ -48,6 +49,10 @@ void  AddQuaternionToPython(pybind11::module& m) {
     .def_property("Y", QuaternionGetY, QuaternionSetY)
     .def_property("Z", QuaternionGetZ, QuaternionSetZ)
     .def_property("W", QuaternionGetW, QuaternionSetW)
+    .def("Normalize",        &Quaternion<double>::normalize)
+    .def_static("Identity",  &Quaternion<double>::Identity)
+    .def("ToRotationMatrix", &Quaternion<double>::ToRotationMatrix<Matrix>)
+    .def("MultiplyQuaternion", MultiplyQuaternion)
     ;
 }
 
