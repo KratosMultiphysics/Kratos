@@ -132,10 +132,8 @@ public:
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
             #pragma omp for
-            for(int i=0; i<mNchunks; ++i)
-            {
-                for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it)
-                {
+            for(int i=0; i<mNchunks; ++i){
+                for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
                     f(*it, thread_local_storage); // note that we pass the value to the function, not the iterator
                 }
             }
@@ -260,6 +258,30 @@ public:
             global_reducer.ThreadSafeReduce(local_reducer);
         }
         return global_reducer.GetValue();
+    }
+
+
+    /** @brief loop with thread local storage. f called on every entry in rData
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a unary function accepting as input IndexType and the thread local storage
+     */
+    template <class TThreadLocalStorage, class TUnaryFunction>
+    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
+    {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        #pragma omp parallel
+        {
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
+                    f(k, thread_local_storage); //note that we pass a reference to the value, not the iterator
+                }
+            }
+        }
     }
 
 private:
