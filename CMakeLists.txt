@@ -312,11 +312,6 @@ elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
   add_definitions( -DKRATOS_SMP_NONE )
   message("Shared memory parallelization is disabled!")
 
-  # temp solution until openmp is properly wrapped in the Parallel Utiliites
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
-  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-
 else()
   message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
