@@ -230,6 +230,37 @@ void SymbolicStokes< SymbolicStokesData<2,3> >::ComputeGaussPointLHSContribution
 }
 
 template <>
+void SymbolicStokes< SymbolicStokesData<2,4> >::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<2,4>& rData,
+    MatrixType& rLHS)
+{
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const double bdf0 = rData.bdf0;
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get constitutive matrix
+    const Matrix& C = rData.C;
+
+    // Get shape function values
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
+
+    // Stabilization parameters
+    constexpr double stab_c1 = 4.0;
+
+    auto& lhs = rData.lhs;
+
+    //substitute_lhs_2D4N
+
+    // Add intermediate results to local system
+    noalias(rLHS) += lhs * rData.Weight;
+}
+
+template <>
 void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
     SymbolicStokesData<3,4>& rData,
     MatrixType& rLHS)
@@ -255,6 +286,68 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
     auto& lhs = rData.lhs;
 
     //substitute_lhs_3D4N
+
+    // Add intermediate results to local system
+    noalias(rLHS) += lhs * rData.Weight;
+}
+
+template <>
+void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,6>& rData,
+    MatrixType& rLHS)
+{
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const double bdf0 = rData.bdf0;
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get constitutive matrix
+    const Matrix& C = rData.C;
+
+    // Get shape function values
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
+
+    // Stabilization parameters
+    constexpr double stab_c1 = 4.0;
+
+    auto& lhs = rData.lhs;
+
+    //substitute_lhs_3D6N
+
+    // Add intermediate results to local system
+    noalias(rLHS) += lhs * rData.Weight;
+}
+
+template <>
+void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointLHSContribution(
+    SymbolicStokesData<3,8>& rData,
+    MatrixType& rLHS)
+{
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const double bdf0 = rData.bdf0;
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get constitutive matrix
+    const Matrix& C = rData.C;
+
+    // Get shape function values
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
+
+    // Stabilization parameters
+    constexpr double stab_c1 = 4.0;
+
+    auto& lhs = rData.lhs;
+
+    //substitute_lhs_3D8N
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -298,6 +391,43 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
 }
 
 template <>
+void SymbolicStokes<SymbolicStokesData<2,4>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<2,4>& rData,
+    VectorType& rRHS)
+{
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const double bdf0 = rData.bdf0;
+    const double bdf1 = rData.bdf1;
+    const double bdf2 = rData.bdf2;
+
+    const double dyn_tau = rData.DynamicTau;
+
+    const auto& v = rData.Velocity;
+    const auto& vn = rData.Velocity_OldStep1;
+    const auto& vnn = rData.Velocity_OldStep2;
+    const auto& f = rData.BodyForce;
+    const auto& p = rData.Pressure;
+    const auto& stress = rData.ShearStress;
+
+    // Get shape function values
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
+
+    // Stabilization parameters
+    constexpr double stab_c1 = 4.0;
+
+    auto& rhs = rData.rhs;
+
+    //substitute_rhs_2D4N
+
+    noalias(rRHS) += rData.Weight * rhs;
+}
+
+template <>
 void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
     SymbolicStokesData<3,4>& rData,
     VectorType& rRHS)
@@ -334,6 +464,80 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
     noalias(rRHS) += rData.Weight * rhs;
 }
 
+template <>
+void SymbolicStokes<SymbolicStokesData<3,6>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,6>& rData,
+    VectorType& rRHS)
+{
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const double bdf0 = rData.bdf0;
+    const double bdf1 = rData.bdf1;
+    const double bdf2 = rData.bdf2;
+
+    const double dyn_tau = rData.DynamicTau;
+
+    const auto& v = rData.Velocity;
+    const auto& vn = rData.Velocity_OldStep1;
+    const auto& vnn = rData.Velocity_OldStep2;
+    const auto& f = rData.BodyForce;
+    const auto& p = rData.Pressure;
+    const auto& stress = rData.ShearStress;
+
+    // Get shape function values
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
+
+    // Stabilization parameters
+    constexpr double stab_c1 = 4.0;
+
+    auto& rhs = rData.rhs;
+
+    //substitute_rhs_3D6N
+
+    noalias(rRHS) += rData.Weight * rhs;
+}
+
+template <>
+void SymbolicStokes<SymbolicStokesData<3,8>>::ComputeGaussPointRHSContribution(
+    SymbolicStokesData<3,8>& rData,
+    VectorType& rRHS)
+{
+    const double rho = rData.Density;
+    const double mu = rData.EffectiveViscosity;
+
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const double bdf0 = rData.bdf0;
+    const double bdf1 = rData.bdf1;
+    const double bdf2 = rData.bdf2;
+
+    const double dyn_tau = rData.DynamicTau;
+
+    const auto& v = rData.Velocity;
+    const auto& vn = rData.Velocity_OldStep1;
+    const auto& vnn = rData.Velocity_OldStep2;
+    const auto& f = rData.BodyForce;
+    const auto& p = rData.Pressure;
+    const auto& stress = rData.ShearStress;
+
+    // Get shape function values
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
+
+    // Stabilization parameters
+    constexpr double stab_c1 = 4.0;
+
+    auto& rhs = rData.rhs;
+
+    //substitute_rhs_3D8N
+
+    noalias(rRHS) += rData.Weight * rhs;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private serialization
 
@@ -356,6 +560,9 @@ void SymbolicStokes<TElementData>::load(Serializer& rSerializer)
 // Class template instantiation
 
 template class SymbolicStokes< SymbolicStokesData<2,3> >;
+template class SymbolicStokes< SymbolicStokesData<2,4> >;
 template class SymbolicStokes< SymbolicStokesData<3,4> >;
+template class SymbolicStokes< SymbolicStokesData<3,6> >;
+template class SymbolicStokes< SymbolicStokesData<3,8> >;
 
 }
