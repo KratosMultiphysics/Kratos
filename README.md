@@ -12,7 +12,7 @@
 [CI-link]: https://github.com/KratosMultiphysics/Kratos/actions?query=workflow%3ACI
 
 [DOI-image]: https://zenodo.org/badge/DOI/10.5281/zenodo.3870709.svg
-[DOI]: https://doi.org/10.5281/zenodo.3870709
+[DOI]: https://doi.org/10.5281/zenodo.3234644
 
 _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
 
