@@ -67,7 +67,7 @@ public:
     typedef ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace> BaseType;
 
     /// The explicit builder and solver definition
-    typedef typename BaseType::ExplicitBuilderAndSolverType ExplicitBuilderAndSolverType;
+    typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
 
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
@@ -99,15 +99,15 @@ public:
     /**
      * @brief Default constructor.
      * @param rModelPart The model part to be computed
-     * @param pExplicitBuilderAndSolver The pointer to the explicit builder and solver
+     * @param pExplicitBuilder The pointer to the explicit builder and solver
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
     explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
-        typename ExplicitBuilderAndSolverType::Pointer pExplicitBuilderAndSolver,
+        typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : BaseType(rModelPart, pExplicitBuilderAndSolver, MoveMeshFlag, RebuildLevel)
+        : BaseType(rModelPart, pExplicitBuilder, MoveMeshFlag, RebuildLevel)
     {
     }
 
@@ -420,7 +420,7 @@ protected:
         // // If proceeds, do the intermediate PAD
         // if (mPAD) {
         //     const double dt = BaseType::GetDeltaTime();
-        //     const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        //     const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         //     const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         //     // CLIPPING TEST
@@ -472,7 +472,7 @@ protected:
         // // If proceeds, do the last substep PAD
         // if (mPAD) {
         //     const double dt = BaseType::GetDeltaTime();
-        //     const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        //     const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         //     const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         //     // CLIPPING TEST
@@ -605,7 +605,7 @@ private:
         const unsigned int block_size = r_process_info[DOMAIN_SIZE] + 2;
 
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Initialize the projection values
@@ -661,7 +661,7 @@ private:
         // const unsigned int block_size = dim + 2;
 
         // // Get the required data from the explicit builder and solver
-        // const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        // const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         // const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Initialize the values to zero

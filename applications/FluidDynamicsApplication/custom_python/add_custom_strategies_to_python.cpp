@@ -26,7 +26,7 @@
 #include "spaces/ublas_space.h"
 
 // builder_and_solvers
-#include "solving_strategies/builder_and_solvers/explicit_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //strategies
@@ -76,7 +76,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
     .def(py::init<ModelPart&, bool, int>())
     .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ExplicitBuilderAndSolver<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
     py::class_<
         FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
