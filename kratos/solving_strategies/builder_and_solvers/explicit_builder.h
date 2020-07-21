@@ -166,7 +166,7 @@ public:
      * @brief This method returns the flag mCalculateReactionsFlag
      * @return The flag that tells if the reactions are computed
      */
-    bool GetCalculateReactionsFlag()
+    bool GetCalculateReactionsFlag() const
     {
         return mCalculateReactionsFlag;
     }
