@@ -262,10 +262,16 @@ public:
     }
 
     /**
-     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     * @brief Solves the current step.
+     * The function always return true as convergence is not checked in the explicit framework
      */
     virtual bool SolveSolutionStep()
     {
+        // Call the initialize non-linear iteration
+        InitializeNonLinearIterationContainer(GetModelPart().Elements());
+        InitializeNonLinearIterationContainer(GetModelPart().Conditions());
+        InitializeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
+
         // Solve the problem assuming that a lumped mass matrix is used
         SolveWithLumpedMassMatrix();
 
@@ -273,6 +279,11 @@ public:
         if (mMoveMeshFlag) {
             MoveMesh();
         }
+
+        // Call the finalize non-linear iteration
+        FinalizeNonLinearIterationContainer(GetModelPart().Elements());
+        FinalizeNonLinearIterationContainer(GetModelPart().Conditions());
+        FinalizeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
 
         return true;
     }
@@ -635,6 +646,38 @@ private:
         block_for_each(
             rContainer,
             [&](typename TContainerType::value_type& rEntity){rEntity.InitializeSolutionStep(r_process_info);}
+        );
+    }
+
+    /**
+     * @brief Auxiliary call to the InitializeNonLinearIteration()
+     * For a given container, this calls the InitializeNonLinearIteration() method
+     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
+     * @param rContainer Reference to the container
+     */
+    template <class TContainerType>
+    void InitializeNonLinearIterationContainer(TContainerType &rContainer)
+    {
+        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        block_for_each(
+            rContainer,
+            [&](typename TContainerType::value_type& rEntity){rEntity.InitializeNonLinearIteration(r_process_info);}
+        );
+    }
+
+    /**
+     * @brief Auxiliary call to the FinalizeNonLinearIteration()
+     * For a given container, this calls the FinalizeNonLinearIteration() method
+     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
+     * @param rContainer Reference to the container
+     */
+    template <class TContainerType>
+    void FinalizeNonLinearIterationContainer(TContainerType &rContainer)
+    {
+        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        block_for_each(
+            rContainer,
+            [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeNonLinearIteration(r_process_info);}
         );
     }
 
