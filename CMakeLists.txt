@@ -284,14 +284,11 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
 
-##*****************************
-#find and include OpenMP if possible
+# Select shared memory parallelization
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
-
-# Select shared memory parallelization
 # default to OpenMP
 set(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP" CACHE STRING "Specify which thread library is used for shared-memory parallelization.")
 
