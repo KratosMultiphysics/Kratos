@@ -56,7 +56,6 @@ template< class TElementData >
 class SymbolicStokes : public FluidElement<TElementData>
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
@@ -151,6 +150,7 @@ public:
     ///@name Operators
     ///@{
 
+
     ///@}
     ///@name Operations
     ///@{
@@ -200,7 +200,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override;
 
     ///@}
-
 protected:
     ///@name Protected member Variables
     ///@{
