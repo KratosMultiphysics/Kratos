@@ -168,7 +168,6 @@ private:
 /** @brief simplified version of the basic loop (without reduction) to enable template type deduction
  * @param v - containers to be looped upon
  * @param func - must be a unary function accepting as input TContainerType::value_type&
- *
  */
 template <class TContainerType, class TFunctionType>
 void block_for_each(TContainerType &&v, TFunctionType &&func)
@@ -176,6 +175,10 @@ void block_for_each(TContainerType &&v, TFunctionType &&func)
     BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(func));
 }
 
+/** @brief simplified version of the basic loop with reduction to enable template type deduction
+ * @param v - containers to be looped upon
+ * @param func - must be a unary function accepting as input TContainerType::value_type&
+ */
 template <class TReducer, class TContainerType, class TFunctionType>
 typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &&func)
 {
