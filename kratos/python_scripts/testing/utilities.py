@@ -1,10 +1,9 @@
 # python imports
-from shutil import which
+import sys
 
 def GetPython3Command():
     """Return the name of the python command, can be used with subprocess."""
-    if which("python3"):
-        return "python3"
-    elif which("python"):
-        return "python"
+    sys_executable = sys.executable
+    if sys_executable: # was found
+        return sys_executable
     raise Exception("The python command could not be determined!")
