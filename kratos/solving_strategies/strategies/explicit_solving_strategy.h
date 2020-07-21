@@ -411,7 +411,7 @@ public:
         KRATOS_TRY
 
         // Check if displacement var is needed
-        if (mMoveMeshFlag == true) {
+        if (mMoveMeshFlag) {
             VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
         }
 
