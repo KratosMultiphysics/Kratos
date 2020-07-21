@@ -99,7 +99,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     if (wake == 0) { // Normal element (non-wake) - eventually an embedded
         if (r_this.IsNot(INLET)) {
-            if (rLeftHandSideMatrix.size1() != TNumNodes + 1 || 
+            if (rLeftHandSideMatrix.size1() != TNumNodes + 1 ||
                 rLeftHandSideMatrix.size2() != TNumNodes + 1) {
                     rLeftHandSideMatrix.resize(TNumNodes + 1, TNumNodes + 1, false);
                 }
@@ -594,7 +594,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
 
     const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(r_this, rCurrentProcessInfo);
-    
+
     double density = 0.0;
 
     if(r_this.IsNot(INLET)) {
@@ -639,7 +639,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 
     const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo);
     const double upwind_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(upwind_velocity, rCurrentProcessInfo);
-    
+
     double DrhoDu2 = 0.0;
     double DrhoDu2_up = 0.0;
 
@@ -996,13 +996,13 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AssignRightHand
     if (rData.distances[rRow] > 0.0)
     {
         rRightHandSideVector[rRow] = rUpper_rhs(rRow);
-        // check if should be zero
-        rRightHandSideVector[rRow + TNumNodes] = 0.0; // rWake_rhs(rRow);
+        // TODO: Check theory behind setting rhs to 0
+        rRightHandSideVector[rRow + TNumNodes] = 0.0; //rWake_rhs(rRow);
     }
     else
     {
-        rRightHandSideVector[rRow] = 0.0; // rWake_rhs(rRow);
-        // check if should be zero
+        // TODO: Check theory behind setting rhs to 0
+        rRightHandSideVector[rRow] = 0.0; //rWake_rhs(rRow);
         rRightHandSideVector[rRow + TNumNodes] = rLower_rhs(rRow);
     }
 }
