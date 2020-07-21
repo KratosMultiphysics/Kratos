@@ -97,7 +97,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedEliminationBuilderAndSolverWithConstraints);
 
     /// Definition of the base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BuilderAndSolverBaseType;
+
+    /// Definition of the base class
     typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    /// The definition of the current class
+    typedef ResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     // The size_t types
     typedef std::size_t SizeType;
@@ -149,6 +155,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverWithConstraints() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
@@ -187,6 +200,19 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
      */
     ~ResidualBasedEliminationBuilderAndSolverWithConstraints() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BuilderAndSolverBaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -352,6 +378,15 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             it->FinalizeSolutionStep(r_process_info);
         }
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to finalize solution step.")
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "elimination_builder_and_solver_with_constraints";
     }
 
     ///@}

@@ -34,7 +34,7 @@ namespace Testing
     typedef Geometry<NodeType> GeometryType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType > ExplicitBuilderAndSolverType;
+    typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
     typedef ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyRK4Type;
 
     class AuxiliaryExplicitStrategiesTestElement : public Element
@@ -118,7 +118,7 @@ namespace Testing
         // Create the RK4 explicit strategy
         const bool move_mesh_flag = false;
         const unsigned int rebuild_level = 0;
-        auto p_explicit_bs = Kratos::make_shared<ExplicitBuilderAndSolverType>();
+        auto p_explicit_bs = Kratos::make_shared<ExplicitBuilderType>();
         auto p_explicit_strategy = Kratos::make_unique<ExplicitSolvingStrategyRK4Type>(
             r_model_part,
             p_explicit_bs,
