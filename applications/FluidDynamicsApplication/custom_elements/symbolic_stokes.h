@@ -100,7 +100,8 @@ public:
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
     constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = (Dim - 1) * 3;
+
+    constexpr static unsigned int StrainSize = (Dim-1)*3;
 
     ///@}
     ///@name Life Cycle
