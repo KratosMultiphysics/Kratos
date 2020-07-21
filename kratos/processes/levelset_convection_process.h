@@ -96,7 +96,8 @@ public:
           mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
           mMaxAllowedCFL(max_cfl),
-          mMaxSubsteps(max_substeps)
+          mMaxSubsteps(max_substeps),
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         KRATOS_TRY
 
@@ -348,7 +349,8 @@ protected:
           mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
           mMaxAllowedCFL(MaxCFL),
-          mMaxSubsteps(MaxSubSteps)
+          mMaxSubsteps(MaxSubSteps),
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         mDistancePartIsInitialized = false;
     }
@@ -356,8 +358,6 @@ protected:
     virtual void ReGenerateConvectionModelPart(ModelPart& rBaseModelPart){
 
         KRATOS_TRY
-
-        mAuxModelPartName = rBaseModelPart.Name() + "_DistanceConvectionPart";
 
         if(mrModel.HasModelPart(mAuxModelPartName))
             mrModel.DeleteModelPart(mAuxModelPartName);
