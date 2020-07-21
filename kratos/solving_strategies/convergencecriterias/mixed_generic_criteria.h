@@ -70,8 +70,9 @@ public:
     /// Constructor.
 
     /**
-     * @brief Construct a new Trilinos Mixed Generic Criteria object
-     *
+     * @brief Construct a new Mixed Generic Criteria object
+     * Construct the mixed generic convergence criteria from a convergence variables list.
+     * The convergence variable list contains for each variable the variable itself as well as the corresponding relative and absolute tolerances.
      * @param rConvergenceVariablesList List containing tuples with the convergence variables to be checked. The tuples are set as <Variable, relative tolerance, absolute tolerance>
      */
     MixedGenericCriteria(const ConvergenceVariableListType& rConvergenceVariablesList)
@@ -182,11 +183,6 @@ protected:
     ///@name Protected Member Variables
     ///@{
 
-    const int mVariableSize;
-    const std::vector<VariableData*> mVariableDataVector;
-    const std::vector<TDataType> mRatioToleranceVector;
-    const std::vector<TDataType> mAbsToleranceVector;
-    std::unordered_map<KeyType, KeyType> mLocalKeyMap;
 
     ///@}
     ///@name Protected Operators
@@ -197,89 +193,54 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual bool CheckDofStatus(
-        const Dof<double>& rDof,
-        const int Rank)
+    /**
+     * @brief Get the Variable Size object
+     * Get the number of variables to be checked
+     * @return const int Number of variables to check
+     */
+    const int GetVariableSize()
     {
-        return rDof.IsFree();
+        return mVariableSize;
     }
 
-    virtual int GetLocalDofId(int GlobalDofId)
+    /**
+     * @brief Get the Local Key Map object
+     * Returns a reference to the variable key local map
+     * @return std::unordered_map<KeyType, KeyType>& Reference to the local key map
+     */
+    std::unordered_map<KeyType, KeyType>& GetLocalKeyMap()
     {
-        return GlobalDofId;
+        return mLocalKeyMap;
     }
 
-    template<class TLocalVector>
-    TLocalVector GetLocalDx(const TSystemVectorType& Dx)
-    {
-        return Dx;
-    }
-
-    template<class TLocalVectorType>
+    /**
+     * @brief Calculate the convergence norms
+     * This method calculates the convergence norms for all the variables to be checked
+     * @param rModelPart Reference to the ModelPart containing the fluid problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @return std::tuple<std::vector<TDataType>, std::vector<TDataType>> Tuple containing the absolute and relative convergence values
+     */
     std::tuple<std::vector<TDataType>, std::vector<TDataType>> CalculateConvergenceNorms(
         const ModelPart& rModelPart,
         const DofsArrayType& rDofSet,
-        const TLocalVectorType& rLocalDx)
+        const TSystemVectorType& rDx)
     {
         // Initialize
         std::vector<int> dofs_count(mVariableSize, 0);
         std::vector<TDataType> solution_norms_vector(mVariableSize, 0.0);
         std::vector<TDataType> increase_norms_vector(mVariableSize, 0.0);
 
-        int n_dofs = rDofSet.size();
+        // Accumulate the norm values
+        GetNormValues(rModelPart, rDofSet, rDx, dofs_count, solution_norms_vector, increase_norms_vector);
+
+        // Synchronize the norm values
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-        const int rank = r_data_comm.Rank();
-
-        // Loop over Dofs
-#pragma omp parallel
-        {
-            // Local thread variables
-            int dof_id;
-            TDataType dof_dx;
-            TDataType dof_value;
-
-            // Local reduction variables
-            std::vector<TDataType> var_solution_norm_reduction(mVariableSize);
-            std::vector<TDataType> var_correction_norm_reduction(mVariableSize);
-            std::vector<int> dofs_counter_reduction(mVariableSize);
-            for (int i = 0; i < mVariableSize; i++) {
-                var_solution_norm_reduction[i] = 0.0;
-                var_correction_norm_reduction[i] = 0.0;
-                dofs_counter_reduction[i] = 0;
-            }
-
-#pragma omp for
-            for (int i = 0; i < n_dofs; i++) {
-                auto it_dof = rDofSet.begin() + i;
-                if (CheckDofStatus(*it_dof, rank)) {
-                    dof_id = it_dof->EquationId();
-                    dof_value = it_dof->GetSolutionStepValue(0);
-                    int local_dof_id = GetLocalDofId(dof_id);
-                    dof_dx = rLocalDx[local_dof_id];
-
-                    const auto &r_current_variable = it_dof->GetVariable();
-                    int var_local_key = mLocalKeyMap[r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key()];
-
-                    var_solution_norm_reduction[var_local_key] += dof_value * dof_value;
-                    var_correction_norm_reduction[var_local_key] += dof_dx * dof_dx;
-                    dofs_counter_reduction[var_local_key]++;
-                }
-            }
-
-#pragma omp critical
-            {
-                for (int i = 0; i < mVariableSize; i++) {
-                    solution_norms_vector[i] += var_solution_norm_reduction[i];
-                    increase_norms_vector[i] += var_correction_norm_reduction[i];
-                    dofs_count[i] += dofs_counter_reduction[i];
-                }
-            }
-        }
-
         auto global_solution_norms_vector = r_data_comm.SumAll(solution_norms_vector);
         auto global_increase_norms_vector = r_data_comm.SumAll(increase_norms_vector);
         auto global_dofs_count = r_data_comm.SumAll(dofs_count);
 
+        // Check division by zero in global solution norms
         const double zero_tol = 1.0e-12;
         for(int i = 0; i < mVariableSize; i++) {
             if (global_solution_norms_vector[i] < zero_tol) {
@@ -287,6 +248,7 @@ protected:
             }
         }
 
+        // Calculate the norm values
         std::vector<TDataType> var_ratio(mVariableSize, 0.0);
         std::vector<TDataType> var_abs(mVariableSize, 0.0);
         for(int i = 0; i < mVariableSize; i++) {
@@ -298,6 +260,11 @@ protected:
         return std::make_tuple(var_ratio, var_abs);
     }
 
+    /**
+     * @brief Method to output the convergence status
+     * This method prints the convergence status to the screen for each one of the checked variables
+     * @param rConvergenceNorms Tuple containing the absolute and relative convergence values
+     */
     void OutputConvergenceStatus(const std::tuple<std::vector<TDataType>, std::vector<TDataType>>& rConvergenceNorms)
     {
         const auto& var_ratio = std::get<0>(rConvergenceNorms);
@@ -315,6 +282,13 @@ protected:
         }
     }
 
+    /**
+     * @brief Method to check convergence
+     * This method checks the convergence of the provided norms with the user-defined tolerances
+     * @param rConvergenceNorms Tuple containing the absolute and relative convergence values
+     * @return true Convergence is satisfied
+     * @return false Convergence is not satisfied
+     */
     bool CheckConvergence(const std::tuple<std::vector<TDataType>, std::vector<TDataType>>& rConvergenceNorms)
     {
         int is_converged = 0;
@@ -347,6 +321,113 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+private:
+    ///@name Private Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Member Variables
+    ///@{
+
+    const int mVariableSize;
+    const std::vector<VariableData*> mVariableDataVector;
+    const std::vector<TDataType> mRatioToleranceVector;
+    const std::vector<TDataType> mAbsToleranceVector;
+    std::unordered_map<KeyType, KeyType> mLocalKeyMap;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Get the Norm Values
+     * This function accumulates the solution and increment norm values in the provided arrays.
+     * Note that these arrays are assumed to be already initialized to zero.
+     * @param rModelPart Reference to the ModelPart containing the fluid problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rDofsCount Array containing the number of DOFs per variable
+     * @param rSolutionNormsVector Array containing the solution norms accumulated values for each variable checked
+     * @param rIncreaseNormsVector Array containing the correction norms accumulated values for each variable checked
+     */
+    virtual void GetNormValues(
+        const ModelPart& rModelPart,
+        const DofsArrayType& rDofSet,
+        const TSystemVectorType& rDx,
+        std::vector<int>& rDofsCount,
+        std::vector<TDataType>& rSolutionNormsVector,
+        std::vector<TDataType>& rIncreaseNormsVector)
+    {
+        int n_dofs = rDofSet.size();
+
+        // Loop over Dofs
+#pragma omp parallel
+        {
+            // Local thread variables
+            int dof_id;
+            TDataType dof_dx;
+            TDataType dof_value;
+
+            // Local reduction variables
+            std::vector<TDataType> var_solution_norm_reduction(mVariableSize);
+            std::vector<TDataType> var_correction_norm_reduction(mVariableSize);
+            std::vector<int> dofs_counter_reduction(mVariableSize);
+            for (int i = 0; i < mVariableSize; i++) {
+                var_solution_norm_reduction[i] = 0.0;
+                var_correction_norm_reduction[i] = 0.0;
+                dofs_counter_reduction[i] = 0;
+            }
+
+#pragma omp for
+            for (int i = 0; i < n_dofs; i++) {
+                auto it_dof = rDofSet.begin() + i;
+                if (it_dof->IsFree()) {
+                    dof_id = it_dof->EquationId();
+                    dof_value = it_dof->GetSolutionStepValue(0);
+                    dof_dx = TSparseSpace::GetValue(rDx, dof_id);
+
+                    const auto &r_current_variable = it_dof->GetVariable();
+                    int var_local_key = mLocalKeyMap[r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key()];
+
+                    var_solution_norm_reduction[var_local_key] += dof_value * dof_value;
+                    var_correction_norm_reduction[var_local_key] += dof_dx * dof_dx;
+                    dofs_counter_reduction[var_local_key]++;
+                }
+            }
+
+#pragma omp critical
+            {
+                for (int i = 0; i < mVariableSize; i++) {
+                    rDofsCount[i] += dofs_counter_reduction[i];
+                    rSolutionNormsVector[i] += var_solution_norm_reduction[i];
+                    rIncreaseNormsVector[i] += var_correction_norm_reduction[i];
+                }
+            }
+        }
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
     ///@{
 
 

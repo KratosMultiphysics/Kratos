@@ -59,7 +59,7 @@ public:
 
     typedef typename BaseType::ConvergenceVariableListType ConvergenceVariableListType;
 
-    typedef std::size_t KeyType;
+    typedef typename BaseType::KeyType KeyType;
 
     ///@}
     ///@name Life Cycle
@@ -69,7 +69,8 @@ public:
 
     /**
      * @brief Construct a new Trilinos Mixed Generic Criteria object
-     *
+     * Construct the mixed generic convergence criteria from a convergence variables list.
+     * The convergence variable list contains for each variable the variable itself as well as the corresponding relative and absolute tolerances.
      * @param rConvergenceVariablesList List containing tuples with the convergence variables to be checked. The tuples are set as <Variable, relative tolerance, absolute tolerance>
      */
     TrilinosMixedGenericCriteria(const ConvergenceVariableListType& rConvergenceVariablesList)
@@ -112,13 +113,8 @@ public:
 
         // Check if we are solving for something
         if (TSparseSpace::Size(Dx) != 0) {
-            // Do the local Dx vector import
-            Epetra_Vector local_dx(mpDofImport->TargetMap());
-            int i_err = local_dx.Import(Dx, *mpDofImport, Insert);
-            KRATOS_ERROR_IF_NOT(i_err == 0) << "Local Dx import failed!" << std::endl;
-
             // Calculate the convergence ratio and absolute norms
-            const auto convergence_norms = BaseType::CalculateConvergenceNorms(rModelPart, rDofSet, local_dx);
+            const auto convergence_norms = BaseType::CalculateConvergenceNorms(rModelPart, rDofSet, Dx);
 
             // Output convergence status
             BaseType::OutputConvergenceStatus(convergence_norms);
@@ -168,17 +164,45 @@ private:
     ///@name Private Operations
     ///@{
 
-    bool CheckDofStatus(
-        const Dof<double>& rDof,
-        const int Rank) override
+    void GetNormValues(
+        const ModelPart& rModelPart,
+        const DofsArrayType& rDofSet,
+        const TSystemVectorType& rDx,
+        std::vector<int>& rDofsCount,
+        std::vector<TDataType>& rSolutionNormsVector,
+        std::vector<TDataType>& rIncreaseNormsVector) override
     {
-        return rDof.IsFree() && rDof.GetSolutionStepValue(PARTITION_INDEX) == Rank;
-    }
+        int n_dofs = rDofSet.size();
+        const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        const int rank = r_data_comm.Rank();
+        auto& r_local_key_map = BaseType::GetLocalKeyMap();
 
-    int GetLocalDofId(int GlobalDofId) override
-    {
-        int local_dof_id = mpDofImport->TargetMap().LID(GlobalDofId);
-        return local_dof_id;
+        // Do the local Dx vector import
+        Epetra_Vector local_dx(mpDofImport->TargetMap());
+        int i_err = local_dx.Import(rDx, *mpDofImport, Insert);
+        KRATOS_ERROR_IF_NOT(i_err == 0) << "Local Dx import failed!" << std::endl;
+
+        // Local thread variables
+        int dof_id;
+        TDataType dof_dx;
+
+        // Loop over Dofs
+        for (int i = 0; i < n_dofs; i++) {
+            auto it_dof = rDofSet.begin() + i;
+            if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
+                dof_id = it_dof->EquationId();
+                const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
+                dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
+
+                const auto &r_current_variable = it_dof->GetVariable();
+                KeyType var_key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
+                int var_local_key = r_local_key_map[var_key];
+
+                rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
+                rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
+                rDofsCount[var_local_key]++;
+            }
+        }
     }
 
     /**
