@@ -118,10 +118,10 @@ public:
 
     /** @brief loop with thread local storage. f called on every entry in rData
      * @param TThreadLocalStorage template parameter specifying the thread local storage
-     * @param f - must be a unary function accepting as input TContainerType::value_type& and the thread local storage
+     * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
-    template <class TThreadLocalStorage, class TUnaryFunction>
-    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
+    template <class TFunction, class TThreadLocalStorage>
+    inline void for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -143,10 +143,10 @@ public:
      * the function f needs to return the values to be used by the reducer
      * @param TReducer template parameter specifying the reduction operation to be done
      * @param TThreadLocalStorage template parameter specifying the thread local storage
-     * @param f - must be a unary function accepting as input TContainerType::value_type& and the thread local storage
+     * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
-    template <class TReducer, class TThreadLocalStorage, class TUnaryFunction>
-    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
+    template <class TReducer, class TFunction, class TThreadLocalStorage>
+    inline typename TReducer::value_type for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -283,10 +283,10 @@ public:
 
     /** @brief loop with thread local storage. f called on every entry in rData
      * @param TThreadLocalStorage template parameter specifying the thread local storage
-     * @param f - must be a unary function accepting as input IndexType and the thread local storage
+     * @param f - must be a function accepting as input IndexType and the thread local storage
      */
-    template <class TThreadLocalStorage, class TUnaryFunction>
-    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
+    template <class TFunction, class TThreadLocalStorage>
+    inline void for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -308,10 +308,10 @@ public:
      * function f is expected to return the values to be reduced
      * @param TReducer - template parameter specifying the type of reducer to be applied
      * @param TThreadLocalStorage template parameter specifying the thread local storage
-     * @param f - must be a unary function accepting as input IndexType and the thread local storage
+     * @param f - must be a function accepting as input IndexType and the thread local storage
      */
-    template <class TReducer, class TThreadLocalStorage, class TUnaryFunction>
-    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
+    template <class TReducer, class TFunction, class TThreadLocalStorage>
+    inline typename TReducer::value_type for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
