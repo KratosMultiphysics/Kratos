@@ -56,9 +56,6 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
 
 void GenerateTransonicPerturbationUpwindElement(ModelPart& rModelPart) {
     // Variables addition
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
-    rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
-
     // Set the element properties
     Properties::Pointer pElemProp = rModelPart.CreateNewProperties(1);
     rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
