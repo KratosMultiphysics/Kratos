@@ -65,7 +65,6 @@
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
 #include "custom_elements/herschel_bulkley_fluid.h"
-#include "custom_elements/symbolic_stokes.h"
 #include "custom_elements/stokes_3D.h"
 #include "custom_elements/stokes_3D_twofluid.h"
 #include "custom_elements/navier_stokes.h"
