@@ -184,7 +184,7 @@ public:
      * @brief This method returns the flag mDofSetIsInitialized
      * @return The flag that tells if the dof set is initialized
      */
-    bool GetDofSetIsInitializedFlag()
+    bool GetDofSetIsInitializedFlag() const
     {
         return mDofSetIsInitialized;
     }
