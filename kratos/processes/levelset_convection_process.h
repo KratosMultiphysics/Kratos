@@ -166,7 +166,7 @@ public:
     /// Destructor.
     ~LevelSetConvectionProcess() override
     {
-        mrModel.DeleteModelPart("DistanceConvectionPart");
+        mrModel.DeleteModelPart(mAuxModelPartName);
     }
 
     ///@}
@@ -328,6 +328,8 @@ protected:
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
+    std::string mAuxModelPartName;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -355,10 +357,12 @@ protected:
 
         KRATOS_TRY
 
-        if(mrModel.HasModelPart("DistanceConvectionPart"))
-            mrModel.DeleteModelPart("DistanceConvectionPart");
+        mAuxModelPartName = rBaseModelPart.Name() + "_DistanceConvectionPart";
 
-        mpDistanceModelPart= &(mrModel.CreateModelPart("DistanceConvectionPart"));
+        if(mrModel.HasModelPart(mAuxModelPartName))
+            mrModel.DeleteModelPart(mAuxModelPartName);
+
+        mpDistanceModelPart= &(mrModel.CreateModelPart(mAuxModelPartName));
 
 
         // Check buffer size
