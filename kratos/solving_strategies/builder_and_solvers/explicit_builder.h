@@ -238,7 +238,7 @@ public:
      * @brief This method returns the value mEquationSystemSize
      * @return Size of the system of equations
      */
-    unsigned int GetEquationSystemSize()
+    unsigned int GetEquationSystemSize() const
     {
         return mEquationSystemSize;
     }
