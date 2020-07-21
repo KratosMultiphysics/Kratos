@@ -371,11 +371,11 @@ public:
     virtual void Initialize(ModelPart& rModelPart)
     {
         if (!mDofSetIsInitialized) {
-        // Initialize the DOF set and the equation ids
-        this->SetUpDofSet(rModelPart);
-        this->SetUpDofSetEquationIds();
-        // Set up the lumped mass vector
-        this->SetUpLumpedMassVector(rModelPart);
+            // Initialize the DOF set and the equation ids
+            this->SetUpDofSet(rModelPart);
+            this->SetUpDofSetEquationIds();
+            // Set up the lumped mass vector
+            this->SetUpLumpedMassVector(rModelPart);
         } else if (!mLumpedMassVectorIsInitialized) {
             KRATOS_WARNING("ExplicitBuilder") << "Calling Initialize() with already initialized DOF set. Initializing lumped mass vector." << std::endl;;
             // Only set up the lumped mass vector
