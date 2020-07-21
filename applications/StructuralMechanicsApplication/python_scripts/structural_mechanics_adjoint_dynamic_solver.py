@@ -29,8 +29,7 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
 
     def AddVariables(self):
         super(StructuralMechanicsAdjointDynamicSolver, self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self._add_dynamic_variables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_2)
