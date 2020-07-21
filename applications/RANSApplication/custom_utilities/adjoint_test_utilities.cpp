@@ -150,9 +150,9 @@ void CalculateResidual(Vector& residual, TClassType& rClassTypeObject, const Pro
     rClassTypeObject.CalculateMassMatrix(mass_matrix, rProcessInfo);
     rClassTypeObject.CalculateLocalVelocityContribution(damping_matrix, residual, rProcessInfo);
 
-    static_cast<const TClassType>(rClassTypeObject).GetFirstDerivativesVector(nodal_scalar_values);
-    static_cast<const TClassType>(rClassTypeObject).GetSecondDerivativesVector(current_nodal_scalar_rate_values);
-    static_cast<const TClassType>(rClassTypeObject).GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
+    static_cast<const TClassType&>(rClassTypeObject).GetFirstDerivativesVector(nodal_scalar_values);
+    static_cast<const TClassType&>(rClassTypeObject).GetSecondDerivativesVector(current_nodal_scalar_rate_values);
+    static_cast<const TClassType&>(rClassTypeObject).GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
 
     noalias(current_nodal_scalar_rate_values) =
         current_nodal_scalar_rate_values * (1 - bossak_alpha) +

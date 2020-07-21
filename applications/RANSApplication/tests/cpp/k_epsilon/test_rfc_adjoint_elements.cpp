@@ -80,5 +80,19 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateSensitivityMatrix, Krato
         SHAPE_SENSITIVITY, calculate_sensitivity_matrix, 1e-7, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateSecondDerivativesLHS, KratosRansFastSuite)
+{
+    const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
+                                                  const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSecondDerivativesLHS(rOutput, rProcessInfo);
+        const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
+        noalias(rOutput) = rOutput * (1.0 - bossak_alpha);
+    };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
+        "RansKEpsilonKRFC2D3N", "RansKEpsilonKAdjointRFC2D3N",
+        TURBULENT_KINETIC_ENERGY_RATE, calculate_sensitivity_matrix, 1e-7, 1e-5);
+}
+
 } // namespace Testing
 } // namespace Kratos

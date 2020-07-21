@@ -219,7 +219,8 @@ public:
      * @param rResult the elemental equation ID vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          const ProcessInfo& rCurrentProcessInfo) const override
     {
         std::array<std::size_t, TNumNodes> ids;
         this->EquationIdArray(ids, rCurrentProcessInfo);
@@ -229,7 +230,8 @@ public:
         std::copy(ids.begin(), ids.end(), rResult.begin());
     }
 
-    void EquationIdArray(std::array<std::size_t, TNumNodes>& rResult, ProcessInfo& rCurrentProcessInfo)
+    void EquationIdArray(std::array<std::size_t, TNumNodes>& rResult,
+                         const ProcessInfo& rCurrentProcessInfo) const
     {
         const Variable<double>& r_adjoint_Variable =
             TConvectionDiffusionReactionAdjointData::GetAdjointScalarVariable();
@@ -244,7 +246,8 @@ public:
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    const ProcessInfo& rCurrentProcessInfo) const override
     {
         std::array<Dof<double>::Pointer, TNumNodes> dofs;
         this->GetDofArray(dofs, rCurrentProcessInfo);
@@ -256,7 +259,7 @@ public:
     }
 
     void GetDofArray(std::array<Dof<double>::Pointer, TNumNodes>& rElementalDofList,
-                     ProcessInfo& rCurrentProcessInfo)
+                     const ProcessInfo& rCurrentProcessInfo) const
     {
         const Variable<double>& r_adjoint_Variable =
             TConvectionDiffusionReactionAdjointData::GetAdjointScalarVariable();
@@ -266,7 +269,7 @@ public:
         }
     }
 
-    void GetValuesVector(VectorType& rValues, int Step = 0) override
+    void GetValuesVector(VectorType& rValues, int Step = 0) const override
     {
         std::array<double, TNumNodes> values;
         this->GetValuesArray(values, Step);
@@ -276,7 +279,7 @@ public:
         std::copy(values.begin(), values.end(), rValues.begin());
     }
 
-    void GetValuesArray(std::array<double, TNumNodes>& rValues, int Step = 0)
+    void GetValuesArray(std::array<double, TNumNodes>& rValues, int Step = 0) const
     {
         const Variable<double>& r_adjoint_variable =
             TConvectionDiffusionReactionAdjointData::GetAdjointScalarVariable();
@@ -287,7 +290,7 @@ public:
         }
     }
 
-    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) override
+    void GetFirstDerivativesVector(VectorType& rValues, int Step = 0) const override
     {
         std::array<double, TNumNodes> values;
         this->GetFirstDerivativesArray(values, Step);
@@ -296,7 +299,7 @@ public:
         std::copy(values.begin(), values.end(), rValues.begin());
     }
 
-    void GetFirstDerivativesArray(std::array<double, TNumNodes>& rValues, int Step = 0)
+    void GetFirstDerivativesArray(std::array<double, TNumNodes>& rValues, int Step = 0) const
     {
         for (unsigned int i = 0; i < TNumNodes; ++i)
         {
@@ -304,7 +307,7 @@ public:
         }
     }
 
-    void GetSecondDerivativesVector(VectorType& rValues, int Step = 0) override
+    void GetSecondDerivativesVector(VectorType& rValues, int Step = 0) const override
     {
         std::array<double, TNumNodes> values;
         this->GetSecondDerivativesArray(values, Step);
@@ -313,7 +316,7 @@ public:
         std::copy(values.begin(), values.end(), rValues.begin());
     }
 
-    void GetSecondDerivativesArray(std::array<double, TNumNodes>& rValues, int Step = 0)
+    void GetSecondDerivativesArray(std::array<double, TNumNodes>& rValues, int Step = 0) const
     {
         const Variable<double>& r_adjoint_second_variable =
             TConvectionDiffusionReactionAdjointData::GetAdjointScalarRateVariable();
@@ -335,7 +338,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override
+                              const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -352,7 +355,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                               const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
@@ -361,7 +364,7 @@ public:
     }
 
     void CalculateLeftHandSide(BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo)
+                               const ProcessInfo& rCurrentProcessInfo)
     {
         rLeftHandSideMatrix.clear();
     }
@@ -373,7 +376,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -420,7 +423,7 @@ public:
     {
         const Variable<double>& r_derivative_variable =
             TConvectionDiffusionReactionAdjointData::GetScalarVariable();
-        CalculateElementSteadyResidualScalarDerivatives(
+        CalculateElementResidualScalarDerivatives(
             rLeftHandSideMatrix, r_derivative_variable, rCurrentProcessInfo);
     }
 
@@ -439,7 +442,7 @@ public:
      * @param rCurrentProcessInfo
      */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+                                       const ProcessInfo& rCurrentProcessInfo) override
     {
         BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
         this->CalculateSecondDerivativesLHS(local_matrix, rCurrentProcessInfo);
@@ -453,11 +456,9 @@ public:
     }
 
     void CalculateSecondDerivativesLHS(BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       const ProcessInfo& rCurrentProcessInfo) const
     {
-        rLeftHandSideMatrix.clear();
-        AddPrimalMassMatrix(rLeftHandSideMatrix, -1.0, rCurrentProcessInfo);
-        AddPrimalSteadyTermScalarRateDerivatives(rLeftHandSideMatrix, rCurrentProcessInfo);
+        this->CalculateElementResidualSecondDerivatives(rLeftHandSideMatrix, rCurrentProcessInfo);
     }
 
     /**
@@ -524,25 +525,24 @@ public:
 
         if (rVariable == TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE)
         {
-            CalculateElementSteadyResidualScalarDerivatives(
+            CalculateElementResidualScalarDerivatives(
                 output_matrix_scalar, TURBULENT_ENERGY_DISSIPATION_RATE, rCurrentProcessInfo);
         }
         else if (rVariable == TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE)
         {
-            CalculateElementSteadyResidualScalarDerivatives(
+            CalculateElementResidualScalarDerivatives(
                 output_matrix_scalar, TURBULENT_KINETIC_ENERGY, rCurrentProcessInfo);
         }
         else if (rVariable == TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE)
         {
-            CalculateElementSteadyResidualScalarDerivatives(
+            CalculateElementResidualScalarDerivatives(
                 output_matrix_scalar,
                 TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rCurrentProcessInfo);
         }
         else if (rVariable == VELOCITY_PARTIAL_DERIVATIVE)
         {
             is_scalar = false;
-            CalculateElementSteadyResidualVelocityDerivatives(
-                output_matrix_vector, rCurrentProcessInfo);
+            CalculateElementResidualVelocityDerivatives(output_matrix_vector, rCurrentProcessInfo);
         }
 
         if (is_scalar)
@@ -596,7 +596,7 @@ public:
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY)
         {
-            CalculateElementSteadyResidualShapeDerivatives(rOutput, rCurrentProcessInfo);
+            CalculateElementResidualShapeDerivatives(rOutput, rCurrentProcessInfo);
         }
         else
         {
@@ -742,7 +742,7 @@ private:
         return -1.0 * rProcessInfo[DELTA_TIME];
     }
 
-    void CalculateElementSteadyResidualScalarDerivatives(
+    void CalculateElementResidualScalarDerivatives(
         BoundedMatrix<double, TNumNodes, TNumNodes>& rOutput,
         const Variable<double>& rDerivativeVariable,
         const ProcessInfo& rCurrentProcessInfo) const
@@ -779,6 +779,8 @@ private:
 
         const Variable<double>& r_primal_variable =
             TConvectionDiffusionReactionAdjointData::GetScalarVariable();
+        const Variable<double>& r_primal_relaxed_rate_variable =
+            TConvectionDiffusionReactionAdjointData::GetScalarRelaxedRateVariable();
 
         double scalar_multiplier = 0.0;
 
@@ -866,9 +868,9 @@ private:
                 element_length, reaction, effective_kinematic_viscosity_derivatives,
                 reaction_term_derivatives);
 
-            double residual = this->EvaluateInPoint(
-                TConvectionDiffusionReactionAdjointData::GetScalarRelaxedRateVariable(),
-                r_shape_functions);
+            const double relaxed_scalar_rate_variable_value =
+                this->EvaluateInPoint(r_primal_relaxed_rate_variable, r_shape_functions);
+            double residual = relaxed_scalar_rate_variable_value;
             residual += velocity_dot_scalar_variable_gradient;
             residual += reaction * scalar_variable_value;
             residual -= source;
@@ -913,8 +915,17 @@ private:
                 const BoundedVector<double, TDim>& r_velocity_derivative =
                     row(effective_velocity_derivatives, c);
 
+                const double dU_ic_dPhi_i = this->GetDivergence(
+                    scalar_variable_gradient, r_velocity_derivative);
+
                 for (IndexType a = 0; a < TNumNodes; ++a)
                 {
+                    const double tau_operator = velocity_convective_terms[a] +
+                                                reaction * r_shape_functions[a];
+                    const double tau_operator_derivative =
+                        velocity_convective_term_derivatives(c, a) +
+                        reaction_term_derivatives[c] * r_shape_functions[a];
+
                     for (IndexType b = 0; b < TNumNodes; ++b)
                     {
                         const double dNa_dNb = this->GetDivergence(
@@ -929,85 +940,49 @@ private:
                         value += dNa_dNb * effective_kinematic_viscosity_derivatives[c];
 
                         // adding derivatives of SUPG
-                        value += (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
-                                 tau_derivatives[c] * velocity_convective_terms[b];
-                        value += (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
-                                 tau * velocity_convective_term_derivatives(c, b);
-                        value += velocity_convective_term_derivatives(c, a) *
-                                 tau * velocity_convective_terms[b];
-                        value += reaction_term_derivatives[c] * r_shape_functions[a] *
-                                 tau * velocity_convective_terms[b];
+                        value += tau_operator * tau_derivatives[c] *
+                                 velocity_convective_terms[b];
+                        value += tau_operator * tau *
+                                 velocity_convective_term_derivatives(c, b);
+                        value += tau_operator_derivative * tau *
+                                 velocity_convective_terms[b];
 
-                        value += (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
-                                 tau_derivatives[c] * reaction * r_shape_functions[b];
-                        value += (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
-                                 tau * reaction_term_derivatives[c] *
+                        value += tau_operator * tau_derivatives[c] * reaction *
                                  r_shape_functions[b];
-                        value += velocity_convective_term_derivatives(c, a) *
-                                 tau * reaction * r_shape_functions[b];
-                        value += reaction_term_derivatives[c] * r_shape_functions[a] *
-                                 tau * reaction * r_shape_functions[b];
+                        value += tau_operator * tau * reaction_term_derivatives[c] *
+                                 r_shape_functions[b];
+                        value += tau_operator_derivative * tau * reaction *
+                                 r_shape_functions[b];
 
                         r_derivatives_matrix(a, b) += weight * value;
                     }
-                }
 
-                const double dU_ic_dPhi_i = this->GetDivergence(
-                    scalar_variable_gradient, r_velocity_derivative);
-
-                for (IndexType a = 0; a < TNumNodes; ++a)
-                {
                     const double dNa_i_dPhi_i = this->GetDivergence(
                         scalar_variable_gradient, row(r_shape_derivatives, a));
+
                     double value = 0.0;
 
                     // add RHS derivative contributions
                     value += r_shape_functions[a] * source_term_derivatives[c];
-                    value += tau_derivatives[c] *
-                             (velocity_convective_terms[a] +
-                              reaction * r_shape_functions[a]) *
-                             source;
-                    value += tau *
-                             (velocity_convective_terms[a] +
-                              reaction * r_shape_functions[a]) *
-                             source_term_derivatives[c];
-                    value +=
-                        tau * (reaction_term_derivatives[c] * r_shape_functions[a]) * source;
-                    value += tau * velocity_convective_term_derivatives(c, a) * source;
+                    value += tau_derivatives[c] * tau_operator * source;
+                    value += tau * tau_operator * source_term_derivatives[c];
+                    value += tau * tau_operator_derivative * source;
 
                     // add LHS derivative contributions
                     value -= r_shape_functions[a] * dU_ic_dPhi_i;
                     value -= r_shape_functions[a] * reaction_term_derivatives[c] * scalar_variable_value;
                     value -= effective_kinematic_viscosity_derivatives[c] * dNa_i_dPhi_i;
-                    value -= tau_derivatives[c] *
-                             (velocity_convective_terms[a] +
-                              reaction * r_shape_functions[a]) *
-                             velocity_dot_scalar_variable_gradient;
-                    value -= tau *
-                             (velocity_convective_terms[a] +
-                              reaction * r_shape_functions[a]) *
-                             dU_ic_dPhi_i;
-                    value -= tau * reaction_term_derivatives[c] *
-                             r_shape_functions[a] * velocity_dot_scalar_variable_gradient;
-                    value -= tau * velocity_convective_term_derivatives(c, a) *
-                             velocity_dot_scalar_variable_gradient;
+                    value -= tau_derivatives[c] * tau_operator * velocity_dot_scalar_variable_gradient;
+                    value -= tau * tau_operator * dU_ic_dPhi_i;
+                    value -= tau * tau_operator_derivative * velocity_dot_scalar_variable_gradient;
 
-                    value -= tau_derivatives[c] *
-                             (velocity_convective_terms[a] +
-                              reaction * r_shape_functions[a]) *
-                             reaction * scalar_variable_value;
-                    value -= tau *
-                             (velocity_convective_terms[a] +
-                              reaction * r_shape_functions[a]) *
-                             reaction_term_derivatives[c] * scalar_variable_value;
-                    value -= tau * reaction_term_derivatives[c] *
-                             r_shape_functions[a] * reaction * scalar_variable_value;
-                    value -= tau * velocity_convective_term_derivatives(c, a) *
-                             reaction * scalar_variable_value;
+                    value -= tau_derivatives[c] * tau_operator * reaction * scalar_variable_value;
+                    value -= tau * tau_operator * reaction_term_derivatives[c] * scalar_variable_value;
+                    value -= tau * tau_operator_derivative * reaction * scalar_variable_value;
+
+                    // add mass matrix contributions
+                    value -= tau_derivatives[c] * tau_operator * relaxed_scalar_rate_variable_value;
+                    value -= tau * tau_operator_derivative * relaxed_scalar_rate_variable_value;
 
                     rOutput(c, a) += value * weight;
                 }
@@ -1015,7 +990,7 @@ private:
         }
 
         // adding derivatives of discrete upwind operator
-        this->GetPrimalValuesVector(primal_values_vector);
+        this->GetPrimalValuesVector(primal_values_vector, r_primal_variable);
         double matrix_norm;
         ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
             matrix_norm, discrete_diffusion_matrix, primal_damping_matrix);
@@ -1092,14 +1067,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    void AddElementDynamicResidualContributionScalarDerivatives(
-        BoundedMatrix<double, TNumNodes, TNumNodes>& rOutput,
-        const Variable<double>& rDerivativeVariable,
-        const ProcessInfo& rCurrentProcessInfo) const
-    {
-    }
-
-    void CalculateElementSteadyResidualVelocityDerivatives(
+    void CalculateElementResidualVelocityDerivatives(
         BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -1135,6 +1103,8 @@ private:
 
         const Variable<double>& r_primal_variable =
             TConvectionDiffusionReactionAdjointData::GetScalarVariable();
+        const Variable<double>& r_relaxed_scalar_rate_variable =
+            TConvectionDiffusionReactionAdjointData::GetScalarRelaxedRateVariable();
 
         double scalar_multiplier = 0.0;
 
@@ -1237,9 +1207,9 @@ private:
                 adjoint_utilities::template MatrixVectorProduct<TNumNodes>(
                     r_shape_derivatives, scalar_variable_gradient);
 
-            double residual = this->EvaluateInPoint(
-                TConvectionDiffusionReactionAdjointData::GetScalarRelaxedRateVariable(),
-                r_shape_functions);
+            const double relaxed_scalar_rate_variable_value =
+                this->EvaluateInPoint(r_relaxed_scalar_rate_variable, r_shape_functions);
+            double residual = relaxed_scalar_rate_variable_value;
             residual += velocity_dot_scalar_variable_gradient;
             residual += reaction * scalar_variable_value;
             residual -= source;
@@ -1273,6 +1243,12 @@ private:
 
                     for (IndexType a = 0; a < TNumNodes; ++a)
                     {
+                        const double tau_operator = velocity_convective_terms[a] +
+                                                    reaction * r_shape_functions[a];
+                        const double tau_operator_derivative =
+                            velocity_convective_term_derivatives(row, a) +
+                            reaction_term_derivatives(c, k) * r_shape_functions[a];
+
                         for (IndexType b = 0; b < TNumNodes; ++b)
                         {
                             double value = 0.0;
@@ -1286,54 +1262,31 @@ private:
                                      effective_kinematic_viscosity_derivatives(c, k);
 
                             // adding derivatives of SUPG
-                            value += (velocity_convective_terms[a] +
-                                      reaction * r_shape_functions[a]) *
-                                     tau_derivatives(c, k) *
+                            value += tau_operator * tau_derivatives(c, k) *
                                      velocity_convective_terms[b];
-                            value += (velocity_convective_terms[a] +
-                                      reaction * r_shape_functions[a]) *
-                                     tau * velocity_convective_term_derivatives(row, b);
-
-                            value += velocity_convective_term_derivatives(row, a) *
-                                     tau * velocity_convective_terms[b];
-                            value += reaction_term_derivatives(c, k) *
-                                     r_shape_functions[a] * tau *
+                            value += tau_operator * tau *
+                                     velocity_convective_term_derivatives(row, b);
+                            value += tau_operator_derivative * tau *
                                      velocity_convective_terms[b];
 
-                            value += (velocity_convective_terms[a] +
-                                      reaction * r_shape_functions[a]) *
-                                     tau_derivatives(c, k) * reaction *
+                            value += tau_operator * tau_derivatives(c, k) *
+                                     reaction * r_shape_functions[b];
+                            value += tau_operator * tau *
+                                     reaction_term_derivatives(c, k) *
                                      r_shape_functions[b];
-                            value += (velocity_convective_terms[a] +
-                                      reaction * r_shape_functions[a]) *
-                                     tau * reaction_term_derivatives(c, k) *
-                                     r_shape_functions[b];
-                            value += velocity_convective_term_derivatives(row, a) *
-                                     tau * reaction * r_shape_functions[b];
-                            value += reaction_term_derivatives(c, k) *
-                                     r_shape_functions[a] * tau * reaction *
+                            value += tau_operator_derivative * tau * reaction *
                                      r_shape_functions[b];
 
                             r_derivatives_matrix(a, b) += weight * value;
                         }
-                    }
 
-                    // constructing residual derivatives
-                    for (IndexType a = 0; a < TNumNodes; ++a)
-                    {
                         double value = 0.0;
 
                         // adding contributions from RHS
                         value += r_shape_functions[a] * source_term_derivatives(c, k);
-                        value += (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
-                                 tau_derivatives(c, k) * source;
-                        value += (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
-                                 tau * source_term_derivatives(c, k);
-                        value += (velocity_convective_term_derivatives(row, a) +
-                                  reaction_term_derivatives(c, k) * r_shape_functions[a]) *
-                                 tau * source;
+                        value += tau_operator * tau_derivatives(c, k) * source;
+                        value += tau_operator * tau * source_term_derivatives(c, k);
+                        value += tau_operator_derivative * tau * source;
 
                         // adding contributions from LHS
                         value -= r_shape_functions[a] *
@@ -1343,31 +1296,22 @@ private:
                         value -= effective_kinematic_viscosity_derivatives(c, k) *
                                  scalar_variable_gradient_dot_shape_derivatives[a];
 
-                        value -= tau_derivatives(c, k) *
-                                 (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
+                        value -= tau_derivatives(c, k) * tau_operator *
                                  velocity_dot_scalar_variable_gradient;
-                        value -= tau *
-                                 (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
+                        value -= tau * tau_operator *
                                  velocity_dot_scalar_variable_gradient_derivatives[row];
-                        value -= tau *
-                                 (velocity_convective_term_derivatives(row, a) +
-                                  reaction_term_derivatives(c, k) * r_shape_functions[a]) *
-                                 velocity_dot_scalar_variable_gradient;
+                        value -= tau * tau_operator_derivative * velocity_dot_scalar_variable_gradient;
 
-                        value -= tau_derivatives(c, k) *
-                                 (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
+                        value -= tau_derivatives(c, k) * tau_operator *
                                  reaction * scalar_variable_value;
-                        value -= tau *
-                                 (velocity_convective_terms[a] +
-                                  reaction * r_shape_functions[a]) *
+                        value -= tau * tau_operator *
                                  reaction_term_derivatives(c, k) * scalar_variable_value;
-                        value -= tau *
-                                 (velocity_convective_term_derivatives(row, a) +
-                                  reaction_term_derivatives(c, k) * r_shape_functions[a]) *
-                                 reaction * scalar_variable_value;
+                        value -= tau * tau_operator_derivative * reaction * scalar_variable_value;
+
+                        // adding mass matrix contributions
+                        value -= tau_derivatives(c, k) * tau_operator *
+                                 relaxed_scalar_rate_variable_value;
+                        value -= tau * tau_operator_derivative * relaxed_scalar_rate_variable_value;
 
                         rOutput(row, a) += value * weight;
                     }
@@ -1377,7 +1321,7 @@ private:
 
         // adding derivatives of discrete upwind operator
         BoundedVector<double, TNumNodes> primal_values_vector;
-        this->GetPrimalValuesVector(primal_values_vector);
+        this->GetPrimalValuesVector(primal_values_vector, r_primal_variable);
         double matrix_norm;
         ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
             matrix_norm, discrete_diffusion_matrix, primal_damping_matrix);
@@ -1429,13 +1373,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    void AddElementDynamicResidualContributionVelocityDerivatives(
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) const
-    {
-    }
-
-    void CalculateElementSteadyResidualShapeDerivatives(
+    void CalculateElementResidualShapeDerivatives(
         BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -1477,7 +1415,7 @@ private:
         r_current_data.CalculateConstants(rCurrentProcessInfo);
 
         BoundedVector<double, TNumNodes> velocity_convective_terms,
-            velocity_convective_term_derivatives,
+            velocity_convective_term_derivatives, relaxed_scalar_rate_values,
             shape_derivative_dot_scalar_variable_gradient,
             shape_derivative_dot_scalar_variable_gradient_derivative,
             shape_derivative_derivative_dot_scalar_variable_gradient;
@@ -1486,6 +1424,8 @@ private:
 
         const Variable<double>& r_primal_variable =
             TConvectionDiffusionReactionAdjointData::GetScalarVariable();
+        const Variable<double>& r_relaxed_scalar_rate_variable =
+            TConvectionDiffusionReactionAdjointData::GetScalarRelaxedRateVariable();
 
         // RFC stabilization specific variables
         double scalar_multiplier = 0.0;
@@ -1503,6 +1443,8 @@ private:
 
         const typename DerivativeDataType::ShapeDerivative& adjoint_data_extension =
             r_current_data.GetShapeDerivativeData(SHAPE_SENSITIVITY);
+
+        this->GetPrimalValuesVector(relaxed_scalar_rate_values, r_relaxed_scalar_rate_variable);
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -1546,9 +1488,10 @@ private:
             const double scalar_variable_value =
                 this->EvaluateInPoint(r_primal_variable, r_shape_functions);
 
-            double residual = this->EvaluateInPoint(
+            const double relaxed_scalar_rate_variable_value = this->EvaluateInPoint(
                 TConvectionDiffusionReactionAdjointData::GetScalarRelaxedRateVariable(),
                 r_shape_functions);
+            double residual = relaxed_scalar_rate_variable_value;
             residual += effective_velocity_dot_scalar_variable_gradient;
             residual += reaction_term * scalar_variable_value;
             residual -= source_term;
@@ -1645,6 +1588,12 @@ private:
                             scalar_variable_value, absolute_residual, tau,
                             absolute_residual_derivative, tau_derivative);
 
+                    BoundedMatrix<double, TNumNodes, TNumNodes>& r_damping_matrix_derivatives =
+                        primal_damping_matrix_derivatives[block_size + k];
+
+                    noalias(dNa_dNb_derivative) =
+                        prod(r_shape_derivatives, trans(DN_DX_derivatives));
+
                     for (IndexType a = 0; a < TNumNodes; ++a)
                     {
                         double tau_operator = velocity_convective_terms[a] +
@@ -1715,23 +1664,17 @@ private:
                         value -= tau * tau_operator * reaction_term *
                                  scalar_variable_value * weight_derivative;
 
+                        // adding mass matrix contributions
+                        value -= weight_derivative / TNumNodes *
+                                 relaxed_scalar_rate_values[a];
+                        value -= tau_derivative * tau_operator *
+                                 relaxed_scalar_rate_variable_value * weight;
+                        value -= tau * tau_operator_derivative *
+                                 relaxed_scalar_rate_variable_value * weight;
+                        value -= tau * tau_operator *
+                                 relaxed_scalar_rate_variable_value * weight_derivative;
+
                         rOutput(block_size + k, a) += value;
-                    }
-
-                    // construct primal damping matrix derivatives
-                    BoundedMatrix<double, TNumNodes, TNumNodes>& r_damping_matrix_derivatives =
-                        primal_damping_matrix_derivatives[block_size + k];
-
-                    noalias(dNa_dNb_derivative) =
-                        prod(r_shape_derivatives, trans(DN_DX_derivatives));
-
-                    for (IndexType a = 0; a < TNumNodes; ++a)
-                    {
-                        double tau_operator = velocity_convective_terms[a] +
-                                              reaction_term * r_shape_functions[a];
-                        double tau_operator_derivative =
-                            velocity_convective_term_derivatives[a] +
-                            reaction_term_derivative * r_shape_functions[a];
 
                         for (IndexType b = 0; b < TNumNodes; ++b)
                         {
@@ -1778,7 +1721,7 @@ private:
             positivity_preserving_matrix_residual_contribution_derivatives;
         BoundedMatrix<double, TNumNodes, TNumNodes> discrete_diffusion_matrix;
         BoundedVector<double, TNumNodes> primal_values_vector;
-        this->GetPrimalValuesVector(primal_values_vector);
+        this->GetPrimalValuesVector(primal_values_vector, r_primal_variable);
         double matrix_norm;
         ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
             matrix_norm, discrete_diffusion_matrix, primal_damping_matrix);
@@ -1830,10 +1773,148 @@ private:
         KRATOS_CATCH("");
     }
 
-    void AddElementDynamicResidualContributionShapeDerivatives(
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) const
+    void CalculateElementResidualSecondDerivatives(BoundedMatrix<double, TNumNodes, TNumNodes>& rOutput,
+                                                   const ProcessInfo& rCurrentProcessInfo) const
     {
+        KRATOS_TRY
+
+        using adjoint_utilities =
+            ConvectionDiffusionReactionStabilizationUtilities::AdjointUtilities<TDim, TNumNodes>;
+
+        rOutput.clear();
+
+        const GeometryType& r_geometry = this->GetGeometry();
+
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        const IndexType num_gauss_points = gauss_weights.size();
+
+        const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
+        const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
+        const double bossak_gamma =
+            TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
+        const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+        const double element_length = this->GetGeometry().Length();
+        const double discrete_upwind_operator_coefficient =
+            rCurrentProcessInfo[RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT];
+        const double diagonal_positivity_preserving_coefficient =
+            rCurrentProcessInfo[RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT];
+
+        TConvectionDiffusionReactionAdjointData r_current_data(r_geometry);
+        r_current_data.CalculateConstants(rCurrentProcessInfo);
+
+        BoundedVector<double, TNumNodes> velocity_convective_terms, scalar_multiplier_derivatives;
+
+        array_1d<double, 3> scalar_variable_gradient, scalar_variable_gradient_derivative;
+
+        const Variable<double>& r_primal_variable =
+            TConvectionDiffusionReactionAdjointData::GetScalarVariable();
+
+        // RFC stabilization specific variables
+        BoundedMatrix<double, TNumNodes, TNumNodes> primal_damping_matrix, primal_mass_matrix;
+
+        scalar_multiplier_derivatives.clear();
+        primal_damping_matrix.clear();
+
+        for (IndexType g = 0; g < num_gauss_points; ++g)
+        {
+            const Matrix& r_shape_derivatives = shape_derivatives[g];
+            const Vector& r_shape_functions = row(shape_functions, g);
+            const double weight = gauss_weights[g];
+
+            r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
+
+            const array_1d<double, 3>& effective_velocity =
+                r_current_data.CalculateEffectiveVelocity(r_shape_functions, r_shape_derivatives);
+            const double effective_velocity_magnitude = norm_2(effective_velocity);
+            const double effective_kinematic_viscosity =
+                r_current_data.CalculateEffectiveKinematicViscosity(
+                    r_shape_functions, r_shape_derivatives);
+
+            const double reaction_term = r_current_data.CalculateReactionTerm(
+                r_shape_functions, r_shape_derivatives);
+
+            const double tau = ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
+                element_length, effective_velocity_magnitude, reaction_term,
+                effective_kinematic_viscosity, bossak_alpha, bossak_gamma,
+                delta_time, dynamic_tau);
+
+            this->CalculateGradient(scalar_variable_gradient, r_primal_variable,
+                                    r_shape_derivatives);
+
+            this->GetConvectionOperator(velocity_convective_terms,
+                                        effective_velocity, r_shape_derivatives);
+
+            // calculating primal damping matrix
+            this->AddPrimalDampingMatrixGaussPointContributions(
+                primal_damping_matrix, effective_kinematic_viscosity,
+                reaction_term, tau, weight, velocity_convective_terms,
+                r_shape_functions, r_shape_derivatives);
+
+            const double scalar_variable_value =
+                this->EvaluateInPoint(r_primal_variable, r_shape_functions);
+
+            if (scalar_variable_value > 0.0)
+                noalias(scalar_multiplier_derivatives) +=
+                    r_shape_functions * (tau / scalar_variable_value);
+
+            this->AddLumpedMassMatrix(primal_mass_matrix, weight * (1.0 / TNumNodes));
+
+            // Add mass stabilization terms
+            for (IndexType i = 0; i < TNumNodes; ++i)
+                for (IndexType j = 0; j < TNumNodes; ++j)
+                    primal_mass_matrix(j, i) += weight * tau *
+                                                (velocity_convective_terms[i] +
+                                                 reaction_term * r_shape_functions[i]) *
+                                                r_shape_functions[j];
+        }
+
+        noalias(rOutput) -= primal_mass_matrix;
+
+        // calculating residual derivatives of discrete upwind operator
+        BoundedMatrix<double, TNumNodes, TNumNodes> discrete_diffusion_matrix;
+        BoundedVector<double, TNumNodes> primal_values_vector;
+        this->GetPrimalValuesVector(primal_values_vector, r_primal_variable);
+        double matrix_norm;
+        ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
+            matrix_norm, discrete_diffusion_matrix, primal_damping_matrix);
+        BoundedVector<double, TNumNodes> r_stabilization_residual =
+            prod(discrete_diffusion_matrix * discrete_upwind_operator_coefficient,
+                 primal_values_vector);
+
+        // calculating residual derivatives of positivity preserving matrix
+        const double diagonal_coefficient =
+            ConvectionDiffusionReactionStabilizationUtilities::CalculatePositivityPreservingMatrix(
+                primal_damping_matrix);
+
+        const BoundedMatrix<double, TNumNodes, TNumNodes> positivity_preserving_matrix =
+            IdentityMatrix(TNumNodes) *
+            (diagonal_coefficient * diagonal_positivity_preserving_coefficient);
+
+        noalias(r_stabilization_residual) =
+            r_stabilization_residual + prod(positivity_preserving_matrix, primal_values_vector);
+
+        // adding rfc stabilization residual derivative contributions
+        for (IndexType c = 0; c < TNumNodes; ++c)
+        {
+            for (IndexType a = 0; a < TNumNodes; ++a)
+            {
+                rOutput(c, a) -=
+                    scalar_multiplier_derivatives[c] * r_stabilization_residual[a];
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AddLumpedMassMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rMassMatrix,
+                             const double Mass) const
+    {
+        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
+            rMassMatrix(iNode, iNode) += Mass;
     }
 
     /**
@@ -1905,14 +1986,13 @@ private:
     }
 
     void GetPrimalValuesVector(BoundedVector<double, TNumNodes>& rOutput,
+                               const Variable<double>& rVariable,
                                const int Step = 0) const
     {
         const GeometryType& r_geometry = this->GetGeometry();
-        const Variable<double>& r_primal_variable =
-            TConvectionDiffusionReactionAdjointData::GetScalarVariable();
         for (IndexType i = 0; i < TNumNodes; ++i)
         {
-            rOutput[i] = r_geometry[i].FastGetSolutionStepValue(r_primal_variable, Step);
+            rOutput[i] = r_geometry[i].FastGetSolutionStepValue(rVariable, Step);
         }
     }
 
@@ -2030,7 +2110,7 @@ private:
     ///@{
     ///@}
 
-}; // Class Element
+}; // namespace Kratos
 
 ///@}
 ///@name Type Definitions
