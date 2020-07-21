@@ -287,10 +287,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 ##*****************************
 #find and include OpenMP if possible
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message("**********************************************************")
-	message("OpenMP calculation was excluced artificially. Remove the var")
-	message("KRATOS_EXCLUDE_OPENMP from the configuration script or set it to off to include it")
-    message("**********************************************************")
+	message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 
