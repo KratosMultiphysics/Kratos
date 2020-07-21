@@ -43,8 +43,8 @@ namespace TestCreationUtility
 
     NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
         
-        int p = PolynomialDegree;
-        int q = 1;
+        SizeType p = PolynomialDegree;
+        SizeType q = 1;
 
         Vector knot_u = ZeroVector(2*(p+1));
         for(IndexType index = 0; index < knot_u.size()/2; ++index) {
