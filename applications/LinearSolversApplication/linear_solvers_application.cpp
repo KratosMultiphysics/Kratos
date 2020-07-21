@@ -1,7 +1,7 @@
 // KRATOS  _     _                       ____        _
 //        | |   (_)_ __   ___  __ _ _ __/ ___|  ___ | |_   _____ _ __ ___
 //        | |   | | '_ \ / _ \/ _` | '__\___ \ / _ \| \ \ / / _ \ '__/ __|
-//        | |___| | | | |  __/ (_| | |   ___) | (_) | |\ V /  __/ |  \__ \
+//        | |___| | | | |  __/ (_| | |   ___) | (_) | |\ V /  __/ |  \__ |
 //        |_____|_|_| |_|\___|\__,_|_|  |____/ \___/|_| \_/ \___|_|  |___/ Application
 //
 //  Author: Thomas Oberbichler
@@ -12,7 +12,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "eigen_solvers_application.h"
+#include "linear_solvers_application.h"
 #include "custom_factories/dense_linear_solver_factory.h"
 
 #include "custom_solvers/eigen_sparse_cg_solver.h"
@@ -29,7 +29,7 @@
 namespace Kratos
 {
 
-void KratosEigenSolversApplication::Register()
+void KratosLinearSolversApplication::Register()
 {
     KRATOS_INFO("") << "    Kratos  _     _                       ____        _\n"
                     << "           | |   (_)_ __   ___  __ _ _ __/ ___|  ___ | |_   _____ _ __ ___\n"

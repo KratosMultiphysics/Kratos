@@ -18,6 +18,7 @@
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
+#include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
@@ -876,6 +877,9 @@ void StrainRateSpecialization<TElementData,3>::Calculate(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
+
+template class FluidElement< SymbolicStokesData<2,3> >;
+template class FluidElement< SymbolicStokesData<3,4> >;
 
 template class FluidElement< SymbolicNavierStokesData<2,3> >;
 template class FluidElement< SymbolicNavierStokesData<3,4> >;

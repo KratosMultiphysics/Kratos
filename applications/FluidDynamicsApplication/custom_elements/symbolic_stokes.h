@@ -7,30 +7,31 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:  Mohit Tyagi, Daniel Diez, Pablo Becker
-//  Co-authors:
+//  Main author:     Ruben Zorrilla
 //
 
-#if !defined(KRATOS_SYMBOLIC_STOKES)
-#define  KRATOS_SYMBOLIC_STOKES
+#ifndef KRATOS_SYMBOLIC_STOKES_H
+#define KRATOS_SYMBOLIC_STOKES_H
+
+// External includes
 
 // System includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h"
 #include "includes/serializer.h"
+#include "geometries/geometry.h"
+
+// Application includes
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
-#include "custom_utilities/fluid_element_utilities.h"
-#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
 
-/*The "SymbolicStokes" element is an element based on the Variational Multiscale Stabilization technique (VMS).
-*/
+///@addtogroup FluidDynamicsApplication
+///@{
 
 ///@name Kratos Globals
 ///@{
@@ -56,25 +57,46 @@ class SymbolicStokes : public FluidElement<TElementData>
 {
 public:
 
-    /// Counted pointer of
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicStokes);
-
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of SymbolicStokes
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicStokes);
+
+    /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
+
+    /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    /// Vector type for local contributions to the linear system
     typedef Vector VectorType;
+
+    /// Matrix type for local contributions to the linear system
     typedef Matrix MatrixType;
+
     typedef std::size_t IndexType;
+
     typedef std::size_t SizeType;
+
     typedef std::vector<std::size_t> EquationIdVectorType;
+
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+
+    /// Type for shape function values container
     typedef typename FluidElement<TElementData>::ShapeFunctionsType ShapeFunctionsType;
+
+    /// Type for a matrix containing the shape function gradients
     typedef typename FluidElement<TElementData>::ShapeFunctionDerivativesType ShapeFunctionDerivativesType;
+
+    /// Type for an array of shape function gradient matrices
     typedef typename FluidElement<TElementData>::ShapeFunctionDerivativesArrayType ShapeFunctionDerivativesArrayType;
+
     constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
@@ -85,33 +107,42 @@ public:
     ///@name Life Cycle
     ///@{
 
+    //Constructors.
+
     /// Default constuctor.
     /**
-    * @param NewId Index number of the new element (optional)
-    */
+     * @param NewId Index number of the new element (optional)
+     */
     SymbolicStokes(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
-    * @param NewId Index of the new element
-    * @param ThisNodes An array containing the nodes of the new element
-    */
-    SymbolicStokes(IndexType NewId, const NodesArrayType& ThisNodes);
+     * @param NewId Index of the new element
+     * @param ThisNodes An array containing the nodes of the new element
+     */
+    SymbolicStokes(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
-    * @param NewId Index of the new element
-    * @param pGeometry Pointer to a geometry object
-    */
-    SymbolicStokes(IndexType NewId, GeometryType::Pointer pGeometry);
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     */
+    SymbolicStokes(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
-    * @param NewId Index of the new element
-    * @param pGeometry Pointer to a geometry object
-    * @param pProperties Pointer to the element's properties
-    */
-    SymbolicStokes(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     * @param pProperties Pointer to the element's properties
+     */
+    SymbolicStokes(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        Properties::Pointer pProperties);
 
     /// Destructor.
     virtual ~SymbolicStokes();
@@ -124,33 +155,38 @@ public:
     ///@name Operations
     ///@{
 
+
     /// Create a new element of this type
     /**
-    * Returns a pointer to a new SymbolicStokes element, created using given input.
-    * @param NewId the ID of the new element
-    * @param ThisNodes the nodes of the new element
-    * @param pProperties the properties assigned to the new element
-    * @return a Pointer to the new element
-    */
-    Element::Pointer Create(IndexType NewId,
+     * Returns a pointer to a new SymbolicStokes element, created using given input.
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
         NodesArrayType const& ThisNodes,
         Properties::Pointer pProperties) const override;
 
     /// Create a new element of this type using given geometry
     /**
-    * Returns a pointer to a new FluidElement element, created using given input.
-    * @param NewId the ID of the new element
-    * @param pGeom a pointer to the geomerty to be used to create the element
-    * @param pProperties the properties assigned to the new element
-    * @return a Pointer to the new element
-    */
-    Element::Pointer Create(IndexType NewId,
+     * Returns a pointer to a new FluidElement element, created using given input.
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
     ///@}
     ///@name Inquiry
     ///@{
+
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -159,106 +195,49 @@ public:
     /// Turn back information as a string.
     std::string Info() const override;
 
+
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
 
     ///@}
-    ///@name Access
-    ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Function to visualize the divergence field
-
-    /**
-     * @brief Get the Value On Integration Points object (used to visualize the divergence field)
-     *
-     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
-     * @param rValues Vector for the values at the Gauss integration points
-     * @param rCurrentProcessInfo ProcessInfo object
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double> &rVariable,
-        std::vector<double> &rValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
     ///@name Protected member Variables
     ///@{
+
 
     ///@}
     ///@name Protected Operators
     ///@{
 
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief Computes time integrated LHS and RHS arrays
-     * This method computes both the Left Hand Side and
-     * Right Hand Side time integrated contributions.
-     * @param rData Reference to the element data container
-     * @param rLHS Reference to the Left Hand Side matrix to be filled
-     * @param rRHS Reference to the Right Hand Side vector to be filled
-     */
     void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
-    /**
-     * @brief Computes the time integrated LHS matrix
-     * This method computes the Left Hand Side time integrated contribution
-     * @param rData Reference to the element data container
-     * @param rLHS Reference to the Left Hand Side matrix to be filled
-     */
     void AddTimeIntegratedLHS(
         TElementData& rData,
         MatrixType& rLHS) override;
 
-    /**
-     * @brief Computes the time integrated RHS vector
-     * This method computes the Right Hand Side time integrated contribution
-     * @param rData Reference to the element data container
-     * @param rRHS Reference to the Right Hand Side matrix to be filled
-     */
     void AddTimeIntegratedRHS(
         TElementData& rData,
         VectorType& rRHS) override;
 
-    /**
-     * @brief Computes the LHS Gauss pt. contribution
-     * This method computes the contribution to the LHS of a Gauss pt.
-     * @param rData Reference to the element data container
-     * @param rLHS Reference to the Left Hand Side matrix to be filled
-     */
+    void AddBoundaryTraction(
+        TElementData& rData,
+        const Vector& rUnitNormal,
+        MatrixType& rLHS,
+        VectorType& rRHS) override;
+
     void ComputeGaussPointLHSContribution(
         TElementData& rData,
         MatrixType& rLHS);
 
-    /**
-     * @brief Computes the RHS Gaus  pt. contribution
-     * This method computes the contribution to the RHS of a Gauss pt.
-     * @param rData Reference to the element data container
-     * @param rRHS Reference to the Right Hand Side vector to be filled
-     */
     void ComputeGaussPointRHSContribution(
         TElementData& rData,
         VectorType& rRHS);
@@ -267,15 +246,21 @@ protected:
     ///@name Protected  Access
     ///@{
 
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
+
     ///@}
+
+private:
+
     ///@name Static Member Variables
     ///@{
 
@@ -294,17 +279,24 @@ protected:
     void load(Serializer& rSerializer) override;
 
     ///@}
-private:
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
     ///@name Private Operations
     ///@{
+
 
     ///@}
     ///@name Private  Access
     ///@{
 
+
     ///@}
     ///@name Private Inquiry
     ///@{
+
 
     ///@}
     ///@name Un accessible methods
@@ -317,10 +309,13 @@ private:
     SymbolicStokes(SymbolicStokes const& rOther);
 
     ///@}
-
 }; // Class SymbolicStokes
+
+///@}
+
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
@@ -328,7 +323,8 @@ private:
 
 /// input stream function
 template< class TElementData >
-inline std::istream& operator >> (std::istream& rIStream,
+inline std::istream& operator >>(
+    std::istream& rIStream,
     SymbolicStokes<TElementData>& rThis)
 {
     return rIStream;
@@ -336,7 +332,8 @@ inline std::istream& operator >> (std::istream& rIStream,
 
 /// output stream function
 template< class TElementData >
-inline std::ostream& operator <<(std::ostream& rOStream,
+inline std::ostream& operator <<(
+    std::ostream& rOStream,
     const SymbolicStokes<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
@@ -347,6 +344,7 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
+///@} // Fluid Dynamics Application group
 } // namespace Kratos.
 
-#endif // KRATOS_SYMBOLIC_STOKES
+#endif // KRATOS_SYMBOLIC_STOKES_H

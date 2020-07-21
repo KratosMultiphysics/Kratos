@@ -7,15 +7,20 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Mohit Tyagi, Daniel Diez, Pablo Becker
+//  Main authors:    Ruben Zorrilla
 //
-
 
 #if !defined(KRATOS_SYMBOLIC_STOKES_DATA_H)
 #define KRATOS_SYMBOLIC_STOKES_DATA_H
 
+// External includes
+
+// System includes
+
+// Project includes
 #include "includes/constitutive_law.h"
 
+// Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 #include "utilities/element_size_calculator.h"
@@ -36,10 +41,10 @@ public:
 ///@name Type Definitions
 ///@{
 
-using NodalScalarData = typename FluidElementData<TDim,TNumNodes, true>::NodalScalarData;
-using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVectorData;
-using ShapeFunctionsType = typename FluidElementData<TDim,TNumNodes, true>::ShapeFunctionsType;
-using MatrixRowType = typename FluidElementData<TDim,TNumNodes, true>::MatrixRowType;
+using NodalScalarData = typename FluidElementData<TDim, TNumNodes, true>::NodalScalarData;
+using NodalVectorData = typename FluidElementData<TDim, TNumNodes, true>::NodalVectorData;
+using ShapeFunctionsType = typename FluidElementData<TDim, TNumNodes, true>::ShapeFunctionsType;
+using MatrixRowType = typename FluidElementData<TDim, TNumNodes, true>::MatrixRowType;
 
 ///@}
 ///@name Public Members
@@ -71,22 +76,24 @@ double ElementSize;
 ///@name Public Operations
 ///@{
 
-void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
+void Initialize(
+    const Element& rElement,
+    const ProcessInfo& rProcessInfo) override
 {
     // Base class Initialize manages constitutive law parameters
-    FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
+    FluidElementData<TDim, TNumNodes, true>::Initialize(rElement, rProcessInfo);
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
-    this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
-    this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromProperties(Density,DENSITY,r_properties);
-    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
-    this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
-    this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
+    this->FillFromNodalData(Velocity, VELOCITY, r_geometry);
+    this->FillFromHistoricalNodalData(Velocity_OldStep1, VELOCITY, r_geometry, 1);
+    this->FillFromHistoricalNodalData(Velocity_OldStep2, VELOCITY, r_geometry, 2);
+    this->FillFromNodalData(BodyForce, BODY_FORCE, r_geometry);
+    this->FillFromNodalData(Pressure, PRESSURE, r_geometry);
+    this->FillFromProperties(Density, DENSITY, r_properties);
+    this->FillFromProperties(DynamicViscosity, DYNAMIC_VISCOSITY, r_properties);
+    this->FillFromProcessInfo(DeltaTime, DELTA_TIME, rProcessInfo);
+    this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
 
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];
@@ -105,29 +112,18 @@ void UpdateGeometryValues(
     const MatrixRowType& rN,
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
-    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex,NewWeight,rN,rDN_DX);
+    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
-
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
-    KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE, r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
     }
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
-    KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
 
     return 0;
 }
@@ -143,3 +139,4 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 }
 
 #endif // KRATOS_SYMBOLIC_STOKES_DATA_H
+

@@ -78,8 +78,6 @@ public:
 
     typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
 
-    typedef typename BaseType::LocalSystemComponents               LocalSystemComponentsType;
-
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
