@@ -276,7 +276,10 @@ private:
     const FIC< TimeIntegratedFICData<2,3> > mTimeIntegratedFIC2D3N;
     const FIC< TimeIntegratedFICData<3,4> > mTimeIntegratedFIC3D4N;
     const SymbolicStokes< SymbolicStokesData<2,3> > mSymbolicStokes2D3N;
+    const SymbolicStokes< SymbolicStokesData<2,4> > mSymbolicStokes2D4N;
     const SymbolicStokes< SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
+    const SymbolicStokes< SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
+    const SymbolicStokes< SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
@@ -366,11 +369,7 @@ private:
 
     const Stokes3D mStokes3D;
     /// Symbolic Stokes element
-    const SymbolicStokes < SymbolicStokesData<2,3> > mSymbolicStokes2D3N;
-    const SymbolicStokes < SymbolicStokesData<2,4> > mSymbolicStokes2D4N;
-    const SymbolicStokes < SymbolicStokesData<3,4> > mSymbolicStokes3D4N;
-    const SymbolicStokes < SymbolicStokesData<3,6> > mSymbolicStokes3D6N;
-    const SymbolicStokes < SymbolicStokesData<3,8> > mSymbolicStokes3D8N;
+
 
     const Stokes3DTwoFluid mStokes3DTwoFluid;
 

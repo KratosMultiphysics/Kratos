@@ -49,7 +49,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mTimeIntegratedFIC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTimeIntegratedFIC3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mSymbolicStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mSymbolicStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mSymbolicStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mSymbolicStokes3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mSymbolicStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mSymbolicNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSymbolicNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedSymbolicNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -97,11 +100,6 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mHerschelBulkleyVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mSymbolicStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mSymbolicStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mSymbolicStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mSymbolicStokes3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
-    mSymbolicStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
 
     mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     // Navier-Stokes symbolic elements
@@ -223,7 +221,10 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC2D3N",mTimeIntegratedFIC2D3N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC3D4N",mTimeIntegratedFIC3D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes2D3N",mSymbolicStokes2D3N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes2D4N",mSymbolicStokes2D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicStokes3D4N",mSymbolicStokes3D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D6N",mSymbolicStokes3D6N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D8N",mSymbolicStokes3D8N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes2D3N",mSymbolicNavierStokes2D3N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes3D4N",mSymbolicNavierStokes3D4N);
     KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokes2D3N",mEmbeddedSymbolicNavierStokes2D3N);
@@ -235,11 +236,6 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMSDiscontinuous2D3N",mEmbeddedQSVMSDiscontinuous2D3N);
     KRATOS_REGISTER_ELEMENT("EmbeddedQSVMSDiscontinuous3D4N",mEmbeddedQSVMSDiscontinuous3D4N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
-    KRATOS_REGISTER_ELEMENT("SymbolicStokes2D3N",mSymbolicStokes2D3N);
-    KRATOS_REGISTER_ELEMENT("SymbolicStokes2D4N",mSymbolicStokes2D4N);
-    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D4N",mSymbolicStokes3D4N);
-    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D6N",mSymbolicStokes3D6N);
-    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D8N",mSymbolicStokes3D8N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMSLinearizedDarcy3D",mTwoFluidVMSLinearizedDarcy3D);
 
 
