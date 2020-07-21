@@ -120,8 +120,8 @@ public:
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
-    template <class TFunction, class TThreadLocalStorage>
-    inline void for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
+    template <class TThreadLocalStorage, class TFunction>
+    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -145,8 +145,8 @@ public:
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
      */
-    template <class TReducer, class TFunction, class TThreadLocalStorage>
-    inline typename TReducer::value_type for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
+    template <class TReducer, class TThreadLocalStorage, class TFunction>
+    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -288,8 +288,8 @@ public:
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input IndexType and the thread local storage
      */
-    template <class TFunction, class TThreadLocalStorage>
-    inline void for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
+    template <class TThreadLocalStorage, class TFunction>
+    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -313,8 +313,8 @@ public:
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input IndexType and the thread local storage
      */
-    template <class TReducer, class TFunction, class TThreadLocalStorage>
-    inline typename TReducer::value_type for_each(TFunction &&f, const TThreadLocalStorage rThreadLocalStoragePrototype)
+    template <class TReducer, class TThreadLocalStorage, class TFunction>
+    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
