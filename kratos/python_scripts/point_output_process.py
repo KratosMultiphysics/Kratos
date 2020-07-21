@@ -194,7 +194,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
             file_header = GetFileHeader(entity_type, found_id, self.point, self.output_variables[0])
-            model_for_file_writer = self.model_part
 
             self.output_file.append(TimeBasedAsciiFileWriterUtility(
                 self.model_part, file_handler_params, file_header).file)
