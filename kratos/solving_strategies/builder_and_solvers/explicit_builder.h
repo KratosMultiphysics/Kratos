@@ -14,13 +14,13 @@
 #if !defined(KRATOS_EXPLICIT_BUILDER)
 #define  KRATOS_EXPLICIT_BUILDER
 
-/* System includes */
+// System includes
 #include <set>
 #include <unordered_set>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
@@ -35,6 +35,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -43,6 +44,7 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+
 
 ///@}
 ///@name Kratos Classes
@@ -91,9 +93,6 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    // /// Definition of the scheme type
-    // typedef Scheme<TSparseSpace, TDenseSpace> TSchemeType;
-
     /// Definition of the DoF class
     typedef ModelPart::DofType DofType;
 
@@ -127,7 +126,8 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor with Parameters
+     * @brief Construct a new Explicit Builder object
+     * Default constructor with Parameters
      * @param ThisParameters The configuration parameters
      */
     explicit ExplicitBuilder(Parameters ThisParameters)
@@ -141,11 +141,14 @@ public:
     }
 
     /**
-     * @brief Default constructor.
+     * @brief Construct a new Explicit Builder object
+     * Default empty constructor
      */
     explicit ExplicitBuilder() = default;
 
-    /** Destructor.
+    /**
+     * @brief Destroy the Explicit Builder object
+     * Default destructor
      */
     virtual ~ExplicitBuilder() = default;
 
@@ -268,9 +271,9 @@ public:
         return (*mpLumpedMassVector);
     }
 
-    //TODO: RENAME THIS
     /**
-     * @brief Function to perform the build of the RHS. The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @brief Function to perform the build of the RHS.
+     * The vector could be sized as the total number of dofs or as the number of unrestrained ones
      * @param rModelPart The model part to compute
      */
     virtual void BuildRHS(ModelPart& rModelPart)
@@ -285,9 +288,9 @@ public:
         KRATOS_CATCH("")
     }
 
-    //TODO: RENAME THIS
     /**
-     * @brief Function to perform the build of the RHS. The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @brief Function to perform the build of the RHS.
+     * The vector could be sized as the total number of dofs or as the number of unrestrained ones
      * @param rModelPart The model part to compute
      */
     virtual void BuildRHSNoDirichlet(ModelPart& rModelPart)
@@ -347,65 +350,19 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief It applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation choosen and on how the System Matrix is built.
-     * @details For explanation of how it works for a particular implementation the user should refer to the particular Builder And Solver choosen
-    //  * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void ApplyDirichletConditions(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
-    {
-    }
-
-    /**
-     * @brief The same of the precedent but affecting only the RHS
-    //  * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void ApplyDirichletConditions_RHS(
-        ModelPart& rModelPart,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        )
-    {
-    }
-
-    /**
-     * @brief equivalent (but generally faster) then performing BuildLHS and BuildRHS
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void Build(
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb)
-    {
-    }
-
-    /**
-     * @brief Applies the constraints
-    //  * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rb The RHS vector of the system of equations
-     */
-    virtual void ApplyConstraints(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rb
-        )
-    {
-    }
+    // TODO: Define this once the MPC work in the explicit framework
+    // /**
+    //  * @brief Applies the constraints
+    //  * @param rModelPart The model part to compute
+    //  * @param rA The LHS matrix of the system of equations
+    //  * @param rb The RHS vector of the system of equations
+    //  */
+    // virtual void ApplyConstraints(
+    //     ModelPart& rModelPart,
+    //     TSystemMatrixType& rA,
+    //     TSystemVectorType& rb)
+    // {
+    // }
 
     /**
      * @brief It applied those operations that are expected to be executed once
@@ -467,7 +424,7 @@ public:
 
     /**
      * @brief This function is intended to be called at the end of the solution step to clean up memory
-    storage not needed
+     * storage not needed
      */
     virtual void Clear()
     {
@@ -521,9 +478,11 @@ public:
     ///@name Access
     ///@{
 
+
     ///@}
     ///@name Inquiry
     ///@{
+
 
     ///@}
     ///@name Input and output
@@ -551,11 +510,12 @@ public:
     ///@name Friends
     ///@{
 
-    ///@}
 
+    ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
+
 
     ///@}
     ///@name Protected member Variables
@@ -583,11 +543,12 @@ protected:
     ///@name Protected Operators
     ///@{
 
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-/**
+    /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
      * @details The list of dofs is stores insde the ExplicitBuilder as it is closely connected to the way the matrix and RHS are built
      * @param rModelPart The model part to compute
@@ -687,6 +648,10 @@ protected:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Set the Up Dof Set Equation Ids object
+     * Set up the DOF set equation ids
+     */
     virtual void SetUpDofSetEquationIds()
     {
         // Firstly check that the DOF set is initialized
@@ -702,6 +667,13 @@ protected:
         );
     }
 
+    /**
+     * @brief Set the Up Lumped Mass Vector object
+     * This method sets up the lumped mass matrix used in the explicit update.
+     * Note that it requires that the equation ids. are already set and the
+     * implementation of the mass contributions to be done in the element level.
+     * @param rModelPart The model part to compute
+     */
     virtual void SetUpLumpedMassVector(const ModelPart &rModelPart)
     {
         KRATOS_TRY;
@@ -815,27 +787,32 @@ protected:
     ///@name Protected  Access
     ///@{
 
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-    ///@}
 
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
+
 
     ///@}
     ///@name Member Variables
     ///@{
 
+
     ///@}
     ///@name Private Operators
     ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -845,9 +822,11 @@ private:
     ///@name Private  Access
     ///@{
 
+
     ///@}
     ///@name Private Inquiry
     ///@{
+
 
     ///@}
     ///@name Un accessible methods
@@ -855,17 +834,13 @@ private:
 
 
     ///@}
-
 }; /* Class ExplicitBuilder */
-
 ///@}
-
 ///@name Type Definitions
 ///@{
 
 
 ///@}
-
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_EXPLICIT_BUILDER  defined */
