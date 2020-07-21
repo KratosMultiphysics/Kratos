@@ -67,6 +67,9 @@ public:
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+    /// The definition of the current class
+    typedef And_Criteria< TSparseSpace, TDenseSpace > ClassType;
+
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -82,6 +85,22 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    //* Constructor.
+    explicit And_Criteria()
+        : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @details It takes two different convergence criteria in order to work
+     */
+    explicit And_Criteria(Kratos::Parameters Settings)
+        :BaseType()
+    {
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
 
     /**
      * @brief Default constructor.
@@ -122,6 +141,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief It sets the level of echo for the solving strategy
@@ -293,9 +325,14 @@ public:
         KRATOS_CATCH("");
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "and_criteria";
+    }
 
     ///@}
     ///@name Access
