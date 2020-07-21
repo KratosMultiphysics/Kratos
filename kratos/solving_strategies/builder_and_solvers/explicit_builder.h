@@ -220,7 +220,7 @@ public:
      * @brief This method returns the flag GetResetLumpedMassVectorFlag
      * @return The flag that tells if we need to reset the lumped mass vector
      */
-    bool GetResetLumpedMassVectorFlag()
+    bool GetResetLumpedMassVectorFlag() const
     {
         return mResetLumpedMassVectorFlag;
     }
