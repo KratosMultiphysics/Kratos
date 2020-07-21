@@ -9,8 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
-//
-//  Collaborators:    Philipp Bucher
+//                   Philipp Bucher
 //
 
 #if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)

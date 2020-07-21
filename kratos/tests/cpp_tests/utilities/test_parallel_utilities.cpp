@@ -83,7 +83,6 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
 {
-
     class ClassBasedTLS
     {
         public:
@@ -112,34 +111,6 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     {
         item = std::pow(item, 0.1);
     });
-
-    // //error check
-    // for(auto& item : data_vector)
-    // {
-    //     KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
-    // }
-
-    // //shorter form
-    // block_for_each(data_vector, [](double& item){
-    //         item = std::pow(5.0, 0.1);
-    // });
-
-    // //error check
-    // for(auto& item : data_vector)
-    // {
-    //     KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
-    // }
-
-    // //here we check for a reduction (computing the sum of all the entries)
-    // auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_each<SumReduction<double>>(
-    //     [](double& item)
-    //     {
-    //         return item;
-    //     }
-    // );
-
-    // double expected_value = std::pow(5.0, 0.1)*nsize;
-    // KRATOS_CHECK_NEAR( std::abs(final_sum-expected_value)/std::abs(expected_value), 0.0, 1e-10  );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
