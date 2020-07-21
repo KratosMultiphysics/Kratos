@@ -140,6 +140,27 @@ public:
         }
     }
 
+    /** @brief loop with thread local storage allowing reductions. f called on every entry in rData
+     * the function f needs to return the values to be used by the reducer
+     * @param TReducer template parameter specifying the reduction operation to be done
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a unary function accepting as input TContainerType::value_type& and the thread local storage
+     */
+    template <class TReducer, class TThreadLocalStorage, class TUnaryFunction>
+    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
+    {
+        TReducer global_reducer;
+        #pragma omp parallel for
+        for (int i=0; i<mNchunks; ++i) {
+            TReducer local_reducer;
+            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
+                local_reducer.LocalReduce(f(*it));
+            }
+            global_reducer.ThreadSafeReduce(local_reducer);
+        }
+        return global_reducer.GetValue();
+    }
+
 private:
     int mNchunks;
     std::array<TIteratorType, TMaxThreads> mBlockPartition;
@@ -282,6 +303,36 @@ public:
                 }
             }
         }
+    }
+
+    /** version with reduction and thread local storage to be called for each index in the partition
+     * function f is expected to return the values to be reduced
+     * @param TReducer - template parameter specifying the type of reducer to be applied
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a unary function accepting as input IndexType and the thread local storage
+     */
+    template <class TReducer, class TThreadLocalStorage, class TUnaryFunction>
+    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TUnaryFunction &&f)
+    {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        TReducer global_reducer;
+
+        #pragma omp parallel
+        {
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                TReducer local_reducer;
+                for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
+                    local_reducer.LocalReduce(f(k, thread_local_storage));
+                }
+                global_reducer.ThreadSafeReduce(local_reducer);
+            }
+        }
+        return global_reducer.GetValue();
     }
 
 private:
