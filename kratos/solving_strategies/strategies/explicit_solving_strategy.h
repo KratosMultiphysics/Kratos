@@ -148,13 +148,6 @@ public:
      */
     virtual void Predict()
     {
-        if (!GetInitializeWasPerformedFlag()) {
-            Initialize();
-        }
-
-        if (!GetInitializeSolutionStepWasPerformedFlag()) {
-            InitializeSolutionStep();
-        }
     }
 
     /**
@@ -162,31 +155,26 @@ public:
      */
     virtual void Initialize()
     {
-        if (!GetInitializeWasPerformedFlag()) {
-            // Initialize elements, conditions and constraints
-            InitializeContainer(GetModelPart().Elements());
-            InitializeContainer(GetModelPart().Conditions());
-            InitializeContainer(GetModelPart().MasterSlaveConstraints());
+        // Initialize elements, conditions and constraints
+        InitializeContainer(GetModelPart().Elements());
+        InitializeContainer(GetModelPart().Conditions());
+        InitializeContainer(GetModelPart().MasterSlaveConstraints());
 
-            // Set the explicit DOFs rebuild level
-            if (mRebuildLevel != 0) {
-                mpExplicitBuilder->SetResetDofSetFlag(true);
-            }
-
-            // If the mesh is updated at each step, we require to accordingly update the lumped mass at each step
-            if (mMoveMeshFlag) {
-                mpExplicitBuilder->SetResetLumpedMassVectorFlag(true);
-            }
-
-            // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
-            mpExplicitBuilder->Initialize(mrModelPart);
-
-            // Initialize the solution values
-            InitializeDofSetValues();
-
-            // Set the mInitializeWasPerformed flag
-            mInitializeWasPerformed = true;
+        // Set the explicit DOFs rebuild level
+        if (mRebuildLevel != 0) {
+            mpExplicitBuilder->SetResetDofSetFlag(true);
         }
+
+        // If the mesh is updated at each step, we require to accordingly update the lumped mass at each step
+        if (mMoveMeshFlag) {
+            mpExplicitBuilder->SetResetLumpedMassVectorFlag(true);
+        }
+
+        // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
+        mpExplicitBuilder->Initialize(mrModelPart);
+
+        // Initialize the solution values
+        InitializeDofSetValues();
     }
 
     /**
@@ -196,10 +184,6 @@ public:
     {
         // This clears the DOF set and lumped mass vector
         mpExplicitBuilder->Clear();
-
-        // Initialize the explicit strategy flags
-        mInitializeWasPerformed = false;
-        mInitializeSolutionStepWasPerformed = false;
     }
 
     /**
@@ -226,11 +210,6 @@ public:
      */
     virtual void InitializeSolutionStep()
     {
-        // Check if the Initialize() has been already performed
-        if (!mInitializeWasPerformed) {
-            Initialize();
-        }
-
         // InitializeSolutionStep elements, conditions and constraints
         InitializeSolutionStepContainer(GetModelPart().Elements());
         InitializeSolutionStepContainer(GetModelPart().Conditions());
@@ -238,9 +217,6 @@ public:
 
         // Call the builder and solver initialize solution step
         mpExplicitBuilder->InitializeSolutionStep(mrModelPart);
-
-        // Set the mInitializeSolutionStepWasPerformed flag
-        mInitializeSolutionStepWasPerformed = true;
     }
 
     /**
@@ -256,9 +232,6 @@ public:
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
         mpExplicitBuilder->FinalizeSolutionStep(mrModelPart);
-
-        // Reset the mInitializeSolutionStepWasPerformed flag
-        mInitializeSolutionStepWasPerformed = false;
     }
 
     /**
@@ -364,42 +337,6 @@ public:
     bool MoveMeshFlag()
     {
         return mMoveMeshFlag;
-    }
-
-    /**
-     * @brief This function sets the flag that says that the Initialize() has been performed
-     * @param Flag True if the Initialize() has been performed, false otherwise
-     */
-    void SetInitializeWasPerformedFlag(bool Flag)
-    {
-        mInitializeWasPerformed = Flag;
-    }
-
-    /**
-     * @brief This function returns the flag that says that the Initialize() has been performed
-     * @return True if the Initialize() has been performed, false otherwise
-     */
-    bool GetInitializeWasPerformedFlag()
-    {
-        return mInitializeWasPerformed;
-    }
-
-    /**
-     * @brief This function sets the flag that says that the InitializeSolutionStep() has been performed
-     * @param Flag True if the InitializeSolutionStep() has been performed, false otherwise
-     */
-    void SetInitializeSolutionStepWasPerformedFlag(bool Flag)
-    {
-        mInitializeSolutionStepWasPerformed = Flag;
-    }
-
-    /**
-     * @brief This function returns the flag that says that the InitializeSolutionStep() has been performed
-     * @return True if the InitializeSolutionStep() has been performed, false otherwise
-     */
-    bool GetInitializeSolutionStepWasPerformedFlag()
-    {
-        return mInitializeSolutionStepWasPerformed;
     }
 
     /**
@@ -585,10 +522,6 @@ private:
     ModelPart &mrModelPart;
 
     bool mMoveMeshFlag;
-
-    bool mInitializeWasPerformed = false;
-
-    bool mInitializeSolutionStepWasPerformed = false;
 
     ExplicitBuilderPointerType mpExplicitBuilder = nullptr;
 
