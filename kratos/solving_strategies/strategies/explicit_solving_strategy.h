@@ -406,7 +406,7 @@ public:
      * @brief Function to perform expensive checks.
      * @details It is designed to be called ONCE to verify that the input is correct.
      */
-    virtual int Check()
+    virtual int Check() const
     {
         KRATOS_TRY
 
