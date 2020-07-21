@@ -202,7 +202,7 @@ public:
      * @brief This method returns the flag mReshapeMatrixFlag
      * @return The flag that tells if we need to reset the DOF set
      */
-    bool GetResetDofSetFlag()
+    bool GetResetDofSetFlag() const
     {
         return mResetDofSetFlag;
     }
