@@ -223,7 +223,7 @@ void SymbolicStokes< SymbolicStokesData<2,3> >::ComputeGaussPointLHSContribution
 
     auto& lhs = rData.lhs;
 
-    //substitute_lhs_2D
+    //substitute_lhs_2D3N
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -254,7 +254,7 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointLHSContribution(
 
     auto& lhs = rData.lhs;
 
-    //substitute_lhs_3D
+    //substitute_lhs_3D4N
 
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
@@ -292,7 +292,7 @@ void SymbolicStokes<SymbolicStokesData<2,3>>::ComputeGaussPointRHSContribution(
 
     auto& rhs = rData.rhs;
 
-    //substitute_rhs_2D
+    //substitute_rhs_2D3N
 
     noalias(rRHS) += rData.Weight * rhs;
 }
@@ -329,7 +329,7 @@ void SymbolicStokes<SymbolicStokesData<3,4>>::ComputeGaussPointRHSContribution(
 
     auto& rhs = rData.rhs;
 
-    //substitute_rhs_3D
+    //substitute_rhs_3D4N
 
     noalias(rRHS) += rData.Weight * rhs;
 }
