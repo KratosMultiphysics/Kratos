@@ -85,7 +85,6 @@
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 
-
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
@@ -368,9 +367,6 @@ private:
     const HerschelBulkleyFluid< VMS<3> > mHerschelBulkleyVMS3D;
 
     const Stokes3D mStokes3D;
-    /// Symbolic Stokes element
-
-
     const Stokes3DTwoFluid mStokes3DTwoFluid;
 
     /// Navier-Stokes symbolic element

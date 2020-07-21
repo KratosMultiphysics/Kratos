@@ -145,7 +145,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         stab_norm_a = 0.0
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
-        stab_norm_a = sqrt(stab_norm_a) 
+        stab_norm_a = sqrt(stab_norm_a)
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
         tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
     else:
@@ -266,7 +266,6 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Replace the computed RHS and LHS in the template outstring
     outstring = outstring.replace("//substitute_lhs_" + str(dim) + 'D' + str(nnodes) + 'N', lhs_out)
     outstring = outstring.replace("//substitute_rhs_" + str(dim) + 'D' + str(nnodes) + 'N', rhs_out)
-
 
 ## Write the modified template
 print("Writing output file \'" + output_filename + "\'")
