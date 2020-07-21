@@ -59,7 +59,7 @@ public:
     typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
     // The explicit builder and solver definition
-    typedef typename BaseType::ExplicitBuilderAndSolverType ExplicitBuilderAndSolverType;
+    typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
 
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
@@ -86,15 +86,15 @@ public:
     /**
      * @brief Default constructor.
      * @param rModelPart The model part to be computed
-     * @param pExplicitBuilderAndSolver The pointer to the explicit builder and solver
+     * @param pExplicitBuilder The pointer to the explicit builder and solver
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
     explicit ExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
-        typename ExplicitBuilderAndSolverType::Pointer pExplicitBuilderAndSolver,
+        typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : BaseType(rModelPart, pExplicitBuilderAndSolver, MoveMeshFlag, RebuildLevel)
+        : BaseType(rModelPart, pExplicitBuilder, MoveMeshFlag, RebuildLevel)
     {
     }
 
@@ -175,7 +175,7 @@ protected:
     void SolveWithLumpedMassMatrix() override
     {
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
         const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
@@ -268,7 +268,7 @@ protected:
         LocalSystemVectorType& rIntermediateStepResidualVector)
     {
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
@@ -315,7 +315,7 @@ protected:
     virtual void PerformRungeKuttaLastSubStep(LocalSystemVectorType& rLastStepResidualVector)
     {
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilderAndSolver();
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
 
         // Get model part

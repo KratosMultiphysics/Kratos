@@ -455,32 +455,32 @@ namespace Kratos
                 ;
 
             //Explicit builder and Solver
-            typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType > ExplicitBuilderAndSolverType;
+            typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
-            py::class_<ExplicitBuilderAndSolverType, typename ExplicitBuilderAndSolverType::Pointer>(m, "ExplicitBuilderAndSolver")
+            py::class_<ExplicitBuilderType, typename ExplicitBuilderType::Pointer>(m, "ExplicitBuilder")
                 .def(py::init<>())
-                .def("SetCalculateReactionsFlag", &ExplicitBuilderAndSolverType::SetCalculateReactionsFlag)
-                .def("GetCalculateReactionsFlag", &ExplicitBuilderAndSolverType::GetCalculateReactionsFlag)
-                .def("SetDofSetIsInitializedFlag", &ExplicitBuilderAndSolverType::SetDofSetIsInitializedFlag)
-                .def("GetDofSetIsInitializedFlag", &ExplicitBuilderAndSolverType::GetDofSetIsInitializedFlag)
-                .def("SetResetDofSetFlag", &ExplicitBuilderAndSolverType::SetResetDofSetFlag)
-                .def("GetResetDofSetFlag", &ExplicitBuilderAndSolverType::GetResetDofSetFlag)
-                .def("SetResetLumpedMassVectorFlag", &ExplicitBuilderAndSolverType::SetResetLumpedMassVectorFlag)
-                .def("GetResetLumpedMassVectorFlag", &ExplicitBuilderAndSolverType::GetResetLumpedMassVectorFlag)
-                .def("GetEquationSystemSize", &ExplicitBuilderAndSolverType::GetEquationSystemSize)
-                .def("BuildRHS", &ExplicitBuilderAndSolverType::BuildRHS)
-                .def("Build", &ExplicitBuilderAndSolverType::Build)
-                .def("ApplyDirichletConditions", &ExplicitBuilderAndSolverType::ApplyDirichletConditions)
-                .def("ApplyConstraints", &ExplicitBuilderAndSolverType::ApplyConstraints)
-                .def("GetDofSet", &ExplicitBuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
-                .def("GetLumpedMassMatrixVector", &ExplicitBuilderAndSolverType::GetLumpedMassMatrixVector, py::return_value_policy::reference_internal)
-                .def("Initialize", &ExplicitBuilderAndSolverType::Initialize)
-                .def("InitializeSolutionStep", &ExplicitBuilderAndSolverType::InitializeSolutionStep)
-                .def("FinalizeSolutionStep", &ExplicitBuilderAndSolverType::FinalizeSolutionStep)
-                .def("Clear", &ExplicitBuilderAndSolverType::Clear)
-                .def("Check", &ExplicitBuilderAndSolverType::Check)
-                .def("SetEchoLevel", &ExplicitBuilderAndSolverType::SetEchoLevel)
-                .def("GetEchoLevel", &ExplicitBuilderAndSolverType::GetEchoLevel);
+                .def("SetCalculateReactionsFlag", &ExplicitBuilderType::SetCalculateReactionsFlag)
+                .def("GetCalculateReactionsFlag", &ExplicitBuilderType::GetCalculateReactionsFlag)
+                .def("SetDofSetIsInitializedFlag", &ExplicitBuilderType::SetDofSetIsInitializedFlag)
+                .def("GetDofSetIsInitializedFlag", &ExplicitBuilderType::GetDofSetIsInitializedFlag)
+                .def("SetResetDofSetFlag", &ExplicitBuilderType::SetResetDofSetFlag)
+                .def("GetResetDofSetFlag", &ExplicitBuilderType::GetResetDofSetFlag)
+                .def("SetResetLumpedMassVectorFlag", &ExplicitBuilderType::SetResetLumpedMassVectorFlag)
+                .def("GetResetLumpedMassVectorFlag", &ExplicitBuilderType::GetResetLumpedMassVectorFlag)
+                .def("GetEquationSystemSize", &ExplicitBuilderType::GetEquationSystemSize)
+                .def("BuildRHS", &ExplicitBuilderType::BuildRHS)
+                .def("Build", &ExplicitBuilderType::Build)
+                .def("ApplyDirichletConditions", &ExplicitBuilderType::ApplyDirichletConditions)
+                .def("ApplyConstraints", &ExplicitBuilderType::ApplyConstraints)
+                .def("GetDofSet", &ExplicitBuilderType::GetDofSet, py::return_value_policy::reference_internal)
+                .def("GetLumpedMassMatrixVector", &ExplicitBuilderType::GetLumpedMassMatrixVector, py::return_value_policy::reference_internal)
+                .def("Initialize", &ExplicitBuilderType::Initialize)
+                .def("InitializeSolutionStep", &ExplicitBuilderType::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &ExplicitBuilderType::FinalizeSolutionStep)
+                .def("Clear", &ExplicitBuilderType::Clear)
+                .def("Check", &ExplicitBuilderType::Check)
+                .def("SetEchoLevel", &ExplicitBuilderType::SetEchoLevel)
+                .def("GetEchoLevel", &ExplicitBuilderType::GetEchoLevel);
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
             py::class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
@@ -553,7 +553,7 @@ namespace Kratos
             typedef ExplicitSolvingStrategy< SparseSpaceType, LocalSpaceType > BaseExplicitSolvingStrategyType;
             py::class_<BaseExplicitSolvingStrategyType, typename BaseExplicitSolvingStrategyType::Pointer>(m, "ExplicitSolvingStrategy")
                 .def(py::init<ModelPart &, bool, int>())
-                .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool, int>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
                 .def("Predict", &BaseExplicitSolvingStrategyType::Predict)
                 .def("Initialize", &BaseExplicitSolvingStrategyType::Initialize)
                 .def("IsConverged", &BaseExplicitSolvingStrategyType::IsConverged)
@@ -577,7 +577,7 @@ namespace Kratos
             py::class_<ExplicitSolvingStrategyRungeKutta4Type, typename ExplicitSolvingStrategyRungeKutta4Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta4")
                 .def(py::init<ModelPart&, bool, int>())
                 .def(py::init<ModelPart&, Parameters>())
-                .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool, int>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
                 ;
 
             typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;

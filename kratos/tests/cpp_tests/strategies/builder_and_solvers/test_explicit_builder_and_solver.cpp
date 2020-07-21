@@ -38,12 +38,12 @@ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 
 // The builder ans solver type
-typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType > ExplicitBuilderAndSolverType;
+typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
 /**
  * @brief It generates a truss structure with an expected solution
  */
-static inline void GenerateTestExplicitBuilderAndSolverModelPart(
+static inline void GenerateTestExplicitBuilderModelPart(
     ModelPart& rModelPart,
     const bool FixDofs = false)
 {
@@ -98,10 +98,10 @@ KRATOS_TEST_CASE_IN_SUITE(ExplicitBlockBuilderAndSolverInitialization, KratosCor
     // Generate the test model part
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("TestModelPart", 3);
-    GenerateTestExplicitBuilderAndSolverModelPart(r_model_part);
+    GenerateTestExplicitBuilderModelPart(r_model_part);
 
     // Test the explicit builder and solver dof set set up
-    auto p_builder_and_solver = Kratos::make_unique<ExplicitBuilderAndSolverType>();
+    auto p_builder_and_solver = Kratos::make_unique<ExplicitBuilderType>();
     p_builder_and_solver->Initialize(r_model_part);
     const auto& r_dof_set = p_builder_and_solver->GetDofSet();
     const auto& r_lumped_mass_vector = p_builder_and_solver->GetLumpedMassMatrixVector();

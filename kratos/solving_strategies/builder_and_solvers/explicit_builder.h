@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_BUILDER_AND_SOLVER )
-#define  KRATOS_EXPLICIT_BUILDER_AND_SOLVER
+#if !defined(KRATOS_EXPLICIT_BUILDER)
+#define  KRATOS_EXPLICIT_BUILDER
 
 /* System includes */
 #include <set>
@@ -49,7 +49,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ExplicitBuilderAndSolver
+ * @class ExplicitBuilder
  * @ingroup KratosCore
  * @brief Current class provides an implementation for the base explicit builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
@@ -58,7 +58,7 @@ namespace Kratos
  * @author Ruben Zorrilla
  */
 template<class TSparseSpace, class TDenseSpace >
-class ExplicitBuilderAndSolver
+class ExplicitBuilder
 {
 public:
     ///@name Type Definitions
@@ -119,8 +119,8 @@ public:
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
 
-    /// Pointer definition of ExplicitBuilderAndSolver
-    KRATOS_CLASS_POINTER_DEFINITION(ExplicitBuilderAndSolver);
+    /// Pointer definition of ExplicitBuilder
+    KRATOS_CLASS_POINTER_DEFINITION(ExplicitBuilder);
 
     ///@}
     ///@name Life Cycle
@@ -130,7 +130,7 @@ public:
      * @brief Default constructor with Parameters
      * @param ThisParameters The configuration parameters
      */
-    explicit ExplicitBuilderAndSolver(Parameters ThisParameters)
+    explicit ExplicitBuilder(Parameters ThisParameters)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -143,11 +143,11 @@ public:
     /**
      * @brief Default constructor.
      */
-    explicit ExplicitBuilderAndSolver() = default;
+    explicit ExplicitBuilder() = default;
 
     /** Destructor.
      */
-    virtual ~ExplicitBuilderAndSolver() = default;
+    virtual ~ExplicitBuilder() = default;
 
 
     ///@}
@@ -420,11 +420,11 @@ public:
         // Set up the lumped mass vector
         this->SetUpLumpedMassVector(rModelPart);
         } else if (!mLumpedMassVectorIsInitialized) {
-            KRATOS_WARNING("ExplicitBuilderAndSolver") << "Calling Initialize() with already initialized DOF set. Initializing lumped mass vector." << std::endl;;
+            KRATOS_WARNING("ExplicitBuilder") << "Calling Initialize() with already initialized DOF set. Initializing lumped mass vector." << std::endl;;
             // Only set up the lumped mass vector
             this->SetUpLumpedMassVector(rModelPart);
         } else {
-            KRATOS_WARNING("ExplicitBuilderAndSolver") << "Calling Initialize() with already initialized DOF set and lumped mass vector." << std::endl;;
+            KRATOS_WARNING("ExplicitBuilder") << "Calling Initialize() with already initialized DOF set and lumped mass vector." << std::endl;;
         }
     }
 
@@ -474,7 +474,7 @@ public:
         this->mDofSet = DofsArrayType();
         this->mpLumpedMassVector.reset();
 
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilder", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
     }
 
     /**
@@ -532,7 +532,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "ExplicitBuilderAndSolver";
+        return "ExplicitBuilder";
     }
 
     /// Print information about this object.
@@ -589,14 +589,14 @@ protected:
 
 /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-     * @details The list of dofs is stores insde the ExplicitBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+     * @details The list of dofs is stores insde the ExplicitBuilder as it is closely connected to the way the matrix and RHS are built
      * @param rModelPart The model part to compute
      */
     virtual void SetUpDofSet(const ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 1) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilder", this->GetEchoLevel() > 1) << "Setting up the dofs" << std::endl;
 
         // Gets the array of elements, conditions and constraints from the modeler
         const auto &r_elements_array = rModelPart.Elements();
@@ -654,7 +654,7 @@ protected:
             }
         }
 
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilder", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
         // Ordering the global DOF set
         mDofSet = DofsArrayType();
@@ -680,9 +680,9 @@ protected:
 
         mDofSetIsInitialized = true;
 
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << mDofSet.size() << std::endl;
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilder", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << mDofSet.size() << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilder", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilder", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -706,7 +706,7 @@ protected:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ExplicitBuilderAndSolver", this->GetEchoLevel() > 1) << "Setting up the lumped mass matrix vector" << std::endl;
+        KRATOS_INFO_IF("ExplicitBuilder", this->GetEchoLevel() > 1) << "Setting up the lumped mass matrix vector" << std::endl;
 
         // Initialize the lumped mass matrix vector
         // Note that the lumped mass matrix vector size matches the dof set one
@@ -856,7 +856,7 @@ private:
 
     ///@}
 
-}; /* Class ExplicitBuilderAndSolver */
+}; /* Class ExplicitBuilder */
 
 ///@}
 
@@ -868,4 +868,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_EXPLICIT_BUILDER_AND_SOLVER  defined */
+#endif /* KRATOS_EXPLICIT_BUILDER  defined */

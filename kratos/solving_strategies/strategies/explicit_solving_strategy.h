@@ -58,13 +58,13 @@ public:
     ///@{
 
     // The explicit builder and solver definition
-    typedef ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace> ExplicitBuilderAndSolverType;
+    typedef ExplicitBuilder<TSparseSpace, TDenseSpace> ExplicitBuilderType;
 
     // The explicit builder and solver pointer definition
-    typedef typename ExplicitBuilderAndSolverType::Pointer ExplicitBuilderAndSolverPointerType;
+    typedef typename ExplicitBuilderType::Pointer ExplicitBuilderPointerType;
 
     // The DOF type from the explicit builder and solver class
-    typedef typename ExplicitBuilderAndSolverType::DofType DofType;
+    typedef typename ExplicitBuilderType::DofType DofType;
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategy);
@@ -87,23 +87,23 @@ public:
         const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
         SetMoveMeshFlag(move_mesh_flag);
         SetRebuildLevel(rebuild_level);
-        mpExplicitBuilderAndSolver = Kratos::make_unique<ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace>>();
+        mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
     /**
      * @brief Default constructor.
      * @param rModelPart The model part to be computed
-     * @param pExplicitBuilderAndSolver The pointer to the explicit builder and solver
+     * @param pExplicitBuilder The pointer to the explicit builder and solver
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      * @param RebuildLevel The flag to set if the DOF set is rebuild or not
      */
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
-        typename ExplicitBuilderAndSolverType::Pointer pExplicitBuilderAndSolver,
+        typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
         : mrModelPart(rModelPart),
-          mpExplicitBuilderAndSolver(pExplicitBuilderAndSolver)
+          mpExplicitBuilder(pExplicitBuilder)
     {
         SetMoveMeshFlag(MoveMeshFlag);
         SetRebuildLevel(RebuildLevel);
@@ -123,7 +123,7 @@ public:
     {
         SetMoveMeshFlag(MoveMeshFlag);
         SetRebuildLevel(RebuildLevel);
-        mpExplicitBuilderAndSolver = Kratos::make_unique<ExplicitBuilderAndSolver<TSparseSpace, TDenseSpace>>();
+        mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
     /** Copy constructor.
@@ -170,16 +170,16 @@ public:
 
             // Set the explicit DOFs rebuild level
             if (mRebuildLevel != 0) {
-                mpExplicitBuilderAndSolver->SetResetDofSetFlag(true);
+                mpExplicitBuilder->SetResetDofSetFlag(true);
             }
 
             // If the mesh is updated at each step, we require to accordingly update the lumped mass at each step
             if (mMoveMeshFlag) {
-                mpExplicitBuilderAndSolver->SetResetLumpedMassVectorFlag(true);
+                mpExplicitBuilder->SetResetLumpedMassVectorFlag(true);
             }
 
             // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
-            mpExplicitBuilderAndSolver->Initialize(mrModelPart);
+            mpExplicitBuilder->Initialize(mrModelPart);
 
             // Initialize the solution values
             InitializeDofSetValues();
@@ -195,7 +195,7 @@ public:
     virtual void Clear()
     {
         // This clears the DOF set and lumped mass vector
-        mpExplicitBuilderAndSolver->Clear();
+        mpExplicitBuilder->Clear();
 
         // Initialize the explicit strategy flags
         mInitializeWasPerformed = false;
@@ -237,7 +237,7 @@ public:
         InitializeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver initialize solution step
-        mpExplicitBuilderAndSolver->InitializeSolutionStep(mrModelPart);
+        mpExplicitBuilder->InitializeSolutionStep(mrModelPart);
 
         // Set the mInitializeSolutionStepWasPerformed flag
         mInitializeSolutionStepWasPerformed = true;
@@ -255,7 +255,7 @@ public:
         FinalizeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
-        mpExplicitBuilderAndSolver->FinalizeSolutionStep(mrModelPart);
+        mpExplicitBuilder->FinalizeSolutionStep(mrModelPart);
 
         // Reset the mInitializeSolutionStepWasPerformed flag
         mInitializeSolutionStepWasPerformed = false;
@@ -424,11 +424,11 @@ public:
 
     /**
      * @brief Operations to get the pointer to the explicit builder and solver
-     * @return mpExplicitBuilderAndSolver: The explicit builder and solver
+     * @return mpExplicitBuilder: The explicit builder and solver
      */
-    inline ExplicitBuilderAndSolverPointerType& pGetExplicitBuilderAndSolver()
+    inline ExplicitBuilderPointerType& pGetExplicitBuilder()
     {
-        return mpExplicitBuilderAndSolver;
+        return mpExplicitBuilder;
     };
 
     /**
@@ -438,7 +438,7 @@ public:
     virtual double GetResidualNorm()
     {
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = pGetExplicitBuilderAndSolver();
+        const auto p_explicit_bs = pGetExplicitBuilder();
         auto& r_dof_set = p_explicit_bs->GetDofSet();
 
         // Calculate the explicit residual
@@ -579,7 +579,7 @@ private:
 
     bool mInitializeSolutionStepWasPerformed = false;
 
-    ExplicitBuilderAndSolverPointerType mpExplicitBuilderAndSolver = nullptr;
+    ExplicitBuilderPointerType mpExplicitBuilder = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -596,7 +596,7 @@ private:
     void InitializeDofSetValues()
     {
         // Initialize the DOF values
-        auto& r_dof_set = mpExplicitBuilderAndSolver->GetDofSet();
+        auto& r_dof_set = mpExplicitBuilder->GetDofSet();
         block_for_each(
             r_dof_set,
             [](DofType& rDof){
