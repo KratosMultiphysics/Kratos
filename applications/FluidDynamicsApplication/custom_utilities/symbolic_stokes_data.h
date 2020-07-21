@@ -118,6 +118,7 @@ void UpdateGeometryValues(
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
