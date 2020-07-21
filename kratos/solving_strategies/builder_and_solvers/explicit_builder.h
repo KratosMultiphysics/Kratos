@@ -441,7 +441,7 @@ public:
      * @param rModelPart The model part to compute
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& rModelPart)
+    virtual int Check(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
 
