@@ -86,13 +86,14 @@ namespace TestCreationUtility
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
         typename GeometryType::GeometriesArrayType result_geometries;
-        //if (PolynomialDegree == SizeType(3)) {
-            GenerateNurbsSurface(rModelPart,PolynomialDegree).CreateQuadraturePointGeometries(
+        
+        GenerateNurbsSurface(rModelPart,PolynomialDegree).CreateQuadraturePointGeometries(
                 result_geometries, 3, integration_points);
-        //}
+        
         return result_geometries(0);
     }
 
+    ///@}
 }; /// namespace TestCreationUtility
 } /// namespace Kratos.
 
