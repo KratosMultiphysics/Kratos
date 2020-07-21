@@ -246,7 +246,15 @@ public:
     /**
      * @brief It allows to get the list of Dofs from the element
      */
-    virtual DofsArrayType& GetDofSet()
+    DofsArrayType& GetDofSet()
+    {
+        return mDofSet;
+    }
+
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    const DofsArrayType& GetDofSet() const
     {
         return mDofSet;
     }
@@ -256,7 +264,7 @@ public:
      * It allows to get the lumped mass matrix vector pointer
      * @return TSystemVectorPointerType& The lumped mass matrix vector pointer
      */
-    virtual TSystemVectorPointerType& pGetLumpedMassMatrixVector()
+    TSystemVectorPointerType& pGetLumpedMassMatrixVector()
     {
         return mpLumpedMassVector;
     }
@@ -266,7 +274,7 @@ public:
      * It allows to get the lumped mass matrix vector
      * @return TSystemVectorType& The lumped mass matrix vector
      */
-    virtual TSystemVectorType& GetLumpedMassMatrixVector()
+    TSystemVectorType& GetLumpedMassMatrixVector()
     {
         return (*mpLumpedMassVector);
     }
@@ -749,13 +757,12 @@ protected:
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
         // Loop the reactions to initialize them to zero
-        IndexPartition<int>(mEquationSystemSize).for_each(
-            [&](int i_dof){
-                auto it_dof = mDofSet.begin() + i_dof;
-                auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
-                r_reaction_value = 0.0;
+        block_for_each(
+            mDofSet,
+            [](DofType& rDof){
+                rDof.GetSolutionStepReactionValue() = 0.0;
             }
-        );
+        );        
     }
 
     /**
@@ -773,13 +780,13 @@ protected:
             // Note that we take advantage of the fact that Kratos always works with a residual based formulation
             // This means that the reactions are minus the residual. As we use the reaction as residual container
             // during the explicit resolution of the problem, the calculate reactions is as easy as switching the sign
-            IndexPartition<int>(mEquationSystemSize).for_each(
-                [&](int i_dof){
-                    auto it_dof = mDofSet.begin() + i_dof;
-                    auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
+            block_for_each(
+                mDofSet,
+                [](DofType& rDof){
+                    auto& r_reaction_value = rDof.GetSolutionStepReactionValue();
                     r_reaction_value *= -1.0;
                 }
-            );
+            ); 
         }
     }
 
@@ -795,41 +802,6 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
     ///@{
 
 

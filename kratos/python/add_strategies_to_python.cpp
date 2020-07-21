@@ -455,6 +455,7 @@ namespace Kratos
                 ;
 
             //Explicit builder and Solver
+            typedef typename ModelPart::DofsArrayType DofsArrayType;
             typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
             py::class_<ExplicitBuilderType, typename ExplicitBuilderType::Pointer>(m, "ExplicitBuilder")
@@ -470,7 +471,7 @@ namespace Kratos
                 .def("GetEquationSystemSize", &ExplicitBuilderType::GetEquationSystemSize)
                 .def("BuildRHS", &ExplicitBuilderType::BuildRHS)
                 // .def("ApplyConstraints", &ExplicitBuilderType::ApplyConstraints) //TODO: Export this once the explicit MPCs are implemented
-                .def("GetDofSet", &ExplicitBuilderType::GetDofSet, py::return_value_policy::reference_internal)
+                .def("GetDofSet", [](ExplicitBuilderType& self) -> DofsArrayType& {return self.GetDofSet();}, py::return_value_policy::reference_internal)
                 .def("GetLumpedMassMatrixVector", &ExplicitBuilderType::GetLumpedMassMatrixVector, py::return_value_policy::reference_internal)
                 .def("Initialize", &ExplicitBuilderType::Initialize)
                 .def("InitializeSolutionStep", &ExplicitBuilderType::InitializeSolutionStep)
@@ -555,7 +556,6 @@ namespace Kratos
                 .def("Predict", &BaseExplicitSolvingStrategyType::Predict)
                 .def("Initialize", &BaseExplicitSolvingStrategyType::Initialize)
                 .def("IsConverged", &BaseExplicitSolvingStrategyType::IsConverged)
-                .def("CalculateOutputData", &BaseExplicitSolvingStrategyType::CalculateOutputData)
                 .def("SetEchoLevel", &BaseExplicitSolvingStrategyType::SetEchoLevel)
                 .def("GetEchoLevel", &BaseExplicitSolvingStrategyType::GetEchoLevel)
                 .def("SetRebuildLevel", &BaseExplicitSolvingStrategyType::SetRebuildLevel)
@@ -568,7 +568,7 @@ namespace Kratos
                 .def("InitializeSolutionStep", &BaseExplicitSolvingStrategyType::InitializeSolutionStep)
                 .def("FinalizeSolutionStep", &BaseExplicitSolvingStrategyType::FinalizeSolutionStep)
                 .def("SolveSolutionStep", &BaseExplicitSolvingStrategyType::SolveSolutionStep)
-                //.def("GetModelPart", &BaseExplicitSolvingStrategyType::GetModelPart )
+                .def("GetModelPart", [](const BaseExplicitSolvingStrategyType& self) -> const ModelPart& { return self.GetModelPart(); })
                 ;
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;

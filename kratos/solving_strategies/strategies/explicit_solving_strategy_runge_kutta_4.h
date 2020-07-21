@@ -61,6 +61,9 @@ public:
     // The explicit builder and solver definition
     typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
 
+    /// The DOF type
+    typedef typename BaseType::DofType DofType;
+
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
@@ -117,7 +120,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ExplicitSolvingStrategyRungeKutta4() = default;
+    ~ExplicitSolvingStrategyRungeKutta4() override = default;
 
     ///@}
     ///@name Operators

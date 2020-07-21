@@ -196,15 +196,6 @@ public:
     }
 
     /**
-     * @brief This operations should be called before printing the results when non trivial results (e.g. stresses)
-     * need to be calculated given the solution of the step
-     * @details This operations should be called only when needed, before printing as it can involve a non negligible cost
-     */
-    virtual void CalculateOutputData()
-    {
-    }
-
-    /**
      * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
      * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
@@ -288,7 +279,7 @@ public:
      * }
      * @return Level of echo for the solving strategy
      */
-    virtual int GetEchoLevel()
+    int GetEchoLevel() const
     {
         return mEchoLevel;
     }
@@ -302,7 +293,7 @@ public:
      * 1 -> Set up the DOF set at the beginning of each solution step
      * }
      */
-    virtual void SetRebuildLevel(int Level)
+    void SetRebuildLevel(int Level)
     {
         mRebuildLevel = Level;
     }
@@ -316,7 +307,7 @@ public:
      * }
      * @return The build level
      */
-    virtual int GetRebuildLevel()
+    int GetRebuildLevel() const
     {
         return mRebuildLevel;
     }
@@ -348,13 +339,7 @@ public:
         KRATOS_TRY
 
         auto& r_nodes_array = GetModelPart().Nodes();
-        block_for_each(
-            r_nodes_array,
-            [](Node<3>& rNode){
-                noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
-                noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-            }
-        );
+        VariableUtils().UpdateCurrentPosition(r_nodes_array);
 
         KRATOS_INFO_IF("ExplicitSolvingStrategy", this->GetEchoLevel() > 0) << "Mesh moved." << std::endl;
 
@@ -365,7 +350,16 @@ public:
      * @brief Operations to get the pointer to the model
      * @return mrModelPart: The model part member variable
      */
-    inline ModelPart& GetModelPart()
+    ModelPart& GetModelPart()
+    {
+        return mrModelPart;
+    };
+
+    /**
+     * @brief Operations to get the pointer to the model
+     * @return mrModelPart: The model part member variable
+     */
+    const ModelPart& GetModelPart() const
     {
         return mrModelPart;
     };
@@ -374,7 +368,7 @@ public:
      * @brief Operations to get the pointer to the explicit builder and solver
      * @return mpExplicitBuilder: The explicit builder and solver
      */
-    inline ExplicitBuilderPointerType& pGetExplicitBuilder()
+    ExplicitBuilderPointerType& pGetExplicitBuilder()
     {
         return mpExplicitBuilder;
     };
@@ -415,16 +409,16 @@ public:
             VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
         }
 
-        // Elements check
-        for (const auto& r_elem :  GetModelPart().Elements()) {
-            const auto& r_process_info = GetModelPart().GetProcessInfo();
+        // Check elements, conditions and constraints
+        const auto& r_process_info = GetModelPart().GetProcessInfo();
+        for (const auto& r_elem : GetModelPart().Elements()) {
             r_elem.Check(r_process_info);
         }
-
-        // Conditions check
-        for (const auto& r_cond :  GetModelPart().Conditions()) {
-            const auto& r_process_info = GetModelPart().GetProcessInfo();
+        for (const auto& r_cond : GetModelPart().Conditions()) {
             r_cond.Check(r_process_info);
+        }
+        for (const auto& r_cons : GetModelPart().MasterSlaveConstraints()) {
+            r_cons.Check(r_process_info);
         }
 
         return 0;
