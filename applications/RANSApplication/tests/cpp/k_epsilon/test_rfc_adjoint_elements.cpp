@@ -30,6 +30,7 @@ namespace Kratos
 {
 namespace Testing
 {
+// k-epsilon k element tests
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateFirstDerivativesLHS, KratosRansFastSuite)
 {
     const auto& calculate_sensitivity_matrix =
@@ -82,16 +83,81 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateSensitivityMatrix, Krato
 
 KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateSecondDerivativesLHS, KratosRansFastSuite)
 {
-    const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
-                                                  const ProcessInfo& rProcessInfo) {
-        rElement.CalculateSecondDerivativesLHS(rOutput, rProcessInfo);
-        const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
-        noalias(rOutput) = rOutput * (1.0 - bossak_alpha);
-    };
+    const auto& calculate_sensitivity_matrix =
+        [](Matrix& rOutput, ElementType& rElement, const ProcessInfo& rProcessInfo) {
+            rElement.CalculateSecondDerivativesLHS(rOutput, rProcessInfo);
+            const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
+            noalias(rOutput) = rOutput * (1.0 - bossak_alpha);
+        };
 
     RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
         "RansKEpsilonKRFC2D3N", "RansKEpsilonKAdjointRFC2D3N",
         TURBULENT_KINETIC_ENERGY_RATE, calculate_sensitivity_matrix, 1e-7, 1e-5);
+}
+
+// k-epsilon epsilon element tests
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateFirstDerivativesLHS, KratosRansFastSuite)
+{
+    const auto& calculate_sensitivity_matrix =
+        [](Matrix& rOutput, ElementType& rElement, const ProcessInfo& rProcessInfo) {
+            rElement.CalculateFirstDerivativesLHS(rOutput, rProcessInfo);
+        };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
+        "RansKEpsilonEpsilonRFC2D3N", "RansKEpsilonEpsilonAdjointRFC2D3N",
+        TURBULENT_ENERGY_DISSIPATION_RATE, calculate_sensitivity_matrix, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_Calculate_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
+                          KratosRansFastSuite)
+{
+    const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
+                                                  const ProcessInfo& rProcessInfo) {
+        rElement.Calculate(TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE, rOutput, rProcessInfo);
+    };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
+        "RansKEpsilonEpsilonRFC2D3N", "RansKEpsilonEpsilonAdjointRFC2D3N",
+        TURBULENT_KINETIC_ENERGY, calculate_sensitivity_matrix, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_Calculate_VELOCITY_PARTIAL_DERIVATIVE,
+                          KratosRansFastSuite)
+{
+    const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
+                                                  const ProcessInfo& rProcessInfo) {
+        rElement.Calculate(VELOCITY_PARTIAL_DERIVATIVE, rOutput, rProcessInfo);
+    };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
+        "RansKEpsilonEpsilonRFC2D3N", "RansKEpsilonEpsilonAdjointRFC2D3N",
+        VELOCITY, calculate_sensitivity_matrix, 1e-6, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateSensitivityMatrix, KratosRansFastSuite)
+{
+    const auto& calculate_sensitivity_matrix = [](Matrix& rOutput, ElementType& rElement,
+                                                  const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rOutput, rProcessInfo);
+    };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<array_1d<double, 3>, ModelPart::ElementsContainerType>(
+        "RansKEpsilonEpsilonRFC2D3N", "RansKEpsilonEpsilonAdjointRFC2D3N",
+        SHAPE_SENSITIVITY, calculate_sensitivity_matrix, 1e-7, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateSecondDerivativesLHS, KratosRansFastSuite)
+{
+    const auto& calculate_sensitivity_matrix =
+        [](Matrix& rOutput, ElementType& rElement, const ProcessInfo& rProcessInfo) {
+            rElement.CalculateSecondDerivativesLHS(rOutput, rProcessInfo);
+            const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
+            noalias(rOutput) = rOutput * (1.0 - bossak_alpha);
+        };
+
+    RansEvmKEpsilonModel::RunRansEvmKEpsilonTest<double, ModelPart::ElementsContainerType>(
+        "RansKEpsilonEpsilonRFC2D3N", "RansKEpsilonEpsilonAdjointRFC2D3N",
+        TURBULENT_ENERGY_DISSIPATION_RATE_2, calculate_sensitivity_matrix, 1e-6, 1e-5);
 }
 
 } // namespace Testing
