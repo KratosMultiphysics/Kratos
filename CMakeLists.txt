@@ -304,6 +304,28 @@ else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	endif (OPENMP_FOUND)
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
+
+# Select shared memory parallelization
+# default to OpenMP
+set(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP" CACHE STRING "Specify which thread library is used for shared-memory parallelization.")
+
+if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
+  message("Using OpenMP for shared memory parallelization")
+  add_definitions( -DKRATOS_SMP_OPENMP )
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
+  message("Using C++11 for shared memory parallelization")
+  add_definitions( -DKRATOS_SMP_CXX11 )
+  message("WARNING: Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
+  add_definitions( -DKRATOS_SMP_NONE )
+  message("Shared memory parallelization is disabled!")
+
+else()
+  message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
+endif ()
+
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
 if(DEFINED ENV{BOOST_ROOT})
