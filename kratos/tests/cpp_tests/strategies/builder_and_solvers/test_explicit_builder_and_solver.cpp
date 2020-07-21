@@ -24,7 +24,7 @@
 #include "spaces/ublas_space.h"
 #include "geometries/line_2d_2.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
-#include "solving_strategies/builder_and_solvers/explicit_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 
 namespace Kratos
 {
