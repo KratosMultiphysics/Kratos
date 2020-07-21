@@ -469,7 +469,7 @@ public:
      * @brief It returns the echo level
      * @return The echo level of the builder and solver
      */
-    int GetEchoLevel()
+    int GetEchoLevel() const
     {
         return mEchoLevel;
     }
