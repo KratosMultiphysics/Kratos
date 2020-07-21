@@ -203,6 +203,7 @@ void KratosFluidDynamicsApplication::Register() {
     // Two-phase flow with surface tension
     KRATOS_REGISTER_VARIABLE( SURFACE_TENSION_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( SURFACE_TENSION )
+    KRATOS_REGISTER_VARIABLE( CURVATURE )
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention

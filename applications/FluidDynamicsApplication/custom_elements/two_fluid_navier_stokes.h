@@ -410,6 +410,69 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg);
 
     /**
+     * @brief This method computes the standard and enrichment shape functions for the interfaces
+     * @param rData Element data container
+     * @param rInterfaceShapeFunctionNeg Negative side shape functions at the interface-gauss-points
+     * @param rEnrInterfaceShapeFunctionPos Enriched shape functions at the interface-gauss-points Positive side
+     * @param rEnrInterfaceShapeFunctionNeg Enriched shape functions at the interface-gauss-points Negative side
+     * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
+     * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
+     * @param rInterfaceNormalsNeg Negative side normal vectors for the interface-gauss-points
+     */
+    void ComputeSplitInterface(
+        TElementData& rData,
+        MatrixType& rInterfaceShapeFunctionNeg,
+        MatrixType& rEnrInterfaceShapeFunctionPos,
+        MatrixType& rEnrInterfaceShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+        Kratos::Vector& rInterfaceWeightsNeg,
+        std::vector<Vector>& rInterfaceNormalsNeg);
+
+    /**
+     * @brief Calculates curvature at the gauss points of the interface.
+     * @param rInterfaceCurvature Vector containing curvature values at the gauss points
+     * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
+     */
+    void CalculateCurvature(
+        const Matrix& rInterfaceShapeFunctions,
+        Kratos::Vector& rInterfaceCurvature);
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * @param coefficient surface tension coefficient
+     * @param rCurvature curvature calculated at the interface gauss points
+     * @param rInterfaceWeights Weights associated with interface gauss points
+     * @param rInterfaceShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rInterfaceNormalsNeg Normal vectors (negative side) associated with interface gauss points
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+    void SurfaceTension(
+        const double coefficient,
+        const Kratos::Vector& rCurvature,
+        const Kratos::Vector& rInterfaceWeights,
+        const Matrix& rInterfaceShapeFunctions,
+        const std::vector<Vector>& rInterfaceNormalsNeg,
+        VectorType& rRHS);
+
+    /**
+     * @brief Computes the enriched LHS/RHS terms associated with the pressure stabilizations at the interface
+     * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
+     * @param rEnrInterfaceShapeFunctionPos Enriched shape functions at the interface-gauss-points Positive side
+     * @param rEnrInterfaceShapeFunctionNeg Enriched shape functions at the interface-gauss-points Negative side
+     * @param rInterfaceShapeDerivativesNeg Shape functions derivatives at the interface-gauss-points
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
+     */
+    void PressureGradientStabilization(
+        TElementData& rData,
+        const Kratos::Vector& rInterfaceWeights,
+        const Matrix& rEnrInterfaceShapeFunctionPos,
+        const Matrix& rEnrInterfaceShapeFunctionNeg,
+        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+        MatrixType& rKeeTot,
+		VectorType& rRHSeeTot);
+
+    /**
      * @brief Condense the enrichment
      * This method performs the static condensation of the enrichment terms, by adding
      * its local contributions to both the LHS and RHS elemental matrices.
@@ -423,6 +486,27 @@ private:
      */
 	void CondenseEnrichment(
 		const TElementData& rData,
+		Matrix& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		const MatrixType& rVTot,
+		const MatrixType& rHTot,
+		MatrixType& rKeeTot,
+		const VectorType& rRHSeeTot);
+
+    /**
+     * @brief Condense the enrichment without penalty
+     * This method performs the static condensation of the enrichment terms, by adding
+     * its local contributions to both the LHS and RHS elemental matrices.
+     * Pressure continuity along cut edges is not penalized in this function
+     * Volume ratio is not checked in this function
+     * @param rLeftHandSideMatrix Reference to the element Left Hand Side matrix
+     * @param rRightHandSideVector Reference to the element Right Hand Side vector
+     * @param rVTot Common N-S equations term associated to pressure enrichment DOFs
+     * @param rHTot Pressure enrichment contribution related to velocity and pressure DOFs
+     * @param rKeeTot Pressure enrichment contribution related to pressure enrichment DOFs
+     * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
+     */
+	void CondenseEnrichment(
 		Matrix& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
 		const MatrixType& rVTot,
