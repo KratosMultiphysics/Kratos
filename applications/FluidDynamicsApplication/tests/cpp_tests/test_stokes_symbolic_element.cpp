@@ -198,6 +198,76 @@ namespace Kratos {
 
 	    }
 
+        /** Checks the SymbolicStokes2D4N element.
+         * Checks the LHS and RHS computation using a small perturbation.
+         */
+        KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes2D4N, FluidDynamicsApplicationFastSuite)
+        {
+            Model model;
+            ModelPart &r_model_part = model.CreateModelPart("Main", 3);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+            r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            // Process info creation
+            double delta_time = 0.1;
+            r_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 1.0);
+            r_model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0 / (2.0 * delta_time);
+            bdf_coefs[1] = -2.0 / delta_time;
+            bdf_coefs[2] = 0.5 * delta_time;
+            r_model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+            // Set the element properties
+            auto p_elem_prop = r_model_part.CreateNewProperties(1);
+            p_elem_prop->SetValue(DENSITY, 1000.0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+            r_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+            std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
+            r_model_part.CreateNewElement("SymbolicStokes2D4N", 1, elem_nodes, p_elem_prop);
+
+            auto p_element = r_model_part.pGetElement(1);
+
+            // Define the nodal values
+            Matrix vel_original(4,2);
+            vel_original(0,0) = 0.0; vel_original(0,1) = 0.1;
+            vel_original(1,0) = 0.1; vel_original(1,1) = 0.2;
+            vel_original(2,0) = 0.2; vel_original(2,1) = 0.3;
+            vel_original(3,0) = 0.4; vel_original(3,1) = 0.4;
+
+            for (unsigned int i = 0; i < 4; i++)
+            {
+                p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0.0;
+                for (unsigned int k = 0; k < 2; k++)
+                {
+                    p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k] = vel_original(i, k);
+                    p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9 * vel_original(i, k);
+                    p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.75 * vel_original(i, k);
+                }
+            }
+
+            // Compute RHS and LHS
+            Vector RHS = ZeroVector(12);
+            Matrix LHS = ZeroMatrix(12, 12);
+
+            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+            // Check values
+            std::vector<double> RHS_expected({161.2500018, 213.6458374, -0.1151145824, 36.25000067, 201.0416671, -0.05894791639, 116.8749998, 169.2708304, 0.05245833223, 204.0624977, 156.6666651, -0.02839583341});
+            std::vector<double> LHS_row_0_expected({1875.000011, 156.2500033, 0.1666666667, 624.9999939, 156.2499983, 0.1666666667, 312.4999944, -156.2500033, 0.08333333333, 937.5000006, -156.2499983, 0.08333333333});
+            KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
+        }
 	    // /** Checks the SymbolicStokes3D4N element.
 	    //  * Checks the LHS and RHS computation using a small perturbation.
 	    //  */
