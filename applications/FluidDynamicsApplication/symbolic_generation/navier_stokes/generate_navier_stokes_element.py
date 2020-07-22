@@ -26,7 +26,7 @@ do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 divide_by_rho = True                # Divide the mass conservation equation by rho
 ASGS_stabilization = True           # Consider ASGS stabilization terms
-formulation = "Stokes"        # Element type. Options: "NavierStokes", "Stokes"
+formulation = "NavierStokes"        # Element type. Options: "NavierStokes", "Stokes"
 
 if formulation == "NavierStokes":
     convective_term = True
