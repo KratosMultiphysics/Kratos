@@ -236,6 +236,11 @@ public:
         InitializeNonLinearIterationContainer(GetModelPart().Conditions());
         InitializeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
 
+        // Apply constraints
+        if(mrModelPart.MasterSlaveConstraints().size() != 0) {
+            mpExplicitBuilder->ApplyConstraints(mrModelPart);
+        }
+
         // Solve the problem assuming that a lumped mass matrix is used
         SolveWithLumpedMassMatrix();
 

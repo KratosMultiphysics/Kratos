@@ -366,10 +366,7 @@ public:
      * @param rA The LHS matrix of the system of equations
      * @param rb The RHS vector of the system of equations
      */
-    virtual void ApplyConstraints(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rb)
+    virtual void ApplyConstraints(ModelPart& rModelPart)
     {
         // First we reset the slave dofs
         ConstraintUtilities::ResetSlaveDofs(rModelPart);
@@ -424,9 +421,6 @@ public:
     /**
      * @brief It applies certain operations at the system of equations at the end of the solution step
      * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
      */
     virtual void FinalizeSolutionStep(ModelPart& rModelPart)
     {
