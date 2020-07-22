@@ -112,11 +112,13 @@ void KratosApplication::RegisterKratosCore() {
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
-  
+
     // Register of solving strategies
     RegisterBuilderAndSolvers();
+    RegisterExplicitBuilders();
     RegisterConvergenceCriterias();
     RegisterStrategies();
+    RegisterExplicitStrategies();
     RegisterSchemes();
 
     //Register objects with general definition
@@ -188,7 +190,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register general geometries:
     // Point register:
     Serializer::Register("Point", mPointPrototype);
-  
+
     // Register + KratosComponents
     KRATOS_REGISTER_GEOMETRY("Point2D", mPoint2DPrototype);
     KRATOS_REGISTER_GEOMETRY("Point3D", mPoint3DPrototype);
