@@ -1,16 +1,14 @@
-/*
-//  KRATOS _______
-//        / ____(_)___ ____  ____
-//       / __/ / / __ `/ _ \/ __ \
-//      / /___/ / /_/ /  __/ / / /
-//     /_____/_/\__, /\___/_/ /_/ SolversApplication
-//             /____/
+/* KRATOS  _     _                       ____        _
+//        | |   (_)_ __   ___  __ _ _ __/ ___|  ___ | |_   _____ _ __ ___
+//        | |   | | '_ \ / _ \/ _` | '__\___ \ / _ \| \ \ / / _ \ '__/ __|
+//        | |___| | | | |  __/ (_| | |   ___) | (_) | |\ V /  __/ |  \__ |
+//        |_____|_|_| |_|\___|\__,_|_|  |____/ \___/|_| \_/ \___|_|  |___/ Application
 //
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGENSOLVERS_APPLICATION_H_INCLUDED)
-#define KRATOS_EIGENSOLVERS_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_LINEARSOLVERS_APPLICATION_H_INCLUDED)
+#define KRATOS_LINEARSOLVERS_APPLICATION_H_INCLUDED
 
 // System includes
 
@@ -42,24 +40,24 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(EIGENSOLVERS_APPLICATION) KratosEigenSolversApplication : public KratosApplication
+class KRATOS_API(LINEARSOLVERS_APPLICATION) KratosLinearSolversApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of KratosEigenSolversApplication
-    KRATOS_CLASS_POINTER_DEFINITION(KratosEigenSolversApplication);
+    /// Pointer definition of KratosLinearSolversApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosLinearSolversApplication);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KratosEigenSolversApplication() : KratosApplication("EigenSolversApplication") {}
+    KratosLinearSolversApplication() : KratosApplication("LinearSolversApplication") {}
 
     /// Destructor.
-    ~KratosEigenSolversApplication() override {}
+    ~KratosLinearSolversApplication() override {}
 
     ///@}
     ///@name Operators
@@ -86,7 +84,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "KratosEigenSolversApplication";
+        return "KratosLinearSolversApplication";
     }
 
     /// Print information about this object.
@@ -99,7 +97,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override
     {
-        KRATOS_WATCH("in KratosEigenSolversApplication application");
+        KRATOS_WATCH("in KratosLinearSolversApplication application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -176,14 +174,14 @@ public:
     ///@{
 
     /// Assignment operator.
-    KratosEigenSolversApplication &operator=(KratosEigenSolversApplication const &rOther);
+    KratosLinearSolversApplication &operator=(KratosLinearSolversApplication const &rOther);
 
     /// Copy constructor.
-    KratosEigenSolversApplication(KratosEigenSolversApplication const &rOther);
+    KratosLinearSolversApplication(KratosLinearSolversApplication const &rOther);
 
     ///@}
 
-}; // class KratosEigenSolversApplication
+}; // class KratosLinearSolversApplication
 
 ///@}
 
@@ -198,4 +196,4 @@ public:
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_EIGENSOLVERS_APPLICATION_H_INCLUDED)
+#endif // defined(KRATOS_LINEARSOLVERS_APPLICATION_H_INCLUDED)
