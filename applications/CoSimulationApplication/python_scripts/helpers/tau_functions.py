@@ -189,64 +189,10 @@ def ChangeFormatDisplacements(total_displacements):
 
     return new_displacements
 
-def JoinDisplacements(ids, coordinates, upper_disp, lower_disp, upper_coord, lower_coord):
-
-    # Declaring and initializing new displacement vector
-    number_of_nodes = int(len(upper_disp)/3 + len(lower_disp)/3 - 4)
-    print('number_of_nodes = ', str(number_of_nodes))
-    new_displacements = np.zeros([number_of_nodes, 3])
-
-
-    for j in range(int(len(upper_disp)/3)):
-        node_found = False
-        for i in range(len(ids)):
-            if(abs(coordinates[0,i]-upper_coord[3*j+0]) < 1e-4 and abs(coordinates[1,i]-upper_coord[3*j+1]) < 1e-4 and abs(coordinates[2,i]-upper_coord[3*j+2]) < 1e-4):
-                new_displacements[i, 0] = upper_disp[3*j+0]
-                new_displacements[i, 1] = upper_disp[3*j+1]
-                new_displacements[i, 2] = upper_disp[3*j+2]
-                node_found = True
-                print('YES! NODE FOUND FOR ID OBEN:', ids[i], j)
-        if not node_found:
-            print('ERROR: NODE NOT FOUND FOR upper_disp:', j)
-
-    for j in range(int(len(lower_disp)/3)):
-        node_found = False
-        for i in range(len(ids)):
-            if(abs(coordinates[0,i]-lower_coord[3*j+0]) < 1e-4 and abs(coordinates[1,i]-lower_coord[3*j+1]) < 1e-4 and abs(coordinates[2,i]-lower_coord[3*j+2]) < 1e-4):
-                new_displacements[i, 0] = lower_disp[3*j+0]
-                new_displacements[i, 1] = lower_disp[3*j+1]
-                new_displacements[i, 2] = lower_disp[3*j+2]
-                node_found = True
-                print('YES! NODE FOUND FOR ID UNTEN:', ids[i], j)
-        if not node_found:
-            print('ERROR: NODE NOT FOUND FOR ID lower_disp:', j)
-
-    # # Loop over nodes
-    # i = 0
-    # for node in range(int(len(upper_disp)/3)):
-    #     # Loop over xyz components
-    #     for j in range(3):
-    #         # Compute relative displacement
-    #         new_displacements[i, j] = upper_disp[3*node+j]
-    #     i +=1
-
-    # print('i = ', str(i))
-    # print('int(len(lower_disp)/3) = ', str(int(len(lower_disp)/3)))
-    # for nodelow in range(int(len(lower_disp)/3)-4):
-    #     # Loop over xyz components
-    #     for j in range(3):
-    #         # Compute relative displacement
-    #         new_displacements[i, j] = lower_disp[3*(nodelow+2)+j]
-    #     i +=1
-
-    return new_displacements
-
-
-
 # Write membrane's displacments in a file
-def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements):
+def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, word):
     # Open interface_deformfile
-    ncf = netcdf.netcdf_file('interface_deformfile.nc', 'w')
+    ncf = netcdf.netcdf_file(word + '.interface_deformfile.nc', 'w')
 
     # define dimensions
     nops = 'no_of_points'

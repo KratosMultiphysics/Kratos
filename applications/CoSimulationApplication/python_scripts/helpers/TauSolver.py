@@ -42,6 +42,8 @@ else:
     para_path='input/airfoil_Structured.cntl'
 
 para_path_mod = para_path + ".mod"
+para_path_up = 'input/airfoil_Structured_up.cntl'
+para_path_down = 'input/airfoil_Structured_down.cntl'
 shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
@@ -160,40 +162,39 @@ def ImportData(conn_name, identifier):
 
     # identifier is the data-name in json
     if identifier == "Upper_Interface_disp":
-        return displacements
 ###08/07/2020      ###  if tau_mpi_rank() == 0:
 ###08/07/2020      ### 	    relative_displacements = TauFunctions.ExecuteBeforeMeshDeformation(displacements, step, para_path_mod, start_step)
 ###08/07/2020      ###        tau_parallel_sync()
         # Read tau's parameter file
 ###08/07/2020      ###  Para = PyPara.Parafile(para_path_mod)
-        # Para_origin = PyPara.Parafile(para_path)
-        # # Read the interface fluid grid
-        # ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin)
-        # tau_parallel_sync()
-        # print('ids = ',)
 
-        # # Write membrane's displacments in a file
-        # if tau_mpi_rank() == 0:
-        #     new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
-        #     #with open('new_displacement' + str(step) + '.dat','w') as fname:
-        #     #    for i in range(len(new_displacements)):
-        #     #        fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
-        #     print("MEMBRANE_UP")
-        #     print('num_of_points = ' + str(len(ids[:])))
-        #     TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
-        # tau_parallel_sync()
+        Para_origin_up = PyPara.Parafile(para_path_up)
+        # Read the interface fluid grid
+        ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_up)
+        tau_parallel_sync()
+        print('ids = ',)
+
+        # Write membrane's displacments in a file
+        if tau_mpi_rank() == 0:
+            new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
+            #with open('new_displacement' + str(step) + '.dat','w') as fname:
+            #    for i in range(len(new_displacements)):
+            #        fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
+            print("MEMBRANE_UP")
+            print('num_of_points = ' + str(len(ids[:])))
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
+        tau_parallel_sync()
     elif identifier == "Lower_Interface_disp":
-        return displacements
-        # Para_origin = PyPara.Parafile(para_path)
-        # # Read the interface fluid grid
-        # ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin)
-        # tau_parallel_sync()
-        # if tau_mpi_rank() == 0:
-        #     new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
-        #     print("MEMBRANE_DOWN")
-        #     print('num_of_points = ' + str(len(ids[:])))
-        #     TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
-        # tau_parallel_sync()
+        Para_origin_down = PyPara.Parafile(para_path_down)
+        # Read the interface fluid grid
+        ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_down)
+        tau_parallel_sync()
+        if tau_mpi_rank() == 0:
+            new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
+            print("MEMBRANE_DOWN")
+            print('num_of_points = ' + str(len(ids[:])))
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
+        tau_parallel_sync()
     else:
 
     	raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_disp'.format(identifier))
@@ -231,7 +232,6 @@ def ExportMesh(conn_name, identifier):
         if tau_settings["echo_level"] > 0:
             print "TAU SOLVER ExportMesh"
 
-        nodal_coords = []
         # identifier is the data-name in json
         if identifier == "UpperInterface":
             nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP")
@@ -244,7 +244,6 @@ def ExportMesh(conn_name, identifier):
                 'TauSolver::ExportMesh::identifier "{}" not valid! Please use Fluid.Interface'.format(identifier))
 
         CoSimIO.ExportMesh(conn_name, identifier, nodal_coords, elem_connectivities, element_types)
-        return nodal_coords
         if tau_settings["echo_level"] > 0:
             print "TAU SOLVER ExportMesh End"
     tau_parallel_sync()
@@ -264,8 +263,6 @@ if rank == 0:
 n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
-upper_coord = []
-lower_coord = []
 for i in range(n_steps):
     AdvanceInTime(0.0)
     InitializeSolutionStep()
@@ -274,8 +271,8 @@ for i in range(n_steps):
 
     if not coupling_interface_imported:
         TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
-        upper_coord = ExportMesh(connection_name, "UpperInterface")
-        lower_coord = ExportMesh(connection_name, "LowerInterface")
+        ExportMesh(connection_name, "UpperInterface")
+        ExportMesh(connection_name, "LowerInterface")
         coupling_interface_imported = True
 
     TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
@@ -283,17 +280,9 @@ for i in range(n_steps):
     ExportData(connection_name, "Lower_Interface_force")
 
     # Read displacements
-    upper_disp = ImportData(connection_name, "Upper_Interface_disp")
-    lower_disp = ImportData(connection_name, "Lower_Interface_disp")
+    ImportData(connection_name, "Upper_Interface_disp")
+    ImportData(connection_name, "Lower_Interface_disp")
 
-    Para_origin = PyPara.Parafile(para_path)
-    # Read the interface fluid grid
-    ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin)
-    new_displacements = TauFunctions.JoinDisplacements(ids, coordinates, upper_disp, lower_disp, upper_coord, lower_coord)
-    TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements)
-    with open('deformation.dat', 'w') as def_file:
-        for i in range(len(ids)):
-            def_file.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
     Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 
     FinalizeSolutionStep()
