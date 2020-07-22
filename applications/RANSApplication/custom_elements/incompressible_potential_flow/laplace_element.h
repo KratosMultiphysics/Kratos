@@ -254,11 +254,11 @@ public:
 
         const Variable<double>& r_variable = this->GetVariable();
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         IndexType LocalIndex = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -393,7 +393,7 @@ public:
         const Variable<double>& r_variable = this->GetVariable();
 
         for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node) {
-            const NodeType& r_node = this->GetGeometry()[i_node];
+            const auto& r_node = this->GetGeometry()[i_node];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node);
             KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node);
         }
@@ -437,7 +437,7 @@ protected:
         Matrix& rNContainer,
         ShapeFunctionDerivativesArrayType& rDN_DX) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGeometryData(
             r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);

@@ -118,8 +118,8 @@ TDataType EvaluateInParentCenter(
     const ConditionType& rCondition,
     const int Step)
 {
-    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
+    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const auto& r_parent_geometry = r_parent_element.GetGeometry();
 
     Vector parent_gauss_weights;
     Matrix parent_shape_functions;
@@ -333,10 +333,10 @@ double CalculateWallHeight(
 
     array_1d<double, 3> normal = rNormal / norm_2(rNormal);
 
-    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
 
-    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
-    const GeometryType& r_condition_geometry = rCondition.GetGeometry();
+    const auto& r_parent_geometry = r_parent_element.GetGeometry();
+    const auto& r_condition_geometry = rCondition.GetGeometry();
 
     auto calculate_cell_center = [](const GeometryType& rGeometry) -> array_1d<double, 3> {
         const int number_of_nodes = rGeometry.PointsNumber();
@@ -366,8 +366,8 @@ array_1d<double, 3> CalculateWallVelocity(
     array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
     normal /= norm_2(normal);
 
-    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
+    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const auto& r_parent_geometry = r_parent_element.GetGeometry();
 
     Vector parent_gauss_weights;
     Matrix parent_shape_functions;

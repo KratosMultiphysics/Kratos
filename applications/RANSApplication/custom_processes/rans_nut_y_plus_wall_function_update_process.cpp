@@ -74,7 +74,7 @@ int RansNutYPlusWallFunctionUpdateProcess::Check()
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
@@ -92,17 +92,17 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteInitialize()
 
 void RansNutYPlusWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
 {
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     VariableUtils().SetNonHistoricalVariableToZero(
         NUMBER_OF_NEIGHBOUR_CONDITIONS, r_model_part.Nodes());
 
     const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
     for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-        ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
-        ConditionGeometryType& r_geometry = r_cond.GetGeometry();
+        auto& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
+        auto& r_geometry = r_cond.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            NodeType& r_node = r_geometry[i_node];
+            auto& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
             r_node.UnSetLock();
@@ -131,7 +131,7 @@ void RansNutYPlusWallFunctionUpdateProcess::Execute()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY,
                                                 r_model_part.Nodes());
 
@@ -141,13 +141,13 @@ void RansNutYPlusWallFunctionUpdateProcess::Execute()
     const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
     for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-        ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
-        ConditionType::GeometryType& r_geometry = r_cond.GetGeometry();
+        auto& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
+        auto& r_geometry = r_cond.GetGeometry();
 
         const double y_plus = std::max(r_cond.GetValue(RANS_Y_PLUS), y_plus_limit);
 
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            NodeType& r_node = r_geometry[i_node];
+            auto& r_node = r_geometry[i_node];
             const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) +=
@@ -160,7 +160,7 @@ void RansNutYPlusWallFunctionUpdateProcess::Execute()
     const int number_of_nodes = r_model_part.NumberOfNodes();
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
+        auto& r_node = *(r_model_part.NodesBegin() + i_node);
         double& r_nut = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         const double number_of_neighbour_conditions =
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);

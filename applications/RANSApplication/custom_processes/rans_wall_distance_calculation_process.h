@@ -117,7 +117,7 @@ public:
 
         RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-        const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+        const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, DISTANCE);
 
@@ -133,7 +133,7 @@ public:
         this->CreateLinearSolver();
         this->CreateBuilderAndSolver();
 
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+        auto& r_model_part = mrModel.GetModelPart(mModelPartName);
         const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
         if (domain_size == 2) {
@@ -220,7 +220,7 @@ private:
     {
         KRATOS_TRY
 
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+        auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         const Flags& r_wall_flag = KratosComponents<Flags>::Get(mWallFlagVariableName);
 
@@ -253,14 +253,14 @@ private:
         KRATOS_TRY
 
         if (mCorrectDistancesUsingNeighbors) {
-            ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-            Communicator& r_communicator = r_model_part.GetCommunicator();
+            auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+            auto& r_communicator = r_model_part.GetCommunicator();
 
             FindGlobalNodalNeighboursProcess find_nodal_neighbours_process(
                 r_communicator.GetDataCommunicator(), r_model_part);
             find_nodal_neighbours_process.Execute();
 
-            ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+            auto& r_nodes = r_communicator.LocalMesh().Nodes();
             const int number_of_nodes = r_nodes.size();
 
             VariableUtils().SetNonHistoricalVariableToZero(
@@ -269,15 +269,14 @@ private:
 
 #pragma omp parallel for reduction(+ : number_of_modified_nodes)
             for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-                ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
+                auto& r_node = *(r_nodes.begin() + i_node);
                 if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
-                    const GlobalPointersVector<Node<3>>& r_neighbours =
-                        r_node.GetValue(NEIGHBOUR_NODES);
+                    const auto& r_neighbours = r_node.GetValue(NEIGHBOUR_NODES);
                     int count = 0;
                     double average_value = 0.0;
                     for (int j_node = 0;
                          j_node < static_cast<int>(r_neighbours.size()); ++j_node) {
-                        const ModelPart::NodeType& r_j_node = r_neighbours[j_node];
+                        const auto& r_j_node = r_neighbours[j_node];
                         const double j_distance =
                             r_j_node.FastGetSolutionStepValue(DISTANCE);
                         if (j_distance > 0.0) {
@@ -302,7 +301,7 @@ private:
             if (number_of_modified_nodes > 0) {
 #pragma omp parallel for
                 for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
+                    auto& r_node = *(r_nodes.begin() + i_node);
                     double& r_distance = r_node.FastGetSolutionStepValue(DISTANCE);
                     const double avg_distance = r_node.GetValue(DISTANCE);
                     if (r_distance < 0.0) {

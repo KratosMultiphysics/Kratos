@@ -74,7 +74,7 @@ void RansCheckScalarBoundsProcess::Execute()
     const Variable<double>& r_scalar_variable =
         KratosComponents<Variable<double>>::Get(mVariableName);
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     const double min_value =
         RansVariableUtilities::GetMinimumScalarValue(r_model_part, r_scalar_variable);

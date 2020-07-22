@@ -257,7 +257,7 @@ void FractionalStepKBasedWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
             // Neumann boundary condition
             for (unsigned int i = 0; i < TNumNodes; i++) {
                 // unsigned int row = i*local_size;
-                const NodeType& r_node = this->GetGeometry()[i];
+                const auto& r_node = this->GetGeometry()[i];
                 if (r_node.IsFixed(PRESSURE) == true) {
                     const double pext = r_node.FastGetSolutionStepValue(PRESSURE);
                     for (unsigned int j = 0; j < TNumNodes; j++) {
@@ -274,7 +274,7 @@ void FractionalStepKBasedWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
             double density = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++) {
-                const NodeType& r_node = this->GetGeometry()[i];
+                const auto& r_node = this->GetGeometry()[i];
                 velocity += r_shape_functions[i] * r_node.FastGetSolutionStepValue(VELOCITY);
                 density += r_shape_functions[i] * r_node.FastGetSolutionStepValue(DENSITY);
             }

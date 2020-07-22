@@ -74,7 +74,7 @@ int RansNutKEpsilonUpdateProcess::Check()
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(
@@ -102,14 +102,14 @@ void RansNutKEpsilonUpdateProcess::Execute()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    NodesContainerType& r_nodes = r_model_part.Nodes();
+    auto& r_nodes = r_model_part.Nodes();
     const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        NodeType& r_node = *(r_nodes.begin() + i_node);
+        auto& r_node = *(r_nodes.begin() + i_node);
         const double epsilon =
             r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
 

@@ -253,7 +253,7 @@ public:
         int check = BaseType::Check(rCurrentProcessInfo);
 
         for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node) {
-            const NodeType& r_node = this->GetGeometry()[i_node];
+            const auto& r_node = this->GetGeometry()[i_node];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
         }
@@ -300,7 +300,7 @@ protected:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         for (IndexType g = 0; g < num_gauss_points; ++g) {
             const Matrix& r_shape_derivatives = shape_derivatives[g];

@@ -32,7 +32,7 @@ namespace
 ModelPart& RansKOmegaKAFC2D3N_SetUp(
     Model& rModel)
 {
-    ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaK2D3N_SetUp(
+    auto& r_model_part = KOmegaTestUtilities::RansKOmegaK2D3N_SetUp(
         rModel, "RansKOmegaKAFC2D3N");
 
     return r_model_part;
@@ -41,7 +41,7 @@ ModelPart& RansKOmegaKAFC2D3N_SetUp(
 ModelPart& RansKOmegaOmegaAFC2D3N_SetUp(
     Model& rModel)
 {
-    ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D3N_SetUp(
+    auto& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D3N_SetUp(
         rModel, "RansKOmegaOmegaAFC2D3N");
 
     return r_model_part;

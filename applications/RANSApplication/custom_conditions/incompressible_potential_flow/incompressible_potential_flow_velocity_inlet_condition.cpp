@@ -37,10 +37,10 @@ int IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Check(
 
     int check = BaseType::Check(rCurrentProcessInfo);
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const NodeType& r_node = r_geometry[i_node];
+        const auto& r_node = r_geometry[i_node];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
@@ -103,11 +103,11 @@ void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::GetValu
         rValues.resize(TNumNodes, false);
     }
 
-    const GeometryType& rGeom = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     IndexType local_index = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         rValues[local_index++] =
-            rGeom[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL, Step);
+            r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL, Step);
     }
 }
 

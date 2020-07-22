@@ -42,8 +42,8 @@ void ClipScalarVariable(
 {
     KRATOS_TRY
 
-    Communicator& r_communicator = rModelPart.GetCommunicator();
-    ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+    auto& r_communicator = rModelPart.GetCommunicator();
+    auto& r_nodes = r_communicator.LocalMesh().Nodes();
 
     const int number_of_nodes = r_nodes.size();
 
@@ -53,7 +53,7 @@ void ClipScalarVariable(
 
 #pragma omp parallel for reduction( +: number_of_nodes_below_minimum, number_of_nodes_above_maximum, number_of_nodes_selected)
     for (int i = 0; i < number_of_nodes; ++i) {
-        ModelPart::NodeType& r_node = *(r_nodes.begin() + i);
+        auto& r_node = *(r_nodes.begin() + i);
         double& r_value = r_node.FastGetSolutionStepValue(rVariable);
 
         if (r_value < MinimumValue) {
@@ -93,9 +93,9 @@ double GetMinimumScalarValue(
 
     double min_value = std::numeric_limits<double>::max();
 
-    const Communicator& r_communicator = rModelPart.GetCommunicator();
+    const auto& r_communicator = rModelPart.GetCommunicator();
 
-    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+    const auto& r_nodes = r_communicator.LocalMesh().Nodes();
 
     const int number_of_nodes = r_nodes.size();
 
@@ -136,9 +136,9 @@ double GetMaximumScalarValue(
 
     double max_value = std::numeric_limits<double>::lowest();
 
-    const Communicator& r_communicator = rModelPart.GetCommunicator();
+    const auto& r_communicator = rModelPart.GetCommunicator();
 
-    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+    const auto& r_nodes = r_communicator.LocalMesh().Nodes();
 
     const int number_of_nodes = r_nodes.size();
 

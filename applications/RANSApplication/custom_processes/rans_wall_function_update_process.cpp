@@ -76,7 +76,7 @@ int RansWallFunctionUpdateProcess::Check()
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
@@ -105,17 +105,17 @@ void RansWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
 
 void RansWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
 {
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     VariableUtils().SetNonHistoricalVariableToZero(
         NUMBER_OF_NEIGHBOUR_CONDITIONS, r_model_part.Nodes());
 
     const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
     for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-        ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
-        ConditionGeometryType& r_geometry = r_cond.GetGeometry();
+        auto& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
+        auto& r_geometry = r_cond.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            NodeType& r_node = r_geometry[i_node];
+            auto& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
             r_node.UnSetLock();
@@ -132,18 +132,18 @@ void RansWallFunctionUpdateProcess::Execute()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     const double c_mu_25 = std::pow(mCmu, 0.25);
     const double y_plus_limit =
         r_model_part.GetProcessInfo()[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
 
-    ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
+    auto& r_conditions = r_model_part.Conditions();
     const int number_of_conditions = r_conditions.size();
 
 #pragma omp parallel for
     for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-        ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
+        auto& r_condition = *(r_conditions.begin() + i_cond);
 
         Vector gauss_weights;
         Matrix shape_functions;

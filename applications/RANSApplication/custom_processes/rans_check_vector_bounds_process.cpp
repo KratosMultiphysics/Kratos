@@ -85,8 +85,8 @@ void RansCheckVectorBoundsProcess::Execute()
     const Variable<array_1d<double, 3>>& vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_nodes = r_model_part.Nodes();
 
     array_1d<double, 3> vector_weights;
 
@@ -151,7 +151,7 @@ void RansCheckVectorBoundsProcess::Execute()
         max_value = std::max(max_value, max_values[i]);
     }
 
-    const Communicator& r_communicator = r_model_part.GetCommunicator();
+    const auto& r_communicator = r_model_part.GetCommunicator();
     min_value = r_communicator.GetDataCommunicator().MinAll(min_value);
     max_value = r_communicator.GetDataCommunicator().MaxAll(max_value);
 

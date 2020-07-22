@@ -48,7 +48,7 @@ ModelPart& RansKOmegaK2D3N_SetUp(
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
+    auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, rElementName, "LineCondition2D2N", add_variables_function,
         TURBULENT_KINETIC_ENERGY, 1);
 
@@ -62,7 +62,7 @@ ModelPart& RansKOmegaK2D3N_SetUp(
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
 
     // set process info variables
-    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(TURBULENT_KINETIC_ENERGY_SIGMA, 0.5);
     r_process_info.SetValue(TURBULENCE_RANS_C_MU, 2.1);
 
@@ -99,7 +99,7 @@ ModelPart& RansKOmegaOmega2D3N_SetUp(
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
 
     // set process info variables
-    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(TURBULENCE_RANS_BETA, 3.1);
     r_process_info.SetValue(TURBULENCE_RANS_GAMMA, 4.2);
     r_process_info.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA, 1.1);
@@ -122,7 +122,7 @@ ModelPart& RansKOmegaOmega2D2N_SetUp(
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
+    auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, "Element2D3N", rConditionName, add_variables_function,
         TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1);
 
@@ -138,7 +138,7 @@ ModelPart& RansKOmegaOmega2D2N_SetUp(
         r_model_part, RANS_Y_PLUS, 10.0, 100.0);
 
     // set process info variables
-    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(WALL_VON_KARMAN, 3.1);
     r_process_info.SetValue(WALL_SMOOTHNESS_BETA, 4.2);
     r_process_info.SetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, 12.0);

@@ -119,7 +119,7 @@ int RansApplyExactNodalPeriodicConditionProcess::Check()
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mMasterModelPartName);
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mSlaveModelPartName);
 
-    const ModelPart& r_base_model_part_nodes = mrModel.GetModelPart(mBaseModelPartName);
+    const auto& r_base_model_part_nodes = mrModel.GetModelPart(mBaseModelPartName);
 
     for (std::string variable_name : mVariablesList) {
         if (KratosComponents<Variable<double>>::Has(variable_name)) {
@@ -148,7 +148,7 @@ void RansApplyExactNodalPeriodicConditionProcess::ExecuteInitialize()
 {
     CreatePeriodicConditions();
     if (mReorder) {
-        ModelPart& r_model_part = mrModel.GetModelPart(mBaseModelPartName);
+        auto& r_model_part = mrModel.GetModelPart(mBaseModelPartName);
         Parameters default_params(R"({})");
         ReorderAndOptimizeModelPartProcess reorder_process(r_model_part, default_params);
         reorder_process.Execute();
@@ -173,7 +173,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
 {
     KRATOS_TRY
 
-    ModelPart& r_base_model_part = mrModel.GetModelPart(mBaseModelPartName);
+    auto& r_base_model_part = mrModel.GetModelPart(mBaseModelPartName);
     int condition_id = r_base_model_part.NumberOfConditions();
     Properties::Pointer p_properties = r_base_model_part.CreateNewProperties(
         r_base_model_part.NumberOfProperties() + 1);
@@ -194,10 +194,8 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
         }
     }
 
-    ModelPart::NodesContainerType& r_master_model_part_nodes =
-        mrModel.GetModelPart(mMasterModelPartName).Nodes();
-    ModelPart::NodesContainerType& r_slave_model_part_nodes =
-        mrModel.GetModelPart(mSlaveModelPartName).Nodes();
+    auto& r_master_model_part_nodes = mrModel.GetModelPart(mMasterModelPartName).Nodes();
+    auto& r_slave_model_part_nodes = mrModel.GetModelPart(mSlaveModelPartName).Nodes();
 
     KRATOS_ERROR_IF(r_master_model_part_nodes.size() != r_slave_model_part_nodes.size())
         << this->Info() << " failed. Master and slave model part nodes mismatch.\n";
@@ -209,14 +207,14 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
     if (mRotationAngle > eps && mTranslationMagnitude > eps) {
 #pragma omp parallel for shared(condition_id)
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            NodeType& r_master_node = *(r_master_model_part_nodes.begin() + i_node);
+            auto& r_master_node = *(r_master_model_part_nodes.begin() + i_node);
             const array_1d<double, 3>& master_initial_position =
                 r_master_node.GetInitialPosition().Coordinates();
             const array_1d<double, 3>& master_final_position =
                 CalculateRotatedPosition(master_initial_position + translation);
             int& r_master_patch_index = r_master_node.FastGetSolutionStepValue(PATCH_INDEX);
             for (int j_node = 0; j_node < number_of_nodes; ++j_node) {
-                const NodeType& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
+                const auto& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
                 if (norm_2(master_final_position -
                            r_slave_node.GetInitialPosition().Coordinates()) < mTolerance) {
                     r_master_patch_index = r_slave_node.Id();
@@ -247,14 +245,14 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
     } else if (mRotationAngle > eps) {
 #pragma omp parallel for shared(condition_id)
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            NodeType& r_master_node = *(r_master_model_part_nodes.begin() + i_node);
+            auto& r_master_node = *(r_master_model_part_nodes.begin() + i_node);
             const array_1d<double, 3>& master_initial_position =
                 r_master_node.GetInitialPosition().Coordinates();
             const array_1d<double, 3>& master_final_position =
                 CalculateRotatedPosition(master_initial_position);
             int& r_master_patch_index = r_master_node.FastGetSolutionStepValue(PATCH_INDEX);
             for (int j_node = 0; j_node < number_of_nodes; ++j_node) {
-                const NodeType& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
+                const auto& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
                 if (norm_2(master_final_position -
                            r_slave_node.GetInitialPosition().Coordinates()) < mTolerance) {
                     r_master_patch_index = r_slave_node.Id();
@@ -285,14 +283,14 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
     } else if (mTranslationMagnitude > eps) {
 #pragma omp parallel for shared(condition_id)
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            NodeType& r_master_node = *(r_master_model_part_nodes.begin() + i_node);
+            auto& r_master_node = *(r_master_model_part_nodes.begin() + i_node);
             const array_1d<double, 3>& master_initial_position =
                 r_master_node.GetInitialPosition().Coordinates();
             const array_1d<double, 3>& master_final_position =
                 master_initial_position + translation;
             int& r_master_patch_index = r_master_node.FastGetSolutionStepValue(PATCH_INDEX);
             for (int j_node = 0; j_node < number_of_nodes; ++j_node) {
-                const NodeType& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
+                const auto& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
                 if (norm_2(master_final_position -
                            r_slave_node.GetInitialPosition().Coordinates()) < mTolerance) {
                     r_master_patch_index = static_cast<int>(r_slave_node.Id());
@@ -327,8 +325,8 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
     for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition) {
         Condition& r_condition = *(r_base_model_part.ConditionsBegin() + i_condition);
         if (r_condition.Is(PERIODIC)) {
-            const NodeType& r_node_master = r_condition.GetGeometry()[0];
-            NodeType& r_node_slave = r_condition.GetGeometry()[1];
+            const auto& r_node_master = r_condition.GetGeometry()[0];
+            auto& r_node_slave = r_condition.GetGeometry()[1];
 
             r_node_slave.SetLock();
             r_node_slave.FastGetSolutionStepValue(PATCH_INDEX) = r_node_master.Id();
