@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -359,19 +360,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    // TODO: Define this once the MPC work in the explicit framework
-    // /**
-    //  * @brief Applies the constraints
-    //  * @param rModelPart The model part to compute
-    //  * @param rA The LHS matrix of the system of equations
-    //  * @param rb The RHS vector of the system of equations
-    //  */
-    // virtual void ApplyConstraints(
-    //     ModelPart& rModelPart,
-    //     TSystemMatrixType& rA,
-    //     TSystemVectorType& rb)
-    // {
-    // }
+    /**
+     * @brief Applies the constraints
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rb The RHS vector of the system of equations
+     */
+    virtual void ApplyConstraints(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb)
+    {
+        // First we reset the slave dofs
+        ConstraintUtilities::ResetSlaveDofs(rModelPart);
+
+        // Now we apply the constraints
+        ConstraintUtilities::ApplyConstraints(rModelPart);
+    }
 
     /**
      * @brief It applied those operations that are expected to be executed once
@@ -763,7 +768,7 @@ protected:
             [](DofType& rDof){
                 rDof.GetSolutionStepReactionValue() = 0.0;
             }
-        );        
+        );
     }
 
     /**
@@ -787,7 +792,7 @@ protected:
                     auto& r_reaction_value = rDof.GetSolutionStepReactionValue();
                     r_reaction_value *= -1.0;
                 }
-            ); 
+            );
         }
     }
 
