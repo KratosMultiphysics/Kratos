@@ -53,7 +53,7 @@ void RegisterSchemes()
     static ResidualBasedBDFDisplacementSchemeType msResidualBasedBDFDisplacementScheme;
     static ResidualBasedBDFCustomSchemeType msResidualBasedBDFCustomScheme;
 
-    // Registration of convergence solvers
+    // Registration of schemes
     KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeType::Name(), msResidualBasedIncrementalUpdateStaticScheme);
     KRATOS_REGISTER_SCHEME(ResidualBasedIncrementalUpdateStaticSchemeSlipType::Name(), msResidualBasedIncrementalUpdateStaticSchemeSlip);
     KRATOS_REGISTER_SCHEME(ResidualBasedBossakDisplacementSchemeType::Name(), msResidualBasedBossakDisplacementScheme);
