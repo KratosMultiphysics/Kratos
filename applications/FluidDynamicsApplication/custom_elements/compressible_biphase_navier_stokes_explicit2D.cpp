@@ -42,20 +42,23 @@ void ShockCapturing(const double mu,
                array_1d<double,2>& q,
                double ro_el,
                array_1d<double,10>& gradU, // 5*2
-               array_1d<double,5>& Residual)
+               array_1d<double,5>& Residual,
+			   array_1d<double,2>& a_el)
 {
     const int SpaceDimension = 2;
     
-   double alpha = 5.0;                               // Algorithm constant
-   const double tol = 1e-3;                               
+   double alpha  = 2.0;
+   double C_diff = 1.4;                               // Algorithm constant
+   const double tol = 1e-10;                               
 
     unsigned int i;
 
     double a_sc = 0.0;
 	double v_sc = 0.0;
     double k_sc = 0.0;
-                                          //Shock capturing viscosity
-    array_1d<double,SpaceDimension> res_m;
+    
+	array_1d<double,SpaceDimension> res_m;
+	array_1d<double,SpaceDimension> t_el;
     double res_ds 	= Residual(1);
 	double res_e 	= Residual(4);
     double norm_res_ds;
@@ -63,6 +66,8 @@ void ShockCapturing(const double mu,
     double norm_res_e;
     double normgradm = 0.0;
     
+	t_el(0) = -a_el(1);
+	t_el(1) =  a_el(0);
 
     res_m(0) = Residual(2); 
     res_m(1) = Residual(3);
@@ -76,10 +81,8 @@ void ShockCapturing(const double mu,
 
 	norm_grad_ds = sqrt(norm_grad_ds);
 
-	if (norm_grad_ds > tol)         a_sc = 0.5*h*alpha*(norm_res_ds/norm_grad_ds);
+	if (norm_grad_ds > tol)         a_sc = 0.5*h*C_diff*(norm_res_ds/norm_grad_ds);
 
-	
-	
 	for (i = 4; i < 8; i++){
         normgradm += gradU(i)*gradU(i);
     }
@@ -101,9 +104,10 @@ void ShockCapturing(const double mu,
 	if (norm_grade > tol)         k_sc = 0.5*h*alpha*(norm_res_e/norm_grade);
 
 
+	double grad_DS_a = gradU(2)*a_el(0) + gradU(3)*a_el(1);
+	double grad_DS_t = gradU(2)*t_el(0) + gradU(3)*t_el(1);
 
-
-    for (i = 0; i < 2; i++)       ds_diff[i] = 0.0*a_sc/ros*norm_grad_ds;
+    for (i = 0; i < 2; i++)       ds_diff[i] = a_sc*(grad_DS_a*a_el(i) + grad_DS_t*t_el(i));
 	
 	for (i = 0; i < 4; i++)       tau[i] *= (1.0 + ro_el*v_sc/mu);
 
@@ -181,6 +185,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     array_1d<double,SpaceDimension>                      ds_diff;
 	array_1d<double,SpaceDimension*SpaceDimension>       tau;
     array_1d<double,SpaceDimension>                      q;
+	array_1d<double,SpaceDimension>                      a_el;
     array_1d<double,nScalarVariables*nNodalVariables>    NN;
     array_1d<double,nScalarVariables*SpaceDimension>     gradU;
     array_1d<double,(nScalarVariables*SpaceDimension)*nNodalVariables>   gradV;
@@ -206,7 +211,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     const BoundedMatrix<double,nodesElement,nScalarVariables>& UU = data.U;			
     const BoundedMatrix<double,nodesElement,nScalarVariables>& UUn = data.Un;
     const BoundedMatrix<double,nodesElement,nScalarVariables>& Up = data.Up;    // Useful for the stabilizing part.
-    BoundedMatrix<double,nodesElement,nScalarVariables> UUp;
+    BoundedMatrix<double,nodesElement,nScalarVariables> UUp = Up;
 
     const BoundedMatrix<double,nodesElement,SpaceDimension>& f_ext = data.f_ext;			
     const array_1d<double,nodesElement>& r = data.r;
@@ -293,13 +298,13 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 	}
 
 
-    const double DG_el = U_gauss(0);
+    const double DTOT_el = U_gauss(0);
     const double DS_el = U_gauss(1);
     const double m1_el = U_gauss(2);
     const double m2_el = U_gauss(3);
     const double etot_el = U_gauss(4);
 
-    const double rom = DG_el + DS_el; 
+    const double DG_el = DTOT_el - DS_el; 
 
     const double  kk = DS_el/DG_el;
 
@@ -316,57 +321,65 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 	// Fine variazione
 
-    const double u1_el = m1_el/rom;
-	const double u2_el = m2_el/rom;
+    const double u1_el = m1_el/DTOT_el;
+	const double u2_el = m2_el/DTOT_el;
 
-    const double norm2u = u1_el*u1_el + u2_el*u2_el;
+	const double norm2u = u1_el*u1_el + u2_el*u2_el;
 	const double norm_u = sqrt(norm2u);
 	const double norm2m = m1_el*m1_el + m2_el*m2_el;
 
-    const double rom2 	= rom*rom;
-	const double rom3 	= rom*rom2;
-	
-	const double Cmixed  = (Cv*DG_el + Cs*DS_el);
-	const double Cmixed2 = Cmixed*Cmixed;
-	const double Cmixed3 = Cmixed*Cmixed2;
-	
-	const double Cv2Dg3 = Cv*Cv*DG_el*DG_el*DG_el;
-	const double Cs2Ds3 = Cs*Cs*DS_el*DS_el*DS_el;
+	a_el(0) = u1_el/norm_u;
+	a_el(1) = u2_el/norm_u;
 
+	if (norm_u == 0){
+		a_el(0) = 0.0;
+		a_el(1) = 0.0;	 
+	}	
+
+    const double	DG_el2    	= DG_el*DG_el;
+	const double	DTOT2		= DTOT_el*DTOT_el;
+	const double	DTOT3		= DTOT_el*DTOT2;
+	
+	const double	Cmixed      = (Cs*DS_el + Cv*(-DS_el + DTOT_el));
+	const double	Cmixed2     = Cmixed*Cmixed;
+	const double	Cmixed3     = Cmixed*Cmixed2;
+	
+	const double 	Cs2Ds3		= Cs*Cs*DS_el*DS_el*DS_el;
+	const double 	Cv2Dg3		= Cv*Cv*DG_el*DG_el*DG_el;
+	
 	const double a_d 	= 0;
 	
-	const double p_el   = (DG_el*(2*rom*etot_el - norm2m)*R)/(2*rom*Cmixed) + a_d*a_d*DS_el;
+	const double	p_el   	= (DG_el*(2*DTOT_el*etot_el - norm2m)*R)/(2*DTOT_el*Cmixed);
 		
-	const double pdg 	=  Cs*DS_el*etot_el*R/Cmixed2 + ((Cv*DG_el*DG_el - Cs*DS_el*DS_el)*norm2m*R)/(2*rom2*Cmixed2);
-	const double pds 	= -Cs*DG_el*etot_el*R/Cmixed2 + (DG_el*((Cs + Cv)*DG_el + 2*Cs*DS_el)*norm2m*R)/(2*rom2*Cmixed2) + a_d*a_d;
-	const double pm1 	= -(DG_el*m1_el*R)/(rom*Cmixed);
-	const double pm2 	= -(DG_el*m2_el*R)/(rom*Cmixed);
-	const double pet 	= DG_el*R/Cmixed;
+	const double	pdg 	=  ((Cv*DG_el2*norm2m - Cs*DS_el*(-2*DTOT2*etot_el + DS_el*norm2m))*R)/(2*DTOT2*Cmixed2);
+	const double	pds 	=  (Cs*(-2*DTOT_el*etot_el + norm2m)*R)/(2*Cmixed2);
+	const double	pm1 	= -(DG_el*m1_el*R)/(DTOT_el*Cmixed);
+	const double	pm2 	= -(DG_el*m2_el*R)/(DTOT_el*Cmixed);
+	const double	pet 	= DG_el*R/Cmixed;
 	
-	const double pdgdg 	=  -(2*Cs*Cv*DS_el*etot_el*R)/Cmixed3 - ((Cv2Dg3 - Cs2Ds3 - Cs*Cv*DS_el*DS_el*(3*DG_el + DS_el))*norm2m*R)/(rom3*Cmixed3);
-	const double pdgds 	=  (Cs*(Cv*DG_el - Cs*DS_el)*etot_el*R)/Cmixed3 - ((Cv2Dg3 - Cs*Cv*DS_el*DS_el*(3*DG_el + DS_el))*norm2m*R)/(rom3*Cmixed3);
-	const double pdgm1 	=  ((Cv*DG_el*DG_el - Cs*DS_el*DS_el)*m1_el*R)/(rom2*Cmixed2);
-	const double pdgm2 	=  ((Cv*DG_el*DG_el - Cs*DS_el*DS_el)*m2_el*R)/(rom2*Cmixed2);
-	const double pdget 	=  Cs*DS_el*R/Cmixed2;
+	const double	pdgdg 	=  -(2*Cs*Cv*DS_el*etot_el*R)/Cmixed3 + ((Cs2Ds3 + Cv2Dg3 + Cs*Cv*DS_el*DS_el*(-2*DS_el + 3*DTOT_el))*norm2m*R)/(DTOT3*Cmixed3);
+	const double	pdgds 	=  (Cs*(-Cs*DS_el + Cv*(DS_el + DTOT_el))*etot_el*R)/Cmixed3 - (Cs*Cv*norm2m*R)/Cmixed3;
+	const double	pdgm1 	=  ((Cv*DG_el*DG_el - Cs*DS_el*DS_el)*m1_el*R)/(DTOT2*Cmixed2);
+	const double	pdgm2 	=  ((Cv*DG_el*DG_el - Cs*DS_el*DS_el)*m2_el*R)/(DTOT2*Cmixed2);
+	const double	pdget 	=  Cs*DS_el*R/Cmixed2;
 	
-	const double pdsds 	= (2*Cs*Cs*DG_el*etot_el*R)/Cmixed3 - (DG_el*(Cv*Cv*DG_el*DG_el + Cs*Cv*DG_el*(DG_el + 3*DS_el) + 
-			Cs*Cs*(DG_el*DG_el + 3*DG_el*DS_el + 3*DS_el*DS_el))*norm2m*R)/(rom3*Cmixed3);
-	const double pdsm1 	= (DG_el*((Cs + Cv)*DG_el + 2*Cs*DS_el)*m1_el*R)/(rom2*Cmixed2);
-	const double pdsm2 	= (DG_el*((Cs + Cv)*DG_el + 2*Cs*DS_el)*m2_el*R)/(rom2*Cmixed2);
-	const double pdset 	= -Cs*DG_el*R/Cmixed2;
+	const double	pdsds 	=  (2*Cs*(Cs - Cv)*DTOT_el*etot_el*R)/Cmixed3 + (Cs*(-Cs + Cv)*norm2m*R)/Cmixed3;
+	const double	pdsm1 	=  Cs*m1_el*R/Cmixed2;
+	const double	pdsm2 	=  Cs*m2_el*R/Cmixed2;
+	const double	pdset 	= -Cs*DTOT_el*R/Cmixed2;
 	
-	const double pm1m1 	= -DG_el*R/(rom*Cmixed);
+	const double	pm1m1 	= -DG_el*R/(DTOT_el*Cmixed);
 	
-	const double pm2m2 	= -DG_el*R/(rom*Cmixed);
+	const double	pm2m2 	= -DG_el*R/(DTOT_el*Cmixed);
 	
-	const double Temperature = (2*rom*etot_el - norm2m)/(2*rom*Cmixed);
+	const double    Temperature = p_el/(DG_el*R);
 
 	const double gas_concentration = 1 - DS_el/ros;
 	const double gas_density = DG_el/gas_concentration;
 
 	// printf("eps_g = %.3e\n", gas_concentration);
 
-    const double SpeedSound  = sqrt(R*Temperature)*sqrt(gas_density/(gas_concentration * rom));  // verificare sound_speed
+    const double SpeedSound  = sqrt(R*Temperature)*sqrt(gas_density/(gas_concentration * DTOT_el));  // verificare sound_speed
 
 	// printf("gamma = %.3e - SpeedSound = %.3e\n", gamma, SpeedSound); 
 
@@ -375,121 +388,93 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 			
 	// Build A
 
-	A[conta(0,0,0,0,5,2,5,1)] =  DS_el*m1_el/rom2; 
-	A[conta(0,0,1,0,5,2,5,1)] = -DG_el*m1_el/rom2;
-	A[conta(0,0,2,0,5,2,5,1)] =  DG_el/rom;
+	A[conta(0,0,2,0,5,2,5,1)] = 1.0;
+	A[conta(0,1,3,0,5,2,5,1)] = 1.0;
 	
-	A[conta(0,1,0,0,5,2,5,1)] =  DS_el*m2_el/rom2; 
-	A[conta(0,1,1,0,5,2,5,1)] = -DG_el*m2_el/rom2;
-	A[conta(0,1,3,0,5,2,5,1)] =  DG_el/rom;
+	A[conta(1,0,0,0,5,2,5,1)] = -DS_el*m1_el/DTOT2; 
+	A[conta(1,0,1,0,5,2,5,1)] =  m1_el/DTOT_el;
+	A[conta(1,0,2,0,5,2,5,1)] =  DS_el/DTOT_el;
 	
-	A[conta(1,0,0,0,5,2,5,1)] = -DS_el*m1_el/rom2; 
-	A[conta(1,0,1,0,5,2,5,1)] =  DG_el*m1_el/rom2;
-	A[conta(1,0,2,0,5,2,5,1)] =  DS_el/rom;
+	A[conta(1,1,0,0,5,2,5,1)] = -DS_el*m2_el/DTOT2; 
+	A[conta(1,1,1,0,5,2,5,1)] =  m2_el/DTOT_el;
+	A[conta(1,1,3,0,5,2,5,1)] =  DS_el/DTOT_el;
 	
-	A[conta(1,1,0,0,5,2,5,1)] = -DS_el*m2_el/rom2; 
-	A[conta(1,1,1,0,5,2,5,1)] =  DG_el*m2_el/rom2;
-	A[conta(1,1,3,0,5,2,5,1)] =  DS_el/rom;
-	
-	A[conta(2,0,0,0,5,2,5,1)] =  -m1_el*m1_el/rom2 + pdg;
-	A[conta(2,0,1,0,5,2,5,1)] =  -m1_el*m1_el/rom2 + pds;
-	A[conta(2,0,2,0,5,2,5,1)] =  2*m1_el/rom + pm1;
+	A[conta(2,0,0,0,5,2,5,1)] =  -m1_el*m1_el/DTOT2 + pdg;
+	A[conta(2,0,1,0,5,2,5,1)] =  pds;
+	A[conta(2,0,2,0,5,2,5,1)] =  2*m1_el/DTOT_el + pm1;
 	A[conta(2,0,3,0,5,2,5,1)] =  pm2;
 	A[conta(2,0,4,0,5,2,5,1)] =  pet;
 	
-	A[conta(2,1,0,0,5,2,5,1)] =  -m1_el*m2_el/rom2;
-	A[conta(2,1,1,0,5,2,5,1)] =  -m1_el*m2_el/rom2;
-	A[conta(2,1,2,0,5,2,5,1)] =  m2_el/rom;
-	A[conta(2,1,3,0,5,2,5,1)] =  m1_el/rom;
+	A[conta(2,1,0,0,5,2,5,1)] =  -m1_el*m2_el/DTOT2;
+	A[conta(2,1,2,0,5,2,5,1)] =  m2_el/DTOT_el;
+	A[conta(2,1,3,0,5,2,5,1)] =  m1_el/DTOT_el;
 	
-	A[conta(3,0,0,0,5,2,5,1)] =  -m1_el*m2_el/rom2;
-	A[conta(3,0,1,0,5,2,5,1)] =  -m1_el*m2_el/rom2;
-	A[conta(3,0,2,0,5,2,5,1)] =  m2_el/rom;
-	A[conta(3,0,3,0,5,2,5,1)] =  m1_el/rom;
+	A[conta(3,0,0,0,5,2,5,1)] =  -m1_el*m2_el/DTOT2;
+	A[conta(3,0,2,0,5,2,5,1)] =  m2_el/DTOT_el;
+	A[conta(3,0,3,0,5,2,5,1)] =  m1_el/DTOT_el;
 		
-	A[conta(3,1,0,0,5,2,5,1)] =  -m2_el*m2_el/rom2 + pdg;
-	A[conta(3,1,1,0,5,2,5,1)] =  -m2_el*m2_el/rom2 + pds;
+	A[conta(3,1,0,0,5,2,5,1)] =  -m2_el*m2_el/DTOT2 + pdg;
+	A[conta(3,1,1,0,5,2,5,1)] =  pds;
 	A[conta(3,1,2,0,5,2,5,1)] =  pm1;
-	A[conta(3,1,3,0,5,2,5,1)] =  2*m2_el/rom + pm2;
+	A[conta(3,1,3,0,5,2,5,1)] =  2*m2_el/DTOT_el + pm2;
 	A[conta(3,1,4,0,5,2,5,1)] =  pet;
 	
-	A[conta(4,0,0,0,5,2,5,1)] =  -(m1_el*(etot_el - rom*pdg + p_el))/rom2;
-	A[conta(4,0,1,0,5,2,5,1)] =  -(m1_el*(etot_el - rom*pds + p_el))/rom2;
-	A[conta(4,0,2,0,5,2,5,1)] =  (etot_el + m1_el*pm1 + p_el)/rom;
-	A[conta(4,0,3,0,5,2,5,1)] =  m1_el*pm2/rom;
-	A[conta(4,0,4,0,5,2,5,1)] =	m1_el*(1.0 + pet)/rom;
+	A[conta(4,0,0,0,5,2,5,1)] =  -(m1_el*(etot_el - DTOT_el*pdg + p_el))/DTOT2;
+	A[conta(4,0,1,0,5,2,5,1)] =  m1_el*pds/DTOT_el;
+	A[conta(4,0,2,0,5,2,5,1)] =  (etot_el + m1_el*pm1 + p_el)/DTOT_el;
+	A[conta(4,0,3,0,5,2,5,1)] =  m1_el*pm2/DTOT_el;
+	A[conta(4,0,4,0,5,2,5,1)] =	m1_el*(1.0 + pet)/DTOT_el;
 	
-	A[conta(4,1,0,0,5,2,5,1)] =  -(m2_el*(etot_el - rom*pdg + p_el))/rom2;
-	A[conta(4,1,1,0,5,2,5,1)] =  -(m2_el*(etot_el - rom*pds + p_el))/rom2;
-	A[conta(4,1,2,0,5,2,5,1)] =	m2_el*pm1/rom;  
-	A[conta(4,1,3,0,5,2,5,1)] =  (etot_el + m2_el*pm2 + p_el)/rom;
-	A[conta(4,1,4,0,5,2,5,1)] =  m2_el*(1.0 + pet)/rom;
+	A[conta(4,1,0,0,5,2,5,1)] =  -(m2_el*(etot_el - DTOT_el*pdg + p_el))/DTOT2;
+	A[conta(4,1,1,0,5,2,5,1)] =  m2_el*pds/DTOT_el;
+	A[conta(4,1,2,0,5,2,5,1)] =	m2_el*pm1/DTOT_el;  
+	A[conta(4,1,3,0,5,2,5,1)] =  (etot_el + m2_el*pm2 + p_el)/DTOT_el;
+	A[conta(4,1,4,0,5,2,5,1)] =  m2_el*(1.0 + pet)/DTOT_el;
 
 
     //	Build dAdU
 
-	dAdU[conta(0,0,0,0,5,2,5,5)] = -2*DS_el*m1_el/rom3;	 
-	dAdU[conta(0,0,0,1,5,2,5,5)] =  (DG_el - DS_el)*m1_el/rom3;
-	dAdU[conta(0,0,0,2,5,2,5,5)] = DS_el/rom2;
-		
-	dAdU[conta(0,0,1,0,5,2,5,5)] = (DG_el - DS_el)*m1_el/rom3; 
-	dAdU[conta(0,0,1,1,5,2,5,5)] = 2*DG_el*m1_el/rom3;
-	dAdU[conta(0,0,1,2,5,2,5,5)] = -DG_el/rom2;
-	 
-	dAdU[conta(0,0,2,0,5,2,5,5)] = DS_el/rom2; 
-	dAdU[conta(0,0,2,1,5,2,5,5)] = -DG_el/rom2;
+// 1  ////////////////////////////////////////////////////////
 			
+	dAdU[conta(1,0,0,0,5,2,5,5)] = 2*DS_el*m1_el/DTOT3; 
+	dAdU[conta(1,0,0,1,5,2,5,5)] = -m1_el/DTOT2;
+	dAdU[conta(1,0,0,2,5,2,5,5)] = -DS_el/DTOT2;
 	
-	dAdU[conta(0,1,0,0,5,2,5,5)] = -2*DS_el*m2_el/rom3; 
-	dAdU[conta(0,1,0,1,5,2,5,5)] =  (DG_el - DS_el)*m2_el/rom3;
-	dAdU[conta(0,1,0,3,5,2,5,5)] = DS_el/rom2;
-		
-	dAdU[conta(0,1,1,0,5,2,5,5)] =  (DG_el - DS_el)*m2_el/rom3;
-	dAdU[conta(0,1,1,1,5,2,5,5)] =  2*DG_el*m2_el/rom3;
-	dAdU[conta(0,1,1,3,5,2,5,5)] =  -DG_el/rom2; 
-		 
-	dAdU[conta(0,1,3,0,5,2,5,5)] = DS_el/rom2; 
-	dAdU[conta(0,1,3,1,5,2,5,5)] = -DG_el/rom2;
-	
-			
-	dAdU[conta(1,0,0,0,5,2,5,5)] = 2*DS_el*m1_el/rom3; 
-	dAdU[conta(1,0,0,1,5,2,5,5)] = (-DG_el + DS_el)*m1_el/rom3;
-	dAdU[conta(1,0,0,2,5,2,5,5)] = -DS_el/rom2;
-	
-	dAdU[conta(1,0,1,0,5,2,5,5)] = (-DG_el + DS_el)*m1_el/rom3;  
-	dAdU[conta(1,0,1,1,5,2,5,5)] = -2*DG_el*m1_el/rom3;
-	dAdU[conta(1,0,1,2,5,2,5,5)] = DG_el/rom2;
+	dAdU[conta(1,0,1,0,5,2,5,5)] = -m1_el/DTOT2;  
+	dAdU[conta(1,0,1,2,5,2,5,5)] = 1.0/DTOT_el;
 	 
-	dAdU[conta(1,0,2,0,5,2,5,5)] = -DS_el/rom2; 
-	dAdU[conta(1,0,2,1,5,2,5,5)] =  DG_el/rom2;
+	dAdU[conta(1,0,2,0,5,2,5,5)] = -DS_el/DTOT2; 
+	dAdU[conta(1,0,2,1,5,2,5,5)] =  1.0/DTOT_el;
 	
-	dAdU[conta(1,1,0,0,5,2,5,5)] =  2*DS_el*m2_el/rom3;
-	dAdU[conta(1,1,0,1,5,2,5,5)] =  (-DG_el + DS_el)*m2_el/rom3;
-	dAdU[conta(1,1,0,3,5,2,5,5)] = -DS_el/rom2; 
-	
-	dAdU[conta(1,1,1,0,5,2,5,5)] =  (-DG_el + DS_el)*m2_el/rom3;
-	dAdU[conta(1,1,1,1,5,2,5,5)] = -2*DG_el*m2_el/rom3;
-	dAdU[conta(1,1,1,3,5,2,5,5)] = DG_el/rom2; 
+/////////////////////////////////////////////////////////////// 
 	 
-	dAdU[conta(1,1,3,0,5,2,5,5)] = -DS_el/rom2;
-	dAdU[conta(1,1,3,1,5,2,5,5)] =  DG_el/rom2;
+	dAdU[conta(1,1,0,0,5,2,5,5)] =  2*DS_el*m2_el/DTOT3;
+	dAdU[conta(1,1,0,1,5,2,5,5)] =  -m2_el/DTOT2;
+	dAdU[conta(1,1,0,3,5,2,5,5)] = -DS_el/DTOT2; 
 	
+	dAdU[conta(1,1,1,0,5,2,5,5)] =  -m2_el/DTOT2;
+	dAdU[conta(1,1,1,3,5,2,5,5)] = 1.0/DTOT_el; 
+	 
+	dAdU[conta(1,1,3,0,5,2,5,5)] = -DS_el/DTOT2;
+	dAdU[conta(1,1,3,1,5,2,5,5)] =  1.0/DTOT_el;
+				
+// 2  /////////////////////////////////////////////////////////////
 			
-	dAdU[conta(2,0,0,0,5,2,5,5)] = -2*m1_el*m1_el/rom3 + pdgdg;	 
-	dAdU[conta(2,0,0,1,5,2,5,5)] = -2*m1_el*m1_el/rom3 + pdgds;
-	dAdU[conta(2,0,0,2,5,2,5,5)] = -2*m1_el/rom2 + pdgm1;
+	dAdU[conta(2,0,0,0,5,2,5,5)] =  2*m1_el*m1_el/DTOT3 + pdgdg;	 
+	dAdU[conta(2,0,0,1,5,2,5,5)] =  pdgds;
+	dAdU[conta(2,0,0,2,5,2,5,5)] = -2*m1_el/DTOT2 + pdgm1;
 	dAdU[conta(2,0,0,3,5,2,5,5)] =  pdgm2;
 	dAdU[conta(2,0,0,4,5,2,5,5)] =  pdget;
 	
-	dAdU[conta(2,0,1,0,5,2,5,5)] = 2*m1_el*m1_el/rom3 + pdgds;
-	dAdU[conta(2,0,1,1,5,2,5,5)] = 2*m1_el*m1_el/rom3 + pdsds;
-	dAdU[conta(2,0,1,2,5,2,5,5)] = -2*m1_el/rom2 + pdsm1;
+	dAdU[conta(2,0,1,0,5,2,5,5)] = pdgds;
+	dAdU[conta(2,0,1,1,5,2,5,5)] = pdsds;
+	dAdU[conta(2,0,1,2,5,2,5,5)] = pdsm1;
 	dAdU[conta(2,0,1,3,5,2,5,5)] = pdsm2;
 	dAdU[conta(2,0,1,4,5,2,5,5)] = pdset;
 	 
-	dAdU[conta(2,0,2,0,5,2,5,5)] = -2*m1_el/rom2 + pdgm1;
-	dAdU[conta(2,0,2,1,5,2,5,5)] = -2*m1_el/rom2 + pdsm1;
-	dAdU[conta(2,0,2,2,5,2,5,5)] = 2.0/rom + pm1m1;
+	dAdU[conta(2,0,2,0,5,2,5,5)] = -2*m1_el/DTOT2 + pdgm1;
+	dAdU[conta(2,0,2,1,5,2,5,5)] = pdsm1;
+	dAdU[conta(2,0,2,2,5,2,5,5)] = 2.0/DTOT_el + pm1m1;
 	 
 	dAdU[conta(2,0,3,0,5,2,5,5)] = pdgm2; 
 	dAdU[conta(2,0,3,1,5,2,5,5)] = pdsm2;
@@ -498,130 +483,115 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 	dAdU[conta(2,0,4,0,5,2,5,5)] = pdget;
 	dAdU[conta(2,0,4,1,5,2,5,5)] = pdset;
 	 
-	dAdU[conta(2,1,0,0,5,2,5,5)] = 2*m1_el*m2_el/rom3;	 
-	dAdU[conta(2,1,0,1,5,2,5,5)] = 2*m1_el*m2_el/rom3;
-	dAdU[conta(2,1,0,2,5,2,5,5)] = -m2_el/rom2;
-	dAdU[conta(2,1,0,3,5,2,5,5)] = -m1_el/rom2;
+	dAdU[conta(2,1,0,0,5,2,5,5)] = 2*m1_el*m2_el/DTOT3;	 
+	dAdU[conta(2,1,0,2,5,2,5,5)] = -m2_el/DTOT2;
+	dAdU[conta(2,1,0,3,5,2,5,5)] = -m1_el/DTOT2;
 	
-	dAdU[conta(2,1,1,0,5,2,5,5)] = 2*m1_el*m2_el/rom3; 
-	dAdU[conta(2,1,1,1,5,2,5,5)] = 2*m1_el*m2_el/rom3;
-	dAdU[conta(2,1,1,2,5,2,5,5)] = -m2_el/rom2;
-	dAdU[conta(2,1,1,3,5,2,5,5)] = -m1_el/rom2;
-	 
-	dAdU[conta(2,1,2,0,5,2,5,5)] = -m2_el/rom2; 
-	dAdU[conta(2,1,2,1,5,2,5,5)] = -m2_el/rom2;
-	dAdU[conta(2,1,2,3,5,2,5,5)] = 1.0/rom; 
+	dAdU[conta(2,1,2,0,5,2,5,5)] = -m2_el/DTOT2; 
+	dAdU[conta(2,1,2,3,5,2,5,5)] = 1.0/DTOT_el; 
 			
-	dAdU[conta(2,1,3,0,5,2,5,5)] = -m1_el/rom2; 
-	dAdU[conta(2,1,3,1,5,2,5,5)] = -m1_el/rom2;
-	dAdU[conta(2,1,3,2,5,2,5,5)] = 1.0/rom;
+	dAdU[conta(2,1,3,0,5,2,5,5)] = -m1_el/DTOT2; 
+	dAdU[conta(2,1,3,2,5,2,5,5)] = 1.0/DTOT_el;
 	
-		
-	dAdU[conta(3,0,0,0,5,2,5,5)] = 2*m1_el*m2_el/rom3;	 
-	dAdU[conta(3,0,0,1,5,2,5,5)] = 2*m1_el*m2_el/rom3;
-	dAdU[conta(3,0,0,2,5,2,5,5)] = -m2_el/rom2;
-	dAdU[conta(3,0,0,3,5,2,5,5)] = -m1_el/rom2;
-		
-	dAdU[conta(3,0,1,0,5,2,5,5)] = 2*m1_el*m2_el/rom3; 
-	dAdU[conta(3,0,1,1,5,2,5,5)] = 2*m1_el*m2_el/rom3;
-	dAdU[conta(3,0,1,2,5,2,5,5)] = -m2_el/rom2;
-	dAdU[conta(3,0,1,3,5,2,5,5)] = -m1_el/rom2;
-	 
-	dAdU[conta(3,0,2,0,5,2,5,5)] = -m2_el/rom2; 
-	dAdU[conta(3,0,2,1,5,2,5,5)] = -m2_el/rom2;
-	dAdU[conta(3,0,2,3,5,2,5,5)] = 1.0/rom; 
+// ARRIVATO QUA
+// 3 /////////////////////////////////////////////////////////////////////////////
 			
-	dAdU[conta(3,0,3,0,5,2,5,5)] = -m1_el/rom2; 
-	dAdU[conta(3,0,3,1,5,2,5,5)] = -m1_el/rom2;
-	dAdU[conta(3,0,3,2,5,2,5,5)] = 1.0/rom;
+	dAdU[conta(3,0,0,0,5,2,5,5)] = 2*m1_el*m2_el/DTOT3;	 
+	dAdU[conta(3,0,0,2,5,2,5,5)] = -m2_el/DTOT2;
+	dAdU[conta(3,0,0,3,5,2,5,5)] = -m1_el/DTOT2;
+		
+	dAdU[conta(3,0,2,0,5,2,5,5)] = -m2_el/DTOT2; 
+	dAdU[conta(3,0,2,3,5,2,5,5)] = 1.0/DTOT_el; 
+			
+	dAdU[conta(3,0,3,0,5,2,5,5)] = -m1_el/DTOT2; 
+	dAdU[conta(3,0,3,2,5,2,5,5)] = 1.0/DTOT_el;
 	
+//////////////////////////////////////////////////////////////////////// 
 	 
-	dAdU[conta(3,1,0,0,5,2,5,5)] = 2*m2_el*m2_el/rom3 + pdgdg;	 
-	dAdU[conta(3,1,0,1,5,2,5,5)] = 2*m2_el*m2_el/rom3 + pdgds;
+	dAdU[conta(3,1,0,0,5,2,5,5)] = 2*m2_el*m2_el/DTOT3 + pdgdg;	 
+	dAdU[conta(3,1,0,1,5,2,5,5)] = pdgds;
 	dAdU[conta(3,1,0,2,5,2,5,5)] = pdgm1;
-	dAdU[conta(3,1,0,3,5,2,5,5)] = -2*m2_el/rom2 + pdgm2;
+	dAdU[conta(3,1,0,3,5,2,5,5)] = -2*m2_el/DTOT2 + pdgm2;
 	dAdU[conta(3,1,0,4,5,2,5,5)] = pdget;
 	
-	dAdU[conta(3,1,1,0,5,2,5,5)] = 2*m2_el*m2_el/rom3 + pdgds;
-	dAdU[conta(3,1,1,1,5,2,5,5)] = 2*m2_el*m2_el/rom3 + pdsds;
+	dAdU[conta(3,1,1,0,5,2,5,5)] = pdgds;
+	dAdU[conta(3,1,1,1,5,2,5,5)] = pdsds;
 	dAdU[conta(3,1,1,2,5,2,5,5)] = pdsm1;
-	dAdU[conta(3,1,1,3,5,2,5,5)] = -2*m2_el/rom2 + pdsm2;
+	dAdU[conta(3,1,1,3,5,2,5,5)] = pdsm2;
 	dAdU[conta(3,1,1,4,5,2,5,5)] = pdset;
 	 
 	dAdU[conta(3,1,2,0,5,2,5,5)] = pdgm1;
 	dAdU[conta(3,1,2,1,5,2,5,5)] = pdsm1;
 	dAdU[conta(3,1,2,2,5,2,5,5)] = pm1m1;
 	
-	dAdU[conta(3,1,3,0,5,2,5,5)] = -2*m2_el/rom2 + pdgm2;
-	dAdU[conta(3,1,3,1,5,2,5,5)] = -2*m2_el/rom2 + pdsm2;
-	dAdU[conta(3,1,3,3,5,2,5,5)] = 2.0/rom + pm2m2; 
+	dAdU[conta(3,1,3,0,5,2,5,5)] = -2*m2_el/DTOT2 + pdgm2;
+	dAdU[conta(3,1,3,1,5,2,5,5)] = pdsm2;
+	dAdU[conta(3,1,3,3,5,2,5,5)] = 2.0/DTOT_el + pm2m2; 
 	
 	dAdU[conta(3,1,4,0,5,2,5,5)] = pdget;
 	dAdU[conta(3,1,4,1,5,2,5,5)] = pdset;
 			
+// 4 //////////////////////////////////////////////////////////////////////
 			
-	dAdU[conta(4,0,0,0,5,2,5,5)] = m1_el*(2*(etot_el + p_el) - 2*pdg*rom + pdgdg*rom2)/rom3;
-	dAdU[conta(4,0,0,1,5,2,5,5)] = m1_el*(2*(etot_el + p_el) - pdg*rom - pds*rom + pdgds*rom2)/rom3;
-	dAdU[conta(4,0,0,2,5,2,5,5)] = (-etot_el + DS_el*(pdg + m1_el*pdgm1) - m1_el*pm1 - p_el + (pdg + m1_el*pdgm1)*DG_el)/rom2;
-	dAdU[conta(4,0,0,3,5,2,5,5)] = (m1_el*(DS_el*pdgm2 - pm2 + pdgm2*DG_el))/rom2;
-	dAdU[conta(4,0,0,4,5,2,5,5)] = (m1_el*(-1 + DS_el*pdget - pet + pdget*DG_el))/rom2;
+	dAdU[conta(4,0,0,0,5,2,5,5)] = (m1_el*(2*etot_el - 2*DTOT_el*pdg + DTOT_el*DTOT_el*pdgdg + 2*p_el))/DTOT3;
+	dAdU[conta(4,0,0,1,5,2,5,5)] = (m1_el*(DTOT_el*pdgds - pds))/DTOT2;
+	dAdU[conta(4,0,0,2,5,2,5,5)] = -((etot_el - DTOT_el*(pdg + m1_el*pdgm1) + m1_el*pm1 + p_el)/DTOT2);
+	dAdU[conta(4,0,0,3,5,2,5,5)] = (m1_el*(DTOT_el*pdgm2 - pm2))/DTOT2;
+	dAdU[conta(4,0,0,4,5,2,5,5)] = (m1_el*(-1 + DTOT_el*pdget - pet))/DTOT2;
 	
-	dAdU[conta(4,0,1,0,5,2,5,5)] = m1_el*(2*(etot_el + p_el) - pdg*rom - pds*rom + pdgds*rom2)/rom3;
-	dAdU[conta(4,0,1,1,5,2,5,5)] = (m1_el*(2*(etot_el + p_el) - 2*pds*rom + pdsds*rom2))/rom3;
-	dAdU[conta(4,0,1,2,5,2,5,5)] = (-etot_el + DS_el*(pds + m1_el*pdsm1) - m1_el*pm1 - p_el + (pds + m1_el*pdsm1)*DG_el)/rom2;
-	dAdU[conta(4,0,1,3,5,2,5,5)] = m1_el*(pdsm2/rom - pm2/rom2);
-	dAdU[conta(4,0,1,4,5,2,5,5)] = (m1_el*(-1 + rom*pdset - pet))/rom2;
+	dAdU[conta(4,0,1,0,5,2,5,5)] = (m1_el*(DTOT_el*pdgds - pds))/DTOT2;
+	dAdU[conta(4,0,1,1,5,2,5,5)] = (m1_el*pdsds)/DTOT_el;
+	dAdU[conta(4,0,1,2,5,2,5,5)] = (pds + m1_el*pdsm1)/DTOT_el;
+	dAdU[conta(4,0,1,3,5,2,5,5)] = (m1_el*pdsm2)/DTOT_el;
+	dAdU[conta(4,0,1,4,5,2,5,5)] = (m1_el*pdset)/DTOT_el;
 	 
-	dAdU[conta(4,0,2,0,5,2,5,5)] = (-etot_el + DS_el*(pdg + m1_el*pdgm1) - m1_el*pm1 - p_el + (pdg + m1_el*pdgm1)*DG_el)/rom2;
-	dAdU[conta(4,0,2,1,5,2,5,5)] = (-etot_el + DS_el*(pds + m1_el*pdsm1) - m1_el*pm1 - p_el + (pds + m1_el*pdsm1)*DG_el)/rom2;
-	dAdU[conta(4,0,2,2,5,2,5,5)] = (m1_el*pm1m1 + 2*pm1)/rom;
-	dAdU[conta(4,0,2,3,5,2,5,5)] = pm2/rom;
-	dAdU[conta(4,0,2,4,5,2,5,5)] = (1 + pet)/rom;
+	dAdU[conta(4,0,2,0,5,2,5,5)] = -((etot_el - DTOT_el*(pdg + m1_el*pdgm1) + m1_el*pm1 + p_el)/DTOT2);
+	dAdU[conta(4,0,2,1,5,2,5,5)] = (pds + m1_el*pdsm1)/DTOT_el;
+	dAdU[conta(4,0,2,2,5,2,5,5)] = (2*pm1 + m1_el*pm1m1)/DTOT_el;
+	dAdU[conta(4,0,2,3,5,2,5,5)] = pm2/DTOT_el;
+	dAdU[conta(4,0,2,4,5,2,5,5)] = (1 + pet)/DTOT_el;
 			
-	dAdU[conta(4,0,3,0,5,2,5,5)] = (m1_el*(DS_el*pdgm2 - pm2 + pdgm2*DG_el))/rom2;
-	dAdU[conta(4,0,3,1,5,2,5,5)] = m1_el*(pdsm2/rom - pm2/rom2);
-	dAdU[conta(4,0,3,2,5,2,5,5)] = pm2/rom;
-	dAdU[conta(4,0,3,3,5,2,5,5)] = m1_el*pm2m2/rom;
+	dAdU[conta(4,0,3,0,5,2,5,5)] = (m1_el*(DTOT_el*pdgm2 - pm2))/DTOT2;
+	dAdU[conta(4,0,3,1,5,2,5,5)] = (m1_el*pdsm2)/DTOT_el;
+	dAdU[conta(4,0,3,2,5,2,5,5)] = pm2/DTOT_el;
+	dAdU[conta(4,0,3,3,5,2,5,5)] = (m1_el*pm2m2)/DTOT_el;
 			
-	dAdU[conta(4,0,4,0,5,2,5,5)] = (m1_el*(-1 + DS_el*pdget - pet + pdget*DG_el))/rom2;
-	dAdU[conta(4,0,4,1,5,2,5,5)] = (m1_el*(-1 + rom*pdset - pet))/rom2;
-	dAdU[conta(4,0,4,2,5,2,5,5)] = (1 + pet)/rom;
+	dAdU[conta(4,0,4,0,5,2,5,5)] = (m1_el*(-1 + DTOT_el*pdget - pet))/DTOT2;
+	dAdU[conta(4,0,4,1,5,2,5,5)] = (m1_el*pdset)/DTOT_el;
+	dAdU[conta(4,0,4,2,5,2,5,5)] = (1 + pet)/DTOT_el;
 	 
-	dAdU[conta(4,1,0,0,5,2,5,5)] = m2_el*(2*(etot_el + p_el) - 2*pdg*rom + pdgdg*rom2)/rom3;	 
-	dAdU[conta(4,1,0,1,5,2,5,5)] = (m2_el*pdgds)/rom - (m2_el*(pdg + pds))/rom2 + (2*m2_el*(etot_el + p_el))/rom3;
-	dAdU[conta(4,1,0,2,5,2,5,5)] = (rom*m2_el*pdgm1 - m2_el*pm1)/rom2; 
-	dAdU[conta(4,1,0,3,5,2,5,5)] = (-etot_el - p_el + rom*(pdg + m2_el*pdgm2) - m2_el*pm2)/rom2;
-	dAdU[conta(4,1,0,4,5,2,5,5)] = (m2_el*(-1.0 + rom*pdget - pet))/rom2;
+	dAdU[conta(4,1,0,0,5,2,5,5)] = (m2_el*(2*etot_el - 2*DTOT_el*pdg + DTOT2*pdgdg + 2*p_el))/DTOT3;	 
+	dAdU[conta(4,1,0,1,5,2,5,5)] = (m2_el*(DTOT_el*pdgds - pds))/DTOT2;
+	dAdU[conta(4,1,0,2,5,2,5,5)] = (m2_el*(DTOT_el*pdgm1 - pm1))/DTOT2; 
+	dAdU[conta(4,1,0,3,5,2,5,5)] = -((etot_el - DTOT_el*(pdg + m2_el*pdgm2) + m2_el*pm2 + p_el)/DTOT2);
+	dAdU[conta(4,1,0,4,5,2,5,5)] = (m2_el*(-1 + DTOT_el*pdget - pet))/DTOT2;
 	
-	dAdU[conta(4,1,1,0,5,2,5,5)] = (m2_el*pdgds)/rom - (m2_el*(pdg + pds))/rom2 + (2*m2_el*(etot_el + p_el))/rom3;
-	dAdU[conta(4,1,1,1,5,2,5,5)] = m2_el*(-2*pds/rom2 + pdsds/rom + 2*(etot_el + p_el)/rom3);
-	dAdU[conta(4,1,1,2,5,2,5,5)] = m2_el*(rom*pdsm1 - pm1)/rom2;
-	dAdU[conta(4,1,1,3,5,2,5,5)] = (-etot_el + rom*(pds + m2_el*pdsm2) - m2_el*pm2 - p_el)/rom2;
-	dAdU[conta(4,1,1,4,5,2,5,5)] = (m2_el*(-1 + rom*pdset - pet))/rom2;
+	dAdU[conta(4,1,1,0,5,2,5,5)] = (m2_el*(DTOT_el*pdgds - pds))/DTOT2;
+	dAdU[conta(4,1,1,1,5,2,5,5)] = (m2_el*pdsds)/DTOT_el;
+	dAdU[conta(4,1,1,2,5,2,5,5)] = (m2_el*pdsm1)/DTOT_el;
+	dAdU[conta(4,1,1,3,5,2,5,5)] = (pds + m2_el*pdsm2)/DTOT_el;
+	dAdU[conta(4,1,1,4,5,2,5,5)] = (m2_el*pdset)/DTOT_el;
 	 
-	dAdU[conta(4,1,2,0,5,2,5,5)] = (rom*m2_el*pdgm1 - m2_el*pm1)/rom2;
-	dAdU[conta(4,1,2,1,5,2,5,5)] = m2_el*(rom*pdsm1 - pm1)/rom2;
-	dAdU[conta(4,1,2,2,5,2,5,5)] = m2_el*pm1m1/rom;
-	dAdU[conta(4,1,2,3,5,2,5,5)] = pm1/rom;
+	dAdU[conta(4,1,2,0,5,2,5,5)] = (m2_el*(DTOT_el*pdgm1 - pm1))/DTOT2;
+	dAdU[conta(4,1,2,1,5,2,5,5)] = (m2_el*pdsm1)/DTOT_el;
+	dAdU[conta(4,1,2,2,5,2,5,5)] = (m2_el*pm1m1)/DTOT_el;
+	dAdU[conta(4,1,2,3,5,2,5,5)] = pm1/DTOT_el;
 			
-	dAdU[conta(4,1,3,0,5,2,5,5)] = (-etot_el - p_el + rom*(pdg + m2_el*pdgm2) - m2_el*pm2)/rom2;
-	dAdU[conta(4,1,3,1,5,2,5,5)] = (-etot_el + rom*(pds + m2_el*pdsm2) - m2_el*pm2 - p_el)/rom2;  
-	dAdU[conta(4,1,3,2,5,2,5,5)] = pm1/rom;
-	dAdU[conta(4,1,3,3,5,2,5,5)] = (m2_el*pm2m2 + 2*pm2)/rom;
-	dAdU[conta(4,1,3,4,5,2,5,5)] = (1 + pet)/rom;
+	dAdU[conta(4,1,3,0,5,2,5,5)] = -((etot_el - DTOT_el*(pdg + m2_el*pdgm2) + m2_el*pm2 + p_el)/DTOT2);
+	dAdU[conta(4,1,3,1,5,2,5,5)] = (pds + m2_el*pdsm2)/DTOT_el;  
+	dAdU[conta(4,1,3,2,5,2,5,5)] = pm1/DTOT_el;
+	dAdU[conta(4,1,3,3,5,2,5,5)] = (2*pm2 + m2_el*pm2m2)/DTOT_el;
+	dAdU[conta(4,1,3,4,5,2,5,5)] = (1 + pet)/DTOT_el;
 			
-	dAdU[conta(4,1,4,0,5,2,5,5)] = (m2_el*(-1.0 + rom*pdget - pet))/rom2;
-	dAdU[conta(4,1,4,1,5,2,5,5)] = (m2_el*(-1 + rom*pdset - pet))/rom2;
-	dAdU[conta(4,1,4,3,5,2,5,5)] = (1 + pet)/rom;
+	dAdU[conta(4,1,4,0,5,2,5,5)] = (m2_el*(-1 + DTOT_el*pdget - pet))/DTOT2;
+	dAdU[conta(4,1,4,1,5,2,5,5)] = (m2_el*pdset)/DTOT_el;
+	dAdU[conta(4,1,4,3,5,2,5,5)] = (1 + pet)/DTOT_el;
 
     for (i = 0; i < nScalarVariables*nScalarVariables; i++)   S(i) = 0.0;
-
+																				// CONTROLLARE S					
     S(2*nScalarVariables + 0) = f_gauss(0);
-    S(2*nScalarVariables + 1) = f_gauss(0);
     S(3*nScalarVariables + 0) = f_gauss(1);
-    S(3*nScalarVariables + 1) = f_gauss(1);
     S(4*nScalarVariables + 0) = r_gauss;
-    S(4*nScalarVariables + 1) = r_gauss;
     S(4*nScalarVariables + 2) = f_gauss(0);
     S(4*nScalarVariables + 3) = f_gauss(1);
 
@@ -632,10 +602,8 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 		pp = i*nScalarVariables*nScalarVariables;
 		
 		Lstar[pp + 2*nScalarVariables + 0] = N[i]*S[2*nScalarVariables + 0];
-		Lstar[pp + 2*nScalarVariables + 1] = N[i]*S[2*nScalarVariables + 1];
 		Lstar[pp + 3*nScalarVariables + 0] = N[i]*S[3*nScalarVariables + 0];
-		Lstar[pp + 3*nScalarVariables + 1] = N[i]*S[3*nScalarVariables + 1];
-		
+				
 		for (k = 0; k < nScalarVariables - 1; k++){
 			Lstar[pp + 4*nScalarVariables + k] = N[i]*S[4*nScalarVariables + k];
 		}
@@ -691,10 +659,10 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 
 	invtauStab[0] =	stab_c2*(norm_u + SpeedSound)/h; 
     invtauStab[1] =	stab_c2*(norm_u + SpeedSound)/h; 
-	invtauStab[2] =	stab_c1*mu_mixture/(rom*h*h) + invtauStab[0];
+	invtauStab[2] =	stab_c1*mu_mixture/(DTOT_el*h*h) + invtauStab[0];
 	invtauStab[3] =	invtauStab[2];
-	invtauStab[4] = stab_c1*lambda_mixture/(rom*Cp_mixture*h*h) + invtauStab[0];  
-
+	invtauStab[4] = stab_c1*lambda_mixture/(DTOT_el*Cp_mixture*h*h) + invtauStab[0];  
+// controllare L
     L[0] = 0.0;
     L[1] = 0.0;
     L[2] = -S[2*nScalarVariables + 0]*U_gauss[0] - S[2*nScalarVariables + 1]*U_gauss[1];
@@ -736,41 +704,36 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
     for (i = 0; i < sizeK;  i++)    K[i]  = 0.0;
     for (i = 0; i < sizeKT; i++)    KT[i] = 0.0;
 			
-	K[conta(0,0,0,0,2,2,5,2)] =  (-2.0 + ctau)*m1_el/rom2;
-	K[conta(0,0,0,1,2,2,5,2)] =  ctau*m2_el/rom2;
-	K[conta(0,0,1,0,2,2,5,2)] =  (-2.0 + ctau)*m1_el/rom2;
-	K[conta(0,0,1,1,2,2,5,2)] =  ctau*m2_el/rom2;
-	K[conta(0,0,2,0,2,2,5,2)] =  (2.0 - ctau)/rom;
-	K[conta(0,0,3,1,2,2,5,2)] = -ctau/rom;  
+		K[conta(0,0,0,0,2,2,5,2)] =  (-2.0 + ctau)*m1_el/DTOT2;
+	K[conta(0,0,0,1,2,2,5,2)] =  ctau*m2_el/DTOT2;
+	K[conta(0,0,2,0,2,2,5,2)] =  (2.0 - ctau)/DTOT_el;
+	K[conta(0,0,3,1,2,2,5,2)] = -ctau/DTOT_el;  
 	
-	K[conta(0,1,0,0,2,2,5,2)] = -m2_el/rom2;
-	K[conta(0,1,0,1,2,2,5,2)] = -m1_el/rom2;
-	K[conta(0,1,1,0,2,2,5,2)] = -m2_el/rom2;
-	K[conta(0,1,1,1,2,2,5,2)] = -m1_el/rom2;  
-	K[conta(0,1,2,1,2,2,5,2)] =  1.0/rom; 
-	K[conta(0,1,3,0,2,2,5,2)] =  1.0/rom;
+	K[conta(0,1,0,0,2,2,5,2)] = -m2_el/DTOT2;
+	K[conta(0,1,0,1,2,2,5,2)] = -m1_el/DTOT2;
+	K[conta(0,1,2,1,2,2,5,2)] =  1.0/DTOT_el; 
+	K[conta(0,1,3,0,2,2,5,2)] =  1.0/DTOT_el;
 	
+////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
-	K[conta(1,0,0,0,2,2,5,2)] = -m2_el/rom2;
-	K[conta(1,0,0,1,2,2,5,2)] = -m1_el/rom2;
-	K[conta(1,0,1,0,2,2,5,2)] = -m2_el/rom2;
-	K[conta(1,0,1,1,2,2,5,2)] = -m1_el/rom2;
-	K[conta(1,0,2,1,2,2,5,2)] =  1.0/rom;
-	K[conta(1,0,3,0,2,2,5,2)] =  1.0/rom; 
+	K[conta(1,0,0,0,2,2,5,2)] = -m2_el/DTOT2;
+	K[conta(1,0,0,1,2,2,5,2)] = -m1_el/DTOT2;
+	K[conta(1,0,2,1,2,2,5,2)] =  1.0/DTOT_el;
+	K[conta(1,0,3,0,2,2,5,2)] =  1.0/DTOT_el; 
 	
-	K[conta(1,1,0,0,2,2,5,2)] =  ctau*m1_el/rom2;
-	K[conta(1,1,0,1,2,2,5,2)] =  (ctau - 2.0)*m2_el/rom2;
-	K[conta(1,1,1,0,2,2,5,2)] =  ctau*m1_el/rom2;
-	K[conta(1,1,1,1,2,2,5,2)] =  (ctau - 2.0)*m2_el/rom2;
-	K[conta(1,1,2,0,2,2,5,2)] = -ctau/rom;
-	K[conta(1,1,3,1,2,2,5,2)] =  (2.0 - ctau)/rom;
+	K[conta(1,1,0,0,2,2,5,2)] =  ctau*m1_el/DTOT2;
+	K[conta(1,1,0,1,2,2,5,2)] =  (ctau - 2.0)*m2_el/DTOT2;
+	K[conta(1,1,2,0,2,2,5,2)] = -ctau/DTOT_el;
+	K[conta(1,1,3,1,2,2,5,2)] =  (2.0 - ctau)/DTOT_el;
+
 
 	
 	KT[0] =  pdg/(DG_el*R) - p_el/(DG_el*DG_el*R);
-	KT[1] =  pds/(DG_el*R);
+	KT[1] =  pds/(DG_el*R) + p_el/(DG_el*DG_el*R);
 	KT[2] =  pm1/(DG_el*R);
 	KT[3] =  pm2/(DG_el*R);
 	KT[4] =  pet/(DG_el*R);
+
 
     for (i = 0; i < SpaceDimension; i++){
         
@@ -794,7 +757,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
         }
     }
 
-    ShockCapturing(mu_mixture, lambda_mixture, Cv_mixture, ros, h, ds_diff, tau, q, rom, gradU, Residual);
+    ShockCapturing(mu_mixture, lambda_mixture, Cv_mixture, ros, h, ds_diff, tau, q, DTOT_el, gradU, Residual,a_el);
 
     // Build diffusive term: Diffusion tensor
 
@@ -812,7 +775,7 @@ void CompressibleBiphaseNavierStokesExplicit<2>::ComputeGaussPointRHSContributio
 		G[4*SpaceDimension + j] = q[j];
 
 		for (i = 0; i < SpaceDimension; i++)
-            G[4*SpaceDimension + j] += (-U_gauss[i + 2]/rom*tau[i*SpaceDimension + j]);
+            G[4*SpaceDimension + j] += (-U_gauss[i + 2]/DTOT_el*tau[i*SpaceDimension + j]);
 
 	}
 

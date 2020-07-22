@@ -85,6 +85,8 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RK4)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RHS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RHS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RK4)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_GAS_RHS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_GAS_RK4)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_SOLID_RHS)
@@ -94,10 +96,10 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         
         
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_SOLID)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_GAS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
@@ -139,8 +141,8 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Z, KratosMultiphysics.REACTION_Z, self.main_model_part)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosFluid.DENSITY_GAS, KratosFluid.REACTION_DENSITY_GAS, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
+        # KratosMultiphysics.VariableUtils().AddDof(KratosFluid.DENSITY_GAS, KratosFluid.REACTION_DENSITY_GAS, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosFluid.DENSITY_SOLID, KratosFluid.REACTION_DENSITY_SOLID, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TOTAL_ENERGY, KratosFluid.REACTION_ENERGY, self.main_model_part)
 

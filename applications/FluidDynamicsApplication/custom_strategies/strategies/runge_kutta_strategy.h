@@ -173,7 +173,7 @@ public:
         if (this->mReformDofSetAtEachStep)      ComputeNodalMass();
         
         // Initialize the first step
-        SetVariablesToZero(DENSITY_GAS_RK4, DENSITY_SOLID_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
+        SetVariablesToZero(DENSITY_RK4, DENSITY_SOLID_RK4, MOMENTUM_RK4, TOTAL_ENERGY_RK4);
         int step = 0;
         
         // Compute the slope
@@ -245,21 +245,22 @@ public:
         {
             auto it_node    = r_model_part.NodesBegin() + i;
 
-            double denG     = it_node->FastGetSolutionStepValue(DENSITY_GAS);
+            double denT     = it_node->FastGetSolutionStepValue(DENSITY);
             double denS     = it_node->FastGetSolutionStepValue(DENSITY_SOLID);
             array_1d<double,3> mom = it_node->FastGetSolutionStepValue(MOMENTUM);
             double ene = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
 
+            double denG     = denT - denS;
+
             double Cmixed   = denG*c_v + denS*cs;
 
             double vel      = norm_2(mom)/(denG + denS);
-            double rom      = denG + denS;
             
-            noalias(it_node->FastGetSolutionStepValue(VELOCITY)) = mom/rom;
+            noalias(it_node->FastGetSolutionStepValue(VELOCITY)) = mom/denT;
 
             double sol_conc = denS/ros;
 
-            double amount   = ene - 0.5*(mom[0]*mom[0] + mom[1]*mom[1] + mom[2]*mom[2])/rom; 
+            double amount   = ene - 0.5*(mom[0]*mom[0] + mom[1]*mom[1] + mom[2]*mom[2])/denT; 
             double temp     = 1.0/Cmixed*amount;
             double pressure = denG*R*temp;
 
@@ -426,7 +427,7 @@ private:
         const int n_elements = static_cast<int>(r_model_part.NumberOfElements());
         const int n_conditions = static_cast<int>(r_model_part.NumberOfConditions());
 
-        SetVariablesToZero(DENSITY_GAS_RHS, DENSITY_SOLID_RHS, MOMENTUM_RHS, TOTAL_ENERGY_RHS);
+        SetVariablesToZero(DENSITY_RHS, DENSITY_SOLID_RHS, MOMENTUM_RHS, TOTAL_ENERGY_RHS);
 
         #pragma omp parallel firstprivate(n_elements, n_conditions)
         {
@@ -490,10 +491,10 @@ private:
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn + StepFactor * dt/mass * dq;
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM_RK4)) += GlobalFactor * dt/mass * dq;
 
-            auto hn = it_node->FastGetSolutionStepValue(DENSITY_GAS,1);
-            auto dh = it_node->FastGetSolutionStepValue(DENSITY_GAS_RHS);
-            it_node->FastGetSolutionStepValue(DENSITY_GAS) = hn + StepFactor * dt/mass * dh;
-            it_node->FastGetSolutionStepValue(DENSITY_GAS_RK4) += GlobalFactor * dt/mass * dh;
+            auto hn = it_node->FastGetSolutionStepValue(DENSITY,1);
+            auto dh = it_node->FastGetSolutionStepValue(DENSITY_RHS);
+            it_node->FastGetSolutionStepValue(DENSITY) = hn + StepFactor * dt/mass * dh;
+            it_node->FastGetSolutionStepValue(DENSITY_RK4) += GlobalFactor * dt/mass * dh;
 
             auto hn1 = it_node->FastGetSolutionStepValue(DENSITY_SOLID,1);
             auto dh1 = it_node->FastGetSolutionStepValue(DENSITY_SOLID_RHS);
@@ -524,10 +525,10 @@ private:
             auto dq = it_node->FastGetSolutionStepValue(MOMENTUM_RK4);
             noalias(it_node->FastGetSolutionStepValue(MOMENTUM)) = qn + dq;
 
-            auto hn = it_node->FastGetSolutionStepValue(DENSITY_GAS,1);
-            auto dh = it_node->FastGetSolutionStepValue(DENSITY_GAS_RK4);
-            it_node->FastGetSolutionStepValue(DENSITY_GAS) = hn + dh;
-
+            auto hn = it_node->FastGetSolutionStepValue(DENSITY,1);
+            auto dh = it_node->FastGetSolutionStepValue(DENSITY_RK4);
+            it_node->FastGetSolutionStepValue(DENSITY) = hn + dh;
+            
             auto hn1 = it_node->FastGetSolutionStepValue(DENSITY_SOLID,1);
             auto dh1 = it_node->FastGetSolutionStepValue(DENSITY_SOLID_RK4);
             it_node->FastGetSolutionStepValue(DENSITY_SOLID) = hn1 + dh1;
@@ -541,7 +542,7 @@ private:
 
         double mom_x = it_node->FastGetSolutionStepValue(MOMENTUM_X);
         double mom_y = it_node->FastGetSolutionStepValue(MOMENTUM_Y);
-        double deng = it_node->FastGetSolutionStepValue(DENSITY_GAS);
+        double deng = it_node->FastGetSolutionStepValue(DENSITY);
         double dens = it_node->FastGetSolutionStepValue(DENSITY_SOLID);
         double ene = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
 
@@ -564,7 +565,7 @@ private:
 
         if (r_model_part.NodesBegin() != r_model_part.NodesEnd())       // Che cosa sta facendo qui?
         {
-            const size_t pos_density_gas = (r_model_part.NodesBegin())->GetDofPosition(DENSITY_GAS);
+            const size_t pos_density = (r_model_part.NodesBegin())->GetDofPosition(DENSITY);
             const size_t pos_density_solid = (r_model_part.NodesBegin())->GetDofPosition(DENSITY_SOLID);
             const size_t pos_momentum_x = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_X);
             const size_t pos_momentum_y = (r_model_part.NodesBegin())->GetDofPosition(MOMENTUM_Y);
@@ -608,10 +609,10 @@ private:
                     }
                 }
 
-                if (it_node->GetDof(DENSITY_GAS, pos_density_gas).IsFixed())
+                if (it_node->GetDof(DENSITY, pos_density).IsFixed())
                 {
-                    mFixedDofsSet.push_back(it_node->pGetDof(DENSITY_GAS));
-                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(DENSITY_GAS));
+                    mFixedDofsSet.push_back(it_node->pGetDof(DENSITY));
+                    mFixedDofsValues.push_back(it_node->FastGetSolutionStepValue(DENSITY));
                     NDenG++;
                 }
 

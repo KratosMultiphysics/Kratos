@@ -248,7 +248,7 @@ public:
         for (size_t i = 0; i < TNumNodes; ++i)
         {   
             #pragma omp atomic
-            r_geom[i].FastGetSolutionStepValue(DENSITY_GAS_RHS) += rRightHandSideVector[BlockSize*i];
+            r_geom[i].FastGetSolutionStepValue(DENSITY_RHS) += rRightHandSideVector[BlockSize*i];
 
             #pragma omp atomic
             r_geom[i].FastGetSolutionStepValue(DENSITY_SOLID_RHS) += rRightHandSideVector[BlockSize*i + 1];
@@ -320,8 +320,8 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing MOMENTUM variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(TOTAL_ENERGY) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing TOTAL_ENERGY variable on solution step data for node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY_GAS) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_GAS variable on solution step data for node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY_SOLID) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_SOLID variable on solution step data for node ",this->GetGeometry()[i].Id());
 
@@ -332,8 +332,8 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing MOMENTUM component degree of freedom on node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing TOTAL_ENERGY component degree of freedom on node ",this->GetGeometry()[i].Id());
-            if(this->GetGeometry()[i].HasDofFor(DENSITY_GAS) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_GAS component degree of freedom on node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].HasDofFor(DENSITY) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY component degree of freedom on node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(DENSITY_SOLID) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Missing DENSITY_SOLID component degree of freedom on node ",this->GetGeometry()[i].Id());
         }
@@ -510,9 +510,9 @@ protected:
                 rData.Up(i,k+2)  = momentp[k];
                 rData.f_ext(i,k)   = body_force[k];
             }
-            rData.U(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_GAS);
-            rData.Un(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_GAS,1);
-            rData.Up(i,0)= (this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_GAS_RHS))/mass;
+            rData.U(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+            rData.Un(i,0)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
+            rData.Up(i,0)= (this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_RHS))/mass;
             
             rData.U(i,1)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_SOLID);
             rData.Un(i,1)= this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY_SOLID,1);
