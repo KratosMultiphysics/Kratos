@@ -27,6 +27,7 @@
 #include "custom_processes/apply_chimera_process_monolithic.h"
 #include "custom_processes/apply_chimera_process_fractional_step.h"
 #include "custom_processes/rotate_region_process.h"
+#include "custom_processes/sliding_interface_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
 
@@ -72,6 +73,9 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")
         .def(py::init<ModelPart &, Parameters>());
+
+    py::class_<SlidingInterfaceProcess, SlidingInterfaceProcess::Pointer, Process>(m, "SlidingInterfaceProcess")
+        .def(py::init<ModelPart &, ModelPart &, Parameters>());
 }
 
 } // namespace Python.
