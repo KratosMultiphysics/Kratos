@@ -217,7 +217,7 @@ protected:
 
         KRATOS_INFO_IF("RansFractionalStepStrategy", BaseType::GetEchoLevel() > 0)
             << "Calculating Pressure." << std::endl;
-        double NormDp = this->mpPressureStrategy->Solve();
+        double norm_dp = this->mpPressureStrategy->Solve();
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
@@ -234,7 +234,7 @@ protected:
         this->CalculateEndOfStepVelocity();
 
         // Set the output tuple as the fractional velocity convergence and pressure norm
-        return std::make_tuple(converged, NormDp);
+        return std::make_tuple(converged, norm_dp);
     }
 
     ///@}
