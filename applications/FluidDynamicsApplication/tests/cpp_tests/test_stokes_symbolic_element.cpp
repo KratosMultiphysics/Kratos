@@ -268,6 +268,111 @@ namespace Kratos {
             std::vector<double> LHS_row_0_expected({1875.000011, 156.2500033, 0.1666666667, 624.9999939, 156.2499983, 0.1666666667, 312.4999944, -156.2500033, 0.08333333333, 937.5000006, -156.2499983, 0.08333333333});
             KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
         }
+
+        /** Checks the SymbolicStokes2D4N element.
+         * Checks the LHS and RHS stationary solid rigid movements.
+         */
+        KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes2D4NStationary, FluidDynamicsApplicationFastSuite)
+        {
+            Model model;
+            ModelPart &r_model_part = model.CreateModelPart("Main", 3);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+            r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            // Process info creation
+            double delta_time = 0.1;
+            r_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 1.0);
+            r_model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 0.0;
+            bdf_coefs[1] = 0.0;
+            bdf_coefs[2] = 0.0;
+            r_model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+            // Set the element properties
+            Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(1);
+            p_elem_prop->SetValue(DENSITY, 1.0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1.0);
+            Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+            r_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+            std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
+            r_model_part.CreateNewElement("SymbolicStokes2D4N", 1, elem_nodes, p_elem_prop);
+
+            auto p_element = r_model_part.pGetElement(1);
+
+            // Define the nodal values
+            array_1d<double, 3> velocity_values;
+            velocity_values[0] = 0.0;
+            velocity_values[1] = 0.0;
+            velocity_values[2] = 0.0;
+            double pressure_value = 0.0;
+
+            // Set the nodal values
+            for (NodeIteratorType it_node = r_model_part.NodesBegin(); it_node < r_model_part.NodesEnd(); ++it_node)
+            {
+                it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
+                it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
+            }
+
+            // Compute RHS and LHS
+            Vector RHS = ZeroVector(12);
+            Matrix LHS = ZeroMatrix(12, 12);
+
+            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+            // Check obtained RHS
+            double sum_RHS = 0.0;
+            for (unsigned int i = 0; i < RHS.size(); ++i)
+            {
+                sum_RHS += RHS[i];
+            }
+            KRATOS_CHECK_NEAR(sum_RHS, 0.0, TOLERANCE);
+
+            // Check rigid movement modes
+            Vector a(12);
+            Vector rhs(12);
+            double sum_rhs;
+            // Mode 1 check
+            a[0] = 1.0; a[1] = 0.0; a[2] = 0.0; a[3] = 1.0; a[4] = 0.0; a[5] = 0.0; a[6] = 1.0; a[7] = 0.0; a[8] = 0.0; a[9] = 1.0; a[10] = 0.0; a[11] = 0.0;
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+
+            // Mode 2 check
+            a[0] = 0.0; a[1] = 1.0; a[2] = 0.0; a[3] = 0.0; a[4] = 1.0; a[5] = 0.0; a[6] = 0.0; a[7] = 1.0; a[8] = 0.0; a[9] = 0.0; a[10] = 1.0; a[11] = 0.0;
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+
+            // Mode 3 check
+            a[0] = 1.0; a[1] = 1.0; a[2] = 0.0; a[3] = 1.0; a[4] = 1.0; a[5] = 0.0; a[6] = 1.0; a[7] = 1.0; a[8] = 0.0; a[9] = 1.0; a[10] = 1.0; a[11] = 0.0;
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+        }
+
 	    // /** Checks the SymbolicStokes3D4N element.
 	    //  * Checks the LHS and RHS computation using a small perturbation.
 	    //  */
