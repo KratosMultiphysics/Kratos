@@ -47,33 +47,94 @@ namespace TestCreationUtility
         SizeType q = 1;
 
         Vector knot_u = ZeroVector(2*(p+1));
-        for(IndexType index = 0; index < knot_u.size()/2; ++index) {
-            knot_u[index] = 0.0;
+
+        if (p == 3)
+        {
+            knot_u[0] = 0.0;
+            knot_u[1] = 0.0;
+            knot_u[2] = 0.0;
+            knot_u[3] = 0.0;
+            knot_u[4] = 1.0;
+            knot_u[5] = 1.0;
+            knot_u[6] = 1.0;
+            knot_u[7] = 1.0;
         }
-        for(IndexType index = knot_u.size()/2; index < knot_u.size(); ++index) {
-            knot_u[index] = 1.0;
+        else if(p == 4)
+        {
+            knot_u[0] = 0.0;
+            knot_u[1] = 0.0;
+            knot_u[2] = 0.0;
+            knot_u[3] = 0.0;
+            knot_u[4] = 0.0;
+            knot_u[5] = 1.0;
+            knot_u[6] = 1.0;
+            knot_u[7] = 1.0;
+            knot_u[8] = 1.0;
+            knot_u[9] = 1.0;
+        }
+        else if(p == 5)
+        {
+            knot_u[0] = 0.0;
+            knot_u[1] = 0.0;
+            knot_u[2] = 0.0;
+            knot_u[3] = 0.0;
+            knot_u[4] = 0.0;
+            knot_u[5] = 0.0;
+            knot_u[6] = 1.0;
+            knot_u[7] = 1.0;
+            knot_u[8] = 1.0;
+            knot_u[9] = 1.0;
+            knot_u[10] = 1.0;
+            knot_u[11] = 1.0;
         }
 
-        Vector knot_v = ZeroVector(2*(q+1));
-        for(IndexType index = 0; index < knot_v.size()/2; ++index) {
-            knot_v[index] = 0.0;
-        }
-        for(IndexType index = knot_v.size()/2; index < knot_v.size(); ++index) {
-            knot_v[index] = 1.0;
-        }
+        array_1d<double, 4> knot_v;
 
+        knot_v[0] = 0.0;
+        knot_v[1] = 0.0;
+        knot_v[2] = 1.0;
+        knot_v[3] = 1.0;
+        
         NodeVector points((p+1)*(q+1));
-        for(IndexType index = 0; index < points.size()/2; ++index) {
-            double x = 1.0*index/PolynomialDegree;
-            double y = -0.05;
-            double z = 0.0;
-            points(index) = rModelPart.CreateNewNode(index + 1, x, y, z);
+
+        if (p == 3)
+        {
+            points(0) = rModelPart.CreateNewNode(1, 0.0, -0.05, 0.0);
+            points(1) = rModelPart.CreateNewNode(2, 0.333333333333333, -0.05, 0.0);
+            points(2) = rModelPart.CreateNewNode(3, 0.666666666666667, -0.05, 0.0);
+            points(3) = rModelPart.CreateNewNode(4, 1.0, -0.05, 0.0);
+            points(4) = rModelPart.CreateNewNode(5, 0.0, 0.05, 0.0);
+            points(5) = rModelPart.CreateNewNode(6, 0.333333333333333, 0.05, 0.0);
+            points(6) = rModelPart.CreateNewNode(7, 0.666666666666667, 0.05, 0.0);
+            points(7) = rModelPart.CreateNewNode(8, 1.0, 0.05, 0.0);
         }
-        for(IndexType index = points.size()/2; index < points.size(); ++index) {
-            double x = 1.0*(index - PolynomialDegree -1)/PolynomialDegree;
-            double y = 0.05;
-            double z = 0.0;
-            points(index) = rModelPart.CreateNewNode(index + 1, x, y, z);
+        else if (p == 4)
+        {
+            points(0) = rModelPart.CreateNewNode(1, 0.0, -0.05, 0.0);
+            points(1) = rModelPart.CreateNewNode(2, 0.25, -0.05, 0.0);
+            points(2) = rModelPart.CreateNewNode(3, 0.5, -0.05, 0.0);
+            points(3) = rModelPart.CreateNewNode(4, 0.75, -0.05, 0.0);
+            points(4) = rModelPart.CreateNewNode(5, 1.0, -0.05, 0.0);
+            points(5) = rModelPart.CreateNewNode(6, 0.0, 0.05, 0.0);
+            points(6) = rModelPart.CreateNewNode(7, 0.25, 0.05, 0.0);
+            points(7) = rModelPart.CreateNewNode(8, 0.5, 0.05, 0.0);
+            points(8) = rModelPart.CreateNewNode(9, 0.75, 0.05, 0.0);
+            points(9) = rModelPart.CreateNewNode(10, 1.0, 0.05, 0.0);
+        }
+        else if (p == 5)
+        {
+            points(0) = rModelPart.CreateNewNode(1, 0.0, -0.05, 0.0);
+            points(1) = rModelPart.CreateNewNode(2, 0.2, -0.05, 0.0);
+            points(2) = rModelPart.CreateNewNode(3, 0.4, -0.05, 0.0);
+            points(3) = rModelPart.CreateNewNode(4, 0.6, -0.05, 0.0);
+            points(4) = rModelPart.CreateNewNode(5, 0.8, -0.05, 0.0);
+            points(5) = rModelPart.CreateNewNode(6, 1.0, -0.05, 0.0);
+            points(6) = rModelPart.CreateNewNode(7, 0.0, 0.05, 0.0);
+            points(7) = rModelPart.CreateNewNode(8, 0.2, 0.05, 0.0);
+            points(8) = rModelPart.CreateNewNode(9, 0.4, 0.05, 0.0);
+            points(9) = rModelPart.CreateNewNode(10, 0.6, 0.05, 0.0);
+            points(10) = rModelPart.CreateNewNode(11, 0.8, 0.05, 0.0);
+            points(11) = rModelPart.CreateNewNode(12, 1.0, 0.05, 0.0);
         }
 
         return NurbsSurfaceType(
