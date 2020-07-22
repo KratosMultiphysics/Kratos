@@ -38,7 +38,7 @@
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "free_stream_density"  : 1.225,
-                "mach_infinity": 0.6,
+                "mach_infinity": 0.75,
                 "heat_capacity_ratio": 1.4,
                 "perturbation_field": true
             }
