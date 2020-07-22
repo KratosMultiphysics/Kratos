@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,7 +29,8 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2N_SetUp(Model& rModel)
+ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2N_SetUp(
+    Model& rModel)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
@@ -53,7 +54,8 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2N_SetUp(Model& rModel)
     return r_model_part;
 }
 
-ModelPart& RansIncompressiblePotentialFlowPressureBodyForce2D2N_SetUp(Model& rModel)
+ModelPart& RansIncompressiblePotentialFlowPressureBodyForce2D2N_SetUp(
+    Model& rModel)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);

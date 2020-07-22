@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,7 +29,8 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansKOmegaOmegaKBasedWall2D2N_SetUp(Model& rModel)
+ModelPart& RansKOmegaOmegaKBasedWall2D2N_SetUp(
+    Model& rModel)
 {
     ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2N_SetUp(
         rModel, "RansKOmegaOmegaKBasedWall2D2N");
@@ -37,7 +38,8 @@ ModelPart& RansKOmegaOmegaKBasedWall2D2N_SetUp(Model& rModel)
     return r_model_part;
 }
 
-ModelPart& RansKOmegaOmegaUBasedWall2D2N_SetUp(Model& rModel)
+ModelPart& RansKOmegaOmegaUBasedWall2D2N_SetUp(
+    Model& rModel)
 {
     ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2N_SetUp(
         rModel, "RansKOmegaOmegaUBasedWall2D2N");

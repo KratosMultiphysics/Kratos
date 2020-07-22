@@ -1,11 +1,11 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
 //
@@ -30,45 +30,8 @@
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>& IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::operator=(
-    IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes> const& rOther)
-{
-    Condition::operator=(rOther);
-
-    return *this;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-{
-    return Kratos::make_intrusive<IncompressiblePotentialFlowPressureBodyForceCondition>(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
-{
-    return Kratos::make_intrusive<IncompressiblePotentialFlowPressureBodyForceCondition>(
-        NewId, pGeom, pProperties);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Clone(
-    IndexType NewId, NodesArrayType const& rThisNodes) const
-{
-    Condition::Pointer pNewCondition = Create(
-        NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
-
-    pNewCondition->SetData(this->GetData());
-    pNewCondition->SetFlags(this->GetFlags());
-
-    return pNewCondition;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-int IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Check(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -76,8 +39,7 @@ int IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Chec
 
     const GeometryType& r_geometry = this->GetGeometry();
 
-    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
-    {
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const NodeType& r_node = r_geometry[i_node];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_POTENTIAL, r_node);
@@ -105,39 +67,46 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Ini
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::EquationIdVector(
-    EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
-    if (rResult.size() != TNumNodes)
+    if (rResult.size() != TNumNodes) {
         rResult.resize(TNumNodes, false);
+    }
 
-    for (unsigned int i = 0; i < TNumNodes; ++i)
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
         rResult[i] = Condition::GetGeometry()[i].GetDof(PRESSURE_POTENTIAL).EquationId();
+    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::GetDofList(
-    DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const
+    DofsVectorType& ConditionDofList,
+    const ProcessInfo& CurrentProcessInfo) const
 {
-    if (ConditionDofList.size() != TNumNodes)
+    if (ConditionDofList.size() != TNumNodes) {
         ConditionDofList.resize(TNumNodes);
+    }
 
-    for (unsigned int i = 0; i < TNumNodes; ++i)
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
         ConditionDofList[i] = Condition::GetGeometry()[i].pGetDof(PRESSURE_POTENTIAL);
+    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::GetValuesVector(
-    VectorType& rValues, int Step) const
+    VectorType& rValues,
+    int Step) const
 {
-    if (rValues.size() != TNumNodes)
+    if (rValues.size() != TNumNodes) {
         rValues.resize(TNumNodes, false);
+    }
 
-    const GeometryType& rGeom = this->GetGeometry();
-    IndexType LocalIndex = 0;
-    for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
-    {
-        rValues[LocalIndex++] =
-            rGeom[iNode].FastGetSolutionStepValue(PRESSURE_POTENTIAL, Step);
+    const GeometryType& r_geometry = this->GetGeometry();
+    IndexType local_index = 0;
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+        rValues[local_index++] =
+            r_geometry[i_node].FastGetSolutionStepValue(PRESSURE_POTENTIAL, Step);
     }
 }
 
@@ -149,7 +118,9 @@ GeometryData::IntegrationMethod IncompressiblePotentialFlowPressureBodyForceCond
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculate RHS
     this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
@@ -160,12 +131,14 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
+    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
         rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    }
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
@@ -174,12 +147,14 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if (rRightHandSideVector.size() != TNumNodes)
+    if (rRightHandSideVector.size() != TNumNodes) {
         rRightHandSideVector.resize(TNumNodes, false);
+    }
 
     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
@@ -194,8 +169,7 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
     array_1d<double, 3> r_normal = this->GetValue(NORMAL);
     r_normal = r_normal * (1.0 / norm_2(r_normal));
 
-    for (IndexType g = 0; g < num_gauss_points; ++g)
-    {
+    for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Vector gauss_shape_functions = row(shape_functions, g);
 
         const array_1d<double, 3>& r_body_force = RansCalculationUtilities::EvaluateInPoint(
@@ -206,8 +180,7 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
         const double value =
             density * inner_prod(r_body_force, r_normal) * gauss_weights[g];
 
-        for (IndexType a = 0; a < TNumNodes; ++a)
-        {
+        for (IndexType a = 0; a < TNumNodes; ++a) {
             rRightHandSideVector[a] += value * gauss_shape_functions[a];
         }
     }

@@ -1,11 +1,11 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
 //
@@ -36,7 +36,9 @@ namespace Kratos
  * @tparam TDim       Dimensionality of the condition (2D or 3D)
  * @tparam TNumNodes  Number of nodes in the condition
  */
-template <unsigned int TDim, unsigned int TNumNodes = TDim>
+template <
+    unsigned int TDim,
+    unsigned int TNumNodes = TDim>
 class IncompressiblePotentialFlowPressureBodyForceCondition : public Condition
 {
 public:
@@ -64,8 +66,9 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit IncompressiblePotentialFlowPressureBodyForceCondition(IndexType NewId = 0)
-        : BaseType(NewId)
+    explicit IncompressiblePotentialFlowPressureBodyForceCondition(
+        IndexType NewId = 0)
+    : BaseType(NewId)
     {
     }
 
@@ -74,9 +77,10 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    IncompressiblePotentialFlowPressureBodyForceCondition(IndexType NewId,
-                                                          const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    IncompressiblePotentialFlowPressureBodyForceCondition(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : BaseType(NewId, ThisNodes)
     {
     }
 
@@ -85,9 +89,10 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    IncompressiblePotentialFlowPressureBodyForceCondition(IndexType NewId,
-                                                          GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    IncompressiblePotentialFlowPressureBodyForceCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
     {
     }
 
@@ -97,17 +102,18 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    IncompressiblePotentialFlowPressureBodyForceCondition(IndexType NewId,
-                                                          GeometryType::Pointer pGeometry,
-                                                          PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    IncompressiblePotentialFlowPressureBodyForceCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
     IncompressiblePotentialFlowPressureBodyForceCondition(
         IncompressiblePotentialFlowPressureBodyForceCondition const& rOther)
-        : BaseType(rOther)
+    : BaseType(rOther)
     {
     }
 
@@ -120,7 +126,11 @@ public:
 
     /// Assignment operator
     IncompressiblePotentialFlowPressureBodyForceCondition& operator=(
-        IncompressiblePotentialFlowPressureBodyForceCondition const& rOther);
+        IncompressiblePotentialFlowPressureBodyForceCondition const& rOther)
+    {
+        Condition::operator=(rOther);
+        return *this;
+    }
 
     ///@}
     ///@name Operations
@@ -132,13 +142,23 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<IncompressiblePotentialFlowPressureBodyForceCondition>(
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    }
 
-    Condition::Pointer Create(IndexType NewId,
-                              GeometryType::Pointer pGeom,
-                              PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<IncompressiblePotentialFlowPressureBodyForceCondition>(
+            NewId, pGeom, pProperties);
+    }
 
     /**
      * Clones the selected element variables, creating a new one
@@ -147,37 +167,54 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
+    Condition::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& rThisNodes) const override
+    {
+        Condition::Pointer p_new_condition = Create(
+            NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
 
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
+        p_new_condition->SetData(this->GetData());
+        p_new_condition->SetFlags(this->GetFlags());
+
+        return p_new_condition;
+    }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     void Initialize() override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList,
-                    const ProcessInfo& CurrentProcessInfo) const override;
+    void GetDofList(
+        DofsVectorType& ConditionDofList,
+        const ProcessInfo& CurrentProcessInfo) const override;
 
-    void GetValuesVector(VectorType& rValues, int Step = 0) const override;
+    void GetValuesVector(
+        VectorType& rValues,
+        int Step = 0) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -220,8 +257,9 @@ private:
 
 /// input stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>& rThis)
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }

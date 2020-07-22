@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,7 +29,8 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansIncompressiblePotentialFlowVelocity2D3N_SetUp(Model& rModel)
+ModelPart& RansIncompressiblePotentialFlowVelocity2D3N_SetUp(
+    Model& rModel)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
@@ -47,7 +48,8 @@ ModelPart& RansIncompressiblePotentialFlowVelocity2D3N_SetUp(Model& rModel)
     return r_model_part;
 }
 
-ModelPart& RansIncompressiblePotentialFlowPressure2D3N_SetUp(Model& rModel)
+ModelPart& RansIncompressiblePotentialFlowPressure2D3N_SetUp(
+    Model& rModel)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
@@ -103,7 +105,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
     Matrix LHS, ref_LHS(3, 3, 0.0);
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLocalSystem(LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLocalSystem(
+        LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = 1.0022880998012695e-01;
@@ -131,7 +134,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
     // Test:
     Matrix LHS, ref_LHS(3, 3, 0.0);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLeftHandSide(LHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLeftHandSide(
+        LHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_LHS(0, 0) = 5.0000000000000000e-01;
@@ -155,7 +159,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateR
     // Test:
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateRightHandSide(RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateRightHandSide(
+        RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = 1.0022880998012695e-01;
@@ -197,7 +202,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_CalculateL
     Matrix LHS, ref_LHS(3, 3, 0.0);
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLocalSystem(LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLocalSystem(
+        LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = -4.9568124092657282e+00;
@@ -225,7 +231,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_CalculateL
     // Test:
     Matrix LHS, ref_LHS(3, 3, 0.0);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLeftHandSide(LHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLeftHandSide(
+        LHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_LHS(0, 0) = 5.0000000000000000e-01;
@@ -249,7 +256,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_CalculateR
     // Test:
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateRightHandSide(RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateRightHandSide(
+        RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = -4.9568124092657282e+00;

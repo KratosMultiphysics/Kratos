@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_VELOCITY_ELEMENT_H_INCLUDED)
@@ -32,7 +32,8 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class IncompressiblePotentialFlowVelocityElement : public LaplaceElement<TDim, TNumNodes>
+class IncompressiblePotentialFlowVelocityElement
+: public LaplaceElement<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -66,42 +67,49 @@ public:
     /**
      * Constructor.
      */
-    explicit IncompressiblePotentialFlowVelocityElement(IndexType NewId = 0)
-        : BaseType(NewId)
+    explicit IncompressiblePotentialFlowVelocityElement(
+        IndexType NewId = 0)
+    : BaseType(NewId)
     {
     }
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowVelocityElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    IncompressiblePotentialFlowVelocityElement(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : BaseType(NewId, ThisNodes)
     {
     }
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowVelocityElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    IncompressiblePotentialFlowVelocityElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
     {
     }
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowVelocityElement(IndexType NewId,
-                                               GeometryType::Pointer pGeometry,
-                                               PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    IncompressiblePotentialFlowVelocityElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowVelocityElement(IncompressiblePotentialFlowVelocityElement const& rOther)
-        : BaseType(rOther)
+    IncompressiblePotentialFlowVelocityElement(
+        IncompressiblePotentialFlowVelocityElement const& rOther)
+    : BaseType(rOther)
     {
     }
 
@@ -126,9 +134,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
@@ -143,9 +152,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
@@ -160,7 +170,9 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
+    Element::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
@@ -173,28 +185,27 @@ public:
         return VELOCITY_POTENTIAL;
     }
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
-        if (rVariable == VELOCITY)
-        {
+
+        if (rVariable == VELOCITY) {
             Vector gauss_weights;
             Matrix shape_functions;
             ShapeFunctionDerivativesArrayType shape_derivatives;
             this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
             const IndexType num_gauss_points = gauss_weights.size();
 
-            if (rValues.size() != num_gauss_points)
-            {
+            if (rValues.size() != num_gauss_points) {
                 rValues.resize(num_gauss_points);
             }
 
             const GeometryType& r_geometry = this->GetGeometry();
 
-            for (IndexType g = 0; g < num_gauss_points; ++g)
-            {
+            for (IndexType g = 0; g < num_gauss_points; ++g) {
                 const Matrix& r_shape_derivatives = shape_derivatives[g];
 
                 array_1d<double, 3> velocity;
@@ -202,9 +213,7 @@ public:
                     velocity, r_geometry, VELOCITY_POTENTIAL, r_shape_derivatives);
                 rValues[g] = velocity;
             }
-        }
-        else
-        {
+        } else {
             KRATOS_ERROR << "GetValueOnIntegrationPoints for variable "
                          << rVariable.Name() << " not defined for " << this->Info();
         }
@@ -262,13 +271,15 @@ private:
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>& rThis);
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
