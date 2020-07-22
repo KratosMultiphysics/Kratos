@@ -470,7 +470,7 @@ namespace Kratos
                 .def("GetResetLumpedMassVectorFlag", &ExplicitBuilderType::GetResetLumpedMassVectorFlag)
                 .def("GetEquationSystemSize", &ExplicitBuilderType::GetEquationSystemSize)
                 .def("BuildRHS", &ExplicitBuilderType::BuildRHS)
-                // .def("ApplyConstraints", &ExplicitBuilderType::ApplyConstraints) //TODO: Export this once the explicit MPCs are implemented
+                .def("ApplyConstraints", &ExplicitBuilderType::ApplyConstraints)
                 .def("GetDofSet", [](ExplicitBuilderType& self) -> DofsArrayType& {return self.GetDofSet();}, py::return_value_policy::reference_internal)
                 .def("GetLumpedMassMatrixVector", &ExplicitBuilderType::GetLumpedMassMatrixVector, py::return_value_policy::reference_internal)
                 .def("Initialize", &ExplicitBuilderType::Initialize)
