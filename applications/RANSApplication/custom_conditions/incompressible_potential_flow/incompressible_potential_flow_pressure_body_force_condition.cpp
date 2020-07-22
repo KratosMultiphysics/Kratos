@@ -37,7 +37,7 @@ int IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Chec
 
     int Check = BaseType::Check(rCurrentProcessInfo);
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const NodeType& r_node = r_geometry[i_node];
@@ -102,7 +102,7 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Get
         rValues.resize(TNumNodes, false);
     }
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     IndexType local_index = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         rValues[local_index++] =
@@ -158,7 +158,7 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
 
     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     // Get Shape function data
     Vector gauss_weights;
     Matrix shape_functions;
