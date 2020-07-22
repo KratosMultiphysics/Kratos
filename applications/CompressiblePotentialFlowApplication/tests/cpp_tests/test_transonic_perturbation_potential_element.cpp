@@ -58,14 +58,6 @@ void GenerateTransonicPerturbationUpwindElement(ModelPart& rModelPart) {
     // Variables addition
     // Set the element properties
     Properties::Pointer pElemProp = rModelPart.CreateNewProperties(1);
-    rModelPart.GetProcessInfo()[FREE_STREAM_DENSITY] = 1.225;
-    rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
-    rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
-    rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
-    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
-    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
-    rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
-    rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
     // Geometry creation
     rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
@@ -81,20 +73,10 @@ void AssignPotentialsToNormalTransonicPerturbationElement(Element::Pointer pElem
         pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
 }
 
-void AssignPotentialsToSupersonicTransonicPerturbationElement(Element::Pointer pElement)
-{
-    std::array<double, 3> potential{10.0, 200.0, 150.0};
-
-    for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
-}
-
-void AssignPotentialsToHighSupersonicTransonicPerturbationElement(Element::Pointer pElement)
-{
-    std::array<double, 3> potential{10.0, 350.0, 150.0};
-
-    for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+void AssignPerturbationPotentialsToTransonicElement(Element& rElement, const std::array<double, 3> rPotential) {
+    for (unsigned int i = 0; i < 3; i++){
+        rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
+    }
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
@@ -193,15 +175,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
     pElement->Initialize(model_part.GetProcessInfo());
     pUpwindElement->SetFlags(INLET);
 
-    // velocity[0] : 394.18
-    // velocity[1] : -50
-    // local_mach_number_squared : 1.705
-    AssignPotentialsToSupersonicTransonicPerturbationElement(pElement);
-
-    // upwind_velocity[0] : 154.18
-    // upwind_velocity[1] : 149
-    // upwind_mach_number_squared : 0.3999
-    AssignPotentialsToNormalTransonicPerturbationElement(pUpwindElement);
+    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};
+    // mach number 1.92516
+    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    // mach number 0.39943
+    AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
 
     for (auto& r_node : model_part.Nodes()){
         r_node.AddDof(VELOCITY_POTENTIAL);
@@ -256,14 +235,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
     pElement->Initialize(model_part.GetProcessInfo());
     pUpwindElement->SetFlags(INLET);
 
-    // velocity[0] : 394.18
-    // velocity[1] : -50
-    // local_mach_number_squared : 1.705
-    AssignPotentialsToSupersonicTransonicPerturbationElement(pElement);
+    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
+    std::array<double, 3> higher_potential{10.0, 350.0, 150.0};
+    // mach number 1.92516
+    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    // mach number 2.0898
+    AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, higher_potential);
 
-    // velocity : (404.18,140)
-    // upwind_mach_number_squared : 2.0898
-    AssignPotentialsToHighSupersonicTransonicPerturbationElement(pUpwindElement);
 
     for (auto& r_node : model_part.Nodes()){
         r_node.AddDof(VELOCITY_POTENTIAL);
@@ -315,15 +293,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
     FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
-    // velocity[0] : 394.18
-    // velocity[1] : -50
-    // local_mach_number_squared : 1.705
-    AssignPotentialsToSupersonicTransonicPerturbationElement(pElement);
+    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};
+    // mach number 1.92516
+    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    // mach number 0.3999
+    AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
 
-    // upwind_velocity[0] : 154.18
-    // upwind_velocity[1] : 149
-    // upwind_mach_number_squared : 0.3999
-    AssignPotentialsToNormalTransonicPerturbationElement(pUpwindElement);
+    
 
     for (auto& r_node : model_part.Nodes()){
         r_node.AddDof(VELOCITY_POTENTIAL);
@@ -457,15 +434,12 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
     pElement->Initialize(model_part.GetProcessInfo());
     pUpwindElement->SetFlags(INLET);
 
-    // velocity[0] : 394.18
-    // velocity[1] : -50
-    // local_mach_number_squared : 1.705
-    AssignPotentialsToSupersonicTransonicPerturbationElement(pElement);
-
-    // upwind_velocity[0] : 154.18
-    // upwind_velocity[1] : 149
-    // upwind_mach_number_squared : 0.3999
-    AssignPotentialsToNormalTransonicPerturbationElement(pUpwindElement);
+    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};
+    // mach number 1.92516
+    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    // mach number 0.39943
+    AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
 
     for (auto& r_node : model_part.Nodes()){
         r_node.AddDof(VELOCITY_POTENTIAL);
