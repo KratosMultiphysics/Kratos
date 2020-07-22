@@ -29,7 +29,9 @@
 /* Strategies */
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 /* Factories */
@@ -191,7 +193,9 @@ template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSp
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<SolvingStrategy<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
+template class KratosComponents<ExplicitSolvingStrategy<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<BuilderAndSolver<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
+template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<Scheme<RealSparseSpace,RealDenseSpace>>;
 template class KratosComponents<ConvergenceCriteria<RealSparseSpace,RealDenseSpace>>;
 
