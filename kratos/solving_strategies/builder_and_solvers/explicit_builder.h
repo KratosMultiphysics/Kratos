@@ -138,6 +138,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name" : "explicit_builder"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
