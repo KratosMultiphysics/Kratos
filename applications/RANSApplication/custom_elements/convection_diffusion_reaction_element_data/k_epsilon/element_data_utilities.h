@@ -27,17 +27,20 @@ namespace Kratos
 
 namespace KEpsilonElementData
 {
-double CalculateTurbulentViscosity(const double Cmu,
-                                   const double TurbulentKineticEnergy,
-                                   const double TurbulentEnergyDissipationRate);
+double CalculateTurbulentViscosity(
+    const double Cmu,
+    const double TurbulentKineticEnergy,
+    const double TurbulentEnergyDissipationRate);
 
 template <unsigned int TDim>
-double CalculateSourceTerm(const BoundedMatrix<double, TDim, TDim>& rVelocityGradient,
-                           const double TurbulentKinematicViscosity);
+double CalculateSourceTerm(
+    const BoundedMatrix<double, TDim, TDim>& rVelocityGradient,
+    const double TurbulentKinematicViscosity);
 
-double CalculateGamma(const double Cmu,
-                      const double TurbulentKineticEnergy,
-                      const double TurbulentKinematicViscosity);
+double CalculateGamma(
+    const double Cmu,
+    const double TurbulentKineticEnergy,
+    const double TurbulentKinematicViscosity);
 
 } // namespace KEpsilonElementData
 

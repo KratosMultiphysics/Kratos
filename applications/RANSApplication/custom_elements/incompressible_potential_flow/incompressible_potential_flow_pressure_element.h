@@ -32,7 +32,8 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class IncompressiblePotentialFlowPressureElement : public LaplaceElement<TDim, TNumNodes>
+class IncompressiblePotentialFlowPressureElement
+: public LaplaceElement<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -70,42 +71,49 @@ public:
     /**
      * Constructor.
      */
-    explicit IncompressiblePotentialFlowPressureElement(IndexType NewId = 0)
-        : BaseType(NewId)
+    explicit IncompressiblePotentialFlowPressureElement(
+        IndexType NewId = 0)
+    : BaseType(NewId)
     {
     }
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowPressureElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    IncompressiblePotentialFlowPressureElement(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : BaseType(NewId, ThisNodes)
     {
     }
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowPressureElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    IncompressiblePotentialFlowPressureElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
     {
     }
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowPressureElement(IndexType NewId,
-                                               GeometryType::Pointer pGeometry,
-                                               PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    IncompressiblePotentialFlowPressureElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowPressureElement(IncompressiblePotentialFlowPressureElement const& rOther)
-        : BaseType(rOther)
+    IncompressiblePotentialFlowPressureElement(
+        IncompressiblePotentialFlowPressureElement const& rOther)
+    : BaseType(rOther)
     {
     }
 
@@ -130,9 +138,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowPressureElement>(
@@ -147,9 +156,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowPressureElement>(
@@ -164,7 +174,9 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
+    Element::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowPressureElement>(
@@ -192,9 +204,10 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculate RHS
         this->CalculateRightHandSideVelocityContribution(rRightHandSideVector);
@@ -214,8 +227,9 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -238,8 +252,7 @@ public:
 
         int check = BaseType::Check(rCurrentProcessInfo);
 
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
-        {
+        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode) {
             const NodeType& r_node = this->GetGeometry()[iNode];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
@@ -275,8 +288,7 @@ protected:
 
     void CalculateRightHandSideVelocityContribution(Vector& rRHS) const
     {
-        if (rRHS.size() != TNumNodes)
-        {
+        if (rRHS.size() != TNumNodes) {
             rRHS.resize(TNumNodes, false);
         }
         noalias(rRHS) = ZeroVector(TNumNodes);
@@ -290,8 +302,7 @@ protected:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
-        for (IndexType g = 0; g < num_gauss_points; ++g)
-        {
+        for (IndexType g = 0; g < num_gauss_points; ++g) {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
 
@@ -305,11 +316,9 @@ protected:
             noalias(kinetic_energy_gradient) =
                 kinetic_energy_gradient * (gauss_weights[g] * 0.5 * density);
 
-            for (IndexType a = 0; a < TNumNodes; ++a)
-            {
+            for (IndexType a = 0; a < TNumNodes; ++a) {
                 double value = 0.0;
-                for (IndexType d = 0; d < TDim; ++d)
-                {
+                for (IndexType d = 0; d < TDim; ++d) {
                     value += r_shape_derivatives(a, d) * kinetic_energy_gradient[d];
                 }
 
@@ -350,13 +359,15 @@ protected:
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>& rThis);
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

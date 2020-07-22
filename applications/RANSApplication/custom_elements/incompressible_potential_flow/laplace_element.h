@@ -77,38 +77,48 @@ public:
     /**
      * Constructor.
      */
-    explicit LaplaceElement(IndexType NewId = 0) : Element(NewId)
+    explicit LaplaceElement(
+        IndexType NewId = 0)
+    : Element(NewId)
     {
     }
 
     /**
      * Constructor using an array of nodes
      */
-    LaplaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Element(NewId, ThisNodes)
+    LaplaceElement(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : Element(NewId, ThisNodes)
     {
     }
 
     /**
      * Constructor using Geometry
      */
-    LaplaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+    LaplaceElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry)
     {
     }
 
     /**
      * Constructor using Properties
      */
-    LaplaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+    LaplaceElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
     {
     }
 
     /**
      * Copy Constructor
      */
-    LaplaceElement(LaplaceElement const& rOther) : Element(rOther)
+    LaplaceElement(LaplaceElement const& rOther)
+    : Element(rOther)
     {
     }
 
@@ -133,9 +143,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to Create base "
@@ -151,9 +162,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to Create base "
@@ -169,7 +181,9 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
+    Element::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to Clone base "
@@ -195,16 +209,19 @@ public:
      * @param rResult: the elemental equation ID vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& CurrentProcessInfo) const override
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& CurrentProcessInfo) const override
     {
-        if (rResult.size() != TNumNodes)
+        if (rResult.size() != TNumNodes) {
             rResult.resize(TNumNodes, false);
+        }
 
         const Variable<double>& r_variable = this->GetVariable();
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[i] = Element::GetGeometry()[i].GetDof(r_variable).EquationId();
+        }
     }
 
     /**
@@ -212,29 +229,34 @@ public:
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& CurrentProcessInfo) const override
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& CurrentProcessInfo) const override
     {
-        if (rElementalDofList.size() != TNumNodes)
+        if (rElementalDofList.size() != TNumNodes) {
             rElementalDofList.resize(TNumNodes);
+        }
 
         const Variable<double>& r_variable = this->GetVariable();
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
+        }
     }
 
-    void GetValuesVector(VectorType& rValues, int Step) const override
+    void GetValuesVector(
+        VectorType& rValues,
+        int Step) const override
     {
-        if (rValues.size() != TNumNodes)
+        if (rValues.size() != TNumNodes) {
             rValues.resize(TNumNodes, false);
+        }
 
         const Variable<double>& r_variable = this->GetVariable();
 
         const GeometryType& rGeom = this->GetGeometry();
         IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
-        {
+        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode) {
             rValues[LocalIndex++] =
                 rGeom[iNode].FastGetSolutionStepValue(r_variable, Step);
         }
@@ -242,7 +264,7 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
-        return GeometryData::GI_GAUSS_1;
+        return GeometryData::GI_GAUSS_2;
     }
 
     /**
@@ -260,13 +282,15 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      const ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculate RHS
-        if (rRightHandSideVector.size() != TNumNodes)
+        if (rRightHandSideVector.size() != TNumNodes) {
             rRightHandSideVector.resize(TNumNodes, false);
+        }
 
         noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
@@ -285,13 +309,16 @@ public:
      * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
+        if (rLeftHandSideMatrix.size1() != TNumNodes ||
+            rLeftHandSideMatrix.size2() != TNumNodes) {
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+        }
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
@@ -302,18 +329,16 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        for (IndexType g = 0; g < num_gauss_points; ++g)
-        {
+        for (IndexType g = 0; g < num_gauss_points; ++g) {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
 
-            for (IndexType a = 0; a < TNumNodes; ++a)
-            {
-                for (IndexType b = 0; b < TNumNodes; ++b)
-                {
+            for (IndexType a = 0; a < TNumNodes; ++a) {
+                for (IndexType b = 0; b < TNumNodes; ++b) {
                     double dNa_dNb = 0.0;
-                    for (IndexType i = 0; i < TDim; ++i)
+                    for (IndexType i = 0; i < TDim; ++i) {
                         dNa_dNb += r_shape_derivatives(a, i) * r_shape_derivatives(b, i);
+                    }
 
                     rLeftHandSideMatrix(a, b) += gauss_weights[g] * dNa_dNb;
                 }
@@ -329,13 +354,15 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        const ProcessInfo& rCurrentProcessInfo) override
+    virtual void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        if (rRightHandSideVector.size() != TNumNodes)
+        if (rRightHandSideVector.size() != TNumNodes) {
             rRightHandSideVector.resize(TNumNodes, false);
+        }
 
         Matrix lhs;
         this->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
@@ -365,8 +392,7 @@ public:
 
         const Variable<double>& r_variable = this->GetVariable();
 
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
-        {
+        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode) {
             const NodeType& r_node = this->GetGeometry()[iNode];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node);
             KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node);
@@ -406,9 +432,10 @@ protected:
      * @param rNContainer   Shape function values. Each row contains shape functions for respective gauss point
      * @param rDN_DX        List of matrices containing shape function derivatives for each gauss point
      */
-    virtual void CalculateGeometryData(Vector& rGaussWeights,
-                                       Matrix& rNContainer,
-                                       ShapeFunctionDerivativesArrayType& rDN_DX) const
+    virtual void CalculateGeometryData(
+        Vector& rGaussWeights,
+        Matrix& rNContainer,
+        ShapeFunctionDerivativesArrayType& rDN_DX) const
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
@@ -450,13 +477,15 @@ private:
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                LaplaceElement<TDim, TNumNodes>& rThis);
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    LaplaceElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const LaplaceElement<TDim, TNumNodes>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const LaplaceElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

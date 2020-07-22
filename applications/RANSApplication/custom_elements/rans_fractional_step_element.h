@@ -54,15 +54,11 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
-    /// Vector type for local contributions to the linear system
-    using VectorType = Vector;
-
-    /// Matrix type for local contributions to the linear system
-    using MatrixType = Matrix;
-
     using IndexType = std::size_t;
 
     using SizeType = std::size_t;
+
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
     ///@}
     ///@name Life Cycle
@@ -74,7 +70,9 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    RansFractionalStepElement(IndexType NewId = 0) : FractionalStep<TDim>(NewId)
+    RansFractionalStepElement(
+        IndexType NewId = 0)
+    : FractionalStep<TDim>(NewId)
     {
     }
 
@@ -83,8 +81,10 @@ public:
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    RansFractionalStepElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : FractionalStep<TDim>(NewId, ThisNodes)
+    RansFractionalStepElement(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : FractionalStep<TDim>(NewId, ThisNodes)
     {
     }
 
@@ -93,8 +93,10 @@ public:
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    RansFractionalStepElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : FractionalStep<TDim>(NewId, pGeometry)
+    RansFractionalStepElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : FractionalStep<TDim>(NewId, pGeometry)
     {
     }
 
@@ -104,17 +106,16 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    RansFractionalStepElement(IndexType NewId,
-                              GeometryType::Pointer pGeometry,
-                              Element::PropertiesType::Pointer pProperties)
-        : FractionalStep<TDim>(NewId, pGeometry, pProperties)
+    RansFractionalStepElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        Element::PropertiesType::Pointer pProperties)
+    : FractionalStep<TDim>(NewId, pGeometry, pProperties)
     {
     }
 
     /// Destructor.
-    ~RansFractionalStepElement() override
-    {
-    }
+    ~RansFractionalStepElement() override = default;
 
     ///@}
     ///@name Operations
@@ -128,9 +129,10 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            Element::PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        Element::PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<RansFractionalStepElement<TDim>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
@@ -144,9 +146,10 @@ public:
      * @return a Pointer to the new element
      */
 
-    Element::Pointer Create(IndexType NewId,
-                            Element::GeometryType::Pointer pGeom,
-                            Element::PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        Element::GeometryType::Pointer pGeom,
+        Element::PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<RansFractionalStepElement<TDim>>(
             NewId, pGeom, pProperties);
@@ -160,15 +163,17 @@ public:
      * @return a Pointer to the new element
      */
 
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
+    Element::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& rThisNodes) const override
     {
-        Element::Pointer pNewElement = Create(
+        Element::Pointer p_new_element = Create(
             NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
 
-        pNewElement->SetData(this->GetData());
-        pNewElement->SetFlags(this->GetFlags());
+        p_new_element->SetData(this->GetData());
+        p_new_element->SetFlags(this->GetFlags());
 
-        return pNewElement;
+        return p_new_element;
     }
 
     ///@}
@@ -189,26 +194,23 @@ public:
         rOStream << "RansFractionalStepElement" << TDim << "D";
     }
 
-    //        /// Print object's data.
-    //        virtual void PrintData(std::ostream& rOStream) const;
-
-    ///@}
-
-protected:
-    ///@name Protected Access
-    ///@{
-
-    void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
 
 private:
+    ///@name Prvate Access
+    ///@{
+
+    void CalculateLocalFractionalVelocitySystem(
+        Matrix& rLeftHandSideMatrix,
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalPressureSystem(
+        Matrix& rLeftHandSideMatrix,
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
     ///@name Serialization
     ///@{
 
@@ -244,15 +246,18 @@ private:
 
 /// input stream function
 template <unsigned int TDim>
-inline std::istream& operator>>(std::istream& rIStream, RansFractionalStepElement<TDim>& rThis)
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    RansFractionalStepElement<TDim>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template <unsigned int TDim>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansFractionalStepElement<TDim>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansFractionalStepElement<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

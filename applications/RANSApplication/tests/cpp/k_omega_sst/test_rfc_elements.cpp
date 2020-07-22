@@ -85,7 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKRFC2D3N_CalculateLocalSystem, KratosRans
     Matrix LHS, ref_LHS(3, 3);
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLocalSystem(LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLocalSystem(
+        LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = 4.50994283894762126863e+00;
@@ -106,7 +107,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKRFC2D3N_CalculateRightHandSide, KratosRa
     // Test:
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateRightHandSide(RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateRightHandSide(
+        RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = 4.50994283894762126863e+00;
@@ -126,7 +128,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKRFC2D3N_CalculateLocalVelocityContributi
     Matrix LHS, ref_LHS(3, 3);
     Vector RHS(3, 0.0), ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLocalVelocityContribution(LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLocalVelocityContribution(
+        LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_LHS(0, 0) = 9.75445586550368261669e+02;
@@ -156,7 +159,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKRFC2D3N_CalculateMassMatrix, KratosRansF
     // Test:
     Matrix M, ref_M(3, 3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateMassMatrix(M, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateMassMatrix(
+        M, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_M(0, 0) = 2.22472607942935968195e-01;
@@ -181,7 +185,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKRFC2D3N_CalculateDampingMatrix, KratosRa
     // Test:
     Matrix D, ref_D(3, 3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateDampingMatrix(D, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateDampingMatrix(
+        D, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_D(0, 0) = 9.75445586550368261669e+02;
@@ -228,7 +233,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaRFC2D3N_CalculateLocalSystem, Kratos
     Matrix LHS, ref_LHS(3, 3);
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLocalSystem(LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLocalSystem(
+        LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = -6.35771290260074056278e+03;
@@ -250,7 +256,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaRFC2D3N_CalculateRightHandSide, Krat
     // Test:
     Vector RHS, ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateRightHandSide(RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateRightHandSide(
+        RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_RHS[0] = -6.35771290260074056278e+03;
@@ -270,7 +277,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaRFC2D3N_CalculateLocalVelocityContri
     Matrix LHS, ref_LHS(3, 3);
     Vector RHS(3, 0.0), ref_RHS(3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateLocalVelocityContribution(LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateLocalVelocityContribution(
+        LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_LHS(0, 0) = 7.79197663778924720646e+02;
@@ -300,7 +308,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaRFC2D3N_CalculateMassMatrix, KratosR
     // Test:
     Matrix M, ref_M(3, 3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateMassMatrix(M, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateMassMatrix(
+        M, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_M(0, 0) = 2.22543171163027159176e-01;
@@ -325,7 +334,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaRFC2D3N_CalculateDampingMatrix, Krat
     // Test:
     Matrix D, ref_D(3, 3);
     auto& r_element = r_model_part.Elements().front();
-    r_element.CalculateDampingMatrix(D, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
+    r_element.CalculateDampingMatrix(
+        D, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
     ref_D(0, 0) = 7.79197663778924720646e+02;

@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
-//
 //
 
 // System includes
@@ -33,7 +32,9 @@ namespace Kratos
 {
 namespace KOmegaSSTTestUtilities
 {
-ModelPart& RansKOmegaSSTK2D3N_SetUp(Model& rModel, const std::string& rElementName)
+ModelPart& RansKOmegaSSTK2D3N_SetUp(
+    Model& rModel,
+    const std::string& rElementName)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -73,7 +74,9 @@ ModelPart& RansKOmegaSSTK2D3N_SetUp(Model& rModel, const std::string& rElementNa
     return r_model_part;
 }
 
-ModelPart& RansKOmegaSSTOmega2D3N_SetUp(Model& rModel, const std::string& rElementName)
+ModelPart& RansKOmegaSSTOmega2D3N_SetUp(
+    Model& rModel,
+    const std::string& rElementName)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);

@@ -24,15 +24,19 @@ namespace Kratos
 {
 namespace KOmegaSSTElementData
 {
-double CalculateBlendedPhi(const double Phi1, const double Phi2, const double F1)
+double CalculateBlendedPhi(
+    const double Phi1,
+    const double Phi2,
+    const double F1)
 {
     return F1 * Phi1 + (1.0 - F1) * Phi2;
 }
 
-double CalculateCrossDiffusionTerm(const double SigmaTurbulentSpecificEnergyDissipationRate2,
-                                   const double TurbulentSpecificEnergyDissipationRate,
-                                   const array_1d<double, 3>& rTurbulentKineticEnergyGradient,
-                                   const array_1d<double, 3>& rTurbulentSpecificEnergyDissipationRate)
+double CalculateCrossDiffusionTerm(
+    const double SigmaTurbulentSpecificEnergyDissipationRate2,
+    const double TurbulentSpecificEnergyDissipationRate,
+    const array_1d<double, 3>& rTurbulentKineticEnergyGradient,
+    const array_1d<double, 3>& rTurbulentSpecificEnergyDissipationRate)
 {
     KRATOS_TRY
 
@@ -45,15 +49,17 @@ double CalculateCrossDiffusionTerm(const double SigmaTurbulentSpecificEnergyDiss
     KRATOS_CATCH("");
 }
 
-double CalculateF1(const double TurbulentKineticEnergy,
-                   const double TurbulentSpecificEnergyDissipationRate,
-                   const double KinematicViscosity,
-                   const double WallDistance,
-                   const double BetaStar,
-                   const double CrossDiffusion,
-                   const double SigmaTurbulentSpecificEnergyDissipationRate2)
+double CalculateF1(
+    const double TurbulentKineticEnergy,
+    const double TurbulentSpecificEnergyDissipationRate,
+    const double KinematicViscosity,
+    const double WallDistance,
+    const double BetaStar,
+    const double CrossDiffusion,
+    const double SigmaTurbulentSpecificEnergyDissipationRate2)
 {
     KRATOS_TRY
+
     const double y = std::max(WallDistance, 1e-12);
     const double y_2 = std::pow(y, 2);
 
@@ -72,11 +78,12 @@ double CalculateF1(const double TurbulentKineticEnergy,
     KRATOS_CATCH("");
 }
 
-double CalculateF2(const double TurbulentKineticEnergy,
-                   const double TurbulentSpecificEnergyDissipationRate,
-                   const double KinematicViscosity,
-                   const double WallDistance,
-                   const double BetaStar)
+double CalculateF2(
+    const double TurbulentKineticEnergy,
+    const double TurbulentSpecificEnergyDissipationRate,
+    const double KinematicViscosity,
+    const double WallDistance,
+    const double BetaStar)
 {
     KRATOS_TRY
 
@@ -96,11 +103,12 @@ double CalculateF2(const double TurbulentKineticEnergy,
     KRATOS_CATCH("");
 }
 
-double CalculateTurbulentKinematicViscosity(const double TurbulentKineticEnergy,
-                                            const double TurbulentSpecificEnergyDissipationRate,
-                                            const double VorticityNorm,
-                                            const double F2,
-                                            const double A1)
+double CalculateTurbulentKinematicViscosity(
+    const double TurbulentKineticEnergy,
+    const double TurbulentSpecificEnergyDissipationRate,
+    const double VorticityNorm,
+    const double F2,
+    const double A1)
 {
     KRATOS_TRY
 
@@ -111,7 +119,8 @@ double CalculateTurbulentKinematicViscosity(const double TurbulentKineticEnergy,
 }
 
 template <>
-array_1d<double, 3> CalculateVorticity<2>(const BoundedMatrix<double, 2, 2>& rVelocityGradient)
+array_1d<double, 3> CalculateVorticity<2>(
+    const BoundedMatrix<double, 2, 2>& rVelocityGradient)
 
 {
     array_1d<double, 3> value = ZeroVector(3);
@@ -120,7 +129,8 @@ array_1d<double, 3> CalculateVorticity<2>(const BoundedMatrix<double, 2, 2>& rVe
 }
 
 template <>
-array_1d<double, 3> CalculateVorticity<3>(const BoundedMatrix<double, 3, 3>& rVelocityGradient)
+array_1d<double, 3> CalculateVorticity<3>(
+    const BoundedMatrix<double, 3, 3>& rVelocityGradient)
 
 {
     array_1d<double, 3> value;
@@ -130,7 +140,11 @@ array_1d<double, 3> CalculateVorticity<3>(const BoundedMatrix<double, 3, 3>& rVe
     return value;
 }
 
-double CalculateGamma(const double Beta, const double BetaStar, const double Sigma, const double Kappa)
+double CalculateGamma(
+    const double Beta,
+    const double BetaStar,
+    const double Sigma,
+    const double Kappa)
 {
     return Beta / BetaStar - Sigma * std::pow(Kappa, 2) / std::sqrt(BetaStar);
 }

@@ -26,8 +26,11 @@ namespace Kratos
 {
 namespace StabilizationMethodTestUtilities
 {
-void InitializeResidualBasedFluxCorrectedConstants(ProcessInfo& rProcessInfo);
-void InitializeCrossWindStabilizationConstants(ProcessInfo& rProcessInfo);
+void InitializeResidualBasedFluxCorrectedConstants(
+    ProcessInfo& rProcessInfo);
+
+void InitializeCrossWindStabilizationConstants(
+    ProcessInfo& rProcessInfo);
 } // namespace StabilizationMethodTestUtilities
 } // namespace Kratos
 

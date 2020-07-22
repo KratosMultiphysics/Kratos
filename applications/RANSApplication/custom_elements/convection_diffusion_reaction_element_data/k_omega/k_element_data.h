@@ -48,7 +48,9 @@ public:
     static const Variable<double>& GetScalarRateVariable();
     static const Variable<double>& GetScalarRelaxedRateVariable();
 
-    static void Check(const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    static void Check(
+        const GeometryType& rGeometry,
+        const ProcessInfo& rCurrentProcessInfo);
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
 
@@ -57,27 +59,34 @@ public:
         return "KOmegaKElementData";
     }
 
-    KElementData(const GeomtryType& rGeometry) : BaseType(rGeometry)
+    KElementData(const GeomtryType& rGeometry)
+    : BaseType(rGeometry)
     {
     }
 
-    void CalculateConstants(const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateConstants(
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateGaussPointData(const Vector& rShapeFunctions,
-                                 const Matrix& rShapeFunctionDerivatives,
-                                 const int Step = 0) override;
+    void CalculateGaussPointData(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const int Step = 0) override;
 
-    array_1d<double, 3> CalculateEffectiveVelocity(const Vector& rShapeFunctions,
-                                                   const Matrix& rShapeFunctionDerivatives) const override;
+    array_1d<double, 3> CalculateEffectiveVelocity(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const override;
 
-    double CalculateEffectiveKinematicViscosity(const Vector& rShapeFunctions,
-                                                const Matrix& rShapeFunctionDerivatives) const override;
+    double CalculateEffectiveKinematicViscosity(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const override;
 
-    double CalculateReactionTerm(const Vector& rShapeFunctions,
-                                 const Matrix& rShapeFunctionDerivatives) const override;
+    double CalculateReactionTerm(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const override;
 
-    double CalculateSourceTerm(const Vector& rShapeFunctions,
-                               const Matrix& rShapeFunctionDerivatives) const override;
+    double CalculateSourceTerm(
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives) const override;
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;

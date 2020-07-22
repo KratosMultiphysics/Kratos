@@ -48,13 +48,14 @@ const Variable<double>& KElementData<TDim>::GetScalarRelaxedRateVariable()
 }
 
 template <unsigned int TDim>
-void KElementData<TDim>::Check(const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+void KElementData<TDim>::Check(
+    const GeometryType& rGeometry,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const int number_of_nodes = rGeometry.PointsNumber();
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const NodeType& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
@@ -75,16 +76,18 @@ GeometryData::IntegrationMethod KElementData<TDim>::GetIntegrationMethod()
 }
 
 template <unsigned int TDim>
-void KElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
+void KElementData<TDim>::CalculateConstants(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mInvTkeSigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
 }
 
 template <unsigned int TDim>
-void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
-                                                 const Matrix& rShapeFunctionDerivatives,
-                                                 const int Step)
+void KElementData<TDim>::CalculateGaussPointData(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const int Step)
 {
     KRATOS_TRY
 
@@ -108,7 +111,8 @@ void KElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
 
 template <unsigned int TDim>
 array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     return RansCalculationUtilities::EvaluateInPoint(this->GetGeometry(),
                                                      VELOCITY, rShapeFunctions);
@@ -116,21 +120,24 @@ array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
 
 template <unsigned int TDim>
 double KElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     return mKinematicViscosity + mTurbulentKinematicViscosity * mInvTkeSigma;
 }
 
 template <unsigned int TDim>
-double KElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
-                                                 const Matrix& rShapeFunctionDerivatives) const
+double KElementData<TDim>::CalculateReactionTerm(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     return std::max(mGamma + (2.0 / 3.0) * mVelocityDivergence, 0.0);
 }
 
 template <unsigned int TDim>
-double KElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions,
-                                               const Matrix& rShapeFunctionDerivatives) const
+double KElementData<TDim>::CalculateSourceTerm(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     double production = 0.0;
 

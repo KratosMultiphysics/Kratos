@@ -19,221 +19,195 @@ namespace Kratos
 {
 template <unsigned int TDim>
 void RansFractionalStepElement<TDim>::CalculateLocalFractionalVelocitySystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    Matrix& rLeftHandSideMatrix,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = TDim * NumNodes;
+    const GeometryType& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const SizeType local_size = TDim * number_of_nodes;
 
     // Check sizes and initialize
-    if (rLeftHandSideMatrix.size1() != LocalSize)
-        rLeftHandSideMatrix.resize(LocalSize, LocalSize);
+    if (rLeftHandSideMatrix.size1() != local_size) {
+        rLeftHandSideMatrix.resize(local_size, local_size);
+    }
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
+    rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
 
-    if (rRightHandSideVector.size() != LocalSize)
-        rRightHandSideVector.resize(LocalSize);
+    if (rRightHandSideVector.size() != local_size) {
+        rRightHandSideVector.resize(local_size);
+    }
 
-    rRightHandSideVector = ZeroVector(LocalSize);
+    rRightHandSideVector = ZeroVector(local_size);
 
     // Shape functions and integration points
-    ShapeFunctionDerivativesArrayType DN_DX;
-    Matrix NContainer;
-    VectorType GaussWeights;
-    this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
-    const unsigned int NumGauss = GaussWeights.size();
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    Matrix shape_functions;
+    Vector gauss_weights;
+    this->CalculateGeometryData(shape_function_derivatives, shape_functions, gauss_weights);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
 
-    MatrixType MassMatrix = ZeroMatrix(LocalSize, LocalSize);
+    Matrix mass_matrix = ZeroMatrix(local_size, local_size);
 
     const double eta = rCurrentProcessInfo[PRESSURE_COEFFICIENT];
 
     // Stabilization parameters
-    double ElemSize = this->ElementSize();
-    double TauOne;
-    double TauTwo;
+    const double element_size = this->ElementSize();
+    double tau_one, tau_two, density, mass_projection, old_pressure;
+
+    array_1d<double, 3> body_force, momentum_projection, convective_velocity;
+
+    Vector convection_operator(number_of_nodes);
 
     // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
-    {
-        const double GaussWeight = GaussWeights[g];
-        const ShapeFunctionsType& N = row(NContainer, g);
-        const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+    for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+        const double weight = gauss_weights[g];
+        const Vector& r_shape_functions = row(shape_functions, g);
+        const Matrix& r_shape_function_derivatives = shape_function_derivatives[g];
 
-        // Evaluate required variables at the integration point
-        double Density;
-        double MassProjection;
-        array_1d<double, 3> BodyForce = ZeroVector(3);
-        array_1d<double, 3> MomentumProjection = ZeroVector(3);
+        this->EvaluateInPoint(density, DENSITY, r_shape_functions);
+        this->EvaluateInPoint(mass_projection, DIVPROJ, r_shape_functions);
+        this->EvaluateInPoint(body_force, BODY_FORCE, r_shape_functions);
+        this->EvaluateInPoint(momentum_projection, CONV_PROJ, r_shape_functions);
+        this->EvaluateInPoint(old_pressure, PRESSURE, r_shape_functions, 0);
+        this->EvaluateConvVelocity(convective_velocity, r_shape_functions);
 
-        this->EvaluateInPoint(Density, DENSITY, N);
-        this->EvaluateInPoint(MassProjection, DIVPROJ, N);
-        this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
-        //        this->EvaluateInPoint(MomentumProjection,ADVPROJ,N);
-        this->EvaluateInPoint(MomentumProjection, CONV_PROJ, N);
-
-        // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
-        double OldPressure;
-        this->EvaluateInPoint(OldPressure, PRESSURE, N, 0);
-
-        // For ALE: convective velocity
-        array_1d<double, 3> ConvVel = ZeroVector(3);
-        this->EvaluateConvVelocity(ConvVel, N);
-
-        double Viscosity = this->EffectiveViscosity(
-            Density, N, rDN_DX, ElemSize, rCurrentProcessInfo);
-        this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density,
-                           Viscosity, rCurrentProcessInfo);
+        const double viscosity = this->EffectiveViscosity(
+            density, r_shape_functions, r_shape_function_derivatives,
+            element_size, rCurrentProcessInfo);
+        this->CalculateTau(tau_one, tau_two, element_size, convective_velocity,
+                           density, viscosity, rCurrentProcessInfo);
 
         // Evaluate convection operator Velocity * Grad(N)
-        Vector UGradN(NumNodes);
-        this->ConvectionOperator(UGradN, ConvVel, rDN_DX);
+        this->ConvectionOperator(convection_operator, convective_velocity,
+                                 r_shape_function_derivatives);
 
         // Add integration point contribution to the local mass matrix
-        this->AddMomentumMassTerm(MassMatrix, N, GaussWeight * Density);
+        this->AddMomentumMassTerm(mass_matrix, r_shape_functions, weight * density);
 
         // Add convection, stabilization and RHS contributions to the local system equation
-        this->AddMomentumSystemTerms(rLeftHandSideMatrix, rRightHandSideVector,
-                                     Density, UGradN, BodyForce, OldPressure * eta,
-                                     TauOne, TauTwo, MomentumProjection,
-                                     MassProjection, N, rDN_DX, GaussWeight);
+        this->AddMomentumSystemTerms(
+            rLeftHandSideMatrix, rRightHandSideVector, density, convection_operator,
+            body_force, old_pressure * eta, tau_one, tau_two, momentum_projection,
+            mass_projection, r_shape_functions, r_shape_function_derivatives, weight);
 
         // Add viscous term
-        const double ViscousCoeff = Viscosity * GaussWeight;
-        this->AddViscousTerm(rLeftHandSideMatrix, rDN_DX, ViscousCoeff);
+        const double effective_viscosity = viscosity * weight;
+        this->AddViscousTerm(rLeftHandSideMatrix, r_shape_function_derivatives,
+                             effective_viscosity);
     }
 
     // Add residual of previous iteration to RHS
-    VectorType LastValues = ZeroVector(LocalSize);
-    this->GetVelocityValues(LastValues, 0);
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, LastValues);
+    Vector last_velocity_values;
+    this->GetVelocityValues(last_velocity_values, 0);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, last_velocity_values);
 
     // Add dynamic term
-    const Vector& rBDFCoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-    noalias(rLeftHandSideMatrix) += rBDFCoeffs[0] * MassMatrix;
+    const Vector& r_bdf_coefficients = rCurrentProcessInfo[BDF_COEFFICIENTS];
+    noalias(rLeftHandSideMatrix) += r_bdf_coefficients[0] * mass_matrix;
 
-    VectorType TimeTerm = rBDFCoeffs[0] * LastValues;
-    for (SizeType i = 1; i < rBDFCoeffs.size(); i++)
-    {
-        this->GetVelocityValues(LastValues, i);
-        noalias(TimeTerm) += rBDFCoeffs[i] * LastValues;
+    Vector time_term = r_bdf_coefficients[0] * last_velocity_values;
+    for (SizeType i = 1; i < r_bdf_coefficients.size(); i++) {
+        this->GetVelocityValues(last_velocity_values, i);
+        noalias(time_term) += r_bdf_coefficients[i] * last_velocity_values;
     }
 
-    noalias(rRightHandSideVector) -= prod(MassMatrix, TimeTerm);
+    noalias(rRightHandSideVector) -= prod(mass_matrix, time_term);
 }
 
 template <unsigned int TDim>
 void RansFractionalStepElement<TDim>::CalculateLocalPressureSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    Matrix& rLeftHandSideMatrix,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
+    GeometryType& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
 
     // Check sizes and initialize
-    if (rLeftHandSideMatrix.size1() != NumNodes)
-        rLeftHandSideMatrix.resize(NumNodes, NumNodes);
+    if (rLeftHandSideMatrix.size1() != number_of_nodes) {
+        rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes);
+    }
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    rLeftHandSideMatrix = ZeroMatrix(number_of_nodes, number_of_nodes);
 
-    if (rRightHandSideVector.size() != NumNodes)
-        rRightHandSideVector.resize(NumNodes);
+    if (rRightHandSideVector.size() != number_of_nodes) {
+        rRightHandSideVector.resize(number_of_nodes);
+    }
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    rRightHandSideVector = ZeroVector(number_of_nodes);
 
     // Shape functions and integration points
-    ShapeFunctionDerivativesArrayType DN_DX;
-    Matrix NContainer;
-    VectorType GaussWeights;
-    this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
-    const unsigned int NumGauss = GaussWeights.size();
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    Matrix shape_functions;
+    Vector gauss_weights;
+    this->CalculateGeometryData(shape_function_derivatives, shape_functions, gauss_weights);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
 
     // Stabilization parameters
-    double ElemSize = this->ElementSize();
-    double TauOne;
-    double TauTwo;
+    const double element_size = this->ElementSize();
+    double tau_one, tau_two, density, velocity_divergence;
+
+    array_1d<double, 3> body_force, momentum_projection, convective_velocity;
+    array_1d<double, TDim> old_pressure_gradient;
 
     const double eta = rCurrentProcessInfo[PRESSURE_COEFFICIENT];
 
     // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
-    {
-        const double GaussWeight = GaussWeights[g];
-        const ShapeFunctionsType& N = row(NContainer, g);
-        const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+    for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+        const double weight = gauss_weights[g];
+        const Vector& r_shape_functions = row(shape_functions, g);
+        const Matrix& r_shape_function_derivatives = shape_function_derivatives[g];
 
         // Evaluate required variables at the integration point
-        double Density;
-        //        array_1d<double,3> Velocity = ZeroVector(3);
-        //        array_1d<double,3> MeshVelocity = ZeroVector(3);
-        array_1d<double, 3> BodyForce = ZeroVector(3);
-        array_1d<double, 3> MomentumProjection = ZeroVector(3);
+        this->EvaluateInPoint(density, DENSITY, r_shape_functions);
+        this->EvaluateInPoint(body_force, BODY_FORCE, r_shape_functions);
+        this->EvaluateInPoint(momentum_projection, PRESS_PROJ, r_shape_functions);
+        this->EvaluateGradientInPoint(old_pressure_gradient, PRESSURE,
+                                      r_shape_function_derivatives);
+        this->EvaluateConvVelocity(convective_velocity, r_shape_functions);
 
-        this->EvaluateInPoint(Density, DENSITY, N);
-        //        this->EvaluateInPoint(Velocity,VELOCITY,N);
-        //        this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
-        this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
-        //        this->EvaluateInPoint(MomentumProjection,ADVPROJ,N);
-        this->EvaluateInPoint(MomentumProjection, PRESS_PROJ, N);
+        const double viscosity = this->EffectiveViscosity(
+            density, r_shape_functions, r_shape_function_derivatives,
+            element_size, rCurrentProcessInfo);
+        this->CalculateTau(tau_one, tau_two, element_size, convective_velocity,
+                           density, viscosity, rCurrentProcessInfo);
 
-        //        // Evaluate the pressure and pressure gradient at this point
-        //        (for the G * P_n term) double OldPressure;
-        //        this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
-
-        array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
-        this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
-
-        //        // For ALE: convective velocity
-        //        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
-
-        // Stabilization parameters
-        array_1d<double, 3> ConvVel = ZeroVector(3);
-        this->EvaluateConvVelocity(ConvVel, N);
-        double Viscosity = this->EffectiveViscosity(
-            Density, N, rDN_DX, ElemSize, rCurrentProcessInfo);
-        this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density,
-                           Viscosity, rCurrentProcessInfo);
-
-        //        // Evaluate convection operator Velocity * Grad(N)
-        //        Vector UGradN(NumNodes);
-        //        this->EvaluateConvection(UGradN,ConvVel,mDN_DX);
-
-        double DivU;
-        this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
+        this->EvaluateDivergenceInPoint(velocity_divergence, VELOCITY,
+                                        r_shape_function_derivatives);
 
         // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
-        const double LaplacianCoeff =
-            1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
+        const double laplacian_coefficient =
+            1.0 / (density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
 
         // Add convection, stabilization and RHS contributions to the local system equation
-        for (SizeType i = 0; i < NumNodes; ++i)
-        {
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
             // LHS contribution
-            for (SizeType j = 0; j < NumNodes; ++j)
-            {
-                double Lij = 0.0;
+            for (SizeType j = 0; j < number_of_nodes; ++j) {
+                double l_ij = 0.0;
                 for (SizeType d = 0; d < TDim; ++d)
-                    Lij += rDN_DX(i, d) * rDN_DX(j, d);
-                Lij *= (LaplacianCoeff + TauOne);
+                    l_ij += r_shape_function_derivatives(i, d) *
+                            r_shape_function_derivatives(j, d);
+                l_ij *= (laplacian_coefficient + tau_one);
 
-                rLeftHandSideMatrix(i, j) += GaussWeight * Lij;
+                rLeftHandSideMatrix(i, j) += weight * l_ij;
             }
 
             // RHS contribution
 
             // Velocity divergence
-            double RHSi = -N[i] * DivU;
+            double rhs_i = -r_shape_functions[i] * velocity_divergence;
 
-            for (SizeType d = 0; d < TDim; ++d)
-            {
-                //                double Conv = UGradN[0] * rGeom[0].FastGetSolutionStepValue(VELOCITY)[d];
-                //                for (SizeType j = 1; j < NumNodes; ++j) Conv += UGradN[i] * rGeom[i].FastGetSolutionStepValue(VELOCITY)[d];
+            for (SizeType d = 0; d < TDim; ++d) {
                 // Momentum stabilization
-                RHSi += rDN_DX(i, d) * TauOne *
-                        (Density * (BodyForce[d] /* - Conv*/) -
-                         OldPressureGradient[d] - MomentumProjection[d]);
-                RHSi += (eta - 1) * LaplacianCoeff * rDN_DX(i, d) * OldPressureGradient[d];
+                rhs_i += r_shape_function_derivatives(i, d) * tau_one *
+                         (density * body_force[d] - old_pressure_gradient[d] -
+                          momentum_projection[d]);
+                rhs_i += (eta - 1) * laplacian_coefficient *
+                         r_shape_function_derivatives(i, d) * old_pressure_gradient[d];
             }
 
-            rRightHandSideVector[i] += GaussWeight * RHSi;
+            rRightHandSideVector[i] += weight * rhs_i;
         }
     }
 }
