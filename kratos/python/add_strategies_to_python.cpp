@@ -454,7 +454,7 @@ namespace Kratos
                 .def("GetEchoLevel", &BuilderAndSolverType::GetEchoLevel)
                 ;
 
-            //Explicit builder and Solver
+            // Explicit builder
             typedef typename ModelPart::DofsArrayType DofsArrayType;
             typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
