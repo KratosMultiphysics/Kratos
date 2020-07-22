@@ -47,45 +47,8 @@ namespace TestCreationUtility
         SizeType q = 1;
 
         Vector knot_u = ZeroVector(2*(p+1));
-
-        if (p == 3)
-        {
-            knot_u[0] = 0.0;
-            knot_u[1] = 0.0;
-            knot_u[2] = 0.0;
-            knot_u[3] = 0.0;
-            knot_u[4] = 1.0;
-            knot_u[5] = 1.0;
-            knot_u[6] = 1.0;
-            knot_u[7] = 1.0;
-        }
-        else if(p == 4)
-        {
-            knot_u[0] = 0.0;
-            knot_u[1] = 0.0;
-            knot_u[2] = 0.0;
-            knot_u[3] = 0.0;
-            knot_u[4] = 0.0;
-            knot_u[5] = 1.0;
-            knot_u[6] = 1.0;
-            knot_u[7] = 1.0;
-            knot_u[8] = 1.0;
-            knot_u[9] = 1.0;
-        }
-        else if(p == 5)
-        {
-            knot_u[0] = 0.0;
-            knot_u[1] = 0.0;
-            knot_u[2] = 0.0;
-            knot_u[3] = 0.0;
-            knot_u[4] = 0.0;
-            knot_u[5] = 0.0;
-            knot_u[6] = 1.0;
-            knot_u[7] = 1.0;
-            knot_u[8] = 1.0;
-            knot_u[9] = 1.0;
-            knot_u[10] = 1.0;
-            knot_u[11] = 1.0;
+        for(IndexType index = knot_u.size()/2; index < knot_u.size(); ++index) {
+            knot_u[index] = 1.0;
         }
 
         array_1d<double, 4> knot_v;
