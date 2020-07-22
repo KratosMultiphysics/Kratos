@@ -263,7 +263,7 @@ public:
      * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
      * }
      */
-    virtual void SetEchoLevel(const int Level)
+    void SetEchoLevel(const int Level)
     {
         mEchoLevel = Level;
     }
