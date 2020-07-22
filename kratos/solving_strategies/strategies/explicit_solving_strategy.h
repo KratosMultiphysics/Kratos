@@ -66,12 +66,22 @@ public:
     // The DOF type from the explicit builder and solver class
     typedef typename ExplicitBuilderType::DofType DofType;
 
+    /// The definition of the current class
+    typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> ClassType;
+
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategy);
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor. (empty)
+     */
+    explicit ExplicitSolvingStrategy()
+    {
+    }
 
     /**
      * @brief Default constructor. (with parameters)
@@ -81,7 +91,7 @@ public:
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
         Parameters ThisParameters)
-        : mrModelPart(rModelPart)
+        : mpModelPart(&rModelPart)
     {
         const bool rebuild_level = ThisParameters.Has("rebuild_level") ? ThisParameters["rebuild_level"].GetInt() : 0;
         const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
@@ -102,7 +112,7 @@ public:
         typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : mrModelPart(rModelPart),
+        : mpModelPart(&rModelPart),
           mpExplicitBuilder(pExplicitBuilder)
     {
         SetMoveMeshFlag(MoveMeshFlag);
@@ -119,7 +129,7 @@ public:
         ModelPart &rModelPart,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : mrModelPart(rModelPart)
+        : mpModelPart(&rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
         SetRebuildLevel(RebuildLevel);
@@ -132,7 +142,23 @@ public:
 
     /** Destructor.
      */
-    virtual ~ExplicitSolvingStrategy() = default;
+    virtual ~ExplicitSolvingStrategy()
+    {
+        mpModelPart =  nullptr;
+    }
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part to be computed
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     ///@}
     ///@name Operators
@@ -171,7 +197,7 @@ public:
         }
 
         // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
-        mpExplicitBuilder->Initialize(mrModelPart);
+        mpExplicitBuilder->Initialize(*mpModelPart);
 
         // Initialize the solution values
         InitializeDofSetValues();
@@ -207,7 +233,7 @@ public:
         InitializeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver initialize solution step
-        mpExplicitBuilder->InitializeSolutionStep(mrModelPart);
+        mpExplicitBuilder->InitializeSolutionStep(*mpModelPart);
     }
 
     /**
@@ -222,7 +248,7 @@ public:
         FinalizeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
-        mpExplicitBuilder->FinalizeSolutionStep(mrModelPart);
+        mpExplicitBuilder->FinalizeSolutionStep(*mpModelPart);
     }
 
     /**
@@ -237,8 +263,8 @@ public:
         InitializeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
 
         // Apply constraints
-        if(mrModelPart.MasterSlaveConstraints().size() != 0) {
-            mpExplicitBuilder->ApplyConstraints(mrModelPart);
+        if(mpModelPart->MasterSlaveConstraints().size() != 0) {
+            mpExplicitBuilder->ApplyConstraints(*mpModelPart);
         }
 
         // Solve the problem assuming that a lumped mass matrix is used
@@ -353,20 +379,20 @@ public:
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return mrModelPart: The model part member variable
+     * @return *mpModelPart: The model part member variable
      */
     ModelPart& GetModelPart()
     {
-        return mrModelPart;
+        return *mpModelPart;
     };
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return mrModelPart: The model part member variable
+     * @return *mpModelPart: The model part member variable
      */
     const ModelPart& GetModelPart() const
     {
-        return mrModelPart;
+        return *mpModelPart;
     };
 
     /**
@@ -429,6 +455,15 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "explicit_solving_strategy";
     }
 
     ///@}
@@ -518,7 +553,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart &mrModelPart;
+    ModelPart* mpModelPart = nullptr;
 
     bool mMoveMeshFlag;
 
