@@ -258,14 +258,14 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarVariable();
 
         IndexType LocalIndex = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -277,14 +277,14 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarRateVariable();
 
         IndexType LocalIndex = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -355,7 +355,7 @@ public:
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData element_data(r_geometry);
 
         element_data.CalculateConstants(rCurrentProcessInfo);
@@ -570,7 +570,7 @@ public:
      */
     ShapeFunctionDerivativesArrayType GetGeometryParameterDerivatives() const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         return RansCalculationUtilities::CalculateGeometryParameterDerivatives(
             r_geometry, this->GetIntegrationMethod());
     }
@@ -603,7 +603,7 @@ public:
         const Variable<double>& primal_variable =
             TConvectionDiffusionReactionData::GetScalarVariable();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData element_data(r_geometry);
 
         element_data.CalculateConstants(rCurrentProcessInfo);
@@ -740,7 +740,7 @@ public:
 
         BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData element_data(r_geometry);
 
         element_data.CalculateConstants(rCurrentProcessInfo);
@@ -836,7 +836,7 @@ public:
         const Matrix& rShapeDerivatives,
         const int Step = 0) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGradient<TDim>(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
@@ -858,7 +858,7 @@ public:
         const Matrix& rShapeDerivatives,
         const int Step = 0) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         RansCalculationUtilities::CalculateGradient(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
@@ -919,7 +919,7 @@ protected:
         Matrix& rNContainer,
         ShapeFunctionDerivativesArrayType& rDN_DX) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGeometryData(
             r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);

@@ -23,7 +23,7 @@ void RansFractionalStepElement<TDim>::CalculateLocalFractionalVelocitySystem(
     Vector& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
     const SizeType local_size = TDim * number_of_nodes;
 

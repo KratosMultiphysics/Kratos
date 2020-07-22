@@ -300,7 +300,7 @@ protected:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         for (IndexType g = 0; g < num_gauss_points; ++g) {
             const Matrix& r_shape_derivatives = shape_derivatives[g];

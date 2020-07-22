@@ -101,7 +101,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     mTurbulentKineticEnergy =
         EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, rShapeFunctions);

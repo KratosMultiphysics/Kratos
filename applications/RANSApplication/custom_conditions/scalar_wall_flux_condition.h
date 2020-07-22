@@ -241,14 +241,14 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TScalarWallFluxConditionData::GetScalarVariable();
 
         IndexType local_index = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[local_index++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -260,14 +260,14 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TScalarWallFluxConditionData::GetScalarRateVariable();
 
         IndexType local_index = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[local_index++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -321,7 +321,7 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
         if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            const GeometryType& r_geometry = this->GetGeometry();
+            const auto& r_geometry = this->GetGeometry();
             // Get Shape function data
             Vector gauss_weights;
             Matrix shape_functions;

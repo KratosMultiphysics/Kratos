@@ -41,7 +41,7 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
 
     int check = BaseType::Check(rCurrentProcessInfo);
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const NodeType& r_node = r_geometry[i_node];
@@ -105,7 +105,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
     KRATOS_TRY
 
     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
