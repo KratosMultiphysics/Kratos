@@ -87,10 +87,14 @@ class PotentialFlowTests(UnitTest.TestCase):
             # self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.7668732609939326, 0.0, 1e-8)
             # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 1.4857473148444245, 0.0, 1e-8)
             # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 1.5083631379893045, 0.0, 1e-8)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 1.5009596017769493, 0.0, 1e-8)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.766873214951064, 0.0, 1e-8)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 1.4857472389600426, 0.0, 1e-8)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 1.5083630650112172, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7136510961298712, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.24968392421068522, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7009115413265588, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.715828613074369, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 1.5009596017769493, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.766873214951064, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 1.4857472389600426, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 1.5083630650112172, 0.0, 1e-8)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
