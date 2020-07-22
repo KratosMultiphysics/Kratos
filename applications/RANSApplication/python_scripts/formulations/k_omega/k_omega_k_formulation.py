@@ -15,7 +15,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateForm
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgeraicFluxCorrectedTransportScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgebraicFluxCorrectedScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
@@ -137,7 +137,7 @@ class KOmegaKFormulation(Formulation):
     def SetStabilizationMethod(self, stabilization_method):
         if (stabilization_method == "algebraic_flux_corrected"):
             self.element_name = "RansKOmegaKAFC"
-            self.scheme_type = lambda x: CreateSteadyAlgeraicFluxCorrectedTransportScheme(
+            self.scheme_type = lambda x: CreateSteadyAlgebraicFluxCorrectedScheme(
                                                     x,
                                                     GetBoundaryFlags(self.settings["boundary_flags"]),
                                                     self.IsPeriodic())

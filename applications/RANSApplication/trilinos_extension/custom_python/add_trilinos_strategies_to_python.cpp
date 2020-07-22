@@ -26,10 +26,10 @@
 
 // RANS trilinos extensions
 // strategies
-#include "custom_strategies/algebraic_flux_corrected_scalar_steady_scheme.h"
+#include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
 #include "custom_strategies/generic_convergence_criteria.h"
-#include "custom_strategies/generic_residual_based_bossak_scalar_transport_scheme.h"
-#include "custom_strategies/generic_residual_based_steady_scalar_transport_scheme.h"
+#include "custom_strategies/bossak_scalar_scheme.h"
+#include "custom_strategies/steady_scalar_scheme.h"
 #include "custom_strategies/rans_fractional_step_strategy.h"
 #include "custom_utilities/solver_settings.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -59,17 +59,17 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, SolverSettings<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>&, bool, bool, const Kratos::Variable<int>&>());
 
     // add schemes
-    using MPIAlgebraicFluxCorrectedScalarSteadySchemeType = AlgebraicFluxCorrectedScalarSteadyScheme<MPISparseSpaceType, LocalSpaceType>;
-    py::class_<MPIAlgebraicFluxCorrectedScalarSteadySchemeType, typename MPIAlgebraicFluxCorrectedScalarSteadySchemeType::Pointer, MPIBaseSchemeType>(m, "MPIAlgebraicFluxCorrectedScalarSteadyScheme")
+    using MPIAlgebraicFluxCorrectedSteadyScalarSchemeType = AlgebraicFluxCorrectedSteadyScalarScheme<MPISparseSpaceType, LocalSpaceType>;
+    py::class_<MPIAlgebraicFluxCorrectedSteadyScalarSchemeType, typename MPIAlgebraicFluxCorrectedSteadyScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIAlgebraicFluxCorrectedSteadyScalarScheme")
         .def(py::init<const double, const Flags&>())
         .def(py::init<const double, const Flags&, const Variable<int>&>());
 
-    using MPIGenericResidualBasedSteadyScalarTransportSchemeType = GenericResidualBasedSteadyScalarTransportScheme<MPISparseSpaceType, LocalSpaceType>;
-    py::class_<MPIGenericResidualBasedSteadyScalarTransportSchemeType, typename MPIGenericResidualBasedSteadyScalarTransportSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIGenericResidualBasedSteadyScalarTransportScheme")
+    using MPISteadyScalarSchemeType = SteadyScalarScheme<MPISparseSpaceType, LocalSpaceType>;
+    py::class_<MPISteadyScalarSchemeType, typename MPISteadyScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPISteadyScalarScheme")
         .def(py::init<const double>());
 
-    using MPIGenericResidualBasedBossakScalarTransportSchemeType = GenericResidualBasedBossakScalarTransportScheme<MPISparseSpaceType, LocalSpaceType>;
-    py::class_<MPIGenericResidualBasedBossakScalarTransportSchemeType, typename MPIGenericResidualBasedBossakScalarTransportSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIGenericResidualBasedBossakScalarTransportScheme")
+    using MPIBossakScalarSchemeType = BossakScalarScheme<MPISparseSpaceType, LocalSpaceType>;
+    py::class_<MPIBossakScalarSchemeType, typename MPIBossakScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIBossakScalarScheme")
         .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
 
     // Convergence criteria

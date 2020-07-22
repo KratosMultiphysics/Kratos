@@ -17,7 +17,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateN
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgeraicFluxCorrectedTransportScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgebraicFluxCorrectedScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
@@ -148,7 +148,7 @@ class KEpsilonEpsilonFormulation(Formulation):
     def SetStabilizationMethod(self, stabilization_method):
         if (stabilization_method == "algebraic_flux_corrected"):
             self.element_name = "RansKEpsilonEpsilonAFC"
-            self.scheme_type = lambda x: CreateSteadyAlgeraicFluxCorrectedTransportScheme(
+            self.scheme_type = lambda x: CreateSteadyAlgebraicFluxCorrectedScheme(
                 x, GetBoundaryFlags(self.settings["boundary_flags"]),
                 self.IsPeriodic())
         elif (stabilization_method == "residual_based_flux_corrected"):

@@ -11,8 +11,8 @@
 //                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED)
-#define KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED
+#if !defined(KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED)
+#define KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED
 
 // System includes
 #include <sstream>
@@ -28,7 +28,7 @@
 #include "utilities/time_discretization.h"
 
 // Application includes
-#include "custom_strategies/generic_residual_based_steady_scalar_transport_scheme.h"
+#include "custom_strategies/steady_scalar_scheme.h"
 
 namespace Kratos
 {
@@ -43,17 +43,16 @@ namespace Kratos
  * of the variable arrangements in the element or condition.
  */
 template <class TSparseSpace, class TDenseSpace>
-class GenericResidualBasedBossakScalarTransportScheme
-    : public GenericResidualBasedSteadyScalarTransportScheme<TSparseSpace, TDenseSpace>
+class BossakScalarScheme
+    : public SteadyScalarScheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(GenericResidualBasedBossakScalarTransportScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(BossakScalarScheme);
 
-    using BaseType =
-        GenericResidualBasedSteadyScalarTransportScheme<TSparseSpace, TDenseSpace>;
+    using BaseType = SteadyScalarScheme<TSparseSpace, TDenseSpace>;
 
     using SystemMatrixType = typename BaseType::TSystemMatrixType;
 
@@ -73,7 +72,7 @@ public:
 
     /// Constructor.
 
-    GenericResidualBasedBossakScalarTransportScheme(
+    BossakScalarScheme(
         const double AlphaBossak,
         const double RelaxationFactor,
         const Variable<double>& rScalarVariable,
@@ -94,7 +93,7 @@ public:
     }
 
     /// Destructor.
-    ~GenericResidualBasedBossakScalarTransportScheme() override = default;
+    ~BossakScalarScheme() override = default;
 
     ///@}
     ///@name Operations
@@ -117,7 +116,7 @@ public:
                "check if the time step is created correctly for "
                "the current model part.";
 
-        GenericResidualBasedBossakScalarTransportScheme::CalculateBossakConstants(
+        BossakScalarScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
 
 #pragma omp critical
@@ -363,10 +362,10 @@ private:
 
     ///@}
 
-}; /* Class GenericResidualBasedBossakScalarTransportScheme */
+}; /* Class BossakScalarScheme */
 
 ///@}
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_GENERIC_RESIDUAL_BASED_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED defined */
+#endif /* KRATOS_BOSSAK_SCALAR_TRANSPORT_SCHEME_H_INCLUDED defined */

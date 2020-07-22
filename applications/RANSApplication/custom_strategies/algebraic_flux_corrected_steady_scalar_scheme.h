@@ -30,13 +30,13 @@ namespace Kratos
 ///@{
 
 template <class TSparseSpace, class TDenseSpace>
-class AlgebraicFluxCorrectedScalarSteadyScheme : public Scheme<TSparseSpace, TDenseSpace>
+class AlgebraicFluxCorrectedSteadyScalarScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AlgebraicFluxCorrectedScalarSteadyScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(AlgebraicFluxCorrectedSteadyScalarScheme);
 
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
 
@@ -54,7 +54,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    AlgebraicFluxCorrectedScalarSteadyScheme(
+    AlgebraicFluxCorrectedSteadyScalarScheme(
         const double RelaxationFactor,
         const Flags BoundaryFlags)
     : BaseType(),
@@ -62,14 +62,14 @@ public:
         mBoundaryFlags(BoundaryFlags),
         mrPeriodicIdVar(Variable<int>::StaticObject())
     {
-        KRATOS_INFO("AlgebraicFluxCorrectedScalarSteadyScheme")
+        KRATOS_INFO("AlgebraicFluxCorrectedSteadyScalarScheme")
             << " Using residual based algebraic flux corrected scheme with "
                "relaxation "
                "factor = "
             << std::scientific << mRelaxationFactor << "\n";
     }
 
-    AlgebraicFluxCorrectedScalarSteadyScheme(
+    AlgebraicFluxCorrectedSteadyScalarScheme(
         const double RelaxationFactor,
         const Flags BoundaryFlags,
         const Variable<int>& rPeriodicIdVar)
@@ -78,14 +78,14 @@ public:
         mBoundaryFlags(BoundaryFlags),
         mrPeriodicIdVar(rPeriodicIdVar)
     {
-        KRATOS_INFO("AlgebraicFluxCorrectedScalarSteadyScheme")
+        KRATOS_INFO("AlgebraicFluxCorrectedSteadyScalarScheme")
             << " Using periodic residual based algebraic flux corrected scheme "
                "with relaxation "
                "factor = "
             << std::scientific << mRelaxationFactor << "\n";
     }
 
-    ~AlgebraicFluxCorrectedScalarSteadyScheme() override = default;
+    ~AlgebraicFluxCorrectedSteadyScalarScheme() override = default;
 
     ///@}
     ///@name Operators

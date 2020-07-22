@@ -25,9 +25,9 @@
 #include "custom_utilities/solver_settings.h"
 
 // schemes
-#include "custom_strategies/generic_residual_based_bossak_scalar_transport_scheme.h"
-#include "custom_strategies/generic_residual_based_steady_scalar_transport_scheme.h"
-#include "custom_strategies/algebraic_flux_corrected_scalar_steady_scheme.h"
+#include "custom_strategies/bossak_scalar_scheme.h"
+#include "custom_strategies/steady_scalar_scheme.h"
+#include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
 
 // convergence criterians
 #include "custom_strategies/generic_convergence_criteria.h"
@@ -60,17 +60,17 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType>&, bool, bool, const Kratos::Variable<int>&>());
 
     // add schemes
-    using GenericResidualBasedSteadyScalarTransportSchemeType = GenericResidualBasedSteadyScalarTransportScheme<SparseSpaceType, LocalSpaceType>;
-    py::class_<GenericResidualBasedSteadyScalarTransportSchemeType, typename GenericResidualBasedSteadyScalarTransportSchemeType::Pointer, BaseSchemeType>(m, "GenericResidualBasedSteadyScalarTransportScheme")
+    using SteadyScalarSchemeType = SteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<SteadyScalarSchemeType, typename SteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "SteadyScalarScheme")
         .def(py::init<const double>());
 
-    using AlgebraicFluxCorrectedScalarSteadySchemeType = AlgebraicFluxCorrectedScalarSteadyScheme<SparseSpaceType, LocalSpaceType>;
-    py::class_<AlgebraicFluxCorrectedScalarSteadySchemeType, typename AlgebraicFluxCorrectedScalarSteadySchemeType::Pointer, BaseSchemeType>(m, "AlgebraicFluxCorrectedScalarSteadyScheme")
+    using AlgebraicFluxCorrectedSteadyScalarSchemeType = AlgebraicFluxCorrectedSteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<AlgebraicFluxCorrectedSteadyScalarSchemeType, typename AlgebraicFluxCorrectedSteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "AlgebraicFluxCorrectedSteadyScalarScheme")
         .def(py::init<const double, const Flags&>())
         .def(py::init<const double, const Flags&, const Variable<int>&>());
 
-    using GenericResidualBasedBossakScalarTransportSchemeType = GenericResidualBasedBossakScalarTransportScheme<SparseSpaceType, LocalSpaceType>;
-    py::class_<GenericResidualBasedBossakScalarTransportSchemeType, typename GenericResidualBasedBossakScalarTransportSchemeType::Pointer, BaseSchemeType>(m, "GenericResidualBasedBossakScalarTransportScheme")
+    using BossakScalarSchemeType = BossakScalarScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<BossakScalarSchemeType, typename BossakScalarSchemeType::Pointer, BaseSchemeType>(m, "BossakScalarScheme")
         .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
 
     // Convergence criteria

@@ -19,9 +19,9 @@ if (IsDistributedRun()
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import TrilinosPeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import TrilinosBlockBuilderAndSolver as block_builder_and_solver
     from KratosMultiphysics.TrilinosApplication import TrilinosResidualBasedIncrementalUpdateStaticScheme as incremental_update_static_scheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedSteadyScalarTransportScheme as steady_scalar_scheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIGenericResidualBasedBossakScalarTransportScheme as bossak_scheme
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPISteadyScalarScheme as steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedSteadyScalarScheme as afc_steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIBossakScalarScheme as bossak_scheme
     from KratosMultiphysics.RANSApplication.TrilinosExtension import TrilinosRansWallDistanceCalculationProcess as wall_distance_calculation_process
 elif (not IsDistributedRun()):
     from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
@@ -31,9 +31,9 @@ elif (not IsDistributedRun()):
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import PeriodicBlockBuilderAndSolver as periodic_block_builder_and_solver
     from KratosMultiphysics.RANSApplication.block_builder_and_solvers import BlockBuilderAndSolver as block_builder_and_solver
     from KratosMultiphysics import ResidualBasedIncrementalUpdateStaticScheme as incremental_update_static_scheme
-    from KratosMultiphysics.RANSApplication import GenericResidualBasedSteadyScalarTransportScheme as steady_scalar_scheme
-    from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedScalarSteadyScheme as afc_steady_scalar_scheme
-    from KratosMultiphysics.RANSApplication import GenericResidualBasedBossakScalarTransportScheme as bossak_scheme
+    from KratosMultiphysics.RANSApplication import SteadyScalarScheme as steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedSteadyScalarScheme as afc_steady_scalar_scheme
+    from KratosMultiphysics.RANSApplication import BossakScalarScheme as bossak_scheme
     from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess as wall_distance_calculation_process
 else:
     raise Exception("Distributed run requires TrilinosApplication")
@@ -175,7 +175,7 @@ def CreateSteadyScalarScheme(relaxation_factor):
     return steady_scalar_scheme(relaxation_factor)
 
 
-def CreateSteadyAlgeraicFluxCorrectedTransportScheme(relaxation_factor,
+def CreateSteadyAlgebraicFluxCorrectedScheme(relaxation_factor,
                                                      boundary_flags,
                                                      is_periodic):
     if (is_periodic):

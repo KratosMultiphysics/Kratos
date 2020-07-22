@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_GENERIC_RESIDUALBASED_STEADY_SCALAR_TRANSPORT_SCHEME)
-#define KRATOS_GENERIC_RESIDUALBASED_STEADY_SCALAR_TRANSPORT_SCHEME
+#if !defined(KRATOS_STEADY_SCALAR_TRANSPORT_SCHEME)
+#define KRATOS_STEADY_SCALAR_TRANSPORT_SCHEME
 
 // System includes
 #include <iomanip>
@@ -32,14 +32,14 @@ namespace Kratos
 ///@{
 
 template <class TSparseSpace, class TDenseSpace>
-class GenericResidualBasedSteadyScalarTransportScheme
+class SteadyScalarScheme
     : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(GenericResidualBasedSteadyScalarTransportScheme);
+    KRATOS_CLASS_POINTER_DEFINITION(SteadyScalarScheme);
 
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
 
@@ -57,7 +57,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    GenericResidualBasedSteadyScalarTransportScheme(
+    SteadyScalarScheme(
         const double RelaxationFactor)
     : mRelaxationFactor(RelaxationFactor)
     {
@@ -65,7 +65,7 @@ public:
         mDampingMatrix.resize(num_threads);
     }
 
-    ~GenericResidualBasedSteadyScalarTransportScheme() override = default;
+    ~SteadyScalarScheme() override = default;
 
     ///@}
     ///@name Operators
@@ -230,4 +230,4 @@ private:
 
 } // namespace Kratos
 
-#endif /* KRATOS_GENERIC_RESIDUALBASED_STEADY_SCALAR_TRANSPORT_SCHEME defined */
+#endif /* KRATOS_STEADY_SCALAR_TRANSPORT_SCHEME defined */
