@@ -325,7 +325,7 @@ public:
      * @brief This function returns the flag that says if the mesh is moved
      * @return True if the mesh is moved, false otherwise
      */
-    bool MoveMeshFlag()
+    bool MoveMeshFlag() const
     {
         return mMoveMeshFlag;
     }
