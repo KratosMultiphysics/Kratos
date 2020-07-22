@@ -81,7 +81,7 @@ void RansApplyFlagProcess::ExecuteInitialize()
     }
 
     for (std::string model_part_name : mModelPartsForConditionFlags) {
-        ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
+        auto& r_model_part = mrModel.GetModelPart(model_part_name);
         ApplyConditionFlags(r_model_part);
     }
 
@@ -107,7 +107,7 @@ void RansApplyFlagProcess::ApplyNodeFlags()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     const int number_of_nodes = r_model_part.NumberOfNodes();
 
     const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);

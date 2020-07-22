@@ -33,7 +33,7 @@ namespace
 ModelPart& RansKEpsilonKCWD2D3N_SetUp(
     Model& rModel)
 {
-    ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3N_SetUp(
+    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3N_SetUp(
         rModel, "RansKEpsilonKCWD2D3N");
 
     StabilizationMethodTestUtilities::InitializeCrossWindStabilizationConstants(
@@ -45,7 +45,7 @@ ModelPart& RansKEpsilonKCWD2D3N_SetUp(
 ModelPart& RansKEpsilonEpsilonCWD2D3N_SetUp(
     Model& rModel)
 {
-    ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
+    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
         rModel, "RansKEpsilonEpsilonCWD2D3N");
 
     StabilizationMethodTestUtilities::InitializeCrossWindStabilizationConstants(

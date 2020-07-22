@@ -84,7 +84,7 @@ int RansNutKOmegaSSTUpdateProcess::Check()
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(
@@ -110,17 +110,17 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
 
 void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
 {
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_ELEMENTS,
                                                    r_model_part.Nodes());
 
     const int number_of_elements = r_model_part.NumberOfElements();
 #pragma omp parallel for
     for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
-        ModelPart::ElementType& r_element = *(r_model_part.ElementsBegin() + i_elem);
-        ModelPart::ElementType::GeometryType& r_geometry = r_element.GetGeometry();
+        auto& r_element = *(r_model_part.ElementsBegin() + i_elem);
+        auto& r_geometry = r_element.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            NodeType& r_node = r_geometry[i_node];
+            auto& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1;
             r_node.UnSetLock();
@@ -137,12 +137,12 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
+    auto& r_nodes = r_model_part.Nodes();
     VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY, r_nodes);
 
-    ModelPart::ElementsContainerType& r_elements = r_model_part.Elements();
+    auto& r_elements = r_model_part.Elements();
     const int number_of_elements = r_elements.size();
 
     std::function<double(const Element&)> nut_calculation_method;
@@ -161,12 +161,12 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
 
 #pragma omp parallel for
     for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
-        ModelPart::ElementType& r_element = *(r_elements.begin() + i_elem);
+        auto& r_element = *(r_elements.begin() + i_elem);
         const double nut = nut_calculation_method(r_element);
 
-        ModelPart::ElementType::GeometryType& r_geometry = r_element.GetGeometry();
+        auto& r_geometry = r_element.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            NodeType& r_node = r_geometry[i_node];
+            auto& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) += nut;
             r_node.UnSetLock();
@@ -178,7 +178,7 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
     const int number_of_nodes = r_nodes.size();
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        NodeType& r_node = *(r_nodes.begin() + i_node);
+        auto& r_node = *(r_nodes.begin() + i_node);
         const double number_of_neighbour_elements =
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
         double& nut = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);

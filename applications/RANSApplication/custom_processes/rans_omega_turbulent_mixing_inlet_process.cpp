@@ -75,12 +75,12 @@ RansOmegaTurbulentMixingLengthInletProcess::~RansOmegaTurbulentMixingLengthInlet
 void RansOmegaTurbulentMixingLengthInletProcess::ExecuteInitialize()
 {
     if (mIsConstrained) {
-        ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+        auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         const int number_of_nodes = r_model_part.NumberOfNodes();
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
+            auto& r_node = *(r_model_part.NodesBegin() + i_node);
             r_node.Fix(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
         }
 
@@ -99,13 +99,12 @@ void RansOmegaTurbulentMixingLengthInletProcess::Execute()
 {
     KRATOS_TRY
 
-    ModelPart::NodesContainerType& r_nodes =
-        mrModel.GetModelPart(mModelPartName).Nodes();
+    auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
     const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        NodeType& r_node = *(r_nodes.begin() + i_node);
+        auto& r_node = *(r_nodes.begin() + i_node);
         CalculateTurbulentValues(r_node);
     }
 
@@ -119,7 +118,7 @@ int RansOmegaTurbulentMixingLengthInletProcess::Check()
 {
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);

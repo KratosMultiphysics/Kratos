@@ -45,7 +45,7 @@ void TrilinosRansWallDistanceCalculationProcess<
     UblasSpace<double, Matrix, Vector>,
     LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector>>>::CreateBuilderAndSolver()
 {
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     const int row_size_guess = (domain_size == 2 ? 15 : 40);
 

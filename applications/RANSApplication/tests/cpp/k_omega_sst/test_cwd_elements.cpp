@@ -33,7 +33,7 @@ namespace
 ModelPart& RansKOmegaSSTKCWD2D3N_SetUp(
     Model& rModel)
 {
-    ModelPart& r_model_part = KOmegaSSTTestUtilities::RansKOmegaSSTK2D3N_SetUp(
+    auto& r_model_part = KOmegaSSTTestUtilities::RansKOmegaSSTK2D3N_SetUp(
         rModel, "RansKOmegaSSTKCWD2D3N");
 
     StabilizationMethodTestUtilities::InitializeCrossWindStabilizationConstants(
@@ -45,7 +45,7 @@ ModelPart& RansKOmegaSSTKCWD2D3N_SetUp(
 ModelPart& RansKOmegaSSTOmegaCWD2D3N_SetUp(
     Model& rModel)
 {
-    ModelPart& r_model_part = KOmegaSSTTestUtilities::RansKOmegaSSTOmega2D3N_SetUp(
+    auto& r_model_part = KOmegaSSTTestUtilities::RansKOmegaSSTOmega2D3N_SetUp(
         rModel, "RansKOmegaSSTOmegaCWD2D3N");
 
     StabilizationMethodTestUtilities::InitializeCrossWindStabilizationConstants(

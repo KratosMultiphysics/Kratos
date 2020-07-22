@@ -99,7 +99,7 @@ int RansLineOutputProcess::Check()
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     if (mIsHistoricalValue) {
         for (std::string variable_name : mVariableNames) {
@@ -128,8 +128,8 @@ void RansLineOutputProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
         const Variable<int>& r_variable =
@@ -243,8 +243,8 @@ void RansLineOutputProcess::PrintData(std::ostream& rOStream) const
 
 bool RansLineOutputProcess::IsOutputStep()
 {
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_process_info = r_model_part.GetProcessInfo();
     double current_step_value = 0.0;
 
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
@@ -274,9 +274,8 @@ void RansLineOutputProcess::WriteOutputFile()
 {
     KRATOS_TRY
 
-    const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const DataCommunicator& r_communicator =
-        r_model_part.GetCommunicator().GetDataCommunicator();
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    const auto& r_communicator = r_model_part.GetCommunicator().GetDataCommunicator();
 
     const int my_pid = r_communicator.Rank();
     const int number_of_local_points = mSamplePointLocalIndexList.size();
@@ -421,8 +420,7 @@ void RansLineOutputProcess::WriteOutputFileHeader(std::ofstream& rOutputFileStre
     rOutputFileStream << "# Output step control variable name : " << mOutputStepControlVariableName
                       << "\n";
 
-    const ProcessInfo& r_process_info =
-        mrModel.GetModelPart(mModelPartName).GetProcessInfo();
+    const auto& r_process_info = mrModel.GetModelPart(mModelPartName).GetProcessInfo();
 
     std::stringstream output_step_control_variable_value;
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
@@ -462,9 +460,8 @@ double RansLineOutputProcess::InterpolateVariable(const Variable<double>& rVaria
     double value = 0.0;
 
     if (mSamplingPointElementIds[SamplingIndex] > -1) {
-        const ModelPart& r_modelpart = mrModel.GetModelPart(mModelPartName);
-        const ModelPart::ElementType::GeometryType& r_geometry =
-            r_modelpart.GetElement(mSamplingPointElementIds[SamplingIndex]).GetGeometry();
+        const auto& r_modelpart = mrModel.GetModelPart(mModelPartName);
+        const auto& r_geometry = r_modelpart.GetElement(mSamplingPointElementIds[SamplingIndex]).GetGeometry();
         const Vector& r_shape_functions = mSamplingPointElementShapeFunctions[SamplingIndex];
 
         for (int i = 0; i < static_cast<int>(r_geometry.PointsNumber()); ++i) {
@@ -487,9 +484,8 @@ array_1d<double, 3> RansLineOutputProcess::InterpolateVariable(
     value.clear();
 
     if (mSamplingPointElementIds[SamplingIndex] > -1) {
-        const ModelPart& r_modelpart = mrModel.GetModelPart(mModelPartName);
-        const ModelPart::ElementType::GeometryType& r_geometry =
-            r_modelpart.GetElement(mSamplingPointElementIds[SamplingIndex]).GetGeometry();
+        const auto& r_modelpart = mrModel.GetModelPart(mModelPartName);
+        const auto& r_geometry = r_modelpart.GetElement(mSamplingPointElementIds[SamplingIndex]).GetGeometry();
         const Vector& r_shape_functions = mSamplingPointElementShapeFunctions[SamplingIndex];
 
         for (int i = 0; i < static_cast<int>(r_geometry.PointsNumber()); ++i) {
@@ -507,8 +503,7 @@ array_1d<double, 3> RansLineOutputProcess::InterpolateVariable(
 
 std::string RansLineOutputProcess::GetOutputFileName() const
 {
-    const ProcessInfo& r_process_info =
-        mrModel.GetModelPart(mModelPartName).GetProcessInfo();
+    const auto& r_process_info = mrModel.GetModelPart(mModelPartName).GetProcessInfo();
 
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
         const Variable<int>& r_variable =

@@ -45,7 +45,7 @@ ModelPart& RansVMSMonolithicKBasedWall2D2N_SetUp(Model& rModel)
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part = CreateTestModelPart(
+    auto& r_model_part = CreateTestModelPart(
         rModel, "Element2D3N", "RansVMSMonolithicKBasedWall2D2N", add_variables_function,
         [](ModelPart::NodeType& rNode) {
             rNode.AddDof(VELOCITY_X).SetEquationId(rNode.Id() * 4);
@@ -68,12 +68,12 @@ ModelPart& RansVMSMonolithicKBasedWall2D2N_SetUp(Model& rModel)
     RandomFillContainerVariable<ModelPart::ConditionsContainerType>(
         r_model_part, NORMAL, -2.0, -1.0);
 
-    ModelPart::ConditionType& r_condition = r_model_part.Conditions().front();
-    ModelPart::ElementType& r_element = r_model_part.Elements().front();
+    auto& r_condition = r_model_part.Conditions().front();
+    auto& r_element = r_model_part.Elements().front();
     r_condition.SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
 
     // set process info variables
-    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(WALL_VON_KARMAN, 3.1);
     r_process_info.SetValue(WALL_SMOOTHNESS_BETA, 4.2);
     r_process_info.SetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, 12.0);
