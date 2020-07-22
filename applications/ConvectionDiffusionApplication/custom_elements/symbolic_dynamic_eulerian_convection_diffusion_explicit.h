@@ -44,6 +44,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class SymbolicDynamicEulerianConvectionDiffusionExplicit
+ * @ingroup ConvectionDiffusionApplication
+ * @brief This element solves the convection-diffusion equation, stabilized with
+ * algebraic subgrid scale or orthogonal subgrid scale.
+ * @details This element solves the convection-diffusion equation:
+ * $ \frac{\partial \phi}{\partial t} + v \cdot  \nabla \phi + \phi \nabla \cdot v - \nabla \cdot k \nabla \phi = f $
+ * where $ \phi $ is the scalar unknown, $ v $ the convective velocity, $ k > 0 $ the diffusivity coefficient,
+ * $ f $ the forcing term.
+ * Dynamic algebraic subgrid scale and dynamic orthogonal subgrid scale methods are exploited for stabilization.
+ * The element is designed to use an explicit integration method.
+ * @author Riccardo Tosi
+ */
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 class SymbolicDynamicEulerianConvectionDiffusionExplicit : public SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>
 {

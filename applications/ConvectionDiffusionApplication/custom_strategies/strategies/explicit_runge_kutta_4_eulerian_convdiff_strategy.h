@@ -44,8 +44,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Explicit solving strategy for convection diffusion explicit eulerian element
- *  @details This strategy adds the OSS step
+/**
+ * @class ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion
+ * @ingroup ConvectionDiffusionApplication
+ * @brief This strategy adds the orthogonal subgrid projections computation to the base explicit runge kutta 4 integration method.
+ * @details The orthogonal subgrid scale projections are computed before each Runge-Kutta 4 step,
+ * and after the final update, before updating the dynamic subscales.
+ * @author Riccardo Tosi
  */
 template <class TSparseSpace, class TDenseSpace>
 class ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion : public ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace>
@@ -128,9 +133,9 @@ public:
     ///@{
 
     /**
-     * @brief Initialization of variables
-     * In this method we call the base strategy initialize and initialize the projection variable
-     * This is required to prevent OpenMP errors as the projection variable is stored in the non-historical database
+     * @brief Initialization of variables.
+     * @details In this method, we call the base strategy initialize and initialize the projection variable.
+     * This is required to prevent OpenMP errors as the projection variable is stored in the non-historical database.
      */
     void Initialize() override
     {
@@ -189,12 +194,12 @@ protected:
     ///@{
 
     /**
-     * @brief Initialize the Runge-Kutta substep
+     * @brief Initialize the Runge-Kutta substep.
+     * @details Calculate the orthogonal subscale projections if required.
      */
     virtual void InitializeRungeKuttaIntermediateSubStep() override
     {
         BaseType::InitializeRungeKuttaIntermediateSubStep();
-        // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info[OSS_SWITCH] == 1) {
@@ -203,12 +208,12 @@ protected:
     };
 
     /**
-     * @brief Initialize the Runge-Kutta substep
+     * @brief Initialize the Runge-Kutta substep.
+     * @details Calculate the orthogonal subscale projections if required.
      */
     virtual void InitializeRungeKuttaLastSubStep() override
     {
         BaseType::InitializeRungeKuttaLastSubStep();
-        // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info[OSS_SWITCH] == 1) {
@@ -217,12 +222,11 @@ protected:
     };
 
     /**
-     * @brief Finalize the Runge Kutta explicit solver step
+     * @brief Finalize the Runge Kutta explicit solver step.
+     * @details Calculate the orthogonal subscale projections if required.
      */
     virtual void FinalizeSolutionStep() override
     {
-        // Update whatever needed before calling FinalizeSolutionStep of the element
-        // Calculate the Orthogonal SubsScales projections
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info[OSS_SWITCH] == 1) {
@@ -232,7 +236,7 @@ protected:
     };
 
     /**
-     * @brief Execute the OSS step
+     * @brief Execute the OSS step.
      */
     virtual void ExecuteOSSStep()
     {
