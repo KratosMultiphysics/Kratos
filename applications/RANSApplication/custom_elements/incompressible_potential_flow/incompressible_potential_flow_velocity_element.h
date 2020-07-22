@@ -203,7 +203,7 @@ public:
                 rValues.resize(num_gauss_points);
             }
 
-            const GeometryType& r_geometry = this->GetGeometry();
+            const auto& r_geometry = this->GetGeometry();
 
             for (IndexType g = 0; g < num_gauss_points; ++g) {
                 const Matrix& r_shape_derivatives = shape_derivatives[g];
