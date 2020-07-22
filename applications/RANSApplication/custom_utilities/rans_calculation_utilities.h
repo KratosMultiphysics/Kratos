@@ -42,7 +42,8 @@ inline long double SoftMax(
     return std::max(value_1, value_2);
 }
 
-inline long double SoftPositive(const long double value)
+inline long double SoftPositive(
+    const long double value)
 {
     return SoftMax(value, 0.0);
 }
@@ -103,9 +104,12 @@ double GetDivergence(
     const int Step = 0);
 
 template <unsigned int TDim>
-Vector GetVector(const array_1d<double, 3>& rVector);
+Vector GetVector(
+    const array_1d<double, 3>& rVector);
 
-Vector GetVector(const array_1d<double, 3>& rVector, const unsigned int Dim);
+Vector GetVector(
+    const array_1d<double, 3>& rVector,
+    const unsigned int Dim);
 
 double KRATOS_API(RANS_APPLICATION) CalculateLogarithmicYPlusLimit(
     const double Kappa,

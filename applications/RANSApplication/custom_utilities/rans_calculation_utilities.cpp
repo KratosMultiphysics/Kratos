@@ -83,7 +83,8 @@ array_1d<double, 3> EvaluateInPoint(
 }
 
 template <unsigned int TDim>
-double CalculateMatrixTrace(const BoundedMatrix<double, TDim, TDim>& rMatrix)
+double CalculateMatrixTrace(
+    const BoundedMatrix<double, TDim, TDim>& rMatrix)
 {
     double value = 0.0;
     for (unsigned int i = 0; i < TDim; ++i) {
@@ -189,7 +190,8 @@ void CalculateGradient(
 }
 
 template <unsigned int TDim>
-Vector GetVector(const array_1d<double, 3>& rVector)
+Vector GetVector(
+    const array_1d<double, 3>& rVector)
 {
     Vector result(TDim);
 
@@ -200,7 +202,9 @@ Vector GetVector(const array_1d<double, 3>& rVector)
     return result;
 }
 
-Vector GetVector(const array_1d<double, 3>& rVector, const unsigned int Dim)
+Vector GetVector(
+    const array_1d<double, 3>& rVector,
+    const unsigned int Dim)
 {
     Vector result(Dim);
 

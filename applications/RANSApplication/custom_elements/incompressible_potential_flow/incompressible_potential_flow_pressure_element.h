@@ -252,8 +252,8 @@ public:
 
         int check = BaseType::Check(rCurrentProcessInfo);
 
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode) {
-            const NodeType& r_node = this->GetGeometry()[iNode];
+        for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node) {
+            const NodeType& r_node = this->GetGeometry()[i_node];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
         }

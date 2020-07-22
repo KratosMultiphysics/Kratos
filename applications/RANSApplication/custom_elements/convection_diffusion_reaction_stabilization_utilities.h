@@ -33,14 +33,16 @@ namespace ConvectionDiffusionReactionStabilizationUtilities
 {
 inline double CalculatePsiOne(
     const double VelocityNorm,
-    const double Tau, const double DynamicReaction)
+    const double Tau,
+    const double DynamicReaction)
 {
     return VelocityNorm + Tau * VelocityNorm * DynamicReaction;
 }
 
 inline double CalculatePsiTwo(
     const double DynamicReaction,
-    const double Tau, const double ElementLength)
+    const double Tau,
+    const double ElementLength)
 {
     return (DynamicReaction + Tau * DynamicReaction * std::abs(DynamicReaction)) *
            std::pow(ElementLength, 2) * (1.0 / 6.0);
@@ -168,7 +170,8 @@ inline void CalculateDiscreteUpwindOperator(
     rScalarCoeff = norm_frobenius(rDiffusionMatrix);
 }
 
-inline double CalculatePositivityPreservingMatrix(const Matrix& rInputMatrix)
+inline double CalculatePositivityPreservingMatrix(
+    const Matrix& rInputMatrix)
 {
     double coefficient = 0.0;
     for (unsigned int a = 0; a < rInputMatrix.size1(); ++a) {

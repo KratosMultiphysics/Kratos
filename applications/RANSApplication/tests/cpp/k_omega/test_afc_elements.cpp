@@ -29,7 +29,8 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansKOmegaKAFC2D3N_SetUp(Model& rModel)
+ModelPart& RansKOmegaKAFC2D3N_SetUp(
+    Model& rModel)
 {
     ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaK2D3N_SetUp(
         rModel, "RansKOmegaKAFC2D3N");
@@ -37,7 +38,8 @@ ModelPart& RansKOmegaKAFC2D3N_SetUp(Model& rModel)
     return r_model_part;
 }
 
-ModelPart& RansKOmegaOmegaAFC2D3N_SetUp(Model& rModel)
+ModelPart& RansKOmegaOmegaAFC2D3N_SetUp(
+    Model& rModel)
 {
     ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D3N_SetUp(
         rModel, "RansKOmegaOmegaAFC2D3N");

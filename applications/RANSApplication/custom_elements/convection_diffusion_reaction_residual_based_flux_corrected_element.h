@@ -264,9 +264,9 @@ public:
             TConvectionDiffusionReactionData::GetScalarVariable();
 
         IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                r_geometry[iNode].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -283,9 +283,9 @@ public:
             TConvectionDiffusionReactionData::GetScalarRateVariable();
 
         IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                r_geometry[iNode].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -888,8 +888,8 @@ protected:
         BoundedMatrix<double, TNumNodes, TNumNodes>& rMassMatrix,
         const double Mass) const
     {
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode) {
-            rMassMatrix(iNode, iNode) += Mass;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            rMassMatrix(i_node, i_node) += Mass;
         }
     }
 

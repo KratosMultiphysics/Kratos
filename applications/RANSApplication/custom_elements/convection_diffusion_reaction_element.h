@@ -217,8 +217,9 @@ public:
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    const ProcessInfo& CurrentProcessInfo) const override
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& CurrentProcessInfo) const override
     {
         if (rElementalDofList.size() != TNumNodes) {
             rElementalDofList.resize(TNumNodes);
@@ -252,9 +253,9 @@ public:
             TConvectionDiffusionReactionData::GetScalarVariable();
 
         IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[iNode].FastGetSolutionStepValue(r_variable, Step);
+                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -271,9 +272,9 @@ public:
             TConvectionDiffusionReactionData::GetScalarRateVariable();
 
         IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[iNode].FastGetSolutionStepValue(r_variable, Step);
+                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -665,8 +666,8 @@ protected:
         BoundedMatrix<double, TNumNodes, TNumNodes>& rMassMatrix,
         const double Mass) const
     {
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
-            rMassMatrix(iNode, iNode) += Mass;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
+            rMassMatrix(i_node, i_node) += Mass;
     }
 
     ///@}

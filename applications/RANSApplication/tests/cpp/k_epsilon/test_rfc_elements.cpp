@@ -30,7 +30,8 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansKEpsilonKRFC2D3N_SetUp(Model& rModel)
+ModelPart& RansKEpsilonKRFC2D3N_SetUp(
+    Model& rModel)
 {
     ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3N_SetUp(
         rModel, "RansKEpsilonKRFC2D3N");
@@ -41,7 +42,8 @@ ModelPart& RansKEpsilonKRFC2D3N_SetUp(Model& rModel)
     return r_model_part;
 }
 
-ModelPart& RansKEpsilonEpsilonRFC2D3N_SetUp(Model& rModel)
+ModelPart& RansKEpsilonEpsilonRFC2D3N_SetUp(
+    Model& rModel)
 {
     ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
         rModel, "RansKEpsilonEpsilonRFC2D3N");

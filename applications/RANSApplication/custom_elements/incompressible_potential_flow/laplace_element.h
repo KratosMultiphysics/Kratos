@@ -256,9 +256,9 @@ public:
 
         const GeometryType& rGeom = this->GetGeometry();
         IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[iNode].FastGetSolutionStepValue(r_variable, Step);
+                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -392,8 +392,8 @@ public:
 
         const Variable<double>& r_variable = this->GetVariable();
 
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode) {
-            const NodeType& r_node = this->GetGeometry()[iNode];
+        for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node) {
+            const NodeType& r_node = this->GetGeometry()[i_node];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node);
             KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node);
         }
