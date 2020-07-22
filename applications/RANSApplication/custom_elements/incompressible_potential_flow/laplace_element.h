@@ -254,11 +254,11 @@ public:
 
         const Variable<double>& r_variable = this->GetVariable();
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         IndexType LocalIndex = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
