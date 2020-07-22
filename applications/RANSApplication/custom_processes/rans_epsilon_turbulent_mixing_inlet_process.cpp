@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,8 +29,9 @@
 namespace Kratos
 {
 RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthInletProcess(
-    Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+    Model& rModel,
+    Parameters rParameters)
+: mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
 
@@ -66,14 +67,12 @@ RansEpsilonTurbulentMixingLengthInletProcess::RansEpsilonTurbulentMixingLengthIn
 
 void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitialize()
 {
-    if (mIsConstrained)
-    {
+    if (mIsConstrained) {
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         const int number_of_nodes = r_model_part.NumberOfNodes();
 #pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
             NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
             r_node.Fix(TURBULENT_ENERGY_DISSIPATION_RATE);
         }
@@ -98,8 +97,7 @@ void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
     const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         NodeType& r_node = *(r_nodes.begin() + i_node);
         CalculateTurbulentValues(r_node);
     }

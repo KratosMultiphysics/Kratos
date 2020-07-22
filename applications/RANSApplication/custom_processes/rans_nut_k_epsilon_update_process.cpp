@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,8 +29,10 @@
 
 namespace Kratos
 {
-RansNutKEpsilonUpdateProcess::RansNutKEpsilonUpdateProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel)
+RansNutKEpsilonUpdateProcess::RansNutKEpsilonUpdateProcess(
+    Model& rModel,
+    Parameters rParameters)
+: mrModel(rModel)
 {
     KRATOS_TRY
 
@@ -53,12 +55,16 @@ RansNutKEpsilonUpdateProcess::RansNutKEpsilonUpdateProcess(Model& rModel, Parame
 }
 
 RansNutKEpsilonUpdateProcess::RansNutKEpsilonUpdateProcess(
-    Model& rModel, const std::string& rModelPartName, const double Cmu, const double MinValue, const int EchoLevel)
-    : mrModel(rModel),
-      mModelPartName(rModelPartName),
-      mCmu(Cmu),
-      mMinValue(MinValue),
-      mEchoLevel(EchoLevel)
+    Model& rModel,
+    const std::string& rModelPartName,
+    const double Cmu,
+    const double MinValue,
+    const int EchoLevel)
+: mrModel(rModel),
+  mModelPartName(rModelPartName),
+  mCmu(Cmu),
+  mMinValue(MinValue),
+  mEchoLevel(EchoLevel)
 {
 }
 
@@ -84,8 +90,7 @@ void RansNutKEpsilonUpdateProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (!mIsInitialized)
-    {
+    if (!mIsInitialized) {
         this->Execute();
         mIsInitialized = true;
     }
@@ -103,21 +108,17 @@ void RansNutKEpsilonUpdateProcess::Execute()
     const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         NodeType& r_node = *(r_nodes.begin() + i_node);
         const double epsilon =
             r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
 
         double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
 
-        if (epsilon > 0.0)
-        {
+        if (epsilon > 0.0) {
             const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
             nu_t = mCmu * std::pow(tke, 2) / epsilon;
-        }
-        else
-        {
+        } else {
             nu_t = mMinValue;
         }
 

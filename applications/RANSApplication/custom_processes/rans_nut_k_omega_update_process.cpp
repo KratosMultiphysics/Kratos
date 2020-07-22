@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,8 +29,10 @@
 
 namespace Kratos
 {
-RansNutKOmegaUpdateProcess::RansNutKOmegaUpdateProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel)
+RansNutKOmegaUpdateProcess::RansNutKOmegaUpdateProcess(
+    Model& rModel,
+    Parameters rParameters)
+: mrModel(rModel)
 {
     KRATOS_TRY
 
@@ -50,11 +52,15 @@ RansNutKOmegaUpdateProcess::RansNutKOmegaUpdateProcess(Model& rModel, Parameters
     KRATOS_CATCH("");
 }
 
-RansNutKOmegaUpdateProcess::RansNutKOmegaUpdateProcess(Model& rModel,
-                                                       const std::string& rModelPartName,
-                                                       const double MinValue,
-                                                       const int EchoLevel)
-    : mrModel(rModel), mModelPartName(rModelPartName), mMinValue(MinValue), mEchoLevel(EchoLevel)
+RansNutKOmegaUpdateProcess::RansNutKOmegaUpdateProcess(
+    Model& rModel,
+    const std::string& rModelPartName,
+    const double MinValue,
+    const int EchoLevel)
+: mrModel(rModel),
+  mModelPartName(rModelPartName),
+  mMinValue(MinValue),
+  mEchoLevel(EchoLevel)
 {
 }
 
@@ -80,8 +86,7 @@ void RansNutKOmegaUpdateProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (!mIsInitialized)
-    {
+    if (!mIsInitialized) {
         this->Execute();
         mIsInitialized = true;
     }
@@ -99,8 +104,7 @@ void RansNutKOmegaUpdateProcess::Execute()
     const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         NodeType& r_node = *(r_nodes.begin() + i_node);
         const double omega =
             r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
@@ -108,12 +112,9 @@ void RansNutKOmegaUpdateProcess::Execute()
 
         double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
 
-        if (tke > 0.0 && omega > 0.0)
-        {
+        if (tke > 0.0 && omega > 0.0) {
             nu_t = tke / omega;
-        }
-        else
-        {
+        } else {
             nu_t = mMinValue;
         }
 

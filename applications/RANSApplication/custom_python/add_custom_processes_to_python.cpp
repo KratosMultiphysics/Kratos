@@ -12,10 +12,6 @@
 
 // System includes
 
-#ifdef KRATOS_USE_AMATRIX
-#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
-#endif                                    // KRATOS_USE_AMATRIX
-
 // External includes
 #include "pybind11/pybind11.h"
 
@@ -59,8 +55,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
     using RansWallFunctionUpdateProcessType = RansWallFunctionUpdateProcess;
-    py::class_<RansWallFunctionUpdateProcessType, RansWallFunctionUpdateProcessType::Pointer, Process>(
-        m, "RansWallFunctionUpdateProcess")
+    py::class_<RansWallFunctionUpdateProcessType, RansWallFunctionUpdateProcessType::Pointer, Process>(m, "RansWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
@@ -69,8 +64,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters&>());
 
     using RansNutYPlusWallFunctionUpdateProcessType = RansNutYPlusWallFunctionUpdateProcess;
-    py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(
-        m, "RansNutYPlusWallFunctionUpdateProcess")
+    py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(m, "RansNutYPlusWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
@@ -80,8 +74,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters&>());
 
     using RansNutKEpsilonUpdateProcessType = RansNutKEpsilonUpdateProcess;
-    py::class_<RansNutKEpsilonUpdateProcessType, RansNutKEpsilonUpdateProcessType::Pointer, Process>(
-        m, "RansNutKEpsilonUpdateProcess")
+    py::class_<RansNutKEpsilonUpdateProcessType, RansNutKEpsilonUpdateProcessType::Pointer, Process>(m, "RansNutKEpsilonUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
@@ -91,8 +84,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters&>());
 
     using RansNutKOmegaUpdateProcessType = RansNutKOmegaUpdateProcess;
-    py::class_<RansNutKOmegaUpdateProcessType, RansNutKOmegaUpdateProcessType::Pointer, Process>(
-        m, "RansNutKOmegaUpdateProcess")
+    py::class_<RansNutKOmegaUpdateProcessType, RansNutKOmegaUpdateProcessType::Pointer, Process>(m, "RansNutKOmegaUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const int>());
 

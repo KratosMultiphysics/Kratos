@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_NUT_Y_PLUS_WALL_FUNCTION_UPDATE_PROCESS_H_INCLUDED)
@@ -49,13 +49,16 @@ public:
 
     /// Constructor
 
-    RansNutYPlusWallFunctionUpdateProcess(Model& rModel, Parameters rParameters);
+    RansNutYPlusWallFunctionUpdateProcess(
+        Model& rModel,
+        Parameters rParameters);
 
-    RansNutYPlusWallFunctionUpdateProcess(Model& rModel,
-                                          const std::string& rModelPartName,
-                                          const double VonKarman,
-                                          const double MinValue,
-                                          const int EchoLevel);
+    RansNutYPlusWallFunctionUpdateProcess(
+        Model& rModel,
+        const std::string& rModelPartName,
+        const double VonKarman,
+        const double MinValue,
+        const int EchoLevel);
 
     /// Destructor.
     ~RansNutYPlusWallFunctionUpdateProcess() override = default;

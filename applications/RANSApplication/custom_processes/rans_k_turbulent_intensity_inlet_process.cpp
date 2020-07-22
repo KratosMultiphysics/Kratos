@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -27,8 +27,10 @@
 
 namespace Kratos
 {
-RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(
+    Model& rModel,
+    Parameters rParameters)
+: mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
 
@@ -62,14 +64,12 @@ RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(Model& 
 
 void RansKTurbulentIntensityInletProcess::ExecuteInitialize()
 {
-    if (mIsConstrained)
-    {
+    if (mIsConstrained) {
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
         const int number_of_nodes = r_nodes.size();
 #pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
             NodeType& r_node = *(r_nodes.begin() + i_node);
             r_node.Fix(TURBULENT_KINETIC_ENERGY);
         }
@@ -93,8 +93,7 @@ void RansKTurbulentIntensityInletProcess::Execute()
     const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         NodeType& r_node = *(r_nodes.begin() + i_node);
         CalculateTurbulentValues(r_node);
     }

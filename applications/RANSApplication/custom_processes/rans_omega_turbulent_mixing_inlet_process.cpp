@@ -4,14 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Dharmin Shah (https://github.com/sdharmin)
-//                   Bence Rochlitz (https://github.com/bencerochlitz)
+//  Main authors:    Dharmin Shah
+//                   Bence Rochlitz
 //
-//  Supervised by:   Jordi Cotela (https://github.com/jcotela)
-//                   Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Supervised by:   Jordi Cotela
+//                   Suneth Warnakulasuriya
+//
 
 // System includes
 #include <cmath>
@@ -31,8 +32,9 @@ namespace Kratos
 {
 /// Constructor
 RansOmegaTurbulentMixingLengthInletProcess::RansOmegaTurbulentMixingLengthInletProcess(
-    Model& rModel, Parameters& rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+    Model& rModel,
+    Parameters& rParameters)
+: mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
 
@@ -72,14 +74,12 @@ RansOmegaTurbulentMixingLengthInletProcess::~RansOmegaTurbulentMixingLengthInlet
 
 void RansOmegaTurbulentMixingLengthInletProcess::ExecuteInitialize()
 {
-    if (mIsConstrained)
-    {
+    if (mIsConstrained) {
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         const int number_of_nodes = r_model_part.NumberOfNodes();
 #pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
             NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
             r_node.Fix(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
         }
@@ -104,8 +104,7 @@ void RansOmegaTurbulentMixingLengthInletProcess::Execute()
     const int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         NodeType& r_node = *(r_nodes.begin() + i_node);
         CalculateTurbulentValues(r_node);
     }
@@ -123,8 +122,7 @@ int RansOmegaTurbulentMixingLengthInletProcess::Check()
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(
-        r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
+    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
 
     return 0;
 }

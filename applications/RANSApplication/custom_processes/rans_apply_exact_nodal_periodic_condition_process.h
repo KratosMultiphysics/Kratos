@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_APPLY_EXACT_NODAL_PERIODIC_CONDITION_PROCESS_H_INCLUDED)
@@ -60,7 +60,9 @@ public:
     ///@{
 
     /// Constructor
-    RansApplyExactNodalPeriodicConditionProcess(Model& rModel, Parameters rParameters);
+    RansApplyExactNodalPeriodicConditionProcess(
+        Model& rModel,
+        Parameters rParameters);
 
     /// Destructor.
     ~RansApplyExactNodalPeriodicConditionProcess() override = default;
@@ -120,9 +122,11 @@ private:
 
     void CreatePeriodicConditions();
 
-    array_1d<double, 3> CalculateRotatedPosition(const array_1d<double, 3>& rInitialPosition) const;
+    array_1d<double, 3> CalculateRotatedPosition(
+        const array_1d<double, 3>& rInitialPosition) const;
 
-    void CalculateRotationMatrix(BoundedMatrix<double, 3, 3>& rOutput) const;
+    void CalculateRotationMatrix(
+        BoundedMatrix<double, 3, 3>& rOutput) const;
 
     ///@}
     ///@name Un accessible methods
