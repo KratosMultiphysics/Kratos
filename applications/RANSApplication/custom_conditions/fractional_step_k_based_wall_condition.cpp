@@ -26,8 +26,7 @@ void FractionalStepKBasedWallCondition<2, 2>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    int step = r_process_info[FRACTIONAL_STEP];
+    const int step = rCurrentProcessInfo[FRACTIONAL_STEP];
     if (step == 1) {
         const unsigned int number_of_nodes = 2;
         const unsigned int local_size = 4;
@@ -69,8 +68,7 @@ void FractionalStepKBasedWallCondition<3, 3>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    int step = r_process_info[FRACTIONAL_STEP];
+    const int step = rCurrentProcessInfo[FRACTIONAL_STEP];
     if (step == 1) {
         const SizeType number_of_nodes = 3;
         const SizeType local_size = 9;
@@ -113,8 +111,7 @@ void FractionalStepKBasedWallCondition<2, 2>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    int step = r_process_info[FRACTIONAL_STEP];
+    const int step = rCurrentProcessInfo[FRACTIONAL_STEP];
     if (step == 1) {
         const SizeType number_of_nodes = 2;
         const SizeType local_size = 4;
@@ -157,8 +154,7 @@ void FractionalStepKBasedWallCondition<3, 3>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    int step = r_process_info[FRACTIONAL_STEP];
+    const int step = rCurrentProcessInfo[FRACTIONAL_STEP];
     if (step == 1) {
         const SizeType number_of_nodes = 3;
         const SizeType local_size = 9;

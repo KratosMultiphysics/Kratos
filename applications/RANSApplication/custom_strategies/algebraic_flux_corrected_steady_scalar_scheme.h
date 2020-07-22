@@ -102,8 +102,7 @@ public:
 
 #pragma omp parallel for
             for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-                const ModelPart::ConditionType& r_condition =
-                    *(rModelPart.ConditionsBegin() + i_cond);
+                const auto& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
                 if (r_condition.Is(PERIODIC)) {
                     // this only supports 2 noded periodic conditions
                     KRATOS_ERROR_IF(r_condition.GetGeometry().PointsNumber() != 2)
@@ -111,11 +110,11 @@ public:
                         << r_condition.Info() << " with "
                         << r_condition.GetGeometry().PointsNumber() << " nodes.\n";
 
-                    const ModelPart::NodeType& r_node_0 = r_condition.GetGeometry()[0];
+                    const auto& r_node_0 = r_condition.GetGeometry()[0];
                     const std::size_t r_node_0_pair_id =
                         r_node_0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                    const ModelPart::NodeType& r_node_1 = r_condition.GetGeometry()[1];
+                    const auto& r_node_1 = r_condition.GetGeometry()[1];
                     const std::size_t r_node_1_pair_id =
                         r_node_1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
@@ -150,7 +149,7 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
+        auto& r_nodes = rModelPart.Nodes();
 
         VariableUtils variable_utilities;
         variable_utilities.SetHistoricalVariableToZero(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, r_nodes);
@@ -158,7 +157,7 @@ public:
         variable_utilities.SetHistoricalVariableToZero(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, r_nodes);
         variable_utilities.SetHistoricalVariableToZero(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, r_nodes);
 
-        ModelPart::ElementsContainerType& r_elements = rModelPart.Elements();
+        auto& r_elements = rModelPart.Elements();
         const int number_of_elements = r_elements.size();
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -170,7 +169,7 @@ public:
             std::vector<IndexType> equation_ids;
 #pragma omp for
             for (int i = 0; i < number_of_elements; ++i) {
-                ModelPart::ElementType& r_element = *(r_elements.begin() + i);
+                auto& r_element = *(r_elements.begin() + i);
                 this->CalculateSystemMatrix<Element>(r_element, left_hand_side,
                                                      right_hand_side, aux_matrix,
                                                      r_current_process_info);
@@ -208,7 +207,7 @@ public:
                 }
 
                 for (int i = 0; i < size; ++i) {
-                    ModelPart::NodeType& r_node = r_geometry[i];
+                    auto& r_node = r_geometry[i];
                     r_node.SetLock();
                     r_node.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) += p_plus[i];
                     r_node.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) += q_plus[i];
@@ -223,11 +222,10 @@ public:
             const int number_of_conditions = rModelPart.NumberOfConditions();
 #pragma omp parallel for
             for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-                ModelPart::ConditionType& r_condition =
-                    *(rModelPart.ConditionsBegin() + i_cond);
+                auto& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
                 if (r_condition.Is(PERIODIC)) {
-                    ModelPart::NodeType& r_node_0 = r_condition.GetGeometry()[0];
-                    ModelPart::NodeType& r_node_1 = r_condition.GetGeometry()[1];
+                    auto& r_node_0 = r_condition.GetGeometry()[0];
+                    auto& r_node_1 = r_condition.GetGeometry()[1];
 
                     double p_plus = r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
                     double q_plus = r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
@@ -463,7 +461,7 @@ private:
         noalias(r_anti_diffusive_flux) = ZeroMatrix(size, size);
 
         for (IndexType i = 0; i < size; ++i) {
-            const ModelPart::NodeType& r_node_i = rItem.GetGeometry()[i];
+            const auto& r_node_i = rItem.GetGeometry()[i];
             double r_plus_i{0.0}, r_minus_i{0.0};
             CalculateAntiDiffusiveFluxR(r_plus_i, r_minus_i, r_node_i);
 

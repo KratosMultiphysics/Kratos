@@ -169,7 +169,7 @@ protected:
         ModelPart& r_model_part = BaseType::GetModelPart();
         const int n_nodes = r_model_part.NumberOfNodes();
 
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        auto& r_process_info = r_model_part.GetProcessInfo();
 
         // 1. Fractional step momentum iteration
         r_process_info.SetValue(FRACTIONAL_STEP, 1);

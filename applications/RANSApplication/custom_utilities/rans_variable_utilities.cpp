@@ -193,7 +193,7 @@ void GetNodalArray(
     const Element& rElement,
     const Variable<double>& rVariable)
 {
-    const Geometry<ModelPart::NodeType>& r_geometry = rElement.GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
     std::size_t number_of_nodes = r_geometry.PointsNumber();
 
     if (rNodalValues.size() != number_of_nodes) {
@@ -241,21 +241,21 @@ void AssignConditionVariableValuesToNodes(ModelPart& rModelPart,
                                           const Flags& rFlag,
                                           const bool FlagValue)
 {
-    ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
+    auto& r_nodes = rModelPart.Nodes();
     VariableUtils().SetHistoricalVariableToZero(rVariable, r_nodes);
 
     const int number_of_conditions = rModelPart.NumberOfConditions();
 #pragma omp parallel for
     for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
     {
-        ModelPart::ConditionType& r_cond = *(rModelPart.ConditionsBegin() + i_cond);
+        auto& r_cond = *(rModelPart.ConditionsBegin() + i_cond);
         if (r_cond.Is(rFlag) == FlagValue)
         {
             const int number_of_nodes = r_cond.GetGeometry().PointsNumber();
-            const TDataType& r_normal = r_cond.GetValue(rVariable);
+            const auto& r_normal = r_cond.GetValue(rVariable);
             for (int i_node = 0; i_node < number_of_nodes; ++i_node)
             {
-                ModelPart::NodeType& r_node = r_cond.GetGeometry()[i_node];
+                auto& r_node = r_cond.GetGeometry()[i_node];
                 r_node.SetLock();
                 r_node.FastGetSolutionStepValue(rVariable) +=
                     r_normal * (1.0 / static_cast<double>(number_of_nodes));
@@ -269,7 +269,7 @@ void AssignConditionVariableValuesToNodes(ModelPart& rModelPart,
 
 void AddAnalysisStep(ModelPart& rModelPart, const std::string& rStepName)
 {
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    auto& r_process_info = rModelPart.GetProcessInfo();
     if (!r_process_info.Has(ANALYSIS_STEPS))
     {
         r_process_info.SetValue(ANALYSIS_STEPS, std::vector<std::string>());
@@ -279,7 +279,7 @@ void AddAnalysisStep(ModelPart& rModelPart, const std::string& rStepName)
 
 bool IsAnalysisStepCompleted(const ModelPart& rModelPart, const std::string& rStepName)
 {
-    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const auto& r_process_info = rModelPart.GetProcessInfo();
     if (r_process_info.Has(ANALYSIS_STEPS))
     {
         const std::vector<std::string>& r_steps = r_process_info[ANALYSIS_STEPS];
@@ -315,7 +315,7 @@ void FixFlaggedDofs(ModelPart& rModelPart,
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        auto& r_node = *(rModelPart.NodesBegin() + i_node);
         if (r_node.Is(rFlag) == CheckValue)
         {
             r_node.Fix(rFixingVariable);
@@ -337,7 +337,7 @@ void CopyNodalFlaggedVariableFromNonHistoricalToHistorical(ModelPart& rModelPart
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        auto& r_node = *(rModelPart.NodesBegin() + i_node);
         if (r_node.Is(rFlag) == CheckValue)
         {
             r_node.FastGetSolutionStepValue(rVariable) = r_node.GetValue(rVariable);
@@ -359,7 +359,7 @@ void CopyNodalFlaggedVariableFromHistoricalToNonHistorical(ModelPart& rModelPart
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        auto& r_node = *(rModelPart.NodesBegin() + i_node);
         if (r_node.Is(rFlag) == CheckValue)
         {
             r_node.SetValue(rVariable, r_node.FastGetSolutionStepValue(rVariable));
@@ -377,7 +377,7 @@ void CalculateMagnitudeSquareForNodal3DVariable(ModelPart& rModelPart,
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        ModelPart::NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        auto& r_node = *(rModelPart.NodesBegin() + i_node);
         const double magnitude = norm_2(r_node.FastGetSolutionStepValue(r3DVariable));
         r_node.FastGetSolutionStepValue(rOutputVariable) = std::pow(magnitude, 2);
     }
@@ -403,8 +403,8 @@ std::tuple<double, double> CalculateTransientVariableConvergence(const ModelPart
 {
     KRATOS_TRY
 
-    const Communicator& r_communicator = rModelPart.GetCommunicator();
-    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
+    const auto& r_communicator = rModelPart.GetCommunicator();
+    const auto& r_nodes = r_communicator.LocalMesh().Nodes();
     const int number_of_nodes = r_nodes.size();
 
     KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
@@ -418,9 +418,9 @@ std::tuple<double, double> CalculateTransientVariableConvergence(const ModelPart
 #pragma omp parallel for reduction(+ : dx, number_of_dofs, solution)
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        const ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
-        const TDataType& r_old_value = r_node.FastGetSolutionStepValue(rVariable, 1);
-        const TDataType& r_new_value = r_node.FastGetSolutionStepValue(rVariable);
+        const auto& r_node = *(r_nodes.begin() + i_node);
+        const auto& r_old_value = r_node.FastGetSolutionStepValue(rVariable, 1);
+        const auto& r_new_value = r_node.FastGetSolutionStepValue(rVariable);
         dx += std::pow(GetVariableValueNorm<TDataType>(r_new_value - r_old_value), 2);
         solution += std::pow(GetVariableValueNorm<TDataType>(r_new_value), 2);
         number_of_dofs += ((r_node.HasDofFor(rVariable) && !r_node.IsFixed(rVariable)) ||

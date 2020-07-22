@@ -343,7 +343,7 @@ private:
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+            auto& r_node = *(rModelPart.NodesBegin() + i_node);
             double& r_current_rate = r_node.FastGetSolutionStepValue(mrScalarRateVariable);
             const double old_rate =
                 r_node.FastGetSolutionStepValue(mrScalarRateVariable, 1);

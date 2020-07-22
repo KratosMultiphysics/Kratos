@@ -223,8 +223,7 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const ProcessInfo& r_process_info = rCurrentProcessInfo;
-        unsigned int step = r_process_info[FRACTIONAL_STEP];
+        const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
         if (step == 1) {
             // Initialize local contributions
             const SizeType local_size = TDim * TNumNodes;
@@ -262,8 +261,8 @@ public:
                 noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
                 noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-                const double dt = r_process_info[DELTA_TIME];
-                const double equivalent_structural_density = r_process_info[DENSITY];
+                const double dt = rCurrentProcessInfo[DELTA_TIME];
+                const double equivalent_structural_density = rCurrentProcessInfo[DENSITY];
                 const double diag_term = dt * Area * N / (equivalent_structural_density);
 
                 for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {

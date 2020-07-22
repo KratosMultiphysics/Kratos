@@ -115,7 +115,7 @@ public:
             const double ratio = increase_norm / solution_norm;
             const double ratio_abs = increase_norm / dof_size;
 
-            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const auto& r_current_process_info = rModelPart.GetProcessInfo();
             const unsigned int iteration = r_current_process_info[NL_ITERATION_NUMBER];
 
             if (this->GetEchoLevel() > 0) {

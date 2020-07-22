@@ -68,7 +68,7 @@ ModelPart& CreateTestModelPart(
     const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
     const int BufferSize)
 {
-    ModelPart& r_model_part = rModel.CreateModelPart("test", BufferSize);
+    auto& r_model_part = rModel.CreateModelPart("test", BufferSize);
     rAddNodalSolutionStepVariablesFuncion(r_model_part);
 
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -81,7 +81,7 @@ ModelPart& CreateTestModelPart(
 
     Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
 
-    using nid_list = std::vector<ModelPart::IndexType>;
+    using nid_list = std::vector<IndexType>;
 
     r_model_part.CreateNewElement(rElementName, 1, nid_list{3, 2, 1}, p_elem_prop);
 
@@ -105,7 +105,7 @@ ModelPart& CreateScalarVariableTestModelPart(
     const bool DoInitializeElements,
     const bool DoInitializeConditions)
 {
-    ModelPart& r_model_part = CreateTestModelPart(
+    auto& r_model_part = CreateTestModelPart(
         rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
         [rDofVariable](ModelPart::NodeType& rNode) {
             rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
