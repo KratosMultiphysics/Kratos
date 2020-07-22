@@ -25,7 +25,9 @@
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "spaces/ublas_space.h"
 
@@ -248,12 +250,16 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 void RegisterStrategies();
+void RegisterExplicitStrategies();
 void RegisterBuilderAndSolvers();
+void RegisterExplicitBuilders();
 void RegisterSchemes();
 void RegisterConvergenceCriterias();
 
 typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+typedef ExplicitSolvingStrategy<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyType;
 typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+typedef ExplicitBuilder<SparseSpaceType, LocalSpaceType> ExplicitBuilderType;
 typedef Scheme<SparseSpaceType,LocalSpaceType> SchemeType;
 typedef ConvergenceCriteria<SparseSpaceType,LocalSpaceType> ConvergenceCriteriaType;
 
@@ -265,6 +271,14 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Solvin
 #define KRATOS_REGISTER_STRATEGY(name, reference) \
     KratosComponents<SolvingStrategyType>::Add(name, reference);
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitSolvingStrategyType>;
+
+#ifdef KRATOS_REGISTER_EXPLICIT_STRATEGY
+#undef KRATOS_REGISTER_EXPLICIT_STRATEGY
+#endif
+#define KRATOS_REGISTER_EXPLICIT_STRATEGY(name, reference) \
+    KratosComponents<ExplicitSolvingStrategyType>::Add(name, reference);
+
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<BuilderAndSolverType>;
 
 #ifdef KRATOS_REGISTER_BUILDER_AND_SOLVER
@@ -272,6 +286,14 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Builde
 #endif
 #define KRATOS_REGISTER_BUILDER_AND_SOLVER(name, reference) \
     KratosComponents<BuilderAndSolverType>::Add(name, reference);
+
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ExplicitBuilderType>;
+
+#ifdef KRATOS_REGISTER_EXPLICIT_BUILDER
+#undef KRATOS_REGISTER_EXPLICIT_BUILDER
+#endif
+#define KRATOS_REGISTER_EXPLICIT_BUILDER(name, reference) \
+    KratosComponents<ExplicitBuilderType>::Add(name, reference);
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<SchemeType>;
 
