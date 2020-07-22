@@ -785,5 +785,84 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
         }
 
+        // /** Checks the SymbolicStokes3D8N element.
+        //  * Checks the LHS and RHS computation using a small perturbation.
+        //  */
+        KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D8N, FluidDynamicsApplicationFastSuite)
+        {
+            Model model;
+            ModelPart &r_model_part = model.CreateModelPart("Main", 3);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+            r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            // Process info creation
+            double delta_time = 0.1;
+            r_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 1.0);
+            r_model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0 / (2.0 * delta_time);
+            bdf_coefs[1] = -2.0 / delta_time;
+            bdf_coefs[2] = 0.5 * delta_time;
+            r_model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+            // Set the element properties
+            auto p_elem_prop = r_model_part.CreateNewProperties(1);
+            p_elem_prop->SetValue(DENSITY, 1000.0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+            r_model_part.CreateNewNode(4, 0.0, 1.0, 1.0);
+            r_model_part.CreateNewNode(5, 0.0, 0.0, 1.0);
+            r_model_part.CreateNewNode(6, 1.0, 0.0, 1.0);
+            r_model_part.CreateNewNode(7, 1.0, 1.0, 1.0);
+            r_model_part.CreateNewNode(8, 0.0, 1.0, 1.0);
+            std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4, 5, 6, 7, 8};
+            r_model_part.CreateNewElement("SymbolicStokes3D8N", 1, elem_nodes, p_elem_prop);
+
+            auto p_element = r_model_part.pGetElement(1);
+
+            // Define the nodal values
+            Matrix vel_original(8, 3);
+            vel_original(0, 0) = 0.0; vel_original(0, 1) = 0.1; vel_original(0, 2) = 0.2;
+            vel_original(1, 0) = 0.1; vel_original(1, 1) = 0.2; vel_original(1, 2) = 0.3;
+            vel_original(2, 0) = 0.2; vel_original(2, 1) = 0.3; vel_original(2, 2) = 0.4;
+            vel_original(3, 0) = 0.3; vel_original(3, 1) = 0.4; vel_original(3, 2) = 0.5;
+            vel_original(4, 0) = 0.4; vel_original(4, 1) = 0.5; vel_original(4, 2) = 0.6;
+            vel_original(5, 0) = 0.5; vel_original(5, 1) = 0.6; vel_original(5, 2) = 0.7;
+            vel_original(6, 0) = 0.6; vel_original(6, 1) = 0.7; vel_original(6, 2) = 0.8;
+            vel_original(7, 0) = 0.7; vel_original(7, 1) = 0.8; vel_original(7, 2) = 0.9;
+
+            for (unsigned int i = 0; i < 8; i++)
+            {
+                p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0.0;
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k] = vel_original(i, k);
+                    p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9 * vel_original(i, k);
+                    p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.75 * vel_original(i, k);
+                }
+            }
+
+            // Compute RHS and LHS
+            Vector RHS = ZeroVector(32);
+            Matrix LHS = ZeroMatrix(32, 32);
+
+            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+            // Check values
+            std::vector<double> RHS_expected({312.2168837, 190.8386773, 389.472495, -0.1311111106, -67.20285686, 280.1368874, 383.5463436, -0.1183055552, -7.053952332, -142.4946575, 419.4204074, -0.08101736106, 386.3828838, -226.9384326, 468.0936225, -0.1025659719, 255.1268689, 410.6717412, -101.4516571, -0.08564583323, -117.4846442, 397.8839468, -42.03592709, -0.04259722243, -157.8939673, 11.7134052, -90.25374564, 0.03069444374, 144.7629509, 49.23009891, -233.562372, -0.0194513892});
+            std::vector<double> LHS_row_0_expected({635.2831243, 50.48076971, 146.0336552, 0.05555555556, 109.6420927, 86.53846153, 129.8076919, 0.05555555556, 53.68589666, -137.0192312, 75.72115373, 0.02777777778, 292.6014983, -165.8653845, 102.7644241, 0.02777777778, 276.1752134, 125.3004811, -146.0336536, 0.02777777778, 20.56623719, 89.24278847, -129.8076935, 0.02777777778, -14.62339902, -38.7620196, -75.72115456, 0.01388888889, 85.00266994, -9.915865479, -102.7644232, 0.01388888889});
+            KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
+            KRATOS_CHECK_VECTOR_NEAR(row(LHS, 0), LHS_row_0_expected, 1.0e-2);
+        }
 	} // namespace Testing
 }  // namespace Kratos.
