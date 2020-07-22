@@ -79,23 +79,26 @@ public:
     ///@name Life Cycle
     ///@{
 
-    RansFractionalStepStrategy(ModelPart& rModelPart,
-                               SolverSettingsType& rSolverConfig,
-                               bool PredictorCorrector,
-                               bool CalculateReactionsFlag)
-        : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag)
+    RansFractionalStepStrategy(
+        ModelPart& rModelPart,
+        SolverSettingsType& rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag)
+    : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag)
     {
         KRATOS_INFO(this->Info()) << "Created fractional step strategy." << std::endl;
     }
 
-    RansFractionalStepStrategy(ModelPart& rModelPart,
-                               SolverSettingsType& rSolverConfig,
-                               bool PredictorCorrector,
-                               bool CalculateReactionsFlag,
-                               const Kratos::Variable<int>& PeriodicVar)
-        : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag, PeriodicVar)
+    RansFractionalStepStrategy(
+        ModelPart& rModelPart,
+        SolverSettingsType& rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag,
+        const Kratos::Variable<int>& PeriodicVar)
+    : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag, PeriodicVar)
     {
-        KRATOS_INFO(this->Info()) << "Created periodic fractional step strategy." << std::endl;
+        KRATOS_INFO(this->Info())
+            << "Created periodic fractional step strategy." << std::endl;
     }
 
     /// Destructor.
@@ -163,29 +166,27 @@ protected:
 
     std::tuple<bool, double> SolveStep() override
     {
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        const int n_nodes = rModelPart.NumberOfNodes();
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        const int n_nodes = r_model_part.NumberOfNodes();
 
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         // 1. Fractional step momentum iteration
         r_process_info.SetValue(FRACTIONAL_STEP, 1);
 
-        bool Converged = false;
-        for (unsigned int it = 0; it < this->mMaxVelocityIter; ++it)
-        {
+        bool converged = false;
+        for (unsigned int it = 0; it < this->mMaxVelocityIter; ++it) {
             KRATOS_INFO_IF("RansFractionalStepStrategy", BaseType::GetEchoLevel() > 1)
                 << "Momentum iteration " << it << std::endl;
 
             // build momentum system and solve for fractional step velocity increment
             r_process_info.SetValue(FRACTIONAL_STEP, 1);
-            double NormDv = this->mpMomentumStrategy->Solve();
+            double norm_dv = this->mpMomentumStrategy->Solve();
 
             // Check convergence
-            Converged = this->CheckFractionalStepConvergence(NormDv);
+            converged = this->CheckFractionalStepConvergence(norm_dv);
 
-            if (Converged)
-            {
+            if (converged) {
                 KRATOS_INFO_IF("RansFractionalStepStrategy", BaseType::GetEchoLevel() > 0)
                     << "Fractional velocity converged in " << it + 1
                     << " iterations." << std::endl;
@@ -193,12 +194,12 @@ protected:
             }
         }
 
-        KRATOS_INFO_IF("RansFractionalStepStrategy", !Converged && BaseType::GetEchoLevel() > 0)
+        KRATOS_INFO_IF("RansFractionalStepStrategy", !converged && BaseType::GetEchoLevel() > 0)
             << "Fractional velocity iterations did not converge." << std::endl;
 
         // Compute projections (for stabilization)
         r_process_info.SetValue(FRACTIONAL_STEP, 4);
-        this->ComputeSplitOssProjections(rModelPart);
+        this->ComputeSplitOssProjections(r_model_part);
 
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         r_process_info.SetValue(FRACTIONAL_STEP, 5);
@@ -208,9 +209,8 @@ protected:
                                : 1.0;
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node)
-        {
-            auto it_node = rModelPart.NodesBegin() + i_node;
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
             const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
             it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -eta * old_press;
         }
@@ -220,9 +220,8 @@ protected:
         double NormDp = this->mpPressureStrategy->Solve();
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node)
-        {
-            auto it_node = rModelPart.NodesBegin() + i_node;
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) +=
                 it_node->FastGetSolutionStepValue(PRESSURE);
         }
@@ -235,7 +234,7 @@ protected:
         this->CalculateEndOfStepVelocity();
 
         // Set the output tuple as the fractional velocity convergence and pressure norm
-        return std::make_tuple(Converged, NormDp);
+        return std::make_tuple(converged, NormDp);
     }
 
     ///@}

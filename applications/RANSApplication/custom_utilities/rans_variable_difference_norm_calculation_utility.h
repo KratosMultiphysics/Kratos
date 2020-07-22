@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_VARIABLE_DIFFERENCE_NORM_CALCULATION_UTILITY_H_INCLUDED)
@@ -27,22 +27,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -50,10 +34,6 @@ template <typename TDataType>
 class RansVariableDifferenceNormsCalculationUtility
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    ///@}
     ///@name Pointer Definitions
     /// Pointer definition of RansVariableDifferenceNormsCalculationUtility
     KRATOS_CLASS_POINTER_DEFINITION(RansVariableDifferenceNormsCalculationUtility);
@@ -65,9 +45,10 @@ public:
     /**
      * Constructor.
      */
-    RansVariableDifferenceNormsCalculationUtility(const ModelPart& rModelPart,
-                                                  const Variable<TDataType>& rVariable)
-        : mrModelPart(rModelPart), mrVariable(rVariable)
+    RansVariableDifferenceNormsCalculationUtility(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable)
+    : mrModelPart(rModelPart), mrVariable(rVariable)
     {
     }
 
@@ -80,26 +61,12 @@ public:
     }
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
     void InitializeCalculation();
 
     std::tuple<double, double> CalculateDifferenceNorm();
-
-    ///@}
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
 
     ///@}
     ///@name Input and output
@@ -118,48 +85,7 @@ public:
         rOStream << "RansVariableDifferenceNormsCalculationUtility";
     }
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Member Variables
     ///@{
     const ModelPart& mrModelPart;
@@ -167,37 +93,8 @@ private:
     std::vector<double> mData;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
 }; // Class RansVariableDifferenceNormsCalculationUtility
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 ///@name Input and output

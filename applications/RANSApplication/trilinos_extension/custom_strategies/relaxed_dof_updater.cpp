@@ -30,11 +30,9 @@ void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Init
     // filling the array with the global ids
     unsigned int counter = 0;
     for (typename DofsArrayType::const_iterator i_dof = rDofSet.begin();
-         i_dof != rDofSet.end(); ++i_dof)
-    {
+         i_dof != rDofSet.end(); ++i_dof) {
         int id = i_dof->EquationId();
-        if (id < system_size)
-        {
+        if (id < system_size) {
             index_array[counter++] = id;
         }
     }
@@ -47,8 +45,7 @@ void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Init
     int check_size = -1;
     int tot_update_dofs = index_array.size();
     rDx.Comm().SumAll(&tot_update_dofs, &check_size, 1);
-    if ((check_size < system_size) && (rDx.Comm().MyPID() == 0))
-    {
+    if ((check_size < system_size) && (rDx.Comm().MyPID() == 0)) {
         std::stringstream msg;
         msg << "Dof count is not correct. There are less dofs then expected." << std::endl;
         msg << "Expected number of active dofs: " << system_size
@@ -98,15 +95,12 @@ void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Upda
 
     int num_dof = rDofSet.size();
 
-    for (int i = 0; i < num_dof; ++i)
-    {
+    for (int i = 0; i < num_dof; ++i) {
         auto it_dof = rDofSet.begin() + i;
 
-        if (it_dof->IsFree())
-        {
+        if (it_dof->IsFree()) {
             int global_id = it_dof->EquationId();
-            if (global_id < system_size)
-            {
+            if (global_id < system_size) {
                 double dx_i = local_dx[this->mpDofImport->TargetMap().LID(global_id)];
                 it_dof->GetSolutionStepValue() += RelaxationFactor * dx_i;
             }
@@ -138,15 +132,12 @@ void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Assi
 
     int num_dof = rDofSet.size();
 
-    for (int i = 0; i < num_dof; ++i)
-    {
+    for (int i = 0; i < num_dof; ++i) {
         auto it_dof = rDofSet.begin() + i;
 
-        if (it_dof->IsFree())
-        {
+        if (it_dof->IsFree()) {
             int global_id = it_dof->EquationId();
-            if (global_id < system_size)
-            {
+            if (global_id < system_size) {
                 double dx_i = local_dx[this->mpDofImport->TargetMap().LID(global_id)];
                 it_dof->GetSolutionStepValue() = dx_i;
             }

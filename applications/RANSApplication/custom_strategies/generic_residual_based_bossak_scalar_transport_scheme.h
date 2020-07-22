@@ -73,16 +73,17 @@ public:
 
     /// Constructor.
 
-    GenericResidualBasedBossakScalarTransportScheme(const double AlphaBossak,
-                                                    const double RelaxationFactor,
-                                                    const Variable<double>& rScalarVariable,
-                                                    const Variable<double>& rScalarRateVariable,
-                                                    const Variable<double>& rRelaxedScalarRateVariable)
-        : BaseType(RelaxationFactor),
-          mAlphaBossak(AlphaBossak),
-          mrScalarVariable(rScalarVariable),
-          mrScalarRateVariable(rScalarRateVariable),
-          mrRelaxedScalarRateVariable(rRelaxedScalarRateVariable)
+    GenericResidualBasedBossakScalarTransportScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        const Variable<double>& rScalarRateVariable,
+        const Variable<double>& rRelaxedScalarRateVariable)
+    : BaseType(RelaxationFactor),
+        mAlphaBossak(AlphaBossak),
+        mrScalarVariable(rScalarVariable),
+        mrScalarRateVariable(rScalarRateVariable),
+        mrRelaxedScalarRateVariable(rRelaxedScalarRateVariable)
     {
         // Allocate auxiliary memory.
         const int num_threads = OpenMPUtils::GetNumThreads();
@@ -99,10 +100,11 @@ public:
     ///@name Operations
     ///@{
 
-    void InitializeSolutionStep(ModelPart& rModelPart,
-                                SystemMatrixType& rA,
-                                SystemVectorType& rDx,
-                                SystemVectorType& rb) override
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        SystemMatrixType& rA,
+        SystemVectorType& rDx,
+        SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
@@ -126,11 +128,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Update(ModelPart& rModelPart,
-                DofsArrayType& rDofSet,
-                SystemMatrixType& rA,
-                SystemVectorType& rDx,
-                SystemVectorType& rb) override
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        SystemMatrixType& rA,
+        SystemVectorType& rDx,
+        SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
@@ -161,39 +164,43 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculateSystemContributions(Element& rElement,
-                                      LocalSystemMatrixType& rLHS_Contribution,
-                                      LocalSystemVectorType& rRHS_Contribution,
-                                      Element::EquationIdVectorType& rEquationIdVector,
-                                      const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateDynamicSystem<Element>(rElement, rLHS_Contribution, rRHS_Contribution,
                                         rEquationIdVector, rCurrentProcessInfo);
     }
 
-    void CalculateRHSContribution(Element& rElement,
-                                  LocalSystemVectorType& rRHS_Contribution,
-                                  Element::EquationIdVectorType& rEquationIdVector,
-                                  const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(
+        Element& rElement,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateDynamicRHS<Element>(rElement, rRHS_Contribution,
                                      rEquationIdVector, rCurrentProcessInfo);
     }
 
-    void CalculateSystemContributions(Condition& rCondition,
-                                      LocalSystemMatrixType& rLHS_Contribution,
-                                      LocalSystemVectorType& rRHS_Contribution,
-                                      Condition::EquationIdVectorType& rEquationIdVector,
-                                      const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Condition::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateDynamicSystem<Condition>(rCondition, rLHS_Contribution, rRHS_Contribution,
                                           rEquationIdVector, rCurrentProcessInfo);
     }
 
-    void CalculateRHSContribution(Condition& rCondition,
-                                  LocalSystemVectorType& rRHS_Contribution,
-                                  Element::EquationIdVectorType& rEquationIdVector,
-                                  const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(
+        Condition& rCondition,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         CalculateDynamicRHS<Condition>(rCondition, rRHS_Contribution,
                                        rEquationIdVector, rCurrentProcessInfo);
@@ -224,8 +231,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    struct BossakConstants
-    {
+    struct BossakConstants {
         double Alpha;
         double Gamma;
         double C0;
@@ -250,9 +256,10 @@ private:
     ///@name Private Operations
     ///@{
 
-    static void CalculateBossakConstants(BossakConstants& rBossakConstants,
-                                         const double Alpha,
-                                         const double DeltaTime)
+    static void CalculateBossakConstants(
+        BossakConstants& rBossakConstants,
+        const double Alpha,
+        const double DeltaTime)
     {
         TimeDiscretization::Bossak bossak(Alpha, 0.25, 0.5);
         rBossakConstants.Alpha = bossak.GetAlphaM();
@@ -265,7 +272,10 @@ private:
     }
 
     template <class TItemType>
-    void AddMassMatrixToRHS(TItemType& rItem, LocalSystemVectorType& rRHS_Contribution, const int ThreadId)
+    void AddMassMatrixToRHS(
+        TItemType& rItem,
+        LocalSystemVectorType& rRHS_Contribution,
+        const int ThreadId)
     {
         rItem.GetSecondDerivativesVector(mSecondDerivativeValuesVector[ThreadId], 0);
         (mSecondDerivativeValuesVector[ThreadId]) *= (1.00 - mBossak.Alpha);
@@ -278,11 +288,12 @@ private:
     }
 
     template <class TItemType>
-    void CalculateDynamicSystem(TItemType& rItem,
-                                LocalSystemMatrixType& rLHS_Contribution,
-                                LocalSystemVectorType& rRHS_Contribution,
-                                typename TItemType::EquationIdVectorType& rEquationIdVector,
-                                const ProcessInfo& rCurrentProcessInfo)
+    void CalculateDynamicSystem(
+        TItemType& rItem,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        typename TItemType::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -304,10 +315,11 @@ private:
     }
 
     template <class TItemType>
-    void CalculateDynamicRHS(TItemType& rItem,
-                             LocalSystemVectorType& rRHS_Contribution,
-                             typename TItemType::EquationIdVectorType& rEquationIdVector,
-                             const ProcessInfo& rCurrentProcessInfo)
+    void CalculateDynamicRHS(
+        TItemType& rItem,
+        LocalSystemVectorType& rRHS_Contribution,
+        typename TItemType::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -331,8 +343,7 @@ private:
         const int number_of_nodes = rModelPart.NumberOfNodes();
 
 #pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
             NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
             double& r_current_rate = r_node.FastGetSolutionStepValue(mrScalarRateVariable);
             const double old_rate =

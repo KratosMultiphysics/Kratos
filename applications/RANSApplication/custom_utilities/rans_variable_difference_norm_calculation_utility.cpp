@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -39,14 +39,12 @@ void RansVariableDifferenceNormsCalculationUtility<TDataType>::InitializeCalcula
         << mrVariable.Name() << " not found in nodal solution step variables list in "
         << mrModelPart.Name() << ".\n";
 
-    if (static_cast<int>(mData.size()) < number_of_nodes)
-    {
+    if (static_cast<int>(mData.size()) < number_of_nodes) {
         mData.resize(number_of_nodes);
     }
 
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
         mData[i_node] = r_node.FastGetSolutionStepValue(mrVariable);
     }
@@ -69,8 +67,7 @@ std::tuple<double, double> RansVariableDifferenceNormsCalculationUtility<TDataTy
 
     double dx{0.0}, solution{0.0};
 #pragma omp parallel for reduction(+ : dx, solution)
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
         const double value = r_node.FastGetSolutionStepValue(mrVariable);
         dx += std::pow(value - mData[i_node], 2);

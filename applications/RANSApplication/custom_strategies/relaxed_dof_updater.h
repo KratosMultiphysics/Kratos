@@ -124,7 +124,9 @@ public:
      *  @param[in] rX The solution vector.
      *  This method will check if Initialize() was called before and call it if necessary.
      */
-    virtual void AssignDofs(DofsArrayType& rDofSet, const SystemVectorType& rX);
+    virtual void AssignDofs(
+        DofsArrayType& rDofSet,
+        const SystemVectorType& rX);
 
     ///@}
     ///@name Input and output

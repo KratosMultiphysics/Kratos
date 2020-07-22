@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Suneth Warnakulasuriya
-//                 Michael Andre, https://github.com/msandre
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_GENERIC_RESIDUALBASED_STEADY_SCALAR_TRANSPORT_SCHEME)
@@ -58,8 +57,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    GenericResidualBasedSteadyScalarTransportScheme(const double RelaxationFactor)
-        : mRelaxationFactor(RelaxationFactor)
+    GenericResidualBasedSteadyScalarTransportScheme(
+        const double RelaxationFactor)
+    : mRelaxationFactor(RelaxationFactor)
     {
         const int num_threads = OpenMPUtils::GetNumThreads();
         mDampingMatrix.resize(num_threads);
@@ -71,11 +71,12 @@ public:
     ///@name Operators
     ///@{
 
-    void Update(ModelPart& rModelPart,
-                DofsArrayType& rDofSet,
-                TSystemMatrixType& rA,
-                TSystemVectorType& rDx,
-                TSystemVectorType& rb) override
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
     {
         KRATOS_TRY;
 
@@ -89,11 +90,12 @@ public:
         this->mpDofUpdater->Clear();
     }
 
-    void CalculateSystemContributions(Element& rElement,
-                                      LocalSystemMatrixType& rLHS_Contribution,
-                                      LocalSystemVectorType& rRHS_Contribution,
-                                      Element::EquationIdVectorType& rEquationIdVector,
-                                      const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(
+        Element& rElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -102,19 +104,19 @@ public:
         this->CalculateDampingSystem(rElement, rLHS_Contribution, rRHS_Contribution,
                                      rEquationIdVector, rCurrentProcessInfo, k);
 
-        if (mDampingMatrix[k].size1() != 0)
-        {
+        if (mDampingMatrix[k].size1() != 0) {
             noalias(rLHS_Contribution) += mDampingMatrix[k];
         }
 
         KRATOS_CATCH("");
     }
 
-    void CalculateSystemContributions(Condition& rCondition,
-                                      LocalSystemMatrixType& rLHS_Contribution,
-                                      LocalSystemVectorType& rRHS_Contribution,
-                                      Condition::EquationIdVectorType& rEquationIdVector,
-                                      const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Condition::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -123,18 +125,18 @@ public:
         this->CalculateDampingSystem(rCondition, rLHS_Contribution, rRHS_Contribution,
                                      rEquationIdVector, rCurrentProcessInfo, k);
 
-        if (mDampingMatrix[k].size1() != 0)
-        {
+        if (mDampingMatrix[k].size1() != 0) {
             noalias(rLHS_Contribution) += mDampingMatrix[k];
         }
 
         KRATOS_CATCH("");
     }
 
-    void CalculateRHSContribution(Element& rElement,
-                                  LocalSystemVectorType& rRHS_Contribution,
-                                  Element::EquationIdVectorType& rEquationIdVector,
-                                  const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(
+        Element& rElement,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -146,10 +148,11 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculateRHSContribution(Condition& rCondition,
-                                  LocalSystemVectorType& rRHS_Contribution,
-                                  Element::EquationIdVectorType& rEquationIdVector,
-                                  const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRHSContribution(
+        Condition& rCondition,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -190,12 +193,13 @@ protected:
     ///@{
 
     template <class TItemType>
-    void CalculateDampingSystem(TItemType& rItem,
-                                LocalSystemMatrixType& rLHS_Contribution,
-                                LocalSystemVectorType& rRHS_Contribution,
-                                typename TItemType::EquationIdVectorType& rEquationIdVector,
-                                const ProcessInfo& rCurrentProcessInfo,
-                                const int ThreadId)
+    void CalculateDampingSystem(
+        TItemType& rItem,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        typename TItemType::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const int ThreadId)
     {
         KRATOS_TRY;
 

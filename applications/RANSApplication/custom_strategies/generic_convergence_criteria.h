@@ -4,19 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #ifndef KRATOS_GENERIC_CONVERGENCE_CRITERIA_H
 #define KRATOS_GENERIC_CONVERGENCE_CRITERIA_H
 
 // System includes
+#include <cmath>
 #include <string>
 #include <unordered_map>
-#include <cmath>
 
 /* Project includes */
 #include "includes/model_part.h"
@@ -37,7 +37,8 @@ namespace Kratos
  relative and absolute tolerances for both must be specified.
  */
 template <class TSparseSpace, class TDenseSpace>
-class KRATOS_API(RANS_APPLICATION) GenericConvergenceCriteria : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
+class KRATOS_API(RANS_APPLICATION) GenericConvergenceCriteria
+    : public ConvergenceCriteria<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -70,8 +71,10 @@ public:
      * @param PrsRatioTolerance Relative tolerance for presssure error
      * @param PrsAbsTolerance Absolute tolerance for presssure error
      */
-    GenericConvergenceCriteria(double rRatioTolerance, double rAbsTolerance)
-        : BaseType(), mRatioTolerance(rRatioTolerance), mAbsTolerance(rAbsTolerance)
+    GenericConvergenceCriteria(
+        double rRatioTolerance,
+        double rAbsTolerance)
+    : BaseType(), mRatioTolerance(rRatioTolerance), mAbsTolerance(rAbsTolerance)
     {
         mSolutionVariables = "";
     }
@@ -92,18 +95,19 @@ public:
      * @param b RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-    bool PostCriteria(ModelPart& rModelPart,
-                      DofsArrayType& rDofSet,
-                      const TSystemMatrixType& A,
-                      const TSystemVectorType& Dx,
-                      const TSystemVectorType& b) override
+    bool PostCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb) override
     {
-        if (SparseSpaceType::Size(Dx) != 0) // if we are solving for something
+        if (SparseSpaceType::Size(rDx) != 0) // if we are solving for something
         {
             double solution_norm, increase_norm, dof_size;
 
             this->CalculateConvergenceCheckNorms(solution_norm, increase_norm, dof_size,
-                                                 rModelPart, rDofSet, A, Dx, b);
+                                                 rModelPart, rDofSet, rA, rDx, rb);
 
             if (solution_norm == 0.0)
                 solution_norm = 1.0;
@@ -114,8 +118,7 @@ public:
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
             const unsigned int iteration = r_current_process_info[NL_ITERATION_NUMBER];
 
-            if (this->GetEchoLevel() > 0)
-            {
+            if (this->GetEchoLevel() > 0) {
                 std::stringstream msg;
                 msg << "[" << iteration << "] CONVERGENCE CHECK: ";
                 msg << mSolutionVariables;
@@ -134,8 +137,7 @@ public:
                 << ": *** CONVERGENCE IS ACHIEVED ***\n";
 
             return true;
-        }
-        else // in this case all the displacements are imposed!
+        } else // in this case all the displacements are imposed!
         {
             return true;
         }
@@ -150,26 +152,24 @@ public:
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
 
-    void InitializeSolutionStep(ModelPart& rModelPart,
-                                DofsArrayType& rDofSet,
-                                const TSystemMatrixType& A,
-                                const TSystemVectorType& Dx,
-                                const TSystemVectorType& b) override
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb) override
     {
-        if (mSolutionVariables == "")
-        {
+        if (mSolutionVariables == "") {
             const int number_of_dofs = rDofSet.size();
 
             // create the variable list
             std::unordered_map<std::string, int> variables_map;
-            for (int i_dof = 0; i_dof < number_of_dofs; ++i_dof)
-            {
+            for (int i_dof = 0; i_dof < number_of_dofs; ++i_dof) {
                 variables_map.insert(std::make_pair(
                     (rDofSet.begin() + i_dof)->GetVariable().Name(), 1));
             }
 
-            for (const auto& pair : variables_map)
-            {
+            for (const auto& pair : variables_map) {
                 mSolutionVariables += pair.first + ", ";
             }
 
@@ -193,14 +193,15 @@ private:
 
     std::string mSolutionVariables;
 
-    void CalculateConvergenceCheckNorms(double& rSolutionNorm,
-                                        double& rIncreaseNorm,
-                                        double& rDofSize,
-                                        ModelPart& rModelPart,
-                                        DofsArrayType& rDofSet,
-                                        const TSystemMatrixType& A,
-                                        const TSystemVectorType& Dx,
-                                        const TSystemVectorType& b);
+    void CalculateConvergenceCheckNorms(
+        double& rSolutionNorm,
+        double& rIncreaseNorm,
+        double& rDofSize,
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb);
 
 }; // namespace Kratos
 
