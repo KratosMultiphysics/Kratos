@@ -568,7 +568,7 @@ namespace Kratos
                 .def("InitializeSolutionStep", &BaseExplicitSolvingStrategyType::InitializeSolutionStep)
                 .def("FinalizeSolutionStep", &BaseExplicitSolvingStrategyType::FinalizeSolutionStep)
                 .def("SolveSolutionStep", &BaseExplicitSolvingStrategyType::SolveSolutionStep)
-                .def("GetModelPart", [](const BaseExplicitSolvingStrategyType& self) -> const ModelPart& { return self.GetModelPart(); })
+                .def("GetModelPart", [](BaseExplicitSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
                 ;
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
