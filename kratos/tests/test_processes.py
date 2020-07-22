@@ -284,7 +284,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         ############################################################
         ##time >= 20 - KratosMultiphysics.DISPLACEMENT applied as a vector. x,z components fixed, y component not imposed
-        ##time >= 20 - KratosMultiphysics.VELOCITY applied as a vector by componentes. All components free. y component is not zero.
+        ##time >= 20 - KratosMultiphysics.VELOCITY applied as a vector by components. All components free. y component is not zero.
         model_part.CloneTimeStep(20.1)
 
         for process in list_of_processes:

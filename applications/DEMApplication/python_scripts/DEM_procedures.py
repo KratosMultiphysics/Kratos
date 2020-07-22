@@ -1219,9 +1219,9 @@ class Report(object):
             percentage = 100 * (float(step) / self.total_steps_expected)
             elapsed_time = timer.time() - self.initial_re_time
 
-            report = report + "Real time calculation: " + str(elapsed_time) + " seconds" + "\n"\
-                            + label + "In minutes: " + str(elapsed_time / 60.0) + " minutes" + "\n"\
-                            + label + "In hours: " + str(elapsed_time / 3600.0) + " hours" + "\n"\
+            report = report + label + "Elapsed real time: " + str(round(elapsed_time, 5)) + " seconds" + "\n"\
+                            + label + "In minutes: " + str(round(elapsed_time / 60.0, 2)) + " minutes" + "\n"\
+                            + label + "In hours: " + str(round(elapsed_time / 3600.0, 3)) + " hours" + "\n"\
                             + label + "Simulation time: " + str(time) + " seconds" + "\n"\
                             + label + "%s %.5f %s" % ("Percentage Completed: ", percentage, "%") + "\n"\
                             + label + "Computed time steps: " + str(step) + " out of " + str(self.total_steps_expected) + "\n" + label
