@@ -1,15 +1,16 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
 //  Extended by :    Suneth Warnakulasuriya
+//
 
 #if !defined(KRATOS_RANS_FRACTIONAL_STEP_ELEMENT_H_INCLUDED)
 #define KRATOS_RANS_FRACTIONAL_STEP_ELEMENT_H_INCLUDED
@@ -45,38 +46,23 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansFractionalStepElement);
 
     /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
     /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
     /// Vector type for local contributions to the linear system
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
     /// Matrix type for local contributions to the linear system
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    /// Type for shape function values container
-    typedef Kratos::Vector ShapeFunctionsType;
-
-    /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
-
-    /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle

@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Dharmin Shah (https://github.com/sdharmin)
-//                   Bence Rochlitz (https://github.com/bencerochlitz)
+//  Main authors:    Dharmin Shah
+//                   Bence Rochlitz
 //
-//  Supervised by:   Jordi Cotela (https://github.com/jcotela)
-//                   Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Supervised by:   Jordi Cotela
+//                   Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_K_OMEGA_ELEMENT_DATA_OMEGA_ELEMENT_DATA_H_INCLUDED)
