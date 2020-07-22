@@ -167,7 +167,7 @@ void RandomFillContainerVariable(
     const double MinValue,
     const double MaxValue)
 {
-    TContainerType& container = GetContainer<TContainerType>(rModelPart);
+    auto& container = GetContainer<TContainerType>(rModelPart);
     for (auto& item : container) {
         std::stringstream seed;
         seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
