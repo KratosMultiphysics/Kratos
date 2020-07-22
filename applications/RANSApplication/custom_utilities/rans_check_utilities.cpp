@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // Application includes
@@ -21,12 +21,13 @@ namespace Kratos
 {
 namespace RansCheckUtilities
 {
-bool CheckIfModelPartExists(const Model& rModel, const std::string& rModelPartName)
+bool CheckIfModelPartExists(
+    const Model& rModel,
+    const std::string& rModelPartName)
 {
     KRATOS_TRY
 
-    if (!rModel.HasModelPart(rModelPartName))
-    {
+    if (!rModel.HasModelPart(rModelPartName)) {
         const std::vector<std::string>& r_model_part_names = rModel.GetModelPartNames();
 
         std::string msg;
@@ -44,7 +45,9 @@ bool CheckIfModelPartExists(const Model& rModel, const std::string& rModelPartNa
 }
 
 template <typename TVariableType>
-bool CheckIfVariableExistsInModelPart(const ModelPart& rModelPart, const TVariableType& rVariable)
+bool CheckIfVariableExistsInModelPart(
+    const ModelPart& rModelPart,
+    const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -58,10 +61,15 @@ bool CheckIfVariableExistsInModelPart(const ModelPart& rModelPart, const TVariab
 }
 
 // template instantiations
-template bool CheckIfVariableExistsInModelPart(const ModelPart&, const Variable<int>&);
-template bool CheckIfVariableExistsInModelPart(const ModelPart&, const Variable<double>&);
-template bool CheckIfVariableExistsInModelPart(const ModelPart&,
-                                               const Variable<array_1d<double, 3>>&);
+template bool CheckIfVariableExistsInModelPart(
+    const ModelPart&,
+    const Variable<int>&);
+template bool CheckIfVariableExistsInModelPart(
+    const ModelPart&,
+    const Variable<double>&);
+template bool CheckIfVariableExistsInModelPart(
+    const ModelPart&,
+    const Variable<array_1d<double, 3>>&);
 } // namespace RansCheckUtilities
 
 } // namespace Kratos

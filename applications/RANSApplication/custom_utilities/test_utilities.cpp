@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
-//
 //
 
 // System includes
@@ -32,7 +31,11 @@ namespace Kratos
 namespace RansApplicationTestUtilities
 {
 template <>
-void AssignRandomValues(double& rValue, const std::string& rSeed, const double MinValue, const double MaxValue)
+void AssignRandomValues(
+    double& rValue,
+    const std::string& rSeed,
+    const double MinValue,
+    const double MaxValue)
 {
     std::seed_seq seed(rSeed.begin(), rSeed.end());
     std::default_random_engine generator(seed);
@@ -42,10 +45,11 @@ void AssignRandomValues(double& rValue, const std::string& rSeed, const double M
 }
 
 template <>
-void AssignRandomValues(array_1d<double, 3>& rValue,
-                        const std::string& rSeed,
-                        const double MinValue,
-                        const double MaxValue)
+void AssignRandomValues(
+    array_1d<double, 3>& rValue,
+    const std::string& rSeed,
+    const double MinValue,
+    const double MaxValue)
 {
     std::seed_seq seed(rSeed.begin(), rSeed.end());
     std::default_random_engine generator(seed);
@@ -56,12 +60,13 @@ void AssignRandomValues(array_1d<double, 3>& rValue,
     rValue[2] = distribution(generator);
 }
 
-ModelPart& CreateTestModelPart(Model& rModel,
-                               const std::string& rElementName,
-                               const std::string& rConditionName,
-                               const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
-                               const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
-                               const int BufferSize)
+ModelPart& CreateTestModelPart(
+    Model& rModel,
+    const std::string& rElementName,
+    const std::string& rConditionName,
+    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
+    const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
+    const int BufferSize)
 {
     ModelPart& r_model_part = rModel.CreateModelPart("test", BufferSize);
     rAddNodalSolutionStepVariablesFuncion(r_model_part);
@@ -70,8 +75,7 @@ ModelPart& CreateTestModelPart(Model& rModel,
     r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0);
     r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
 
-    for (auto& r_node : r_model_part.Nodes())
-    {
+    for (auto& r_node : r_model_part.Nodes()) {
         rAddDofsFunction(r_node);
     }
 
@@ -91,14 +95,15 @@ ModelPart& CreateTestModelPart(Model& rModel,
     return r_model_part;
 }
 
-ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
-                                             const std::string& rElementName,
-                                             const std::string& rConditionName,
-                                             const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
-                                             const Variable<double>& rDofVariable,
-                                             const int BufferSize,
-                                             const bool DoInitializeElements,
-                                             const bool DoInitializeConditions)
+ModelPart& CreateScalarVariableTestModelPart(
+    Model& rModel,
+    const std::string& rElementName,
+    const std::string& rConditionName,
+    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
+    const Variable<double>& rDofVariable,
+    const int BufferSize,
+    const bool DoInitializeElements,
+    const bool DoInitializeConditions)
 {
     ModelPart& r_model_part = CreateTestModelPart(
         rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
@@ -107,24 +112,26 @@ ModelPart& CreateScalarVariableTestModelPart(Model& rModel,
         },
         BufferSize);
 
-    if (DoInitializeElements)
+    if (DoInitializeElements) {
         r_model_part.Elements().front().Initialize();
+    }
 
-    if (DoInitializeConditions)
+    if (DoInitializeConditions) {
         r_model_part.Conditions().front().Initialize();
+    }
 
     return r_model_part;
 }
 
 template <class TDataType>
-void RandomFillNodalHistoricalVariable(ModelPart& rModelPart,
-                                       const Variable<TDataType>& rVariable,
-                                       const double MinValue,
-                                       const double MaxValue,
-                                       const int Step)
+void RandomFillNodalHistoricalVariable(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const double MinValue,
+    const double MaxValue,
+    const int Step)
 {
-    for (auto& node : rModelPart.Nodes())
-    {
+    for (auto& node : rModelPart.Nodes()) {
         std::stringstream seed;
         seed << node.Id() << "_HistoricalV_" << rVariable.Name();
         TDataType& value = node.FastGetSolutionStepValue(rVariable, Step);
@@ -133,32 +140,35 @@ void RandomFillNodalHistoricalVariable(ModelPart& rModelPart,
 }
 
 template <>
-ModelPart::NodesContainerType& GetContainer(ModelPart& rModelPart)
+ModelPart::NodesContainerType& GetContainer(
+    ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
 
 template <>
-ModelPart::ConditionsContainerType& GetContainer(ModelPart& rModelPart)
+ModelPart::ConditionsContainerType& GetContainer(
+    ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
 template <>
-ModelPart::ElementsContainerType& GetContainer(ModelPart& rModelPart)
+ModelPart::ElementsContainerType& GetContainer(
+    ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template <class TContainerType, class TDataType>
-void RandomFillContainerVariable(ModelPart& rModelPart,
-                                 const Variable<TDataType>& rVariable,
-                                 const double MinValue,
-                                 const double MaxValue)
+void RandomFillContainerVariable(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const double MinValue,
+    const double MaxValue)
 {
     TContainerType& container = GetContainer<TContainerType>(rModelPart);
-    for (auto& item : container)
-    {
+    for (auto& item : container) {
         std::stringstream seed;
         seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
         TDataType value = rVariable.Zero();
@@ -168,32 +178,31 @@ void RandomFillContainerVariable(ModelPart& rModelPart,
 }
 
 template <class TContainerType>
-void TestEquationIdVector(ModelPart& rModelPart)
+void TestEquationIdVector(
+    ModelPart& rModelPart)
 {
     auto eqn_ids = std::vector<IndexType>{};
-    for (const auto& r_item : GetContainer<TContainerType>(rModelPart))
-    {
+    for (const auto& r_item : GetContainer<TContainerType>(rModelPart)) {
         r_item.EquationIdVector(eqn_ids, rModelPart.GetProcessInfo());
         KRATOS_CHECK_EQUAL(eqn_ids.size(), r_item.GetGeometry().PointsNumber());
         const auto& r_geometry = r_item.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             KRATOS_CHECK_EQUAL(eqn_ids[i_node], r_geometry[i_node].Id());
         }
     }
 }
 
 template <class TContainerType>
-void TestGetDofList(ModelPart& rModelPart, const Variable<double>& rVariable)
+void TestGetDofList(
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable)
 {
     auto dofs = Element::DofsVectorType{};
-    for (const auto& r_item : GetContainer<TContainerType>(rModelPart))
-    {
+    for (const auto& r_item : GetContainer<TContainerType>(rModelPart)) {
         r_item.GetDofList(dofs, rModelPart.GetProcessInfo());
         KRATOS_CHECK_EQUAL(dofs.size(), r_item.GetGeometry().PointsNumber());
         const auto& r_geometry = r_item.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             KRATOS_CHECK_EQUAL(dofs[i_node]->GetVariable(), rVariable);
             KRATOS_CHECK_EQUAL(dofs[i_node]->EquationId(), r_geometry[i_node].Id());
         }
@@ -201,32 +210,68 @@ void TestGetDofList(ModelPart& rModelPart, const Variable<double>& rVariable)
 }
 
 // template instantiations
-template void TestEquationIdVector<ModelPart::ElementsContainerType>(ModelPart&);
-template void TestEquationIdVector<ModelPart::ConditionsContainerType>(ModelPart&);
+template void TestEquationIdVector<ModelPart::ElementsContainerType>(
+    ModelPart&);
+template void TestEquationIdVector<ModelPart::ConditionsContainerType>(
+    ModelPart&);
 
-template void TestGetDofList<ModelPart::ElementsContainerType>(ModelPart&,
-                                                               const Variable<double>&);
-template void TestGetDofList<ModelPart::ConditionsContainerType>(ModelPart&,
-                                                                 const Variable<double>&);
+template void TestGetDofList<ModelPart::ElementsContainerType>(
+    ModelPart&,
+    const Variable<double>&);
+
+template void TestGetDofList<ModelPart::ConditionsContainerType>(
+    ModelPart&,
+    const Variable<double>&);
 
 template void RandomFillNodalHistoricalVariable<double>(
-    ModelPart&, const Variable<double>&, const double, const double, const int);
+    ModelPart&,
+    const Variable<double>&,
+    const double,
+    const double,
+    const int);
+
 template void RandomFillNodalHistoricalVariable<array_1d<double, 3>>(
-    ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double, const int);
+    ModelPart&,
+    const Variable<array_1d<double, 3>>&,
+    const double,
+    const double,
+    const int);
 
 template void RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(
-    ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double);
+    ModelPart&,
+    const Variable<array_1d<double, 3>>&,
+    const double,
+    const double);
+
 template void RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
-    ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double);
+    ModelPart&,
+    const Variable<array_1d<double, 3>>&,
+    const double,
+    const double);
+
 template void RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(
-    ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double);
+    ModelPart&,
+    const Variable<array_1d<double, 3>>&,
+    const double,
+    const double);
 
 template void RandomFillContainerVariable<ModelPart::NodesContainerType, double>(
-    ModelPart&, const Variable<double>&, const double, const double);
+    ModelPart&,
+    const Variable<double>&,
+    const double,
+    const double);
+
 template void RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>(
-    ModelPart&, const Variable<double>&, const double, const double);
+    ModelPart&,
+    const Variable<double>&,
+    const double,
+    const double);
+
 template void RandomFillContainerVariable<ModelPart::ElementsContainerType, double>(
-    ModelPart&, const Variable<double>&, const double, const double);
+    ModelPart&,
+    const Variable<double>&,
+    const double,
+    const double);
 
 } // namespace RansApplicationTestUtilities
 } // namespace Kratos

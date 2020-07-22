@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -48,14 +48,14 @@ const Variable<double>& EpsilonElementData<TDim>::GetScalarRelaxedRateVariable()
 }
 
 template <unsigned int TDim>
-void EpsilonElementData<TDim>::Check(const GeometryType& rGeometry,
-                                     const ProcessInfo& rCurrentProcessInfo)
+void EpsilonElementData<TDim>::Check(
+    const GeometryType& rGeometry,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const int number_of_nodes = rGeometry.PointsNumber();
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const NodeType& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
@@ -77,7 +77,8 @@ GeometryData::IntegrationMethod EpsilonElementData<TDim>::GetIntegrationMethod()
 }
 
 template <unsigned int TDim>
-void EpsilonElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
+void EpsilonElementData<TDim>::CalculateConstants(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     mC1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
     mC2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
@@ -86,9 +87,10 @@ void EpsilonElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentPro
 }
 
 template <unsigned int TDim>
-void EpsilonElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
-                                                       const Matrix& rShapeFunctionDerivatives,
-                                                       const int Step)
+void EpsilonElementData<TDim>::CalculateGaussPointData(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const int Step)
 {
     KRATOS_TRY
 
@@ -112,7 +114,8 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunct
 
 template <unsigned int TDim>
 array_1d<double, 3> EpsilonElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     return RansCalculationUtilities::EvaluateInPoint(this->GetGeometry(),
                                                      VELOCITY, rShapeFunctions);
@@ -120,21 +123,24 @@ array_1d<double, 3> EpsilonElementData<TDim>::CalculateEffectiveVelocity(
 
 template <unsigned int TDim>
 double EpsilonElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     return mKinematicViscosity + mTurbulentKinematicViscosity * mInvEpsilonSigma;
 }
 
 template <unsigned int TDim>
-double EpsilonElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
-                                                       const Matrix& rShapeFunctionDerivatives) const
+double EpsilonElementData<TDim>::CalculateReactionTerm(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     return std::max(mC2 * mGamma + mC1 * 2.0 * mVelocityDivergence / 3.0, 0.0);
 }
 
 template <unsigned int TDim>
-double EpsilonElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions,
-                                                     const Matrix& rShapeFunctionDerivatives) const
+double EpsilonElementData<TDim>::CalculateSourceTerm(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     double production = 0.0;
 

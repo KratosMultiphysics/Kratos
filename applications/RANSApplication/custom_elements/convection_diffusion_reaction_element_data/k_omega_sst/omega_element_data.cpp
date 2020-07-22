@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -49,22 +49,22 @@ const Variable<double>& OmegaElementData<TDim>::GetScalarRelaxedRateVariable()
 }
 
 template <unsigned int TDim>
-void OmegaElementData<TDim>::Check(const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+void OmegaElementData<TDim>::Check(
+    const GeometryType& rGeometry,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
     const int number_of_nodes = rGeometry.PointsNumber();
 
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const NodeType& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(
-            TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(
-            TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
 
@@ -80,7 +80,8 @@ GeometryData::IntegrationMethod OmegaElementData<TDim>::GetIntegrationMethod()
 }
 
 template <unsigned int TDim>
-void OmegaElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
+void OmegaElementData<TDim>::CalculateConstants(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     mBeta1 = rCurrentProcessInfo[TURBULENCE_RANS_BETA_1];
     mBeta2 = rCurrentProcessInfo[TURBULENCE_RANS_BETA_2];
@@ -91,9 +92,10 @@ void OmegaElementData<TDim>::CalculateConstants(const ProcessInfo& rCurrentProce
 }
 
 template <unsigned int TDim>
-void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctions,
-                                                     const Matrix& rShapeFunctionDerivatives,
-                                                     const int Step)
+void OmegaElementData<TDim>::CalculateGaussPointData(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const int Step)
 {
     KRATOS_TRY
 
@@ -148,7 +150,8 @@ void OmegaElementData<TDim>::CalculateGaussPointData(const Vector& rShapeFunctio
 
 template <unsigned int TDim>
 array_1d<double, 3> OmegaElementData<TDim>::CalculateEffectiveVelocity(
-    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     const array_1d<double, 3>& r_velocity = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), VELOCITY, rShapeFunctions);
@@ -158,14 +161,16 @@ array_1d<double, 3> OmegaElementData<TDim>::CalculateEffectiveVelocity(
 
 template <unsigned int TDim>
 double OmegaElementData<TDim>::CalculateEffectiveKinematicViscosity(
-    const Vector& rShapeFunctions, const Matrix& rShapeFunctionDerivatives) const
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     return mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
 }
 
 template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctions,
-                                                     const Matrix& rShapeFunctionDerivatives) const
+double OmegaElementData<TDim>::CalculateReactionTerm(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
     double value = mBlendedBeta * omega;
@@ -175,8 +180,9 @@ double OmegaElementData<TDim>::CalculateReactionTerm(const Vector& rShapeFunctio
 }
 
 template <unsigned int TDim>
-double OmegaElementData<TDim>::CalculateSourceTerm(const Vector& rShapeFunctions,
-                                                   const Matrix& rShapeFunctionDerivatives) const
+double OmegaElementData<TDim>::CalculateSourceTerm(
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives) const
 {
     double production = 0.0;
 

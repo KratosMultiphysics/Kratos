@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
-//
 //
 
 // System includes
@@ -30,7 +29,8 @@ namespace Kratos
 {
 namespace StabilizationMethodTestUtilities
 {
-void InitializeResidualBasedFluxCorrectedConstants(ProcessInfo& rProcessInfo)
+void InitializeResidualBasedFluxCorrectedConstants(
+    ProcessInfo& rProcessInfo)
 {
     rProcessInfo.SetValue(DELTA_TIME, 2.6);
     rProcessInfo.SetValue(BOSSAK_ALPHA, -0.3);
@@ -38,7 +38,8 @@ void InitializeResidualBasedFluxCorrectedConstants(ProcessInfo& rProcessInfo)
     rProcessInfo.SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, 1.8);
     rProcessInfo.SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, 2.8);
 }
-void InitializeCrossWindStabilizationConstants(ProcessInfo& rProcessInfo)
+void InitializeCrossWindStabilizationConstants(
+    ProcessInfo& rProcessInfo)
 {
     rProcessInfo.SetValue(DELTA_TIME, 2.6);
     rProcessInfo.SetValue(BOSSAK_ALPHA, -0.3);
