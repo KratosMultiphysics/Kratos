@@ -864,5 +864,154 @@ namespace Kratos {
             KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
             KRATOS_CHECK_VECTOR_NEAR(row(LHS, 0), LHS_row_0_expected, 1.0e-2);
         }
+
+        KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D8NStationary, FluidDynamicsApplicationFastSuite)
+        {
+            Model model;
+            ModelPart &r_model_part = model.CreateModelPart("Main", 3);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+            r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            // Process info creation
+            double delta_time = 0.1;
+            r_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 1.0);
+            r_model_part.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+03);
+            r_model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 0.0;
+            bdf_coefs[1] = 0.0;
+            bdf_coefs[2] = 0.0;
+            r_model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+            // Set the element properties
+            auto p_elem_prop = r_model_part.CreateNewProperties(1);
+            p_elem_prop->SetValue(DENSITY, 1.0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1.0);
+            Newtonian3DLaw::Pointer pConsLaw(new Newtonian3DLaw());
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+            r_model_part.CreateNewNode(4, 0.0, 1.0, 1.0);
+            r_model_part.CreateNewNode(5, 0.0, 0.0, 1.0);
+            r_model_part.CreateNewNode(6, 1.0, 0.0, 1.0);
+            r_model_part.CreateNewNode(7, 1.0, 1.0, 1.0);
+            r_model_part.CreateNewNode(8, 0.0, 1.0, 1.0);
+            std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4, 5, 6, 7, 8};
+            r_model_part.CreateNewElement("SymbolicStokes3D8N", 1, elem_nodes, p_elem_prop);
+
+            auto p_element = r_model_part.pGetElement(1);
+
+            // Define the nodal values
+            array_1d<double, 3> velocity_values;
+            velocity_values[0] = 0.0;
+            velocity_values[1] = 0.0;
+            velocity_values[2] = 0.0;
+            double pressure_value = 0.0;
+
+            // Set the nodal values
+            for (NodeIteratorType it_node = r_model_part.NodesBegin(); it_node < r_model_part.NodesEnd(); ++it_node)
+            {
+                it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
+                it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
+            }
+
+            // Compute RHS and LHS
+            Vector RHS = ZeroVector(32);
+            Matrix LHS = ZeroMatrix(32, 32);
+
+            p_element->Initialize(); // Initialize the element to initialize the constitutive law
+            p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+            // Check obtained RHS
+            double sum_RHS = 0.0;
+            for (unsigned int i = 0; i < RHS.size(); ++i)
+            {
+                sum_RHS += RHS[i];
+            }
+            KRATOS_CHECK_NEAR(sum_RHS, 0.0, TOLERANCE);
+            // Check modes
+            Vector a(32);
+            Vector rhs(32);
+            double sum_rhs;
+            // Mode 1 check
+            for (unsigned int i = 0; i < a.size(); ++i)
+            {
+                a[i] = (i % 4 == 0) ? 1.0 : 0.0;
+            }
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+            // Mode 2 check
+            for (unsigned int i = 0; i < a.size(); ++i)
+            {
+                a[i] = (i % 4 == 1) ? 1.0 : 0.0;
+            }
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+            // Mode 3 check
+            for (unsigned int i = 0; i < a.size(); ++i)
+            {
+                a[i] = (i % 4 == 2) ? 1.0 : 0.0;
+            }
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+            // Mode 4 check
+            for (unsigned int i = 0; i < a.size(); ++i)
+            {
+                a[i] = (i % 4 == 0 || i % 4 == 2) ? 1.0 : 0.0;
+            }
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+            // Mode 5 check
+            for (unsigned int i = 0; i < a.size(); ++i)
+            {
+                a[i] = (i % 4 == 1 || i % 4 == 2) ? 1.0 : 0.0;
+            }
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+            // Mode 6 check
+            for (unsigned int i = 0; i < a.size(); ++i)
+            {
+                a[i] = (i % 4 == 0 || i % 4 == 1) ? 1.0 : 0.0;
+            }
+            sum_rhs = 0.0;
+            rhs = prod(LHS, a);
+            for (unsigned int i = 0; i < rhs.size(); ++i)
+            {
+                sum_rhs += rhs[i];
+            }
+            KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+        }
+
 	} // namespace Testing
 }  // namespace Kratos.
