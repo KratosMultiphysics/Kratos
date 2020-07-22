@@ -248,14 +248,14 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarVariable();
 
         IndexType LocalIndex = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -267,14 +267,14 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarRateVariable();
 
         IndexType LocalIndex = 0;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             rValues[LocalIndex++] =
-                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
+                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
