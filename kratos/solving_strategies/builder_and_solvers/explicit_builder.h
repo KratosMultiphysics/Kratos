@@ -276,6 +276,7 @@ public:
      */
     TSystemVectorType& GetLumpedMassMatrixVector()
     {
+        KRATOS_ERROR_IF_NOT(mpLumpedMassVector) << "Lumped mass matrix vector is not initialized!" << std::endl;
         return (*mpLumpedMassVector);
     }
 
