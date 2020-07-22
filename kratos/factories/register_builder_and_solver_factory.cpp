@@ -42,7 +42,7 @@ void RegisterBuilderAndSolvers()
     static ResidualBasedEliminationBuilderAndSolverWithConstraintsType msResidualBasedEliminationBuilderAndSolverWithConstraints;
     static ResidualBasedBlockBuilderAndSolverType msResidualBasedBlockBuilderAndSolver;
 
-    // Registration of convergence solvers
+    // Registration of builder and solvers
     KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverType::Name(), msResidualBasedEliminationBuilderAndSolver);
     KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Name(), msResidualBasedEliminationBuilderAndSolverWithConstraints);
     KRATOS_REGISTER_BUILDER_AND_SOLVER(ResidualBasedBlockBuilderAndSolverType::Name(), msResidualBasedBlockBuilderAndSolver);
