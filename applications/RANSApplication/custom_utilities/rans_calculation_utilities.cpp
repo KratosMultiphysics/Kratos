@@ -113,9 +113,10 @@ array_1d<double, 3> EvaluateInPoint(
 }
 
 template <typename TDataType>
-TDataType EvaluateInParentCenter(const Variable<TDataType>& rVariable,
-                                 const ConditionType& rCondition,
-                                 const int Step)
+TDataType EvaluateInParentCenter(
+    const Variable<TDataType>& rVariable,
+    const ConditionType& rCondition,
+    const int Step)
 {
     const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
     const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();

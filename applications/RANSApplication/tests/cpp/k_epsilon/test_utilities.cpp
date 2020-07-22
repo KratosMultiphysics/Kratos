@@ -92,10 +92,8 @@ ModelPart& RansKEpsilonEpsilon2D3N_SetUp(
     RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
 
     // set process info variables
@@ -108,7 +106,9 @@ ModelPart& RansKEpsilonEpsilon2D3N_SetUp(
     return r_model_part;
 }
 
-ModelPart& RansKEpsilonEpsilon2D2N_SetUp(Model& rModel, const std::string& rConditionName)
+ModelPart& RansKEpsilonEpsilon2D2N_SetUp(
+    Model& rModel,
+    const std::string& rConditionName)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -130,10 +130,8 @@ ModelPart& RansKEpsilonEpsilon2D2N_SetUp(Model& rModel, const std::string& rCond
     RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
 
     RandomFillContainerVariable<ModelPart::ConditionsContainerType>(
         r_model_part, RANS_Y_PLUS, 10.0, 100.0);

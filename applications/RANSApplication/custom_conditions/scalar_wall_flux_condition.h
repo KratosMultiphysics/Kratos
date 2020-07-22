@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_SCALAR_WALL_FLUX_CONDITION_H_INCLUDED)
@@ -77,41 +77,49 @@ public:
     /**
      * Constructor.
      */
-    explicit ScalarWallFluxCondition(IndexType NewId = 0) : Condition(NewId)
+    explicit ScalarWallFluxCondition(
+        IndexType NewId = 0)
+    : Condition(NewId)
     {
     }
 
     /**
      * Constructor using an array of nodes
      */
-    ScalarWallFluxCondition(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Condition(NewId, ThisNodes)
+    ScalarWallFluxCondition(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : Condition(NewId, ThisNodes)
     {
     }
 
     /**
      * Constructor using Geometry
      */
-    ScalarWallFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Condition(NewId, pGeometry)
+    ScalarWallFluxCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry)
     {
     }
 
     /**
      * Constructor using Properties
      */
-    ScalarWallFluxCondition(IndexType NewId,
-                            GeometryType::Pointer pGeometry,
-                            PropertiesType::Pointer pProperties)
-        : Condition(NewId, pGeometry, pProperties)
+    ScalarWallFluxCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties)
     {
     }
 
     /**
      * Copy Constructor
      */
-    ScalarWallFluxCondition(ScalarWallFluxCondition const& rOther)
-        : Condition(rOther)
+    ScalarWallFluxCondition(
+        ScalarWallFluxCondition const& rOther)
+    : Condition(rOther)
     {
     }
 
@@ -136,9 +144,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentConditionType>(
@@ -153,9 +162,10 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId,
-                              GeometryType::Pointer pGeom,
-                              PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentConditionType>(NewId, pGeom, pProperties);
@@ -169,7 +179,9 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
+    Condition::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentConditionType>(
@@ -177,17 +189,20 @@ public:
         KRATOS_CATCH("");
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& CurrentProcessInfo) const override
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& CurrentProcessInfo) const override
     {
-        if (rResult.size() != TNumNodes)
+        if (rResult.size() != TNumNodes) {
             rResult.resize(TNumNodes, false);
+        }
 
         const Variable<double>& r_variable =
             TScalarWallFluxConditionData::GetScalarVariable();
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[i] = Condition::GetGeometry()[i].GetDof(r_variable).EquationId();
+        }
     }
 
     /**
@@ -195,55 +210,64 @@ public:
      * @param ConditionalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rConditionalDofList,
-                    const ProcessInfo& CurrentProcessInfo) const override
+    void GetDofList(
+        DofsVectorType& rConditionalDofList,
+        const ProcessInfo& CurrentProcessInfo) const override
     {
-        if (rConditionalDofList.size() != TNumNodes)
+        if (rConditionalDofList.size() != TNumNodes) {
             rConditionalDofList.resize(TNumNodes);
+        }
 
         const Variable<double>& r_variable =
             TScalarWallFluxConditionData::GetScalarVariable();
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rConditionalDofList[i] = Condition::GetGeometry()[i].pGetDof(r_variable);
+        }
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0) const override
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0) const override
     {
         this->GetFirstDerivativesVector(rValues, Step);
     }
 
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override
     {
-        if (rValues.size() != TNumNodes)
+        if (rValues.size() != TNumNodes) {
             rValues.resize(TNumNodes, false);
+        }
 
         const GeometryType& rGeom = this->GetGeometry();
         const Variable<double>& r_variable =
             TScalarWallFluxConditionData::GetScalarVariable();
 
-        IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            rValues[LocalIndex++] =
-                rGeom[iNode].FastGetSolutionStepValue(r_variable, Step);
+        IndexType local_index = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            rValues[local_index++] =
+                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override
     {
-        if (rValues.size() != TNumNodes)
+        if (rValues.size() != TNumNodes) {
             rValues.resize(TNumNodes, false);
+        }
 
         const GeometryType& rGeom = this->GetGeometry();
         const Variable<double>& r_variable =
             TScalarWallFluxConditionData::GetScalarRateVariable();
 
-        IndexType LocalIndex = 0;
-        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            rValues[LocalIndex++] =
-                rGeom[iNode].FastGetSolutionStepValue(r_variable, Step);
+        IndexType local_index = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            rValues[local_index++] =
+                rGeom[i_node].FastGetSolutionStepValue(r_variable, Step);
         }
     }
 
@@ -262,13 +286,15 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         // Check sizes and initialize matrix
-        if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
+        if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+        }
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
@@ -282,18 +308,19 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        if (rRightHandSideVector.size() != TNumNodes)
+        if (rRightHandSideVector.size() != TNumNodes) {
             rRightHandSideVector.resize(TNumNodes, false);
+        }
 
         noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-        if (RansCalculationUtilities::IsWallFunctionActive(*this))
-        {
+        if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
             const GeometryType& r_geometry = this->GetGeometry();
             // Get Shape function data
             Vector gauss_weights;
@@ -307,10 +334,8 @@ public:
 
             r_current_data.CalculateConstants(rCurrentProcessInfo);
 
-            if (r_current_data.IsWallFluxComputable())
-            {
-                for (IndexType g = 0; g < num_gauss_points; ++g)
-                {
+            if (r_current_data.IsWallFluxComputable()) {
+                for (IndexType g = 0; g < num_gauss_points; ++g) {
                     const Vector& gauss_shape_functions = row(shape_functions, g);
 
                     const double flux =
@@ -397,13 +422,15 @@ private:
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes, class TScalarWallFluxConditionData>
-inline std::istream& operator>>(std::istream& rIStream,
-                                ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>& rThis);
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes, class TScalarWallFluxConditionData>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
