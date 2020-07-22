@@ -359,8 +359,9 @@ protected:
 
         KRATOS_TRY
 
-        if(mrModel.HasModelPart(mAuxModelPartName))
+        if (mrModel.HasModelPart(mAuxModelPartName)) {
             mrModel.DeleteModelPart(mAuxModelPartName);
+        }
 
         mpDistanceModelPart= &(mrModel.CreateModelPart(mAuxModelPartName));
 
@@ -572,5 +573,4 @@ inline std::ostream& operator << (
 }  // namespace Kratos.
 
 #endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
-
 
