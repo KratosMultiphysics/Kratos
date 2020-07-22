@@ -83,10 +83,10 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 1.5009596017769493, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.766873214951064, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 1.4857472389600426, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 1.5083630650112172, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.9068468588561045, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.3804473187215527, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8890010565994776, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.9085576033568525, 0.0, 1e-9)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
@@ -279,7 +279,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
                                     "nodal_nonhistorical_results": ["TRAILING_EDGE","WAKE_DISTANCE"],
                                     "elemental_conditional_flags_results": ["STRUCTURE"],
-                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
+                                    "gauss_point_results" : ["MACH","PRESSURE_COEFFICIENT","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
                                 },
                                 "point_data_configuration"  : []
                             }

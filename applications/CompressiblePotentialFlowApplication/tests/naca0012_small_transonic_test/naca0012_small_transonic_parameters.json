@@ -40,6 +40,8 @@
                 "free_stream_density"  : 1.225,
                 "mach_infinity": 0.75,
                 "heat_capacity_ratio": 1.4,
+                "critical_mach": 0.90,
+                "upwind_factor_constant": 1.0,
                 "perturbation_field": true
             }
         },{
