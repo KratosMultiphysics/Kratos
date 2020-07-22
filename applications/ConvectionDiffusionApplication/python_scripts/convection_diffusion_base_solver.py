@@ -575,7 +575,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def _create_builder_and_solver(self):
         if self.settings["analysis_type"].GetString() == "explicit":
-            builder_and_solver = KratosMultiphysics.ExplicitBuilderAndSolver()
+            builder_and_solver = KratosMultiphysics.ExplicitBuilder()
             return builder_and_solver
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():

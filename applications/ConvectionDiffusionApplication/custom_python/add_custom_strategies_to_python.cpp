@@ -51,7 +51,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
-    typedef ExplicitBuilderAndSolver< SparseSpaceType, LocalSpaceType > ExplicitBuilderAndSolverType;
+    typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 //     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     //********************************************************************
@@ -94,7 +94,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4ConvectionDiffusionType;
     py::class_<ExplicitSolvingStrategyRungeKutta4ConvectionDiffusionType, typename ExplicitSolvingStrategyRungeKutta4ConvectionDiffusionType::Pointer, ExplicitSolvingStrategyRungeKutta4Type>(m, "ExplicitSolvingStrategyRungeKutta4ConvectionDiffusion")
         .def(py::init<ModelPart &, bool, int>())
-        .def(py::init<ModelPart&, typename ExplicitBuilderAndSolverType::Pointer, bool, int>())
+        .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
         ;
 }
 
