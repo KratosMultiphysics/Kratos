@@ -65,7 +65,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["VELOCITY_POTENTIAL"],
-                "input_file_name"  : "transonic_velocity_potential_flow_field_high_mach_test_results.json",
+                "input_file_name"  : "transonic_velocity_potential_flow_field_test_results_third_try.json",
                 "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
                 "tolerance"            : 1e-9,
                 "relative_tolerance"   : 1e-12,

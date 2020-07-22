@@ -83,10 +83,14 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 1.5009596681380626, 0.0, 1e-8)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.7668732609939326, 0.0, 1e-8)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 1.4857473148444245, 0.0, 1e-8)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 1.5083631379893045, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 1.5009596681380626, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.7668732609939326, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 1.4857473148444245, 0.0, 1e-8)
+            # self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 1.5083631379893045, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 1.5009596017769493, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.766873214951064, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 1.4857472389600426, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 1.5083630650112172, 0.0, 1e-8)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
