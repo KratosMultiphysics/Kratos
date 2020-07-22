@@ -118,6 +118,8 @@ public:
     /// The definition of the element container type
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
+    /// The definition of the current class
+    typedef ExplicitBuilder<TSparseSpace, TDenseSpace> ClassType;
 
     /// Pointer definition of ExplicitBuilder
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitBuilder);
@@ -153,6 +155,15 @@ public:
      */
     virtual ~ExplicitBuilder() = default;
 
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     ///@}
     ///@name Operators
@@ -456,6 +467,15 @@ public:
         return 0;
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "explicit_builder";
     }
 
     /**
