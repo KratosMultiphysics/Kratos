@@ -78,11 +78,6 @@ namespace Kratos {
 			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2;
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3;
 
-			Matrix perturbation_matrix(3,2);
-			perturbation_matrix(0,0) = 1.0; perturbation_matrix(0,1) = 0.1;
-			perturbation_matrix(1,0) = 0.1; perturbation_matrix(1,1) = 0.2;
-			perturbation_matrix(2,0) = 0.2; perturbation_matrix(2,1) = 0.3;
-
 			for(unsigned int i=0; i<3; i++){
 				p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				for(unsigned int k=0; k<2; k++){
@@ -249,12 +244,6 @@ namespace Kratos {
 			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2; vel_original(1,2) = 0.3;
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3; vel_original(2,2) = 0.4;
 			vel_original(3,0) = 0.3; vel_original(3,1) = 0.4; vel_original(3,2) = 0.5;
-
-			Matrix perturbation_matrix(4,3);
-			perturbation_matrix(0,0) = 0.0; perturbation_matrix(0,1) = 0.1; perturbation_matrix(0,2) = 0.5;
-			perturbation_matrix(1,0) = 0.1; perturbation_matrix(1,1) = 0.2; perturbation_matrix(1,2) = 0.6;
-			perturbation_matrix(2,0) = 0.2; perturbation_matrix(2,1) = 0.3; perturbation_matrix(2,2) = 0.7;
-			perturbation_matrix(3,0) = 0.3; perturbation_matrix(3,1) = 0.4; perturbation_matrix(3,2) = 0.8;
 
 			for(unsigned int i=0; i<4; i++){
 				p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
