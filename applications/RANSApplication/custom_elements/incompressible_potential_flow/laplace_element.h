@@ -437,7 +437,7 @@ protected:
         Matrix& rNContainer,
         ShapeFunctionDerivativesArrayType& rDN_DX) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGeometryData(
             r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);

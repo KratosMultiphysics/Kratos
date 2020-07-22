@@ -259,7 +259,7 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarVariable();
 
@@ -278,7 +278,7 @@ public:
             rValues.resize(TNumNodes, false);
         }
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         const Variable<double>& r_variable =
             TConvectionDiffusionReactionData::GetScalarRateVariable();
 
@@ -346,7 +346,7 @@ public:
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
         const double element_length = this->GetGeometry().Length();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
         r_current_data.CalculateConstants(rCurrentProcessInfo);
@@ -552,7 +552,7 @@ public:
         const int Step = 0) const
     {
         double value = 0.0;
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         for (IndexType i = 0; i < TNumNodes; ++i) {
             const array_1d<double, 3>& r_value =
@@ -619,7 +619,7 @@ public:
         const Variable<double>& primal_variable =
             TConvectionDiffusionReactionData::GetScalarVariable();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
         r_current_data.CalculateConstants(rCurrentProcessInfo);
@@ -723,7 +723,7 @@ public:
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
         const double element_length = this->GetGeometry().Length();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
         r_current_data.CalculateConstants(rCurrentProcessInfo);
@@ -811,7 +811,7 @@ public:
         const Matrix& rShapeDerivatives,
         const int Step = 0) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGradient<TDim>(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
@@ -833,7 +833,7 @@ public:
         const Matrix& rShapeDerivatives,
         const int Step = 0) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         RansCalculationUtilities::CalculateGradient(
             rOutput, r_geometry, rVariable, rShapeDerivatives, Step);
     }
@@ -878,7 +878,7 @@ protected:
         Matrix& rNContainer,
         ShapeFunctionDerivativesArrayType& rDN_DX) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGeometryData(
             r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);

@@ -335,7 +335,7 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
         r_current_data.CalculateConstants(rCurrentProcessInfo);
@@ -494,7 +494,7 @@ public:
         const int Step = 0) const
     {
         double value = 0.0;
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         for (IndexType i = 0; i < TNumNodes; ++i) {
             const array_1d<double, 3>& r_value =
@@ -522,7 +522,7 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
         TConvectionDiffusionReactionData r_current_data(r_geometry);
 
         r_current_data.CalculateConstants(rCurrentProcessInfo);
@@ -655,7 +655,7 @@ protected:
         Matrix& rNContainer,
         ShapeFunctionDerivativesArrayType& rDN_DX) const
     {
-        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_geometry = this->GetGeometry();
 
         RansCalculationUtilities::CalculateGeometryData(
             r_geometry, TConvectionDiffusionReactionData::GetIntegrationMethod(),
