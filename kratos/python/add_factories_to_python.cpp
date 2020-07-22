@@ -44,8 +44,12 @@ typedef Scheme< SpaceType, LocalSpaceType > SchemeType;
 typedef BaseFactory< SchemeType > SchemeFactoryType;
 typedef BuilderAndSolver< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 typedef BaseFactory< BuilderAndSolverType, LinearSolverType > BuilderAndSolverFactoryType;
+typedef ExplicitBuilder< SpaceType, LocalSpaceType > ExplicitBuilderType;
+typedef BaseFactory< ExplicitBuilderType > ExplicitBuilderFactoryType;
 typedef SolvingStrategy< SpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 typedef BaseFactory< SolvingStrategyType, ModelPart > StrategyFactoryType;
+typedef ExplicitSolvingStrategy< SpaceType, LocalSpaceType > ExplicitSolvingStrategyType;
+typedef BaseFactory< ExplicitSolvingStrategyType, ModelPart > ExplicitStrategyFactoryType;
 
 void  AddFactoriesToPython(pybind11::module& m)
 {
@@ -103,11 +107,27 @@ void  AddFactoriesToPython(pybind11::module& m)
     ;
 
     //////////////////////////////////////////////////////////////
+    //HERE THE TOOLS TO REGISTER EXPLICIT BUILDER
+    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, BaseFactoryMethods>(m, "ExplicitBuilderFactory")
+     .def( py::init< >() )
+     .def("Create",[](ExplicitBuilderFactoryType& rBuilderAndSolverFactory, Kratos::Parameters Settings) {return rBuilderAndSolverFactory.Create(Settings);})
+     .def("__str__", PrintObject<ExplicitBuilderFactoryType>)
+    ;
+
+    //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER STRATEGIES
     py::class_<StrategyFactoryType, StrategyFactoryType::Pointer, BaseFactoryMethods>(m, "StrategyFactory")
      .def( py::init< >() )
      .def("Create",[](StrategyFactoryType& rStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rStrategyFactory.Create(rModelPart, Settings);})
      .def("__str__", PrintObject<StrategyFactoryType>)
+    ;
+
+    //////////////////////////////////////////////////////////////
+    //HERE THE TOOLS TO REGISTER EXPLICIT STRATEGIES
+    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, BaseFactoryMethods>(m, "ExplicitStrategyFactory")
+     .def( py::init< >() )
+     .def("Create",[](ExplicitStrategyFactoryType& rStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rStrategyFactory.Create(rModelPart, Settings);})
+     .def("__str__", PrintObject<ExplicitStrategyFactoryType>)
     ;
 
 }
