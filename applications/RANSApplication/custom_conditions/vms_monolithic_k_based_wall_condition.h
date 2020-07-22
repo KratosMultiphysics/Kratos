@@ -1,11 +1,11 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
 //
@@ -63,8 +63,9 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit VMSMonolithicKBasedWallCondition(IndexType NewId = 0)
-        : BaseType(NewId)
+    explicit VMSMonolithicKBasedWallCondition(
+        IndexType NewId = 0)
+    : BaseType(NewId)
     {
     }
 
@@ -73,8 +74,10 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    VMSMonolithicKBasedWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    VMSMonolithicKBasedWallCondition(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : BaseType(NewId, ThisNodes)
     {
     }
 
@@ -83,8 +86,10 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    VMSMonolithicKBasedWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    VMSMonolithicKBasedWallCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
     {
     }
 
@@ -94,16 +99,18 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    VMSMonolithicKBasedWallCondition(IndexType NewId,
-                                     GeometryType::Pointer pGeometry,
-                                     PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    VMSMonolithicKBasedWallCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
-    VMSMonolithicKBasedWallCondition(VMSMonolithicKBasedWallCondition const& rOther)
-        : BaseType(rOther)
+    VMSMonolithicKBasedWallCondition(
+        VMSMonolithicKBasedWallCondition const& rOther)
+    : BaseType(rOther)
     {
     }
 
@@ -115,7 +122,12 @@ public:
     ///@{
 
     /// Assignment operator
-    VMSMonolithicKBasedWallCondition& operator=(VMSMonolithicKBasedWallCondition const& rOther);
+    VMSMonolithicKBasedWallCondition& operator=(
+        VMSMonolithicKBasedWallCondition const& rOther)
+    {
+        Condition::operator=(rOther);
+        return *this;
+    }
 
     ///@}
     ///@name Operations
@@ -127,13 +139,23 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<VMSMonolithicKBasedWallCondition>(
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    }
 
-    Condition::Pointer Create(IndexType NewId,
-                              GeometryType::Pointer pGeom,
-                              PropertiesType::Pointer pProperties) const override;
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<VMSMonolithicKBasedWallCondition>(
+            NewId, pGeom, pProperties);
+    }
 
     /**
      * Clones the selected element variables, creating a new one
@@ -143,7 +165,18 @@ public:
      * @return a Pointer to the new element
      */
 
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
+    Condition::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& rThisNodes) const override
+    {
+        Condition::Pointer p_new_condition = Create(
+            NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+
+        p_new_condition->SetData(this->GetData());
+        p_new_condition->SetFlags(this->GetFlags());
+
+        return p_new_condition;
+    }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -183,9 +216,10 @@ protected:
      * @param rLocalVector         Right hand side vector
      * @param rCurrentProcessInfo  Current process info from model part
      */
-    void ApplyWallLaw(MatrixType& rLocalMatrix,
-                      VectorType& rLocalVector,
-                      ProcessInfo& rCurrentProcessInfo) override;
+    void ApplyWallLaw(
+        MatrixType& rLocalMatrix,
+        VectorType& rLocalVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
@@ -215,16 +249,18 @@ private:
 
 /// input stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                VMSMonolithicKBasedWallCondition<TDim, TNumNodes>& rThis)
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    VMSMonolithicKBasedWallCondition<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const VMSMonolithicKBasedWallCondition<TDim, TNumNodes>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const VMSMonolithicKBasedWallCondition<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

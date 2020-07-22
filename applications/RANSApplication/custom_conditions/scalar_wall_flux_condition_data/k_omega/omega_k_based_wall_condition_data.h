@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_K_OMEGA_WALL_CONDITION_DATA_OMEGA_K_BASED_CONDITION_DATA_H_INCLUDED)
@@ -42,22 +42,27 @@ public:
     static const Variable<double>& GetScalarVariable();
     static const Variable<double>& GetScalarRateVariable();
 
-    static void Check(const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    static void Check(
+        const GeometryType& rGeometry,
+        const ProcessInfo& rCurrentProcessInfo);
 
     static GeometryData::IntegrationMethod GetIntegrationMethod();
 
     static const std::string GetName() {return "KOmegaOmegaKBasedConditionData";}
 
-    OmegaKBasedWallConditionData(const GeomtryType& rGeometry)
-        : BaseType(rGeometry)
+    OmegaKBasedWallConditionData(
+        const GeomtryType& rGeometry)
+    : BaseType(rGeometry)
     {
     }
 
-    void CalculateConstants(const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateConstants(
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     bool IsWallFluxComputable() const override;
 
-    double CalculateWallFlux(const Vector& rShapeFunctions) const override;
+    double CalculateWallFlux(
+        const Vector& rShapeFunctions) const override;
 
 protected:
     double mOmegaSigma;

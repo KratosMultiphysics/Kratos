@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_CHECK_VECTOR_BOUNDS_PROCESS_H_INCLUDED)
@@ -39,13 +39,7 @@ namespace Kratos
 
 class KRATOS_API(RANS_APPLICATION) RansCheckVectorBoundsProcess : public Process
 {
-    enum VectorComponent
-    {
-        Magnitude,
-        X,
-        Y,
-        Z
-    };
+    enum VectorComponent { Magnitude, X, Y, Z };
 
 public:
     ///@name Type Definitions
@@ -62,7 +56,9 @@ public:
 
     /// Constructor
 
-    RansCheckVectorBoundsProcess(Model& rModel, Parameters rParameters);
+    RansCheckVectorBoundsProcess(
+        Model& rModel,
+        Parameters rParameters);
 
     /// Destructor.
     ~RansCheckVectorBoundsProcess() override = default;

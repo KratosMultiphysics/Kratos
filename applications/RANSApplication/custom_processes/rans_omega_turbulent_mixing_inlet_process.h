@@ -4,14 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Dharmin Shah (https://github.com/sdharmin)
-//                   Bence Rochlitz (https://github.com/bencerochlitz)
+//  Main authors:    Dharmin Shah
+//                   Bence Rochlitz
 //
-//  Supervised by:   Jordi Cotela (https://github.com/jcotela)
-//                   Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Supervised by:   Jordi Cotela
+//                   Suneth Warnakulasuriya
+//
 
 #if !defined(KRATOS_RANS_OMEGA_TURBULENT_MIXING_LENGTH_INLET_PROCESS_H_INCLUDED)
 #define KRATOS_RANS_OMEGA_TURBULENT_MIXING_LENGTH_INLET_PROCESS_H_INCLUDED
@@ -67,7 +68,9 @@ public:
     ///@{
 
     /// Constructor
-    RansOmegaTurbulentMixingLengthInletProcess(Model& rModel, Parameters& rParameters);
+    RansOmegaTurbulentMixingLengthInletProcess(
+        Model& rModel,
+        Parameters& rParameters);
 
     /// Destructor.
     ~RansOmegaTurbulentMixingLengthInletProcess() override;

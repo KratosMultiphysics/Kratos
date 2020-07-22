@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_NUT_K_OMEGA_UPDATE_PROCESS_H_INCLUDED)
@@ -61,12 +61,15 @@ public:
 
     /// Constructor
 
-    RansNutKOmegaUpdateProcess(Model& rModel, Parameters rParameters);
+    RansNutKOmegaUpdateProcess(
+        Model& rModel,
+        Parameters rParameters);
 
-    RansNutKOmegaUpdateProcess(Model& rModel,
-                               const std::string& rModelPartName,
-                               const double MinValue,
-                               const int EchoLevel);
+    RansNutKOmegaUpdateProcess(
+        Model& rModel,
+        const std::string& rModelPartName,
+        const double MinValue,
+        const int EchoLevel);
 
     /// Destructor.
     ~RansNutKOmegaUpdateProcess() override = default;

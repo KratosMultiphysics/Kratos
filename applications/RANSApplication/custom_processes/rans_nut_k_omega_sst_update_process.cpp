@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -33,7 +33,9 @@
 
 namespace Kratos
 {
-RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(Model& rModel, Parameters rParameters)
+RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
+    Model& rModel,
+    Parameters rParameters)
     : mrModel(rModel)
 {
     KRATOS_TRY
@@ -60,18 +62,19 @@ RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(Model& rModel, Para
     KRATOS_CATCH("");
 }
 
-RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(Model& rModel,
-                                                             const std::string& rModelPartName,
-                                                             const double A1,
-                                                             const double BetaStar,
-                                                             const double MinValue,
-                                                             const int EchoLevel)
-    : mrModel(rModel),
-      mModelPartName(rModelPartName),
-      mA1(A1),
-      mBetaStar(BetaStar),
-      mMinValue(MinValue),
-      mEchoLevel(EchoLevel)
+RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
+    Model& rModel,
+    const std::string& rModelPartName,
+    const double A1,
+    const double BetaStar,
+    const double MinValue,
+    const int EchoLevel)
+: mrModel(rModel),
+  mModelPartName(rModelPartName),
+  mA1(A1),
+  mBetaStar(BetaStar),
+  mMinValue(MinValue),
+  mEchoLevel(EchoLevel)
 {
 }
 
@@ -97,8 +100,7 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (!mIsInitialized)
-    {
+    if (!mIsInitialized) {
         this->Execute();
         mIsInitialized = true;
     }
@@ -114,12 +116,10 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
 
     const int number_of_elements = r_model_part.NumberOfElements();
 #pragma omp parallel for
-    for (int i_elem = 0; i_elem < number_of_elements; ++i_elem)
-    {
+    for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
         ModelPart::ElementType& r_element = *(r_model_part.ElementsBegin() + i_elem);
         ModelPart::ElementType::GeometryType& r_geometry = r_element.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             NodeType& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1;
@@ -147,32 +147,25 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
 
     std::function<double(const Element&)> nut_calculation_method;
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
-    if (domain_size == 2)
-    {
+    if (domain_size == 2) {
         nut_calculation_method = [this](const Element& rElement) {
             return this->CalculateElementNuT<2>(rElement);
         };
-    }
-    else if (domain_size == 3)
-    {
+    } else if (domain_size == 3) {
         nut_calculation_method = [this](const Element& rElement) {
             return this->CalculateElementNuT<3>(rElement);
         };
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR << "Unsupported domain size.";
     }
 
 #pragma omp parallel for
-    for (int i_elem = 0; i_elem < number_of_elements; ++i_elem)
-    {
+    for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
         ModelPart::ElementType& r_element = *(r_elements.begin() + i_elem);
         const double nut = nut_calculation_method(r_element);
 
         ModelPart::ElementType::GeometryType& r_geometry = r_element.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             NodeType& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) += nut;
@@ -184,8 +177,7 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
 
     const int number_of_nodes = r_nodes.size();
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         NodeType& r_node = *(r_nodes.begin() + i_node);
         const double number_of_neighbour_elements =
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
@@ -202,7 +194,8 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
 }
 
 template <unsigned int TDim>
-double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(const Element& rElement) const
+double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
+    const Element& rElement) const
 {
     KRATOS_TRY
 
@@ -222,8 +215,7 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(const Element& rElemen
 
     double nut = 0.0;
 
-    for (int g = 0; g < num_gauss_points; ++g)
-    {
+    for (int g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& r_gauss_shape_functions = row(shape_functions, g);
 
@@ -237,8 +229,7 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(const Element& rElemen
 
         CalculateGradient<TDim>(velocity_gradient, r_geometry, VELOCITY, r_shape_derivatives);
 
-        const double f_2 =
-            KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, mBetaStar);
+        const double f_2 = KOmegaSSTElementData::CalculateF2(tke, omega, nu, y, mBetaStar);
 
         const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
             (velocity_gradient + trans(velocity_gradient)) * 0.5;

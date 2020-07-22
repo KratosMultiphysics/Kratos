@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
-//
 //
 
 #if !defined(KRATOS_K_EPSILON_HIGH_RE_TEST_UTILITIES_H_INCLUDED)
@@ -30,11 +29,18 @@ namespace Kratos
 {
 namespace KEpsilonTestUtilities
 {
-ModelPart& RansKEpsilonK2D3N_SetUp(Model& rModel, const std::string& rElementName);
+ModelPart& RansKEpsilonK2D3N_SetUp(
+    Model& rModel,
+    const std::string& rElementName);
 
-ModelPart& RansKEpsilonEpsilon2D3N_SetUp(Model& rModel, const std::string& rElementName);
+ModelPart& RansKEpsilonEpsilon2D3N_SetUp(
+    Model& rModel,
+    const std::string& rElementName);
 
-ModelPart& RansKEpsilonEpsilon2D2N_SetUp(Model& rModel, const std::string& rConditionName);
+ModelPart& RansKEpsilonEpsilon2D2N_SetUp(
+    Model& rModel,
+    const std::string& rConditionName);
+
 } // namespace KEpsilonTestUtilities
 } // namespace Kratos
 

@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_EPSILON_TURBULENT_MIXING_LENGTH_INLET_PROCESS_H_INCLUDED)
@@ -64,7 +64,9 @@ public:
     ///@{
 
     /// Constructor
-    RansEpsilonTurbulentMixingLengthInletProcess(Model& rModel, Parameters rParameters);
+    RansEpsilonTurbulentMixingLengthInletProcess(
+        Model& rModel,
+        Parameters rParameters);
 
     /// Destructor.
     ~RansEpsilonTurbulentMixingLengthInletProcess() override = default;

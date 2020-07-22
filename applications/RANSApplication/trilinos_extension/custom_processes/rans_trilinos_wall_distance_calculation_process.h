@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_TRILINOS_WALL_DISTANCE_CALCULATION_PROCESS_H_INCLUDED)
@@ -32,7 +32,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
+template <
+    class TSparseSpace,
+    class TDenseSpace,
+    class TLinearSolver>
 class KRATOS_API(RANS_APPLICATION) TrilinosRansWallDistanceCalculationProcess
     : public RansWallDistanceCalculationBaseProcess<TSparseSpace, TDenseSpace, TLinearSolver>
 {
@@ -57,7 +60,9 @@ public:
     ///@{
 
     /// Constructor
-    TrilinosRansWallDistanceCalculationProcess(Model& rModel, Parameters rParameters)
+    TrilinosRansWallDistanceCalculationProcess(
+        Model& rModel,
+        Parameters rParameters)
         : BaseType(rModel, rParameters)
     {
     }

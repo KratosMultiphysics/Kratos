@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_WALL_DISTANCE_CALCULATION_PROCESS_H_INCLUDED)
@@ -68,8 +68,10 @@ public:
     ///@{
 
     /// Constructor
-    RansWallDistanceCalculationBaseProcess(Model& rModel, Parameters rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
+    RansWallDistanceCalculationBaseProcess(
+        Model& rModel,
+        Parameters rParameters)
+    : mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
 
@@ -134,20 +136,15 @@ public:
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
         const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
-        if (domain_size == 2)
-        {
+        if (domain_size == 2) {
             mpVariationalDistanceCalculationProcess2D =
                 Kratos::make_shared<VariationalDistanceCalculationProcessType2D>(
                     r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
-        }
-        else if (domain_size == 3)
-        {
+        } else if (domain_size == 3) {
             mpVariationalDistanceCalculationProcess3D =
                 Kratos::make_shared<VariationalDistanceCalculationProcessType3D>(
                     r_model_part, mpLinearSolver, mpBuilderAndSolver, mMaxIterations);
-        }
-        else
-        {
+        } else {
             KRATOS_ERROR << "Unknown domain size = " << domain_size;
         }
 
@@ -158,8 +155,7 @@ public:
 
     void ExecuteInitializeSolutionStep() override
     {
-        if (mRecalculateAtEachTimeStep)
-        {
+        if (mRecalculateAtEachTimeStep) {
             CalculateWallDistances();
         }
     }
@@ -236,16 +232,11 @@ private:
 
         const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
-        if (domain_size == 2)
-        {
+        if (domain_size == 2) {
             mpVariationalDistanceCalculationProcess2D->Execute();
-        }
-        else if (domain_size == 3)
-        {
+        } else if (domain_size == 3) {
             mpVariationalDistanceCalculationProcess3D->Execute();
-        }
-        else
-        {
+        } else {
             KRATOS_ERROR << "Unknown domain size = " << domain_size;
         }
 
@@ -261,8 +252,7 @@ private:
     {
         KRATOS_TRY
 
-        if (mCorrectDistancesUsingNeighbors)
-        {
+        if (mCorrectDistancesUsingNeighbors) {
             ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
             Communicator& r_communicator = r_model_part.GetCommunicator();
 
@@ -276,37 +266,31 @@ private:
             VariableUtils().SetNonHistoricalVariableToZero(
                 DISTANCE, r_model_part.Nodes());
             int number_of_modified_nodes = 0;
+
 #pragma omp parallel for reduction(+ : number_of_modified_nodes)
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
                 ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
-                if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0)
-                {
+                if (r_node.FastGetSolutionStepValue(DISTANCE) < 0.0) {
                     const GlobalPointersVector<Node<3>>& r_neighbours =
                         r_node.GetValue(NEIGHBOUR_NODES);
                     int count = 0;
                     double average_value = 0.0;
                     for (int j_node = 0;
-                         j_node < static_cast<int>(r_neighbours.size()); ++j_node)
-                    {
+                         j_node < static_cast<int>(r_neighbours.size()); ++j_node) {
                         const ModelPart::NodeType& r_j_node = r_neighbours[j_node];
                         const double j_distance =
                             r_j_node.FastGetSolutionStepValue(DISTANCE);
-                        if (j_distance > 0.0)
-                        {
+                        if (j_distance > 0.0) {
                             average_value += j_distance;
                             count++;
                         }
                     }
 
-                    if (count > 0)
-                    {
+                    if (count > 0) {
                         r_node.SetValue(
                             DISTANCE, average_value / static_cast<double>(count));
                         number_of_modified_nodes++;
-                    }
-                    else
-                    {
+                    } else {
                         KRATOS_ERROR << "Node " << r_node.Id() << " at "
                                      << r_node.Coordinates() << " didn't find any neighbour("
                                      << r_neighbours.size() << ") with positive DISTANCE. Please recheck "
@@ -315,16 +299,13 @@ private:
                 }
             }
 
-            if (number_of_modified_nodes > 0)
-            {
+            if (number_of_modified_nodes > 0) {
 #pragma omp parallel for
-                for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-                {
+                for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
                     ModelPart::NodeType& r_node = *(r_nodes.begin() + i_node);
                     double& r_distance = r_node.FastGetSolutionStepValue(DISTANCE);
                     const double avg_distance = r_node.GetValue(DISTANCE);
-                    if (r_distance < 0.0)
-                    {
+                    if (r_distance < 0.0) {
                         r_distance = avg_distance;
                     }
                 }

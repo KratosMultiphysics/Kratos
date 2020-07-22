@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -30,8 +30,10 @@
 
 namespace Kratos
 {
-RansCheckScalarBoundsProcess::RansCheckScalarBoundsProcess(Model& rModel, Parameters rParameters)
-    : Process(), mrModel(rModel), mrParameters(rParameters)
+RansCheckScalarBoundsProcess::RansCheckScalarBoundsProcess(
+    Model& rModel,
+    Parameters rParameters)
+: Process(), mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
 
@@ -55,7 +57,6 @@ int RansCheckScalarBoundsProcess::Check()
 
     const Variable<double>& r_scalar_variable =
         KratosComponents<Variable<double>>::Get(mVariableName);
-
 
     RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
     RansCheckUtilities::CheckIfVariableExistsInModelPart(

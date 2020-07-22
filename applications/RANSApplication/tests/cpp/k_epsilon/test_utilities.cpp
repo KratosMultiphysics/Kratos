@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
-//
 //
 
 // System includes
@@ -33,7 +32,9 @@ namespace Kratos
 {
 namespace KEpsilonTestUtilities
 {
-ModelPart& RansKEpsilonK2D3N_SetUp(Model& rModel, const std::string& rElementName)
+ModelPart& RansKEpsilonK2D3N_SetUp(
+    Model& rModel,
+    const std::string& rElementName)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -66,7 +67,9 @@ ModelPart& RansKEpsilonK2D3N_SetUp(Model& rModel, const std::string& rElementNam
     return r_model_part;
 }
 
-ModelPart& RansKEpsilonEpsilon2D3N_SetUp(Model& rModel, const std::string& rElementName)
+ModelPart& RansKEpsilonEpsilon2D3N_SetUp(
+    Model& rModel,
+    const std::string& rElementName)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -89,10 +92,8 @@ ModelPart& RansKEpsilonEpsilon2D3N_SetUp(Model& rModel, const std::string& rElem
     RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
     RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
 
     // set process info variables
@@ -105,7 +106,9 @@ ModelPart& RansKEpsilonEpsilon2D3N_SetUp(Model& rModel, const std::string& rElem
     return r_model_part;
 }
 
-ModelPart& RansKEpsilonEpsilon2D2N_SetUp(Model& rModel, const std::string& rConditionName)
+ModelPart& RansKEpsilonEpsilon2D2N_SetUp(
+    Model& rModel,
+    const std::string& rConditionName)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -127,10 +130,8 @@ ModelPart& RansKEpsilonEpsilon2D2N_SetUp(Model& rModel, const std::string& rCond
     RandomFillNodalHistoricalVariable(r_model_part, KINEMATIC_VISCOSITY, 1e-5, 1e-3);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
     RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
 
     RandomFillContainerVariable<ModelPart::ConditionsContainerType>(
         r_model_part, RANS_Y_PLUS, 10.0, 100.0);

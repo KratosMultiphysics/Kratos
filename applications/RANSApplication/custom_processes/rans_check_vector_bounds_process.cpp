@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -27,8 +27,10 @@
 
 namespace Kratos
 {
-RansCheckVectorBoundsProcess::RansCheckVectorBoundsProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+RansCheckVectorBoundsProcess::RansCheckVectorBoundsProcess(
+    Model& rModel,
+    Parameters rParameters)
+: mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
 
@@ -44,18 +46,19 @@ RansCheckVectorBoundsProcess::RansCheckVectorBoundsProcess(Model& rModel, Parame
     mVariableName = mrParameters["variable_name"].GetString();
     mModelPartName = mrParameters["model_part_name"].GetString();
 
-    if (mrParameters["component_type"].GetString() == "magnitude")
+    if (mrParameters["component_type"].GetString() == "magnitude") {
         mVectorComponent = VectorComponent::Magnitude;
-    else if (mrParameters["component_type"].GetString() == "x")
+    } else if (mrParameters["component_type"].GetString() == "x") {
         mVectorComponent = VectorComponent::X;
-    else if (mrParameters["component_type"].GetString() == "y")
+    } else if (mrParameters["component_type"].GetString() == "y") {
         mVectorComponent = VectorComponent::Y;
-    else if (mrParameters["component_type"].GetString() == "z")
+    } else if (mrParameters["component_type"].GetString() == "z") {
         mVectorComponent = VectorComponent::Z;
-    else
+    } else {
         KRATOS_ERROR
             << "Vector component_type type not found. [ component_type = "
             << mrParameters["component_type"].GetString() << " ]\n.";
+    }
 
     KRATOS_CATCH("");
 }
@@ -87,8 +90,7 @@ void RansCheckVectorBoundsProcess::Execute()
 
     array_1d<double, 3> vector_weights;
 
-    switch (mVectorComponent)
-    {
+    switch (mVectorComponent) {
     case VectorComponent::Magnitude:
         vector_weights[0] = 1.0;
         vector_weights[1] = 1.0;
@@ -129,14 +131,14 @@ void RansCheckVectorBoundsProcess::Execute()
         auto nodes_begin = r_nodes.begin() + node_partition[k];
         auto nodes_end = r_nodes.begin() + node_partition[k + 1];
 
-        for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode)
-        {
+        for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode) {
             const array_1d<double, 3>& vector_value =
                 itNode->FastGetSolutionStepValue(vector_variable);
 
             double value = 0.0;
-            for (int dim = 0; dim < 3; ++dim)
+            for (int dim = 0; dim < 3; ++dim) {
                 value += std::pow(vector_value[dim] * vector_weights[dim], 2);
+            }
             value = std::pow(value, 0.5);
 
             min_values[k] = std::min(min_values[k], value);
@@ -144,8 +146,7 @@ void RansCheckVectorBoundsProcess::Execute()
         }
     }
 
-    for (int i = 0; i < number_of_threads; ++i)
-    {
+    for (int i = 0; i < number_of_threads; ++i) {
         min_value = std::min(min_value, min_values[i]);
         max_value = std::max(max_value, max_values[i]);
     }

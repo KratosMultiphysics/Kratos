@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,8 +29,10 @@
 
 namespace Kratos
 {
-RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel)
+RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
+    Model& rModel,
+    Parameters rParameters)
+: mrModel(rModel)
 {
     KRATOS_TRY
 
@@ -58,11 +60,11 @@ RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
     const double VonKarman,
     const double MinValue,
     const int EchoLevel)
-    : mrModel(rModel),
-      mModelPartName(rModelPartName),
-      mVonKarman(VonKarman),
-      mMinValue(MinValue),
-      mEchoLevel(EchoLevel)
+: mrModel(rModel),
+  mModelPartName(rModelPartName),
+  mVonKarman(VonKarman),
+  mMinValue(MinValue),
+  mEchoLevel(EchoLevel)
 {
 }
 
@@ -96,12 +98,10 @@ void RansNutYPlusWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
 
     const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
         ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
         ConditionGeometryType& r_geometry = r_cond.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             NodeType& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
@@ -119,8 +119,7 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (!mIsInitialized)
-    {
+    if (!mIsInitialized) {
         this->Execute();
         mIsInitialized = true;
     }
@@ -141,15 +140,13 @@ void RansNutYPlusWallFunctionUpdateProcess::Execute()
 
     const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
         ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
         ConditionType::GeometryType& r_geometry = r_cond.GetGeometry();
 
         const double y_plus = std::max(r_cond.GetValue(RANS_Y_PLUS), y_plus_limit);
 
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             NodeType& r_node = r_geometry[i_node];
             const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
             r_node.SetLock();
@@ -162,8 +159,7 @@ void RansNutYPlusWallFunctionUpdateProcess::Execute()
 
     const int number_of_nodes = r_model_part.NumberOfNodes();
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         NodeType& r_node = *(r_model_part.NodesBegin() + i_node);
         double& r_nut = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         const double number_of_neighbour_conditions =

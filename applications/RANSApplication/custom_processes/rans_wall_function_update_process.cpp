@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,7 +29,9 @@
 
 namespace Kratos
 {
-RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel, Parameters rParameters)
+RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(
+    Model& rModel,
+    Parameters rParameters)
     : mrModel(rModel)
 {
     KRATOS_TRY
@@ -54,16 +56,17 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel, Para
     KRATOS_CATCH("");
 }
 
-RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(Model& rModel,
-                                                             const std::string& rModelPartName,
-                                                             const double VonKarman,
-                                                             const double Beta,
-                                                             const int EchoLevel)
-    : mrModel(rModel),
-      mModelPartName(rModelPartName),
-      mVonKarman(VonKarman),
-      mBeta(Beta),
-      mEchoLevel(EchoLevel)
+RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(
+    Model& rModel,
+    const std::string& rModelPartName,
+    const double VonKarman,
+    const double Beta,
+    const int EchoLevel)
+: mrModel(rModel),
+  mModelPartName(rModelPartName),
+  mVonKarman(VonKarman),
+  mBeta(Beta),
+  mEchoLevel(EchoLevel)
 {
 }
 
@@ -92,8 +95,7 @@ void RansWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (!mIsInitialized)
-    {
+    if (!mIsInitialized) {
         this->Execute();
         mIsInitialized = true;
     }
@@ -109,12 +111,10 @@ void RansWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
 
     const int number_of_conditions = r_model_part.NumberOfConditions();
 #pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
         ConditionType& r_cond = *(r_model_part.ConditionsBegin() + i_cond);
         ConditionGeometryType& r_geometry = r_cond.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        {
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             NodeType& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS) += 1;
@@ -135,14 +135,14 @@ void RansWallFunctionUpdateProcess::Execute()
     ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     const double c_mu_25 = std::pow(mCmu, 0.25);
-    const double y_plus_limit = r_model_part.GetProcessInfo()[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+    const double y_plus_limit =
+        r_model_part.GetProcessInfo()[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
 
     ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
     const int number_of_conditions = r_conditions.size();
 
 #pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
+    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
         ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
 
         Vector gauss_weights;
@@ -159,8 +159,7 @@ void RansWallFunctionUpdateProcess::Execute()
         double condition_y_plus{0.0};
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
 
-        for (size_t g = 0; g < num_gauss_points; ++g)
-        {
+        for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
             const array_1d<double, 3>& r_wall_velocity =
                 RansCalculationUtilities::EvaluateInPoint(
@@ -182,8 +181,7 @@ void RansWallFunctionUpdateProcess::Execute()
 
             condition_y_plus += y_plus;
 
-            if (wall_velocity_magnitude > 0.0)
-            {
+            if (wall_velocity_magnitude > 0.0) {
                 noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
             }
         }

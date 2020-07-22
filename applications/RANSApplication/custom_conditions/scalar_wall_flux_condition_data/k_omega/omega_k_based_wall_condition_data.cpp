@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -39,8 +39,9 @@ const Variable<double>& OmegaKBasedWallConditionData::GetScalarRateVariable()
     return TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2;
 }
 
-void OmegaKBasedWallConditionData::Check(const GeometryType& rGeometry,
-                                         const ProcessInfo& rCurrentProcessInfo)
+void OmegaKBasedWallConditionData::Check(
+    const GeometryType& rGeometry,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const int number_of_nodes = rGeometry.PointsNumber();
@@ -51,10 +52,8 @@ void OmegaKBasedWallConditionData::Check(const GeometryType& rGeometry,
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(
-            TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(
-            TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
     }
@@ -66,7 +65,8 @@ GeometryData::IntegrationMethod OmegaKBasedWallConditionData::GetIntegrationMeth
     return GeometryData::GI_GAUSS_1;
 }
 
-void OmegaKBasedWallConditionData::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
+void OmegaKBasedWallConditionData::CalculateConstants(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -88,7 +88,8 @@ bool OmegaKBasedWallConditionData::IsWallFluxComputable() const
     return true;
 }
 
-double OmegaKBasedWallConditionData::CalculateWallFlux(const Vector& rShapeFunctions) const
+double OmegaKBasedWallConditionData::CalculateWallFlux(
+    const Vector& rShapeFunctions) const
 {
     const double nu = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions);

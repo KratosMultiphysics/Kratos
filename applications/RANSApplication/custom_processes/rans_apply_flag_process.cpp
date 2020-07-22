@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -29,8 +29,10 @@
 
 namespace Kratos
 {
-RansApplyFlagProcess::RansApplyFlagProcess(Model& rModel, Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+RansApplyFlagProcess::RansApplyFlagProcess(
+    Model& rModel,
+    Parameters rParameters)
+: mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
 
@@ -71,17 +73,14 @@ void RansApplyFlagProcess::ExecuteInitialize()
     ApplyNodeFlags();
 
     if (mModelPartsForConditionFlags.size() == 1 &&
-        mModelPartsForConditionFlags[0] == "ALL_MODEL_PARTS")
-    {
+        mModelPartsForConditionFlags[0] == "ALL_MODEL_PARTS") {
         mModelPartsForConditionFlags.clear();
-        for (const std::string& model_part_name : mrModel.GetModelPartNames())
-        {
+        for (const std::string& model_part_name : mrModel.GetModelPartNames()) {
             mModelPartsForConditionFlags.push_back(model_part_name);
         }
     }
 
-    for (std::string model_part_name : mModelPartsForConditionFlags)
-    {
+    for (std::string model_part_name : mModelPartsForConditionFlags) {
         ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
         ApplyConditionFlags(r_model_part);
     }
@@ -114,8 +113,9 @@ void RansApplyFlagProcess::ApplyNodeFlags()
     const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
 
 #pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         (r_model_part.NodesBegin() + i_node)->Set(r_flag, mFlagVariableValue);
+    }
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << mFlagVariableName << " is set to nodes " << mFlagVariableValue
@@ -133,17 +133,14 @@ void RansApplyFlagProcess::ApplyConditionFlags(ModelPart& rModelPart)
     const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
 
 #pragma omp parallel for
-    for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition)
-    {
+    for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition) {
         Condition& r_condition = *(rModelPart.ConditionsBegin() + i_condition);
         Condition::GeometryType& r_condition_geometry = r_condition.GetGeometry();
         const int number_of_nodes = r_condition_geometry.PointsNumber();
 
         bool condition_flag = true;
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            if (!r_condition_geometry[i_node].Is(r_flag))
-            {
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+            if (!r_condition_geometry[i_node].Is(r_flag)) {
                 condition_flag = false;
                 break;
             }

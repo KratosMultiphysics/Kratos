@@ -1,11 +1,11 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
 //
@@ -34,58 +34,16 @@
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-VMSMonolithicKBasedWallCondition<TDim, TNumNodes>& VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::operator=(
-    VMSMonolithicKBasedWallCondition<TDim, TNumNodes> const& rOther)
-{
-    Condition::operator=(rOther);
-
-    return *this;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-{
-    return Kratos::make_intrusive<VMSMonolithicKBasedWallCondition>(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Create(
-    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
-{
-    return Kratos::make_intrusive<VMSMonolithicKBasedWallCondition>(NewId, pGeom, pProperties);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Condition::Pointer VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Clone(
-    IndexType NewId, NodesArrayType const& rThisNodes) const
-{
-    Condition::Pointer pNewCondition = Create(
-        NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
-
-    pNewCondition->SetData(this->GetData());
-    pNewCondition->SetFlags(this->GetFlags());
-
-    return pNewCondition;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    int Check = BaseType::Check(rCurrentProcessInfo);
-
-    if (Check != 0)
-    {
-        return Check;
-    }
+    int check = BaseType::Check(rCurrentProcessInfo);
 
     const GeometryType& r_geometry = this->GetGeometry();
 
-    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
-    {
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const NodeType& r_node = r_geometry[i_node];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
@@ -93,7 +51,7 @@ int VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Check(const ProcessInfo& 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
     }
 
-    return 0;
+    return check;
 
     KRATOS_CATCH("");
 }
@@ -103,16 +61,15 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize()
 {
     KRATOS_TRY;
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this))
-    {
-        const array_1d<double, 3>& rNormal = this->GetValue(NORMAL);
-        KRATOS_ERROR_IF(norm_2(rNormal) == 0.0)
+    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+        const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
+        KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
             << "NORMAL must be calculated before using this " << this->Info() << "\n";
 
         KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0)
             << this->Info() << " cannot find parent element\n";
 
-        mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, rNormal);
+        mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
 
         KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
     }
@@ -141,12 +98,13 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::PrintData(std::ostream& 
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
-    MatrixType& rLocalMatrix, VectorType& rLocalVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLocalMatrix,
+    VectorType& rLocalVector,
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this))
-    {
+    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
         const GeometryType& r_geometry = this->GetGeometry();
         // Get Shape function data
         Vector gauss_weights;
@@ -168,8 +126,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         double condition_y_plus{0.0};
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
 
-        for (size_t g = 0; g < num_gauss_points; ++g)
-        {
+        for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
 
             const array_1d<double, 3>& r_wall_velocity =
@@ -191,8 +148,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
             condition_y_plus += y_plus;
 
-            if (wall_velocity_magnitude > eps)
-            {
+            if (wall_velocity_magnitude > eps) {
                 const double u_tau = RansCalculationUtilities::SoftMax(
                     c_mu_25 * std::sqrt(std::max(tke, 0.0)),
                     wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta));
@@ -202,12 +158,9 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
                 const double value = rho * std::pow(u_tau, 2) *
                                      gauss_weights[g] / wall_velocity_magnitude;
 
-                for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
-                {
-                    for (size_t dim = 0; dim < TDim; ++dim)
-                    {
-                        for (size_t b = 0; b < r_geometry.PointsNumber(); ++b)
-                        {
+                for (size_t a = 0; a < r_geometry.PointsNumber(); ++a) {
+                    for (size_t dim = 0; dim < TDim; ++dim) {
+                        for (size_t b = 0; b < r_geometry.PointsNumber(); ++b) {
                             rLocalMatrix(a * block_size + dim, b * block_size + dim) +=
                                 gauss_shape_functions[a] * gauss_shape_functions[b] * value;
                         }

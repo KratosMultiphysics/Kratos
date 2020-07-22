@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -39,8 +39,9 @@ const Variable<double>& EpsilonKBasedWallConditionData::GetScalarRateVariable()
     return TURBULENT_ENERGY_DISSIPATION_RATE_2;
 }
 
-void EpsilonKBasedWallConditionData::Check(const GeometryType& rGeometry,
-                                           const ProcessInfo& rCurrentProcessInfo)
+void EpsilonKBasedWallConditionData::Check(
+    const GeometryType& rGeometry,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const int number_of_nodes = rGeometry.PointsNumber();
@@ -64,7 +65,8 @@ GeometryData::IntegrationMethod EpsilonKBasedWallConditionData::GetIntegrationMe
     return GeometryData::GI_GAUSS_1;
 }
 
-void EpsilonKBasedWallConditionData::CalculateConstants(const ProcessInfo& rCurrentProcessInfo)
+void EpsilonKBasedWallConditionData::CalculateConstants(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -86,7 +88,8 @@ bool EpsilonKBasedWallConditionData::IsWallFluxComputable() const
     return true;
 }
 
-double EpsilonKBasedWallConditionData::CalculateWallFlux(const Vector& rShapeFunctions) const
+double EpsilonKBasedWallConditionData::CalculateWallFlux(
+    const Vector& rShapeFunctions) const
 {
     const double nu = RansCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions);
