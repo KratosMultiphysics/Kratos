@@ -196,8 +196,8 @@ protected:
         // matrices
         BoundedMatrix<double,TNumNodes,3> convective_velocity;
         // auxiliary containers for the symbolically-generated matrices
-        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
-        array_1d<double,TNumNodes*(TDim+1)> rhs;
+        BoundedMatrix<double,TNumNodes,TNumNodes> lhs;
+        array_1d<double,TNumNodes> rhs;
         // auxiliary containers for the symbolically-generated variables for Gauss integration
         array_1d<double,TNumNodes> N;
         BoundedMatrix<double,TNumNodes,TNumNodes> N_gausspoint;

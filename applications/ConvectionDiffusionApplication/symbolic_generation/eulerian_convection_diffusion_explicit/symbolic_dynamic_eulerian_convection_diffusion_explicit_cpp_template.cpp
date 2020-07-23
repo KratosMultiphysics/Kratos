@@ -501,7 +501,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     {
 	const auto& N = row(rVariables.N_gausspoint,g);
         // Calculate velocity and velocity divergence in the gauss point
-        array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
+        array_1d<double, 3 > vel_gauss=ZeroVector(3);
         noalias(vel_gauss) = prod(N,rVariables.convective_velocity);
         double div_vel = 0;
         for(unsigned int node_element = 0; node_element<TNumNodes; node_element++)
