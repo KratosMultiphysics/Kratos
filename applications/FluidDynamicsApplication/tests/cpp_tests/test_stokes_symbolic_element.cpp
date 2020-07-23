@@ -317,10 +317,10 @@ namespace Kratos {
             double pressure_value = 0.0;
 
             // Set the nodal values
-            for (NodeIteratorType it_node = r_model_part.NodesBegin(); it_node < r_model_part.NodesEnd(); ++it_node)
+            for (auto &node : r_model_part.Nodes())
             {
-                it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
-                it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
+                node.FastGetSolutionStepValue(PRESSURE) = pressure_value;
+                node.FastGetSolutionStepValue(VELOCITY) = velocity_values;
             }
 
             // Compute RHS and LHS
@@ -332,9 +332,9 @@ namespace Kratos {
 
             // Check obtained RHS
             double sum_RHS = 0.0;
-            for (unsigned int i = 0; i < RHS.size(); ++i)
+            for (const auto &i_RHS : RHS)
             {
-                sum_RHS += RHS[i];
+                sum_RHS += i_RHS;
             }
             KRATOS_CHECK_NEAR(sum_RHS, 0.0, TOLERANCE);
 
@@ -346,9 +346,9 @@ namespace Kratos {
             a[0] = 1.0; a[1] = 0.0; a[2] = 0.0; a[3] = 1.0; a[4] = 0.0; a[5] = 0.0; a[6] = 1.0; a[7] = 0.0; a[8] = 0.0; a[9] = 1.0; a[10] = 0.0; a[11] = 0.0;
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
 
@@ -356,9 +356,9 @@ namespace Kratos {
             a[0] = 0.0; a[1] = 1.0; a[2] = 0.0; a[3] = 0.0; a[4] = 1.0; a[5] = 0.0; a[6] = 0.0; a[7] = 1.0; a[8] = 0.0; a[9] = 0.0; a[10] = 1.0; a[11] = 0.0;
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
 
@@ -366,9 +366,9 @@ namespace Kratos {
             a[0] = 1.0; a[1] = 1.0; a[2] = 0.0; a[3] = 1.0; a[4] = 1.0; a[5] = 0.0; a[6] = 1.0; a[7] = 1.0; a[8] = 0.0; a[9] = 1.0; a[10] = 1.0; a[11] = 0.0;
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
         }
@@ -687,10 +687,10 @@ namespace Kratos {
             double pressure_value = 0.0;
 
             // Set the nodal values
-            for (NodeIteratorType it_node = r_model_part.NodesBegin(); it_node < r_model_part.NodesEnd(); ++it_node)
+            for (auto &node : r_model_part.Nodes())
             {
-                it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
-                it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
+                node.FastGetSolutionStepValue(PRESSURE) = pressure_value;
+                node.FastGetSolutionStepValue(VELOCITY) = velocity_values;
             }
 
             // Compute RHS and LHS
@@ -702,9 +702,9 @@ namespace Kratos {
 
             // Check obtained RHS
             double sum_RHS = 0.0;
-            for (unsigned int i = 0; i < RHS.size(); ++i)
+            for (auto &i_RHS : RHS)
             {
-                sum_RHS += RHS[i];
+                sum_RHS += i_RHS;
             }
             KRATOS_CHECK_NEAR(sum_RHS, 0.0, TOLERANCE);
             // Check modes
@@ -742,9 +742,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 4 check
@@ -754,9 +754,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 5 check
@@ -766,9 +766,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 6 check
@@ -778,9 +778,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
         }
@@ -915,10 +915,10 @@ namespace Kratos {
             double pressure_value = 0.0;
 
             // Set the nodal values
-            for (NodeIteratorType it_node = r_model_part.NodesBegin(); it_node < r_model_part.NodesEnd(); ++it_node)
+            for (auto &node : r_model_part.Nodes())
             {
-                it_node->FastGetSolutionStepValue(PRESSURE) = pressure_value;
-                it_node->FastGetSolutionStepValue(VELOCITY) = velocity_values;
+                node.FastGetSolutionStepValue(PRESSURE) = pressure_value;
+                node.FastGetSolutionStepValue(VELOCITY) = velocity_values;
             }
 
             // Compute RHS and LHS
@@ -930,9 +930,9 @@ namespace Kratos {
 
             // Check obtained RHS
             double sum_RHS = 0.0;
-            for (unsigned int i = 0; i < RHS.size(); ++i)
+            for (const auto &i_RHS : RHS)
             {
-                sum_RHS += RHS[i];
+                sum_RHS += i_RHS;
             }
             KRATOS_CHECK_NEAR(sum_RHS, 0.0, TOLERANCE);
             // Check modes
@@ -946,9 +946,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 2 check
@@ -958,9 +958,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 3 check
@@ -970,9 +970,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 4 check
@@ -982,9 +982,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 5 check
@@ -994,9 +994,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 6 check
@@ -1006,9 +1006,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
         }
