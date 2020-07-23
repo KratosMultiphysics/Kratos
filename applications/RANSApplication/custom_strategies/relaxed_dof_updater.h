@@ -49,13 +49,13 @@ public:
     /// Pointer definition of RelaxedDofUpdater
     KRATOS_CLASS_POINTER_DEFINITION(RelaxedDofUpdater);
 
-	using DofType = Dof<typename TSparseSpace::DataType>;
-	using DofsArrayType = PointerVectorSet<
-		DofType,
-		SetIdentityFunction<DofType>,
-		std::less<typename SetIdentityFunction<DofType>::result_type>,
-		std::equal_to<typename SetIdentityFunction<DofType>::result_type>,
-		DofType* >;
+    using DofType = Dof<typename TSparseSpace::DataType>;
+    using DofsArrayType = PointerVectorSet<
+        DofType,
+        SetIdentityFunction<DofType>,
+        std::less<typename SetIdentityFunction<DofType>::result_type>,
+        std::equal_to<typename SetIdentityFunction<DofType>::result_type>,
+        DofType* >;
 
     using SystemVectorType = typename TSparseSpace::VectorType;
 
