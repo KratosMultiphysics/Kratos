@@ -164,16 +164,16 @@ void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLoc
     rGeom.DeterminantOfJacobian(gauss_pts_J_det, integration_method);
     MatrixType NContainer = rGeom.ShapeFunctionsValues(integration_method);
 
-    // Compute Unit Normal
-    array_1d<double,3> Normal;
-    rGeom.Normal(Normal);
-    double A = norm_2(Normal);
-    Normal /= A;
-
     for (unsigned int g = 0; g < NumGauss; g++)
     {
         Vector N = row(NContainer,g);
         double Weight = gauss_pts_J_det[g] * IntegrationPoints[g].Weight();
+
+        // Compute Unit normal
+        array_1d<double, 3> Normal;
+        Normal = rGeom.Normal(IntegrationPoints[g].Coordinates());
+        double A = norm_2(Normal);
+        Normal /= A;
 
         // Neumann boundary condition
         for (unsigned int i = 0; i < TNumNodes; i++)
