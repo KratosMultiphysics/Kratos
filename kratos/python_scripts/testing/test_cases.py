@@ -1,10 +1,10 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import KratosUnittest
 
-class KratosCoreTestCase(KratosUnittest.TestCase):
+class SerialAndDistributedTestCase(KratosUnittest.TestCase):
     """This test case is designed for performing multiple test with the same modelparts,
     this way the partitioning has to be done only once
-    The values in the ModelParts are re-initialized after every test
+    The values in the ModelParts need to be re-initialized after every test (e.g. in setUp)
     """
     @classmethod
     def setUpClass(self):
@@ -12,16 +12,16 @@ class KratosCoreTestCase(KratosUnittest.TestCase):
 
     @classmethod
     def _ReadModelPart(cls, mdpa_file_name, model_part):
-        """This method setup the model part once for all the tests in class.
+        """This method is designed to read a ModelPart.
 
-        This method read creates a modelpart by the given name with given domain size,
-        buffer size. Then created model part is filled with respective nodes, conditions, elements
+        The ModelPart is filled with respective nodes, conditions, elements
         from mdpa file using either MPI or Serial reading depending on run type.
 
         Args:
-            model_part: Name of test model part
+            mdpa_file_name (str): Name of the mdpa file (without ".mdpa" extension)
+            model_part (Kratos.ModelPart): ModelPart to be filled
         """
-        if not Kratos.DOMAIN_SIZE in model_part.ProcessInfo:
+        if Kratos.DOMAIN_SIZE not in model_part.ProcessInfo:
             raise Exception('"PROCESS_INFO" needs to be specified!')
 
         if model_part.NumberOfNodes() > 0:
@@ -29,9 +29,9 @@ class KratosCoreTestCase(KratosUnittest.TestCase):
 
         communicator = Kratos.DataCommunicator.GetDefault()
         if communicator.IsDistributed():
-            cls.__ReadDistributedModelPart(mdpa_file_name)
+            cls.__ReadDistributedModelPart(mdpa_file_name, model_part)
         else:
-            cls.__ReadModelPart(mdpa_file_name)
+            cls.__ReadModelPart(mdpa_file_name, model_part)
 
     @classmethod
     def __ReadModelPart(cls, mdpa_file_name, model_part):
@@ -40,8 +40,8 @@ class KratosCoreTestCase(KratosUnittest.TestCase):
         This method reads mdpa file and fills given model_part accordingly without MPI
 
         Args:
-            model_part (Kratos.ModelPart): Model part to be filled
             mdpa_file_name (str): Name of the mdpa file (without ".mdpa" extension)
+            model_part (Kratos.ModelPart): ModelPart to be filled
         """
         import_flags = Kratos.ModelPartIO.READ | Kratos.ModelPartIO.SKIP_TIMER
         Kratos.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
@@ -53,9 +53,11 @@ class KratosCoreTestCase(KratosUnittest.TestCase):
         This method reads mdpa file and fills given model_part accordingly using MPI
 
         Args:
-            model_part (Kratos.ModelPart): Model part to be filled
-            mdpa_file_name (str): Name of the mdpa file (without '.mdpa' extension)
+            mdpa_file_name (str): Name of the mdpa file (without ".mdpa" extension)
+            model_part (Kratos.ModelPart): ModelPart to be filled
         """
+        KratosUnittest.skipIfApplicationsNotAvailable("MetisApplication")
+
         from KratosMultiphysics.mpi import distributed_import_model_part_utility
         model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
 
