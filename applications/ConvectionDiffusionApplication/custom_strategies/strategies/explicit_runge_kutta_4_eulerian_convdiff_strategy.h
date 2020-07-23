@@ -255,7 +255,7 @@ protected:
 
         // Initialize the projection value
 #pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
             it_node->GetValue(UNKNOWN_PROJECTION) = 0.0;
         }
@@ -268,7 +268,7 @@ protected:
             it_elem->Calculate(UNKNOWN_PROJECTION, unknown_proj, r_process_info);
         }
 #pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
             const double mass = r_lumped_mass_vector(i_node);
             it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(UNKNOWN_PROJECTION) / mass;
