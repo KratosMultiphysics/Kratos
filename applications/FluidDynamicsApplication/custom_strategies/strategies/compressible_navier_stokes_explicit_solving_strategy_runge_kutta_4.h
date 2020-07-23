@@ -231,16 +231,16 @@ public:
         // Calculate the magnitudes time derivatives
         UpdateUnknownsTimeDerivatives(1.0);
 
-        const auto& r_model_part = BaseType::GetModelPart();
-        const auto& r_process_info = r_model_part.GetProcessInfo();
-        if (r_process_info[OSS_SWITCH]) {
-            CalculateOrthogonalSubScalesProjection();
-        }
+        // const auto& r_model_part = BaseType::GetModelPart();
+        // const auto& r_process_info = r_model_part.GetProcessInfo();
+        // if (r_process_info[OSS_SWITCH]) {
+        //     CalculateOrthogonalSubScalesProjection();
+        // }
 
-        // Perform orthogonal projection shock capturing
-        if (mShockCapturing) {
-            CalculateOrthogonalProjectionShockCapturing();
-        }
+        // // Perform orthogonal projection shock capturing
+        // if (mShockCapturing) {
+        //     CalculateOrthogonalProjectionShockCapturing();
+        // }
     }
 
     /**
@@ -346,15 +346,15 @@ protected:
         //     UpdateUnknownsTimeDerivatives(sub_step_acc_coeff);
         // }
 
-        // // Calculate the Orthogonal SubsScales projections
-        // if (r_process_info[OSS_SWITCH]) {
-        //     CalculateOrthogonalSubScalesProjection();
-        // }
+        // Calculate the Orthogonal SubsScales projections
+        if (r_process_info[OSS_SWITCH]) {
+            CalculateOrthogonalSubScalesProjection();
+        }
 
-        // // Perform orthogonal projection shock capturing
-        // if (mShockCapturing) {
-        //     CalculateOrthogonalProjectionShockCapturing();
-        // }
+        // Perform orthogonal projection shock capturing
+        if (mShockCapturing) {
+            CalculateOrthogonalProjectionShockCapturing();
+        }
 
         // // Perform shock capturing
         // if (mShockCapturing) {
@@ -375,17 +375,17 @@ protected:
         // const double sub_step_acc_coeff = 1.0;
         // UpdateUnknownsTimeDerivatives(sub_step_acc_coeff);
 
-        // // Calculate the Orthogonal SubsScales projections
-        // auto& r_model_part = BaseType::GetModelPart();
-        // const auto& r_process_info = r_model_part.GetProcessInfo();
-        // if (r_process_info[OSS_SWITCH]) {
-        //     CalculateOrthogonalSubScalesProjection();
-        // }
+        // Calculate the Orthogonal SubsScales projections
+        auto& r_model_part = BaseType::GetModelPart();
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+        if (r_process_info[OSS_SWITCH]) {
+            CalculateOrthogonalSubScalesProjection();
+        }
 
-        // // Perform orthogonal projection shock capturing
-        // if (mShockCapturing) {
-        //     CalculateOrthogonalProjectionShockCapturing();
-        // }
+        // Perform orthogonal projection shock capturing
+        if (mShockCapturing) {
+            CalculateOrthogonalProjectionShockCapturing();
+        }
 
         // // Perform shock capturing
         // if (mShockCapturing) {
@@ -393,121 +393,6 @@ protected:
         //     mpShockDetectionProcess->ExecuteInitializeSolutionStep();
         //     // Add the corresponding artificial magnitudes
         //     CalculateShockCapturingMagnitudes();
-        // }
-    }
-
-    /**
-     * @brief Performs an intermediate RK4 step
-     * This functions performs all the operations required in an intermediate RK4 sub step
-     * @param SubStepIndex The sub step index
-     * @param SubStepCoefficient The sub step coefficient (these are saved as member variables)
-     * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
-     * @param rIntermediateStepResidualVector The vector to store the intermediate sub step residual
-     */
-    void PerformRungeKuttaIntermediateSubStep(
-        const IndexType SubStepIndex,
-        const double SubStepCoefficient,
-        const LocalSystemVectorType& rFixedDofsValues,
-        LocalSystemVectorType& rIntermediateStepResidualVector) override
-    {
-        // Call the base RK4 to perform the intermediate substep
-        BaseType::PerformRungeKuttaIntermediateSubStep(
-            SubStepIndex,
-            SubStepCoefficient,
-            rFixedDofsValues,
-            rIntermediateStepResidualVector);
-
-        // // If proceeds, do the intermediate PAD
-        // if (mPAD) {
-        //     const double dt = BaseType::GetDeltaTime();
-        //     const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        //     const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
-
-        //     // CLIPPING TEST
-        //     // TODO: ADD OPENMP PRAGMAS
-        //     const double aux_eps = 1.0e-6;
-        //     for (auto& r_node : BaseType::GetModelPart().Nodes()) {
-        //         double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        //         auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-        //         double& r_enr = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-
-        //         // Check that the density is above the minimum limit
-        //         if (!r_node.IsFixed(DENSITY)) {
-        //             if (r_rho < mMinDensity) {
-        //                 // Update the residual vector accordingly
-        //                 const IndexType eq_id = r_node.GetDof(DENSITY).EquationId();
-        //                 const double mass = r_lumped_mass_vector(eq_id);
-        //                 rIntermediateStepResidualVector(eq_id) = (mMinDensity - r_node.FastGetSolutionStepValue(DENSITY,1)) * mass / (dt * SubStepCoefficient);
-        //                 r_node.SetValue(DENSITY_PAD, true);
-        //                 r_rho = mMinDensity;
-        //             }
-        //         }
-
-        //         // Check that the energy is above the minimum limit
-
-        //         if (!r_node.IsFixed(TOTAL_ENERGY)) {
-        //             const double enr_lower_bound = inner_prod(r_mom, r_mom) / r_rho + aux_eps;
-        //             if (r_enr < enr_lower_bound) {
-        //                 // Update the residual vector accordingly
-        //                 const IndexType eq_id = r_node.GetDof(TOTAL_ENERGY).EquationId();
-        //                 const double mass = r_lumped_mass_vector(eq_id);
-        //                 rIntermediateStepResidualVector(eq_id) = (enr_lower_bound - r_node.FastGetSolutionStepValue(TOTAL_ENERGY,1)) * mass / (dt * SubStepCoefficient);
-        //                 r_enr = enr_lower_bound;
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
-    /**
-     * @brief Performs the last RK4 step
-     * This functions performs all the operations required in the last RK4 sub step
-     * @param rLastStepResidualVector The vector to store the last sub step residual
-     */
-    void PerformRungeKuttaLastSubStep(LocalSystemVectorType& rLastStepResidualVector) override
-    {
-        // Call the base RK4 to perform the last substep
-        BaseType::PerformRungeKuttaLastSubStep(rLastStepResidualVector);
-
-        // // If proceeds, do the last substep PAD
-        // if (mPAD) {
-        //     const double dt = BaseType::GetDeltaTime();
-        //     const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        //     const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
-
-        //     // CLIPPING TEST
-        //     // TODO: ADD OPENMP PRAGMAS
-        //     const double aux_eps = 1.0e-6;
-        //     for (auto& r_node : BaseType::GetModelPart().Nodes()) {
-        //         double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        //         auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-        //         double& r_enr = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-
-        //         // Check that the density is above the minimum limit
-        //         if (!r_node.IsFixed(DENSITY)) {
-        //             if (r_rho < mMinDensity) {
-        //                 // Update the residual vector accordingly
-        //                 const IndexType eq_id = r_node.GetDof(DENSITY).EquationId();
-        //                 const double mass = r_lumped_mass_vector(eq_id);
-        //                 rLastStepResidualVector(eq_id) = (mMinDensity - r_node.FastGetSolutionStepValue(DENSITY,1)) * mass / dt;
-        //                 r_node.SetValue(DENSITY_PAD, true);
-        //                 r_rho = mMinDensity;
-        //             }
-        //         }
-
-        //         // Check that the energy is above the minimum limit
-
-        //         if (!r_node.IsFixed(TOTAL_ENERGY)) {
-        //             const double enr_lower_bound = inner_prod(r_mom, r_mom) / r_rho + aux_eps;
-        //             if (r_enr < enr_lower_bound) {
-        //                 // Update the residual vector accordingly
-        //                 const IndexType eq_id = r_node.GetDof(TOTAL_ENERGY).EquationId();
-        //                 const double mass = r_lumped_mass_vector(eq_id);
-        //                 rLastStepResidualVector(eq_id) = (enr_lower_bound - r_node.FastGetSolutionStepValue(TOTAL_ENERGY,1)) * mass / dt;
-        //                 r_enr = enr_lower_bound;
-        //             }
-        //         }
-        //     }
         // }
     }
 
@@ -756,8 +641,8 @@ private:
 
         // Calculate shock capturing values
         const double zero_tol = 1.0e-12;
-        // const double sc_visc_max_ratio = 1.0e0;
-        // const double sc_cond_max_ratio = 1.0e0;
+        const double sc_visc_max_ratio = 1.0e3;
+        const double sc_cond_max_ratio = 1.0e3;
 
         array_1d<double,3> midpoint_v;
         Matrix midpoint_mom_grad_proj;
@@ -815,10 +700,8 @@ private:
             const double c_a = 0.05;
             const double v_norm = norm_2(midpoint_v);
             const double aux = 0.5 * c_a * v_norm * avg_h_function(r_geom);
-            it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = mom_grad_norm > zero_tol ? aux * mom_grad_proj_norm / mom_grad_norm : 0.0;
-            it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = tot_ener_grad_norm > zero_tol ? aux * tot_ener_grad_proj_norm / tot_ener_grad_norm : 0.0;
-            // it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) *= mom_grad_norm > zero_tol && aux * mom_grad_proj_norm / mom_grad_norm < sc_visc_max_ratio ? mom_grad_proj_norm / mom_grad_norm : 0.0;
-            // it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) *= tot_ener_grad_norm > zero_tol && aux * tot_ener_grad_proj_norm / tot_ener_grad_norm < sc_cond_max_ratio ? tot_ener_grad_proj_norm / tot_ener_grad_norm : 0.0;
+            it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = mom_grad_norm > zero_tol && mom_grad_proj_norm / mom_grad_norm < sc_visc_max_ratio? aux * mom_grad_proj_norm / mom_grad_norm : 0.0;
+            it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = tot_ener_grad_norm > zero_tol && tot_ener_grad_proj_norm / tot_ener_grad_norm < sc_cond_max_ratio ? aux * tot_ener_grad_proj_norm / tot_ener_grad_norm : 0.0;
         }
     }
 
