@@ -31,10 +31,10 @@ class SerialAndDistributedTestCase(KratosUnittest.TestCase):
         if communicator.IsDistributed():
             cls.__ReadDistributedModelPart(mdpa_file_name, model_part)
         else:
-            cls.__ReadModelPart(mdpa_file_name, model_part)
+            cls.__ReadSerialModelPart(mdpa_file_name, model_part)
 
     @classmethod
-    def __ReadModelPart(cls, mdpa_file_name, model_part):
+    def __ReadSerialModelPart(cls, mdpa_file_name, model_part):
         """Reads mdpa file
 
         This method reads mdpa file and fills given model_part accordingly without MPI
