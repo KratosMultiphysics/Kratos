@@ -1,6 +1,6 @@
 # see https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
 
-/                     @KratosMultiphysics/technical-committee
+/*                    @KratosMultiphysics/technical-committee
 /kratos/              @KratosMultiphysics/technical-committee
 /.github/             @KratosMultiphysics/technical-committee
 /cmake_modules/       @KratosMultiphysics/technical-committee

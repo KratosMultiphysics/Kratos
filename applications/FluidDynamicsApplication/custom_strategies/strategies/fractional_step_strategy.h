@@ -59,7 +59,7 @@ namespace Kratos {
 /**
  * @brief Fractional-step strategy for incompressible Navier-Stokes formulation
  * This strategy implements a splitting scheme for the incompressible Navier-Stokes equations.
- * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplicatoin.
+ * It is intended to be used in combination with the FractionalStep element in the FluidDynamicsApplication.
  * The fractional step index, which is stored in the ProcessInfo, takes the values
  * 1 : Momentum step (calculate fractional step velocity)
  * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
@@ -234,7 +234,7 @@ public:
                     break;
                 }
             }
-            KRATOS_WARNING_IF("FractionalStepStrategy", !converged && echo_level > 0) << "Predictor-correctior iterations did not converge." << std::endl;
+            KRATOS_WARNING_IF("FractionalStepStrategy", !converged && echo_level > 0) << "Predictor-corrector iterations did not converge." << std::endl;
         } else {
             // Solve for fractional step velocity, then update pressure once
             const auto convergence_output = this->SolveStep();
