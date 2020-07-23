@@ -91,6 +91,12 @@ public:
     /// Destructor.
     ~RansFractionalStepStrategy() override = default;
 
+    /// Assignment operator.
+    RansFractionalStepStrategy& operator=(RansFractionalStepStrategy const& rOther) = delete;
+
+    /// Copy constructor.
+    RansFractionalStepStrategy(RansFractionalStepStrategy const& rOther) = delete;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -191,22 +197,6 @@ protected:
 
         // Set the output tuple as the fractional velocity convergence and pressure norm
         return std::make_tuple(converged, norm_dp);
-    }
-
-    ///@}
-
-private:
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansFractionalStepStrategy& operator=(RansFractionalStepStrategy const& rOther)
-    {
-    }
-
-    /// Copy constructor.
-    RansFractionalStepStrategy(RansFractionalStepStrategy const& rOther)
-    {
     }
 
     ///@}

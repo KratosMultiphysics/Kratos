@@ -45,8 +45,8 @@ void RansVariableDifferenceNormsCalculationUtility<TDataType>::InitializeCalcula
 
 #pragma omp parallel for
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const auto& r_node = *(r_nodes.begin() + i_node);
-        mData[i_node] = r_node.FastGetSolutionStepValue(mrVariable);
+        const auto p_node = r_nodes.begin() + i_node;
+        mData[i_node] = p_node->FastGetSolutionStepValue(mrVariable);
     }
 
     KRATOS_CATCH("");
