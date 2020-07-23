@@ -163,7 +163,7 @@ void RansNutYPlusWallFunctionUpdateProcess::Execute()
         auto& r_node = *(r_model_part.NodesBegin() + i_node);
         double& r_nut = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         const double number_of_neighbour_conditions =
-            static_cast<double>(r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS));
+             r_node.GetValue(NUMBER_OF_NEIGHBOUR_CONDITIONS);
         r_nut = RansCalculationUtilities::SoftMax(
             r_nut / number_of_neighbour_conditions, mMinValue);
         r_node.FastGetSolutionStepValue(VISCOSITY) =
