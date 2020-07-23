@@ -145,9 +145,9 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Initial
 {
     BaseType::Initialize(rCurrentProcessInfo);
     // Resize and intialize output
-    if (mUnknownSubScale.size() != 3) // three integration points
-        mUnknownSubScale.resize(3, false);
-    mUnknownSubScale = ZeroVector(3);
+    if (mUnknownSubScale.size() != TNumNodes) // number integration points = number nodes
+        mUnknownSubScale.resize(TNumNodes, false);
+    mUnknownSubScale = ZeroVector(TNumNodes);
 }
 
 /***********************************************************************************/
