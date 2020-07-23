@@ -393,7 +393,7 @@ public:
         const Variable<double>& r_variable = this->GetVariable();
 
         for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node) {
-            const NodeType& r_node = this->GetGeometry()[i_node];
+            const auto& r_node = this->GetGeometry()[i_node];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node);
             KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node);
         }
