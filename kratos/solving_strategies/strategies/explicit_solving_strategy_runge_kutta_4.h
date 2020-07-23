@@ -58,6 +58,9 @@ public:
     // The base class definition
     typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
+    /// The definition of the current class
+    typedef ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace> ClassType;
+
     // The explicit builder and solver definition
     typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
 
@@ -73,6 +76,14 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor. (empty)
+     */
+    explicit ExplicitSolvingStrategyRungeKutta4()
+        : BaseType()
+    {
+    }
 
     /**
      * @brief Default constructor. (with parameters)
@@ -114,6 +125,19 @@ public:
     {
     }
 
+    /**
+     * @brief Create method
+     * @param rModelPart The model part to be computed
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
+
     /** Copy constructor.
      */
     ExplicitSolvingStrategyRungeKutta4(const ExplicitSolvingStrategyRungeKutta4 &Other) = delete;
@@ -121,6 +145,15 @@ public:
     /** Destructor.
      */
     ~ExplicitSolvingStrategyRungeKutta4() override = default;
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "explicit_solving_strategy_runge_kutta_4";
+    }
 
     ///@}
     ///@name Operators
