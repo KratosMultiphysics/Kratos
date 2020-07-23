@@ -235,7 +235,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
 #pragma omp critical
                 {
                     condition_id++;
-                    Condition::Pointer p_condition = r_base_model_part.CreateNewCondition(
+                    auto p_condition = r_base_model_part.CreateNewCondition(
                         "PeriodicCondition", condition_id, node_id_list, p_properties);
                     p_condition->Set(PERIODIC);
                     r_master_node.Set(PERIODIC);
@@ -273,7 +273,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
 #pragma omp critical
                 {
                     condition_id++;
-                    Condition::Pointer p_condition = r_base_model_part.CreateNewCondition(
+                    auto p_condition = r_base_model_part.CreateNewCondition(
                         "PeriodicCondition", condition_id, node_id_list, p_properties);
                     p_condition->Set(PERIODIC);
                     r_master_node.Set(PERIODIC);
@@ -311,7 +311,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
 #pragma omp critical
                 {
                     condition_id++;
-                    Condition::Pointer p_condition = r_base_model_part.CreateNewCondition(
+                    auto p_condition = r_base_model_part.CreateNewCondition(
                         "PeriodicCondition", condition_id, node_id_list, p_properties);
                     p_condition->Set(PERIODIC);
                     r_master_node.Set(PERIODIC);
@@ -323,7 +323,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
     const int number_of_conditions = r_base_model_part.NumberOfConditions();
 #pragma omp parallel for
     for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition) {
-        Condition& r_condition = *(r_base_model_part.ConditionsBegin() + i_condition);
+        auto& r_condition = *(r_base_model_part.ConditionsBegin() + i_condition);
         if (r_condition.Is(PERIODIC)) {
             const auto& r_node_master = r_condition.GetGeometry()[0];
             auto& r_node_slave = r_condition.GetGeometry()[1];

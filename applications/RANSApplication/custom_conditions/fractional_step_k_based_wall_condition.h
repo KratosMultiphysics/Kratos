@@ -1,41 +1,14 @@
-/*
-==============================================================================
-Kratos Fluid Dynamics Application
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya
+//
 
 #ifndef KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H
 #define KRATOS_FS_HIGH_RE_K_WALL_CONDITION_H
@@ -86,27 +59,27 @@ public:
     /// Pointer definition of FractionalStepKBasedWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FractionalStepKBasedWallCondition);
 
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
-    typedef Properties PropertiesType;
+    using PropertiesType = Properties;
 
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
+    using EquationIdVectorType = std::vector<std::size_t>;
 
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
+    using DofsVectorType = std::vector<Dof<double>::Pointer>;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    using DofsArrayType = PointerVectorSet<Dof<double>, IndexedObject>;
 
     ///@}
     ///@name Life Cycle
@@ -116,7 +89,9 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    FractionalStepKBasedWallCondition(IndexType NewId = 0) : Condition(NewId)
+    FractionalStepKBasedWallCondition(
+        IndexType NewId = 0)
+    : Condition(NewId)
     {
     }
 
@@ -125,8 +100,10 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    FractionalStepKBasedWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Condition(NewId, ThisNodes)
+    FractionalStepKBasedWallCondition(
+        IndexType NewId,
+        const NodesArrayType& ThisNodes)
+    : Condition(NewId, ThisNodes)
     {
     }
 
@@ -135,8 +112,10 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    FractionalStepKBasedWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Condition(NewId, pGeometry)
+    FractionalStepKBasedWallCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry)
     {
     }
 
@@ -146,33 +125,33 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    FractionalStepKBasedWallCondition(IndexType NewId,
-                                      GeometryType::Pointer pGeometry,
-                                      PropertiesType::Pointer pProperties)
-        : Condition(NewId, pGeometry, pProperties)
+    FractionalStepKBasedWallCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
-    FractionalStepKBasedWallCondition(FractionalStepKBasedWallCondition const& rOther)
-        : Condition(rOther)
+    FractionalStepKBasedWallCondition(
+        FractionalStepKBasedWallCondition const& rOther)
+    : Condition(rOther)
     {
     }
 
     /// Destructor.
-    ~FractionalStepKBasedWallCondition() override
-    {
-    }
+    ~FractionalStepKBasedWallCondition() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Copy constructor
-    FractionalStepKBasedWallCondition& operator=(FractionalStepKBasedWallCondition const& rOther)
+    FractionalStepKBasedWallCondition& operator=(
+        FractionalStepKBasedWallCondition const& rOther)
     {
         Condition::operator=(rOther);
-
         return *this;
     }
 
@@ -186,17 +165,19 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<FractionalStepKBasedWallCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
-    Condition::Pointer Create(IndexType NewId,
-                              Condition::GeometryType::Pointer pGeom,
-                              PropertiesType::Pointer pProperties) const override
+    Condition::Pointer Create(
+        IndexType NewId,
+        Condition::GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<FractionalStepKBasedWallCondition>(
             NewId, pGeom, pProperties);
@@ -210,19 +191,22 @@ public:
      * @return a Pointer to the new element
      */
 
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
+    Condition::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& rThisNodes) const override
     {
-        Condition::Pointer pNewCondition =
+        Condition::Pointer p_new_condition =
             Create(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
 
-        pNewCondition->SetData(this->GetData());
-        pNewCondition->SetFlags(this->GetFlags());
+        p_new_condition->SetData(this->GetData());
+        p_new_condition->SetFlags(this->GetFlags());
 
-        return pNewCondition;
+        return p_new_condition;
     }
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         VectorType RHS;
         this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -234,63 +218,64 @@ public:
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
-        const ProcessInfo& r_process_info = rCurrentProcessInfo;
-        unsigned int step = r_process_info[FRACTIONAL_STEP];
-        if (step == 1)
-        {
+        const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+        if (step == 1) {
             // Initialize local contributions
-            const SizeType LocalSize = TDim * TNumNodes;
+            const SizeType local_size = TDim * TNumNodes;
 
-            if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
-            if (rRightHandSideVector.size() != LocalSize)
-                rRightHandSideVector.resize(LocalSize, false);
+            if (rLeftHandSideMatrix.size1() != local_size) {
+                rLeftHandSideMatrix.resize(local_size, local_size, false);
+            }
 
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
-            noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+            if (rRightHandSideVector.size() != local_size) {
+                rRightHandSideVector.resize(local_size, false);
+            }
+
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
+            noalias(rRightHandSideVector) = ZeroVector(local_size);
 
             this->ApplyNeumannCondition(rLeftHandSideMatrix, rRightHandSideVector);
 
             this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-        }
-        else
-        {
-            if (this->Is(INTERFACE) && step == 5)
-            {
+        } else {
+            if (this->Is(INTERFACE) && step == 5) {
                 // add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
                 const double N = 1.0 / static_cast<double>(TNumNodes);
-                array_1d<double, 3> rNormal;
-                this->CalculateNormal(rNormal); // this already contains the area
-                const double Area = norm_2(rNormal);
+                array_1d<double, 3> r_normal;
+                this->CalculateNormal(r_normal); // this already contains the area
+                const double Area = norm_2(r_normal);
 
-                if (rLeftHandSideMatrix.size1() != TNumNodes)
+                if (rLeftHandSideMatrix.size1() != TNumNodes) {
                     rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-                if (rRightHandSideVector.size() != TNumNodes)
+                }
+
+                if (rRightHandSideVector.size() != TNumNodes) {
                     rRightHandSideVector.resize(TNumNodes, false);
+                }
 
                 noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
                 noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-                const double dt = r_process_info[DELTA_TIME];
-                const double equivalent_structural_density = r_process_info[DENSITY];
+                const double dt = rCurrentProcessInfo[DELTA_TIME];
+                const double equivalent_structural_density = rCurrentProcessInfo[DENSITY];
                 const double diag_term = dt * Area * N / (equivalent_structural_density);
 
-                for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-                {
+                for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
                     rLeftHandSideMatrix(iNode, iNode) = diag_term;
                 }
-            }
-            else
-            {
-                if (rLeftHandSideMatrix.size1() != 0)
+            } else {
+                if (rLeftHandSideMatrix.size1() != 0) {
                     rLeftHandSideMatrix.resize(0, 0, false);
+                }
 
-                if (rRightHandSideVector.size() != 0)
+                if (rRightHandSideVector.size() != 0) {
                     rRightHandSideVector.resize(0, false);
+                }
             }
         }
     }
@@ -302,12 +287,9 @@ public:
 
         int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
 
-        if (Check != 0)
-        {
+        if (Check != 0) {
             return Check;
-        }
-        else
-        {
+        } else {
             // Check that all required variables have been registered
             if (VELOCITY.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,
@@ -333,8 +315,7 @@ public:
             // Checks on nodes
 
             // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-            for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
-            {
+            for (unsigned int i = 0; i < this->GetGeometry().size(); ++i) {
                 if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
                     KRATOS_THROW_ERROR(std::invalid_argument,
                                        "missing VELOCITY variable on solution "
@@ -369,10 +350,9 @@ public:
     {
         KRATOS_TRY;
 
-        if (RansCalculationUtilities::IsWallFunctionActive(*this))
-        {
-            const array_1d<double, 3>& rNormal = this->GetValue(NORMAL);
-            KRATOS_ERROR_IF(norm_2(rNormal) == 0.0)
+        if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+            const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
+            KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
                 << "NORMAL must be calculated before using this "
                 << this->Info() << "\n";
 
@@ -385,7 +365,7 @@ public:
                                           "in the parent element of "
                                        << this->Info() << "\n.";
 
-            mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, rNormal);
+            mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
         }
 
         KRATOS_CATCH("");
@@ -396,50 +376,53 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& ConditionDofList,
-                    const ProcessInfo& CurrentProcessInfo) const override;
+    void GetDofList(
+        DofsVectorType& ConditionDofList,
+        const ProcessInfo& CurrentProcessInfo) const override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    void GetValuesVector(Vector& Values, int Step = 0) const override
+    void GetValuesVector(
+        Vector& Values,
+        int Step = 0) const override
     {
-        const SizeType LocalSize = TDim * TNumNodes;
+        const SizeType local_size = TDim * TNumNodes;
         unsigned int LocalIndex = 0;
 
-        if (Values.size() != LocalSize)
-            Values.resize(LocalSize, false);
+        if (Values.size() != local_size) {
+            Values.resize(local_size, false);
+        }
 
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
+        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
             const array_1d<double, 3>& rVelocity =
                 this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step);
-            for (unsigned int d = 0; d < TDim; ++d)
+            for (unsigned int d = 0; d < TDim; ++d) {
                 Values[LocalIndex++] = rVelocity[d];
+            }
         }
     }
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         rValues.resize(1);
-        if (rVariable == NORMAL)
-        {
+        if (rVariable == NORMAL) {
             this->CalculateNormal(rValues[0]);
-        }
-        else
-        {
+        } else {
             /*
              The cast is done to avoid modification of the element's data. Data
              modification would happen if rVariable is not stored now (would
@@ -452,9 +435,10 @@ public:
         }
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                     std::vector<double>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override
+    void GetValueOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         rValues.resize(1);
         /*
@@ -468,9 +452,10 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6>>& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         rValues.resize(1);
         const FractionalStepKBasedWallCondition* const_this =
@@ -478,9 +463,10 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override
+    void GetValueOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         rValues.resize(1);
         const FractionalStepKBasedWallCondition* const_this =
@@ -488,9 +474,10 @@ public:
         rValues[0] = const_this->GetValue(rVariable);
     }
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override
+    void GetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         rValues.resize(1);
         const FractionalStepKBasedWallCondition* const_this =
@@ -528,18 +515,20 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateNormal(array_1d<double, 3>& An);
+    void CalculateNormal(array_1d<double, 3>& An) const;
 
     /// Commpute the wall stress and add corresponding terms to the system contributions.
     /**
       @param rLocalMatrix Local system matrix
       @param rLocalVector Local right hand side
       */
-    void ApplyWallLaw(MatrixType& rLocalMatrix, VectorType& rLocalVector, const ProcessInfo& rCurrentProcessInfo)
+    void ApplyWallLaw(
+        MatrixType& rLocalMatrix,
+        VectorType& rLocalVector,
+        const ProcessInfo& rCurrentProcessInfo)
     {
-        if (RansCalculationUtilities::IsWallFunctionActive(*this))
-        {
-            const GeometryType& r_geometry = this->GetGeometry();
+        if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+            const auto& r_geometry = this->GetGeometry();
             // Get Shape function data
             Vector gauss_weights;
             Matrix shape_functions;
@@ -557,8 +546,7 @@ protected:
 
             const double eps = std::numeric_limits<double>::epsilon();
 
-            for (size_t g = 0; g < num_gauss_points; ++g)
-            {
+            for (size_t g = 0; g < num_gauss_points; ++g) {
                 const Vector& gauss_shape_functions = row(shape_functions, g);
 
                 const array_1d<double, 3>& r_wall_velocity =
@@ -582,16 +570,12 @@ protected:
                                  wall_velocity_magnitude /
                                      (inv_kappa * std::log(y_plus) + beta));
 
-                if (wall_velocity_magnitude > eps)
-                {
+                if (wall_velocity_magnitude > eps) {
                     const double value = rho * std::pow(u_tau, 2) *
                                          gauss_weights[g] / wall_velocity_magnitude;
-                    for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
-                    {
-                        for (size_t dim = 0; dim < TDim; ++dim)
-                        {
-                            for (size_t b = 0; b < r_geometry.PointsNumber(); ++b)
-                            {
+                    for (size_t a = 0; a < r_geometry.PointsNumber(); ++a) {
+                        for (size_t dim = 0; dim < TDim; ++dim) {
+                            for (size_t b = 0; b < r_geometry.PointsNumber(); ++b) {
                                 rLocalMatrix(a * TDim + dim, b * TDim + dim) +=
                                     gauss_shape_functions[a] *
                                     gauss_shape_functions[b] * value;
@@ -611,7 +595,9 @@ protected:
      * @param rLocalMatrix Local LHS matrix
      * @param rLocalVector Local RHS vector
      */
-    void ApplyNeumannCondition(MatrixType& rLocalMatrix, VectorType& rLocalVector);
+    void ApplyNeumannCondition(
+        MatrixType& rLocalMatrix,
+        VectorType& rLocalVector);
 
     ///@}
 
@@ -647,16 +633,18 @@ private:
 
 /// input stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(std::istream& rIStream,
-                                FractionalStepKBasedWallCondition<TDim, TNumNodes>& rThis)
+inline std::istream& operator>>(
+    std::istream& rIStream,
+    FractionalStepKBasedWallCondition<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const FractionalStepKBasedWallCondition<TDim, TNumNodes>& rThis)
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const FractionalStepKBasedWallCondition<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

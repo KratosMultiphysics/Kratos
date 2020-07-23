@@ -83,7 +83,7 @@ ModelPart& RansKEpsilonEpsilon2D3N_SetUp(
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
+    auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, rElementName, "LineCondition2D2N", add_variables_function,
         TURBULENT_ENERGY_DISSIPATION_RATE, 1);
 

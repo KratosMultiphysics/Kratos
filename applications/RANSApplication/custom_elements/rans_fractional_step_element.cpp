@@ -121,7 +121,7 @@ void RansFractionalStepElement<TDim>::CalculateLocalPressureSystem(
     Vector& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
 
     // Check sizes and initialize

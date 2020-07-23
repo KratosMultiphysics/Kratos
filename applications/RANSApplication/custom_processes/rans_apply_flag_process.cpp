@@ -134,8 +134,8 @@ void RansApplyFlagProcess::ApplyConditionFlags(ModelPart& rModelPart)
 
 #pragma omp parallel for
     for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition) {
-        Condition& r_condition = *(rModelPart.ConditionsBegin() + i_condition);
-        Condition::GeometryType& r_condition_geometry = r_condition.GetGeometry();
+        auto& r_condition = *(rModelPart.ConditionsBegin() + i_condition);
+        auto& r_condition_geometry = r_condition.GetGeometry();
         const int number_of_nodes = r_condition_geometry.PointsNumber();
 
         bool condition_flag = true;
