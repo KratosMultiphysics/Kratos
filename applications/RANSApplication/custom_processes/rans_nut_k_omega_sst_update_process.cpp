@@ -201,7 +201,7 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
 
     using namespace RansCalculationUtilities;
 
-    const GeometryType& r_geometry = rElement.GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
 
     // Get Shape function data
     Vector gauss_weights;
