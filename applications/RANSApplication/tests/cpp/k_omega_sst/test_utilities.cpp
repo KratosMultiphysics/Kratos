@@ -49,7 +49,7 @@ ModelPart& RansKOmegaSSTK2D3N_SetUp(
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
+    auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, rElementName, "LineCondition2D2N", add_variables_function,
         TURBULENT_KINETIC_ENERGY, 1);
 
@@ -65,7 +65,7 @@ ModelPart& RansKOmegaSSTK2D3N_SetUp(
     RandomFillNodalHistoricalVariable(r_model_part, DISTANCE, 1.0, 6.0);
 
     // set process info variables
-    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(TURBULENT_KINETIC_ENERGY_SIGMA_1, 0.5);
     r_process_info.SetValue(TURBULENT_KINETIC_ENERGY_SIGMA_2, 0.3);
     r_process_info.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2, 2.0);
@@ -91,7 +91,7 @@ ModelPart& RansKOmegaSSTOmega2D3N_SetUp(
 
     using namespace RansApplicationTestUtilities;
 
-    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
+    auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, rElementName, "LineCondition2D2N", add_variables_function,
         TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 1);
 
@@ -108,7 +108,7 @@ ModelPart& RansKOmegaSSTOmega2D3N_SetUp(
     RandomFillNodalHistoricalVariable(r_model_part, DISTANCE, 1.0, 6.0);
 
     // set process info variables
-    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    auto& r_process_info = r_model_part.GetProcessInfo();
     r_process_info.SetValue(TURBULENCE_RANS_BETA_1, 3.1);
     r_process_info.SetValue(TURBULENCE_RANS_BETA_2, 4.2);
     r_process_info.SetValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1, 1.1);
