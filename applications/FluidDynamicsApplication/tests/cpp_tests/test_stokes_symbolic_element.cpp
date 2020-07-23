@@ -718,9 +718,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 2 check
@@ -730,9 +730,9 @@ namespace Kratos {
             }
             sum_rhs = 0.0;
             rhs = prod(LHS, a);
-            for (unsigned int i = 0; i < rhs.size(); ++i)
+            for (const auto &i_rhs : rhs)
             {
-                sum_rhs += rhs[i];
+                sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
             // Mode 3 check
