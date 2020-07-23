@@ -528,7 +528,7 @@ protected:
         const ProcessInfo& rCurrentProcessInfo)
     {
         if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            const GeometryType& r_geometry = this->GetGeometry();
+            const auto& r_geometry = this->GetGeometry();
             // Get Shape function data
             Vector gauss_weights;
             Matrix shape_functions;

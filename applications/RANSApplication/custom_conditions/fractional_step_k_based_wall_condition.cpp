@@ -228,9 +228,8 @@ void FractionalStepKBasedWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
     const FractionalStepKBasedWallCondition<TDim, TNumNodes>& r_condition = *this;
     if (!r_condition.Is(SLIP)) {
         const unsigned int local_size = TDim;
-        const GeometryType& r_geometry = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-            r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const auto& r_geometry = this->GetGeometry();
+        const auto& IntegrationPoints = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int number_of_gauss_points = IntegrationPoints.size();
         Vector gauss_weight = ZeroVector(number_of_gauss_points);
 
