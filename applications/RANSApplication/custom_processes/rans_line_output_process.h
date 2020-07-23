@@ -54,6 +54,12 @@ public:
     /// Destructor.
     ~RansLineOutputProcess() override = default;
 
+    /// Assignment operator.
+    RansLineOutputProcess& operator=(RansLineOutputProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansLineOutputProcess(RansLineOutputProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -126,16 +132,6 @@ private:
                                             const int SamplingIndex) const;
 
     std::string GetOutputFileName() const;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansLineOutputProcess& operator=(RansLineOutputProcess const& rOther);
-
-    /// Copy constructor.
-    RansLineOutputProcess(RansLineOutputProcess const& rOther);
 
     ///@}
 

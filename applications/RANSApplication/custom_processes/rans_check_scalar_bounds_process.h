@@ -61,6 +61,12 @@ public:
     /// Destructor.
     ~RansCheckScalarBoundsProcess() override = default;
 
+    /// Assignment operator.
+    RansCheckScalarBoundsProcess& operator=(RansCheckScalarBoundsProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansCheckScalarBoundsProcess(RansCheckScalarBoundsProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -94,16 +100,6 @@ private:
     Parameters mrParameters;
     std::string mModelPartName;
     std::string mVariableName;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansCheckScalarBoundsProcess& operator=(RansCheckScalarBoundsProcess const& rOther);
-
-    /// Copy constructor.
-    RansCheckScalarBoundsProcess(RansCheckScalarBoundsProcess const& rOther);
 
     ///@}
 

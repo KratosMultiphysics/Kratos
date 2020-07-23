@@ -70,6 +70,12 @@ public:
     /// Destructor.
     ~TrilinosRansWallDistanceCalculationProcess() override = default;
 
+    /// Assignment operator.
+    TrilinosRansWallDistanceCalculationProcess& operator=(TrilinosRansWallDistanceCalculationProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    TrilinosRansWallDistanceCalculationProcess(TrilinosRansWallDistanceCalculationProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -91,17 +97,6 @@ private:
     void CreateLinearSolver() override;
 
     void CreateBuilderAndSolver() override;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    TrilinosRansWallDistanceCalculationProcess& operator=(
-        TrilinosRansWallDistanceCalculationProcess const& rOther);
-
-    /// Copy constructor.
-    TrilinosRansWallDistanceCalculationProcess(TrilinosRansWallDistanceCalculationProcess const& rOther);
 
     ///@}
 

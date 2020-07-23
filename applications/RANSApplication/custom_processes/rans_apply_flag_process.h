@@ -60,6 +60,12 @@ public:
     /// Destructor.
     ~RansApplyFlagProcess() override = default;
 
+    /// Assignment operator.
+    RansApplyFlagProcess& operator=(RansApplyFlagProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansApplyFlagProcess(RansApplyFlagProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -105,16 +111,6 @@ private:
     void ApplyNodeFlags();
 
     void ApplyConditionFlags(ModelPart& rModelPart);
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansApplyFlagProcess& operator=(RansApplyFlagProcess const& rOther);
-
-    /// Copy constructor.
-    RansApplyFlagProcess(RansApplyFlagProcess const& rOther);
 
     ///@}
 

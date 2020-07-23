@@ -63,6 +63,13 @@ public:
     /// Destructor.
     ~RansWallFunctionUpdateProcess() override = default;
 
+    /// Assignment operator.
+    RansWallFunctionUpdateProcess& operator=(RansWallFunctionUpdateProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansWallFunctionUpdateProcess(RansWallFunctionUpdateProcess const& rOther) = delete;
+
+
     ///@}
     ///@name Operations
     ///@{
@@ -107,16 +114,6 @@ private:
     ///@{
 
     void CalculateConditionNeighbourCount();
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansWallFunctionUpdateProcess& operator=(RansWallFunctionUpdateProcess const& rOther);
-
-    /// Copy constructor.
-    RansWallFunctionUpdateProcess(RansWallFunctionUpdateProcess const& rOther);
 
     ///@}
 

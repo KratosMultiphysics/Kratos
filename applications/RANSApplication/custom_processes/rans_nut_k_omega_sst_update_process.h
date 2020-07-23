@@ -76,6 +76,12 @@ public:
     /// Destructor.
     ~RansNutKOmegaSSTUpdateProcess() override = default;
 
+    /// Assignment operator.
+    RansNutKOmegaSSTUpdateProcess& operator=(RansNutKOmegaSSTUpdateProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansNutKOmegaSSTUpdateProcess(RansNutKOmegaSSTUpdateProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -122,16 +128,6 @@ private:
 
     template <unsigned int TDim>
     double CalculateElementNuT(const Element& rElement) const;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansNutKOmegaSSTUpdateProcess& operator=(RansNutKOmegaSSTUpdateProcess const& rOther);
-
-    /// Copy constructor.
-    RansNutKOmegaSSTUpdateProcess(RansNutKOmegaSSTUpdateProcess const& rOther);
 
     ///@}
 

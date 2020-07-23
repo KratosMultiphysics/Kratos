@@ -75,6 +75,12 @@ public:
     /// Destructor.
     ~RansNutKEpsilonUpdateProcess() override = default;
 
+    /// Assignment operator.
+    RansNutKEpsilonUpdateProcess& operator=(RansNutKEpsilonUpdateProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansNutKEpsilonUpdateProcess(RansNutKEpsilonUpdateProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -110,16 +116,6 @@ private:
     double mMinValue;
     int mEchoLevel;
     bool mIsInitialized = false;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansNutKEpsilonUpdateProcess& operator=(RansNutKEpsilonUpdateProcess const& rOther);
-
-    /// Copy constructor.
-    RansNutKEpsilonUpdateProcess(RansNutKEpsilonUpdateProcess const& rOther);
 
     ///@}
 

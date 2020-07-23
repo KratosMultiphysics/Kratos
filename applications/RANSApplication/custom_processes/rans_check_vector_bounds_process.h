@@ -63,6 +63,12 @@ public:
     /// Destructor.
     ~RansCheckVectorBoundsProcess() override = default;
 
+    /// Assignment operator.
+    RansCheckVectorBoundsProcess& operator=(RansCheckVectorBoundsProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansCheckVectorBoundsProcess(RansCheckVectorBoundsProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -95,16 +101,6 @@ private:
     std::string mVariableName;
 
     VectorComponent mVectorComponent;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansCheckVectorBoundsProcess& operator=(RansCheckVectorBoundsProcess const& rOther);
-
-    /// Copy constructor.
-    RansCheckVectorBoundsProcess(RansCheckVectorBoundsProcess const& rOther);
 
     ///@}
 

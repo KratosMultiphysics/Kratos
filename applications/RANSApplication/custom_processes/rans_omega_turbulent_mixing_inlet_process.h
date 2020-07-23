@@ -75,6 +75,12 @@ public:
     /// Destructor.
     ~RansOmegaTurbulentMixingLengthInletProcess() override;
 
+    /// Assignment operator.
+    RansOmegaTurbulentMixingLengthInletProcess& operator=(RansOmegaTurbulentMixingLengthInletProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansOmegaTurbulentMixingLengthInletProcess(RansOmegaTurbulentMixingLengthInletProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -121,17 +127,6 @@ private:
     ///@{
 
     void CalculateTurbulentValues(NodeType& rNode);
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansOmegaTurbulentMixingLengthInletProcess& operator=(
-        RansOmegaTurbulentMixingLengthInletProcess const& rOther);
-
-    /// Copy constructor.
-    RansOmegaTurbulentMixingLengthInletProcess(RansOmegaTurbulentMixingLengthInletProcess const& rOther);
 
     ///@}
 

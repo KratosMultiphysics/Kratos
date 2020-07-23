@@ -61,6 +61,12 @@ public:
     /// Destructor.
     ~RansClipScalarVariableProcess() override = default;
 
+    /// Assignment operator.
+    RansClipScalarVariableProcess& operator=(RansClipScalarVariableProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansClipScalarVariableProcess(RansClipScalarVariableProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -96,16 +102,6 @@ private:
 
     double mMinValue;
     double mMaxValue;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansClipScalarVariableProcess& operator=(RansClipScalarVariableProcess const& rOther);
-
-    /// Copy constructor.
-    RansClipScalarVariableProcess(RansClipScalarVariableProcess const& rOther);
 
     ///@}
 };
