@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -166,7 +167,7 @@ public:
      * @brief This method returns the flag mCalculateReactionsFlag
      * @return The flag that tells if the reactions are computed
      */
-    bool GetCalculateReactionsFlag()
+    bool GetCalculateReactionsFlag() const
     {
         return mCalculateReactionsFlag;
     }
@@ -184,7 +185,7 @@ public:
      * @brief This method returns the flag mDofSetIsInitialized
      * @return The flag that tells if the dof set is initialized
      */
-    bool GetDofSetIsInitializedFlag()
+    bool GetDofSetIsInitializedFlag() const
     {
         return mDofSetIsInitialized;
     }
@@ -202,7 +203,7 @@ public:
      * @brief This method returns the flag mReshapeMatrixFlag
      * @return The flag that tells if we need to reset the DOF set
      */
-    bool GetResetDofSetFlag()
+    bool GetResetDofSetFlag() const
     {
         return mResetDofSetFlag;
     }
@@ -220,7 +221,7 @@ public:
      * @brief This method returns the flag GetResetLumpedMassVectorFlag
      * @return The flag that tells if we need to reset the lumped mass vector
      */
-    bool GetResetLumpedMassVectorFlag()
+    bool GetResetLumpedMassVectorFlag() const
     {
         return mResetLumpedMassVectorFlag;
     }
@@ -238,7 +239,7 @@ public:
      * @brief This method returns the value mEquationSystemSize
      * @return Size of the system of equations
      */
-    unsigned int GetEquationSystemSize()
+    unsigned int GetEquationSystemSize() const
     {
         return mEquationSystemSize;
     }
@@ -246,7 +247,15 @@ public:
     /**
      * @brief It allows to get the list of Dofs from the element
      */
-    virtual DofsArrayType& GetDofSet()
+    DofsArrayType& GetDofSet()
+    {
+        return mDofSet;
+    }
+
+    /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    const DofsArrayType& GetDofSet() const
     {
         return mDofSet;
     }
@@ -256,7 +265,7 @@ public:
      * It allows to get the lumped mass matrix vector pointer
      * @return TSystemVectorPointerType& The lumped mass matrix vector pointer
      */
-    virtual TSystemVectorPointerType& pGetLumpedMassMatrixVector()
+    TSystemVectorPointerType& pGetLumpedMassMatrixVector()
     {
         return mpLumpedMassVector;
     }
@@ -266,8 +275,9 @@ public:
      * It allows to get the lumped mass matrix vector
      * @return TSystemVectorType& The lumped mass matrix vector
      */
-    virtual TSystemVectorType& GetLumpedMassMatrixVector()
+    TSystemVectorType& GetLumpedMassMatrixVector()
     {
+        KRATOS_ERROR_IF_NOT(mpLumpedMassVector) << "Lumped mass matrix vector is not initialized!" << std::endl;
         return (*mpLumpedMassVector);
     }
 
@@ -350,19 +360,20 @@ public:
         KRATOS_CATCH("")
     }
 
-    // TODO: Define this once the MPC work in the explicit framework
-    // /**
-    //  * @brief Applies the constraints
-    //  * @param rModelPart The model part to compute
-    //  * @param rA The LHS matrix of the system of equations
-    //  * @param rb The RHS vector of the system of equations
-    //  */
-    // virtual void ApplyConstraints(
-    //     ModelPart& rModelPart,
-    //     TSystemMatrixType& rA,
-    //     TSystemVectorType& rb)
-    // {
-    // }
+    /**
+     * @brief Applies the constraints
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rb The RHS vector of the system of equations
+     */
+    virtual void ApplyConstraints(ModelPart& rModelPart)
+    {
+        // First we reset the slave dofs
+        ConstraintUtilities::ResetSlaveDofs(rModelPart);
+
+        // Now we apply the constraints
+        ConstraintUtilities::ApplyConstraints(rModelPart);
+    }
 
     /**
      * @brief It applied those operations that are expected to be executed once
@@ -371,11 +382,11 @@ public:
     virtual void Initialize(ModelPart& rModelPart)
     {
         if (!mDofSetIsInitialized) {
-        // Initialize the DOF set and the equation ids
-        this->SetUpDofSet(rModelPart);
-        this->SetUpDofSetEquationIds();
-        // Set up the lumped mass vector
-        this->SetUpLumpedMassVector(rModelPart);
+            // Initialize the DOF set and the equation ids
+            this->SetUpDofSet(rModelPart);
+            this->SetUpDofSetEquationIds();
+            // Set up the lumped mass vector
+            this->SetUpLumpedMassVector(rModelPart);
         } else if (!mLumpedMassVectorIsInitialized) {
             KRATOS_WARNING("ExplicitBuilder") << "Calling Initialize() with already initialized DOF set. Initializing lumped mass vector." << std::endl;;
             // Only set up the lumped mass vector
@@ -410,9 +421,6 @@ public:
     /**
      * @brief It applies certain operations at the system of equations at the end of the solution step
      * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
      */
     virtual void FinalizeSolutionStep(ModelPart& rModelPart)
     {
@@ -441,7 +449,7 @@ public:
      * @param rModelPart The model part to compute
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& rModelPart)
+    virtual int Check(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
 
@@ -469,7 +477,7 @@ public:
      * @brief It returns the echo level
      * @return The echo level of the builder and solver
      */
-    int GetEchoLevel()
+    int GetEchoLevel() const
     {
         return mEchoLevel;
     }
@@ -749,11 +757,10 @@ protected:
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
         // Loop the reactions to initialize them to zero
-        IndexPartition<int>(mEquationSystemSize).for_each(
-            [&](int i_dof){
-                auto it_dof = mDofSet.begin() + i_dof;
-                auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
-                r_reaction_value = 0.0;
+        block_for_each(
+            mDofSet,
+            [](DofType& rDof){
+                rDof.GetSolutionStepReactionValue() = 0.0;
             }
         );
     }
@@ -773,10 +780,10 @@ protected:
             // Note that we take advantage of the fact that Kratos always works with a residual based formulation
             // This means that the reactions are minus the residual. As we use the reaction as residual container
             // during the explicit resolution of the problem, the calculate reactions is as easy as switching the sign
-            IndexPartition<int>(mEquationSystemSize).for_each(
-                [&](int i_dof){
-                    auto it_dof = mDofSet.begin() + i_dof;
-                    auto& r_reaction_value = it_dof->GetSolutionStepReactionValue();
+            block_for_each(
+                mDofSet,
+                [](DofType& rDof){
+                    auto& r_reaction_value = rDof.GetSolutionStepReactionValue();
                     r_reaction_value *= -1.0;
                 }
             );
@@ -795,41 +802,6 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
     ///@{
 
 
