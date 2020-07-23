@@ -666,6 +666,19 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     }
 
     AssembleSupersonicLeftHandSide(rLeftHandSideMatrix, DrhoDu2, DrhoDu2_up, velocity, upwind_velocity, rCurrentProcessInfo);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (std::abs(rLeftHandSideMatrix(i,j)) <= 1e-5) {
+                std::cout << "\n";
+                KRATOS_WATCH(r_this.GetId());
+                KRATOS_WATCH(i);
+                KRATOS_WATCH(j);
+                KRATOS_WATCH(rLeftHandSideMatrix(i,j));
+            }
+        }
+
+    }
+
 }
 
 template <int TDim, int TNumNodes>
