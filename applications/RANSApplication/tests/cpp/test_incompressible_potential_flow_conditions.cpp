@@ -39,7 +39,7 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2N_SetUp(
 
     using namespace RansApplicationTestUtilities;
 
-    auto& r_model_part = CreateScalarVariableTestModelPart(
+    ModelPart& r_model_part = CreateScalarVariableTestModelPart(
         rModel, "Element2D3N",
         "RansIncompressiblePotentialFlowVelocityInlet2D2N",
         add_variables_function, VELOCITY_POTENTIAL, 1);

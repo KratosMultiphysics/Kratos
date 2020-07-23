@@ -33,7 +33,7 @@ namespace
 ModelPart& RansKOmegaKRFC2D3N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KOmegaTestUtilities::RansKOmegaK2D3N_SetUp(
+    ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaK2D3N_SetUp(
         rModel, "RansKOmegaKRFC2D3N");
 
     StabilizationMethodTestUtilities::InitializeResidualBasedFluxCorrectedConstants(
@@ -45,7 +45,7 @@ ModelPart& RansKOmegaKRFC2D3N_SetUp(
 ModelPart& RansKOmegaOmegaRFC2D3N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D3N_SetUp(
+    ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D3N_SetUp(
         rModel, "RansKOmegaOmegaRFC2D3N");
 
     StabilizationMethodTestUtilities::InitializeResidualBasedFluxCorrectedConstants(

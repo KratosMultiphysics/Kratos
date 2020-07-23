@@ -33,7 +33,7 @@ namespace
 ModelPart& RansKEpsilonKRFC2D3N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3N_SetUp(
+    ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3N_SetUp(
         rModel, "RansKEpsilonKRFC2D3N");
 
     StabilizationMethodTestUtilities::InitializeResidualBasedFluxCorrectedConstants(
@@ -45,7 +45,7 @@ ModelPart& RansKEpsilonKRFC2D3N_SetUp(
 ModelPart& RansKEpsilonEpsilonRFC2D3N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
+    ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
         rModel, "RansKEpsilonEpsilonRFC2D3N");
 
     StabilizationMethodTestUtilities::InitializeResidualBasedFluxCorrectedConstants(

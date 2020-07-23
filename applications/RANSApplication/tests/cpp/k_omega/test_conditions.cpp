@@ -32,7 +32,7 @@ namespace
 ModelPart& RansKOmegaOmegaKBasedWall2D2N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2N_SetUp(
+    ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2N_SetUp(
         rModel, "RansKOmegaOmegaKBasedWall2D2N");
 
     return r_model_part;
@@ -41,7 +41,7 @@ ModelPart& RansKOmegaOmegaKBasedWall2D2N_SetUp(
 ModelPart& RansKOmegaOmegaUBasedWall2D2N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2N_SetUp(
+    ModelPart& r_model_part = KOmegaTestUtilities::RansKOmegaOmega2D2N_SetUp(
         rModel, "RansKOmegaOmegaUBasedWall2D2N");
 
     return r_model_part;

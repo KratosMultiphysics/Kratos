@@ -32,7 +32,7 @@ namespace
 ModelPart& RansKEpsilonEpsilonKBasedWall2D2N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2N_SetUp(
+    ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2N_SetUp(
         rModel, "RansKEpsilonEpsilonKBasedWall2D2N");
 
     return r_model_part;
@@ -41,7 +41,7 @@ ModelPart& RansKEpsilonEpsilonKBasedWall2D2N_SetUp(
 ModelPart& RansKEpsilonEpsilonUBasedWall2D2N_SetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2N_SetUp(
+    ModelPart& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2N_SetUp(
         rModel, "RansKEpsilonEpsilonUBasedWall2D2N");
 
     return r_model_part;

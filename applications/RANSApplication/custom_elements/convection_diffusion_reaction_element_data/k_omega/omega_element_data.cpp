@@ -60,7 +60,7 @@ void OmegaElementData<TDim>::Check(
     const int number_of_nodes = rGeometry.PointsNumber();
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const auto& r_node = rGeometry[i_node];
+        const NodeType& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);

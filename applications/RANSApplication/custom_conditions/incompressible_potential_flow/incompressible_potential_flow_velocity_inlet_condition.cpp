@@ -40,7 +40,7 @@ int IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Check(
     const auto& r_geometry = this->GetGeometry();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const auto& r_node = r_geometry[i_node];
+        const NodeType& r_node = r_geometry[i_node];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
