@@ -419,12 +419,10 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::UpdateUnknownSubgrid
 {
     // Retrieve element variables
     const auto& N = rVariables.N;
-    const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
     const auto& phi = rVariables.unknown;
     const auto& phi_old = rVariables.unknown_old;
     const auto& delta_time = rVariables.delta_time;
-    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto& v = rVariables.convective_velocity;
     const auto& tau = rVariables.tau[g];
     const auto& phi_subscale_gauss = rVariables.unknown_subscale;
@@ -457,12 +455,10 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgrid
 {
     // Retrieve element variables
     const auto& N = rVariables.N;
-    const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
     const auto& phi = rVariables.unknown;
     const auto& phi_old = rVariables.unknown_old;
     const auto& delta_time = rVariables.delta_time;
-    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
     const auto& v = rVariables.convective_velocity;
     const auto& tau = rVariables.tau[g];
     const auto& phi_subscale_gauss = rVariables.unknown_subscale;
@@ -482,7 +478,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgrid
     const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
 
     phi_subscale_gauss_new += N[0]*f[0] + N[1]*f[1] + N[2]*f[2] + N[3]*f[3]; // forcing term
-    phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/(RK_time_coefficient*delta_time); // mass term
+    phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]) + N[3]*(phi[3] - phi_old[3]))/(delta_time); // mass term
     phi_subscale_gauss_new += - (DN_DX_0_0*phi[0] + DN_DX_1_0*phi[1] + DN_DX_2_0*phi[2] + DN_DX_3_0*phi[3])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) - (DN_DX_0_1*phi[0] + DN_DX_1_1*phi[1] + DN_DX_2_1*phi[2] + DN_DX_3_1*phi[3])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) - (DN_DX_0_2*phi[0] + DN_DX_1_2*phi[1] + DN_DX_2_2*phi[2] + DN_DX_3_2*phi[3])*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2)); // convective term 1
     phi_subscale_gauss_new += - (DN_DX_0_0*phi[0] + DN_DX_1_0*phi[1] + DN_DX_2_0*phi[2] + DN_DX_3_0*phi[3])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0) + N[3]*v(3,0)) - (DN_DX_0_1*phi[0] + DN_DX_1_1*phi[1] + DN_DX_2_1*phi[2] + DN_DX_3_1*phi[3])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1) + N[3]*v(3,1)) - (DN_DX_0_2*phi[0] + DN_DX_1_2*phi[1] + DN_DX_2_2*phi[2] + DN_DX_3_2*phi[3])*(N[0]*v(0,2) + N[1]*v(1,2) + N[2]*v(2,2) + N[3]*v(3,2)) - (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2] + N[3]*phi[3])*(DN_DX_0_0*v(0,0) + DN_DX_0_1*v(0,1) + DN_DX_0_2*v(0,2) + DN_DX_1_0*v(1,0) + DN_DX_1_1*v(1,1) + DN_DX_1_2*v(1,2) + DN_DX_2_0*v(2,0) + DN_DX_2_1*v(2,1) + DN_DX_2_2*v(2,2) + DN_DX_3_0*v(3,0) + DN_DX_3_1*v(3,1) + DN_DX_3_2*v(3,2)); // convective term 2
     phi_subscale_gauss_new += N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2] + N[3]*prj[3]; // OSS term
