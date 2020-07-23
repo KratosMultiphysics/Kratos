@@ -23,8 +23,9 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearchProcess(
     ModelPart & rMainModelPart,
-    Parameters ThisParameters
-    ) : BaseType(rMainModelPart, ThisParameters)
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
+    ) : BaseType(rMainModelPart, ThisParameters, pPairedProperties)
 {
 }
 
@@ -64,6 +65,10 @@ void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode
             case BaseType::TypeSolution::FrictionlessPenaltyMethod :
                 break;
             case BaseType::TypeSolution::FrictionalPenaltyMethod :
+                break;
+            case BaseType::TypeSolution::OtherFrictionless :
+                break;
+            case BaseType::TypeSolution::OtherFrictional :
                 break;
         }
     }

@@ -31,7 +31,7 @@
 /* QUADRILATERALS */
 #include "geometries/quadrilateral_3d_4.h"
 
-// /* The integration points (we clip triangles in 3D, so with line and triangle is enought)*/
+// /* The integration points (we clip triangles in 3D, so with line and triangle is enough)*/
 // #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 
@@ -154,10 +154,14 @@ public:
     ExactMortarIntegrationUtility(
         const SizeType IntegrationOrder = 0,
         const double DistanceThreshold = std::numeric_limits<double>::max(),
-        const SizeType EchoLevel = 0
+        const SizeType EchoLevel = 0,
+        const double ZeroToleranceFactor = 1.0,
+        const bool ConsiderDelaunator = false
         ) :mIntegrationOrder(IntegrationOrder),
            mDistanceThreshold(DistanceThreshold),
-           mEchoLevel(EchoLevel)
+           mEchoLevel(EchoLevel),
+           mZeroToleranceFactor(ZeroToleranceFactor),
+           mConsiderDelaunator(ConsiderDelaunator)
     {
         GetIntegrationMethod();
     }
@@ -263,77 +267,91 @@ public:
     /**
      * @brief This method is used for debugging purposes. Generates a GiD mesh to check
      * @param rMainModelPart The main model part
+     * @param IOConsidered The IO considered
      */
-    void TestGiDDebug(ModelPart& rMainModelPart);
+    void TestIODebug(
+        ModelPart& rMainModelPart,
+        const std::string IOConsidered = "GiD"
+        );
+
+    ///@}
+    ///@name  Access
+    ///@{
 
     /**
-    * @brief This method is used for debugging purposes. Generates a mesh of Mathematica
-    * @param IndexSlave The index of the slave geometry
-    * @param rSlaveGeometry The slave geometry
-    * @param IndexMaster The index of the master geometry
-    * @param rMasterGeometry The master geometry
-    * @param rConditionsPointSlave The triangular decomposition
-    */
-    static inline void MathematicaDebug(
-        const IndexType IndexSlave,
-        const GeometryType& rSlaveGeometry,
-        const IndexType IndexMaster,
-        const GeometryType& rMasterGeometry,
-        ConditionArrayListType& rConditionsPointSlave
-        )
+     * @brief This method gets the current mIntegrationOrder
+     * @return The integration order considered
+     */
+    SizeType& GetIntegrationOrder()
     {
-        typedef Triangle3D3<PointType> TriangleType;
-
-        std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Red}],FaceForm[],Polygon[{{";
-
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            std::cout << rSlaveGeometry[i].X() << "," << rSlaveGeometry[i].Y() << "," << rSlaveGeometry[i].Z();
-
-            if (i < TNumNodes - 1)
-                std::cout << "},{";
-        }
-        std::cout << "}}],Text[Style[" << IndexSlave << ", Tiny],{"
-                  << rSlaveGeometry.Center().X() << ","
-                  << rSlaveGeometry.Center().Y() << ","
-                  << rSlaveGeometry.Center().Z() << "}]}],";  // << std::endl;
-
-        std::cout << "\nGraphics3D[{EdgeForm[{Thick,Dashed,Blue}],FaceForm[],Polygon[{{";
-
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            std::cout << rMasterGeometry[i].X() << "," << rMasterGeometry[i].Y()  << "," << rMasterGeometry[i].Z();
-
-            if (i < TNumNodes - 1)
-                std::cout << "},{";
-        }
-
-        std::cout << "}}],Text[Style[" << IndexMaster << ", Tiny],{"
-                  << rMasterGeometry.Center().X() << ","
-                  << rMasterGeometry.Center().Y() << ","
-                  << rMasterGeometry.Center().Z() << "}]}],";  // << std::endl;
-
-        for (IndexType i_geom = 0; i_geom < rConditionsPointSlave.size(); ++i_geom) {
-            std::vector<PointType::Pointer> points_array(3);  // The points are stored as local coordinates, we calculate the global coordinates of this points
-            for (IndexType i_node = 0; i_node < 3; ++i_node) {
-                PointType global_point;
-                rSlaveGeometry.GlobalCoordinates(global_point, rConditionsPointSlave[i_geom][i_node]);
-                points_array[i_node] = Kratos::make_shared<PointType>(global_point);
-            }
-
-            TriangleType decomp_geom(TriangleType::PointsArrayType{points_array});
-
-            std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{";
-            for (IndexType i = 0; i < 3; ++i) {
-                std::cout << std::setprecision(16) << decomp_geom[i].X() << "," << decomp_geom[i].Y() << "," << decomp_geom[i].Z();
-
-                if (i < 2)
-                    std::cout << "},{";
-            }
-            std::cout << "}}]}],";  // << std::endl;
-        }
-
-        std::cout << std::endl;
+        return mIntegrationOrder;
     }
 
+    /**
+     * @brief This method sets the current mIntegrationOrder
+     * @param IntegrationOrder The integration order considered
+     */
+    void SetIntegrationOrder(const SizeType IntegrationOrder)
+    {
+        mIntegrationOrder = IntegrationOrder;
+        GetIntegrationMethod();
+    }
+
+    /**
+     * @brief This method gets the current mDistanceThreshold
+     * @return The distance threshold considered
+     */
+    double& GetDistanceThreshold()
+    {
+        return mDistanceThreshold;
+    }
+
+    /**
+     * @brief This method sets the current mDistanceThreshold
+     * @param DistanceThreshold The distance threshold considered
+     */
+    void SetDistanceThreshold(const double DistanceThreshold)
+    {
+        mDistanceThreshold = DistanceThreshold;
+    }
+
+    /**
+     * @brief This method gets the current mEchoLevel
+     * @return The echo level considered
+     */
+    SizeType& GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
+
+    /**
+     * @brief This method sets the current mEchoLevel
+     * @param EchoLevel The echo level considered
+     */
+    void SetEchoLevel(const SizeType EchoLevel)
+    {
+        mEchoLevel = EchoLevel;
+    }
+
+    /**
+     * @brief This method gets the current mZeroToleranceFactor
+     * @return The zero tolerance factor considered
+     */
+    double& GetZeroToleranceFactor()
+    {
+        return mZeroToleranceFactor;
+    }
+
+    /**
+     * @brief This method sets the current mZeroToleranceFactor
+     * @param ZeroToleranceFactor The zero tolerance factor considered
+     */
+    void SetZeroToleranceFactor(const double ZeroToleranceFactor)
+    {
+        mZeroToleranceFactor = ZeroToleranceFactor;
+    }
+
+    ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -392,15 +410,15 @@ protected:
         const PointType& rPointDest2
         )
     {
-        const array_1d<double, 3>& coord_point_orig1 = rPointOrig1.Coordinates();
-        const array_1d<double, 3>& coord_point_orig2 = rPointOrig2.Coordinates();
-        const array_1d<double, 3>& coord_point_dest1 = rPointDest1.Coordinates();
-        const array_1d<double, 3>& coord_point_dest2 = rPointDest2.Coordinates();
+        const array_1d<double, 3>& r_coord_point_orig1 = rPointOrig1.Coordinates();
+        const array_1d<double, 3>& r_coord_point_orig2 = rPointOrig2.Coordinates();
+        const array_1d<double, 3>& r_coord_point_dest1 = rPointDest1.Coordinates();
+        const array_1d<double, 3>& r_coord_point_dest2 = rPointDest2.Coordinates();
 
-        const double s_orig1_orig2_x = coord_point_orig2[0] - coord_point_orig1[0];
-        const double s_orig1_orig2_y = coord_point_orig2[1] - coord_point_orig1[1];
-        const double s_dest1_dest2_x = coord_point_dest2[0] - coord_point_dest1[0];
-        const double s_dest1_dest2_y = coord_point_dest2[1] - coord_point_dest1[1];
+        const double s_orig1_orig2_x = r_coord_point_orig2[0] - r_coord_point_orig1[0];
+        const double s_orig1_orig2_y = r_coord_point_orig2[1] - r_coord_point_orig1[1];
+        const double s_dest1_dest2_x = r_coord_point_dest2[0] - r_coord_point_dest1[0];
+        const double s_dest1_dest2_y = r_coord_point_dest2[1] - r_coord_point_dest1[1];
 
         const double denom = s_orig1_orig2_x * s_dest1_dest2_y -
                              s_dest1_dest2_x * s_orig1_orig2_y;
@@ -411,16 +429,16 @@ protected:
         if (std::abs(denom) < tolerance) // NOTE: Collinear
             return false;
 
-        const double s_orig1_dest1_x = coord_point_orig1[0] - coord_point_dest1[0];
-        const double s_orig1_dest1_y = coord_point_orig1[1] - coord_point_dest1[1];
+        const double s_orig1_dest1_x = r_coord_point_orig1[0] - r_coord_point_dest1[0];
+        const double s_orig1_dest1_y = r_coord_point_orig1[1] - r_coord_point_dest1[1];
 
         const double s = (s_orig1_orig2_x * s_orig1_dest1_y - s_orig1_orig2_y * s_orig1_dest1_x)/denom;
 
         const double t = (s_dest1_dest2_x * s_orig1_dest1_y - s_dest1_dest2_y * s_orig1_dest1_x)/denom;
 
         if (s >= -tolerance && s <= (1.0 + tolerance) && t >= -tolerance && t <= (1.0 + tolerance)) {
-            rPointIntersection.Coordinates()[0] = coord_point_orig1[0] + t * s_orig1_orig2_x;
-            rPointIntersection.Coordinates()[1] = coord_point_orig1[1] + t * s_orig1_orig2_y;
+            rPointIntersection.Coordinates()[0] = r_coord_point_orig1[0] + t * s_orig1_orig2_x;
+            rPointIntersection.Coordinates()[1] = r_coord_point_orig1[1] + t * s_orig1_orig2_y;
 
             return true;
         } else
@@ -669,10 +687,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    const SizeType mIntegrationOrder;        /// The integration order to consider
-    const double mDistanceThreshold;         /// The distance where we directly  consider out of integration limits
-    const SizeType mEchoLevel;               /// The echo level considered
+    SizeType mIntegrationOrder;              /// The integration order to consider
+    double mDistanceThreshold;               /// The distance where we directly  consider out of integration limits
+    SizeType mEchoLevel;                     /// The echo level considered
+    double mZeroToleranceFactor;             /// The zero tolerance factor considered
     IntegrationMethod mAuxIntegrationMethod; /// The auxiliar list of Gauss Points taken from the geometry
+    bool mConsiderDelaunator;                /// If consider the DelaunatorUtilities in 3D in order to construct the triangles
 
     ///@}
     ///@name Private Operators

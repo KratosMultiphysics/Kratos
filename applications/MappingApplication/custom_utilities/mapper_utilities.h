@@ -187,8 +187,7 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
         rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
     }
 
-    int num_local_systems = rLocalSystems.size(); // int bcs of MPI
-    rModelPartCommunicator.SumAll(num_local_systems);
+    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
 
     KRATOS_ERROR_IF_NOT(num_local_systems > 0)
         << "No mapper local systems were created" << std::endl;
@@ -197,22 +196,19 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
 inline int ComputeNumberOfNodes(ModelPart& rModelPart)
 {
     int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    rModelPart.GetCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
-    return num_nodes;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
 }
 
 inline int ComputeNumberOfConditions(ModelPart& rModelPart)
 {
     int num_conditions = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    rModelPart.GetCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
-    return num_conditions;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
 }
 
 inline int ComputeNumberOfElements(ModelPart& rModelPart)
 {
     int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-    rModelPart.GetCommunicator().SumAll(num_elements); // Compute the sum among the partitions
-    return num_elements;
+    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_elements); // Compute the sum among the partitions
 }
 
 template <class T1, class T2>
@@ -318,7 +314,7 @@ void DeserializeMapperInterfaceInfosFromBuffer(
  * @TODO test the performance against the Serializer
  * @author Philipp Bucher
  */
-class MapperInterfaceInfoSerializer
+class KRATOS_API(MAPPING_APPLICATION) MapperInterfaceInfoSerializer
 {
 public:
 

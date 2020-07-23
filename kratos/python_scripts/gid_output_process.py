@@ -1,8 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
+from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics import * # TODO remove
-
+# Other imports
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 import os
 
 def Factory(settings, Model):
@@ -12,9 +14,9 @@ def Factory(settings, Model):
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
 
-    if model_part.GetCommunicator().TotalProcesses() > 1:
-        from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI
-        return GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+    if model_part.IsDistributed():
+        from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess
+        return DistributedGiDOutputProcess(model_part, output_name, postprocess_parameters)
     else:
         return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
@@ -30,7 +32,7 @@ class GiDOutputProcess(KM.Process):
             },
             "file_label": "time",
             "output_control_type": "step",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "flush_after_output": false,
             "body_output": true,
             "node_output": false,
@@ -97,7 +99,9 @@ class GiDOutputProcess(KM.Process):
         if param is None:
             param = self.defaults
         else:
-            # Note: this only validadtes the first level of the JSON tree.
+            # Warning: we may be changing the parameters object here:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+            # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
@@ -126,6 +130,27 @@ class GiDOutputProcess(KM.Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'write_properties_id'
+            new_name = 'write_ids'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
@@ -153,14 +178,14 @@ class GiDOutputProcess(KM.Process):
         self._InitializeGiDIO(gidpost_flags,gidpost_flags)
 
         # Process nodal and gauss point output
-        self.nodal_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_results"])
-        self.gauss_point_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
-        self.nodal_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
-        self.nodal_flags = self._GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
+        self.nodal_variables = kratos_utilities.GenerateVariableListFromInput(result_file_configuration["nodal_results"])
+        self.gauss_point_variables = kratos_utilities.GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
+        self.nodal_nonhistorical_variables = kratos_utilities.GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
+        self.nodal_flags = kratos_utilities.GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
-        self.elemental_conditional_flags = self._GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
+        self.elemental_conditional_flags = kratos_utilities.GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
         self.elemental_conditional_flags_names =[]
         for i in range(result_file_configuration["elemental_conditional_flags_results"].size()):
             self.elemental_conditional_flags_names.append(result_file_configuration["elemental_conditional_flags_results"][i].GetString())
@@ -184,7 +209,8 @@ class GiDOutputProcess(KM.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_interval = result_file_configuration["output_interval"].GetDouble()
+
         self.flush_after_output = result_file_configuration["flush_after_output"].GetBool()
 
         # get .post.lst files
@@ -280,13 +306,13 @@ class GiDOutputProcess(KM.Process):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
                 while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
             else:
                 while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
@@ -462,24 +488,6 @@ class GiDOutputProcess(KM.Process):
                                         p,
                                         self.output_surface_index,
                                         0.01)
-
-    def _GenerateVariableListFromInput(self,param):
-        '''Parse a list of variables from input.'''
-        # At least verify that the input is a string
-        if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
-
-        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
-
-    def _GenerateFlagsListFromInput(self,param):
-        '''Parse a list of variables from input.'''
-        # At least verify that the input is a string
-        if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
-
-        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ globals()[ param[i].GetString() ] for i in range( 0,param.size() ) ]
 
     def __write_mesh(self, label):
         if self.body_io is not None:

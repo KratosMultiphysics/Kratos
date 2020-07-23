@@ -18,7 +18,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 
 namespace Kratos
 {
@@ -104,7 +104,7 @@ void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
 
 
 double NewtonianTwoFluid3DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const {
-    
+
     const Vector& S = rParameters.GetStrainVector();
 
     // Norm of symetric gradient (cross terms don't get the 2)

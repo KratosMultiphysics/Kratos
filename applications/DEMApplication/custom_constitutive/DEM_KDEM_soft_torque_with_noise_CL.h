@@ -17,10 +17,9 @@ namespace Kratos {
         DEM_KDEM_soft_torque_with_noise() {
         }
 
-        void Initialize() override;
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
         void Check(Properties::Pointer pProp) const override;
+        void Initialize(SphericContinuumParticle* owner_sphere) override;
 
         ~DEM_KDEM_soft_torque_with_noise() {
         }

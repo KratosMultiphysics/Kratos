@@ -62,6 +62,7 @@ void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(Proces
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
@@ -98,6 +99,7 @@ void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& 
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Extrapolation variables
     const GeometryType& Geom = this->GetGeometry();
@@ -309,6 +311,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
 	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	  ConstitutiveLawOptions.Set(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY);
 	}
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )

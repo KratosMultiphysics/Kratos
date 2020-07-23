@@ -56,7 +56,7 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create( IndexType NewId, NodesA
 int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     const GeometryType& rGeom = GetGeometry();
     unsigned int dimension = rGeom.WorkingSpaceDimension();
 
@@ -142,7 +142,7 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
 void SmallStrainUPwDiffOrderElement::Initialize()
 {
     KRATOS_TRY
-    
+
     const GeometryType& rGeom = GetGeometry();
 	const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
 
@@ -276,9 +276,9 @@ void SmallStrainUPwDiffOrderElement::CalculateLocalSystem( MatrixType& rLeftHand
 void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     KRATOS_THROW_ERROR(std::logic_error,"SmallStrainUPwDiffOrderElement::CalculateLeftHandSide not implemented","");
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -317,7 +317,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix( MatrixType& rMassMatri
     const SizeType BlockElementSize = NumUNodes * Dim;
     const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
     const SizeType NumGPoints = integration_points.size();
-    
+
     Matrix M = ZeroMatrix(BlockElementSize, BlockElementSize);
 
     //Defining shape functions and the determinant of the jacobian at all integration points
@@ -454,6 +454,9 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep( ProcessInfo& rCurrent
 
     //Create constitutive law parameters:
     ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Loop over integration points
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -594,7 +597,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep( ProcessInfo& rCurrent
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
@@ -602,7 +605,7 @@ void SmallStrainUPwDiffOrderElement::SetValueOnIntegrationPoints( const Variable
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,std::vector<Vector>& rValues,const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,std::vector<Vector>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
@@ -610,7 +613,7 @@ void SmallStrainUPwDiffOrderElement::SetValueOnIntegrationPoints( const Variable
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
@@ -710,7 +713,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
         //Create constitutive law parameters:
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //Loop over integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -741,7 +745,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
@@ -756,7 +760,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
         //Create constitutive law parameters:
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //Loop over integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -818,7 +823,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
                 if (Dim>2)
                     BodyAcceleration[2] += Variables.Nu[i]*Variables.BodyAcceleration[Index++];
             }
-            
+
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.GradNpT),Variables.PressureVector);
             noalias(GradPressureTerm) -= GetProperties()[DENSITY_WATER]*BodyAcceleration;
@@ -907,7 +912,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSideMatri
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    
+
     //Definition of variables
     ElementalVariables Variables;
     this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
@@ -915,9 +920,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSideMatri
     //Create constitutive law parameters:
     ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
     if(CalculateLHSMatrixFlag)
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if(CalculateResidualVectorFlag)
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
@@ -957,17 +963,17 @@ void SmallStrainUPwDiffOrderElement::InitializeElementalVariables (ElementalVari
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
     const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    
+
     //Variables at all integration points
     (rVariables.NuContainer).resize(NumGPoints,NumUNodes,false);
     rVariables.NuContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
-    
+
     (rVariables.NpContainer).resize(NumGPoints,NumPNodes,false);
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
 
     (rVariables.Nu).resize(NumUNodes,false);
     (rVariables.Np).resize(NumPNodes,false);
-    
+
     (rVariables.DNu_DXContainer).resize(NumGPoints,false);
     for(SizeType i = 0; i<NumGPoints; i++)
         ((rVariables.DNu_DXContainer)[i]).resize(NumUNodes,Dim,false);
@@ -981,8 +987,8 @@ void SmallStrainUPwDiffOrderElement::InitializeElementalVariables (ElementalVari
     (rVariables.GradNpT).resize(NumPNodes,Dim,false);
     Vector detJpContainer = ZeroVector(NumGPoints);
     mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients(rVariables.DNp_DXContainer,detJpContainer,mThisIntegrationMethod);
-    
-    //Variables computed at each integration point    
+
+    //Variables computed at each integration point
     unsigned int voigtsize  = 3;
     if( Dim == 3 ) voigtsize  = 6;
     (rVariables.B).resize(voigtsize, NumUNodes * Dim, false);
@@ -990,7 +996,7 @@ void SmallStrainUPwDiffOrderElement::InitializeElementalVariables (ElementalVari
     (rVariables.StrainVector).resize(voigtsize,false);
     (rVariables.ConstitutiveMatrix).resize(voigtsize, voigtsize, false);
     (rVariables.StressVector).resize(voigtsize,false);
-    
+
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF  = 1.0;
     (rVariables.F).resize(Dim, Dim, false);

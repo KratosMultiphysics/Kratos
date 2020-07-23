@@ -9,18 +9,12 @@
 
 namespace Kratos {
 
-    void DEM_KDEM_soft_torque::Initialize() {
-
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
-
     DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_soft_torque::Clone() const {
         DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_soft_torque(*this));
         return p_clone;
     }
 
-    void DEM_KDEM_soft_torque::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_KDEM_soft_torque::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_soft_torque to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);

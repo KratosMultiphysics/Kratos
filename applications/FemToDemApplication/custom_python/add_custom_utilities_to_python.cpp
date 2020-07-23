@@ -1,23 +1,14 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics FemDem Application
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Alejandro Cornejo Velazquez
 //
-//         -        Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-//         -        Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-//                  in the documentation and/or other materials provided with the distribution.
-//         -        All advertising materials mentioning features or use of this software must display the following acknowledgement:
-//                         This product includes Kratos Multi-Physics technology.
-//         -        Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 // System includes
@@ -25,32 +16,64 @@
 // External includes
 #include <pybind11/pybind11.h>
 
-
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/FEMDEM_coupling_utilities.h"
+#include "custom_utilities/aitken_relaxation_femdem_utility.hpp"
+#include "custom_utilities/renumbering_model_parts_utility.h"
 
 namespace Kratos
 {
 namespace Python
 {
-  void  AddCustomUtilitiesToPython(pybind11::module& m)
-  {
-	using namespace pybind11;
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    py::class_<FEMDEMCouplingUtilities>(m,"FEMDEMCouplingUtilities")
+        .def(py::init<>())
+        .def("SaveStructuralSolution",&FEMDEMCouplingUtilities::SaveStructuralSolution)
+        .def("InterpolateStructuralSolution",&FEMDEMCouplingUtilities::InterpolateStructuralSolution)
+        .def("RestoreStructuralSolution",&FEMDEMCouplingUtilities::RestoreStructuralSolution)
+        .def("AddExplicitImpulses",&FEMDEMCouplingUtilities::AddExplicitImpulses)
+        .def("ComputeAndTranferAveragedContactTotalForces",&FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces)
+        .def("ResetContactImpulses",&FEMDEMCouplingUtilities::ResetContactImpulses)
+        .def("RemoveDuplicates",&FEMDEMCouplingUtilities::RemoveDuplicates)
+        .def("IdentifyFreeParticles",&FEMDEMCouplingUtilities::IdentifyFreeParticles)
+        .def("GetNumberOfNodes",&FEMDEMCouplingUtilities::GetNumberOfNodes)
+        ;
 
-  }
+    py::class_<AitkenRelaxationFEMDEMUtility>(m, "AitkenRelaxationFEMDEMUtility")
+        .def(py::init<double>())
+        .def(py::init<>())
+        .def(py::init<double,double,double>())
+        .def("InitializeSolutionStep", &AitkenRelaxationFEMDEMUtility::InitializeSolutionStep)
+        .def("UpdateSolution", &AitkenRelaxationFEMDEMUtility::UpdateSolution)
+        .def("FinalizeNonLinearIteration", &AitkenRelaxationFEMDEMUtility::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep", &AitkenRelaxationFEMDEMUtility::FinalizeSolutionStep)
+        .def("ComputeNorm", &AitkenRelaxationFEMDEMUtility::ComputeNorm)
+        .def("InitializeInterfaceSubModelPart", &AitkenRelaxationFEMDEMUtility::InitializeInterfaceSubModelPart)
+        .def("ResetNodalValues", &AitkenRelaxationFEMDEMUtility::ResetNodalValues)
+        .def("SavePreviousRelaxedValues", &AitkenRelaxationFEMDEMUtility::SavePreviousRelaxedValues)
+        .def("GetVectorSize", &AitkenRelaxationFEMDEMUtility::GetVectorSize)
+        .def("FillOldRelaxedValuesVector", &AitkenRelaxationFEMDEMUtility::FillOldRelaxedValuesVector)
+        .def("ComputeInterfaceResidualVector", &AitkenRelaxationFEMDEMUtility::ComputeInterfaceResidualVector)
+        .def("UpdateInterfaceValues", &AitkenRelaxationFEMDEMUtility::UpdateInterfaceValues)
+        .def("ResetPFEMkinematicValues", &AitkenRelaxationFEMDEMUtility::ResetPFEMkinematicValues)
+        ;
 
-
-
-
+    py::class_<RenumberingNodesUtility>(m,"RenumberingNodesUtility")
+        .def(py::init<ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
+        .def(py::init<ModelPart &,ModelPart &,ModelPart &,ModelPart &,ModelPart &>())
+        .def("Renumber",&RenumberingNodesUtility::Renumber)
+        .def("RenumberElements",&RenumberingNodesUtility::RenumberElements)
+        .def("UndoRenumber",&RenumberingNodesUtility::UndoRenumber)
+        .def("UndoRenumberElements",&RenumberingNodesUtility::UndoRenumberElements)
+        ;
+}
 
 }  // namespace Python.
 

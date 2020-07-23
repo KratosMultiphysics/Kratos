@@ -32,7 +32,7 @@
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "boost/smart_ptr.hpp"
 #include "includes/cfd_variables.h"
 #include "includes/c2c_variables.h"
@@ -1307,12 +1307,12 @@ public:
 	//find neighbors within reduced model part
 	if (n_nodes==3)
 		{
-		FindNodalNeighboursProcess N_FINDER=FindNodalNeighboursProcess(reduced_model_part, 9, 20);
+		FindNodalNeighboursProcess N_FINDER(reduced_model_part);
 		N_FINDER.Execute();
 		}
 	else if (n_nodes==4)
 		{
-		FindNodalNeighboursProcess N_FINDER=FindNodalNeighboursProcess(reduced_model_part, 20, 30);
+		FindNodalNeighboursProcess N_FINDER(reduced_model_part);
 		N_FINDER.Execute();
 		}
 

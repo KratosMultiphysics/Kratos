@@ -6,29 +6,30 @@ powershell.exe -Command [Net.ServicePointManager]::SecurityProtocol = [Net.Secur
 %SEVEN_ZIP% e tetgen.zip -o"tetgen"
 cd ..\..\..\cmake_build
 
-%CMAKE% .. -G "Visual Studio 15 2017 Win64"                                       ^
--DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 	                        ^
--DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 		                        ^
+%CMAKE% .. -G "Visual Studio 15 2017 Win64"                                     ^
+-DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 	                    ^
+-DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 		                    ^
 -DBOOST_ROOT=%BOOST%                                                            ^
--DPYTHON_EXECUTABLE=%PYTHON%                          		 	                    ^
--DCMAKE_BUILD_TYPE="Custom"  							                                      ^
+-DLAPACK_LIBRARIES=%LAPACK%                                                     ^
+-DBLAS_LIBRARIES=%BLAS%                                                         ^
+-DPYTHON_EXECUTABLE=%PYTHON%                          		 	                ^
+-DCMAKE_BUILD_TYPE="Custom"  							                        ^
 -DDEM_APPLICATION=ON                                                            ^
--DEXTERNAL_SOLVERS_APPLICATION=OFF                                              ^
+-DEXTERNAL_SOLVERS_APPLICATION=ON                                               ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
--DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                   ^
--DSWIMMING_DEM_APPLICATION=ON                                                   ^
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=OFF                                  ^
+-DSWIMMING_DEM_APPLICATION=OFF                                                   ^
 -DMESH_MOVING_APPLICATION=ON                                                    ^
--DSOLID_MECHANICS_APPLICATION=ON                                                ^
--DCONSTITUTIVE_MODELS_APPLICATION=ON                                            ^
--DDELAUNAY_MESHING_APPLICATION=ON                                               ^
--DCONTACT_MECHANICS_APPLICATION=ON                                              ^
--DPFEM_APPLICATION=ON                                                           ^
--DPFEM_SOLID_MECHANICS_APPLICATION=ON                                           ^
--DPFEM_FLUID_DYNAMICS_APPLICATION=ON                                            ^
+-DSOLID_MECHANICS_APPLICATION=OFF                                                ^
+-DCONSTITUTIVE_MODELS_APPLICATION=OFF                                            ^
+-DDELAUNAY_MESHING_APPLICATION=OFF                                               ^
+-DCONTACT_MECHANICS_APPLICATION=OFF                                              ^
+-DPFEM_APPLICATION=OFF                                                           ^
+-DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                           ^
+-DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                            ^
 -DMETIS_APPLICATION=OFF                                                         ^
 -DPARMETIS_ROOT_DIR="UNSET"                                                     ^
 -DTRILINOS_APPLICATION=OFF                                                      ^
 -DTRILINOS_ROOT="UNSET"                                                         ^
--DINSTALL_EMBEDDED_PYTHON=ON                                                    ^
--DINCLUDE_FEAST=OFF                                                             
+-DINSTALL_EMBEDDED_PYTHON=ON

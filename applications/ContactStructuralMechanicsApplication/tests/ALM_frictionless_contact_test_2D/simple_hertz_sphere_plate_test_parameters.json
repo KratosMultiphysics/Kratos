@@ -34,14 +34,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_parts_hemisphere","Parts_parts_plate"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part",
-                                                "DISPLACEMENT_bc_fix",
-                                                "LineLoad2D_bc_pressure",
-                                                "Parts_parts_hemisphere",
-                                                "Parts_parts_plate",
-                                                "DISPLACEMENT_bc_rolling_x"]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -51,7 +44,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Parts_parts_plate",
+                "model_part_name" : "Structure.Parts_parts_plate",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -63,7 +56,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_bc_rolling_x",
+                "model_part_name" : "Structure.DISPLACEMENT_bc_rolling_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -77,7 +70,7 @@
             "process_name"          : "AssignVectorVariableToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_bc_pressure",
+                "model_part_name" : "Structure.LineLoad2D_bc_pressure",
                 "variable_name"   : "LINE_LOAD",
                 "interval"        : [0.0, 5e-1],
                 "value"           : [0.0, "-1.3e0*t/0.5", 0.0]
@@ -105,7 +98,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 0.11
             }
         }
@@ -120,7 +113,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 0.11
         }
     }
@@ -132,7 +125,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {

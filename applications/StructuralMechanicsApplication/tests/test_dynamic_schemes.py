@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -47,6 +46,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         c1 = 200.0
         c4 = 1.0
         # Solve the problem
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         while time <= end_time:
             time = time + dt
             step = step + 1
@@ -121,6 +121,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, - A * omega**2 * cos(omega*time))
 
         # Solve the problem
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         while time <= end_time:
             time = time + dt
             step = step + 1
@@ -142,8 +143,8 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         mp = current_model.CreateModelPart("sdof")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
         add_variables(mp, scheme_name)
-        
-        if scheme_name == "explicit":
+
+        if "explicit" in scheme_name:
             # Create node
             node = mp.CreateNewNode(1,0.0,0.0,0.0)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
@@ -287,6 +288,10 @@ class DynamicSchemesTests(BaseDynamicSchemesTests):
         current_model = KratosMultiphysics.Model()
         self._base_fall_test_dynamic_schemes(current_model,"explicit", 2, 1.0e-5, 1.0e-3)
 
+    def test_fall_explicit_multi_stage_scheme(self):
+        current_model = KratosMultiphysics.Model()
+        self._base_fall_test_dynamic_schemes(current_model,"explicit_multi_stage", 2, 5.0e-4)
+
 def set_and_fill_buffer(mp,buffer_size,delta_time):
     # Set buffer size
     mp.SetBufferSize(buffer_size)
@@ -309,11 +314,14 @@ def add_variables(mp, scheme_name = "bossak"):
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-    if scheme_name == "explicit":
+    if "explicit" in scheme_name:
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+        if scheme_name == "explicit_multi_stage":
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
+            mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
 
 
 def create_solver(mp, scheme_name):
@@ -325,18 +333,39 @@ def create_solver(mp, scheme_name):
     elif scheme_name == "pseudo_static":
         scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
     elif scheme_name == "backward_euler":
-        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
+        bdf_parameters = KratosMultiphysics.Parameters(""" {
+            "domain_size"           : 3,
+            "integration_order"     : 1,
+            "solution_variables"    : ["DISPLACEMENT"]
+        } """)
+        bdf_parameters["domain_size"].SetInt(mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(1, bdf_parameters)
+        #scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
     elif scheme_name == "bdf2":
-        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
+        bdf_parameters = KratosMultiphysics.Parameters(""" {
+            "domain_size"           : 3,
+            "integration_order"     : 2,
+            "solution_variables"    : ["DISPLACEMENT"]
+        } """)
+        bdf_parameters["domain_size"].SetInt(mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(2, bdf_parameters)
+        #scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
     elif scheme_name == "explicit":
         dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "time_step_prediction_level": 0,
-            "max_delta_time": 1.0e-5,
-            "fraction_delta_time": 0.9
+            "time_step_prediction_level" : 0,
+            "max_delta_time"             : 1.0e-5,
+            "fraction_delta_time"        : 0.9
         }
         """)
         scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(dynamic_settings)
+    elif scheme_name == "explicit_multi_stage":
+        dynamic_settings = KratosMultiphysics.Parameters("""
+        {
+            "fraction_delta_time" : 0.333333333333333333333333333333333333
+        }
+        """)
+        scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(dynamic_settings)
     else:
         damp_factor_m = 0.0
         scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
@@ -348,7 +377,7 @@ def create_solver(mp, scheme_name):
     move_mesh_flag = True
 
     # Explicit solver
-    if scheme_name == "explicit":
+    if "explicit" in scheme_name:
         strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,
                                                                         scheme,
                                                                         compute_reactions,
@@ -361,7 +390,6 @@ def create_solver(mp, scheme_name):
         convergence_criterion.SetEchoLevel(0)
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,

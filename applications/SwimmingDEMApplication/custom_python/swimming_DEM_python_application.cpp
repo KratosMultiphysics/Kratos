@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "swimming_dem_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 namespace Kratos
@@ -80,11 +81,14 @@ PYBIND11_MODULE(KratosSwimmingDEMApplication, m)
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
 
     //registering variables in python
 
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT_OLD)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AVERAGED_FLUID_VELOCITY)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERMEABILITY_1_DAY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SDEM_BUOYANCY_LAW_NAME )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SDEM_DRAG_LAW_NAME )

@@ -27,71 +27,27 @@ KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 /// Default constructor.
-ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    mName = "Default";
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart("Default", pVariablesList, rOwnerModel) { }
 
 /// Constructor with name
-ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(pVariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
-    , mrModel(rOwnerModel)
-{
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
-
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
-
-    mName = NewName;
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
+ModelPart::ModelPart(std::string const& NewName,VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart(NewName, 1, pVariablesList, rOwnerModel) { }
 
 /// Constructor with name and bufferSize
-ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList, Model& rOwnerModel)
+ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
-    , mIndices(NewBufferSize, 0)
+    , mGeometries()
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
     , mrModel(rOwnerModel)
 {
-    KRATOS_ERROR_IF( NewName.empty() )
-        << "Please don't use empty names (\"\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF(NewName.empty()) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
 
-    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
-        << "Please don't use names containing (\".\") when creating a ModelPart"
-        << std::endl;
+    KRATOS_ERROR_IF_NOT(NewName.find(".") == std::string::npos) << "Please don't use names containing (\".\") when creating a ModelPart (used in \"" << NewName << "\")" << std::endl;
 
     mName = NewName;
     MeshType mesh;
@@ -102,15 +58,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
-    if (!IsSubModelPart()){
-
-      for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
-	{
-	  if (i_node->pGetVariablesList() == mpVariablesList)
-	    i_node->ClearSolutionStepsData();
-	}
-    }
-
     mpCommunicator->Clear();
 
     for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
@@ -276,7 +223,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
 /** Inserts a node in the mesh with ThisIndex.
 */
-ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, ModelPart::IndexType ThisIndex)
+ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
     if (IsSubModelPart())
@@ -453,38 +400,61 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
 
 void ModelPart::RemoveNodes(Flags IdentifierFlag)
 {
-    // This method is optimized to free the memory
-    //loop over all the meshes
-    ModelPart::MeshesContainerType& meshes = this->GetMeshes();
-    for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
-    {
+    // Lambda to remove nodes from a mesh
+    auto remove_nodes_from_mesh = [&](ModelPart::MeshType& r_mesh) {
         //count the nodes to be erase
-        const unsigned int nnodes = i_mesh->Nodes().size();
+        const unsigned int nnodes = r_mesh.Nodes().size();
         unsigned int erase_count = 0;
         #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nnodes); ++i)
-        {
-            ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
+        for(int i=0; i<static_cast<int>(nnodes); ++i) {
+            ModelPart::NodesContainerType::iterator i_node = r_mesh.NodesBegin() + i;
 
             if( i_node->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
         ModelPart::NodesContainerType temp_nodes_container;
-        temp_nodes_container.reserve(i_mesh->Nodes().size() - erase_count);
+        temp_nodes_container.reserve(r_mesh.Nodes().size() - erase_count);
 
-        temp_nodes_container.swap(i_mesh->Nodes());
+        temp_nodes_container.swap(r_mesh.Nodes());
 
-        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
-        {
+        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; ++i_node) {
             if( i_node->IsNot(IdentifierFlag) )
-                (i_mesh->Nodes()).push_back(std::move(*(i_node.base())));
+                (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
+        }
+    };
+
+    // This method is optimized to free the memory
+    // Loop over all the local meshes (Is this still necessary with Submodelparts?)
+    for(auto& r_mesh: this->GetMeshes()) {
+        remove_nodes_from_mesh(r_mesh);
+    }
+
+    if (IsDistributed()) {
+        // Mark the IdentifierFlag across partitions coherently
+        this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
+
+        // Remove the nodes from the mpi-interfaces in case there is any
+        remove_nodes_from_mesh(this->GetCommunicator().LocalMesh());
+        for(auto& r_mesh: this->GetCommunicator().LocalMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
+        }
+
+        remove_nodes_from_mesh(this->GetCommunicator().GhostMesh());
+        for(auto& r_mesh: this->GetCommunicator().GhostMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
+        }
+
+        remove_nodes_from_mesh(this->GetCommunicator().InterfaceMesh());
+        for(auto& r_mesh: this->GetCommunicator().InterfaceMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
         }
     }
 
-    //now recursively remove the nodes in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveNodes(IdentifierFlag);
+    // Now recursively remove the nodes in the submodelparts
+    for (auto& r_sub_model_part : SubModelParts()) {
+        r_sub_model_part.RemoveNodes(IdentifierFlag);
+    }
 }
 
 void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
@@ -494,6 +464,14 @@ void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
 }
 
 ModelPart& ModelPart::GetRootModelPart()
+{
+    if (IsSubModelPart())
+        return mpParentModelPart->GetRootModelPart();
+    else
+        return *this;
+}
+
+const ModelPart& ModelPart::GetRootModelPart() const
 {
     if (IsSubModelPart())
         return mpParentModelPart->GetRootModelPart();
@@ -619,7 +597,7 @@ ModelPart::PropertiesType::Pointer ModelPart::CreateNewProperties(
 {
     auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
     if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
-        KRATOS_ERROR << "Property already existing. Please use pGetProperties() instead" << std::endl;
+        KRATOS_ERROR << "Property #" << PropertiesId << " already existing. Please use pGetProperties() instead" << std::endl;
     } else {
         if(IsSubModelPart()) {
             PropertiesType::Pointer pprop =  mpParentModelPart->CreateNewProperties(PropertiesId, MeshIndex);
@@ -723,6 +701,101 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
             KRATOS_ERROR << "Property " << PropertiesId << " does not exist!. This is constant model part and cannot be created a new one" << std::endl;
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ModelPart::HasProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        bool has_properties = true;
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                return false;
+            }
+        }
+        return has_properties;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties::Pointer ModelPart::pGetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    const std::vector<IndexType> component_name = TrimComponentName(rAddress);
+    if (HasProperties(component_name[0], MeshIndex)) {
+        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        for (IndexType i = 1; i < component_name.size(); ++i) {
+            if (p_prop->HasSubProperties(component_name[i])) {
+                p_prop = p_prop->pGetSubProperties(component_name[i]);
+            } else {
+                KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+            }
+        }
+        return p_prop;
+    } else {
+        KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << component_name[0] << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    )
+{
+    return *pGetProperties(rAddress, MeshIndex);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Properties& ModelPart::GetProperties(
+    const std::string& rAddress,
+    IndexType MeshIndex
+    ) const
+{
+    return *pGetProperties(rAddress, MeshIndex);
 }
 
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
@@ -856,6 +929,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
         ModelPart::IndexType Id, std::vector<ModelPart::IndexType> ElementNodeIds,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     if (IsSubModelPart())
     {
         ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, ElementNodeIds, pProperties, ThisIndex);
@@ -871,6 +945,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     }
 
     return CreateNewElement(ElementName, Id, pElementNodes, pProperties, ThisIndex);
+    KRATOS_CATCH("");
 }
 
 /** Inserts an element in the mesh with ThisIndex.
@@ -1176,61 +1251,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
 
 }
 
-ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    ModelPart::IndexType Id,
-                                                                                    ModelPart::NodeType& rMasterNode,
-                                                                                    const ModelPart::VariableComponentType& rMasterVariable,
-                                                                                    ModelPart::NodeType& rSlaveNode,
-                                                                                    const ModelPart::VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant,
-                                                                                    IndexType ThisIndex)
-{
-
-    KRATOS_TRY
-    if (rMasterNode.HasDofFor(rMasterVariable) && rSlaveNode.HasDofFor(rSlaveVariable) )
-    {
-        if (IsSubModelPart())
-        {
-                ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode,
-                                                                                                                            rMasterVariable,
-                                                                                                                            rSlaveNode,
-                                                                                                                            rSlaveVariable,
-                                                                                                                            Weight,
-                                                                                                                            Constant,
-                                                                                                                            ThisIndex);
-
-                GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-                GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
-                return p_new_constraint;
-        }
-
-        auto existing_constraint_iterator = GetMesh(ThisIndex).MasterSlaveConstraints().find(Id);
-        KRATOS_ERROR_IF(existing_constraint_iterator != GetMesh(ThisIndex).MasterSlaveConstraintsEnd() )
-            << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
-
-
-            //create the new element
-        ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
-        ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterNode,
-                                                                                                rMasterVariable,
-                                                                                                rSlaveNode,
-                                                                                                rSlaveVariable,
-                                                                                                Weight,
-                                                                                                Constant);
-
-        GetMesh(ThisIndex).AddMasterSlaveConstraint(p_new_constraint);
-        GetMesh(ThisIndex).MasterSlaveConstraints().Unique();
-        return p_new_constraint;
-    } else
-    {
-        KRATOS_ERROR << "Master or Slave node does not have requested DOF " <<std::endl;
-    }
-
-    KRATOS_CATCH("")
-
-}
-
 /** Remove the master-slave constraint with given Id from this modelpart and all its subs.
 */
 void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId,  IndexType ThisIndex)
@@ -1398,6 +1418,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::IndexType Id, std::vector<IndexType> ConditionNodeIds,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
 
     for (unsigned int i = 0; i < ConditionNodeIds.size(); i++)
@@ -1406,6 +1427,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     }
 
     return CreateNewCondition(ConditionName, Id, pConditionNodes, pProperties, ThisIndex);
+    KRATOS_CATCH("")
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
@@ -1548,6 +1570,74 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
     root_model_part.RemoveConditions(IdentifierFlag);
 }
 
+///@}
+///@name Geometry Container
+///@{
+
+/// Adds a geometry to the geometry container.
+void ModelPart::AddGeometry(
+    typename GeometryType::Pointer pNewGeometry)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->AddGeometry(pNewGeometry);
+    }
+    /// Check if geometry id already used, is done within the geometry container.
+    mGeometries.AddGeometry(pNewGeometry);
+}
+
+
+/// Removes a geometry by id.
+void ModelPart::RemoveGeometry(
+    IndexType GeometryId)
+{
+    mGeometries.RemoveGeometry(GeometryId);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        ++i_sub_model_part)
+        i_sub_model_part->RemoveGeometry(GeometryId);
+}
+
+/// Removes a geometry by name.
+void ModelPart::RemoveGeometry(
+    std::string GeometryName)
+{
+    mGeometries.RemoveGeometry(GeometryName);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin();
+        i_sub_model_part != SubModelPartsEnd();
+        ++i_sub_model_part)
+        i_sub_model_part->RemoveGeometry(GeometryName);
+}
+
+/// Removes a geometry by id from all root and sub model parts.
+void ModelPart::RemoveGeometryFromAllLevels(IndexType GeometryId)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveGeometry(GeometryId);
+        return;
+    }
+
+    RemoveGeometry(GeometryId);
+}
+
+/// Removes a geometry by name from all root and sub model parts.
+void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveGeometry(GeometryName);
+        return;
+    }
+
+    RemoveGeometry(GeometryName);
+}
+
+///@}
+///@name Sub Model Parts
+///@{
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
@@ -1565,9 +1655,25 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
     return *p_model_part;
 }
 
+ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return *i;
+}
+
+ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return (i.base()->second).get();
+}
+
 /** Remove a sub modelpart with given name.
 */
-void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
+void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 {
     // finding the sub model part
     SubModelPartIterator i_sub_model_part = mSubModelParts.find(ThisSubModelPartName);
@@ -1581,7 +1687,7 @@ void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 
 /** Remove given sub model part.
 */
-void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
+void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 {
     std::string name = ThisSubModelPart.Name();
     // finding the sub model part
@@ -1592,13 +1698,27 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
     mSubModelParts.erase(name);
 }
 
+
+ModelPart* ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return mpParentModelPart;
+    } else {
+        return const_cast<ModelPart*>(this);
+    }
+}
+
+bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
+{
+    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+}
+
 std::vector<std::string> ModelPart::GetSubModelPartNames()
 {
     std::vector<std::string> SubModelPartsNames;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        SubModelPartsNames.push_back(i_sub_model_part->Name());
+    for(auto& r_sub_model_part : mSubModelParts) {
+        SubModelPartsNames.push_back(r_sub_model_part.Name());
     }
 
     return SubModelPartsNames;
@@ -1610,9 +1730,8 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        i_sub_model_part->mBufferSize = NewBufferSize;
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
     }
 
     mBufferSize = NewBufferSize;
@@ -1626,6 +1745,15 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         node_iterator->SetBufferSize(mBufferSize);
     }
 
+}
+
+void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
+{
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
+    }
+
+    mBufferSize = NewBufferSize;
 }
 
 /// run input validation
@@ -1661,15 +1789,21 @@ void ModelPart::PrintInfo(std::ostream& rOStream) const
 
 void ModelPart::PrintData(std::ostream& rOStream) const
 {
+    DataValueContainer::PrintData(rOStream);
+
     if (!IsSubModelPart()) {
         rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
     }
     rOStream << "    Number of tables : " << NumberOfTables() << std::endl;
     rOStream << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
     if (!IsSubModelPart()) {
+        if (IsDistributed()) {
+            rOStream << "    Distributed; Communicator has " << mpCommunicator->TotalProcesses() << " total processes" << std::endl;
+        }
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
+    rOStream << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
@@ -1713,6 +1847,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
         mpProcessInfo->PrintData(rOStream);
     }
     rOStream << std::endl;
+    rOStream << PrefixString << "    Number of Geometries  : " << mGeometries.NumberOfGeometries() << std::endl;
 
     for (IndexType i = 0; i < mMeshes.size(); i++) {
         rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
@@ -1745,6 +1880,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Tables", mTables);
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
+    rSerializer.save("Geometries", mGeometries);
 
     rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
 
@@ -1770,6 +1906,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
+    rSerializer.load("Geometries", mGeometries);
 
     SizeType number_of_submodelparts;
     rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);
@@ -1791,25 +1928,5 @@ void ModelPart::load(Serializer& rSerializer)
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         i_sub_model_part->SetParentModelPart(this);
 }
-
-
-/// input stream function
-//	inline std::istream & operator >>(std::istream& rIStream,
-//		ModelPart& rThis)
-//	{
-//		return rIStream;
-//	}
-
-//	/// output stream function
-//	inline std::ostream & operator <<(std::ostream& rOStream,
-//		const ModelPart& rThis)
-//	{
-//		rThis.PrintInfo(rOStream);
-//		rOStream << std::endl;
-//		rThis.PrintData(rOStream);
-
-//		return rOStream;
-//	}
-
 
 }  // namespace Kratos.

@@ -1,10 +1,9 @@
+from __future__ import print_function, absolute_import, division
+
+from KratosMultiphysics import _ImportApplication
+
 from KratosDelaunayMeshingApplication import *
 application = KratosDelaunayMeshingApplication()
 application_name = "KratosDelaunayMeshingApplication"
-application_folder = "DelaunayMeshingApplication"
 
-# The following lines are common for all applications
-from .. import application_importer
-import inspect
-caller = inspect.stack()[1] # Information about the file that imported this, to check for unexpected imports
-application_importer.ImportApplication(application,application_name,application_folder,caller, __path__)
+_ImportApplication(application, application_name)

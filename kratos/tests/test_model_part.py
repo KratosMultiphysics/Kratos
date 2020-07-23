@@ -1,13 +1,13 @@
 from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics import *
+import KratosMultiphysics
 
 import sys
 
 class TestModelPart(KratosUnittest.TestCase):
     def test_model_part_sub_model_parts(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
@@ -66,17 +66,17 @@ class TestModelPart(KratosUnittest.TestCase):
         #print (model_part)
 
     def test_variables_list(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
 
-        model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
 
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 1)
 
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 4)
 
@@ -85,24 +85,19 @@ class TestModelPart(KratosUnittest.TestCase):
 
         self.assertEqual(sub_model_part_1.GetNodalSolutionStepDataSize(), 4)
 
-        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 7)
         self.assertEqual(sub_model_part_1.GetNodalSolutionStepDataSize(), 7)
 
-        sub_model_part_1.AddNodalSolutionStepVariable(PRESSURE)
+        sub_model_part_1.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
 
         self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 8)
         self.assertEqual(sub_model_part_1.GetNodalSolutionStepDataSize(), 8)
 
-
-
-
-
-
     def test_model_part_nodes(self):
 
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
@@ -196,13 +191,13 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfNodes(), 7)
 
     def test_model_part_tables(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
         self.assertEqual(model_part.NumberOfTables(), 0)
 
-        table = PiecewiseLinearTable()
+        table = KratosMultiphysics.PiecewiseLinearTable()
         table.AddRow(0.00,1.00)
         table.AddRow(1.00,2.00)
         table.AddRow(2.00,2.00)
@@ -220,7 +215,7 @@ class TestModelPart(KratosUnittest.TestCase):
         #self.assertEqual(model_part.NumberOfTables(), 0)
 
     def test_model_part_properties(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
@@ -228,7 +223,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(0), 0)
 
         self.assertEqual(model_part.HasProperties(1), False)
-        model_part.AddProperties(Properties(1))
+        model_part.AddProperties(KratosMultiphysics.Properties(1))
         self.assertEqual(model_part.HasProperties(1), True)
         random_sub_model_part = model_part.CreateSubModelPart("RandomSubModelPart")
         self.assertEqual(random_sub_model_part.HasProperties(1), False)
@@ -239,13 +234,13 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetProperties(0)[1].Id, 1)
         self.assertEqual(len(model_part.Properties), 1)
 
-        model_part.AddProperties(Properties(2000))
+        model_part.AddProperties(KratosMultiphysics.Properties(2000))
 
         self.assertEqual(model_part.NumberOfProperties(), 2)
         self.assertEqual(model_part.GetProperties()[1].Id, 1)
         self.assertEqual(model_part.GetProperties()[2000].Id, 2000)
 
-        model_part.AddProperties(Properties(2))
+        model_part.AddProperties(KratosMultiphysics.Properties(2))
 
         self.assertEqual(model_part.NumberOfProperties(), 3)
         self.assertEqual(model_part.GetProperties()[1].Id, 1)
@@ -259,7 +254,7 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part.CreateSubModelPart("Temp")
         model_part.CreateSubModelPart("Outlet")
         inlets_model_part = model_part.GetSubModelPart("Inlets")
-        inlets_model_part.AddProperties(Properties(3))
+        inlets_model_part.AddProperties(KratosMultiphysics.Properties(3))
 
         self.assertEqual(inlets_model_part.NumberOfProperties(), 1)
         self.assertEqual(inlets_model_part.GetProperties()[3].Id, 3)
@@ -269,7 +264,7 @@ class TestModelPart(KratosUnittest.TestCase):
         inlets_model_part.CreateSubModelPart("Inlet1")
         inlets_model_part.CreateSubModelPart("Inlet2")
         inlet2_model_part = inlets_model_part.GetSubModelPart("Inlet2")
-        inlet2_model_part.AddProperties(Properties(4))
+        inlet2_model_part.AddProperties(KratosMultiphysics.Properties(4))
 
         self.assertEqual(inlet2_model_part.NumberOfProperties(), 1)
         self.assertEqual(inlet2_model_part.GetProperties()[4].Id, 4)
@@ -278,10 +273,10 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(), 4)
         self.assertEqual(model_part.GetProperties()[4].Id, 4)
 
-        inlets_model_part.AddProperties(Properties(5))
-        inlets_model_part.AddProperties(Properties(6))
-        inlet2_model_part.AddProperties(Properties(7))
-        inlet2_model_part.AddProperties(Properties(8))
+        inlets_model_part.AddProperties(KratosMultiphysics.Properties(5))
+        inlets_model_part.AddProperties(KratosMultiphysics.Properties(6))
+        inlet2_model_part.AddProperties(KratosMultiphysics.Properties(7))
+        inlet2_model_part.AddProperties(KratosMultiphysics.Properties(8))
 
         self.assertEqual(inlet2_model_part.NumberOfProperties(), 3)
         self.assertEqual(inlets_model_part.NumberOfProperties(), 6)
@@ -301,8 +296,35 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(inlets_model_part.NumberOfProperties(), 5)
         self.assertEqual(model_part.NumberOfProperties(), 7)
 
+        # Testing subproperties
+        prop_4 = model_part.GetProperties()[4]
+        prop_4.AddSubProperties(model_part.GetProperties()[3])
+        self.assertEqual(prop_4.NumberOfSubproperties(), 1)
+        self.assertEqual(prop_4.HasSubProperties(3), True)
+        self.assertEqual(prop_4.HasSubProperties(120), False)
+
+    def test_model_part_sub_properties(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        prop1 = model_part.CreateNewProperties(1)
+        subprop2 = KratosMultiphysics.Properties(2)
+        prop1.AddSubProperties(subprop2)
+        subprop3 = KratosMultiphysics.Properties(3)
+        prop1.AddSubProperties(subprop3)
+        subsubprop2 = KratosMultiphysics.Properties(2)
+        subprop3.AddSubProperties(subsubprop2)
+        subsubprop4 = KratosMultiphysics.Properties(4)
+        subprop3.AddSubProperties(subsubprop4)
+
+        self.assertEqual(model_part.HasProperties("1"), True)
+        self.assertEqual(model_part.HasProperties("1.2"), True)
+        self.assertEqual(model_part.HasProperties("1.3.2"), True)
+        self.assertEqual(model_part.HasProperties("1.2.3"), False)
+        self.assertEqual(model_part.HasProperties("3.1.1"), False)
+
     def test_model_part_elements(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
@@ -312,7 +334,7 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
-        model_part.AddProperties(Properties(1))
+        model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfElements(), 1)
@@ -397,7 +419,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfElements(), 7)
 
     def test_model_part_conditions(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
 
@@ -407,14 +429,14 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
-        model_part.AddProperties(Properties(1))
-        model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
+        model_part.AddProperties(KratosMultiphysics.Properties(1))
+        model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 1)
         self.assertEqual(model_part.NumberOfConditions(0), 1)
 
         with self.assertRaises(RuntimeError):
-            model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
+            model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 1)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
@@ -422,13 +444,13 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.Conditions[1].Id, 1)
         self.assertEqual(len(model_part.Conditions), 1)
 
-        model_part.CreateNewCondition("Condition2D", 2000, [2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("LineCondition2D2N", 2000, [2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 2)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
         self.assertEqual(model_part.GetCondition(2000).Id, 2000)
 
-        model_part.CreateNewCondition("Condition3D", 2, [1,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("SurfaceCondition3D3N", 2, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 3)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
@@ -445,7 +467,7 @@ class TestModelPart(KratosUnittest.TestCase):
         inlets_model_part.CreateNewNode(4, 0.00,0.00,0.00)
         inlets_model_part.CreateNewNode(5, 1.00,0.00,0.00)
         inlets_model_part.CreateNewNode(6, 1.00,1.00,0.00)
-        inlets_model_part.CreateNewCondition("Condition3D", 3, [4,5,6], model_part.GetProperties()[1])
+        inlets_model_part.CreateNewCondition("SurfaceCondition3D3N", 3, [4,5,6], model_part.GetProperties()[1])
 
         self.assertEqual(inlets_model_part.NumberOfConditions(), 1)
         self.assertEqual(inlets_model_part.GetCondition(3).Id, 3)
@@ -458,7 +480,7 @@ class TestModelPart(KratosUnittest.TestCase):
         inlet2_model_part.CreateNewNode(7, 0.00,0.00,0.00)
         inlet2_model_part.CreateNewNode(8, 1.00,0.00,0.00)
         inlet2_model_part.CreateNewNode(9, 1.00,1.00,0.00)
-        inlet2_model_part.CreateNewCondition("Condition3D", 4, [7,8,9], model_part.GetProperties()[1])
+        inlet2_model_part.CreateNewCondition("SurfaceCondition3D3N", 4, [7,8,9], model_part.GetProperties()[1])
 
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 1)
         self.assertEqual(inlet2_model_part.GetCondition(4).Id, 4)
@@ -467,10 +489,10 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfConditions(), 4)
         self.assertEqual(model_part.GetCondition(4).Id, 4)
 
-        inlets_model_part.CreateNewCondition("Condition3D", 5, [7,8,9], model_part.GetProperties()[1])
-        inlets_model_part.CreateNewCondition("Condition3D", 6, [7,8,9], model_part.GetProperties()[1])
-        inlet2_model_part.CreateNewCondition("Condition3D", 7, [7,8,9], model_part.GetProperties()[1])
-        inlet2_model_part.CreateNewCondition("Condition3D", 8, [7,8,9], model_part.GetProperties()[1])
+        inlets_model_part.CreateNewCondition("SurfaceCondition3D3N", 5, [7,8,9], model_part.GetProperties()[1])
+        inlets_model_part.CreateNewCondition("SurfaceCondition3D3N", 6, [7,8,9], model_part.GetProperties()[1])
+        inlet2_model_part.CreateNewCondition("SurfaceCondition3D3N", 7, [7,8,9], model_part.GetProperties()[1])
+        inlet2_model_part.CreateNewCondition("SurfaceCondition3D3N", 8, [7,8,9], model_part.GetProperties()[1])
 
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 3)
         self.assertEqual(inlets_model_part.NumberOfConditions(), 6)
@@ -491,29 +513,32 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfConditions(), 7)
 
     def test_modelpart_variables_list(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
         model_part.CreateNewNode(1, 0.00,0.00,0.00)
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
 
-        self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(VELOCITY))
+        self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(KratosMultiphysics.VELOCITY))
 
     def test_modelpart_buffersize(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
+
+        submodel = model_part.CreateSubModelPart("submodel")
+        subsubmodel = submodel.CreateSubModelPart("subsubmodel")
+
         model_part.SetBufferSize(3)
 
-        model_part.CreateSubModelPart("submodel")
-        submodel = model_part.GetSubModelPart("submodel")
         self.assertEqual(model_part.GetBufferSize(), submodel.GetBufferSize() )
+        self.assertEqual(model_part.GetBufferSize(), subsubmodel.GetBufferSize() )
 
     def test_add_node(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part1= current_model.CreateModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
@@ -554,14 +579,13 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part1.AddNode( n4, 0 )
         model_part1.AddNode( n5, 0 )
 
-
         sub1.AddNodes([4,5]) #now it works, since we already added the nodes
         self.assertTrue( n4.Id in sub1.Nodes )
         self.assertTrue( n5.Id in sub1.Nodes )
         self.assertFalse( n5.Id in sub2.Nodes )
 
     def test_add_condition(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part1= current_model.CreateModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
@@ -576,11 +600,11 @@ class TestModelPart(KratosUnittest.TestCase):
         n3 = model_part2.CreateNewNode(3,2.0,3.1,0.2)
         n4 = model_part2.CreateNewNode(4,2.0,3.1,10.2)
 
-        model_part1.CreateNewCondition("Condition2D", 1, [1,2], sub1.GetProperties()[1])
-        model_part1.CreateNewCondition("Condition2D", 2, [1,2], sub1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 1, [1,2], sub1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 2, [1,2], sub1.GetProperties()[1])
 
-        c1 = model_part2.CreateNewCondition("Condition3D", 1, [1,3,4], model_part2.GetProperties()[1])
-        c3 = model_part2.CreateNewCondition("Condition3D", 3, [1,3,4], model_part2.GetProperties()[1])
+        c1 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 1, [1,3,4], model_part2.GetProperties()[1])
+        c3 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 3, [1,3,4], model_part2.GetProperties()[1])
 
         #this should add condition 3 to both sub1 and model_part1, but not to sub2
         sub1.AddCondition( model_part2.Conditions[3], 0 )
@@ -593,8 +617,8 @@ class TestModelPart(KratosUnittest.TestCase):
             sub2.AddCondition( c1, 0 )
 
         ##now we add two conditions at once
-        c4 = model_part2.CreateNewCondition("Condition3D", 4, [1,3,4], model_part2.GetProperties()[1])
-        c5 = model_part2.CreateNewCondition("Condition3D", 5, [1,3,4], model_part2.GetProperties()[1])
+        c4 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 4, [1,3,4], model_part2.GetProperties()[1])
+        c5 = model_part2.CreateNewCondition("SurfaceCondition3D3N", 5, [1,3,4], model_part2.GetProperties()[1])
 
         ### here we test adding a list of conditions at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
@@ -604,15 +628,13 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part1.AddCondition( c4, 0 )
         model_part1.AddCondition( c5, 0 )
 
-
         sub1.AddConditions([4,5]) #now it works, since we already added the nodes
         self.assertTrue( c4.Id in sub1.Conditions )
         self.assertTrue( c5.Id in sub1.Conditions )
         self.assertFalse( c5.Id in sub2.Conditions )
 
-
     def test_add_element(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part1= current_model.CreateModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
@@ -646,7 +668,6 @@ class TestModelPart(KratosUnittest.TestCase):
         e4 = model_part2.CreateNewElement("Element2D2N", 4, [1,3], model_part2.GetProperties()[1])
         e5 = model_part2.CreateNewElement("Element2D2N", 5, [1,3], model_part2.GetProperties()[1])
 
-
        ### here we test adding a list of elements at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
         with self.assertRaisesRegex(RuntimeError, "Error: the element with Id 4 does not exist in the root model part"):
@@ -655,14 +676,48 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part1.AddElement( e4, 0 )
         model_part1.AddElement( e5, 0 )
 
-
         sub1.AddElements([4,5]) #now it works, since we already added the nodes
         self.assertTrue( e4.Id in sub1.Elements )
         self.assertTrue( e5.Id in sub1.Elements )
         self.assertFalse( e5.Id in sub2.Elements )
 
+    def test_geometry_container(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        geom_1 = KratosMultiphysics.Geometry("geom_1")
+        geom_2 = KratosMultiphysics.Geometry(2)
+
+        self.assertEqual(model_part.NumberOfGeometries(), 0)
+
+        model_part.AddGeometry(geom_1)
+        model_part.AddGeometry(geom_2)
+
+        # Check container and correct access
+        self.assertEqual(model_part.NumberOfGeometries(), 2)
+        self.assertEqual(model_part.GetGeometry(2).Id, 2)
+        self.assertEqual(model_part.GetGeometry("geom_1").Id, KratosMultiphysics.Geometry.GenerateId("geom_1"))
+
+        # Check remove
+        model_part.RemoveGeometry("geom_1")
+        self.assertEqual(model_part.HasGeometry("geom_1"), False)
+        self.assertEqual(model_part.HasGeometry(2), True)
+
+        # Check map access
+        self.assertEqual(len(model_part.Geometries), 1)
+        self.assertEqual(model_part.Geometries[2].Id, 2)
+        counter = 0
+        for geometry in model_part.Geometries:
+            counter += geometry.Id
+        self.assertEqual(counter, 2)
+
+        # Check correct geometries
+        for geometry in model_part.Geometries:
+            geometry.Id = 60
+            self.assertEqual(geometry.Id, geom_2.Id)
+
     def test_model_part_iterators(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
 
         model_part1= current_model.CreateModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
@@ -685,23 +740,23 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(counter, 2)
 
     def test_model_part_has_solution_step_variable(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
-        self.assertTrue(model_part.HasNodalSolutionStepVariable(VELOCITY))
-        self.assertFalse(model_part.HasNodalSolutionStepVariable(PRESSURE))
+        self.assertTrue(model_part.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
+        self.assertFalse(model_part.HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
 
     def test_model_part_master_slave_constraint(self):
-        current_model = Model()
+        current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(PRESSURE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         n1 = model_part.CreateNewNode(1, 1.0,1.1,0.2)
         n2 = model_part.CreateNewNode(2, 2.0,3.1,0.2)
-        VariableUtils().AddDof(PRESSURE,model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE,model_part)
 
-        c1 = MasterSlaveConstraint(10)
-        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
+        c1 = KratosMultiphysics.MasterSlaveConstraint(10)
+        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
 
         model_part.AddMasterSlaveConstraint(c1)
 
@@ -716,7 +771,7 @@ class TestModelPart(KratosUnittest.TestCase):
         sub2 = model_part.CreateSubModelPart("sub2")
         subsub1 = sub1.CreateSubModelPart("subsub1")
 
-        ss1 = subsub1.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
+        ss1 = subsub1.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
 
         self.assertTrue(ss1 in subsub1.MasterSlaveConstraints)
         self.assertTrue(ss1 in sub1.MasterSlaveConstraints)
@@ -734,8 +789,53 @@ class TestModelPart(KratosUnittest.TestCase):
 
     def test_no_constructor(self):
         with self.assertRaisesRegex(TypeError, "Kratos.ModelPart: No constructor defined!"):
-            ModelPart()
+            KratosMultiphysics.ModelPart()
 
+    def test_create_non_existing_element(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+
+        props = model_part.CreateNewProperties(0)
+
+        with self.assertRaisesRegex(RuntimeError, 'Error: The Element "SomeCertainlyNonExistingElement" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Elements are registered:\n'):
+            model_part.CreateNewElement("SomeCertainlyNonExistingElement", 1, [1], props)
+
+    def test_create_non_existing_condition(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+
+        props = model_part.CreateNewProperties(0)
+
+        with self.assertRaisesRegex(RuntimeError, 'Error: The Condition "SomeCertainlyNonExistingCondition" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Conditions are registered:\n'):
+            model_part.CreateNewCondition("SomeCertainlyNonExistingCondition", 1, [1], props)
+
+    def test_create_non_existing_constraint(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        n1 = model_part.CreateNewNode(1, 1.0,1.1,0.2)
+        n2 = model_part.CreateNewNode(2, 2.0,3.1,0.2)
+
+        with self.assertRaisesRegex(RuntimeError, 'Error: The Constraint "SomeCertainlyNonExistingConstraint" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Constraints are registered:\n'):
+            model_part.CreateNewMasterSlaveConstraint("SomeCertainlyNonExistingConstraint", 1, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
+
+    def test_remove_nodes(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        for i in range(0, 8):
+            model_part.CreateNewNode(i+1, i+1, i+1, i+1)
+
+        self.assertEqual(model_part.NumberOfNodes(), 8)
+        self.assertEqual(model_part.NumberOfNodes(0), 8)
+
+        for node in model_part.Nodes:
+            if node.Id % 2:
+                node.Set(KratosMultiphysics.TO_ERASE)
+
+        model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+        self.assertEqual(model_part.NumberOfNodes(), 4)
+        self.assertEqual(model_part.NumberOfNodes(0), 4)
 
 if __name__ == '__main__':
     KratosUnittest.main()

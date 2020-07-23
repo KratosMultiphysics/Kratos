@@ -82,10 +82,14 @@ public:
     ///@{
 
     /// Constructor with filenames.
-    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
+    ModelPartIO(
+        std::string const& Filename,
+        const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
     /// Constructor with stream.
-    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
+    ModelPartIO(
+        Kratos::shared_ptr<std::iostream> Stream,
+        const Flags Options = IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
 
     /// Constructor with filenames.
@@ -650,6 +654,8 @@ private:
 
     template<class TValueType>
     TValueType& ExtractValue(std::string rWord, TValueType & rValue);
+
+    bool& ExtractValue(std::string rWord, bool & rValue);
 
     void ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue);
 

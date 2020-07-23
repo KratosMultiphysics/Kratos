@@ -57,7 +57,7 @@ namespace MeshingUtilities
     /// The arrays of elements and nodes
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::NodesContainerType NodesArrayType;
-    
+
     /// Definition of the iterators
     typedef NodesArrayType::iterator NodeItType;
     typedef ElementsArrayType::iterator ElementItType;
@@ -71,7 +71,7 @@ namespace MeshingUtilities
         ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
-    
+
     /**
      * @brief This computes the element size depending of a whole model part and it assigns to the ELEMENT_H variable
      * @param ModelPart The model part where compute the ELEMENT_H

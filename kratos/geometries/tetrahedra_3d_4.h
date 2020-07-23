@@ -1134,8 +1134,8 @@ public:
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
         faces.push_back( FacePointerType(new FaceType(
-                                             this->pGetPoint(0),
                                              this->pGetPoint(2),
+                                             this->pGetPoint(3),
                                              this->pGetPoint(1))) );
         faces.push_back( FacePointerType(new FaceType(
                                              this->pGetPoint(0),
@@ -1146,8 +1146,8 @@ public:
                                              this->pGetPoint(1),
                                              this->pGetPoint(3))) );
         faces.push_back( FacePointerType(new FaceType(
+                                             this->pGetPoint(0),
                                              this->pGetPoint(2),
-                                             this->pGetPoint(3),
                                              this->pGetPoint(1))) );
         return faces;
     }
@@ -1681,11 +1681,12 @@ protected:
      */
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
 
     ///@}
@@ -1999,11 +2000,16 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_1,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_1,
     Tetrahedra3D4<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType>
+const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
 }// namespace Kratos.
 

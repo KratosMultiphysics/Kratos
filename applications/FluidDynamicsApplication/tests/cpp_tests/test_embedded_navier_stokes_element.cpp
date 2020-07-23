@@ -44,14 +44,11 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(REACTION);
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
@@ -87,13 +84,12 @@ namespace Kratos {
 			vel_original(1,0) = 0.1; vel_original(1,1) = 0.2;
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
-			}
-
+			array_1d<double, 3> embedded_vel;
+			embedded_vel(0) = 1.0;
+			embedded_vel(1) = 2.0;
+			embedded_vel(2) = 0.0;
 			for(unsigned int i=0; i<3; i++){
+				pElement->GetGeometry()[i].SetValue(EMBEDDED_VELOCITY, embedded_vel);
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -109,11 +105,6 @@ namespace Kratos {
 			pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) =  0.5;
-			array_1d<double, 3> embedded_vel;
-			embedded_vel(0) = 1.0;
-			embedded_vel(1) = 2.0;
-			embedded_vel(2) = 0.0;
-			pElement->SetValue(EMBEDDED_VELOCITY, embedded_vel);
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(9);
@@ -145,14 +136,11 @@ namespace Kratos {
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-			modelPart.AddNodalSolutionStepVariable(DENSITY);
-			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
-			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
 
 			// Process info creation
@@ -190,13 +178,12 @@ namespace Kratos {
 			vel_original(2,0) = 0.2; vel_original(2,1) = 0.3; vel_original(2,2) = 0.4;
 			vel_original(3,0) = 0.3; vel_original(3,1) = 0.4; vel_original(3,2) = 0.5;
 
-			// Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
-				it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
-				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
-			}
-
+			array_1d<double, 3> embedded_vel;
+			embedded_vel(0) = 1.0;
+			embedded_vel(1) = 2.0;
+			embedded_vel(2) = 3.0;
 			for(unsigned int i=0; i<4; i++){
+				pElement->GetGeometry()[i].SetValue(EMBEDDED_VELOCITY, embedded_vel);
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -213,11 +200,6 @@ namespace Kratos {
 			pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
 			pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -1.0;
 			pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
-			array_1d<double, 3> embedded_vel;
-			embedded_vel(0) = 1.0;
-			embedded_vel(1) = 2.0;
-			embedded_vel(2) = 3.0;
-			pElement->SetValue(EMBEDDED_VELOCITY, embedded_vel);
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(16);

@@ -71,6 +71,7 @@ namespace Kratos
 
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, SELECT_TESSELLATION_ELEMENTS,         6 );
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, KEEP_ISOLATED_NODES,                  7 );
+  KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, REFINE_WALL_CORNER,                   8 );
 
   //execution options (tessellation)
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, NEIGHBOURS_SEARCH,                    8 );
@@ -228,25 +229,25 @@ namespace Kratos
   double MesherUtilities::ComputeModelPartVolume(ModelPart& rModelPart)
   {
     KRATOS_TRY
-
     const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
     if( dimension == 2 ){
-
       for(auto& i_elem : rModelPart.Elements())
       {
-        if( i_elem.GetGeometry().Dimension() == 2 )
+        if( i_elem.GetGeometry().size() == 3 ){
           ModelPartVolume += i_elem.GetGeometry().Area();
+        }
       }
     }
     else{ //dimension == 3
-
       for(auto& i_elem : rModelPart.Elements())
 	{
-	  if( i_elem.GetGeometry().Dimension() == 3 )
+	  if( i_elem.GetGeometry().size() == 4 ){
 	    ModelPartVolume += i_elem.GetGeometry().Volume();
+    }
 	}
      }
+
 
     return ModelPartVolume;
 
@@ -1541,7 +1542,8 @@ namespace Kratos
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
       double detJ;
-      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      MathUtils<double>::InvertMatrix2( J[0], InvJ, detJ);
 
       const Matrix& DN_De = Triangle.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
       DN_DX = prod( DN_De, InvJ );
@@ -1557,7 +1559,7 @@ namespace Kratos
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
       double detJ;
-      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+      MathUtils<double>::InvertMatrix3( J[0], InvJ, detJ);
 
       const Matrix& DN_De = Tetrahedron.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
       DN_DX = prod( DN_De, InvJ );
@@ -1758,7 +1760,7 @@ namespace Kratos
 
         if(condition_found)
         {
-          pCondition->Set(NOT_SELECTED); //meaning that is a element that shares faces
+          pCondition->Set(SELECTED.AsFalse()); //meaning that is a element that shares faces
           face_elements++;
           break;
         }

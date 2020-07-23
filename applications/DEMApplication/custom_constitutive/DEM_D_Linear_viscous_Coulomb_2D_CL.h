@@ -16,21 +16,19 @@ namespace Kratos {
         DEM_D_Linear_viscous_Coulomb2D() {
         }
 
-        void Initialize(const ProcessInfo& r_process_info) override;
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_D_Linear_viscous_Coulomb2D() {
         }
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
 
-        void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;  
+        void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
 
     private:
-        
+
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override {

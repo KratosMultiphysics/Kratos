@@ -63,29 +63,32 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticScheme);
 
     /// Base class definition
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
+    typedef Scheme<TSparseSpace,TDenseSpace>                                       BaseType;
+
+    // The current class definition
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
     /// DoF array type definition
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
+    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
 
     /// Data type definition
-    typedef typename BaseType::TDataType                         TDataType;
+    typedef typename BaseType::TDataType                                          TDataType;
     /// Matrix type definition
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
     /// Vector type definition
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
     /// Local system matrix type definition
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType                  LocalSystemVectorType;
     /// Local system vector type definition
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::LocalSystemMatrixType                  LocalSystemMatrixType;
 
     /// Elements containers definition
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
+    typedef ModelPart::ElementsContainerType                              ElementsArrayType;
     /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+    typedef ModelPart::ConditionsContainerType                          ConditionsArrayType;
 
     /// The definition of the vector containing the equation ids
-    typedef Element::EquationIdVectorType             EquationIdVectorType;
+    typedef Element::EquationIdVectorType                              EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -130,6 +133,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Performing the update of the solution.
@@ -190,7 +202,7 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Definition of the first element iterator
         const auto it_elem_begin = rModelPart.ElementsBegin();
@@ -251,25 +263,25 @@ public:
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param rLHSContribution The LHS matrix contribution
      * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& rLHSContribution,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -282,42 +294,42 @@ public:
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& rLHSContribution,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition)->CalculateLocalSystem(rLHSContribution, rRHSContribution, rCurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(rLHSContribution, rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -329,41 +341,41 @@ public:
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& rRHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
     /**
      * @brief This function is designed to calculate just the LHS contribution
-     * @param pCurrentElement The element to compute
+     * @param rCurrentElement The element to compute
      * @param rLHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
-    void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
         LocalSystemMatrixType& rLHSContribution,
         EquationIdVectorType& rEquationId,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateLeftHandSide(rLHSContribution, rCurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(rLHSContribution, rCurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -374,6 +386,15 @@ public:
     void Clear() override
     {
         this->mpDofUpdater->Clear();
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "static_scheme";
     }
 
     ///@}

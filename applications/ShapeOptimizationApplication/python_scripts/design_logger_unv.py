@@ -13,11 +13,10 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Import logger base classes
-from design_logger_base import DesignLogger
+from .design_logger_base import DesignLogger
 
 # ==============================================================================
 class DesignLoggerUNV( DesignLogger ):
@@ -39,10 +38,10 @@ class DesignLoggerUNV( DesignLogger ):
     def __DetermineOutputMode( self ):
         output_mode = self.output_settings["design_output_mode"].GetString()
 
-        if output_mode == "WriteDesignSurface":
+        if output_mode == "write_design_surface":
             self.write_design_surface = True
             self.design_history_filename = self.design_surface.Name
-        elif output_mode == "WriteOptimizationModelPart":
+        elif output_mode == "write_optimization_model_part":
             if self.optimization_model_part.NumberOfElements() == 0:
                 raise NameError("Output of optimization model part in UNV-format requires definition of elements. No elements are given in current mdpa! You may change the design output mode.")
             self.write_optimization_model_part = True
@@ -57,9 +56,9 @@ class DesignLoggerUNV( DesignLogger ):
         nodal_results = self.output_settings["nodal_results"]
 
         if self.write_design_surface:
-            self.UNVIO = UniversalFileIO( self.design_surface, design_history_file_path, "WriteConditionsOnly", nodal_results )
+            self.UNVIO = KSO.UniversalFileIO( self.design_surface, design_history_file_path, "WriteConditionsOnly", nodal_results )
         elif self.write_optimization_model_part:
-            self.UNVIO = UniversalFileIO( self.optimization_model_part, design_history_file_path, "WriteElementsOnly", nodal_results )
+            self.UNVIO = KSO.UniversalFileIO( self.optimization_model_part, design_history_file_path, "WriteElementsOnly", nodal_results )
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):

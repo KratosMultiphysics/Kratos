@@ -41,8 +41,8 @@ class RotatingAleAnalysis(BaseAnalysis):
 
     def SetFluidLoader(self):
         if self.project_parameters["rotated_stationary_flow_option"].GetBool():
-            import hdf5_io_tools_PID
-            import average_field
+            import KratosMultiphysics.SwimmingDEMApplication.hdf5_io_tools_PID as hdf5_io_tools_PID
+            import KratosMultiphysics.SwimmingDEMApplication.average_field as average_field
 
             rotation_axis_initial_point = self.project_parameters['frame_of_reference']["frame_rotation_axis_initial_point"].GetVector()
             rotation_axis_final_point = self.project_parameters['frame_of_reference']["frame_rotation_axis_final_point"].GetVector()

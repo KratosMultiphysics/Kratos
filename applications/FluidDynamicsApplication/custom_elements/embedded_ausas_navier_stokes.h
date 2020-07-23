@@ -76,7 +76,7 @@ public:
     struct EmbeddedAusasElementDataStruct {
 
         BoundedMatrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
-        array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
+        array_1d<double,TNumNodes> p, pn, pnn;
 
         array_1d<double, TNumNodes>                 N;        // Shape functions values on Gauss pt. container
         BoundedMatrix<double, TNumNodes, TDim>     DN_DX;    // Shape functions gradients values on Gauss pt. container
@@ -93,6 +93,8 @@ public:
         double volume;        // In 2D: element area. In 3D: element volume
         double dt;            // Time increment
         double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
+        double mu;            // Dynamic viscosity
+        double rho;           // Density
 
         // No splitted elements geometry data containers
         VectorType                      w_gauss;       // No splitted element Gauss pts. weights values
@@ -439,8 +441,20 @@ protected:
         mpConstitutiveLaw->InitializeMaterial( GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues(), 0 ) );
 
         // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
-        Vector zero_vector(TNumNodes, 0.0);
-        this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
+        if (!this->Has(ELEMENTAL_DISTANCES)) {
+            Vector zero_vector(TNumNodes, 0.0);
+            this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
+        }
+
+        // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
+        const array_1d<double,3> zero_vel = ZeroVector(3);
+        for (auto &r_node : this->GetGeometry()) {
+            r_node.SetLock();
+            if (!r_node.Has(EMBEDDED_VELOCITY)) {
+                r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
+            }
+            r_node.UnSetLock();
+        }
 
         KRATOS_CATCH("");
     }
@@ -468,6 +482,11 @@ protected:
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];      // Wave velocity
 
+        // Material properties
+        const auto& r_prop = GetProperties();
+        rData.rho = r_prop.GetValue(DENSITY);
+        rData.mu = r_prop.GetValue(DYNAMIC_VISCOSITY);
+
         for (unsigned int i = 0; i < TNumNodes; i++) {
 
             const array_1d<double,3>& body_force = r_geom[i].FastGetSolutionStepValue(BODY_FORCE);
@@ -487,8 +506,6 @@ protected:
             rData.p[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE);
             rData.pn[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE,1);
             rData.pnn[i] = r_geom[i].FastGetSolutionStepValue(PRESSURE,2);
-            rData.rho[i] = r_geom[i].FastGetSolutionStepValue(DENSITY);
-            rData.mu[i] = r_geom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
         }
 
         // Getting the nodal distances vector
@@ -648,10 +665,6 @@ protected:
 
             // Add the normal component penalty contribution
             this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
-
-            // Use the pressure as a Lagrange multiplier to enforce the no penetration condition
-            // this->AddSystemNormalVelocityLagrangeMultiplierContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
-
         } else {
 
             // If the element is not splitted, add the standard Navier-Stokes contribution
@@ -907,30 +920,9 @@ protected:
         const EmbeddedAusasElementDataStruct &rData,
         const ProcessInfo &rCurrentProcessInfo)
     {
+        const auto &r_geom = this->GetGeometry();
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
-
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-        array_1d<double, MatrixSize> solution_jump = ZeroVector(MatrixSize);
-
-        // Obtain the previous iteration velocity solution
-        GetPreviousSolutionVector(rData, prev_sol);
-
-        // Compute the velocity diference to penalize
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3> &embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i) {
-                for (unsigned int comp=0; comp<TDim; ++comp) {
-                    aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            solution_jump = aux_embedded_vel - prev_sol;
-        } else {
-            solution_jump = - prev_sol;
-        }
 
         // Compute the penalty coefficient
         const double pen_coef = ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
@@ -952,12 +944,16 @@ protected:
             // Compute and assemble the LHS contribution
             for (unsigned int i = 0; i < TNumNodes; ++i) {
                 for (unsigned int j = 0; j < TNumNodes; ++j) {
+                    const auto j_v = row(rData.v, j);
+                    const auto j_v_emb = r_geom[j].GetValue(EMBEDDED_VELOCITY);
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i * BlockSize + m;
-
                         for (unsigned int n = 0; n < TDim; ++n) {
                             const unsigned int col = j * BlockSize + n;
-                            P_gamma(row, col) += pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j);
+                            const double aux_val = pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j);
+                            rLeftHandSideMatrix(row,col) += aux_val;
+                            rRightHandSideVector(row) -= aux_val * j_v(n);
+                            rRightHandSideVector(row) += aux_val * j_v_emb(n);
                         }
                     }
                 }
@@ -978,23 +974,21 @@ protected:
             // Compute and assemble the LHS contribution
             for (unsigned int i = 0; i < TNumNodes; ++i) {
                 for (unsigned int j = 0; j < TNumNodes; ++j) {
+                    const auto j_v = row(rData.v, j);
+                    const auto j_v_emb = r_geom[j].GetValue(EMBEDDED_VELOCITY);
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i * BlockSize + m;
-
                         for (unsigned int n = 0; n < TDim; ++n) {
                             const unsigned int col = j * BlockSize + n;
-                            P_gamma(row, col) += pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j);
+                            const double aux_val = pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j);
+                            rLeftHandSideMatrix(row,col) += aux_val;
+                            rRightHandSideVector(row) -= aux_val * j_v(n);
+                            rRightHandSideVector(row) += aux_val * j_v_emb(n);
                         }
                     }
                 }
             }
         }
-
-        // LHS assembly
-        rLeftHandSideMatrix += P_gamma;
-
-        // RHS assembly
-        rRightHandSideVector += prod(P_gamma, solution_jump);
     }
 
     /**
@@ -1017,26 +1011,16 @@ protected:
         GetPreviousSolutionVector(rData, prev_sol);
 
         // Compute the velocity diference to penalize
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3> &embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i) {
-                for (unsigned int comp=0; comp<TDim; ++comp) {
-                    aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
-                }
+        const auto &r_geom = this->GetGeometry();
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d) {
+                prev_sol(i_node * BlockSize + d) -= r_i_emb_vel(d);
             }
-
-            solution_jump = aux_embedded_vel - prev_sol;
-        } else {
-            solution_jump = - prev_sol;
         }
 
         // Compute the penalty coefficient
         const double pen_coef = ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
-
-        // Compute the RHS penalty contributions
-        array_1d<double, MatrixSize> P_gamma_RHS = ZeroVector(MatrixSize);
 
         // Contribution coming from the positive side penalty term
         const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
@@ -1055,7 +1039,7 @@ protected:
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i * BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
-                            P_gamma_RHS(row) += pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j) * solution_jump(row);
+                            rRightHandSideVector(row) -= pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j) * solution_jump(row);
                         }
                     }
                 }
@@ -1079,123 +1063,12 @@ protected:
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i * BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
-                            P_gamma_RHS(row) += pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j) * solution_jump(row);
+                            rRightHandSideVector(row) -= pen_coef * w_gauss * aux_N(i) * side_normal(m) * side_normal(n) * aux_N(j) * solution_jump(row);
                         }
                     }
                 }
             }
         }
-
-        // RHS assembly
-        rRightHandSideVector += P_gamma_RHS;
-    }
-
-    /**
-    * This function adds the local system contribution of the no penetration imposition,
-    * by means of the pressure acting as a Lagrange multiplier.
-    * @param rLeftHandSideMatrix reference to the LHS matrix
-    * @param rRightHandSideVector reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddSystemNormalVelocityLagrangeMultiplierContribution(
-        MatrixType &rLeftHandSideMatrix,
-        VectorType &rRightHandSideVector,
-        const EmbeddedAusasElementDataStruct &rData) {
-
-        constexpr unsigned int BlockSize = TDim + 1;
-        constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
-
-        array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
-        array_1d<double, MatrixSize> solution_jump = ZeroVector(MatrixSize);
-
-        // Obtain the previous iteration velocity solution
-        GetPreviousSolutionVector(rData, prev_sol);
-
-        // Compute the velocity diference to penalize
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3> &embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i) {
-                for (unsigned int comp=0; comp<TDim; ++comp) {
-                    aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            solution_jump = prev_sol - aux_embedded_vel;
-        } else {
-            solution_jump = prev_sol;
-        }
-
-        // Compute the LHS and RHS penalty contributions
-        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
-        // Drop the pressure rows and columns
-        for (unsigned int i=0; i<TNumNodes; ++i) {
-            const unsigned int aux = i*BlockSize + TDim;
-            for (unsigned int j=0; j<MatrixSize; ++j) {
-                rLeftHandSideMatrix(aux, j) = 0.0;
-                rLeftHandSideMatrix(j, aux) = 0.0;
-            }
-        }
-
-        // Contribution coming from the positive side Lagrange multiplier term
-        const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
-        for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
-            const double w_gauss = rData.w_gauss_pos_int(i_gauss);
-
-            // Get the positive side shape functions Gauss pt. values
-            const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
-
-            // Get the positive side Gauss pt. normal
-            const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
-
-            // Compute and assemble the LHS contribution
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                const unsigned int row = i * BlockSize + TDim;
-
-                for (unsigned int j = 0; j < TNumNodes; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        const unsigned int col = j * BlockSize + m;
-                        const double aux_value = w_gauss * aux_N(i) * side_normal(m) * aux_N(j);
-                        auxLeftHandSideMatrix(row, col) += aux_value;
-                        auxLeftHandSideMatrix(col, row) += aux_value;
-                    }
-                }
-            }
-        }
-
-        // Contribution coming from the negative side Lagrange multiplier term
-        const unsigned int n_int_neg_gauss = (rData.w_gauss_neg_int).size();
-        for (unsigned int i_gauss = 0; i_gauss < n_int_neg_gauss; ++i_gauss) {
-            const double w_gauss = rData.w_gauss_neg_int(i_gauss);
-
-            // Get the negative side shape functions Gauss pt. values
-            const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
-
-            // Get the negative side Gauss pt. normal
-            const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
-
-            // Compute and assemble the LHS contribution
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                const unsigned int row = i * BlockSize + TDim;
-
-                for (unsigned int j = 0; j < TNumNodes; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        const unsigned int col = j * BlockSize + m;
-                        const double aux_value = w_gauss * aux_N(i) * side_normal(m) * aux_N(j);
-                        auxLeftHandSideMatrix(row, col) += aux_value;
-                        auxLeftHandSideMatrix(col, row) += aux_value;
-                    }
-                }
-            }
-        }
-
-        // LHS assembly
-        rLeftHandSideMatrix += auxLeftHandSideMatrix;
-
-        // RHS assembly
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, solution_jump);
     }
 
     /**
@@ -1239,26 +1112,18 @@ protected:
         }
 
         // Compute the element average values
-        double avg_rho = 0.0;
-        double avg_visc = 0.0;
         array_1d<double, TDim> avg_vel = ZeroVector(TDim);
-
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            avg_rho += rData.rho(i_node);
-            avg_visc += rData.mu(i_node);
             avg_vel += row(rData.v, i_node);
         }
-
-        avg_rho /= TNumNodes;
-        avg_visc /= TNumNodes;
         avg_vel /= TNumNodes;
 
         const double v_norm = norm_2(avg_vel);
 
         // Compute the penalty constant
-        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
-                                avg_visc*std::pow(rData.h,TDim-2) +
-                                avg_rho*v_norm*std::pow(rData.h, TDim-1);
+        const double pen_cons = rData.rho*std::pow(rData.h, TDim)/rData.dt +
+                                rData.mu*std::pow(rData.h,TDim-2) +
+                                rData.rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
         const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];

@@ -18,6 +18,7 @@ class RestartUtility(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "",
+            "io_foldername"                  : "",
             "echo_level"                     : 0,
             "serializer_trace"               : "no_trace",
             "restart_load_file_label"        : "",
@@ -43,7 +44,18 @@ class RestartUtility(object):
         # the path is splitted in case it already contains a path (neeeded if files are moved to a folder)
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
         self.raw_path = os.path.join(os.getcwd(), self.raw_path)
-        self.folder_name = self.raw_file_name + "__restart_files"
+
+        if settings["io_foldername"].GetString() == '':
+            self.io_foldername = self.raw_file_name + "__restart_files"
+            info_msg  = 'No entry found for "io_foldername"\n'
+            info_msg += 'Using the default "' + self.io_foldername + '"'
+            KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
+
+        else:
+            self.io_foldername = settings["io_foldername"].GetString()
+            info_msg  = 'Found entry found for "io_foldername"\n'
+            info_msg += 'Using the user-defined value "' + self.io_foldername + '"'
+            KratosMultiphysics.Logger.PrintInfo("RestartUtility", info_msg)
 
         serializer_trace = settings["serializer_trace"].GetString()
         if not serializer_trace in __serializer_flags.keys():
@@ -85,6 +97,7 @@ class RestartUtility(object):
         if restart_file_name == "": # Using the default restart file name
             # Get file name
             restart_path = self.__GetFileNameLoad()
+
         else: # Using a custom restart file name
             if restart_file_name.endswith('.rest'):
                 restart_file_name = restart_file_name[:-5] # removing ".rest" from the file name
@@ -155,7 +168,7 @@ class RestartUtility(object):
             folder_path = self.__GetFolderPathSave()
             if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
                 os.makedirs(folder_path)
-            self.model_part.GetCommunicator().Barrier()
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
 
     #### Protected functions ####
@@ -174,13 +187,13 @@ class RestartUtility(object):
 
     def __GetFolderPathLoad(self):
         if self.load_restart_files_from_folder:
-            return os.path.join(self.raw_path, self.folder_name)
+            return os.path.join(self.raw_path, self.io_foldername)
         else:
             return self.raw_path
 
     def __GetFolderPathSave(self):
         if self.save_restart_files_in_folder:
-            return os.path.join(self.raw_path, self.folder_name)
+            return os.path.join(self.raw_path, self.io_foldername)
         else:
             return self.raw_path
 

@@ -72,12 +72,12 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         Vector& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
-    
+
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix( r_constitutive_matrix, rValues);
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -283,15 +283,18 @@ int ElasticIsotropic3D::Check(
     )
 {
     KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] < 0.0) << "YOUNG_MODULUS is negative." << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
-    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
+    const double tolerance = 1.0e-12;
+    const double nu_upper_bound = 0.5;
+    const double nu_lower_bound = -1.0;
+    const double nu = rMaterialProperties[POISSON_RATIO];
+    KRATOS_ERROR_IF((nu_upper_bound - nu) < tolerance) << "POISSON_RATIO is above the upper bound 0.5." << std::endl;
+    KRATOS_ERROR_IF((nu - nu_lower_bound) < tolerance) << "POISSON_RATIO is below the lower bound -1.0." << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is negative." << std::endl;
 
     return 0;
 }

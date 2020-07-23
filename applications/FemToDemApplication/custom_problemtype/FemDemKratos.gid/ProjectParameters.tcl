@@ -12,7 +12,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## AMR data
     puts $FileVar "   \"AMR_data\": \{"
-	puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique]"
+	puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique],"
+    puts $FileVar "           \"hessian_variable_parameters\":  \{"
+    puts $FileVar "              \"normalized_free_energy\":           false,"
+    puts $FileVar "              \"correct_with_displacements\":       true,"
+    puts $FileVar "              \"correction_factor\":                1.0"
+    puts $FileVar "         \}"
     puts $FileVar "    \},"
     
     ## problem_data
@@ -26,8 +31,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
     puts $FileVar "  \"pressure_load_extrapolation\":     [GiD_AccessValue get gendata Extrapolate_Pressure_Load],"
-    puts $FileVar "  \"displacement_perturbed_tangent\":  [GiD_AccessValue get gendata Displacement_Perturbed_Tangent_Computation],"
-    
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
+
+
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
@@ -145,7 +152,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"gidpost_flags\":       \{"
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
+    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostBinary\","
     puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
@@ -180,8 +187,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     # gauss_point_results
     set PutStrings \[
     set iGroup 0
-    AppendOutputVariables PutStrings iGroup Write_Strain STRAIN_VECTOR
-    AppendOutputVariables PutStrings iGroup Write_Predictive_Stress STRESS_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Predictive_Stress CAUCHY_STRESS_VECTOR
     AppendOutputVariables PutStrings iGroup Write_Integrated_Stress STRESS_VECTOR_INTEGRATED
     AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_ELEMENT
     AppendOutputVariables PutStrings iGroup Stress_Threshold STRESS_THRESHOLD

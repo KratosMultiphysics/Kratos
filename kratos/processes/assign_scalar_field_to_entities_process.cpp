@@ -30,17 +30,8 @@ AssignScalarFieldToEntitiesProcess<TEntity>::AssignScalarFieldToEntitiesProcess(
 {
     KRATOS_TRY
 
-    Parameters default_parameters( R"(
-    {
-        "model_part_name" :"MODEL_PART_NAME",
-        "mesh_id"         : 0,
-        "variable_name"   : "VARIABLE_NAME",
-        "interval"        : [0.0, 1e30],
-        "value"           : "please give an expression in terms of the variable x, y, z, t",
-        "local_axes"      : {}
-    }  )" );
-
     // Validate against defaults -- this ensures no type mismatch
+    const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mMeshId       = rParameters["mesh_id"].GetInt();
@@ -65,8 +56,6 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 
     if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of scalar variable
         InternalAssignValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName), current_time);
-    } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
-        InternalAssignValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName), current_time);
     } else if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
         InternalAssignValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName), current_time);
     } else {
@@ -74,6 +63,24 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+const Parameters AssignScalarFieldToEntitiesProcess<TEntity>::GetDefaultParameters() const
+{
+    const Parameters default_parameters( R"(
+    {
+        "model_part_name" :"MODEL_PART_NAME",
+        "mesh_id"         : 0,
+        "variable_name"   : "VARIABLE_NAME",
+        "interval"        : [0.0, 1e30],
+        "value"           : "please give an expression in terms of the variable x, y, z, t",
+        "local_axes"      : {}
+    }  )" );
+    return default_parameters;
 }
 
 /***********************************************************************************/
@@ -92,7 +99,7 @@ void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunction(
         rValue.resize(size,false);
     }
 
-    rValue[0] = mpFunction->CallFunction(pEntity->X(),pEntity->Y(),pEntity->Z(),Time  );
+    rValue[0] = mpFunction->CallFunction(pEntity->X(),pEntity->Y(),pEntity->Z(),Time, pEntity->X0(),pEntity->Y0(),pEntity->Z0());
 }
 
 /***********************************************************************************/
@@ -113,7 +120,8 @@ void AssignScalarFieldToEntitiesProcess<Condition>::CallFunction(
     }
 
     for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->CallFunction(r_entity_geometry[i].X(),r_entity_geometry[i].Y(),r_entity_geometry[i].Z(),Time  );
+        const auto& r_node = r_entity_geometry[i];
+        rValue[i] = mpFunction->CallFunction(r_node.X(),r_node.Y(),r_node.Z(), Time, r_node.X0(),r_node.Y0(),r_node.Z0());
     }
 }
 
@@ -135,7 +143,8 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunction(
     }
 
     for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->CallFunction(r_entity_geometry[i].X(),r_entity_geometry[i].Y(),r_entity_geometry[i].Z(),Time  );
+        const auto& r_node = r_entity_geometry[i];
+        rValue[i] = mpFunction->CallFunction(r_node.X(),r_node.Y(),r_node.Z(), Time, r_node.X0(),r_node.Y0(),r_node.Z0());
     }
 }
 
@@ -149,7 +158,7 @@ void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunctionComponents(
     double& rValue
     )
 {
-    rValue = mpFunction->CallFunction(pEntity->X(),pEntity->Y(),pEntity->Z(), Time  );
+    rValue = mpFunction->CallFunction(pEntity->X(),pEntity->Y(),pEntity->Z(), Time, pEntity->X0(),pEntity->Y0(),pEntity->Z0());
 }
 
 /***********************************************************************************/
@@ -165,7 +174,7 @@ void AssignScalarFieldToEntitiesProcess<Condition>::CallFunctionComponents(
     GeometryType& r_entity_geometry = pEntity->GetGeometry();
     const array_1d<double,3>& r_center = r_entity_geometry.Center();
 
-    rValue = mpFunction->CallFunction(r_center[0],r_center[1],r_center[2], Time  );
+    rValue = mpFunction->CallFunction(r_center[0],r_center[1],r_center[2], Time);
 }
 
 /***********************************************************************************/
@@ -181,7 +190,7 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunctionComponents(
     GeometryType& r_entity_geometry = pEntity->GetGeometry();
     const array_1d<double,3>& r_center = r_entity_geometry.Center();
 
-    rValue = mpFunction->CallFunction(r_center[0],r_center[1],r_center[2], Time  );
+    rValue = mpFunction->CallFunction(r_center[0],r_center[1],r_center[2], Time);
 }
 
 /***********************************************************************************/
@@ -200,7 +209,7 @@ void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunctionLocalSystem(
         rValue.resize(size,false);
     }
 
-    rValue[0] = mpFunction->RotateAndCallFunction(pEntity->X(),pEntity->Y(),pEntity->Z(), Time  );
+    rValue[0] = mpFunction->RotateAndCallFunction(pEntity->X(),pEntity->Y(),pEntity->Z(), Time, pEntity->X0(),pEntity->Y0(),pEntity->Z0());
 }
 
 /***********************************************************************************/
@@ -222,7 +231,8 @@ void AssignScalarFieldToEntitiesProcess<Condition>::CallFunctionLocalSystem(
     }
 
     for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->RotateAndCallFunction(r_entity_geometry[i].X(),r_entity_geometry[i].Y(),r_entity_geometry[i].Z(), Time  );
+        const auto& r_node = r_entity_geometry[i];
+        rValue[i] = mpFunction->RotateAndCallFunction(r_node.X(),r_node.Y(),r_node.Z(), Time, r_node.X0(),r_node.Y0(),r_node.Z0());
     }
 }
 
@@ -245,7 +255,8 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunctionLocalSystem(
     }
 
     for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->RotateAndCallFunction(r_entity_geometry[i].X(),r_entity_geometry[i].Y(),r_entity_geometry[i].Z(), Time  );
+        const auto& r_node = r_entity_geometry[i];
+        rValue[i] = mpFunction->RotateAndCallFunction(r_node.X(),r_node.Y(),r_node.Z(), Time, r_node.X0(),r_node.Y0(),r_node.Z0());
     }
 }
 
@@ -259,7 +270,7 @@ void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunctionLocalSystemCompone
     double& rValue
     )
 {
-    rValue = mpFunction->RotateAndCallFunction(pEntity->X(), pEntity->Y(), pEntity->Z(), Time  );
+    rValue = mpFunction->RotateAndCallFunction(pEntity->X(), pEntity->Y(), pEntity->Z(), Time, pEntity->X0(), pEntity->Y0(), pEntity->Z0());
 }
 
 /***********************************************************************************/
@@ -276,7 +287,7 @@ void AssignScalarFieldToEntitiesProcess<Condition>::CallFunctionLocalSystemCompo
 
     const array_1d<double,3>& r_center = r_entity_geometry.Center();
 
-    rValue = mpFunction->RotateAndCallFunction(r_center[0],r_center[1],r_center[2], Time  );
+    rValue = mpFunction->RotateAndCallFunction(r_center[0],r_center[1],r_center[2], Time);
 }
 
 /***********************************************************************************/
@@ -293,7 +304,7 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunctionLocalSystemCompone
 
     const array_1d<double,3>& r_center = r_entity_geometry.Center();
 
-    rValue = mpFunction->RotateAndCallFunction(r_center[0],r_center[1],r_center[2], Time  );
+    rValue = mpFunction->RotateAndCallFunction(r_center[0],r_center[1],r_center[2], Time);
 }
 
 /***********************************************************************************/

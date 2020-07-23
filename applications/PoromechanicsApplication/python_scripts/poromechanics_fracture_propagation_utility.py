@@ -7,11 +7,13 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 # Import shutil to manage file copying
 import shutil
+
+from importlib import import_module
 
 class FracturePropagationUtility(object):
 
@@ -77,6 +79,17 @@ class FracturePropagationUtility(object):
             for name, value in parameters["output_processes"].items():
                 value = self.UpdateModelPartNames(value)
 
+        # Overwrite materials with the new model part name
+        with open("PoroMaterials.json",'r') as parameter_file:
+            materials = KratosMultiphysics.Parameters(parameter_file.read())
+        for p in range(materials["properties"].size()):
+            old_name = materials["properties"][p]["model_part_name"].GetString()
+            a,b=old_name.split(".")
+            new_name = str(self.original_model_part_name) + '_' + str(self.model_part_number) + '.' + str(b)
+            materials["properties"][p]["model_part_name"].SetString(new_name)
+        with open("PoroMaterials.json", 'w') as outfile:
+            outfile.write(materials.PrettyPrintJsonString())
+
         return parameters
 
     def SaveInitialProblemFiles(self):
@@ -113,6 +126,8 @@ class FracturePropagationUtility(object):
         filename = str(self.problem_name)+".mdpa"
         self.list_of_files_names.append(filename)
         filename = "ProjectParameters.json"
+        self.list_of_files_names.append(filename)
+        filename = "PoroMaterials.json"
         self.list_of_files_names.append(filename)
         filename = "FracturesData.json"
         self.list_of_files_names.append(filename)
@@ -226,8 +241,21 @@ class FracturePropagationUtility(object):
             for name, value in parameters["output_processes"].items():
                 value = self.UpdateModelPartNames(value)
 
+        # Overwrite materials with the new model part name
+        with open("PoroMaterials.json",'r') as parameter_file:
+            materials = KratosMultiphysics.Parameters(parameter_file.read())
+        for p in range(materials["properties"].size()):
+            old_name = materials["properties"][p]["model_part_name"].GetString()
+            a,b=old_name.split(".")
+            new_name = str(self.original_model_part_name) + '_' + str(self.model_part_number) + '.' + str(b)
+            materials["properties"][p]["model_part_name"].SetString(new_name)
+        with open("PoroMaterials.json", 'w') as outfile:
+            outfile.write(materials.PrettyPrintJsonString())
+
         # Create new solver (and new_model_part)
-        solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
+        python_module_name = "KratosMultiphysics.PoromechanicsApplication"
+        full_module_name = python_module_name + "." + parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
         new_solver = solver_module.CreateSolver(self.model, parameters["solver_settings"])
 
         new_solver.AddVariables()
@@ -239,7 +267,7 @@ class FracturePropagationUtility(object):
         new_list_of_processes = []
         new_list_of_output_processes = []
 
-        from process_factory import KratosProcessFactory
+        from KratosMultiphysics.process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
 
         if parameters.Has("processes"):

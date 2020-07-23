@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -60,15 +58,30 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "TotalLagrangianElement2D4N"     : "TotalLagrangianAdjointElement2D4N",
                     "TotalLagrangianElement2D6N"     : "TotalLagrangianAdjointElement2D6N",
                     "TotalLagrangianElement3D4N"     : "TotalLagrangianAdjointElement3D4N",
-                    "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N"
+                    "TotalLagrangianElement3D8N"     : "TotalLagrangianAdjointElement3D8N",
+                    "SmallDisplacementElement3D4N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D4N",
+                    "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
+                    "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
+                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N"
                 },
                 "condition_name_table" :
                 {
                     "PointLoadCondition2D1N"         : "AdjointSemiAnalyticPointLoadCondition2D1N",
-                    "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N"
-                }
+                    "PointLoadCondition3D1N"         : "AdjointSemiAnalyticPointLoadCondition3D1N",
+                    "SurfaceLoadCondition3D3N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D3N",
+                    "SurfaceLoadCondition3D4N"       : "AdjointSemiAnalyticSurfaceLoadCondition3D4N",
+                    "SmallDisplacementSurfaceLoadCondition3D3N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D3N",
+                    "SmallDisplacementSurfaceLoadCondition3D4N" : "AdjointSemiAnalyticSmallDisplacementSurfaceLoadCondition3D4N",
+                    "LineLoadCondition3D2N"                     : "AdjointSemiAnalyticLineLoadCondition3D2N",
+                    "SmallDisplacementLineLoadCondition3D2N"    : "AdjointSemiAnalyticSmallDisplacementLineLoadCondition3D2N"
+                },
+                "ignore_conditions" : [
+                    "SurfaceCondition3D3N",
+                    "SurfaceCondition3D4N",
+                    "PointCondition3D1N"
+                ]
             }
-        """)
+        """) # TODO remove "Condition3D" after issue#4439 is resolved
 
         StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
         process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
@@ -90,6 +103,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
         if response_type == "adjoint_local_stress":
             self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_max_stress":
+            self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_linear_strain_energy":

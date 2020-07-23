@@ -10,11 +10,8 @@
 //  Main authors:    Miguel Angel Celigueta    maceli@cimne.upc.edu
 //
 
-
-
-
 #if !defined(PFEM_FLUID_GID_IO_BASE_H_INCLUDED)
-#define  PFEM_FLUID_GID_IO_BASE_H_INCLUDED
+#define PFEM_FLUID_GID_IO_BASE_H_INCLUDED
 
 // External includes
 #define USE_CONST
@@ -26,15 +23,15 @@
 namespace Kratos
 {
 
-template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
+template <class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
 class PfemFluidGidIO : public GidIO<TGaussPointContainer, TMeshContainer>
 {
 
-typedef Node < 3 > NodeType;
-typedef Properties PropertiesType;
-typedef Element ElementType;
-typedef Condition ConditionType;
-typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef Node<3> NodeType;
+    typedef Properties PropertiesType;
+    typedef Element ElementType;
+    typedef Condition ConditionType;
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
 
 public:
     ///pointer definition of PfemFluidGidIO
@@ -44,41 +41,41 @@ public:
     typedef GidIO<TGaussPointContainer, TMeshContainer> BaseType;
 
     ///Flags for mesh writing
-//             enum WriteDeformedMeshFlag{WriteDeformed, WriteUndeformed};
-//             enum WriteConditionsFlag{WriteConditions, WriteElementsOnly};
-//             enum MultiFileFlag{SingleFile, MultipleFiles};
+    //             enum WriteDeformedMeshFlag{WriteDeformed, WriteUndeformed};
+    //             enum WriteConditionsFlag{WriteConditions, WriteElementsOnly};
+    //             enum MultiFileFlag{SingleFile, MultipleFiles};
 
     ///Constructor
     ///single stream IO constructor
-    PfemFluidGidIO( const std::string& rDatafilename,
-           GiD_PostMode Mode,
-           MultiFileFlag use_multiple_files_flag,
-           WriteDeformedMeshFlag write_deformed_flag,
-           WriteConditionsFlag write_conditions_flag
-         ) : BaseType(rDatafilename, Mode, use_multiple_files_flag, write_deformed_flag, write_conditions_flag) {}
+    PfemFluidGidIO(const std::string &rDatafilename,
+                   GiD_PostMode Mode,
+                   MultiFileFlag use_multiple_files_flag,
+                   WriteDeformedMeshFlag write_deformed_flag,
+                   WriteConditionsFlag write_conditions_flag) : BaseType(rDatafilename, Mode, use_multiple_files_flag, write_deformed_flag, write_conditions_flag) {}
 
     ///Destructor.
     ~PfemFluidGidIO() override
-    {}
+    {
+    }
 
-    void WriteNodeMesh( MeshType& rThisMesh ) override
+    void WriteNodeMesh(MeshType &rThisMesh) override
     {
         KRATOS_TRY
 
         Timer::Start("Writing Mesh");
 
-        GiD_fBeginMesh(BaseType::mMeshFile,  "Kratos Mesh",GiD_3D,GiD_Point,1);
+        GiD_fBeginMesh(BaseType::mMeshFile, "Kratos Mesh", GiD_3D, GiD_Point, 1);
         GiD_fBeginCoordinates(BaseType::mMeshFile);
-        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
-                node_iterator != rThisMesh.NodesEnd();
-                ++node_iterator)
+        for (MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+             node_iterator != rThisMesh.NodesEnd();
+             ++node_iterator)
         {
-            if ( BaseType::mWriteDeformed == WriteUndeformed )
+            if (BaseType::mWriteDeformed == WriteUndeformed)
                 GiD_fWriteCoordinates(BaseType::mMeshFile, node_iterator->Id(), node_iterator->X0(),
-                                      node_iterator->Y0(), node_iterator->Z0() );
-            else if ( BaseType::mWriteDeformed == WriteDeformed )
+                                      node_iterator->Y0(), node_iterator->Z0());
+            else if (BaseType::mWriteDeformed == WriteDeformed)
                 GiD_fWriteCoordinates(BaseType::mMeshFile, node_iterator->Id(), node_iterator->X(),
-                                      node_iterator->Y(), node_iterator->Z() );
+                                      node_iterator->Y(), node_iterator->Z());
             else
                 KRATOS_ERROR << "Undefined WriteDeformedMeshFlag" << std::endl;
         }
@@ -86,33 +83,37 @@ public:
         int nodes_id[2];
         GiD_fBeginElements(BaseType::mMeshFile);
 
-        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
-                node_iterator != rThisMesh.NodesEnd();
-                ++node_iterator)
+        for (MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+             node_iterator != rThisMesh.NodesEnd();
+             ++node_iterator)
         {
+            unsigned int ID=0;
             nodes_id[0] = node_iterator->Id();
-            nodes_id[1] = node_iterator->Is(ISOLATED);
-            GiD_fWriteElementMat(BaseType::mMeshFile,node_iterator->Id(), nodes_id);
+            if(node_iterator->Is(FREE_SURFACE)){
+                ID = 1;
+            }else if(node_iterator->Is(ISOLATED)){
+                ID = 2;
+            }
+            nodes_id[1] =  ID;
+            GiD_fWriteElementMat(BaseType::mMeshFile, node_iterator->Id(), nodes_id);
         }
+
         GiD_fEndElements(BaseType::mMeshFile);
         GiD_fEndMesh(BaseType::mMeshFile);
 
         Timer::Stop("Writing Mesh");
 
         KRATOS_CATCH("")
-    }//WriteNodeMesh
+    } //WriteNodeMesh
 
 protected:
-
-
 private:
-    PfemFluidGidIO& operator=(PfemFluidGidIO const& rOther);
-    PfemFluidGidIO(PfemFluidGidIO const& rOther);
+    PfemFluidGidIO &operator=(PfemFluidGidIO const &rOther);
+    PfemFluidGidIO(PfemFluidGidIO const &rOther);
 
 }; // Class PfemFluidGidIO
 
-
-inline std::ostream& operator << (std::ostream& rOStream, const PfemFluidGidIO<>& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream, const PfemFluidGidIO<> &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -120,7 +121,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const PfemFluidGidIO<>
     return rOStream;
 }
 
-}// namespace Kratos.
-
+} // namespace Kratos.
 
 #endif // PFEM_FLUID_GID_IO_BASE_H_INCLUDED  defined

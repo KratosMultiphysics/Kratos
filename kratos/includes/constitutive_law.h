@@ -510,12 +510,23 @@ public:
     virtual ConstitutiveLaw::Pointer Clone() const;
 
     /**
-     * creates a new constitutive law pointer
+     * @brief It creates a new constitutive law pointer
      * @param NewParameters The configuration parameters of the new constitutive law
      * @return a Pointer to the new constitutive law
      */
     virtual Pointer Create(Kratos::Parameters NewParameters) const;
 
+    /**
+     * @brief It creates a new constitutive law pointer (version with properties)
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @param rProperties The properties of the material
+     * @return a Pointer to the new constitutive law
+     */
+    virtual Pointer Create(
+        Kratos::Parameters NewParameters, 
+        const Properties& rProperties
+        ) const;
+    
     /**
      * @return The working space dimension of the current constitutive law
      * @note This function HAS TO BE IMPLEMENTED by any derived class
@@ -911,15 +922,26 @@ public:
      */
     virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
 
-
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    virtual bool RequiresInitializeMaterialResponse()
+    {
+        return true;
+    }
 
     /**
-     * Initialize the material response,  called by the element in FinalizeSolutionStep.
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor, returns internal variables.
+     * @see Parameters
+     */
+    virtual void CalculateStressResponse (Parameters& rValues, Vector& rInternalVariables);
+
+    /**
+     * @brief Initialize the material response,  called by the element in InitializeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */
     void InitializeMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
-
 
     /**
      * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
@@ -949,10 +971,16 @@ public:
 
     virtual void InitializeMaterialResponseCauchy (Parameters& rValues);
 
-
+    /**
+     * @brief If the CL requires to finalize the material response, called by the element in FinalizeSolutionStep.
+     */
+    virtual bool RequiresFinalizeMaterialResponse()
+    {
+        return true;
+    }
 
     /**
-     * Finalize the material response,  called by the element in FinalizeSolutionStep.
+     * @brief Finalize the material response,  called by the element in FinalizeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */

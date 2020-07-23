@@ -1,15 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as KratosUtilities
-
-have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-
 # Import Python modules
 import math
+
+# Import kratos core and applications
+import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
+
+have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
@@ -138,7 +139,6 @@ class ManufacturedSolutionProblem:
         self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
         ## Solver construction
-        import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
         self.solver.AddVariables()
@@ -280,14 +280,19 @@ class ManufacturedSolutionProblem:
     def SetManufacturedSolutionSourceValues(self):
         ## Set the body force as source term
         time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        solver_type = self.ProjectParameters["solver_settings"]["solver_type"].GetString()
 
         for node in self.main_model_part.Nodes:
-            rho = node.GetSolutionStepValue(KratosMultiphysics.DENSITY)
-            # If VMS2D element is used, set mu as the Kinematic viscosity
-            if (self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "Embedded"):
-                mu = node.GetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            elif (self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "Monolithic"):
+            if solver_type == "Monolithic":
+                # If VMS2D element is used, set mu as the Kinematic viscosity and density in the nodes
+                rho = node.GetSolutionStepValue(KratosMultiphysics.DENSITY)
                 mu = rho*node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY)
+            elif solver_type == "Embedded":
+                # If the symbolic elements are used, get the density and viscosity from the first element properties
+                for elem in self.main_model_part.Elements:
+                    rho = elem.Properties[KratosMultiphysics.DENSITY]
+                    mu = elem.Properties[KratosMultiphysics.DYNAMIC_VISCOSITY]
+                    break
 
             rhof = self.ComputeNodalSourceTermManufacturedSolution(node, time, rho, mu)
 

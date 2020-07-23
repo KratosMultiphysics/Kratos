@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/mpi_serializer.h"
-#include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
 #define CUSTOMTIMER 1
@@ -272,7 +271,7 @@ template<> struct SendTools< Node<3>::DofsContainerType >
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
         {
-            *(pBuffer + i) = i_dof->EquationId();
+            *(pBuffer + i) = (*i_dof)->EquationId();
             ++i;
         }
     }
@@ -282,7 +281,7 @@ template<> struct SendTools< Node<3>::DofsContainerType >
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
         {
-            i_dof->SetEquationId(*(pBuffer + i));
+            (*i_dof)->SetEquationId(*(pBuffer + i));
             ++i;
         }
     }
@@ -1144,6 +1143,17 @@ public:
         return true;
     }
 
+    bool SynchronizeNodalFlags() override
+    {
+        constexpr MeshAccess<DistributedType::Local> local_meshes;
+        constexpr MeshAccess<DistributedType::Ghost> ghost_meshes;
+        MPIInternals::NodalFlagsAccess nodal_flags_access(Flags::AllDefined());
+        constexpr Operation<OperationType::Replace> replace;
+
+        TransferDistributedValues(local_meshes, ghost_meshes, nodal_flags_access, replace);
+        return true;
+    }
+
     bool SynchronizeElementalFlags() override
     {
         constexpr MeshAccess<DistributedType::Local> local_meshes;
@@ -1177,29 +1187,6 @@ public:
     {
         return "MPICommunicator";
     }
-
-    /// Print information about this object.
-
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-
-    void PrintData(std::ostream& rOStream) const override
-    {
-        for (IndexType i = 0; i < mLocalMeshes.size(); i++)
-        {
-            rOStream << "    Local Mesh " << i << " : " << std::endl;
-            LocalMesh(i).PrintData(rOStream);
-            rOStream << "    Ghost Mesh " << i << " : " << std::endl;
-            GhostMesh(i).PrintData(rOStream);
-            rOStream << "    Interface Mesh " << i << " : " << std::endl;
-            InterfaceMesh(i).PrintData(rOStream);
-        }
-    }
-
 
     ///@}
     ///@name Friends
@@ -1315,7 +1302,7 @@ private:
         int mpi_rank = mrDataCommunicator.Rank();
         int mpi_size = mrDataCommunicator.Size();
 
-        MPI_Comm comm = MPIEnvironment::GetMPICommunicator(mrDataCommunicator);
+        MPI_Comm comm = MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator);
 
         int * msgSendSize = new int[mpi_size];
         int * msgRecvSize = new int[mpi_size];
@@ -1803,6 +1790,7 @@ private:
         }
 
         KRATOS_WARNING_IF_ALL_RANKS("MPICommunicator", position > rBuffer.size())
+        << GetDataCommunicator()
         << "Error in estimating receive buffer size." << std::endl;
     }
 

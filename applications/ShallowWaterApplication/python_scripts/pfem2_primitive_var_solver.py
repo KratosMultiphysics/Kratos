@@ -10,12 +10,12 @@ def CreateSolver(model, custom_settings):
     return Pfem2PrimitiveVarSolver(model, custom_settings)
 
 class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
-    def __init__(self, model, custom_settings):
-        super(Pfem2PrimitiveVarSolver, self).__init__(model, custom_settings)
+    def __init__(self, model, settings):
+        super(Pfem2PrimitiveVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowElement"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
 
         # Pfem2 settings
@@ -33,10 +33,10 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
     def AddVariables(self):
         super(Pfem2PrimitiveVarSolver, self).AddVariables()
         # Variables to project unknown and update particles
-        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_SCALAR1)
         self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_VECTOR1)
         self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.DELTA_VECTOR1)
         # Specific variables to convect particles
         self.main_model_part.AddNodalSolutionStepVariable(KM.YP)
         self.main_model_part.AddNodalSolutionStepVariable(SW.MEAN_SIZE)
@@ -55,7 +55,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         domain_size = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = KM.FindNodalNeighboursProcess(self.main_model_part, number_of_avg_elems, number_of_avg_nodes)
+        self.neighbour_search = KM.FindNodalNeighboursProcess(self.main_model_part)
         self.neighbour_search.Execute()
         self.neighbour_elements_search = KM.FindElementalNeighboursProcess(self.main_model_part, domain_size, number_of_avg_elems)
         self.neighbour_elements_search.Execute()
@@ -77,35 +77,24 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             self.moveparticles.PreReseed(pre_minimum_number_of_particles)
             # Project info to mesh
             self.moveparticles.TransferLagrangianToEulerian()
-            self.moveparticles.ResetBoundaryConditions()
+            # self.moveparticles.ResetBoundaryConditions()
             # Initialize mesh solution step
             self.solver.InitializeSolutionStep()
-
-    def Predict(self):
-        if self._TimeBufferIsInitialized():
-            self.solver.Predict()
-
-    def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Solve equations on mesh
-            is_converged = self.solver.SolveSolutionStep()
-            # Compute free surface
-            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
-            # Print particles if needed
-            if self.print_particles:
-                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-                self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
-
-            return is_converged
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Finalize mesh solution step
             self.solver.FinalizeSolutionStep()
+
             # Update particles
             self.moveparticles.CalculateDeltaVariables()
             self.moveparticles.CorrectParticlesWithoutMovingUsingDeltaVariables()
             # Reseed empty elements
             post_minimum_number_of_particles = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]*2
             self.moveparticles.PostReseed(post_minimum_number_of_particles)
+
+            # Print particles if needed
+            if self.print_particles:
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+                self.lagrangian_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)

@@ -95,7 +95,7 @@ CMAKE_LIBS=(
   #        -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
   # --------------------------------------------------------------------------------------------------------------
   # Should be compiling against the system boost
-  # -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
+  -DBOOST_ROOT="/boost/boost_1_66_0"
 
   # Python
   #    Indicate your python binary dir in case you don't want to use the system default or you
@@ -141,7 +141,7 @@ CMAKE_BUILD=(
   # CMake C++ compiler
   # Please DO NOT REMOVE THE "-std=c++11" FLAG.
   -DCMAKE_CXX_COMPILER=${CXX_COMPILER}
-  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++11 ${CXX_PERF_FLAGS} ${CXX_WARN_FLAGS} ${CXX_CUSTOM_FLAGS}"
+  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++14 ${CXX_PERF_FLAGS} ${CXX_WARN_FLAGS} ${CXX_CUSTOM_FLAGS}"
 
   # Build type
   # NOTE: This is better commented for travis since we don't want to use

@@ -26,30 +26,14 @@ namespace Kratos
 {
 template<SizeType TDim>
 NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
-        ModelPart& rOriginMainModelPart,
-        ModelPart& rDestinationMainModelPart,
-        Parameters ThisParameters
-        ):mrOriginMainModelPart(rOriginMainModelPart),
-          mrDestinationMainModelPart(rDestinationMainModelPart),
-          mThisParameters(ThisParameters)
+    ModelPart& rOriginMainModelPart,
+    ModelPart& rDestinationMainModelPart,
+    Parameters ThisParameters
+    ):mrOriginMainModelPart(rOriginMainModelPart),
+        mrDestinationMainModelPart(rDestinationMainModelPart),
+        mThisParameters(ThisParameters)
 {
-    Parameters default_parameters = Parameters(R"(
-    {
-        "echo_level"                 : 1,
-        "framework"                  : "Eulerian",
-        "max_number_of_searchs"      : 1000,
-        "interpolate_non_historical" : true,
-        "extrapolate_contour_values" : true,
-        "surface_elements"           : false,
-        "search_parameters"          : {
-            "allocation_size"           : 1000,
-            "bucket_size"               : 4,
-            "search_factor"             : 2.0
-        },
-        "step_data_size"             : 0,
-        "buffer_size"                : 0
-    })");
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     KRATOS_INFO_IF("NodalValuesInterpolationProcess", mThisParameters["echo_level"].GetInt() > 0) << "Step data size: " << mThisParameters["step_data_size"].GetInt() << " Buffer size: " << mThisParameters["buffer_size"].GetInt() << std::endl;
 }
@@ -91,20 +75,23 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
         for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
             auto it_node = it_node_begin + i;
 
-            const array_1d<double, 3>& coordinates = it_node->Coordinates();
-            const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                const array_1d<double, 3>& r_coordinates = it_node->Coordinates();
+                const bool is_found = point_locator.FindPointOnMeshSimplified(r_coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
 
-            if (!is_found) {
-                if (extrapolate_values) to_extrapolate_nodes_buffer.push_back(*(it_node.base()));
-                if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                    KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
-                    KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+                if (!is_found) {
+                    if (extrapolate_values) to_extrapolate_nodes_buffer.push_back(*(it_node.base()));
+                    if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
+                        KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                        KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+                    }
+                } else {
+                    if (mThisParameters["interpolate_non_historical"].GetBool())
+                        CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
+                    for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                        CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
                 }
-            } else {
-                if (mThisParameters["interpolate_non_historical"].GetBool())
-                    CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
-                for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
-                    CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
             }
         }
 
@@ -117,11 +104,28 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     // In case interpolate fails we extrapolate values
     if (extrapolate_values && to_extrapolate_nodes.size() > 0) {
+        // Original number of conditions
+        const std::size_t original_number_of_conditions = mrDestinationMainModelPart.NumberOfConditions();
+
+        // Generate boundary
         const std::string name_auxiliar_model_part = "SKIN_MODEL_PART_TO_LATER_REMOVE";
         GenerateBoundary(name_auxiliar_model_part);
+
+        // Remove new conditions and submodelpart
+        VariableUtils().SetFlag(TO_ERASE, true, mrDestinationMainModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions());
         mrDestinationMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+
+        // Extrapolate values
         ExtrapolateValues(name_auxiliar_model_part, to_extrapolate_nodes);
+
+        // Remove auxiliar model part
         mrOriginMainModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+
+        // Removing generated auxiliar conditions
+        mrDestinationMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+
+        const std::size_t number_of_conditions = mrDestinationMainModelPart.NumberOfConditions();
+        KRATOS_ERROR_IF(original_number_of_conditions != number_of_conditions) << "The number of conditions have changed " << number_of_conditions << " vs " << original_number_of_conditions <<  std::endl;
     }
 }
 
@@ -131,22 +135,14 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 {
-    // Getting the Model
-    Model& r_model = mrOriginMainModelPart.GetModel();
-
-    // Getting the list of model parts
-    std::vector<std::string> model_part_names = mrOriginMainModelPart.GetSubModelPartNames();
-    model_part_names.push_back(mrOriginMainModelPart.Name());
-
-    // We iterate over the model parts (in order to have the most extended possible list of variables)
-    for (auto& model_part_name : model_part_names) {
-        ModelPart& r_sub_model_part = r_model.GetModelPart(model_part_name);
-        if (r_sub_model_part.Nodes().size() > 0) {
-            auto it_node = r_sub_model_part.Nodes().begin();
-
-            auto& data = it_node->Data();
-            for(auto i = data.begin() ; i != data.end() ; ++i)
-                mListVariables.insert((i->first)->Name());
+    // We iterate over the model part
+    for (auto& r_node : mrOriginMainModelPart.Nodes()) {
+        const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            auto& r_data = r_node.Data();
+            for(auto it_data = r_data.begin() ; it_data != r_data.end() ; ++it_data) {
+                mListVariables.insert((it_data->first)->Name());
+            }
         }
     }
 }
@@ -236,7 +232,7 @@ void NodalValuesInterpolationProcess<TDim>::GenerateBoundaryFromElements(
     auto& r_elements_array = rModelPart.Elements();
     for(IndexType i=0; i< r_elements_array.size(); ++i) {
         auto it_elem = r_elements_array.begin() + i;
-        r_new_model_part.CreateNewCondition("Condition3D", new_id + 1, it_elem->GetGeometry(), it_elem->pGetProperties());
+        r_new_model_part.CreateNewCondition("SurfaceCondition3D3N", new_id + 1, it_elem->GetGeometry(), it_elem->pGetProperties());
         ++new_id;
     }
 }
@@ -386,6 +382,33 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+const Parameters NodalValuesInterpolationProcess<TDim>::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "echo_level"                 : 1,
+        "framework"                  : "Eulerian",
+        "max_number_of_searchs"      : 1000,
+        "interpolate_non_historical" : true,
+        "extrapolate_contour_values" : true,
+        "surface_elements"           : false,
+        "search_parameters"          : {
+            "allocation_size"           : 1000,
+            "bucket_size"               : 4,
+            "search_factor"             : 2.0
+        },
+        "step_data_size"             : 0,
+        "buffer_size"                : 0
+    })"
+    );
+
+    return default_parameters;
 }
 
 /***********************************************************************************/

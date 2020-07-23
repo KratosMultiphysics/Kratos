@@ -38,19 +38,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Part_foundation","Parts_Part_punch"],
-        "processes_sub_model_part_list"      : ["Structure","Tying_Part",
-                                                "Parts_Part_foundation_Nodes",
-                                                "Parts_Part_punch_Nodes",
-                                                "DISPLACEMENT_BC_fixed_support",
-                                                "DISPLACEMENT_BC_rolling_x",
-                                                "DISPLACEMENT_BC_fix_rot_y",
-                                                "DISPLACEMENT_BC_roll_punch",
-                                                "DISPLACEMENT_BC_no_rot_y_punch_1",
-                                                "DISPLACEMENT_BC_no_rot_y_punch_2",
-                                                "SurfaceLoad3D_SurfaceLoad"
-                                                ]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -60,7 +48,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_rolling_x",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_rolling_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,false],
                 "value"           : [0.0,0.0,0.0]
@@ -72,7 +60,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_fix_rot_y",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_fix_rot_y",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,false],
                 "value"           : [0.0,0.0,0.0]
@@ -84,7 +72,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_fixed_support",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_fixed_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -96,7 +84,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_roll_punch",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_roll_punch",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -108,7 +96,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_no_rot_y_punch_1",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_no_rot_y_punch_1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -120,7 +108,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_no_rot_y_punch_2",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_no_rot_y_punch_2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,false],
                 "value"           : [0.0,0.0,0.0]
@@ -132,7 +120,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "SurfaceLoad3D_SurfaceLoad",
+                "model_part_name" : "Structure.SurfaceLoad3D_SurfaceLoad",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -145,7 +133,7 @@
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "SurfaceLoad3D_SurfaceLoad",
+                "model_part_name" : "Structure.SurfaceLoad3D_SurfaceLoad",
                 "variable_name"   : "SURFACE_LOAD",
                 "modulus"         : 1.0,
                 "direction"       : [0.0,-1.0,0.0]
@@ -172,7 +160,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Y"],
                 "input_file_name"      : "mesh_tying_test/simple_patch_test_3D_results.json",
-                "model_part_name"      : "Tying_Part",
+                "model_part_name"      : "Structure.Tying_Part",
                 "time_frequency"       : 1.0
             }
         }
@@ -185,7 +173,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -202,7 +190,7 @@
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
-                        "nodal_nonhistorical_results": ["NORMAL"],
+                        "nodal_nonhistorical_results": [],
                         "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
                     },
                     "point_data_configuration"  : []}}}]
@@ -216,7 +204,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "mesh_tying_test/simple_patch_test_3D_results.json",
-            "model_part_name"      : "Tying_Part",
+            "model_part_name"      : "Structure.Tying_Part",
             "time_frequency"       : 1.0
         }
     }

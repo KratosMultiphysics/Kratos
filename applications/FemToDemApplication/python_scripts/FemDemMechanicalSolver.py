@@ -3,6 +3,8 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
 
 def CreateSolver(main_model_part, custom_settings):
     return FemDemMechanicalSolver(main_model_part, custom_settings)
@@ -78,14 +80,20 @@ class FemDemMechanicalSolver(object):
             },
             "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""]
+            "processes_sub_model_part_list":      [""],
+            "strategy_type":                          "newton_raphson",
+            "arc_length_loads_sub_model_part_list":   [],
+            "arc_length_loads_variable_list":         [],
+            "arc_length_desired_iterations":          4,
+            "arc_length_max_radius_factor":           10.0,
+            "arc_length_min_radius_factor":           1.0
         }
         """)
 
 
         #trick to allow null value in a stabilization_factor variable
-        if(custom_settings.Has("stabilization_factor")):
-            if(custom_settings["stabilization_factor"].IsDouble()):
+        if (custom_settings.Has("stabilization_factor")):
+            if (custom_settings["stabilization_factor"].IsDouble()):
                 default_settings["stabilization_factor"].SetDouble(0.0)
 
 
@@ -115,10 +123,9 @@ class FemDemMechanicalSolver(object):
         # Add dynamic variables
         if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
             self.dof_variables = self.dof_variables + ['VELOCITY','ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED','NOT_DEFINED']
 
         # Add specific variables for the problem conditions
-        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD']
+        self.nodal_variables = self.nodal_variables + ['VOLUME_ACCELERATION','POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','FORCE_LOAD']
 
         # Add nodal force variables for component wise calculation
         if( self.settings.Has("component_wise") ):
@@ -153,26 +160,27 @@ class FemDemMechanicalSolver(object):
             self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
             self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
 
-
-
     def AddVariables(self):
-
         self.SetVariables()
-
         self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions
-
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
-
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
-            #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
-
         print("::[Mechanical_Solver]:: General Variables ADDED")
 
-
     def AddDofs(self):
-        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
-        AddDofsProcess.Execute()
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+
+        # Add dynamic variables
+        if(self.settings["solution_type"].GetString() == "Dynamic" or (self.settings["scheme_type"].GetString() != "Linear")):
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z, self.main_model_part)
 
         print("::[Mechanical_Solver]:: DOF's ADDED")
 
@@ -197,10 +205,9 @@ class FemDemMechanicalSolver(object):
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
             print("   Loading Restart file: ", restart_path + ".rest ")
+
             # set serializer flag
             serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
             serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
             serializer.Load(self.main_model_part.Name, self.main_model_part)
@@ -330,7 +337,6 @@ class FemDemMechanicalSolver(object):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
         # CheckAndPrepareModelProcess creates the computating_model_part
-        import check_and_prepare_model_process
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Import constitutive laws
@@ -344,7 +350,7 @@ class FemDemMechanicalSolver(object):
 
         if os.path.isfile("materials.py"):
             # Constitutive law import
-            import constitutive_law_python_utility as constitutive_law_utils
+            import KratosMultiphysics.SolidMechanicsApplication.constitutive_law_python_utility as constitutive_law_utils
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part,
                                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]);
             constitutive_law.Initialize();
@@ -450,7 +456,7 @@ class FemDemMechanicalSolver(object):
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
 
         # Construction of the class convergence_criterion
-        import convergence_criteria_factory_fem_dem
+        import KratosMultiphysics.FemToDemApplication.convergence_criteria_factory_fem_dem as convergence_criteria_factory_fem_dem
         convergence_criteria_factory_fem_dem = convergence_criteria_factory_fem_dem.convergence_criterion(conv_params)
 
         return convergence_criteria_factory_fem_dem.mechanical_convergence_criterion

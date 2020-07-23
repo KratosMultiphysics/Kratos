@@ -15,10 +15,10 @@
         "echo_level"                         : 0,
         "domain_size"     : 2,
         "time_stepping"                      : {
-            "time_step" : 0.005
-        },
-        "linear_solver_settings" : {
-            "solver_type" : "ExternalSolversApplication.super_lu"
+            "time_step_table" : [
+                [0.0, 0.005],
+                [0.5, 0.01]
+            ]
         },
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -32,10 +32,7 @@
         },
         "material_import_settings" :{
                 "materials_filename": "mesh_moving_test/simple_mesh_moving_test_materials.json"
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_All"],
-        "processes_sub_model_part_list"      : ["Parts_All","DISPLACEMENT_support","DISPLACEMENT_movement"],
-        "rotation_dofs"                      : false
+        }
     },
     "processes" :
     {
@@ -46,7 +43,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_support",
+                "model_part_name" : "Structure.DISPLACEMENT_support",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0]
             }
@@ -58,7 +55,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_movement",
+                "model_part_name" : "Structure.DISPLACEMENT_movement",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,false],
                 "value"           : ["0.01*t",0.0,0.0]
@@ -70,7 +67,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignValueProcess",
             "Parameters"    : {
-                    "model_part_name" : "DISPLACEMENT_movement",
+                    "model_part_name" : "Structure.DISPLACEMENT_movement",
                     "variable_name"   : "DISPLACEMENT_X",
                     "interval"        : [0.0, "End"],
                     "value"           : "0.01*t",
@@ -78,25 +75,5 @@
             }
         }
         ]
-    },
-    "_output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
     }
 }

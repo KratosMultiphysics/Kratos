@@ -7,28 +7,10 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
 
-# Other imports
-import os
-
-# This utility will control the execution scope in case we need to access files or we depend
-# on specific relative locations of the files.
-
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
-
 class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
 
             # Reading the ProjectParameters
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
@@ -53,12 +35,12 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
 ### Axis-Symmetric Tests
@@ -72,11 +54,20 @@ class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestF
 class BeamCantileverStaticLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_line_load_2D_quad_test"
 
+class BeamCantileverStaticLinearElasticParticlePointLoad2DTriTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/cantilever_beam/particle_point_load_2D_tri_test"
+
 class BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_surface_load_3D_hexa_test"
 
 class BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test"
+
+class BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/linear_self_weight_load_2D_quad_test"
+
+class BeamCantileverDynamicConsistentMassTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test"
 
 ### Cook's Membrane Tests
 class CooksMembraneCompressibleTest(ParticleMechanicsTestFactory):
@@ -103,3 +94,37 @@ class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(
 ### Slip Boundary Tests
 class SlipBoundaryTest(ParticleMechanicsTestFactory):
     file_name = "slip_tests/slip_boundary_test"
+
+### Explicit time integration tests
+class ExplicitOscillatingPointUSLTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/usl_explicit_oscillating_point_test"
+
+class ExplicitOscillatingPointUSFTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/usf_explicit_oscillating_point_test"
+
+class ExplicitOscillatingPointMUSLTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/musl_explicit_oscillating_point_test"
+
+class ExplicitOscillatingPointCentralDifferenceTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/central_difference_explicit_oscillating_point_test"
+
+class ExplicitOscillatingPointYCompressibleTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/explicit_oscillating_point_Y_compressible_test"
+
+class ExplicitOscillatingPointGravityTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/explicit_oscillating_point_gravity_test"
+
+class ExplicitOscillatingPointTriTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point/tri_explicit_oscillating_point_test"
+
+class ExplicitAxisymDiskTriCompressibleTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/axisymmetric_disk/tri_compressible_explicit_axisym_disk_test"
+
+class ExplicitAxisymDiskQuadCompressibleTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/axisymmetric_disk/quad_compressible_explicit_axisym_disk_test"
+
+class Explicit3dHexCompressibleOscillatingPointTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point_3d/3dhex_compressible_explicit_oscillating_point_test"
+
+class Explicit3dTetCompressibleOscillatingPointTest(ParticleMechanicsTestFactory):
+    file_name = "explicit_tests/oscillating_point_3d/3dtet_compressible_explicit_oscillating_point_test"

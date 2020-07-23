@@ -18,18 +18,24 @@
 // Project includes
 #include "includes/kernel.h"
 #include "includes/kratos_version.h"
+#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 #include "input_output/logger.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
-Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
+Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {
+    mIsDistributedRun = IsDistributedRun;
     KRATOS_INFO("") << " |  /           |\n"
                     << " ' /   __| _` | __|  _ \\   __|\n"
                     << " . \\  |   (   | |   (   |\\__ \\\n"
                     << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
                     << "           Multi-Physics " << GetVersionString() << std::endl;
 
-    if (!IsImported("KratosMultiphysics")) {      
+    PrintParallelismSupportInfo();
+
+    if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
     }
 }
@@ -45,6 +51,10 @@ bool Kernel::IsImported(std::string ApplicationName) const {
         return true;
     else
         return false;
+}
+
+bool Kernel::IsDistributedRun() {
+    return mIsDistributedRun;
 }
 
 void Kernel::ImportApplication(KratosApplication::Pointer pNewApplication) {
@@ -65,11 +75,17 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     rOStream << "Variables:" << std::endl;
     KratosComponents<VariableData>().PrintData(rOStream);
     rOStream << std::endl;
+    rOStream << "Geometries:" << std::endl;
+    KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+    rOStream << std::endl;
     rOStream << "Elements:" << std::endl;
     KratosComponents<Element>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Conditions:" << std::endl;
     KratosComponents<Condition>().PrintData(rOStream);
+    rOStream << std::endl;
+    rOStream << "Modelers:" << std::endl;
+    KratosComponents<Modeler>().PrintData(rOStream);
 
     rOStream << "Loaded applications:" << std::endl;
 
@@ -89,5 +105,54 @@ std::string Kernel::BuildType() {
 std::string Kernel::Version() {
     return GetVersionString();
 }
+
+void Kernel::PrintParallelismSupportInfo() const
+{
+    #ifdef _OPENMP
+    constexpr bool openmp_support = true;
+    #else
+    constexpr bool openmp_support = false;
+    #endif
+
+    #ifdef KRATOS_USING_MPI
+    constexpr bool mpi_support = true;
+    #else
+    constexpr bool mpi_support = false;
+    #endif
+
+    Logger logger("");
+    logger << LoggerMessage::Severity::INFO;
+
+    if (openmp_support) {
+        if (mpi_support) {
+            logger << "Compiled with OpenMP and MPI support." << std::endl;
+        }
+        else {
+            logger << "Compiled with OpenMP support." << std::endl;
+        }
+    }
+    else if (mpi_support) {
+        logger << "Compiled with MPI support." << std::endl;
+    }
+    else {
+        logger << "Serial compilation." << std::endl;
+    }
+
+    if (openmp_support) {
+        logger << "Maximum OpenMP threads: " << OpenMPUtils::GetNumThreads() << "." << std::endl;
+    }
+
+    if (mpi_support) {
+        if (mIsDistributedRun) {
+            const DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
+            logger << "MPI world size:         " << r_world.Size() << "." << std::endl;
+        }
+        else {
+            logger << "Running without MPI." << std::endl;
+        }
+    }
+}
+
+bool Kernel::mIsDistributedRun = false;
 
 }

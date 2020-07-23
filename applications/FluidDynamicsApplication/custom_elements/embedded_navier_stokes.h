@@ -598,26 +598,18 @@ protected:
         }
 
         // Compute the element average values
-        double avg_rho = 0.0;
-        double avg_visc = 0.0;
         array_1d<double, TDim> avg_vel = ZeroVector(TDim);
-
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            avg_rho += rData.rho(i_node);
-            avg_visc += rData.mu(i_node);
             avg_vel += row(rData.v, i_node);
         }
-
-        avg_rho /= TNumNodes;
-        avg_visc /= TNumNodes;
         avg_vel /= TNumNodes;
 
         const double v_norm = norm_2(avg_vel);
 
         // Compute the penalty constant
-        const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
-                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) +
-                                avg_rho*v_norm*std::pow(rData.h, TDim-1);
+        const double pen_cons = rData.rho*std::pow(rData.h, TDim)/rData.dt +
+                                rData.rho*rData.mu*std::pow(rData.h,TDim-2) +
+                                rData.rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
         const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];
@@ -645,6 +637,15 @@ protected:
         // Obtain the previous iteration velocity solution
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
         GetPreviousSolutionVector(rData, prev_sol);
+
+        // Substract the embedded nodal velocity to the previous iteration solution
+        const auto &r_geom = this->GetGeometry();
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d) {
+                prev_sol(i_node * BlockSize + d) -= r_i_emb_vel(d);
+            }
+        }
 
         // Set the penalty matrix
         MatrixType P_gamma(TNumNodes, TNumNodes);
@@ -681,21 +682,6 @@ protected:
         }
 
         noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
-
-        // RHS penalty contribution assembly
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; i++) {
-                for (unsigned int comp=0; comp<TDim; comp++) {
-                    aux_embedded_vel(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
-        }
-
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
     }
 
@@ -784,31 +770,29 @@ protected:
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol);
 
-        // Compute f_gamma if level set velocity is not 0
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            auxLeftHandSideMatrix.clear();
+        // Compute the level set velocity contribution
+        const auto &r_geom = this->GetGeometry();
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss_total; ++i_gauss) {
+            // Current Gauss pt. intersection data
+            const auto N_cut = row(rData.N_pos_int, i_gauss);
+            const double weight = rData.w_gauss_pos_int(i_gauss);
 
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; i++) {
-                aux_embedded_vel(i*BlockSize) = embedded_vel(0);
-                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
-                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+            // Current Gauss pt. EMBEDDED_VELOCITY
+            array_1d<double,3> aux_emb_v = ZeroVector(3);
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                aux_emb_v += N_cut(i_node) * r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
             }
 
-            // Asemble the RHS f_gamma contribution
-            for (unsigned int i=0; i<rData.n_neg; i++) {
-                unsigned int out_node_row_id = rData.out_vec_identifiers[i];
-
-                for (unsigned int j=0; j<TNumNodes; j++) {
-                    for (unsigned int comp = 0; comp<TDim; comp++) {
-                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
+            // Assemble current Gauss pt. contribution
+            for (unsigned int i = 0; i < rData.n_neg; ++i) {
+                const unsigned int i_out_node_id = rData.out_vec_identifiers[i];
+                for (unsigned int j = 0; j < TNumNodes; ++j) {
+                    const double aux = weight * N_cut(i_out_node_id) * N_cut(j);
+                    for (unsigned int d = 0; d < TDim; ++d) {
+                        rRightHandSideVector(i_out_node_id * BlockSize + d) += aux * aux_emb_v(d);
                     }
                 }
             }
-
-            noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, aux_embedded_vel);
         }
     }
 
@@ -861,6 +845,15 @@ protected:
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
         GetPreviousSolutionVector(rData, prev_sol);
 
+        // Substract the embedded nodal velocity to the previous iteration solution
+        const auto &r_geom = this->GetGeometry();
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d) {
+                prev_sol(i_node * BlockSize + d) -= r_i_emb_vel(d);
+            }
+        }
+
         // Nitsche coefficient computation
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
 
@@ -876,21 +869,12 @@ protected:
         }
         v_norm = std::sqrt(v_norm);
 
-        // Compute the element average density
-        double avg_rho = 0.0;
-        for (unsigned int j=0; j<TNumNodes; ++j) {
-            avg_rho += rData.rho(j);
-        }
-        avg_rho /= TNumNodes;
-
         // Compute the Nitsche coefficient (considering the Winter stabilization term)
         const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
-        const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*rData.h + avg_rho*rData.h*rData.h/rData.dt)/(rData.h*penalty);
+        const double cons_coef = (eff_mu + eff_mu + rData.rho*v_norm*rData.h + rData.rho*rData.h*rData.h/rData.dt)/(rData.h*penalty);
 
         // Declare auxiliar arrays
-        array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
         BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
 
         for (unsigned int i_gauss_int = 0; i_gauss_int < n_gauss_total; ++i_gauss_int) {
@@ -918,26 +902,11 @@ protected:
             noalias(auxLeftHandSideMatrix) += cons_coef*weight*aux_2;
         }
 
-        // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i) {
-                for (unsigned int comp=0; comp<TDim; ++comp) {
-                    embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix, embedded_vel_exp);
-        }
-
         // LHS outside Nitche contribution assembly
         noalias(rLeftHandSideMatrix) += auxLeftHandSideMatrix;
 
         // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        noalias(rRightHandSideVector) += auxRightHandSideVector;
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, prev_sol);
     }
 
@@ -959,13 +928,20 @@ protected:
         array_1d<double, MatrixSize> prev_sol = ZeroVector(MatrixSize);
         GetPreviousSolutionVector(rData, prev_sol);
 
+        // Substract the embedded nodal velocity to the previous iteration solution
+        const auto &r_geom = this->GetGeometry();
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d) {
+                prev_sol(i_node * BlockSize + d) -= r_i_emb_vel(d);
+            }
+        }
+
         // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
         const double adjoint_consistency_term = -1.0;
 
         // Declare auxiliar arrays
-        array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
         BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
-
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
 
         for (unsigned int i_gauss_int = 0; i_gauss_int < n_gauss_total; ++i_gauss_int) {
@@ -1021,22 +997,6 @@ protected:
         noalias(rLeftHandSideMatrix) -= auxLeftHandSideMatrix; // The minus sign comes from the Nitsche formulation
 
         // RHS outside Nitche contribution assembly
-        // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i) {
-                for (unsigned int comp=0; comp<TDim; ++comp) {
-                    embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
-                }
-            }
-
-            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix, embedded_vel_exp);
-        }
-
-        // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        noalias(rRightHandSideVector) -= auxRightHandSideVector;
         noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix, prev_sol);
     }
 
@@ -1119,23 +1079,20 @@ protected:
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i) {
-                for (unsigned int comp=0; comp<TDim; ++comp) {
-                    embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
-                }
+        const auto &r_geom = this->GetGeometry();
+        array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d) {
+                embedded_vel_exp(i_node * BlockSize + d) -= r_i_emb_vel(d);
             }
-
-            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
         }
 
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         noalias(rRightHandSideVector) += auxRightHandSideVector;
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix_1, prev_sol);
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix_2, prev_sol);
+        noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
     }
 
     /**
@@ -1222,23 +1179,20 @@ protected:
 
         // RHS outside Nitche contribution assembly
         // If level set velocity is not 0, add its contribution to the RHS
-        if (this->Has(EMBEDDED_VELOCITY)) {
-            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-            array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
-
-            for (unsigned int i=0; i<TNumNodes; ++i) {
-                for (unsigned int comp=0; comp<TDim; ++comp) {
-                    embedded_vel_exp(i*BlockSize+comp) = embedded_vel(comp);
-                }
+        const auto &r_geom = this->GetGeometry();
+        array_1d<double, MatrixSize> embedded_vel_exp = ZeroVector(MatrixSize);
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d) {
+                embedded_vel_exp(i_node * BlockSize + d) -= r_i_emb_vel(d);
             }
-
-            noalias(auxRightHandSideVector) += prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
         }
 
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
         noalias(rRightHandSideVector) -= auxRightHandSideVector;
         noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix_1, prev_sol);
         noalias(rRightHandSideVector) += prod(auxLeftHandSideMatrix_2, prev_sol);
+        noalias(auxRightHandSideVector) -= prod(auxLeftHandSideMatrix_2, embedded_vel_exp);
     }
 
     /**

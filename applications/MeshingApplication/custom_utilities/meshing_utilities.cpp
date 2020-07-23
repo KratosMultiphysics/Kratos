@@ -15,12 +15,14 @@
 // External includes
 
 // Project includes
+#include "utilities/auxiliar_model_part_utilities.h"
 #include "custom_utilities/meshing_utilities.h"
 
 namespace Kratos
 {
 namespace MeshingUtilities
 {
+
 void BlockThresholdSizeElements(
     ModelPart& rModelPart,
     Parameters ThisParameters
@@ -33,27 +35,27 @@ void BlockThresholdSizeElements(
     })" );
 
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-    
+
     // Getting values
     const double minimal_size = ThisParameters["minimal_size"].GetDouble();
     const double maximal_size = ThisParameters["maximal_size"].GetDouble();
-    
+
     // Compute elements size
     ComputeElementsSize(rModelPart);
-    
+
     // Iterating over the elements
     ElementsArrayType& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin= r_elements_array.begin();
     const int number_of_elements = static_cast<int>(r_elements_array.size());
-    
+
     #pragma omp parallel for
     for (int i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;
-        
+
         if (it_elem->IsNot(BLOCKED)) {
             // Getting ELEMENT_H
             const double element_h = it_elem->GetValue(ELEMENT_H);
-            
+
             // Blocking elements in the threshold sizes
             if (element_h <= minimal_size || element_h >= maximal_size) {
                 it_elem->Set(BLOCKED, true);
@@ -71,7 +73,7 @@ void ComputeElementsSize(ModelPart& rModelPart)
     ElementsArrayType& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin= r_elements_array.begin();
     const int number_of_elements = static_cast<int>(r_elements_array.size());
-    
+
     #pragma omp parallel for
     for (int i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;

@@ -32,8 +32,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     ModelPart& model_part = model.CreateModelPart("Main",3);
 
     // Variables addition
-    model_part.AddNodalSolutionStepVariable(DENSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
     model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
@@ -44,7 +42,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
 
     // For VMS comparison
@@ -91,6 +88,12 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.CreateNewElement("TimeIntegratedQSVMS2D3N", 5, element_nodes, p_properties);
     model_part.CreateNewElement("EmbeddedQSVMS2D3N", 6, element_nodes, p_properties);
 
+    // Call the elements Initialize()
+    for (auto &r_elem : model_part.Elements()) {
+        r_elem.Initialize(); // Initialize the element to initialize the constitutive law
+        r_elem.Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
+    }
+
     // Define the nodal values
     Matrix reference_velocity(3,2);
     reference_velocity(0,0) = 0.0; reference_velocity(0,1) = 0.1;
@@ -100,8 +103,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     Element::Pointer p_element = model_part.pGetElement(1);
 
     for(unsigned int i=0; i<3; i++){
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(DENSITY) = p_properties->GetValue(DENSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_properties->GetValue(DYNAMIC_VISCOSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
@@ -134,8 +135,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = 1.0;
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        i->Initialize(); // Initialize the element to initialize the constitutive law
-        i->Check(model_part.GetProcessInfo()); // Otherwise the constitutive law is not seen here
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
@@ -164,7 +163,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Set(SLIP, false);
-        i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         //std::cout << i->Info() << std::setprecision(10) << std::endl;
@@ -191,7 +189,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); ++i) {
         i->Set(SLIP, true);
-        i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         //std::cout << i->Info() << std::setprecision(10) << std::endl;
@@ -220,10 +217,13 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     embedded_vel(1) = 2.0;
     embedded_vel(2) = 0.0;
 
+    // Set the nodal EMBEDDED_VELOCITY
+    for (auto &r_node : model_part.Nodes()) {
+        r_node.SetValue(EMBEDDED_VELOCITY, embedded_vel);
+    }
+
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Set(SLIP, false);
-        i->SetValue(EMBEDDED_VELOCITY, embedded_vel);
-        i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         //std::cout << i->Info() << std::setprecision(12) << std::endl;
@@ -245,13 +245,16 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     output_slip_embedded_velocity[5] = {-7.93660736037, 7100.52460294, 0.0250586369081, 6.05364431844, 7081.38462907, 0.121191652293, 25.4246297086, 28410.3594884, 0.420416377466}; // EmbeddedQSVMS
     counter = 0;
 
+    // Set the nodal EMBEDDED_VELOCITY
+    for (auto &r_node : model_part.Nodes()) {
+        r_node.SetValue(EMBEDDED_VELOCITY, embedded_vel);
+    }
+
     // Test slip cut element with embedded velocity
     model_part.GetProcessInfo().SetValue(SLIP_LENGTH, 1.0e+08);
     model_part.GetProcessInfo().SetValue(PENALTY_COEFFICIENT, 10.0);
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Set(SLIP, true);
-        i->SetValue(EMBEDDED_VELOCITY, embedded_vel);
-        i->Initialize(); // Initialize the element to initialize the constitutive law
         i->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
         //std::cout << i->Info() << std::setprecision(12) << std::endl;

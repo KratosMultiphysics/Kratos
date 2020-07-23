@@ -26,7 +26,6 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/variable_utils.h"
 #include "custom_utilities/mmg_utilities.h"
 #include "containers/variables_list.h"
 #include "meshing_application.h"
@@ -102,13 +101,6 @@ public:
 
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
-
-    /// Node containers definition
-    typedef ModelPart::NodesContainerType                        NodesArrayType;
-    /// Elements containers definition
-    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
-    /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
 
     /// Node definition
     typedef Node <3>                                                   NodeType;
@@ -227,6 +219,11 @@ public:
      */
     void CleanSuperfluousNodes();
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -300,9 +297,9 @@ private:
 
     ModelPart& mrThisModelPart;                                      /// The model part to compute
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
+    NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
 
-    MmgUtilities<TMMGLibrary> mMmmgUtilities;                        /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmgUtilities;                         /// The MMG utilities class
 
     std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
@@ -375,14 +372,14 @@ private:
     void InitializeSolDataDistance();
 
     /**
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     */
+    void InitializeDisplacementData();
+
+    /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
     void ExecuteRemeshing();
-
-    /**
-     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
-     */
-    void ReorderAllIds();
 
     /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
@@ -399,16 +396,6 @@ private:
      * @brief It frees the memory used during all the process
      */
     void FreeMemory();
-
-    /**
-     * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
-     */
-    void CreateAuxiliarSubModelPartForFlags();
-
-    /**
-     * @brief This function assigns the flags and clears the auxiliar sub model part for flags
-     */
-    void AssignAndClearAuxiliarSubModelPartForFlags();
 
     /**
      * @brief It sets to zero the entity data, using the variables from the orginal model part
@@ -468,6 +455,17 @@ private:
     }
 
     /**
+     * @brief This method collapses the prisms elements into triangles
+     */
+    void CollapsePrismsToTriangles();
+
+    /**
+     * @brief This method extrudes the triangles elements into prisms
+     * @param rOldModelPart The old model part
+     */
+    void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
+
+    /**
      * @brief This function removes the conditions with duplicated geometries
      */
     void ClearConditionsDuplicatedGeometries();
@@ -479,9 +477,10 @@ private:
     void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions
+     * @param rModelPart The modelpart to be marked
      */
-    Parameters GetDefaultParameters();
+    void MarkConditionsSubmodelParts(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Access
@@ -497,11 +496,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-//     /// Assignment operator.
-//     MmgProcess& operator=(MmgProcess const& rOther);
+    /// Assignment operator.
+    MmgProcess& operator=(MmgProcess const& rOther);
 
-//     /// Copy constructor.
-//     MmgProcess(MmgProcess const& rOther);
+    /// Copy constructor.
+    MmgProcess(MmgProcess const& rOther);
 
     ///@}
 

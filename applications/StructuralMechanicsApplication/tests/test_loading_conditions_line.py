@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -6,49 +5,60 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import math
 
 class TestLoadingConditionsLine(KratosUnittest.TestCase):
-    #THIS IS marked as expected failure since the normal to the line in 3D is not well defined
-    #@KratosUnittest.expectedFailure
-    #def test_LineLoadCondition3D2NRotDof(self):
-        #dim = 3
-        #mp = KratosMultiphysics.ModelPart("solid_part")
-        #mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        #mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        #mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        #mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
 
-        ##create nodes
-        #mp.CreateNewNode(1,0.0,0.0,0.0)
-        #mp.CreateNewNode(2,1.0,1.0,0.0)
-        #length = math.sqrt(2)
+    def _LineLoadCondition3D2NRotDof(self, prefix = ""):
+        current_model = KratosMultiphysics.Model()
+        dim = 3
+        mp = current_model.CreateModelPart("solid_part")
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
 
-        ##ensure that the property 1 is created
-        #mp.GetProperties()[1]
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,1.0,1.0,0.0)
+        length = math.sqrt(2)
 
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
+        #ensure that the property 1 is created
+        mp.GetProperties()[1]
 
-        #cond = mp.CreateNewCondition("LineLoadCondition3D2N", 1, [1,2], mp.GetProperties()[1])
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        #cond.SetValue(KratosMultiphysics.LOCAL_AXIS_2, [-1.0, 1.0, 0.0])
+        # NOTE: If adding rotations on the future
+        #KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        #KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        #KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
-        #lhs = KratosMultiphysics.Matrix(0,0)
-        #rhs = KratosMultiphysics.Vector(0)
+        cond = mp.CreateNewCondition(prefix + "LineLoadCondition3D2N", 1, [1,2], mp.GetProperties()[1])
 
-        ##first we apply a constant LINE_LOAD to theh condition
-        #Line_Load_i = 10000.00/math.sqrt(2) #apply a 45° load
+        cond.SetValue(KratosMultiphysics.LOCAL_AXIS_2, [-1.0, 1.0, 0.0])
 
-        #load_on_cond = KratosMultiphysics.Vector(3)
-        #load_on_cond[0] = 0.00
-        #load_on_cond[1] = -Line_Load_i
-        #load_on_cond[2] = -Line_Load_i
-        #cond.SetValue(StructuralMechanicsApplication.LINE_LOAD,load_on_cond)
-        #cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
+        lhs = KratosMultiphysics.Matrix(0,0)
+        rhs = KratosMultiphysics.Vector(0)
 
-        #Nodal_Transversal_Forces = Line_Load_i*length/2.00
+        #first we apply a constant LINE_LOAD to theh condition
+        Line_Load_i = 10000.00/math.sqrt(2) #apply a 45 degrees load
+
+        load_on_cond = KratosMultiphysics.Vector(3)
+        load_on_cond[0] = 0.00
+        load_on_cond[1] = -Line_Load_i
+        load_on_cond[2] = -Line_Load_i
+        cond.SetValue(StructuralMechanicsApplication.LINE_LOAD,load_on_cond)
+        cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
+
+        Nodal_Transversal_Forces = Line_Load_i*length/2.00
+
+        self.assertEqual(rhs[0],0.00)
+        self.assertEqual(rhs[1],-Nodal_Transversal_Forces)
+        self.assertEqual(rhs[2],-Nodal_Transversal_Forces)
+        self.assertEqual(rhs[3],0.00)
+        self.assertEqual(rhs[4],-Nodal_Transversal_Forces)
+        self.assertEqual(rhs[5],-Nodal_Transversal_Forces)
+
+        # NOTE: If adding rotations on the future
         #Nodal_Moments = Line_Load_i*length*length/12.00/math.sqrt(2)
 
         #self.assertEqual(rhs[0],0.00)
@@ -64,7 +74,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         #self.assertAlmostEqual(rhs[10],-Nodal_Moments)
         #self.assertAlmostEqual(rhs[11],Nodal_Moments)
 
-    def test_LineLoadCondition2D2N(self):
+    def _LineLoadCondition2D2N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         dim = 2
         mp = current_model.CreateModelPart("solid_part")
@@ -85,7 +95,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("LineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition(prefix + "LineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
 
         lhs = KratosMultiphysics.Matrix(0,0)
         rhs = KratosMultiphysics.Vector(0)
@@ -133,7 +143,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[2],reference_res[2])
         self.assertAlmostEqual(rhs[3],reference_res[3])
 
-    def test_LineLoadCondition2D3N(self):
+    def _LineLoadCondition2D3N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         dim = 2
         mp = current_model.CreateModelPart("solid_part")
@@ -155,7 +165,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("LineLoadCondition2D3N", 1, [1,2,3], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition(prefix + "LineLoadCondition2D3N", 1, [1,2,3], mp.GetProperties()[1])
 
         lhs = KratosMultiphysics.Matrix(0,0)
         rhs = KratosMultiphysics.Vector(0)
@@ -212,7 +222,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[4],reference_res[4], 4)
         self.assertAlmostEqual(rhs[5],reference_res[5], 4)
 
-    def test_LineLoadCondition2D2NAngle(self):
+    def _LineLoadCondition2D2NAngle(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         dim = 2
         mp = current_model.CreateModelPart("solid_part")
@@ -234,8 +244,8 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond1 = mp.CreateNewCondition("LineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
-        cond2 = mp.CreateNewCondition("LineLoadCondition2D2N", 2, [2,3], mp.GetProperties()[1])
+        cond1 = mp.CreateNewCondition(prefix + "LineLoadCondition2D2N", 1, [1,2], mp.GetProperties()[1])
+        cond2 = mp.CreateNewCondition(prefix + "LineLoadCondition2D2N", 2, [2,3], mp.GetProperties()[1])
 
         rhs = KratosMultiphysics.Vector(6)
         rhs[0] = 0.0
@@ -272,6 +282,30 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         self.assertEqual(rhs[3],-0.5*lenght)
         self.assertEqual(rhs[4], 0.0*lenght)
         self.assertEqual(rhs[5],-0.5*lenght)
+
+    def test_SDLineLoadCondition3D2NRotDof(self):
+        self._LineLoadCondition3D2NRotDof("SmallDisplacement")
+
+    def test_LineLoadCondition3D2NRotDof(self):
+        self._LineLoadCondition3D2NRotDof()
+
+    def test_SDLineLoadCondition2D2N(self):
+        self._LineLoadCondition2D2N("SmallDisplacement")
+
+    def test_LineLoadCondition2D2N(self):
+        self._LineLoadCondition2D2N()
+
+    def test_SDLineLoadCondition2D3N(self):
+        self._LineLoadCondition2D3N("SmallDisplacement")
+
+    def test_LineLoadCondition2D3N(self):
+        self._LineLoadCondition2D3N()
+
+    def test_SDLineLoadCondition2D2NAngle(self):
+        self._LineLoadCondition2D2NAngle("SmallDisplacement")
+
+    def test_LineLoadCondition2D2NAngle(self):
+        self._LineLoadCondition2D2NAngle()
 
 if __name__ == '__main__':
     KratosUnittest.main()

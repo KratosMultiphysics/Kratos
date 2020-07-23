@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -28,10 +26,11 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "scheme_type"   : "bossak",
-            "damp_factor_m" :-0.3,
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta" : 0.0
+            "time_integration_method" : "implicit",
+            "scheme_type"             : "bossak",
+            "damp_factor_m"           :-0.3,
+            "rayleigh_alpha"          : 0.0,
+            "rayleigh_beta"           : 0.0
         }""")
         this_defaults.AddMissingParameters(super(TrilinosImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults

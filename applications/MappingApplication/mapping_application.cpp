@@ -50,7 +50,6 @@
     }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "mpi.h"
     // Macro to register the mapper WITH MPI
     #define KRATOS_REGISTER_MAPPER_MPI(MapperType, MapperName)                                            \
         {                                                                                                 \
@@ -83,9 +82,6 @@ KratosMappingApplication::KratosMappingApplication() :
 
 void KratosMappingApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     KRATOS_INFO("") << "    KRATOS ______  ___                      _____\n"
                     << "           ___   |/  /_____ ___________________(_)_____________ _\n"
                     << "           __  /|_/ /_  __ `/__  __ \\__  __ \\_  /__  __ \\_  __ `/\n"

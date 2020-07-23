@@ -10,7 +10,7 @@
         "solver_type"                  : "adjoint_potential_flow",
             "model_import_settings"        : {
                 "input_type"     : "mdpa",
-                "input_filename" : "naca0012_small"
+                "input_filename" : "../naca0012_small_mdpa/naca0012_small"
             },
         "model_part_name" : "MainModelPart",
         "volume_model_part_name" : "Parts_Parts_Auto1",
@@ -19,20 +19,20 @@
         "compute_reactions"			   : false,
         "response_function_settings" : {
                 "response_type"     : "adjoint_lift_jump_coordinates",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-9
             },
         "sensitivity_settings" : {
-                "sensitivity_model_part_name" : "Parts_Parts_Auto1",
                 "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
                 "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
                 "build_mode": "static"
             },
         "echo_level"                   : 0,
         "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
-        }
+            "solver_type"         : "LinearSolversApplication.sparse_lu"
+        },
+        "reference_chord": 1.0
     },
     "processes" : {
         "boundary_conditions_process_list" : [
@@ -81,19 +81,5 @@
             }
         }],
         "auxiliar_process_list" :[]
-    },
-    "_print_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["SHAPE_SENSITIVITY"],
-            "output_file_name" : "shape_sensitivity_test_results.json",
-            "model_part_name"  : "Body2D_Body",
-            "time_frequency"   : -2
-        }
     }
-    ]
 }

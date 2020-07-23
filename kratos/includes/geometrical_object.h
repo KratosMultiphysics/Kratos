@@ -16,6 +16,7 @@
 #define  KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED
 
 // System includes
+#include <atomic>
 
 // External includes
 
@@ -54,7 +55,7 @@ namespace Kratos
  * @details Derives from IndexedObject, so it has an ID, and from Flags
  * @author Pooyan Dadvand
 */
-class GeometricalObject : public IndexedObject, public Flags, public std::intrusive_base<GeometricalObject>
+class GeometricalObject : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -83,14 +84,16 @@ public:
     explicit GeometricalObject(IndexType NewId = 0)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry()
+          mpGeometry(),
+          mReferenceCounter(0)
     {}
 
     /// Default constructor.
     GeometricalObject(IndexType NewId, GeometryType::Pointer pGeometry)
         : IndexedObject(NewId),
           Flags(),
-          mpGeometry(pGeometry)
+          mpGeometry(pGeometry),
+          mReferenceCounter(0)
     {}
 
     /// Destructor.
@@ -100,7 +103,8 @@ public:
     GeometricalObject(GeometricalObject const& rOther)
         : IndexedObject(rOther.Id()),
           Flags(rOther),
-          mpGeometry(rOther.mpGeometry)
+          mpGeometry(rOther.mpGeometry),
+          mReferenceCounter(0)
     {}
 
 
@@ -123,6 +127,15 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief Sets the pointer to the geometry
+     * @param pGeometry The pointer of the geometry
+     */
+    virtual void SetGeometry(GeometryType::Pointer pGeometry)
+    {
+        mpGeometry = pGeometry;
+    }
 
     /**
      * @brief Returns the pointer to the geometry
@@ -185,6 +198,67 @@ public:
     void SetFlags(Flags const& rThisFlags)
     {
         Flags::operator=(rThisFlags);
+    }
+
+    ///@}
+    ///@name Data
+    ///@{
+
+    /**
+     * Access Data:
+     */
+    DataValueContainer& Data()
+    {
+        return pGetGeometry()->GetData();
+    }
+
+    DataValueContainer const& GetData() const
+    {
+        return GetGeometry().GetData();
+    }
+
+    void SetData(DataValueContainer const& rThisData)
+    {
+        return GetGeometry().SetData(rThisData);
+    }
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return GetData().Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(
+        const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return GetData().Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        Data().SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return Data().GetValue(rThisVariable);
+    }
+
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return GetData().GetValue(rThisVariable);
     }
 
     ///@}
@@ -263,6 +337,14 @@ public:
     {
     }
 
+    //*********************************************
+    //public API of intrusive_ptr
+    unsigned int use_count() const noexcept
+    {
+        return mReferenceCounter;
+    }
+    //*********************************************
+
     ///@}
     ///@name Friends
     ///@{
@@ -321,6 +403,24 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> mReferenceCounter;
+
+    friend void intrusive_ptr_add_ref(const GeometricalObject* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const GeometricalObject* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
 
     ///@}

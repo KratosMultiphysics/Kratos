@@ -6,14 +6,12 @@
 
 namespace Kratos {
 
-    void DEM_D_Linear_viscous_Coulomb2D::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Linear_viscous_Coulomb2D::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Linear_viscous_Coulomb2D(*this));
         return p_clone;
     }
 
-    void DEM_D_Linear_viscous_Coulomb2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_D_Linear_viscous_Coulomb2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_viscous_Coulomb2D to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -38,14 +36,14 @@ namespace Kratos {
     }
 
     void DEM_D_Linear_viscous_Coulomb2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
-                
+
         //const double my_radius        = element->GetRadius(); // Get equivalent Radius
         //const double effective_radius = my_radius - ini_delta;
         const double my_young         = element->GetYoung(); // Get equivalent Young's Modulus
         const double walls_young      = wall->GetProperties()[YOUNG_MODULUS];
         const double my_poisson       = element->GetPoisson();
         const double walls_poisson    = wall->GetProperties()[POISSON_RATIO];
-                
+
         const double equiv_young      = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
 
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);

@@ -36,11 +36,11 @@ namespace Kratos
  *      3----10----2
  *      |\         |\
  *      |15    23  | 14
- *      9  \ 20   11  \
+ *      11  \ 20   9  \
  *      |   7----18+---6
- *      |22 |  26  | 24|
+ *      |24 |  26  | 22|
  *      0---+-8----1   |
- *       \ 17    25 \  19
+ *       \ 19    25 \  17
  *       12 |  21    13|
  *         \|         \|
  *          4----16----5
@@ -1086,23 +1086,13 @@ public:
         return( result );
     }
 
-
-protected:
-
-
-    /**
-     * there are no protected class members
-     */
-
 private:
-
-
-    /**
-     * Static Member Variables
-     */
+    ///@name Static Member Variables
+    ///@{
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1465,11 +1455,16 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Hexahedra3D27<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_3,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_3,
     Hexahedra3D27<TPointType>::AllIntegrationPoints(),
     Hexahedra3D27<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType>
+const GeometryDimension Hexahedra3D27<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
 }// namespace Kratos.
 

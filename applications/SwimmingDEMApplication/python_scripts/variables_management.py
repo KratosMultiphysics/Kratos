@@ -2,13 +2,29 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger
 import KratosMultiphysics.DEMApplication as DEM
+import KratosMultiphysics.FluidDynamicsApplication as Fluid
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-import parameters_tools as PT
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.DETAIL)
+
+def GetGlobalVariableByName(variable_name):
+    modules = [Kratos, DEM, SDEM]
+    for mod in modules:
+        try:
+            return getattr(mod, variable_name) #TODO: this could use KratosMultiphysics.KratosGlobals.GetVariable(var_name)
+        except Exception:
+            pass
+    names = [mod.__name__ for mod in modules]
+    error_message = ('No variable with name \''
+        + variable_name + '\' exists in either of the modules:\n')
+    for name in names[:-1]:
+        error_message += name + ', '
+    error_message += 'or ' + names[-1] + '.'
+    raise AttributeError(error_message)
 
 class VariablesManager:
     @staticmethod
@@ -97,11 +113,12 @@ class VariablesManager:
         if parameters["material_acceleration_calculation_type"].GetInt() == 5 or parameters["material_acceleration_calculation_type"].GetInt() == 6:
             fluid_model_part.ProcessInfo.SetValue(Kratos.CURRENT_COMPONENT, 0)
 
-        if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
-            fluid_model_part.ProcessInfo.SetValue(Kratos.YIELD_STRESS, parameters["non_newtonian_fluid"]["yield_stress"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(Kratos.REGULARIZATION_COEFFICIENT, parameters["non_newtonian_fluid"]["regularization_coefficient"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(Kratos.POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
-            fluid_model_part.ProcessInfo.SetValue(Kratos.POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
+        #TODO: review this lines
+        # if parameters["non_newtonian_fluid"]["non_newtonian_option"].GetBool():
+        #     fluid_model_part.ProcessInfo.SetValue(Kratos.YIELD_STRESS, parameters["non_newtonian_fluid"]["yield_stress"].GetDouble())
+        #     fluid_model_part.ProcessInfo.SetValue(Kratos.REGULARIZATION_COEFFICIENT, parameters["non_newtonian_fluid"]["regularization_coefficient"].GetDouble())
+        #     fluid_model_part.ProcessInfo.SetValue(Kratos.POWER_LAW_K, parameters["non_newtonian_fluid"]["power_law_k"].GetDouble())
+        #     fluid_model_part.ProcessInfo.SetValue(Kratos.POWER_LAW_N, parameters["non_newtonian_fluid"]["power_law_n"].GetDouble())
 
     def AddExtraProcessInfoVariablesToDispersePhaseModelPart(self, parameters, dem_model_part):
 
@@ -153,7 +170,7 @@ class VariablesManager:
         self.fluid_vars += self.coupling_fluid_vars
 
         if parameters["pressure_grad_recovery_type"].GetInt() > 0:
-            self.fluid_vars += [Kratos.RECOVERED_PRESSURE_GRADIENT]
+            self.fluid_vars += [Fluid.RECOVERED_PRESSURE_GRADIENT]
 
         if (parameters["gradient_calculation_type"].GetInt() > 1
             or parameters["pressure_grad_recovery_type"].GetInt() > 1
@@ -196,7 +213,7 @@ class VariablesManager:
             self.dem_vars += [Kratos.BASSET_FORCE]
 
         if parameters["frame_of_reference"]["frame_type"].GetInt() and self.do_include_history_force > 0:
-            self.dem_vars += [Kratos.DISPLACEMENT_OLD]
+            self.dem_vars += [SDEM.DISPLACEMENT_OLD]
             self.dem_vars += [Kratos.VELOCITY_OLD_OLD]
 
         if (parameters["custom_dem"]["translational_integration_scheme"].GetString()
@@ -295,20 +312,20 @@ class VariablesManager:
         self.time_filtered_vars = []
 
         for variable in self.nodal_results:
-            self.fluid_printing_vars += [eval('Kratos.' + variable)]
+            self.fluid_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.dem_nodal_results:
-            self.dem_printing_vars += [eval('Kratos.' + variable)]
+            self.dem_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.clusters_nodal_results:
-            self.clusters_printing_vars += [eval('Kratos.' + variable)]
+            self.clusters_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.rigid_faces_nodal_results:
-            self.rigid_faces_printing_vars += [eval('Kratos.' + variable)]
+            self.rigid_faces_printing_vars += [GetGlobalVariableByName(variable)]
 
         for variable in self.mixed_nodal_results:
-            self.dem_printing_vars += [eval('Kratos.' + variable)]
-            self.fluid_printing_vars += [eval('Kratos.' + variable)]
+            self.dem_printing_vars += [GetGlobalVariableByName(variable)]
+            self.fluid_printing_vars += [GetGlobalVariableByName(variable)]
 
         for var in self.mixed_nodal_results:
 
@@ -399,7 +416,7 @@ class VariablesManager:
             self.coupling_dem_vars += [Kratos.POWER_LAW_K]
             self.coupling_dem_vars += [Kratos.YIELD_STRESS]
 
-        if PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters'):
+        if PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters', condition=lambda value: not (value['name'].GetString()=='default')):
             self.coupling_dem_vars += [Kratos.FLUID_VORTICITY_PROJECTED]
             self.coupling_dem_vars += [Kratos.SHEAR_RATE_PROJECTED]
 

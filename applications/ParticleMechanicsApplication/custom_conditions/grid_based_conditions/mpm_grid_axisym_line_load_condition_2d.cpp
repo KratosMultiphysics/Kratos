@@ -50,11 +50,11 @@ MPMGridAxisymLineLoadCondition2D::MPMGridAxisymLineLoadCondition2D(
 
 Condition::Pointer MPMGridAxisymLineLoadCondition2D::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_intrusive<MPMGridAxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<MPMGridAxisymLineLoadCondition2D>(NewId, pGeometry, pProperties);
 }
 
 /***********************************************************************************/
@@ -89,11 +89,15 @@ double MPMGridAxisymLineLoadCondition2D::GetIntegrationWeight(
     // We calculate the axisymmetric coefficient
     Vector N;
     N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-    const double Radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N, GetGeometry());
-    const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
-    const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
+    Matrix N_matrix = ZeroMatrix(1, N.size());
+    for (unsigned int i = 0; i < N.size(); ++i) {
+        N_matrix(0, i) = N[i];
+    }
+    const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N_matrix, GetGeometry());
+    const double thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
+    const double axis_symmetric_weight = 2.0 * Globals::Pi * radius/thickness;
 
-    return AxiSymCoefficient * IntegrationPoints[PointNumber].Weight() * detJ;
+    return axis_symmetric_weight * IntegrationPoints[PointNumber].Weight() * detJ;
 }
 
 

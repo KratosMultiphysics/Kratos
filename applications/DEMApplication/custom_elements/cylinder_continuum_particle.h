@@ -52,6 +52,8 @@ namespace Kratos
 
       void ContactAreaWeighting() override;
 
+      void FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume) override;
+
     protected:
 
       CylinderContinuumParticle();
@@ -59,7 +61,6 @@ namespace Kratos
       double CalculateVolume() override;
       double CalculateMomentOfInertia() override;
       void AddContributionToRepresentativeVolume(const double distance, const double radius_sum, const double contact_area) override ;
-
 
     private:
 

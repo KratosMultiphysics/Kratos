@@ -12,12 +12,13 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
 
         # Initialize model part
         ## Material model part definition
-        material_model_part = current_model.CreateModelPart("dummy_name")
-        material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        material_point_model_part = current_model.CreateModelPart("dummy_name")
+        material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        self.process_info = material_point_model_part.ProcessInfo
 
         ## Initial material model part definition
-        initial_material_model_part = current_model.CreateModelPart("Initial_dummy_name")
-        initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        initial_mesh_model_part = current_model.CreateModelPart("Initial_dummy_name")
+        initial_mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         ## Grid model part definition
         grid_model_part = current_model.CreateModelPart("Background_Grid")
@@ -33,7 +34,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._create_background_elements(sub_background,dimension, geometry_element, is_structured)
 
         # Create element and nodes
-        sub_mp = initial_material_model_part.CreateSubModelPart("test")
+        sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
         sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, 1)
         if is_structured:
             self._create_nodes_structured(sub_mp, dimension, geometry_element)
@@ -43,28 +44,10 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._create_elements(sub_mp,dimension, geometry_element)
 
         # Set active
-        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_material_model_part.Elements)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mesh_model_part.Elements)
 
-        # Initialize linear_solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-
-        # Initialize element
-        if geometry_element == "Triangle":
-            if (dimension == 2):
-                new_element = KratosParticle.CreateUpdatedLagragian2D3N()
-            else:
-                new_element = KratosParticle.CreateUpdatedLagragian3D4N()
-        elif geometry_element == "Quadrilateral":
-            if (dimension == 2):
-                new_element = KratosParticle.CreateUpdatedLagragian2D4N()
-            else:
-                new_element = KratosParticle.CreateUpdatedLagragian3D8N()
-
-        # Initialize solver
-        if(dimension==2):
-            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
-        else:
-            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
+        # Generate MP Elements
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
 
     def _create_nodes_structured(self, model_part, dimension, geometry_element):
@@ -147,60 +130,59 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
     def _create_elements(self, model_part, dimension, geometry_element):
         if geometry_element == "Triangle":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D3N", 1, [1,2,3], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
             if (dimension == 3):
-                model_part.CreateNewElement("UpdatedLagrangian3D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element3D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
         elif geometry_element == "Quadrilateral":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
             if (dimension == 3):
-                model_part.CreateNewElement("UpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element3D8N", 1, [1,2,3,4,5,6,7,8], model_part.GetProperties()[1])
 
 
     def _create_background_elements(self, model_part, dimension, geometry_element, is_structured):
         self._create_elements(model_part, dimension, geometry_element)
         if geometry_element == "Triangle":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D3N", 2, [2,3,5], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D3N", 2, [2,3,5], model_part.GetProperties()[1])
             if (dimension == 3):
                 if (is_structured):
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 2, [2,8,4,6], model_part.GetProperties()[1])
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 3, [4,8,3,7], model_part.GetProperties()[1])
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 4, [2,5,3,8], model_part.GetProperties()[1])
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 5, [8,3,2,4], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 2, [2,8,4,6], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 3, [4,8,3,7], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 4, [2,5,3,8], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 5, [8,3,2,4], model_part.GetProperties()[1])
                 else:
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 2, [2,3,5,4], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 2, [2,3,5,4], model_part.GetProperties()[1])
         elif geometry_element == "Quadrilateral":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D4N", 2, [2,9,10,3], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D4N", 2, [2,9,10,3], model_part.GetProperties()[1])
             if (dimension == 3):
-                model_part.CreateNewElement("UpdatedLagrangian3D8N", 2, [2,9,10,3,6,11,12,7], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element3D8N", 2, [2,9,10,3,6,11,12,7], model_part.GetProperties()[1])
 
 
     def _move_and_search_element(self, current_model, new_coordinate, max_num_results = 1000, specific_tolerance = 1.e-5):
         # Get model part
-        material_model_part = current_model.GetModelPart("dummy_name")
-        grid_model_part     = current_model.GetModelPart("Background_Grid")
+        material_point_model_part = current_model.GetModelPart("dummy_name")
+        grid_model_part           = current_model.GetModelPart("Background_Grid")
 
-        # Apply  before search
-        for mpm in material_model_part.Elements:
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+        # Apply before search
+        for mpm in material_point_model_part.Elements:
+            mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, [new_coordinate], self.process_info)
 
         # Search element
-        self.solver.SearchElement(max_num_results, specific_tolerance)
-
+        KratosParticle.SearchElement(grid_model_part, material_point_model_part, max_num_results, specific_tolerance)
 
     def _check_connectivity(self, current_model, expected_connectivity_node=[]):
         # Get model part
-        material_model_part = current_model.GetModelPart("dummy_name")
-        grid_model_part     = current_model.GetModelPart("Background_Grid")
+        material_point_model_part = current_model.GetModelPart("dummy_name")
+        grid_model_part           = current_model.GetModelPart("Background_Grid")
 
         # Check the searched node as expected connectivity
         if not expected_connectivity_node:
-            for mpm in material_model_part.Elements:
+            for mpm in material_point_model_part.Elements:
                 self.assertEqual(mpm.GetNodes(), [])
         else:
-            for mpm in material_model_part.Elements:
+            for mpm in material_point_model_part.Elements:
                 for i in range (len(expected_connectivity_node)):
                     self.assertEqual(mpm.GetNode(i).Id, grid_model_part.GetNode(expected_connectivity_node[i]).Id)
                     self.assertEqual(mpm.GetNode(i).X, grid_model_part.GetNode(expected_connectivity_node[i]).X)
@@ -304,7 +286,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False)
 
-        new_coordinate = [1.31967, 1.85246, 1.0]
+        new_coordinate = [1.31967, 1.85246, 0.1]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
@@ -368,7 +350,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False, is_fine=True)
 
-        new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-7]
+        new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-8]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 

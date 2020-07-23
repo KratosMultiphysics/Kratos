@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "utilities/math_utils.h"
+#include "custom_utilities/contact_utilities.h"
 #include "custom_conditions/mortar_contact_condition.h"
 
 namespace Kratos
@@ -181,19 +181,19 @@ public:
     /**
     * @brief Called at the beginning of each solution step
     */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the begining of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the ending of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Creates a new element pointer from an arry of nodes
@@ -246,7 +246,7 @@ public:
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rCurrentProcessInfo the current process info instance
      */
-    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
@@ -260,7 +260,7 @@ public:
     void AddExplicitContribution(
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<double >& rDestinationVariable,
+        const Variable<double >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -275,7 +275,7 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const Variable<array_1d<double, 3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -290,8 +290,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on ConditionalDofList the degrees of freedom of the considered element geometry
@@ -300,8 +300,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -310,7 +310,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process information
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -342,7 +342,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -442,7 +442,7 @@ protected:
     {
         // The friction coefficient
         array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& r_geometry = this->GetGeometry();
+        auto& r_geometry = this->GetParentGeometry();
 
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
             friction_coeffient_vector[i_node] = r_geometry[i_node].GetValue(FRICTION_COEFFICIENT);
@@ -486,47 +486,17 @@ private:
      * @brief It computes the previous mortar operators
      * @param rCurrentProcessInfo The current process information
      */
-    void ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo);
+    void ComputePreviousMortarOperators(const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
      * @param rGeometry The geometry to calculate
      * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
      */
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry) {
-        /* DEFINITIONS */
-        // Zero tolerance
-        const double zero_tolerance = std::numeric_limits<double>::epsilon();
-        // Tangent matrix
-        BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
-
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& r_gt = rGeometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP, StepSlip);
-            const double norm_slip = norm_2(r_gt);
-            if (norm_slip > zero_tolerance) { // Non zero r_gt
-                const array_1d<double, 3> tangent_slip = r_gt/norm_slip;
-                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                    tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
-            } else { // We consider the tangent direction as auxiliar
-                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
-                array_1d<double, 3> tangent_xi, tangent_eta;
-                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (TDim == 3) {
-                    for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
-                        tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                } else  {
-                    if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
-                    } else {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                    }
-                }
-            }
-        }
-
-        return tangent_matrix;
+    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry)
+    {
+        return MortarUtilities::ComputeTangentMatrix<TDim, TNumNodes>(rGeometry);
+//         return ContactUtilities::ComputeTangentMatrixSlip<TDim, TNumNodes>(rGeometry, StepSlip);
     }
 
     ///@}

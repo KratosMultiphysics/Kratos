@@ -117,9 +117,9 @@ public:
 
             for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType& rDof = *iii;
+                Node < 3 > ::DofType& rDof = **iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-                if (geom[0].IsFixed(iii->GetVariable()) == true && geom[1].IsFixed(iii->GetVariable()) == true && geom[2].IsFixed(iii->GetVariable()))
+                if (geom[0].IsFixed(rDof.GetVariable()) && geom[1].IsFixed(rDof.GetVariable()) && geom[2].IsFixed(rDof.GetVariable()))
                     (p_new_dof)->FixDof();
                 else
                 {
@@ -225,7 +225,7 @@ public:
 
                         Element::Pointer p_element;
                         p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -252,7 +252,7 @@ public:
 
                         Element::Pointer p_element;
                         p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -316,7 +316,7 @@ public:
             unsigned int to_be_deleted = 0;
             unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
 	    const unsigned int dimension = it_begin->GetGeometry().WorkingSpaceDimension();
 
@@ -405,7 +405,7 @@ public:
             /* Adding news elements to the model part */
             for (PointerVector< Condition >::iterator it_new = New_Conditions.begin(); it_new != New_Conditions.end(); it_new++)
             {
-                it_new->Initialize();
+                it_new->Initialize(rCurrentProcessInfo);
                 it_new->InitializeSolutionStep(rCurrentProcessInfo);
                 it_new->FinalizeSolutionStep(rCurrentProcessInfo);
                 this_model_part.Conditions().push_back(*(it_new.base()));

@@ -2,9 +2,8 @@ import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -37,23 +36,24 @@ class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage):
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super(GluedParticlesTestSolution, self).FinalizeSolutionStep()
         tolerance = 1e-4
         for node in self.spheres_model_part.Nodes:
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
-                if time > 0.01:
-                    self.CheckValue("Angular Velocity at time "+ str(time), angular_velocity[0], 2.0, tolerance)
+                if self.time > 0.01:
+                    self.CheckValue("Angular Velocity at time "+ str(self.time), angular_velocity[0], 2.0, tolerance)
 
-                if time > 0.499999 and time < 0.5000001:
-                    self.CheckValue("X Coordinate at time 0.5", node.X, -1.0,     tolerance)
-                    self.CheckValue("Y Coordinate at time 0.5", node.Y,  0.6638445208099379, tolerance)
-                    self.CheckValue("Z Coordinate at time 0.5", node.Z,  0.21679366644461678, tolerance)
+                if self.time > 0.499999 and self.time < 0.5000001:
+                    self.CheckValue("X Coordinate at time 0.5", node.X, -1.0, tolerance)
+                    self.CheckValue("Y Coordinate at time 0.5", node.Y, 0.6634116060768411, tolerance)
+                    self.CheckValue("Z Coordinate at time 0.5", node.Z, 0.21612092234725555, tolerance)
 
-                if time > 0.999999 and time < 1.0000001:
+                if self.time > 0.999999 and self.time < 1.0000001:
                     self.CheckValue("X Coordinate at time 1.0", node.X, -1.0, tolerance)
-                    self.CheckValue("Y Coordinate at time 1.0", node.Y,  0.6359488, tolerance)
-                    self.CheckValue("Z Coordinate at time 1.0", node.Z, -0.1657309642449, tolerance)
+                    self.CheckValue("Y Coordinate at time 1.0", node.Y, 0.6362810292697275, tolerance)
+                    self.CheckValue("Z Coordinate at time 1.0", node.Z, -0.16645873461885752, tolerance)
 
     @classmethod
     def CheckValue(self, explaining_string, value, expected_value, tolerance):

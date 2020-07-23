@@ -15,39 +15,21 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
-//#include "containers/hash_data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
-//#include "containers/all_variables_data_value_container.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-// #include "python/variable_indexing_python.h"
-// #include "python/vector_python_interface.h"
-// #include "python/vector_scalar_operator_python.h"
-// #include "python/vector_vector_operator_python.h"
-// #include "python/bounded_vector_python_interface.h"
-#include "python/add_deprecated_variables_to_python.h"
-#include "python/add_c2c_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_mesh_moving_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_mapping_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_fsi_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_mat_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_legacy_structural_app_vars_to_python.h" //TODO: to be removed eventually
 
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 #include "utilities/timer.h"
 #include "utilities/quaternion.h"
-
 
 namespace Kratos
 {
@@ -89,45 +71,16 @@ struct Array1DModifier
 };
 
 template< class TBinderType, typename TContainerType, typename TVariableType > void VariableIndexingUtility(TBinderType& binder)
-    {
-        //data value container
-        binder.def("__contains__", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
-        binder.def("__setitem__", [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
-        binder.def("__getitem__", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
-        binder.def("Has", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
-        binder.def("SetValue",  [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
-        binder.def("GetValue", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
-        binder.def("Clear", [](TContainerType& container){container.Clear();} );
-    }
-
-//     template< typename TVariableType > void RegisterInPythonVariables(pybind11::module& m)
-//     {
-//         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size())
-//         for(const auto& item : KratosComponents<VariableData>::GetComponents())
-//         {
-//             std::cout << "item " << item.first << std::endl;
-//             m.attr(item.first.c_str()) = item.second;
-//         }
-//     }
-//
-//     void RegisterInPython3DVariablesWithComponents(pybind11::module& m)
-//     {
-//         for(const auto& item : KratosComponents<Variable<array_1d<double,3>>>::GetComponents())
-//         {
-//             std::string name = item.first;
-//             m.attr(name.c_str()) = item.second;
-//
-//             std::string xcomponent = name + "_X";
-//             std::string ycomponent = name + "_Y";
-//             std::string zcomponent = name + "_Z";
-//             const auto& xvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(xcomponent);
-//             const auto& yvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(ycomponent);
-//             const auto& zvar = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Get(zcomponent);
-//             m.attr(xcomponent.c_str()) = xvar;
-//             m.attr(ycomponent.c_str()) = yvar;
-//             m.attr(zcomponent.c_str()) = zvar;
-//         }
-//     }
+{
+    // Data value container
+    binder.def("__contains__", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
+    binder.def("__setitem__", [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
+    binder.def("__getitem__", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
+    binder.def("Has", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
+    binder.def("SetValue",  [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
+    binder.def("GetValue", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
+    binder.def("Clear", [](TContainerType& container){container.Clear();} );
+}
 
 void  AddContainersToPython(pybind11::module& m)
 {
@@ -136,25 +89,12 @@ void  AddContainersToPython(pybind11::module& m)
     typedef Variable<array_1d<double, 6> > Array1DVariable6;
     typedef Variable<array_1d<double, 9> > Array1DVariable9;
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentVariable;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > Array1D4ComponentVariable;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > Array1D6ComponentVariable;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > Array1D9ComponentVariable;
-
-    //def("TestContainers", TestContainers);
-
-//     BoundedVectorPythonInterface<array_1d<double, 3>, 3>::CreateInterface(m, "Array3" )
-//     .def(py::init<vector_expression<array_1d<double, 3> > >() )
-//     .def( VectorScalarOperatorPython<array_1d<double, 3>, double, array_1d<double, 3> >() )
-//     .def( VectorVectorOperatorPython<array_1d<double, 3>, zero_vector<double>, array_1d<double, 3> >() )
-//     .def( VectorVectorOperatorPython<array_1d<double, 3>, unit_vector<double>, array_1d<double, 3> >() )
-//     .def( VectorVectorOperatorPython<array_1d<double, 3>, scalar_vector<double>, array_1d<double, 3> >() )
-//     .def( VectorVectorOperatorPython<array_1d<double, 3>, mapped_vector<double>, array_1d<double, 3> >() )
-//     ;
-
     py::class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
     .def("Key", &VariableData::Key)
+    .def("GetSourceVariable", &VariableData::GetSourceVariable)
+    .def("GetComponentIndex()", &VariableData::GetComponentIndex)
+    .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
     ;
 
@@ -218,58 +158,9 @@ void  AddContainersToPython(pybind11::module& m)
     // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
-    py::class_<Array1DComponentVariable,VariableData>(m, "Array1DComponentVariable")
-    .def("__str__", PrintObject<Array1DComponentVariable>)
-    .def( "GetSourceVariable", &Array1DComponentVariable::GetSourceVariable )
-    ;
-
-    py::class_<Array1D4ComponentVariable,VariableData>(m, "Array1D4ComponentVariable")
-    .def("__str__", PrintObject<Array1D4ComponentVariable>)
-    .def( "GetSourceVariable", &Array1D4ComponentVariable::GetSourceVariable )
-    ;
-
-    py::class_<Array1D6ComponentVariable,VariableData>(m, "Array1D6ComponentVariable")
-    .def("__str__", PrintObject<Array1D6ComponentVariable>)
-    .def( "GetSourceVariable", &Array1D6ComponentVariable::GetSourceVariable )
-    ;
-
-    py::class_<Array1D9ComponentVariable,VariableData>(m, "Array1D9ComponentVariable")
-    .def("__str__", PrintObject<Array1D9ComponentVariable>)
-    .def( "GetSourceVariable", &Array1D9ComponentVariable::GetSourceVariable )
-    ;
-
     py::class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
     .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
-
-    //***********************************************************************
-    //AUTOMATIC REGISTRATION OF VARIABLES_IN_PYTHON
-//     RegisterInPythonVariables< Variable<bool> >(m);
-//     RegisterInPythonVariables< Variable<int> >(m);
-//     RegisterInPythonVariables< Variable<unsigned int> >(m);
-//     RegisterInPythonVariables< Variable<double> >(m);
-//     RegisterInPythonVariables< Variable<Vector> >(m);
-//     RegisterInPythonVariables< Variable<Matrix> >(m);
-// //     RegisterInPythonVariables< Variable<ConvectionDiffusionSettings::Pointer> >(m);
-// //     RegisterInPythonVariables< Variable<RadiationSettings::Pointer> >(m);
-//     RegisterInPythonVariables< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(m);
-//     RegisterInPythonVariables< Variable<Quaternion<double>> >(m);
-//     RegisterInPythonVariables< Variable<std::string> >(m);
-
-
-    //py::class_<AllVariablesDataValueContainer, AllVariablesDataValueContainer::Pointer>( "DataValueContainer" )
-    //.def( "__len__", &AllVariablesDataValueContainer::Size )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<std::string> >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<int> >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<double> >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<array_1d<double, 3> > >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<vector<double> > >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<DenseMatrix<double> > >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<ConvectionDiffusionSettings::Pointer > >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<RadiationSettings::Pointer > >() )
-    //.def( VariableIndexingPython<AllVariablesDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
-    //.def( self_ns::str( self ) )
-    //;
 
     typedef py::class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
@@ -286,10 +177,6 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DComponentVariable >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D4ComponentVariable >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D6ComponentVariable >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D9ComponentVariable >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
@@ -306,10 +193,6 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable9 >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Vector> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Matrix> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DComponentVariable >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D4ComponentVariable >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D6ComponentVariable >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D9ComponentVariable >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Quaternion<double>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<std::string> >(VariableDataValueBinder);
 
@@ -326,6 +209,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Reset", &Flags::Reset)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
+    .def("AsFalse", &Flags::AsFalse)
     .def("__or__", FlagsOr)
     .def("__and__", FlagsAnd)
     .def("__str__", PrintObject<Flags>)
@@ -366,17 +250,6 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(m,ALL_DEFINED);
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(m,ALL_TRUE);
 
-
-//     AddDeprecatedVariablesToPython();
-//     AddC2CVariablesToPython();
-//     AddDEMVariablesToPython(); //TODO: move this to the DEM application
-//     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
-//     AddALEVariablesToPython(); ///@TODO: move variables to ALE application
-//     AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
-//     AddMappingVariablesToPython(); ///@TODO: move variables to Mapping application
-//     AddMATVariablesToPython(); ///@TODO: move variables to CL application
-//     AddLegacyStructuralAppVarsToPython();
-
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SPACE_DIMENSION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DOMAIN_SIZE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_RESTARTED )
@@ -414,8 +287,10 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERVAL_END_TIME )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRINTED_STEP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRINTED_RESTART_STEP )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RUNGE_KUTTA_STEP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESIDUAL_NORM )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVERGENCE_RATIO )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BUILD_SCALE_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE_OLD_IT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE )
@@ -424,6 +299,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ERROR_RATIO )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_STEPS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_LAGRANGE_MULTIPLIER )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_INTEGRATION_THETA )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_LAGRANGE_MULTIPLIER )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ANGULAR_ACCELERATION )
@@ -488,6 +364,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TOTAL_ENERGY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KINETIC_ENERGY )
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VOLUMETRIC_STRAIN )
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_INERTIA_TENSOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_AXES_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_CONSTITUTIVE_MATRIX )
@@ -524,8 +402,6 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_FRICTION_ANGLE )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_DISPLACEMENT )
-
-
 
     // for MultiScale application
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INITIAL_STRAIN )
@@ -697,6 +573,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SOUND_VELOCITY )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SEARCH_RADIUS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ORIENTATION )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_WEIGHT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INTEGRATION_COORDINATES )
@@ -764,9 +641,6 @@ void  AddContainersToPython(pybind11::module& m)
     ;
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
-
-    // KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
-
 }
 } // namespace Python.
 } // Namespace Kratos

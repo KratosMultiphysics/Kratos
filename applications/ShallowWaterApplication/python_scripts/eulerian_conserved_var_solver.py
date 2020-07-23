@@ -10,16 +10,16 @@ def CreateSolver(model, custom_settings):
     return EulerianConservedVarSolver(model, custom_settings)
 
 class EulerianConservedVarSolver(ShallowWaterBaseSolver):
-    def __init__(self, model, custom_settings):
-        super(EulerianConservedVarSolver, self).__init__(model, custom_settings)
+    def __init__(self, model, settings):
+        super(EulerianConservedVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
-        self.element_name = "EulerConsVarElement"
-        self.condition_name = "Condition"
+        self.element_name = "ConservedElement"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
 
     def AddVariables(self):
-        super(EulerianConservedVarSolver,self).AddVariables()
+        super(EulerianConservedVarSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
 
     def AddDofs(self):
@@ -29,13 +29,6 @@ class EulerianConservedVarSolver(ShallowWaterBaseSolver):
 
         KM.Logger.PrintInfo("::[EulerianConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
 
-    def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized:
-            # Solve equations
-            is_converged = self.solver.SolveSolutionStep()
-            # Compute free surface
-            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
-            # Compute velocity
-            SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part)
-
-            return is_converged
+    def FinalizeSolutionStep(self):
+        super(EulerianConservedVarSolver, self).FinalizeSolutionStep()
+        SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part)

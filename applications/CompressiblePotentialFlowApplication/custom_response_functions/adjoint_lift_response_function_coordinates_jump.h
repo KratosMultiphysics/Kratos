@@ -78,6 +78,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    void InitializeSolutionStep() override;
+
     double CalculateValue(ModelPart& rModelPart) override;
 
     void CalculateGradient(const Element& rAdjointElement,
@@ -172,6 +174,7 @@ private:
     ///@{
 
     Element::Pointer mpNeighboringElement;
+    double mReferenceChord;
 
 
     ///@}
@@ -183,7 +186,7 @@ private:
     ///@{
 
     void GetNeighboringElementPointer();
-    
+
     ///@}
     ///@name Private  Access
     ///@{

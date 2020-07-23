@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_surface"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_ends","DISPLACEMENT_xy_sym","DISPLACEMENT_xz_sym","DISPLACEMENT_yz_sym","DISPLACEMENT_sample","ROTATION_xy_sym","ROTATION_xz_sym","ROTATION_yz_sym","SurfacePressure3D_surface"],
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -41,7 +39,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_ends",
+            "model_part_name" : "Structure.DISPLACEMENT_ends",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -53,7 +51,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_xy_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_xy_sym",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [null,null,0.0],
             "interval"        : [0.0,"End"]
@@ -65,7 +63,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_xz_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_xz_sym",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [null,0.0,null],
             "interval"        : [0.0,"End"]
@@ -77,7 +75,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_yz_sym",
+            "model_part_name" : "Structure.DISPLACEMENT_yz_sym",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,null,null],
             "interval"        : [0.0,"End"]
@@ -89,7 +87,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_sample",
+            "model_part_name" : "Structure.DISPLACEMENT_sample",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,null],
             "interval"        : [0.0,"End"]
@@ -101,7 +99,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_xy_sym",
+            "model_part_name" : "Structure.ROTATION_xy_sym",
             "variable_name"   : "ROTATION",
             "value"           : [0.0,0.0,null],
             "interval"        : [0.0,"End"]
@@ -113,7 +111,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_xz_sym",
+            "model_part_name" : "Structure.ROTATION_xz_sym",
             "variable_name"   : "ROTATION",
             "value"           : [0.0,null,0.0],
             "interval"        : [0.0,"End"]
@@ -125,7 +123,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_yz_sym",
+            "model_part_name" : "Structure.ROTATION_yz_sym",
             "variable_name"   : "ROTATION",
             "value"           : [null,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -138,7 +136,7 @@
         "process_name"  : "AssignScalarToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SurfacePressure3D_surface",
+            "model_part_name" : "Structure.SurfacePressure3D_surface",
             "variable_name"   : "NEGATIVE_FACE_PRESSURE",
             "value"           : -2040.37,
             "interval"        : [0.0,"End"]
@@ -153,7 +151,7 @@
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "shell_test/Shell_T3_Thin_orthotropic_laminate_linear_static_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_sample",
+            "model_part_name"  : "Structure.DISPLACEMENT_sample",
             "time_frequency"   : 0.01
         }
     }
@@ -168,7 +166,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Z"],
             "output_file_name" : "shell_test/Shell_T3_Thin_orthotropic_laminate_linear_static_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_sample",
+            "model_part_name"  : "Structure.DISPLACEMENT_sample",
             "time_frequency"   : 0.01
         }
     }

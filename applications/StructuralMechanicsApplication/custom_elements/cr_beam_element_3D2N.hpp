@@ -94,13 +94,11 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void Initialize() override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief This function calculates the elastic part of the total stiffness matrix
@@ -130,17 +128,7 @@ public:
     /**
      * @brief This function calculates the internal element forces
      */
-    BoundedVector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference) const;
-
-
-    /**
-     * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
-     * @param rRotationMatrix The current transformation matrix
-     */
-    void CalculateTransformationMatrix(
-        BoundedMatrix<double,msElementSize,msElementSize>& rRotationMatrix,
-        Vector& Bisectrix, Vector& VectorDifference);
-
+    BoundedVector<double,msLocalSize> CalculateElementForces() const;
 
     /**
      * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
@@ -151,12 +139,19 @@ public:
     /**
      * @brief This function updates constantly the transformation matrix
      */
-    BoundedMatrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference);
+    BoundedMatrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference) const;
+
+    void SaveQuaternionParameters();
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
+
+    void ConstCalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
@@ -165,6 +160,14 @@ public:
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo) override;
+
+    void ConstCalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) const;
+
+    void ConstCalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
@@ -210,20 +213,20 @@ public:
 
     void AddExplicitContribution(const VectorType& rRHSVector,
                                  const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double, 3> >& rDestinationVariable,
+                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) override;
+        int Step = 0) const override;
 
     /**
      * @brief This function is used to assemble single transformation matrix in the big global rotation matrix
@@ -233,7 +236,7 @@ public:
     void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
                                   msElementSize,msElementSize>& BigMatrix) const;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     /**
@@ -249,22 +252,13 @@ public:
     double CalculateShearModulus() const;
 
     /**
-     * @brief This function updates incremental deformation w.r.t. to current and previous deformations
-     */
-    Vector UpdateIncrementDeformation();
-
-
-    /**
      * @brief This function calculates self-weight forces
      */
     BoundedVector<double,msElementSize> CalculateBodyForces() const;
 
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -286,33 +280,44 @@ public:
 
     /**
      * @brief This function calculates the symmetric deformation modes
-     * @param VectorDifference The vector differences of the quaternions
      */
-    Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference) const;
+    Vector CalculateSymmetricDeformationMode() const;
 
     /**
      * @brief This function calculates the antisymmetric deformation modes
-     * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
      */
-    Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix) const;
+    Vector CalculateAntiSymmetricDeformationMode() const;
 
     /**
      * @brief This function calculates the local nodal forces
      * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
      * @param VectorDifference The vector differences of the quaternions
      */
-    void CalculateLocalNodalForces(const Vector& Bisectrix,const Vector& VectorDifference);
+    Vector CalculateLocalNodalForces() const;
+
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    Vector CalculateGlobalNodalForces() const;
+
+    Vector GetIncrementDeformation() const;
+
+    BoundedMatrix<double, msElementSize, msElementSize> GetTransformationMatrixGlobal() const;
+
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+
+    void UpdateQuaternionParameters(double& rScalNodeA,double& rScalNodeB,
+         Vector& rVecNodeA,Vector& rVecNodeB) const;
 
 private:
 
-    int mIterationCount = 0;
-    Vector mTotalNodalDeformation = ZeroVector(msElementSize); // save as the displacement from the last iteration step is needed
-    Matrix mLocalRotationMatrix  = ZeroMatrix(msDimension); // save this as updating the matrix takes rather long
+
+    Vector mDeformationCurrentIteration = ZeroVector(msElementSize);
+    Vector mDeformationPreviousIteration = ZeroVector(msElementSize);
     Vector mQuaternionVEC_A = ZeroVector(msDimension);
     Vector mQuaternionVEC_B = ZeroVector(msDimension);
     double mQuaternionSCA_A = 1.00;
     double mQuaternionSCA_B = 1.00;
-    Vector mNodalForces = ZeroVector(msElementSize);
 
 
 
@@ -321,12 +326,6 @@ private:
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-
-public:
-    void IncrementIterationCounter()
-    {
-        mIterationCount += 1;
-    };
 };
 
 

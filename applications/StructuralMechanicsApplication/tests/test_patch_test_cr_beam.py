@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -77,13 +76,13 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
         if(which_dof == 'y'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_Y, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
             #     POINT_LOAD_Y,0,load_size_dir)
         if(which_dof == 'x'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_X, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
@@ -100,7 +99,6 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 builder_and_solver,
                                                                 compute_reactions,
                                                                 reform_step_dofs,
@@ -124,7 +122,6 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,
@@ -150,7 +147,6 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,
@@ -684,13 +680,13 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
         if(which_dof == 'y'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_Y, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
             #     POINT_LOAD_Y,0,load_size_dir)
         if(which_dof == 'x'):
-            KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
+            KratosMultiphysics.VariableUtils().SetVariable(StructuralMechanicsApplication.
                 POINT_LOAD_X, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
@@ -707,7 +703,6 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 builder_and_solver,
                                                                 compute_reactions,
                                                                 reform_step_dofs,
@@ -731,7 +726,6 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,
@@ -757,7 +751,6 @@ class BasePatchTestCrBeam2D2N(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                 scheme,
-                                                                linear_solver,
                                                                 convergence_criterion,
                                                                 builder_and_solver,
                                                                 max_iters,

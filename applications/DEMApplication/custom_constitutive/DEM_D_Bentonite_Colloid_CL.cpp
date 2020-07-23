@@ -33,15 +33,13 @@ namespace Kratos {
         mEquivRadius = mD_p / Globals::Pi; // this is the "coin" equivalent radius
     }
 
-    void DEM_D_Bentonite_Colloid::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Bentonite_Colloid::Clone() const
     {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Bentonite_Colloid(*this));
         return p_clone;
     }
 
-    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_D_Bentonite_Colloid to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -54,9 +52,6 @@ namespace Kratos {
     /////////////////////////
     // DEM-DEM INTERACTION //
     /////////////////////////
-
-    void DEM_D_Bentonite_Colloid::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation)
-    {}
 
     void DEM_D_Bentonite_Colloid::CalculateForces(const ProcessInfo& r_process_info,
                                                   const double OldLocalContactForce[3],
@@ -146,9 +141,6 @@ namespace Kratos {
     /////////////////////////
     // DEM-FEM INTERACTION //
     /////////////////////////
-
-    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta)
-    {}
 
     void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                                          const double OldLocalContactForce[3],

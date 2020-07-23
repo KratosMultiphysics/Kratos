@@ -10,13 +10,19 @@ def CreateSolver(model, custom_settings):
     return EulerianPrimitiveVarSolver(model, custom_settings)
 
 class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
-    def __init__(self, model, custom_settings):
-        super(EulerianPrimitiveVarSolver, self).__init__(model, custom_settings)
+    def __init__(self, model, settings):
+        super(EulerianPrimitiveVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
-        self.element_name = "EulerPrimVarElement"
-        self.condition_name = "Condition"
+        self.element_name = "ReducedSWE"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
+
+    def AddVariables(self):
+        super(EulerianPrimitiveVarSolver, self).AddVariables()
+        # Auxiliary variables
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
@@ -25,11 +31,7 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
 
         KM.Logger.PrintInfo("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
-    def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Solve equations on the mesh
-            is_converged = self.solver.SolveSolutionStep()
-            # Computing the free surface
-            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.GetComputingModelPart())
-
-            return is_converged
+    def InitializeSolutionStep(self):
+        KM.VariableUtils().CopyScalarVar(SW.HEIGHT, SW.PROJECTED_SCALAR1, self.main_model_part.Nodes)
+        KM.VariableUtils().CopyVectorVar(KM.VELOCITY, SW.PROJECTED_VECTOR1, self.main_model_part.Nodes)
+        super(EulerianPrimitiveVarSolver, self).InitializeSolutionStep()

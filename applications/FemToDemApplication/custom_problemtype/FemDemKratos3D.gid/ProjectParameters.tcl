@@ -12,7 +12,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
    
     ## AMR data
     puts $FileVar "   \"AMR_data\": \{"
-    puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing]"
+	puts $FileVar "        \"activate_AMR\":  [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique],"
+    puts $FileVar "           \"hessian_variable_parameters\": \{"
+    puts $FileVar "              \"normalized_free_energy\":           false,"
+    puts $FileVar "              \"correct_with_displacements\":       true,"
+    puts $FileVar "              \"correction_factor\":                1.0"
+    puts $FileVar "         \}"
     puts $FileVar "    \},"
     ## problem_data
     puts $FileVar "   \"problem_data\": \{"
@@ -25,6 +30,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
@@ -129,10 +136,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "    \"loads_process_list\": \[\{"
         # Force
         set Groups [GiD_Info conditions Force groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups POINT_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FORCE_LOAD $TableDict $NumGroups
         # Face_Load
         set Groups [GiD_Info conditions Face_Load groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups LINE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FORCE_LOAD $TableDict $NumGroups
 
         # Normal_Load
         set Groups [GiD_Info conditions Normal_Load groups]
@@ -159,7 +166,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"gidpost_flags\":       \{"
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
+    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostBinary\","
     puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
@@ -201,10 +208,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         AppendOutputVariables PutStrings iGroup Write_Integrated_Stress CONCRETE_STRESS_TENSOR
 		AppendOutputVariables PutStrings iGroup Write_Integrated_Stress STEEL_STRESS_TENSOR
     } else {
-		AppendOutputVariables PutStrings iGroup Write_Predictive_Stress STRESS_TENSOR
+		AppendOutputVariables PutStrings iGroup Write_Predictive_Stress CAUCHY_STRESS_TENSOR
 		AppendOutputVariables PutStrings iGroup Write_Integrated_Stress STRESS_TENSOR_INTEGRATED
 	}
-	AppendOutputVariables PutStrings iGroup Write_Strain STRAIN_TENSOR
+	AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_TENSOR
 	AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_ELEMENT
     AppendOutputVariables PutStrings iGroup Write_Is_Damaged IS_DAMAGED
     AppendOutputVariables PutStrings iGroup Stress_Threshold STRESS_THRESHOLD

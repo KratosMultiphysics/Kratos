@@ -659,8 +659,20 @@ public:
         isect2[0] = tmp + e*xx*y1;
         isect2[1] = tmp + f*xx*y0;
 
-        std::sort(isect1.begin(), isect1.end());
-        std::sort(isect2.begin(), isect2.end());
+        // std::sort(isect1.begin(), isect1.end());
+        // std::sort(isect2.begin(), isect2.end());
+
+        if (isect1[0] > isect1[1]) {
+            isect1[1] = isect1[0] + isect1[1];
+            isect1[0] = isect1[1] - isect1[0];
+            isect1[1] = isect1[1] - isect1[0];
+        }
+
+        if (isect2[0] > isect2[1]) {
+            isect2[1] = isect2[0] + isect2[1];
+            isect2[0] = isect2[1] - isect2[0];
+            isect2[1] = isect2[1] - isect2[0];
+        }
 
         if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
         return true;
@@ -1304,10 +1316,9 @@ public:
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
         return edges;
     }
 
@@ -1742,8 +1753,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -2437,12 +2450,17 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Triangle3D3<TPointType>::msGeometryData(
-    2, 3, 2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     Triangle3D3<TPointType>::AllIntegrationPoints(),
     Triangle3D3<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType>
+const GeometryDimension Triangle3D3<TPointType>::msGeometryDimension(
+    2, 3, 2);
+
 }// namespace Kratos.
 
 #endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

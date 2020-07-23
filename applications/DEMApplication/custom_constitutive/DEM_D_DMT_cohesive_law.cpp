@@ -12,14 +12,12 @@ namespace Kratos {
 
     DEM_D_DMT_Cohesive_Law::~DEM_D_DMT_Cohesive_Law() {}
 
-    void DEM_D_DMT_Cohesive_Law::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_DMT_Cohesive_Law::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_DMT_Cohesive_Law(*this));
         return p_clone;
     }
 
-    void DEM_D_DMT_Cohesive_Law::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_D_DMT_Cohesive_Law::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_DMT_Cohesive_Law to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -36,7 +34,7 @@ namespace Kratos {
 
         return cohesive_force;
     }
-    
+
     double DEM_D_DMT_Cohesive_Law::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) {
 
         const double cohesion       = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy

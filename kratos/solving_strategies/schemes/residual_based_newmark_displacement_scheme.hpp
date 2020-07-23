@@ -55,6 +55,8 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                        BaseType;
 
+    typedef ResidualBasedNewmarkDisplacementScheme<TSparseSpace, TDenseSpace>      ClassType;
+
     typedef typename BaseType::TDataType                                           TDataType;
 
     typedef typename BaseType::DofsArrayType                                   DofsArrayType;
@@ -76,8 +78,6 @@ public:
     typedef typename BaseType::Pointer                                       BaseTypePointer;
 
     typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
-
-    typedef typename BaseType::LocalSystemComponents               LocalSystemComponentsType;
 
     ///@}
     ///@name Life Cycle
@@ -118,13 +118,22 @@ public:
      */
     BaseTypePointer Clone() override
     {
-      return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }
 
     /** Destructor.
      */
     ~ResidualBasedNewmarkDisplacementScheme
     () override {}
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newmark_scheme";
+    }
 
     ///@}
     ///@name Operators
@@ -133,6 +142,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     ///@}
     ///@name Access

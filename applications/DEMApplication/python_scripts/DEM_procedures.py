@@ -10,7 +10,8 @@ from glob import glob
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
+import KratosMultiphysics.DEMApplication.triaxial2d_test as triaxial2d_test
 
 def Flush(a):
     a.flush()
@@ -371,7 +372,7 @@ class Procedures(object):
             translational_scheme = SymplecticEulerScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme':
             translational_scheme = TaylorScheme()
-        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
             self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
@@ -441,11 +442,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
-        # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(FACE_NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(FACE_TANGENTIAL_IMPACT_VELOCITY)
@@ -534,8 +530,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
         model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
@@ -565,10 +559,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(ORIENTATION)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-        # JIG: SHOULD BE REMOVED IN THE FUTURE
-        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
         model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
         # ****************** Quaternion Integration BEGIN ******************
         model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
@@ -873,10 +863,10 @@ class DEMFEMProcedures(object):
         # GLOBAL VARIABLES OF THE SCRIPT
         self.DEM_parameters = DEM_parameters
 
-        if not "TestType" in DEM_parameters.keys():
+        if not "material_test_settings" in DEM_parameters.keys():
             self.TestType = "None"
         else:
-            self.TestType = self.DEM_parameters["TestType"].GetString()
+            self.TestType = self.DEM_parameters["material_test_settings"]["TestType"].GetString()
 
         # Initialization of member variables
         # SIMULATION FLAGS
@@ -974,16 +964,18 @@ class DEMFEMProcedures(object):
         evaluate_computation_of_fem_results()
 
     def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
+        message = 'Warning!'
+        message += '\nFunction \'MoveAllMeshes\' is deprecated. It is called inside sphere_strategy.py'
+        message += '\nIt will be removed after 10/31/2019.\n'
+        Logger.PrintWarning("DEM_procedures.py", message)
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
-        cluster_model_part = all_model_parts.Get("ClusterPart")
 
-        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     # def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
@@ -1202,7 +1194,7 @@ class Report(object):
         pass
 
     def Prepare(self, timer, control_time):
-        self.initial_pr_time = timer.clock()
+        self.initial_pr_time = timer.process_time()
         self.initial_re_time = timer.time()
         self.prev_time = 0.0
         self.total_steps_expected = 0
@@ -1227,9 +1219,9 @@ class Report(object):
             percentage = 100 * (float(step) / self.total_steps_expected)
             elapsed_time = timer.time() - self.initial_re_time
 
-            report = report + "Real time calculation: " + str(elapsed_time) + " seconds" + "\n"\
-                            + label + "In minutes: " + str(elapsed_time / 60.0) + " minutes" + "\n"\
-                            + label + "In hours: " + str(elapsed_time / 3600.0) + " hours" + "\n"\
+            report = report + label + "Elapsed real time: " + str(round(elapsed_time, 5)) + " seconds" + "\n"\
+                            + label + "In minutes: " + str(round(elapsed_time / 60.0, 2)) + " minutes" + "\n"\
+                            + label + "In hours: " + str(round(elapsed_time / 3600.0, 3)) + " hours" + "\n"\
                             + label + "Simulation time: " + str(time) + " seconds" + "\n"\
                             + label + "%s %.5f %s" % ("Percentage Completed: ", percentage, "%") + "\n"\
                             + label + "Computed time steps: " + str(step) + " out of " + str(self.total_steps_expected) + "\n" + label
@@ -1248,14 +1240,12 @@ class Report(object):
         return report
 
     def FinalReport(self, timer):
-        elapsed_pr_time = timer.clock() - self.initial_pr_time
+        elapsed_pr_time = timer.process_time() - self.initial_pr_time
         elapsed_re_time = timer.time() - self.initial_re_time
         label = "DEM: "
 
-        report = "Calculation ends at instant: " + str(timer.time()) + "\n"\
-            + label + "Calculation ends at processing time instant: " + str(timer.clock()) + "\n"\
-            + label + "Elapsed processing time: " + str(elapsed_pr_time) + "\n"\
-            + label + "Elapsed real time: " + str(elapsed_re_time) + "\n" + label
+        report = label + "Elapsed processing time (sum across cores): " + str(elapsed_pr_time) + " seconds\n"\
+                + label + "Elapsed real time (wall time): " + str(elapsed_re_time) + " seconds\n" + label
 
         report = report + "\n" + label + "ANALYSIS COMPLETED"
 
@@ -1274,13 +1264,16 @@ class MaterialTest(object):
 
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
 
-        if not "TestType" in DEM_parameters.keys():
+        if not "material_test_settings" in DEM_parameters.keys():
             self.TestType = "None"
         else:
-            self.TestType = DEM_parameters["TestType"].GetString()
+            self.TestType = DEM_parameters["material_test_settings"]["TestType"].GetString()
 
         if self.TestType != "None":
-            self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+            if self.TestType == "Triaxial2D":
+                self.script = triaxial2d_test.Triaxial2D(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
+            else:
+                self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             self.script.Initialize()
 
             #self.PreUtils = DEM_material_test_script.PreUtils(spheres_model_part)
@@ -1346,6 +1339,7 @@ class DEMIo(object):
         # Printing variables
         self.DEM_parameters = DEM_parameters
         self.global_variables = []
+        self.global_nonhistorical_nodal_variables = []
         self.spheres_and_clusters_variables = []
         self.spheres_and_clusters_local_axis_variables = []
         self.spheres_not_in_cluster_and_clusters_variables = []
@@ -1392,6 +1386,7 @@ class DEMIo(object):
         self.PostBrokenRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostBrokenRatio")
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
+        self.PostControlModule = GetBoolParameterIfItExists(self.DEM_parameters, "PostControlModule")
         self.VelTrapGraphExportFreq = self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()
         if not "PostCharacteristicLength" in self.DEM_parameters.keys():
             self.PostCharacteristicLength = 0
@@ -1482,6 +1477,7 @@ class DEMIo(object):
 
     def Initialize(self, DEM_parameters):
         self.AddGlobalVariables()
+        self.AddGlobalNonHistoricalNodalVariables()
         self.AddSpheresVariables()
         self.AddSpheresAndClustersVariables()
         self.AddSpheresNotInClusterAndClustersVariables()
@@ -1508,6 +1504,15 @@ class DEMIo(object):
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
+
+    def AddGlobalNonHistoricalNodalVariables(self):
+        self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, SMOOTHED_REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, ELASTIC_REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, SMOOTHED_ELASTIC_REACTION_STRESS, self.global_nonhistorical_nodal_variables)
+        self.PushPrintVar(self.PostControlModule, LOADING_VELOCITY, self.global_nonhistorical_nodal_variables)
+
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
@@ -1581,16 +1586,8 @@ class DEMIo(object):
             self.PushPrintVar(1, IMPACT_WEAR, self.fem_boundary_variables)
 
     def AddClusterVariables(self):
-
         if self.PostCharacteristicLength:
             self.PushPrintVar(self.PostCharacteristicLength, CHARACTERISTIC_LENGTH, self.clusters_variables)
-
-        if self.DEM_parameters["PostEulerAngles"].GetBool():
-            # JIG: SHOULD BE REMOVED IN THE FUTURE
-            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables)
-            # JIG: SHOULD BE REMOVED IN THE FUTURE
-            self.PushPrintVar(self.PostEulerAngles, ORIENTATION_IMAG, self.clusters_variables)
-            #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
 
     def AddRigidBodyVariables(self):
         pass
@@ -1760,6 +1757,10 @@ class DEMIo(object):
         for variable in self.global_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
+    def PrintingGlobalNonHistoricalNodalVariables(self, export_model_part, time):
+        for variable in self.global_nonhistorical_nodal_variables:
+            self.gid_io.WriteNodalResultsNonHistorical(variable, export_model_part.Nodes, time)
+
     def PrintingSpheresAndClustersVariables(self, export_model_part, time):
         for variable in self.spheres_and_clusters_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
@@ -1816,6 +1817,7 @@ class DEMIo(object):
                                    bounding_box_time_limits)
 
         self.PrintingGlobalVariables(self.mixed_model_part, time)
+        self.PrintingGlobalNonHistoricalNodalVariables(self.mixed_model_part, time)
         self.PrintingSpheresAndClustersVariables(self.mixed_spheres_and_clusters_model_part, time)
         self.PrintingSpheresNotInClusterAndClustersVariables(self.mixed_spheres_not_in_cluster_and_clusters_model_part, time)
         self.PrintingSpheresVariables(self.spheres_model_part, time)

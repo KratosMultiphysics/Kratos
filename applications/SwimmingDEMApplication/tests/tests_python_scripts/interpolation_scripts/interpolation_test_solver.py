@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector
-import swimming_DEM_solver
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_solver as swimming_DEM_solver
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 
 class InterpolationTestSolver(BaseSolver):
@@ -33,7 +33,6 @@ class InterpolationTestSolver(BaseSolver):
 
     def SolveDEM(self):
         import random
-        random.random()
 
         for node in self.dem_solver.spheres_model_part.Nodes:
             node.X = random.random()

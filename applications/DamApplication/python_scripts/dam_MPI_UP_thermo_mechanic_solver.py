@@ -5,11 +5,12 @@ import KratosMultiphysics.mpi as mpi
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-import dam_MPI_thermo_mechanic_solver
+from KratosMultiphysics.DamApplication import dam_MPI_thermo_mechanic_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -105,7 +106,6 @@ class DamMPIUPThermoMechanicSolver(dam_MPI_thermo_mechanic_solver.DamMPIThermoMe
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solver
-        import trilinos_linear_solver_factory
         self.thermal_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["thermal_solver_settings"]["linear_solver_settings"])
         self.mechanical_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
 

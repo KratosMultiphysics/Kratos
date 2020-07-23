@@ -22,12 +22,13 @@ namespace Kratos
 {
 ContactSearchWrapperProcess::ContactSearchWrapperProcess(
     ModelPart& rMainModelPart,
-    Parameters ThisParameters
+    Parameters ThisParameters,
+    Properties::Pointer pPairedProperties
     )
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    const Parameters default_parameters = GetDefaultParameters();
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // The dimensions
     const SizeType dimension = rMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -59,35 +60,35 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
     if (dimension == 2) {
         // 2D
         if (simple_search) {
-            mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters, pPairedProperties);
         } else {
-            mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters);
+            mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<2, 2>>(rMainModelPart, ThisParameters, pPairedProperties);
         }
     } else {
         // 3D
         if (size_1 == 3 && size_2 == 3) {
             if (simple_search) {
-                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
             } else {
-                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
             }
         } else if (size_1 == 4 && size_2 == 4) {
             if (simple_search) {
-                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
             } else {
-                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
             }
         } else if (size_1 == 4 && size_2 == 3) {
             if (simple_search) {
-                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
             } else {
-                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 3, 4>>(rMainModelPart, ThisParameters, pPairedProperties);
             }
         } else if (size_1 == 3 && size_2 == 4) {
             if (simple_search) {
-                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<SimpleContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
             } else {
-                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters);
+                mpContactProcess = Kratos::make_shared<AdvancedContactSearchProcess<3, 4, 3>>(rMainModelPart, ThisParameters, pPairedProperties);
             }
         }
     }
@@ -96,9 +97,9 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ContactSearchWrapperProcess::GetDefaultParameters()
+const Parameters ContactSearchWrapperProcess::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "simple_search"                        : false,
         "allocation_size"                      : 1000,
@@ -113,13 +114,16 @@ Parameters ContactSearchWrapperProcess::GetDefaultParameters()
         "static_check_movement"                : false,
         "predefined_master_slave"              : true,
         "id_name"                              : "",
+        "normal_orientation_threshold"         : 1.0e-1,
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
+        "pure_slip"                            : false,
         "debug_mode"                           : false,
         "octree_search_parameters" : {
             "bounding_box_factor"             : 0.1,
             "debug_obb"                       : false,
             "OBB_intersection_type"           : "SeparatingAxisTheorem",
+            "build_from_bounding_box"         : true,
             "lower_bounding_box_coefficient"  : 0.0,
             "higher_bounding_box_coefficient" : 1.0
             }

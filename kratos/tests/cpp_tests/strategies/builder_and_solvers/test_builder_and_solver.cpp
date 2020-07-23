@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
+#include "utilities/condition_number_utility.h"
 
 /* Element include */
 #include "geometries/line_2d_2.h"
@@ -42,11 +43,10 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints_elementwise.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         /// Tests
         // TODO: Create test for the other components
@@ -54,24 +54,23 @@ namespace Kratos
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        
+
         // The direct solver
         typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;
         typedef DirectSolver<SparseSpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
         typedef LinearSolver<SparseSpaceType,LocalSpaceType> LinearSolverType;
         typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
-        
+
         // The builder ans solver type
         typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
         typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
-        typedef ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType;
         typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
         typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
-        
+
         // The time scheme
         typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
         typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
-        
+
         /**
          * @brief It generates a truss structure with an expected solution
          */
@@ -104,9 +103,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -194,7 +193,7 @@ namespace Kratos
             rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 18, pgeom18, p_prop));
             GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode4})});
             rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 19, pgeom19, p_prop));
-            
+
             /// Add dof
             for (auto& node : rModelPart.Nodes()) {
                 node.AddDof(DISPLACEMENT_X, REACTION_X);
@@ -203,9 +202,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -256,6 +255,9 @@ namespace Kratos
             pScheme->InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
             pBuilderAndSolver->Build(pScheme, rModelPart, rA, rb);
+            if(rModelPart.MasterSlaveConstraints().size() != 0) {
+                pBuilderAndSolver->ApplyConstraints(pScheme, rModelPart, rA, rb);
+            }
             pBuilderAndSolver->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
             return rA;
@@ -263,8 +265,8 @@ namespace Kratos
 
 //         static void DebugLHS(const SparseSpaceType::MatrixType& rA)
 //         {
-//             for (int i = 0; i < rA.size1(); ++i) {
-//                 for (int j = 0; j < rA.size2(); ++j) {
+//             for (std::size_t i = 0; i < rA.size1(); ++i) {
+//                 for (std::size_t j = 0; j < rA.size2(); ++j) {
 //                     if (std::abs(rA(i, j)) > 0.99) {
 //                         std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - ";
 //                         std::cout << std::fixed;
@@ -275,7 +277,7 @@ namespace Kratos
 //                 }
 //             }
 //         }
-     
+
         /**
          * Checks if the block builder and solver performs correctly the assemble of the system
          */
@@ -308,45 +310,42 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.000000000)/rA(5,5)), tolerance);
 
+            // Testing scale
+            Parameters parameters = Parameters(R"(
+            {
+                "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info",
+                "silent_warnings"                    : false
+            })" );
+            r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
+            BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
+
+            const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
+
+            KRATOS_CHECK(rA.size1() == 6);
+            KRATOS_CHECK(rA.size2() == 6);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(0,0) - 2069000000.000000000)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(1,1) - 2.26648e+10)/rA_scale(1,1)), 1.0e-4);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(2,2) - 4138000000.000000000)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(2,4) - -2069000000.000000000)/rA(2,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(3,3) - 2.26648e+10)/rA_scale(3,3)), 1.0e-4);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(4,2) - -2069000000.000000000)/rA(4,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(5,5) - 2.26648e+10)/rA_scale(5,5)), 1.0e-4);
+
+            SparseSpaceType::MatrixType copy_A(rA);
+            const double condition_number_not_scale = ConditionNumberUtility().GetConditionNumber(copy_A);
+            SparseSpaceType::MatrixType copy_A_scale(rA_scale);
+            const double condition_number_scale = ConditionNumberUtility().GetConditionNumber(copy_A_scale);
+
+            KRATOS_CHECK_RELATIVE_NEAR(condition_number_not_scale, 5.41671e+09, 1.0e-5);
+            KRATOS_CHECK_RELATIVE_NEAR(condition_number_scale, 28.6791, 1.0e-5);
+            KRATOS_CHECK_LESS_EQUAL(condition_number_scale, condition_number_not_scale);
         }
 
         /**
          * Checks if the block builder and solver with constraints performs correctly the assemble of the system
          */
-//         KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraints, KratosCoreFastSuite)
-//         {
-//             Model current_model;
-//             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
-
-//             BasicTestBuilderAndSolverDisplacement(r_model_part, true);
-
-//             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
-//             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-//             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithConstraintsType(p_solver) );
-
-//             const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
-
-//             // To create the solution of reference
-// //             DebugLHS(rA);
-
-//             // The solution check
-//             constexpr double tolerance = 1e-8;
-//             KRATOS_CHECK(rA.size1() == 6);
-//             KRATOS_CHECK(rA.size2() == 6);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.0000000000000000)/rA(0,0)), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.0000000000000000)/rA(1,1)), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 2069000000.0000000000000000)/rA(2,2)), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.0000000000000000)/rA(3,3)), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.0000000000000000)/rA(4,4)), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.0000000000000000)/rA(5,5)), tolerance);
-
-
-//         }
-
-        /**
-         * Checks if the block builder and solver with constraints performs correctly the assemble of the system
-         */
-        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsElementWise, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraints, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
@@ -355,12 +354,12 @@ namespace Kratos
 
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType(p_solver) );
+            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
 
             const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
-            // To create the solution of reference
-            // DebugLHS(rA);
+//             // To create the solution of reference
+//             DebugLHS(rA);
 
             // The solution check
             constexpr double tolerance = 1e-8;
@@ -372,9 +371,39 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.0000000000000000)/rA(3,3)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.0000000000000000)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.0000000000000000)/rA(5,5)), tolerance);
-
-
         }
+
+//         TODO this test should be updated to use the BlockBuilder (which can handle constraints)
+//         /**
+//          * Checks if the block builder and solver with constraints performs correctly the assemble of the system
+//          */
+//         KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsElementWise, KratosCoreFastSuite)
+//         {
+//             Model current_model;
+//             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+//
+//             BasicTestBuilderAndSolverDisplacement(r_model_part, true);
+//
+//             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+//             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+//             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType(p_solver) );
+//
+//             const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+//
+//             // To create the solution of reference
+//             // DebugLHS(rA);
+//
+//             // The solution check
+//             constexpr double tolerance = 1e-8;
+//             KRATOS_CHECK(rA.size1() == 6);
+//             KRATOS_CHECK(rA.size2() == 6);
+//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.0000000000000000)/rA(0,0)), tolerance);
+//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.0000000000000000)/rA(1,1)), tolerance);
+//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 2069000000.0000000000000000)/rA(2,2)), tolerance);
+//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.0000000000000000)/rA(3,3)), tolerance);
+//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.0000000000000000)/rA(4,4)), tolerance);
+//             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.0000000000000000)/rA(5,5)), tolerance);
+//         }
 
         /**
          * Checks if the elimination builder and solver performs correctly the assemble of the system
@@ -583,11 +612,11 @@ namespace Kratos
 
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithConstraintsElementWiseType(p_solver) );
+            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
 
             const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
-            // To create the solution of reference
+//             // To create the solution of reference
 //             DebugLHS(rA);
 
             // The solution check
@@ -596,7 +625,7 @@ namespace Kratos
             KRATOS_CHECK(rA.size2() == 22);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 740227943.2715302705764771)/rA(0,0)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1486220957.4536478519439697)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - -185056985.8178826868534088)/rA(1,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - -185056985.8178826570510864)/rA(1,2)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,4) - 370113971.6357653141021729)/rA(1,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,5) - -185056985.8178827166557312)/rA(1,5)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,9) - -517250000.0000000000000000)/rA(1,9)), tolerance);
@@ -604,7 +633,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1572984379.4520018100738525)/rA(2,2)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -740227943.2715302705764771)/rA(2,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,5) - 370113971.6357653141021729)/rA(2,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1257477943.2715306282043457)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 2809227943.2715301513671875)/rA(3,3)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,1) - 370113971.6357653141021729)/rA(4,1)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -740227943.2715302705764771)/rA(4,2)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1657021225.9261374473571777)/rA(4,4)), tolerance);
@@ -972,7 +1001,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,16) - -370113971.6357653141021729)/rA(17,16)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,17) - 185056985.8178827166557312)/rA(17,17)), tolerance);
         }
-        
+
     } // namespace Testing
 }  // namespace Kratos.
 

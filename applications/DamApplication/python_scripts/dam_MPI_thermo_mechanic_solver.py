@@ -5,11 +5,13 @@ import KratosMultiphysics.mpi as mpi
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-import dam_thermo_mechanic_solver
+from KratosMultiphysics.DamApplication import dam_thermo_mechanic_solver
+from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -105,7 +107,6 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solver
-        import trilinos_linear_solver_factory
         self.thermal_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["thermal_solver_settings"]["linear_solver_settings"])
         self.mechanical_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
 
@@ -119,18 +120,17 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
 
     def ImportModelPart(self):
 
-        # Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        # Construct the import model part utility
+        ModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.main_model_part, self.settings)
 
         # Execute the Metis partitioning and reading
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
+        ModelPartImporter.ExecutePartitioningAndReading()
 
         # Create computing_model_part, set constitutive law and buffer size
         self._ExecuteAfterReading()
 
         # Construct the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
+        ModelPartImporter.CreateCommunicators()
 
     def Initialize(self):
 
@@ -139,7 +139,7 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
 
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.REFERENCE_TEMPERATURE, self.settings["reference_temperature"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
 
         # Get the computing model parts
         self.thermal_computing_model_part = self.main_model_part.GetSubModelPart(self.thermal_model_part_name)
@@ -209,8 +209,8 @@ class DamMPIThermoMechanicSolver(dam_thermo_mechanic_solver.DamThermoMechanicSol
 
         rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
         rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
-        self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_ALPHA, rayleigh_m)
-        self.main_model_part.ProcessInfo.SetValue(KratosSolid.RAYLEIGH_BETA, rayleigh_k)
+        self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_ALPHA, rayleigh_m)
+        self.main_model_part.ProcessInfo.SetValue(KratosStructural.RAYLEIGH_BETA, rayleigh_k)
         if(solution_type == "Quasi-Static"):
             if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                 scheme =  TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme()

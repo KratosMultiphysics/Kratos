@@ -17,17 +17,18 @@
 #include "custom_conditions/paired_condition.h"
 #include "contact_structural_mechanics_application_variables.h"
 
-namespace Kratos 
+namespace Kratos
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-Condition::Pointer PairedCondition::Create( 
+Condition::Pointer PairedCondition::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive< PairedCondition >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties);
+    auto p_geometry = this->GetParentGeometry().Create( rThisNodes );
+    return Kratos::make_intrusive< PairedCondition >( NewId, p_geometry, pProperties);
 }
 
 /***********************************************************************************/
@@ -35,10 +36,10 @@ Condition::Pointer PairedCondition::Create(
 
 Condition::Pointer PairedCondition::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive< PairedCondition >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< PairedCondition >( NewId, pGeometry, pProperties );
 }
 
 /***********************************************************************************/
@@ -46,11 +47,11 @@ Condition::Pointer PairedCondition::Create(
 
 Condition::Pointer PairedCondition::Create(
     IndexType NewId,
-    GeometryType::Pointer pGeom,
+    GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pPairedGeom) const
 {
-    return Kratos::make_intrusive< PairedCondition >( NewId, pGeom, pProperties, pPairedGeom);
+    return Kratos::make_intrusive< PairedCondition >( NewId, pGeometry, pProperties, pPairedGeom);
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -63,20 +64,57 @@ PairedCondition::~PairedCondition( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void PairedCondition::Initialize( ) 
+void PairedCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    
-    BaseType::Initialize();
-    
-    if (mpPairedGeometry == nullptr) {
-        if (this->Has(PAIRED_GEOMETRY)) {
-            mpPairedGeometry = this->GetValue(PAIRED_GEOMETRY);
-        } else {
-            KRATOS_ERROR << "WARNING:: PAIRED GEOMETRY NOT DEFINED" << std::endl;
-        }
+
+    BaseType::Initialize(rCurrentProcessInfo);
+
+    // The normal of the paired condition
+    const auto& r_paired_geometry = GetPairedGeometry();
+    GeometryType::CoordinatesArrayType aux_coords;
+    r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
+    mPairedNormal = r_paired_geometry.UnitNormal(aux_coords);
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
+
+    // The normal of the paired condition
+    const auto& r_paired_geometry = GetPairedGeometry();
+    GeometryType::CoordinatesArrayType aux_coords;
+    r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
+    mPairedNormal = r_paired_geometry.UnitNormal(aux_coords);
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
+
+    // We update the normals if necessary
+    const auto normal_variation = rCurrentProcessInfo.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(rCurrentProcessInfo.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
+    if (normal_variation != NO_DERIVATIVES_COMPUTATION) {
+        const auto& r_paired_geometry = GetPairedGeometry();
+        GeometryType::CoordinatesArrayType aux_coords;
+        r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
+        mPairedNormal = r_paired_geometry.UnitNormal(aux_coords);
     }
-    
+
     KRATOS_CATCH( "" );
 }
 

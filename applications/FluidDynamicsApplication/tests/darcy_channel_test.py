@@ -4,6 +4,25 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
+import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver as two_fluids_solver
+
+class TwoFluidNoRedistanceSolver(two_fluids_solver.NavierStokesTwoFluidsSolver):
+    """
+    Ad-hoc solver skipping distance levelset re-calculation.
+    Since this test does not involve a free surface, it is more practical to just skip its convection.
+    """
+    def __init__(self, model, settings):
+        super(TwoFluidNoRedistanceSolver,self).__init__(model,settings)
+
+    def InitializeSolutionStep(self):
+        if self._TimeBufferIsInitialized():
+            # Recompute the BDF2 coefficients
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+
+            # Initialize the solver current step
+            self._GetSolutionStrategy().InitializeSolutionStep()
+
+
 class DarcyChannelTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -37,7 +56,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
             KratosUtilities.DeleteFileIfExisting(self.input_file+'.time')
 
-    def testDarcyChannel(self):
+    def runDarcyChannelTest(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
             self.setUpModel()
             self.setUpSolver()
@@ -58,20 +77,20 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.u0 = 2.0
         self.linear_darcy_coefficient = 1.0
         self.nonlinear_darcy_coefficient = 0.0
-        self.testDarcyChannel()
+        self.runDarcyChannelTest()
 
     def testDarcyNonLinear(self):
         self.u0 = 2.0
         self.linear_darcy_coefficient = 0.0
         self.nonlinear_darcy_coefficient = 1.0
-        self.testDarcyChannel()
+        self.runDarcyChannelTest()
 
     def testDarcyDensity(self):
         self.u0 = 2.0
         self.rho = 1000.0
         self.linear_darcy_coefficient = 1.0/self.rho
         self.nonlinear_darcy_coefficient = 1.0/self.rho
-        self.testDarcyChannel()
+        self.runDarcyChannelTest()
 
     def testReferenceValues(self):
         '''
@@ -166,7 +185,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         Logger.PrintInfo("Darcy Test","A: {0} B: {1}".format(self.linear_darcy_coefficient,self.nonlinear_darcy_coefficient))
 
         self.do_check = False # override default verification function
-        self.testDarcyChannel()
+        self.runDarcyChannelTest()
 
         # for the mesh in 'TwoFluidDarcyTest', node 13 is in the inlet, node 453 in the outlet
         for node in self.fluid_model_part.Nodes:
@@ -184,72 +203,41 @@ class DarcyChannelTest(UnitTest.TestCase):
 
     def setUpModel(self):
         self.model = Model()
-        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
-        self.fluid_model_part.Properties[0].SetValue(LIN_DARCY_COEF,self.linear_darcy_coefficient)
-        self.fluid_model_part.Properties[0].SetValue(NONLIN_DARCY_COEF,self.nonlinear_darcy_coefficient)
+        with open("solver_settings.json","r") as settings_file:
+            settings = Parameters(settings_file.read())
+
+        settings["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file)
+        settings["solver_settings"]["formulation"]["dynamic_tau"].SetDouble(self.dynamic_tau)
+        settings["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.dt)
+
+        self.fluid_solver = TwoFluidNoRedistanceSolver(self.model, settings["solver_settings"])
+        self.fluid_model_part = self.model.GetModelPart("Fluid")
 
     def setUpSolver(self):
-        oss_switch = 0
 
-        import vms_monolithic_solver
-        vms_monolithic_solver.AddVariables(self.fluid_model_part)
-        self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
+        self.fluid_solver.AddVariables()
         self.fluid_model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
 
-        model_part_io = ModelPartIO(self.input_file)
-        model_part_io.ReadModelPart(self.fluid_model_part)
+        self.fluid_solver.ImportModelPart()
 
-        self.fluid_model_part.SetBufferSize(3)
-        vms_monolithic_solver.AddDofs(self.fluid_model_part)
+        mu = self.rho * self.nu
+        for prop in self.fluid_model_part.Properties:
+            prop.SetValue(DENSITY, self.rho)
+            prop.SetValue(DYNAMIC_VISCOSITY, mu)
+            prop.SetValue(LIN_DARCY_COEF, self.linear_darcy_coefficient)
+            prop.SetValue(NONLIN_DARCY_COEF, self.nonlinear_darcy_coefficient)
+            prop.SetValue(CONSTITUTIVE_LAW,NewtonianTwoFluid3DLaw())
 
-        # Building custom fluid solver
-        self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
-        rel_vel_tol = 1e-5
-        abs_vel_tol = 1e-7
-        rel_pres_tol = 1e-5
-        abs_pres_tol = 1e-7
-        self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
-        self.fluid_solver.conv_criteria.SetEchoLevel(0)
+        self.fluid_solver.PrepareModelPart()
+        self.fluid_solver.AddDofs()
 
-        self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(self.domain_size)
-
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
-                "solver_type" : "amgcl"
-            }'''))
-        builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
-        self.fluid_solver.max_iter = 50
-        self.fluid_solver.compute_reactions = False
-        self.fluid_solver.ReformDofSetAtEachStep = False
-        self.fluid_solver.MoveMeshFlag = False
-
-        self.fluid_solver.solver = ResidualBasedNewtonRaphsonStrategy(\
-                self.fluid_model_part,
-                self.fluid_solver.time_scheme,
-                self.fluid_solver.linear_solver,
-                self.fluid_solver.conv_criteria,
-                builder_and_solver,
-                self.fluid_solver.max_iter,
-                self.fluid_solver.compute_reactions,
-                self.fluid_solver.ReformDofSetAtEachStep,
-                self.fluid_solver.MoveMeshFlag)
-
-        self.fluid_solver.solver.SetEchoLevel(0)
-        self.fluid_solver.solver.Check()
-
-        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,oss_switch)
-        self.fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU,self.dynamic_tau)
-
-        self.fluid_solver.divergence_clearance_steps = 0
-        self.fluid_solver.use_slip_conditions = 0
-
+        self.fluid_solver.Initialize()
 
     def setUpProblem(self):
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
-            node.SetSolutionStepValue(DENSITY,self.rho)
-            node.SetSolutionStepValue(VISCOSITY,self.nu)
+            node.SetSolutionStepValue(DISTANCE, 0, -100.0)
 
             if node.X == self.xmin:
                 node.Fix(VELOCITY_X)
@@ -269,10 +257,12 @@ class DarcyChannelTest(UnitTest.TestCase):
         time = 0.0
 
         for step in range(self.nsteps):
-            time = time+self.dt
-            self.fluid_model_part.CloneTimeStep(time)
-            if step > 0:
-                self.fluid_solver.Solve()
+            time = self.fluid_solver.AdvanceInTime(time)
+
+            self.fluid_solver.InitializeSolutionStep()
+            self.fluid_solver.Predict()
+            self.fluid_solver.SolveSolutionStep()
+            self.fluid_solver.FinalizeSolutionStep()
 
             if self.print_output:
                 self.printOutput()
@@ -314,6 +304,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         label = self.fluid_model_part.ProcessInfo[TIME]
         self.gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         self.gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
+        self.gid_io.WriteNodalResults(DISTANCE,self.fluid_model_part.Nodes,label,0)
 
     def FinalizeOutput(self):
         self.gid_io.FinalizeResults()

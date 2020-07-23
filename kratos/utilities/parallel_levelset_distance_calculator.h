@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED )
@@ -89,12 +89,12 @@ public:
                             const Variable<double>& rAreaVar,
                             const unsigned int max_levels,
                             const double max_distance,
-                            Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                            Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse())
     {
         KRATOS_TRY
 
 		Check(rModelPart, rDistanceVar, rAreaVar);
-                         
+
 		ResetVariables(rModelPart,rDistanceVar, max_distance);
 
 		CalculateExactDistancesOnDividedElements(rModelPart, rDistanceVar, rAreaVar, max_distance, Options);
@@ -126,7 +126,7 @@ public:
         KRATOS_TRY
 
 		Check(rModelPart, rDistanceVar, rAreaVar);
-                         
+
 		ResetVariables(rModelPart,rDistanceVar, max_distance);
 
 		AbsDistancesOnDividedElements(rModelPart, rDistanceVar, rAreaVar, max_distance);
@@ -159,19 +159,19 @@ public:
         if(rModelPart.GetCommunicator().TotalProcesses() > 1)
             is_distributed = true;
 
+        array_1d<double,TDim+1> visited;
+        const int elem_size = rModelPart.Elements().size();
+        const int node_size = rModelPart.Nodes().size();
+
         //check that variables needed are in the model part
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
-            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+            if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
                 KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","");
-
-                        array_1d<double,TDim+1> visited;
-        const int elem_size = rModelPart.Elements().size();
-        const int node_size = rModelPart.Nodes().size();
 
         // set to zero the distance
         #pragma omp parallel for
@@ -202,7 +202,7 @@ public:
         for(unsigned int level=0; level<max_levels; level++)
         {
             //loop on active elements and advance the distance computation
-            #pragma omp parallel for private(DN_DX,visited) 
+            #pragma omp parallel for private(DN_DX,visited)
             for(int i = 0; i<elem_size; i++)
             {
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
@@ -223,7 +223,7 @@ public:
             //mpi sync variables
             if(is_distributed == true)
             {
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -240,19 +240,19 @@ public:
                 rModelPart.GetCommunicator().AssembleCurrentData(rAreaVar);
                 rModelPart.GetCommunicator().AssembleCurrentData(rDistanceVar);
 
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
                     it->FastGetSolutionStepValue(rDistanceVar) += it->GetValue(rDistanceVar);
                 }
 
-                rModelPart.GetCommunicator().Barrier();
+                rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
             }
 
 
             //finalize the computation of the distance
-            #pragma omp parallel for private(DN_DX) 
+            #pragma omp parallel for private(DN_DX)
             for(int i = 0; i<node_size; i++)
             {
                 ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -272,7 +272,7 @@ public:
         //*****************************************************************+
         //*****************************************************************+
         //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -334,7 +334,7 @@ public:
 
         }
 
-        r_model_part.GetCommunicator().MaxAll(h_max);
+        h_max = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(h_max);
 
         return h_max;
 
@@ -718,20 +718,22 @@ private:
         if(rModelPart.GetCommunicator().TotalProcesses() > 1)
             is_distributed = true;
 
+        const int node_size = rModelPart.Nodes().size();
+
         //check that variables needed are in the model part
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
-        
-        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+
+        if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
-            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+            if(node_size && !(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
                  KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
 
 		KRATOS_CATCH("")
 	}
-                         
+
     void ResetVariables(ModelPart& rModelPart,
                             const Variable<double>& rDistanceVar,
 							const double MaxDistance)
@@ -740,7 +742,7 @@ private:
 
         //reset the variables needed
         const int node_size = rModelPart.Nodes().size();
-        
+
         #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
@@ -940,7 +942,7 @@ private:
         const int elem_size = rModelPart.Elements().size();
 		const int node_size = rModelPart.Nodes().size();
 
-        
+
         //*****************************************************************+
         //*****************************************************************+
         //*****************************************************************+
@@ -948,7 +950,7 @@ private:
         for(unsigned int level=0; level<max_levels; level++)
         {
             //loop on active elements and advance the distance computation
-            #pragma omp parallel for private(DN_DX,visited) 
+            #pragma omp parallel for private(DN_DX,visited)
             for(int i = 0; i<elem_size; i++)
             {
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
@@ -964,7 +966,7 @@ private:
 
                     AddDistanceToNodes(rDistanceVar,rAreaVar,geom,DN_DX,Volume);
                 }
-            } 
+            }
 
 			bool is_distributed = false;
 			if(rModelPart.GetCommunicator().TotalProcesses() > 1)
@@ -973,7 +975,7 @@ private:
 		    //mpi sync variables
             if(is_distributed == true)
             {
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -990,19 +992,19 @@ private:
                 rModelPart.GetCommunicator().AssembleCurrentData(rAreaVar);
                 rModelPart.GetCommunicator().AssembleCurrentData(rDistanceVar);
 
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
                     it->FastGetSolutionStepValue(rDistanceVar) += it->GetValue(rDistanceVar);
                 }
 
-                rModelPart.GetCommunicator().Barrier();
+                rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
             }
 
 
             //finalize the computation of the distance
-            #pragma omp parallel for private(DN_DX) 
+            #pragma omp parallel for private(DN_DX)
             for(int i = 0; i<node_size; i++)
             {
                 ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -1021,7 +1023,7 @@ private:
 		KRATOS_CATCH("")
 	}
 
- 
+
      void AssignDistanceSign(ModelPart& rModelPart,
                             const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
@@ -1034,7 +1036,7 @@ private:
         //*****************************************************************+
         //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
         const int node_size = rModelPart.Nodes().size();
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -1091,9 +1093,6 @@ private:
 template< unsigned int TDim>
 const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
 
-template< unsigned int TDim>
-const Kratos::Flags ParallelDistanceCalculator<TDim>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0, false));
-
 ///@}
 ///@name Input and output
 ///@{
@@ -1123,6 +1122,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED  defined 
-
-
+#endif // KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED  defined

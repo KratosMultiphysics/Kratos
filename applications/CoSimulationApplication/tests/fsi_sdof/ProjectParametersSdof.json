@@ -1,0 +1,31 @@
+{
+    "system_parameters":{
+        "mass": 4.36e-3,
+        "stiffness" : 10.0,
+        "damping": 0.0
+    },
+    "time_integration_parameters":{
+        "alpha_m": -0.3,
+        "time_step": 0.01
+    },
+     "initial_values":{
+        "displacement": 0.0,
+        "velocity": 0.0,
+        "acceleration": 0.0
+     },
+     "boundary_conditions":{
+        "load_impulse" : 0.0,
+        "omega_force"        : 0.0,
+        "omega_root_point_displacement": 0.0,
+        "excitation_function_force": "A * cos(omega * t)",
+        "excitation_function_root_point_displacement":"A * cos(omega * t)",
+        "amplitude_root_point_displacement": 0.0,
+        "amplitude_force": 0.0
+     },
+     "solver_parameters": {
+         "buffer_size": 3
+     },
+     "output_parameters":{
+        "write_output_file": false
+     }
+}

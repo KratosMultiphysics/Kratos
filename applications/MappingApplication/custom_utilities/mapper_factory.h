@@ -41,7 +41,7 @@ namespace Kratos
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-class MapperFactory
+class KRATOS_API(MAPPING_APPLICATION) MapperFactory
 {
 public:
     ///@name Type Definitions
@@ -61,17 +61,6 @@ public:
     ///@name Operations
     ///@{
 
-
-    // template<class TSparseSpace, class TDenseSpace>
-    // static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
-    //     ModelPart& rModelPartOrigin,
-    //     ModelPart& rModelPartDestination,
-    //     Parameters MapperSettings);
-
-    // template<class TSparseSpace, class TDenseSpace>
-    // static void Register(const std::string& rMapperName,
-    //               typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype);
-
     template<class TSparseSpace, class TDenseSpace>
     static typename Mapper<TSparseSpace, TDenseSpace>::Pointer CreateMapper(
         ModelPart& rModelPartOrigin,
@@ -80,6 +69,10 @@ public:
     {
         ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
         ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
+
+        KRATOS_ERROR_IF(!TSparseSpace::IsDistributed() && (r_interface_model_part_origin.IsDistributed() || r_interface_model_part_destination.IsDistributed())) << "Trying to construct a non-MPI Mapper with a distributed ModelPart. Please use \"CreateMPIMapper\" instead!" << std::endl;
+
+        KRATOS_ERROR_IF(TSparseSpace::IsDistributed() && !r_interface_model_part_origin.IsDistributed() && !r_interface_model_part_destination.IsDistributed()) << "Trying to construct a MPI Mapper without a distributed ModelPart. Please use \"CreateMapper\" instead!" << std::endl;
 
         const std::string mapper_name = MapperSettings["mapper_type"].GetString();
 
@@ -171,18 +164,9 @@ private:
                                              Parameters InterfaceParameters,
                                              const std::string& InterfaceSide);
 
-    // template<class TSparseSpace, class TDenseSpace>
-    // static std::unordered_map<std::string, typename Mapper<TSparseSpace,
-    //     TDenseSpace>::Pointer>& GetRegisteredMappersList();
-
     template<class TSparseSpace, class TDenseSpace>
     static std::unordered_map<std::string, typename Mapper<TSparseSpace,
-        TDenseSpace>::Pointer>& GetRegisteredMappersList()
-    {
-        static std::unordered_map<std::string, typename Mapper<TSparseSpace, TDenseSpace>::Pointer> registered_mappers;
-
-        return registered_mappers;
-    }
+        TDenseSpace>::Pointer>& GetRegisteredMappersList();
 
     ///@}
 
@@ -197,24 +181,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
-/* typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> UblasDenseSpaceType;
-
-// template<>
-// inline MPI_Datatype MapperUtilitiesMPI::GetMPIDatatype<int>(const int& rValue)
-// {
-//     return MPI_INT ;
-// }
-
-template<>
-std::unordered_map<std::string, typename Mapper<SparseSpaceType,
-    UblasDenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<SparseSpaceType, UblasDenseSpaceType>()
-{
-    static std::unordered_map<std::string, typename Mapper<SparseSpaceType, UblasDenseSpaceType>::Pointer> registered_mappers;
-
-    return registered_mappers;
-} */
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,

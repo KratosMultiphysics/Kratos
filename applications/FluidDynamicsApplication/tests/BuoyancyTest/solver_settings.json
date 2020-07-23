@@ -1,0 +1,36 @@
+{
+    "solver_settings" : {
+        "solver_type"                   : "Monolithic",
+        "model_part_name"               : "FluidModelPart",
+        "domain_size"                   : 2,
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "cavity10"
+        },
+        "material_import_settings": {
+            "materials_filename": "buoyancy_test_materials.json"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "relative_velocity_tolerance" : 1e-5,
+        "absolute_velocity_tolerance" : 1e-7,
+        "relative_pressure_tolerance" : 1e-5,
+        "absolute_pressure_tolerance" : 1e-7,
+        "linear_solver_settings"      : {
+            "solver_type"         : "amgcl"
+        },
+        "maximum_iterations"          : 50,
+        "formulation"               : {
+            "element_type"            : "vms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau"             : 1.0
+        },
+        "volume_model_part_name"      : "Fluid",
+        "skin_parts"                  : [],
+        "no_skin_parts"               : [],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.5
+        }
+    }
+}

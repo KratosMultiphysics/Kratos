@@ -18,8 +18,8 @@
         "objectives" : [{
             "identifier" : "mass",
             "type"       : "minimization",
-            "use_kratos" : true,
-            "kratos_response_settings":{
+            "analyzer"   : "kratos",
+            "response_settings" :{
                 "response_type"          : "mass",
                 "material_import_settings" :{
                     "materials_filename": "materials.json"
@@ -38,7 +38,7 @@
             "type"       : ">",
             "reference"  : "specified_value",
             "reference_value" : 11,
-            "use_kratos" : false,
+            "analyzer"   : "external",
             "project_gradient_on_surface_normals" : false
         },
         {
@@ -46,7 +46,7 @@
             "type"            : "=",
             "reference"       : "specified_value",
             "reference_value" : 0,
-            "use_kratos"      : false,
+            "analyzer"        : "external",
             "project_gradient_on_surface_normals" : false
         }],
         "design_variables" : {
@@ -59,14 +59,14 @@
         },
         "optimization_algorithm" : {
             "name"                    : "trust_region",
-            "max_iterations"          : 3,
+            "max_iterations"          : 4,
             "max_step_length"         : 0.5
         },
         "output" : {
-            "design_output_mode" : "WriteDesignSurface",
+            "design_output_mode" : "none",
             "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
-                "name": "gid"
+                "name": "vtk"
             }
         }
     }

@@ -17,9 +17,9 @@
 // External includes
 
 // Project includes
-#include "processes/simple_mortar_mapper_process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "custom_processes/normal_gap_process.h"
 
 /* Custom includes*/
 #include "custom_includes/point_item.h"
@@ -94,7 +94,7 @@ public:
     typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// The type of mapper considered
-    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
+    typedef NormalGapProcess<TDim, TNumNodes, TNumNodesMaster> NormalGapProcessType;
 
     /// The definition of zero tolerance
     static constexpr double GapThreshold = 2.0e-3;
@@ -104,6 +104,13 @@ public:
 
     /// Pointer definition of BaseContactSearchProcess
     KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearchProcess );
+
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( INVERTED_SEARCH );
+    KRATOS_DEFINE_LOCAL_FLAG( CREATE_AUXILIAR_CONDITIONS );
+    KRATOS_DEFINE_LOCAL_FLAG( MULTIPLE_SEARCHS );
+    KRATOS_DEFINE_LOCAL_FLAG( PREDEFINE_MASTER_SLAVE );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     ///@}
     ///@name  Enum's
@@ -115,7 +122,7 @@ public:
 
     enum class CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
 
-    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4};
+    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4, OtherFrictionless = 5, OtherFrictional = 6};
 
     ///@}
     ///@name Life Cycle
@@ -131,6 +138,7 @@ public:
      *                       - The size of the bucket
      *                       - The proportion increased of the Radius/Bounding-box volume for the search
      *                       - TypeSearch: 0 means search in radius, 1 means search in box
+     * @param pPairedProperties Properties of the pair
      * @todo Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @note Use an InterfacePreprocess object to create such a model part from a regular one:
      *          -# InterfaceMapper = InterfacePreprocess()
@@ -138,7 +146,8 @@ public:
      */
     BaseContactSearchProcess(
         ModelPart& rMainModelPart,
-        Parameters ThisParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})"),
+        Properties::Pointer pPairedProperties = nullptr
         );
 
     /// Destructor.
@@ -185,12 +194,12 @@ public:
     /**
      * @brief This function clears the mortar conditions already created
      */
-    void ClearMortarConditions();
+    virtual void ClearMortarConditions();
 
     /**
      * @brief This method checks that the contact model part is unique (so the model parts contain unique contact pairs)
      */
-    void CheckContactModelParts();
+    virtual void CheckContactModelParts();
 
     /**
      * @brief This function creates a lists  points ready for the Mortar method
@@ -220,7 +229,12 @@ public:
     /**
      * @brief This resets the contact operators
      */
-    void ResetContactOperators();
+     virtual void ResetContactOperators();
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -265,16 +279,14 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrMainModelPart;        /// The main model part
-    Parameters mThisParameters;        /// The configuration parameters
-    CheckGap mCheckGap;                /// If the gap is checked during the search
-    TypeSolution mTypeSolution;        /// The solution type
-    bool mInvertedSearch;              /// The search will be done inverting the way master and slave/master is assigned
-    std::string mConditionName;        /// The name of the condition to be created
-    bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
-    PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
-    bool mMultipleSearchs;             /// If we consider multiple serach or not
-    bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
+    ModelPart& mrMainModelPart;                       /// The main model part
+    Parameters mThisParameters;                       /// The configuration parameters
+    CheckGap mCheckGap;                               /// If the gap is checked during the search
+    TypeSolution mTypeSolution;                       /// The solution type
+    std::string mConditionName;                       /// The name of the condition to be created
+    PointVector mPointListDestination;                /// A list that contents the all the points (from nodes) from the modelpart
+
+    Properties::Pointer mpPairedProperties = nullptr; /// This is the paired properties (unique for the given potential pair)
 
     ///@}
     ///@name Protected Operators
@@ -283,6 +295,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method cleans the model part
+     * @param rModelPart The model part of interest
+     */
+    virtual void CleanModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method checks the pairing
@@ -318,16 +336,34 @@ protected:
     virtual void SetInactiveNode(NodesArrayType::iterator ItNode);
 
     /**
+     * @brief This method add a new pair to the computing model part
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param rConditionId The ID of the new condition to be created
+     * @param pObjectSlave The pointer to the slave condition
+     * @param rSlaveNormal The normal of the slave condition
+     * @param pObjectMaster The pointer to the master condition
+     * @param rMasterNormal The normal of the master condition
+     * @param pIndexesPairs The map of indexes considered
+     * @param pProperties The pointer to the Properties of the condition
+     * @return The new created condition
+     */
+    virtual Condition::Pointer AddPairing(
+        ModelPart& rComputingModelPart,
+        IndexType& rConditionId,
+        GeometricalObject::Pointer pObjectSlave,
+        const array_1d<double, 3>& rSlaveNormal,
+        GeometricalObject::Pointer pObjectMaster,
+        const array_1d<double, 3>& rMasterNormal,
+        IndexMap::Pointer pIndexesPairs,
+        Properties::Pointer pProperties
+        );
+
+    /**
      * @brief This converts the framework string to an enum
      * @param str The string
      * @return CheckGap: The equivalent enum
      */
     CheckGap ConvertCheckGap(const std::string& str);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access
@@ -435,10 +471,35 @@ private:
         );
 
     /**
-     * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
-     * @param rModelPart The model part to assign the flags
+     * @brief This method fills mPointListDestination
      */
-    static inline void NotPredefinedMasterSlave(ModelPart& rModelPart);
+    void FillPointListDestination();
+
+    /**
+     * @brief This method clears the destination list and
+     * @param rSubContactModelPart The submodel part studied
+     */
+    void ClearDestinationListAndAssignFlags(ModelPart& rSubContactModelPart);
+
+    /**
+     * @brief This method computes search with KDTree
+     * @param rTreePoints The tree points for search
+     * @param rPointsFound The points found
+     * @param rGeometry The geometry of the condition
+     * @param TypeSearch The search type
+     * @param SearchFactor The searh factor applied
+     * @param AllocationSize The allocation size
+     * @param Dynamic if the dynamic search is considered
+     */
+    inline IndexType PerformKDTreeSearch(
+        KDTree& rTreePoints,
+        PointVector& rPointsFound,
+        GeometryType& rGeometry,
+        const SearchTreeType TypeSearch = SearchTreeType::KdtreeInBox,
+        const double SearchFactor = 3.5,
+        const IndexType AllocationSize = 1000,
+        const bool Dynamic = false
+        );
 
     /**
      * @brief This method gets the maximum the ID of the conditions
@@ -449,9 +510,9 @@ private:
      * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
+     * @param pObjectSlave The pointer to the slave condition
      * @param rSlaveNormal The normal of the slave condition
-     * @param pCondMaster The pointer to the master condition
+     * @param pObjectMaster The pointer to the master condition
      * @param rMasterNormal The normal of the master condition
      * @param pIndexesPairs The id sets of potential pairs
      * @param pProperties The pointer to the Properties of the condition
@@ -461,36 +522,14 @@ private:
     void AddPotentialPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
-        GeometricalObject::Pointer pCondSlave,
+        GeometricalObject::Pointer pObjectSlave,
         const array_1d<double, 3>& rSlaveNormal,
-        GeometricalObject::Pointer pCondMaster,
+        GeometricalObject::Pointer pObjectMaster,
         const array_1d<double, 3>& rMasterNormal,
         IndexMap::Pointer pIndexesPairs,
         Properties::Pointer pProperties,
         const double ActiveCheckFactor,
         const bool FrictionalProblem
-        );
-
-    /**
-     * @brief This method add a new pair to the computing model part
-     * @param rComputingModelPart The modelpart  used in the assemble of the system
-     * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
-     * @param rSlaveNormal The normal of the slave condition
-     * @param pCondMaster The pointer to the master condition
-     * @param rMasterNormal The normal of the master condition
-     * @param pIndexesPairs The map of indexes considered
-     * @param pProperties The pointer to the Properties of the condition
-     */
-    inline void AddPairing(
-        ModelPart& rComputingModelPart,
-        IndexType& rConditionId,
-        GeometricalObject::Pointer pCondSlave,
-        const array_1d<double, 3>& rSlaveNormal,
-        GeometricalObject::Pointer pCondMaster,
-        const array_1d<double, 3>& rMasterNormal,
-        IndexMap::Pointer pIndexesPairs,
-        Properties::Pointer pProperties
         );
 
     /**
@@ -505,20 +544,6 @@ private:
     inline void ComputeWeightedReaction();
 
     /**
-     * @brief This method switchs the flag of an array of nodes
-     * @param rNodes The set of nodes where the flags are reset
-     */
-    static inline void SwitchFlagNodes(NodesArrayType& rNodes)
-    {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(rNodes.size()); ++i) {
-            auto it_node = rNodes.begin() + i;
-            it_node->Flip(SLAVE);
-            it_node->Flip(MASTER);
-        }
-    }
-
-    /**
      * @brief This method creates the auxiliar the pairing
      * @param rContactModelPart The modelpart  used in the assemble of the system
      * @param rComputingModelPart The modelpart  used in the assemble of the system
@@ -528,6 +553,16 @@ private:
         ModelPart& rContactModelPart,
         ModelPart& rComputingModelPart,
         IndexType& rConditionId
+        );
+
+    /**
+     * @brief This method creates a debug file for normals
+     * @param rModelPart The corresponding model part
+     * @param rName The begining of the file name
+     */
+    void CreateDebugFile(
+        ModelPart& rModelPart,
+        const std::string& rName
         );
 
     /**

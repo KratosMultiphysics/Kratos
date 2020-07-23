@@ -25,7 +25,7 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -205,7 +205,7 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::load(Serializer& rSe
 
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
+template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
 
 } // namespace Kratos
 

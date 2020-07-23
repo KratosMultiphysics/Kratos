@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		BSD License
-//					Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
@@ -23,6 +23,10 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
+#include "includes/checks.h"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
+#include "custom_utilities/mpm_explicit_utilities.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
 {
@@ -40,6 +44,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
 
 UpdatedLagrangian::UpdatedLagrangian( )
     : Element( )
+    , mMP()
 {
     //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
@@ -47,6 +52,7 @@ UpdatedLagrangian::UpdatedLagrangian( )
 //************************************************************************************
 UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
+    , mMP()
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -56,6 +62,7 @@ UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGe
 
 UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
+    , mMP()
 {
     mFinalizedStep = true;
 
@@ -66,6 +73,7 @@ UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGe
 
 UpdatedLagrangian::UpdatedLagrangian( UpdatedLagrangian const& rOther)
     :Element(rOther)
+    ,mMP(rOther.mMP)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -79,6 +87,8 @@ UpdatedLagrangian::UpdatedLagrangian( UpdatedLagrangian const& rOther)
 UpdatedLagrangian&  UpdatedLagrangian::operator=(UpdatedLagrangian const& rOther)
 {
     Element::operator=(rOther);
+
+    mMP = rOther.mMP;
 
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
@@ -97,12 +107,19 @@ Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType cons
     return Element::Pointer( new UpdatedLagrangian( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+Element::Pointer UpdatedLagrangian::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive< UpdatedLagrangian >(NewId, pGeom, pProperties);
+}
+
 //************************************CLONE*******************************************
 //************************************************************************************
 
 Element::Pointer UpdatedLagrangian::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
     UpdatedLagrangian NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    NewElement.mMP = mMP;
 
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
@@ -143,43 +160,37 @@ void UpdatedLagrangian::Initialize()
 
 void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigtsize  = 3;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
+    const SizeType def_grad_dim = (is_axisymmetric)
+        ? 3
+        : dimension;
 
-    if( dimension == 3 )
-    {
-        voigtsize  = 6;
-    }
     rVariables.detF  = 1;
 
     rVariables.detF0 = 1;
 
     rVariables.detFT = 1;
 
-    rVariables.B.resize( voigtsize, number_of_nodes * dimension, false );
+    rVariables.B.resize(strain_size, number_of_nodes * dimension, false );
 
-    rVariables.F.resize( dimension, dimension, false );
+    rVariables.F.resize(def_grad_dim, def_grad_dim, false );
 
-    rVariables.F0.resize( dimension, dimension, false );
+    rVariables.F0.resize(def_grad_dim, def_grad_dim, false );
 
-    rVariables.FT.resize( dimension, dimension, false );
+    rVariables.FT.resize(def_grad_dim, def_grad_dim, false );
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize, false );
+    rVariables.ConstitutiveMatrix.resize(strain_size, strain_size, false );
 
-    rVariables.StrainVector.resize( voigtsize, false );
+    rVariables.StrainVector.resize(strain_size, false );
 
-    rVariables.StressVector.resize( voigtsize, false );
+    rVariables.StressVector.resize(strain_size, false );
 
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
-    rVariables.DN_De.resize( number_of_nodes, dimension, false );
-
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
-
-    // Reading shape functions local gradients
-    rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De);
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
@@ -188,9 +199,9 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 //************************************************************************************
 
 void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
-        ConstitutiveLaw::Parameters& rValues)
+        ConstitutiveLaw::Parameters& rValues, const Vector& rN)
 {
-    GeometryType& rGeom = GetGeometry();
+    GeometryType& r_geometry = GetGeometry();
 
     // Variables.detF is the determinant of the incremental total deformation gradient
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
@@ -199,25 +210,25 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     if(rVariables.detF<0)
     {
         KRATOS_INFO("UpdatedLagrangian")<<" Element: "<<this->Id()<<std::endl;
-        KRATOS_INFO("UpdatedLagrangian")<<" Element position: "<<this->GetValue(MP_COORD)<<std::endl;
-        const unsigned int number_of_nodes = rGeom.PointsNumber();
+        KRATOS_INFO("UpdatedLagrangian")<<" Element position: "<< mMP.xg <<std::endl;
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            const array_1d<double, 3> & current_position      = rGeom[i].Coordinates();
-            const array_1d<double, 3> & current_displacement  = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3> & previous_displacement = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            const array_1d<double, 3> & current_position      = r_geometry[i].Coordinates();
+            const array_1d<double, 3> & current_displacement  = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3> & previous_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-            KRATOS_INFO("UpdatedLagrangian")<<" NODE ["<<rGeom[i].Id()<<"]: (Current position: "<<current_position<<") "<<std::endl;
+            KRATOS_INFO("UpdatedLagrangian")<<" NODE ["<<r_geometry[i].Id()<<"]: (Current position: "<<current_position<<") "<<std::endl;
             KRATOS_INFO("UpdatedLagrangian")<<" ---Current Disp: "<<current_displacement<<" (Previour Disp: "<<previous_displacement<<")"<<std::endl;
         }
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            if( rGeom[i].SolutionStepsDataHas(CONTACT_FORCE) )
+            if( r_geometry[i].SolutionStepsDataHas(CONTACT_FORCE) )
             {
-                const array_1d<double, 3 > & PreContactForce = rGeom[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-                const array_1d<double, 3 > & ContactForce = rGeom[i].FastGetSolutionStepValue(CONTACT_FORCE);
+                const array_1d<double, 3 > & PreContactForce = r_geometry[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+                const array_1d<double, 3 > & ContactForce = r_geometry[i].FastGetSolutionStepValue(CONTACT_FORCE);
                 KRATOS_INFO("UpdatedLagrangian")<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Current:"<<ContactForce<<") "<<std::endl;
             }
             else
@@ -238,99 +249,83 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(rVariables.N);
-
-}
-
-//************************************************************************************
-//*****************check size of LHS and RHS matrices*********************************
-
-void UpdatedLagrangian::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        Flags& rCalculationFlags)
-{
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    // Resizing the LHS matrix if needed
-    unsigned int matrix_size = number_of_nodes * dimension;   //number of degrees of freedom
-
-    if ( rCalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-    {
-        if ( rLeftHandSideMatrix.size1() != matrix_size )
-            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
-
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size, matrix_size); //resetting LHS
-    }
-
-    // Resizing the RHS vector if needed
-    if ( rCalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
-    {
-        if ( rRightHandSideVector.size() != matrix_size )
-            rRightHandSideVector.resize( matrix_size, false );
-
-        rRightHandSideVector = ZeroVector( matrix_size ); //resetting RHS
-    }
+    rValues.SetShapeFunctionsValues(rN);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-        ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::CalculateElementalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    // Auxiliary terms
-    Vector volume_force;
-
-    // Compute element kinematics B, F, DN_DX ...
-    this->CalculateKinematics(Variables,rCurrentProcessInfo);
-
-    // Set general variables to constitutivelaw parameters
-    this->SetGeneralVariables(Variables,Values);
-
-    // Calculate Material Response
-    /* NOTE:
-    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
-    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
-    mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-    /* NOTE:
-    The material points will have constant mass as defined at the beginning.
-    However, the density and volume (integration weight) are changing every time step.*/
-    // Update MP_Density
-    const double MP_Density = (GetProperties()[DENSITY]) / Variables.detFT;
-    this->SetValue(MP_DENSITY, MP_Density);
-
-    // The MP_Volume (integration weight) is evaluated
-    const double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
-    this->SetValue(MP_VOLUME, MP_Volume);
-
-    if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) // if calculation of the matrix is required
+    if (!is_explicit)
     {
-        // Contributions to stiffness matrix calculated on the reference configuration
-        this->CalculateAndAddLHS ( rLocalSystem, Variables, MP_Volume );
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+        // Set general variables to constitutivelaw parameters
+        this->SetGeneralVariables(Variables, Values, r_N);
+
+        // Calculate Material Response
+        /* NOTE:
+        The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+        call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+        /* NOTE:
+        The material points will have constant mass as defined at the beginning.
+        However, the density and volume (integration weight) are changing every time step.*/
+        // Update MP_Density
+        mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
     }
 
-    if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_RHS_VECTOR) ) // if calculation of the vector is required
+    // The MP_Volume (integration weight) is evaluated
+    mMP.volume = mMP.mass / mMP.density;
+
+    if (CalculateStiffnessMatrixFlag && !is_explicit) // if calculation of the matrix is required
+    {
+        // Contributions to stiffness matrix calculated on the reference configuration
+        this->CalculateAndAddLHS(
+            rLeftHandSideMatrix,
+            Variables,
+            mMP.volume,
+            rCurrentProcessInfo);
+    }
+
+    if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        volume_force  = this->CalculateVolumeForce( volume_force, Variables );
-        this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, MP_Volume );
+        Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        this->CalculateAndAddRHS(
+            rRightHandSideVector,
+            Variables,
+            volume_force,
+            mMP.volume,
+            rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )
@@ -339,7 +334,7 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
 //************************************************************************************
 
 
-void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 
 {
     KRATOS_TRY
@@ -348,9 +343,8 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     Matrix Jacobian;
-    Jacobian = this->MPMJacobian( Jacobian, xg);
+    GetGeometry().Jacobian(Jacobian, 0);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
@@ -359,49 +353,43 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
-    jacobian = this->MPMJacobianDelta( jacobian, xg, rVariables.CurrentDisp);
+    GetGeometry().Jacobian(jacobian, 0, GetGeometry().GetDefaultIntegrationMethod(), -1.0 * rVariables.CurrentDisp);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
     MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n+1]
-    rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
+    const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+    rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position dx
 
-    /* NOTE::
-    Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
-    The increment of total deformation gradient can be evaluated in 2 ways, which are:
-    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
 
-    (NOTICE: Here, we are using method no. 2)*/
-
-    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
-    // noalias( rVariables.F ) = prod( jacobian, InvJ);
-
-    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix I = IdentityMatrix(dimension);
-    Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    gradient_displacement = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
+    this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, is_axisymmetric);
 
-    noalias( rVariables.F ) = (I + gradient_displacement);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+    if (is_axisymmetric) {
+        rVariables.CurrentRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+        rVariables.ReferenceRadius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry(), Initial);
+    }
 
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
 
     // Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, r_N, is_axisymmetric);
 
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
 
 void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
+        const Matrix& rDN_DX, const Matrix& rN, const bool IsAxisymmetric)
 {
     KRATOS_TRY
 
@@ -410,7 +398,22 @@ void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
 
     rB.clear(); // Set all components to zero
 
-    if( dimension == 2 )
+    if (IsAxisymmetric)
+    {
+        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rN, GetGeometry());
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            const unsigned int index = dimension * i;
+
+            rB(0, index + 0) = rDN_DX(i, 0);
+            rB(1, index + 1) = rDN_DX(i, 1);
+            rB(2, index + 0) = rN(0, i) / radius;
+            rB(3, index + 0) = rDN_DX(i, 1);
+            rB(3, index + 1) = rDN_DX(i, 0);
+        }
+    }
+    else if( dimension == 2 )
     {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -451,49 +454,56 @@ void UpdatedLagrangian::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight)
+void UpdatedLagrangian::CalculateAndAddRHS(
+    VectorType& rRightHandSideVector,
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    // Contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+    if (is_explicit)
     {
-        std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
-        const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-        for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
-        {
-            bool calculated = false;
-            if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR )
-            {
-                // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-                this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rVolumeForce, rIntegrationWeight );
-                calculated = true;
-            }
+        Matrix Jacobian;
+        GetGeometry().Jacobian(Jacobian, 0);
+        Matrix InvJ;
+        double detJ;
+        MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+        rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
 
-            if( rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR )
-            {
-                // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-                this->CalculateAndAddInternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
-                calculated = true;
-            }
+        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+            : false;
 
-            KRATOS_ERROR_IF(calculated == false) << " ELEMENT can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
+        if (is_axisymmetric) {
+            const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(
+                GetGeometry().ShapeFunctionsValues(), GetGeometry());
+            MPMExplicitUtilities::CalculateAndAddAxisymmetricExplicitInternalForce(*this,
+                rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+                mConstitutiveLawVector->GetStrainSize(), current_radius, rRightHandSideVector);
         }
+        else MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(*this,
+            rVariables.DN_DX, mMP.cauchy_stress_vector, mMP.volume,
+            mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
     }
     else
     {
-        VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-
-        // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-        this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
-
         // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-        this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+        this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
     }
 }
 
 //************************************************************************************
 //*********************Calculate the contribution of external force*******************
 
-void UpdatedLagrangian::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+void UpdatedLagrangian::CalculateAndAddExternalForces(
+    VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)
@@ -503,13 +513,15 @@ void UpdatedLagrangian::CalculateAndAddExternalForces(VectorType& rRightHandSide
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rRightHandSideVector[index + j] += rVariables.N[i] * rVolumeForce[j];
+            rRightHandSideVector[index + j] += r_N(0, i) * rVolumeForce[j];
         }
     }
 
@@ -532,51 +544,115 @@ void UpdatedLagrangian::CalculateAndAddInternalForces(VectorType& rRightHandSide
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight)
+void UpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
+    GeneralVariables& rVariables)
 {
-    // Contributions of the stiffness matrix calculated on the reference configuration
-    if( rLocalSystem.CalculationFlags.Is( UpdatedLagrangian::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+    KRATOS_TRY
+
+    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+        : false;
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+    // Define the stress measure
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+    // use element provided strain incremented from velocity gradient
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+
+    // Compute explicit element kinematics, strain is incremented here.
+    Matrix Jacobian;
+    GetGeometry().Jacobian(Jacobian, 0);
+    Matrix InvJ;
+    double detJ;
+    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
+    rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
+
+    if (is_axisymmetric)
     {
-        std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
-        const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
-
-        for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
-        {
-            bool calculated = false;
-            if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX )
-            {
-                // Operation performed: add K_material to the rLefsHandSideMatrix
-                this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-                calculated = true;
-            }
-
-            if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX )
-            {
-                // Operation performed: add K_geometry to the rLefsHandSideMatrix
-                this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-                calculated = true;
-            }
-
-            KRATOS_ERROR_IF(calculated == false) <<  " ELEMENT can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
-        }
+        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+        MPMExplicitUtilities::CalculateExplicitAsymmetricKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize(), current_radius);
     }
     else
     {
-        MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+        MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this, rVariables.DN_DX,
+            mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
+    }
+    rVariables.StressVector = mMP.cauchy_stress_vector;
+    rVariables.StrainVector = mMP.almansi_strain_vector;
 
-        // Operation performed: add K_material to the rLefsHandSideMatrix
-        this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    // Update gradient deformation
+    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment
+    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment
+    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
+    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
+    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
+    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
+    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
 
-        // Operation performed: add K_geometry to the rLefsHandSideMatrix
-        this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    // Update MP volume
+    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
+    {
+        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
+        mMP.volume = mMP.mass / mMP.density;
+    }
+
+    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+
+    // Set general variables to constitutivelaw parameters
+    const Vector& r_N_vec = row(r_N, 0);
+    this->SetGeneralVariables(rVariables, Values, r_N_vec);
+
+    // Calculate Material Response
+    /* NOTE:
+    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+    mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
+
+    KRATOS_CATCH("")
+}
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangian::CalculateAndAddLHS(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const bool is_ignore_geometric_stiffness = (rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+        ? rCurrentProcessInfo.GetValue(IGNORE_GEOMETRIC_STIFFNESS)
+        : false;
+
+    // Operation performed: add K_material to the rLefsHandSideMatrix
+    this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    // Operation performed: add K_geometry to the rLefsHandSideMatrix
+    if (!is_ignore_geometric_stiffness)
+    {
+        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+            : false;
+        this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight, is_axisymmetric);
     }
 }
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
+void UpdatedLagrangian::CalculateAndAddKuum(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -590,14 +666,48 @@ void UpdatedLagrangian::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangian::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
+        const double& rIntegrationWeight, const bool IsAxisymmetric)
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-    Matrix reduced_Kg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( stress_tensor, trans( rVariables.DN_DX ) ) ) );
-    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
+    if (IsAxisymmetric)
+    {
+        // Axisymmetric geometric matrix
+        double alpha_1;
+        double alpha_2;
+        double alpha_3;
+
+        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+        const unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int index_i = 0;
+        const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index_j = 0;
+            for (unsigned int j = 0; j < number_of_nodes; j++)
+            {
+                alpha_1 = rVariables.DN_DX(j, 0) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[0] + rVariables.DN_DX(i, 1) * rVariables.StressVector[3]);
+                alpha_2 = rVariables.DN_DX(j, 1) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[3] + rVariables.DN_DX(i, 1) * rVariables.StressVector[1]);
+                alpha_3 = r_N(0, i) * r_N(0, j) * rVariables.StressVector[2] * (1.0 / radius * radius);
+
+                rLeftHandSideMatrix(index_i, index_j) += (alpha_1 + alpha_2 + alpha_3) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_i + 1, index_j + 1) += (alpha_1 + alpha_2) * rIntegrationWeight;
+
+                index_j += 2;
+            }
+            index_i += 2;
+        }
+    }
+    else
+    {
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
+        Matrix reduced_Kg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(stress_tensor, trans(rVariables.DN_DX))));
+        MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
+    }
+
 
     KRATOS_CATCH( "" )
 }
@@ -616,268 +726,189 @@ double& UpdatedLagrangian::CalculateVolumeChange( double& rVolumeChange, General
     KRATOS_CATCH( "" )
 }
 
-//************************************CALCULATE VOLUME ACCELERATION*******************
-//************************************************************************************
-
-Vector& UpdatedLagrangian::CalculateVolumeForce( Vector& rVolumeForce, GeneralVariables& rVariables )
+void UpdatedLagrangian::CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDisplacement,
+    const bool IsAxisymmetric)
 {
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rVolumeForce = ZeroVector(dimension);
-    rVolumeForce = this->GetValue(MP_VOLUME_ACCELERATION) * this->GetValue(MP_MASS);
-
-    return rVolumeForce;
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-void UpdatedLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents LocalSystem;
-
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
-
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void UpdatedLagrangian::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents LocalSystem;
-
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    // Initialize sizes for the system components:
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-        rRightHandSideVectors.resize(rRHSVariables.size());
-
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
+    if (IsAxisymmetric)
     {
-        this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+        // Compute radius
+        const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry());
+        const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry(), Initial);
+
+        rF = IdentityMatrix(3);
+
+        if (dimension == 2)
+        {
+            for (IndexType i = 0; i < GetGeometry().PointsNumber(); ++i)
+            {
+                rF(0, 0) += rDisplacement(i, 0) * rDN_DX(i, 0);
+                rF(0, 1) += rDisplacement(i, 0) * rDN_DX(i, 1);
+                rF(1, 0) += rDisplacement(i, 1) * rDN_DX(i, 0);
+                rF(1, 1) += rDisplacement(i, 1) * rDN_DX(i, 1);
+            }
+
+            rF(2, 2) = current_radius / initial_radius;
+        }
+        else KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
     }
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-
-void UpdatedLagrangian::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents LocalSystem;
-
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX);
-
-    VectorType RightHandSideVector = Vector();
-
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(RightHandSideVector);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-}
-//************************************************************************************
-//************************************************************************************
-
-
-void UpdatedLagrangian::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents LocalSystem;
-
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
-
-    // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangian::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
-        const std::vector< Variable< MatrixType > >& rLHSVariables,
-        std::vector< VectorType >& rRightHandSideVectors,
-        const std::vector< Variable< VectorType > >& rRHSVariables,
-        ProcessInfo& rCurrentProcessInfo )
-{
-    // Create local system components
-    LocalSystemComponents LocalSystem;
-
-    // Set calculation flags
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    // Initialize sizes for the system components:
-    if( rLHSVariables.size() != rLeftHandSideMatrices.size() )
-        rLeftHandSideMatrices.resize(rLHSVariables.size());
-
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-        rRightHandSideVectors.resize(rRHSVariables.size());
-
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX);
-    for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
+    else
     {
-        // Note: rRightHandSideVectors.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
+        /* NOTE::
+    Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
+    The increment of total deformation gradient can be evaluated in 2 ways, which are:
+    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
+    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+
+    (NOTICE: Here, we are using method no. 2)*/
+
+    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
+    // noalias( rVariables.F ) = prod( jacobian, InvJ);
+
+    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
+
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        Matrix I = IdentityMatrix(dimension);
+        Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
+        gradient_displacement = prod(trans(rDisplacement), rDN_DX);
+        noalias(rF) = (I + gradient_displacement);
     }
+    KRATOS_CATCH("")
+}
 
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX,false);
+//************************************************************************************
+//************************************************************************************
+void UpdatedLagrangian::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    MatrixType left_hand_side_matrix = Matrix(0, 0);
 
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-    {
-        // Note: rLeftHandSideMatrices.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
     }
-    LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX,true);
+    rRightHandSideVector = ZeroVector(mat_size);
 
-    // Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
+    CalculateElementalSystem(left_hand_side_matrix, rRightHandSideVector,
+        rCurrentProcessInfo, false, true);
+}
 
-    LocalSystem.SetLeftHandSideVariables(rLHSVariables);
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
+//************************************************************************************
+//************************************************************************************
 
-    // Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+
+void UpdatedLagrangian::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType right_hand_side_vector = Vector(0);
+
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    CalculateElementalSystem(
+        rLeftHandSideMatrix, right_hand_side_vector,
+        rCurrentProcessInfo, true, false);
+}
+//************************************************************************************
+//************************************************************************************
+
+
+void UpdatedLagrangian::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    rRightHandSideVector = ZeroVector(mat_size);
+
+    CalculateElementalSystem(
+        rLeftHandSideMatrix, rRightHandSideVector,
+        rCurrentProcessInfo, true, true);
 }
 
 //*******************************************************************************************
 //*******************************************************************************************
-
-
-void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    const array_1d<double,3> & xg = this->GetValue(MP_COORD);
-    GeneralVariables Variables;
-
-    // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
     mFinalizedStep = false;
 
-    const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
-    const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    const double & MP_Mass = this->GetValue(MP_MASS);
+    const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
+        : false;
 
-    array_1d<double,3> AUX_MP_Velocity = ZeroVector(3);
-    array_1d<double,3> AUX_MP_Acceleration = ZeroVector(3);
+    // Calculating shape functions
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
-
-    for (unsigned int j=0; j<number_of_nodes; j++)
-    {
-        // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        const array_1d<double, 3 > & nodal_acceleration = rGeom[j].FastGetSolutionStepValue(ACCELERATION,1);
-        const array_1d<double, 3 > & nodal_velocity = rGeom[j].FastGetSolutionStepValue(VELOCITY,1);
-
-        for (unsigned int k = 0; k < dimension; k++)
-        {
-            AUX_MP_Velocity[k]     += Variables.N[j] * nodal_velocity[k];
-            AUX_MP_Acceleration[k] += Variables.N[j] * nodal_acceleration[k];
-        }
-    }
 
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = Variables.N[i] * (MP_Velocity[j] - AUX_MP_Velocity[j]) * MP_Mass;
-            nodal_inertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
-
+            nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
+            nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
         }
 
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-        rGeom[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
+        // Add in the predictor velocity increment for central difference explicit
+        // This is the 'previous grid acceleration', which is actually
+        // be the initial particle acceleration mapped to the grid.
+        if (is_explicit_central_difference) {
+            const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
+            for (unsigned int j = 0; j < dimension; j++) {
+                nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
+            }
+        }
 
-        rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
-        rGeom[i].UnSetLock();
-
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
+        r_geometry[i].UnSetLock();
     }
 }
 
 ////************************************************************************************
 ////************************************************************************************
-void UpdatedLagrangian::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
 
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void UpdatedLagrangian::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+
+    KRATOS_ERROR_IF(is_explicit)
+    << "FinalizeSolutionStep for explicit time integration is done in the scheme";
 
     // Create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -892,7 +923,7 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
     // Set general variables to constitutivelaw parameters
-    this->SetGeneralVariables(Variables,Values);
+    this->SetGeneralVariables(Variables,Values, r_N);
 
     // Call the constitutive law to update material variables
     mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
@@ -915,31 +946,29 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     mDeterminantF0         = rVariables.detF* rVariables.detF0;
     mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
 
-    this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
-    this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
+    mMP.cauchy_stress_vector = rVariables.StressVector;
+    mMP.almansi_strain_vector = rVariables.StrainVector;
 
     // Delta Plastic Strains
-    double DeltaPlasticStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain );
-    this->SetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain);
-
-    double DeltaPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
-    this->SetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
-
-    double DeltaPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
-    this->SetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, mMP.delta_plastic_strain );
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, mMP.delta_plastic_volumetric_strain);
+    if (mConstitutiveLawVector->Has(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, mMP.delta_plastic_deviatoric_strain);
 
     // Total Plastic Strain
-    double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain );
-    this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
+    if (mConstitutiveLawVector->Has(MP_EQUIVALENT_PLASTIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, mMP.equivalent_plastic_strain );
+    if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
+    if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN))
+        mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
 
-    double AccumulatedPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
-    this->SetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
-
-    double AccumulatedPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
-    this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
-
-    this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
-
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
+        : false;
+    if (!is_explicit) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
 }
 
 //************************************************************************************
@@ -956,33 +985,35 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    const array_1d<double,3> & xg = this->GetValue(MP_COORD);
-    const array_1d<double,3> & MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
-    const array_1d<double,3> & MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
+    const array_1d<double,3> & MP_PreviousAcceleration = mMP.acceleration;
+    const array_1d<double,3> & MP_PreviousVelocity = mMP.velocity;
 
     array_1d<double,3> delta_xg = ZeroVector(3);
-    array_1d<double,3> MP_Acceleration = ZeroVector(3);
-    array_1d<double,3> MP_Velocity = ZeroVector(3);
+    array_1d<double,3> MP_acceleration = ZeroVector(3);
+    array_1d<double,3> MP_velocity = ZeroVector(3);
     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rVariables.N[i] > std::numeric_limits<double>::epsilon())
+        if (r_N(0, i) > std::numeric_limits<double>::epsilon())
         {
-            const array_1d<double, 3 > & nodal_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
+            auto r_geometry = GetGeometry();
+            array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
+            if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
+                nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
 
             for ( unsigned int j = 0; j < dimension; j++ )
             {
-                delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
-                MP_Acceleration[j] += rVariables.N[i] * nodal_acceleration[j];
+                delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
+                MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
 
                 /* NOTE: The following interpolation techniques have been tried:
-                    MP_Velocity[j]      += rVariables.N[i] * nodal_velocity[j];
-                    MP_Acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_Mass * MP_number);
-                    MP_Velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
-                    MP_Velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
+                    MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
+                    MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
+                    MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
+                    MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
                 */
             }
         }
@@ -992,25 +1023,22 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     /* NOTE:
     Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    MP_Velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_Acceleration + MP_PreviousAcceleration);
-    this -> SetValue(MP_VELOCITY,MP_Velocity );
+    mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
 
     /* NOTE: The following interpolation techniques have been tried:
-        MP_Acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
-        MP_Velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
+        MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
+        MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
     */
 
     // Update the MP Position
-    const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(MP_COORD,new_xg);
+    const array_1d<double,3>& new_xg = mMP.xg + delta_xg ;
+    mMP.xg = new_xg;
 
     // Update the MP Acceleration
-    this -> SetValue(MP_ACCELERATION,MP_Acceleration);
+    mMP.acceleration = MP_acceleration;
 
     // Update the MP total displacement
-    array_1d<double,3>& MP_Displacement = this->GetValue(MP_DISPLACEMENT);
-    MP_Displacement += delta_xg;
-    this -> SetValue(MP_DISPLACEMENT,MP_Displacement);
+    mMP.displacement += delta_xg;
 
     KRATOS_CATCH( "" )
 }
@@ -1019,17 +1047,20 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 void UpdatedLagrangian::InitializeMaterial()
 {
     KRATOS_TRY
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+        mConstitutiveLawVector->InitializeMaterial(
+            GetProperties(), GetGeometry(), N);
 
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
+        mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
+        mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
 
-        mConstitutiveLawVector->InitializeMaterial( GetProperties(), GetGeometry(),
-                Variables.N );
+        // Resize the deformation gradient if we are axisymmetric
+        if (mConstitutiveLawVector->GetStrainSize() == 4) mDeformationGradientF0 = IdentityMatrix(3);
     }
     else
         KRATOS_ERROR <<  "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;
@@ -1044,12 +1075,14 @@ void UpdatedLagrangian::InitializeMaterial()
 void UpdatedLagrangian::ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
-        mConstitutiveLawVector->ResetMaterial( GetProperties(), GetGeometry(), this->MPMShapeFunctionPointValues(Variables.N, xg) );
+        mConstitutiveLawVector->ResetMaterial(
+            GetProperties(),
+            GetGeometry(),
+            row(GetGeometry().ShapeFunctionsValues(), 0));
     }
 
     KRATOS_CATCH( "" )
@@ -1065,15 +1098,15 @@ Matrix& UpdatedLagrangian::CalculateCurrentDisp(Matrix & rCurrentDisp, const Pro
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     rCurrentDisp = ZeroMatrix(number_of_nodes, dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        const array_1d<double, 3 > & current_displacement  = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & current_displacement  = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
@@ -1134,8 +1167,9 @@ void UpdatedLagrangian::CalculateAlmansiStrain(const Matrix& rF,
 //*************************COMPUTE GREEN-LAGRANGE STRAIN*************************************
 //************************************************************************************
 // Green-Lagrange Strain: E = 0.5 * (U^2 - I) = 0.5 * (C - I)
-void UpdatedLagrangian::CalculateGreenLagrangeStrain(const Matrix& rF,
-        Vector& rStrainVector )
+void UpdatedLagrangian::CalculateGreenLagrangeStrain(
+    const Matrix& rF,
+    Vector& rStrainVector)
 {
     KRATOS_TRY
 
@@ -1191,24 +1225,24 @@ double& UpdatedLagrangian::CalculateIntegrationWeight(double& rIntegrationWeight
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangian::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 {
-    GeometryType& rGeom = GetGeometry();
-    int number_of_nodes = rGeom.size();
-    int dimension = rGeom.WorkingSpaceDimension();
-    unsigned int dimension_2 = number_of_nodes * dimension;
+    const GeometryType& r_geometry = GetGeometry();
+    int number_of_nodes = r_geometry.size();
+    int dimension = r_geometry.WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
 
-    if ( rResult.size() != dimension_2 )
-        rResult.resize( dimension_2, false );
+    if ( rResult.size() != matrix_size )
+        rResult.resize( matrix_size, false );
 
     for ( int i = 0; i < number_of_nodes; i++ )
     {
         int index = i * dimension;
-        rResult[index] = rGeom[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index + 1] = rGeom[i].GetDof( DISPLACEMENT_Y ).EquationId();
+        rResult[index] = r_geometry[i].GetDof( DISPLACEMENT_X ).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof( DISPLACEMENT_Y ).EquationId();
 
         if ( dimension == 3 )
-            rResult[index + 2] = rGeom[i].GetDof( DISPLACEMENT_Z ).EquationId();
+            rResult[index + 2] = r_geometry[i].GetDof( DISPLACEMENT_Z ).EquationId();
     }
 
 }
@@ -1216,19 +1250,19 @@ void UpdatedLagrangian::EquationIdVector( EquationIdVectorType& rResult, Process
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangian::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo )
+void UpdatedLagrangian::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
 {
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry();
     rElementalDofList.resize( 0 );
 
-    for ( unsigned int i = 0; i < rGeom.size(); i++ )
+    for ( unsigned int i = 0; i < r_geometry.size(); i++ )
     {
-        rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_X ) );
-        rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_Y ) );
+        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_X ) );
+        rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Y ) );
 
-        if ( rGeom.WorkingSpaceDimension() == 3 )
+        if ( r_geometry.WorkingSpaceDimension() == 3 )
         {
-            rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_Z ) );
+            rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
         }
     }
 
@@ -1238,7 +1272,7 @@ void UpdatedLagrangian::GetDofList( DofsVectorType& rElementalDofList, ProcessIn
 //************************************************************************************
 //*******************DAMPING MATRIX***************************************************
 
-void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1290,238 +1324,71 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, Proc
 
     KRATOS_CATCH( "" )
 }
+void UpdatedLagrangian::AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double, 3>>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if (rRHSVariable == RESIDUAL_VECTOR &&
+        rDestinationVariable == FORCE_RESIDUAL) {
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+        for (size_t i = 0; i < number_of_nodes; ++i) {
+            size_t index = dimension * i;
+            array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < dimension; ++j) {
+                r_force_residual[j] += rRHSVector[index + j];
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
 //************************************************************************************
 //****************MASS MATRIX*********************************************************
 
-void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     // Call the values of the shape function for the single element
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
 
-    // Lumped
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int matrix_size = dimension * number_of_nodes;
+    const bool is_lumped_mass_matrix = (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
+        ? rCurrentProcessInfo.GetValue(COMPUTE_LUMPED_MASS_MATRIX)
+        : true;
 
-    if ( rMassMatrix.size1() != matrix_size )
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType matrix_size = dimension * number_of_nodes;
+
+    if ( rMassMatrix.size1() != matrix_size || rMassMatrix.size2() != matrix_size)
         rMassMatrix.resize( matrix_size, matrix_size, false );
-
     rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
-    // TOTAL MASS OF ONE MP ELEMENT
-    const double & TotalMass = this->GetValue(MP_MASS);
-
-    // LUMPED MATRIX
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        double temp = Variables.N[i] * TotalMass;
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            unsigned int index = i * dimension + j;
-            rMassMatrix( index, index ) = temp;
+    if (!is_lumped_mass_matrix) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType j = 0; j < number_of_nodes; ++j) {
+                for (IndexType k = 0; k < dimension; ++k)
+                {
+                    const IndexType index_i = i * dimension + k;
+                    const IndexType index_j = j * dimension + k;
+                    rMassMatrix(index_i, index_j) = N[i] * N[j] * mMP.mass;
+                }
+            }
+        }
+    } else {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            for (IndexType k = 0; k < dimension; ++k)
+            {
+                const IndexType index = i * dimension + k;
+                rMassMatrix(index, index) = N[i] * mMP.mass;
+            }
         }
     }
 
     KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-// Function that return Jacobian matrix
-Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, const array_1d<double,3>& rPoint)
-{
-    KRATOS_TRY
-
-    // Derivatives of shape functions
-    Matrix shape_functions_gradients;
-    shape_functions_gradients =this->MPMShapeFunctionsLocalGradients(
-                                   shape_functions_gradients);
-
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int number_nodes = rGeom.PointsNumber();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
-
-    if (dimension ==2)
-    {
-        rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2,2);
-
-        for ( unsigned int i = 0; i < number_nodes; i++ )
-        {
-            rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() *  shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( rGeom.GetPoint( i ).X() *  shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( rGeom.GetPoint( i ).Y() *  shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( rGeom.GetPoint( i ).Y() *  shape_functions_gradients( i, 1 ) );
-        }
-    }
-    else if(dimension ==3)
-    {
-        rResult.resize( 3, 3, false );
-        rResult = ZeroMatrix(3,3);
-
-        for ( unsigned int i = 0; i < number_nodes; i++ )
-        {
-            rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() *  shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( rGeom.GetPoint( i ).X() *  shape_functions_gradients( i, 1 ) );
-            rResult( 0, 2 ) += ( rGeom.GetPoint( i ).X() *  shape_functions_gradients( i, 2 ) );
-            rResult( 1, 0 ) += ( rGeom.GetPoint( i ).Y() *  shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( rGeom.GetPoint( i ).Y() *  shape_functions_gradients( i, 1 ) );
-            rResult( 1, 2 ) += ( rGeom.GetPoint( i ).Y() *  shape_functions_gradients( i, 2 ) );
-            rResult( 2, 0 ) += ( rGeom.GetPoint( i ).Z() *  shape_functions_gradients( i, 0 ) );
-            rResult( 2, 1 ) += ( rGeom.GetPoint( i ).Z() *  shape_functions_gradients( i, 1 ) );
-            rResult( 2, 2 ) += ( rGeom.GetPoint( i ).Z() *  shape_functions_gradients( i, 2 ) );
-        }
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-/**
-    * Jacobian in given point and given a delta position. This method calculate jacobian
-    * matrix in given point and a given delta position.
-    *
-    * @param rPoint point which jacobians has to
-    * be calculated in it.
-    *
-    * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point and a given delta position.
-    *
-    * @see DeterminantOfJacobian
-    * @see InverseOfJacobian
- */
-Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix & rDeltaPosition )
-{
-    KRATOS_TRY
-
-    // Derivatives of shape functions
-    Matrix shape_functions_gradients;
-    shape_functions_gradients = this->MPMShapeFunctionsLocalGradients(
-                                    shape_functions_gradients );
-
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
-
-    if (dimension ==2)
-    {
-        rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2,2);
-
-        for ( unsigned int i = 0; i < rGeom.size(); i++ )
-        {
-            rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( rGeom.GetPoint( i ).Y() + rDeltaPosition(i,1)) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( rGeom.GetPoint( i ).Y() + rDeltaPosition(i,1)) * ( shape_functions_gradients( i, 1 ) );
-        }
-    }
-    else if(dimension ==3)
-    {
-        rResult.resize( 3, 3, false );
-        rResult = ZeroMatrix(3,3);
-        for ( unsigned int i = 0; i < rGeom.size(); i++ )
-        {
-            rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 0, 2 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 2 ) );
-            rResult( 1, 0 ) += ( rGeom.GetPoint( i ).Y() + rDeltaPosition(i,1)) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( rGeom.GetPoint( i ).Y() + rDeltaPosition(i,1)) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 1, 2 ) += ( rGeom.GetPoint( i ).Y() + rDeltaPosition(i,1)) * ( shape_functions_gradients( i, 2 ) );
-            rResult( 2, 0 ) += ( rGeom.GetPoint( i ).Z() + rDeltaPosition(i,2)) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 2, 1 ) += ( rGeom.GetPoint( i ).Z() + rDeltaPosition(i,2)) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 2, 2 ) += ( rGeom.GetPoint( i ).Z() + rDeltaPosition(i,2)) * ( shape_functions_gradients( i, 2 ) );
-        }
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-/**
-   * Shape function values in given point. This method calculate the shape function
-   * vector in given point.
-   *
-   * @param rPoint point which shape function values have to
-   * be calculated in it.
-   *
-   * @return Vector of double which is shape function vector \f$ N \f$ in given point.
-   *
- */
-Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
-{
-    KRATOS_TRY
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    array_1d<double,3> rPointLocal = ZeroVector(3);
-    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-    if (dimension == 2)
-    {
-        rResult.resize(3, false);
-
-        // Get Shape functions: N
-        rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
-        rResult[1] = rPointLocal[0] ;
-        rResult[2] = rPointLocal[1];
-    }
-    else if (dimension == 3)
-    {
-        rResult.resize(4, false);
-
-        // Get Shape functions: N
-        rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
-        rResult[1] = rPointLocal[0] ;
-        rResult[2] = rPointLocal[1];
-        rResult[3] = rPointLocal[2];
-    }
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-
-// Function which return dN/de
-Matrix& UpdatedLagrangian::MPMShapeFunctionsLocalGradients( Matrix& rResult )
-{
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    if (dimension == 2)
-    {
-        rResult = ZeroMatrix(3,2);
-        rResult( 0, 0 ) = -1.0;
-        rResult( 0, 1 ) = -1.0;
-        rResult( 1, 0 ) =  1.0;
-        rResult( 1, 1 ) =  0.0;
-        rResult( 2, 0 ) =  0.0;
-        rResult( 2, 1 ) =  1.0;
-    }
-    else if(dimension == 3)
-    {
-        rResult = ZeroMatrix(4,3);
-        rResult(0,0) = -1.0;
-        rResult(0,1) = -1.0;
-        rResult(0,2) = -1.0;
-        rResult(1,0) =  1.0;
-        rResult(1,1) =  0.0;
-        rResult(1,2) =  0.0;
-        rResult(2,0) =  0.0;
-        rResult(2,1) =  1.0;
-        rResult(2,2) =  0.0;
-        rResult(3,0) =  0.0;
-        rResult(3,1) =  0.0;
-        rResult(3,2) =  1.0;
-    }
-
-    return rResult;
 }
 
 //************************************************************************************
@@ -1529,9 +1396,9 @@ Matrix& UpdatedLagrangian::MPMShapeFunctionsLocalGradients( Matrix& rResult )
 
 void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -1539,11 +1406,11 @@ void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        values[index] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
-        values[index + 1] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+        values[index] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
 
         if ( dimension == 3 )
-            values[index + 2] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
     }
 }
 
@@ -1552,9 +1419,9 @@ void UpdatedLagrangian::GetValuesVector( Vector& values, int Step )
 
 void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -1562,11 +1429,11 @@ void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        values[index] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
-        values[index + 1] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        values[index] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
 
         if ( dimension == 3 )
-            values[index + 2] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
     }
 }
 
@@ -1575,9 +1442,9 @@ void UpdatedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
 
 void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
 {
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -1585,11 +1452,11 @@ void UpdatedLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        values[index] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-        values[index + 1] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+        values[index] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
 
         if ( dimension == 3 )
-            values[index + 2] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
     }
 }
 //************************************************************************************
@@ -1625,8 +1492,228 @@ void UpdatedLagrangian::DecimalCorrection(Vector& rVector)
     KRATOS_CATCH( "" )
 }
 
-//************************************************************************************
-//************************************************************************************
+
+///@}
+///@name Access Get Values
+///@{
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == CALCULATE_EXPLICIT_MP_STRESS)
+    {
+        GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
+        this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
+        this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+        rValues[0] = true;
+    }
+    else if (rVariable == EXPLICIT_MAP_GRID_TO_MP)
+    {
+        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this);
+        rValues[0] = true;
+    }
+    else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
+    {
+        MPMExplicitUtilities::CalculateMUSLGridVelocity(rCurrentProcessInfo, *this);
+        rValues[0] = true;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_MATERIAL_ID) {
+        rValues[0] = GetProperties().Id();
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_DENSITY) {
+        rValues[0] = mMP.density;
+    }
+    else if (rVariable == MP_MASS) {
+        rValues[0] = mMP.mass;
+    }
+    else if (rVariable == MP_VOLUME) {
+        rValues[0] = mMP.volume;
+    }
+    else if (rVariable == MP_POTENTIAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
+    }
+    else if (rVariable == MP_KINETIC_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateKineticEnergy(*this);
+    }
+    else if (rVariable == MP_STRAIN_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateStrainEnergy(*this);
+    }
+    else if (rVariable == MP_TOTAL_ENERGY) {
+        rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
+    }
+    else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
+        rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
+        rVariable == MP_TEMPERATURE) {
+        rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        rValues[0] = mMP.xg;
+    }
+    else if (rVariable == MP_DISPLACEMENT) {
+        rValues[0] = mMP.displacement;
+    }
+    else if (rVariable == MP_VELOCITY) {
+        rValues[0] = mMP.velocity;
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        rValues[0] = mMP.acceleration;
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        rValues[0] = mMP.volume_acceleration;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        rValues[0] = mMP.cauchy_stress_vector;
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        rValues[0] = mMP.almansi_strain_vector;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+///@}
+///@name Access Set Values
+///@{
+
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+}
+
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_MASS) {
+        mMP.mass = rValues[0];
+    }
+    else if (rVariable == MP_DENSITY) {
+        mMP.density = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME) {
+        mMP.volume = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_COORD || rVariable == MPC_COORD) {
+        mMP.xg = rValues[0];
+    }
+    else if (rVariable == MP_DISPLACEMENT) {
+        mMP.displacement = rValues[0];
+    }
+    else if (rVariable == MP_VELOCITY) {
+        mMP.velocity = rValues[0];
+    }
+    else if (rVariable == MP_ACCELERATION) {
+        mMP.acceleration = rValues[0];
+    }
+    else if (rVariable == MP_VOLUME_ACCELERATION) {
+        mMP.volume_acceleration = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
+        mMP.cauchy_stress_vector = rValues[0];
+    }
+    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
+        mMP.almansi_strain_vector = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+///@}
+
 /**
  * This function provides the place to perform checks on the completeness of the input.
  * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -1638,34 +1725,48 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    Element::Check(rCurrentProcessInfo);
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     // Verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
 
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
+    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
+        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT) : false;
+
     bool correct_strain_measure = false;
     for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
     {
-        if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
-            correct_strain_measure = true;
+        if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient) correct_strain_measure = true;
+        if (is_explicit && LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient) correct_strain_measure = true;
+
+    }
+    if (true)
+    {
+
     }
 
     KRATOS_ERROR_IF(correct_strain_measure == false ) << "Constitutive law is not compatible with the element type: Large Displacements " << std::endl;
 
     // Verify that the variables are correctly initialized
-    KRATOS_ERROR_IF( VELOCITY.Key() == 0 ) << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF( DISPLACEMENT.Key() == 0 ) << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF( ACCELERATION.Key() == 0 ) << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
-    KRATOS_ERROR_IF( DENSITY.Key() == 0 ) <<  "DENSITY has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY)
 
     // Verify that the dofs exist
-    for ( unsigned int i = 0; i < rGeom.size(); i++ )
-    {
-        KRATOS_ERROR_IF( rGeom[i].SolutionStepsDataHas( DISPLACEMENT ) == false ) << "Missing variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
-        KRATOS_ERROR_IF( rGeom[i].HasDofFor( DISPLACEMENT_X ) == false || rGeom[i].HasDofFor( DISPLACEMENT_Y ) == false || rGeom[i].HasDofFor( DISPLACEMENT_Z ) == false ) << "Missing one of the dofs for the variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
+    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
+        const NodeType &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
     }
 
     // Verify that the constitutive law exists
@@ -1678,17 +1779,16 @@ int  UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
         // Verify that the constitutive law has the correct dimension
         if ( dimension == 2 )
         {
-            KRATOS_ERROR_IF(THICKNESS.Key() == 0 ) << "THICKNESS has Key zero! (check if the application is correctly registered" << std::endl;
-            KRATOS_ERROR_IF( this->GetProperties().Has( THICKNESS ) == false ) << "THICKNESS not provided for element " << this->Id() << std::endl;
+            KRATOS_CHECK_VARIABLE_KEY(THICKNESS)
+            KRATOS_ERROR_IF_NOT(this->GetProperties().Has( THICKNESS )) << "THICKNESS not provided for element " << this->Id() << std::endl;
         }
         else
         {
-            KRATOS_ERROR_IF( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 ) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
         }
 
         // Check constitutive law
-        this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), rGeom, rCurrentProcessInfo );
-
+        this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), r_geometry, rCurrentProcessInfo );
     }
 
     return 0;

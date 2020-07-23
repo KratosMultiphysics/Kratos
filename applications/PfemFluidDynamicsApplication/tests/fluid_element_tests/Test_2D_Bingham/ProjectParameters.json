@@ -20,6 +20,9 @@
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham"
         },
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_element_tests/Test_2D_Bingham/PfemFluidDynamicsMaterials.json"
+        },
         "maximum_pressure_iterations"        : 7,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
@@ -52,7 +55,7 @@
     },
     "problem_process_list"     : [{
         "help"          : "This process applies meshing to the problem domains",
-        "kratos_module" : "KratosMultiphysics.DelaunayMeshingApplication",
+        "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
         "python_module" : "remesh_fluid_domains_process",
         "process_name"  : "RemeshFluidDomainsProcess",
         "Parameters"    : {
@@ -61,6 +64,11 @@
             "meshing_frequency"     : 1.0,
             "write_totalVolumeBeforeMeshing" : false,
             "meshing_before_output" : true,
+            "update_conditions_on_free_surface" : {
+                "update_conditions"        : false,
+                "sub_model_part_list"      : [],
+                "reference_condition_list" : []
+            },
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",
                 "python_module"                   : "fluid_meshing_domain",
@@ -76,7 +84,7 @@
                     "constrained"                   : false,
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "elemental_variables_to_smooth" : [],
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -86,6 +94,14 @@
                     "final_time"       : 1000.0,
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
+                },
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
                 },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
@@ -118,15 +134,9 @@
                         "on_distance"      : false,
                         "on_threshold"     : false,
                         "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
                     }
                 },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
+                "elemental_variables_to_transfer" : []
             },{
                 "model_part_name"                 : "Body2",
                 "python_module"                   : "fluid_meshing_domain",
@@ -142,7 +152,7 @@
                     "constrained"                   : false,
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "elemental_variables_to_smooth" : [],
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -152,6 +162,14 @@
                     "final_time"       : 1000.0,
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
+                },
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
                 },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
@@ -184,30 +202,22 @@
                         "on_distance"      : false,
                         "on_threshold"     : false,
                         "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
                     }
                 },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
+                "elemental_variables_to_transfer" : []
             }]
         }
     }],
     "processes": {
         "constraints_process_list" : [{
-            "python_module" : "assign_vector_components_to_nodes_process",
-            "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-            "help"          : "This process fixes the selected components of a given vector variable",
-            "process_name"  : "AssignVectorComponentsToNodesProcess",
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name"     : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
-                "variable_name"       : "VELOCITY",
-                "value"               : [0.0,0.0,0.0],
-                "compound_assignment" : "direct",
-                "interval"            : [0.0,"End"]
+                "model_part_name" : "PfemFluidModelPart.VELOCITY_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
             }
         }],
         "loads_process_list"       : [],

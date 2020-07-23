@@ -20,7 +20,7 @@ namespace Kratos {
 
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite
     KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFast
     KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastS
 
 // Synchronization using ALL_DEFINED as mask //////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsReduceWithAllDefinedAsMask, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsReduceWithAllDefinedAsMask, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int rank = mpi_world_communicator.Rank();
@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsReduceWithAllDefinedAsMask, Kr
 
 // Flags And //////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
@@ -145,10 +145,10 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFa
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE    | MPI_BOUNDARY | PERIODIC.AsFalse();
     }
     else {
-        flags = ACTIVE | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE.AsFalse() |                              INLET       | OUTLET.AsFalse();
     }
 
     // Setting an extra flag, not involved in communication
@@ -196,7 +196,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndOperations, KratosMPICoreFa
 
 // Flags Or ///////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
@@ -206,10 +206,10 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFas
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE     | MPI_BOUNDARY | PERIODIC.AsFalse();
     }
     else {
-        flags = ACTIVE | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE.AsFalse() |                              INLET       | OUTLET.AsFalse();
     }
 
     // Setting an extra flag, not involved in communication
@@ -258,7 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrOperations, KratosMPICoreFas
 
 // Flags AndAll ///////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
@@ -268,10 +268,10 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICor
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE     | MPI_BOUNDARY | PERIODIC.AsFalse();
     }
     else {
-        flags = ACTIVE | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE.AsFalse() |                              INLET       | OUTLET.AsFalse();
     }
 
     // Setting an extra flag, not involved in communication
@@ -319,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllOperations, KratosMPICor
 
 // Flags OrAll ////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
@@ -329,10 +329,10 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, KratosMPICore
     Kratos::Flags flags;
     //       both true | both false | opposite sets | first true   | first false | second true | second false
     if (world_rank == root) {
-        flags = ACTIVE | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE     | MPI_BOUNDARY | PERIODIC.AsFalse();
     }
     else {
-        flags = ACTIVE | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET;
+        flags = ACTIVE | RIGID.AsFalse()  | STRUCTURE.AsFalse() |                              INLET       | OUTLET.AsFalse();
     }
 
     // Setting an extra flag, not involved in communication

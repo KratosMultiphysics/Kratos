@@ -172,11 +172,13 @@ public:
         delete mpBuffer;
     }
 
-
     ///@}
     ///@name Operators
     ///@{
 
+    /// Sets the Serializer in a state ready to be loaded
+    /// Note: If the same object is loaded twice before deleting it from memory all its pointers will be duplicated.
+    void SetLoadState();
 
     ///@}
     ///@name Operations
@@ -227,9 +229,9 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue)
+                    if(!pValue) {
                         pValue = Kratos::shared_ptr<TDataType>(new TDataType);
-                    load(rTag, *pValue);
+                    }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
                 {
@@ -241,16 +243,19 @@ public:
                         << "There is no object registered in Kratos with name : "
                         << object_name << std::endl;
 
-                    if(!pValue)
+                    if(!pValue) {
                         pValue = Kratos::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
-
-                    load(rTag, *pValue);
-
+                    }
                 }
+
+                // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=&pValue;
+                load(rTag, *pValue);
             }
             else
+            {
                 pValue = *static_cast<Kratos::shared_ptr<TDataType>*>((i_pointer->second));
+            }
         }
     }
 
@@ -269,9 +274,9 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue)
+                    if(!pValue) {
                         pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
-                    load(rTag, *pValue);
+                    }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
                 {
@@ -283,19 +288,21 @@ public:
                         << "There is no object registered in Kratos with name : "
                         << object_name << std::endl;
 
-                    if(!pValue)
+                    if(!pValue) {
                         pValue = Kratos::intrusive_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
-
-                    load(rTag, *pValue);
-
+                    }
                 }
+
+                // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=&pValue;
+                load(rTag, *pValue);
             }
             else
+            {
                 pValue = *static_cast<Kratos::intrusive_ptr<TDataType>*>((i_pointer->second));
+            }
         }
     }
-
 
     template<class TDataType>
     void load(std::string const & rTag, Kratos::unique_ptr<TDataType>& pValue)
@@ -312,9 +319,9 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue)
+                    if(!pValue) {
                         pValue = Kratos::unique_ptr<TDataType>(new TDataType);
-                    load(rTag, *pValue);
+                    }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
                 {
@@ -326,19 +333,21 @@ public:
                         << "There is no object registered in Kratos with name : "
                         << object_name << std::endl;
 
-                    if(!pValue)
-                        pValue = Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
-
-                    load(rTag, *pValue);
-
+                    if(!pValue) {
+                        pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
+                    }
                 }
-                mLoadedPointers[p_pointer]=&pValue;
+                    
+                // Load the pointer address before loading the content
+                mLoadedPointers[p_pointer]=pValue.get();
+                load(rTag, *pValue);
             }
             else
-                pValue = *static_cast<Kratos::unique_ptr<TDataType>*>((i_pointer->second));
+            {
+                pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second))));
+            }
         }
     }
-
 
     template<class TDataType>
     void load(std::string const & rTag, TDataType*& pValue)
@@ -355,10 +364,9 @@ public:
             {
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
-                    if(!pValue)
+                    if(!pValue) {
                         pValue = new TDataType;
-
-                    load(rTag, *pValue);
+                    }
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
                 {
@@ -370,13 +378,15 @@ public:
                         << "There is no object registered in Kratos with name : "
                         << object_name << std::endl;
 
-                    if(!pValue)
+                    if(!pValue) {
                         pValue = static_cast<TDataType*>((i_prototype->second)());
-
-                    load(rTag, *pValue);
+                    }
 
                 }
+
+                // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=&pValue;
+                load(rTag, *pValue);
             }
             else
             {
@@ -391,13 +401,6 @@ public:
 
     void load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& pValue);
 
-    template<class TDataType>
-    void load(std::string const & rTag, Kratos::intrusive_weak_ptr<TDataType>& pValue)
-    {
-        // This is for testing. I have to change it. Pooyan.
-        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
-//    read(*pValue);
-    }
 
     template<class TDataType>
     void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
@@ -620,15 +623,9 @@ public:
         save(rTag, pValue.get());
     }
 
-    template<class TDataType>
-    void save(std::string const & rTag, Kratos::intrusive_weak_ptr<TDataType> pValue)
-    {
-        //no implementaion for now... 
-        //save(rTag, pValue.lock().get());
-    }
 
     template<class TDataType>
-    void save(std::string const & rTag, Kratos::unique_ptr<TDataType> pValue)
+    void save(std::string const & rTag, Kratos::unique_ptr<TDataType> const& pValue)
     {
         save(rTag, pValue.get());
     }
@@ -1027,22 +1024,20 @@ private:
         write(pValue);
         if (mSavedPointers.find(pValue) == mSavedPointers.end())
         {
+            mSavedPointers.insert(pValue);
             if (IsDerived(pValue))
             {
                 typename RegisteredObjectsNameContainerType::iterator i_name = msRegisteredObjectsName.find(typeid (*pValue).name());
 
-                if (i_name == msRegisteredObjectsName.end())
+                if (i_name == msRegisteredObjectsName.end()) {
                     KRATOS_ERROR << "There is no object registered in Kratos with type id : "
                                  << typeid (*pValue).name() << std::endl;
-                else
+                } else {
                     write(i_name->second);
-
-
+                }
             }
 
             save(rTag, *pValue);
-            //        pValue->save(*this);
-            mSavedPointers.insert(pValue);
         }
     }
 
@@ -1401,6 +1396,12 @@ private:
         const SizeType block_size = sizeof(BlockType);
         return static_cast<SizeType>(((block_size - 1) + rSize) / block_size);
     }
+
+    /// Sets the pointer of the stream buffer at the begnining
+    void SeekBegin();
+
+    /// Sets the pointer of the stream buffer at tht end 
+    void SeekEnd();
 
     ///@}
     ///@name Private  Access

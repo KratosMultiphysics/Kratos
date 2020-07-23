@@ -78,15 +78,45 @@ public:
     /// Destructor.
     virtual ~ResultsProxy() {}
 
-    /**this function returns the effect of "user_function(gp)" both if the gp is locally owned
+    /**this function returns the effect of "user_function(rGlobalPointer)" both if the rGlobalPointer is locally owned
      * and if it is remotely owned
      */
-    TSendType Get(GlobalPointer<TPointerDataType>& gp)
+    TSendType Get(GlobalPointer<TPointerDataType>& rGlobalPointer) const
     {
-        if(gp.GetRank() == mCurrentRank)
-            return mUserFunctor(gp);
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return mUserFunctor(rGlobalPointer);
+        else {
+            auto non_local_gp = mNonLocalData.find(rGlobalPointer);
+            KRATOS_DEBUG_ERROR_IF(non_local_gp == mNonLocalData.end()) << "Missing entry in NonLocalData" << std::endl;
+            return non_local_gp->second;
+        }
+    }
+
+    TSendType Get(const GlobalPointer<TPointerDataType>& rGlobalPointer) const
+    {
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return mUserFunctor(rGlobalPointer);
+        else {
+            auto non_local_gp = mNonLocalData.find(rGlobalPointer);
+            KRATOS_DEBUG_ERROR_IF(non_local_gp == mNonLocalData.end()) << "Missing entry in NonLocalData" << std::endl;
+            return non_local_gp->second;
+        }
+    }
+    
+    bool Has(GlobalPointer<TPointerDataType>& rGlobalPointer) const 
+    {
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return true;
         else
-            return mNonLocalData[gp];
+            return mNonLocalData.find(rGlobalPointer) != mNonLocalData.end();
+    }   
+
+    bool Has(const GlobalPointer<TPointerDataType>& rGlobalPointer) const
+    {
+        if(rGlobalPointer.GetRank() == mCurrentRank)
+            return true;
+        else
+            return mNonLocalData.find(rGlobalPointer) != mNonLocalData.end();
     }
 
     void Update()
@@ -98,7 +128,7 @@ private:
     const int mCurrentRank;
     GlobalPointersUnorderedMap< TPointerDataType, TSendType > mNonLocalData;
     TFunctorType mUserFunctor;
-    GlobalPointerCommunicator<TPointerDataType>* mpPointerComm; 
+    GlobalPointerCommunicator<TPointerDataType>* mpPointerComm;
 
 };
 
@@ -145,7 +175,7 @@ public:
     }
 
     template< class TFunctorType >
-    GlobalPointerCommunicator(DataCommunicator& rComm, TFunctorType rFunctor):
+    GlobalPointerCommunicator(const DataCommunicator& rComm, TFunctorType rFunctor):
         mrDataCommunicator(rComm)
     {
         if(rComm.IsDistributed())
@@ -183,14 +213,14 @@ public:
         {
             Update(UserFunctor, non_local_data);
         }
-        
+
         return ResultsProxy<TPointerDataType, TFunctorType>(current_rank,non_local_data,UserFunctor, this );
     }
 
     template< class TFunctorType >
     void Update(
-        TFunctorType& rUserFunctor, 
-        GlobalPointersUnorderedMap< TPointerDataType, typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType >& rNonLocalData) 
+        TFunctorType& rUserFunctor,
+        GlobalPointersUnorderedMap< TPointerDataType, typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType >& rNonLocalData)
     {
         //sendrecv data
         for(auto color : mColors)
@@ -199,13 +229,13 @@ public:
             {
                 auto& gps_to_be_sent = mNonLocalPointers[color];
 
-                auto recv_global_pointers = SendRecv(gps_to_be_sent, color, color );
+                auto recv_global_pointers = mrDataCommunicator.SendRecv(gps_to_be_sent, color, color );
 
                 std::vector< typename ResultsProxy<TPointerDataType, TFunctorType >::TSendType > locally_gathered_data; //this is local but needs to be sent to the remote node
                 for(auto& gp : recv_global_pointers.GetContainer())
                     locally_gathered_data.push_back( rUserFunctor(gp) );
 
-                auto remote_data = SendRecv(locally_gathered_data, color, color );
+                auto remote_data = mrDataCommunicator.SendRecv(locally_gathered_data, color, color );
 
                 for(unsigned int i=0; i<remote_data.size(); ++i)
                     rNonLocalData[gps_to_be_sent(i)] = remote_data[i];
@@ -347,23 +377,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    template< class TDataType>
-    TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
-    {
-        MpiSerializer send_serializer;
-        send_serializer.save("data",send_buffer);
-        std::string send_string = send_serializer.GetStringRepresentation();
-
-        std::string recv_string = mrDataCommunicator.SendRecv(send_string, send_rank, send_rank);
-
-        MpiSerializer recv_serializer(recv_string);
-
-        TDataType recv_data;
-        recv_serializer.load("data",recv_data);
-        return recv_data;
-    }
-
-    //TODO explicitly instantiate this function to SendRecv for basic types
 
 
     ///@}
