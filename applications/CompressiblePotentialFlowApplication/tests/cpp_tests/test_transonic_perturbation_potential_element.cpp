@@ -175,8 +175,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
     pElement->Initialize(model_part.GetProcessInfo());
     pUpwindElement->SetFlags(INLET);
 
-    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
-    std::array<double, 3> low_potential{1.0, 100.0, 150.0};
+    std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
     AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
     // mach number 0.39943
@@ -235,8 +235,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
     pElement->Initialize(model_part.GetProcessInfo());
     pUpwindElement->SetFlags(INLET);
 
-    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
-    std::array<double, 3> higher_potential{10.0, 350.0, 150.0};
+    std::array<double, 3> high_potential{10.0, 200.0, 350.0};  // node id order 23 74 55
+    std::array<double, 3> higher_potential{10.0, 350.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
     AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
     // mach number 2.0898
@@ -293,13 +293,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
     FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
-    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
-    std::array<double, 3> low_potential{1.0, 100.0, 150.0};
+    std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
     AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
     // mach number 0.3999
     AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
-
     
 
     for (auto& r_node : model_part.Nodes()){
@@ -434,8 +433,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
     pElement->Initialize(model_part.GetProcessInfo());
     pUpwindElement->SetFlags(INLET);
 
-    std::array<double, 3> high_potential{10.0, 200.0, 150.0};
-    std::array<double, 3> low_potential{1.0, 100.0, 150.0};
+    std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
     AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
     // mach number 0.39943
