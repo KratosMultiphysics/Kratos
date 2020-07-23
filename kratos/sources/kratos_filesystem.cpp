@@ -83,7 +83,7 @@ std::string JoinPaths(const std::vector<std::string>& rPaths)
     // first remove empty paths
     paths.erase(std::remove_if(paths.begin(), paths.end(),
                          [](const std::string& s)
-                         { std::cout << s << std::endl;return s.empty(); }), paths.end());
+                         { return s.empty(); }), paths.end());
 
     const std::size_t num_paths = paths.size();
 
