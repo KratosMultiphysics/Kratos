@@ -25,40 +25,27 @@
 
 namespace Kratos
 {
-///@addtogroup FluidDynamicsApplication
+///@addtogroup RANSApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
 /**
  * @brief Fractional-step strategy for incompressible Navier-Stokes formulation
- * This strategy implements a splitting scheme for the incompressible
- * Navier-Stokes equations. It is intended to be used in combination with the
- * FractionalStep element in the FluidDynamicsApplicatoin. The fractional step
- * index, which is stored in the ProcessInfo, takes the values 1 : Momentum step
- * (calculate fractional step velocity) 2-3 : Unused (reserved for componentwise
- * calculation of frac step velocity) 4 : Pressure step 5 : Computation of
- * projections 6 : End of step velocity
+ *
+ * This strategy is extension of FractionalStepStrategy in FluidDynamicsApplication.
+ * It adds pressure gradient correction to obtain steady state solutions from
+ * Fractional step. This is implemented based on work done by
+ *
+ * A. R. Firoozjaee and M. H. Afshar, Steady-state solution of incompressible navier–stokes
+ * equations using discrete least-squares meshless method, International Journal for Numerical
+ * Methods in Fluids, 67 (2011), pp. 369–382.
+ *
  * @tparam TSparseSpace Sparse space template type
  * @tparam TDenseSpace Dense space template type
  * @tparam TLinearSolver Linear solver template type
+ * @see FractionalStepStrategy
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class RansFractionalStepStrategy
@@ -105,18 +92,6 @@ public:
     ~RansFractionalStepStrategy() override = default;
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -140,27 +115,8 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
 
-    ///@}
 protected:
-    ///@name Protected Life Cycle
-    ///@{
-
-    ///@}
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -238,43 +194,8 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -291,10 +212,6 @@ private:
     ///@}
 
 }; /// Class FStepStrategy
-
-///@}
-///@name Type Definitions
-///@{
 
 ///@}
 
