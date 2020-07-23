@@ -52,9 +52,11 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinEmptyPaths, KratosCoreFastSuite)
 {
-    std::vector<std::string> paths {"eee", "", "gt"};
+    std::vector<std::string> paths_1 {"eee", "", "gt"};
+    KRATOS_CHECK_STRING_EQUAL(Kratos::FilesystemExtensions::JoinPaths(paths_1), "eee/gt");
 
-    KRATOS_CHECK_STRING_EQUAL(Kratos::FilesystemExtensions::JoinPaths(paths), "eee/gt");
+    std::vector<std::string> paths_2 {"", "", "gt"};
+    KRATOS_CHECK_STRING_EQUAL(Kratos::FilesystemExtensions::JoinPaths(paths_2), "gt");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FileSystemIsRegularFile, KratosCoreFastSuite)
