@@ -90,12 +90,6 @@ class KOmegaSSTFormulation(Formulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
 
-        if (self.stabilization_method == "algebraic_flux_corrected"):
-            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX)
-            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX)
-            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
-            self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT)
-
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
 
     def AddDofs(self):

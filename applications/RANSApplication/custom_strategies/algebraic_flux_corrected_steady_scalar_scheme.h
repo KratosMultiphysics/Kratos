@@ -18,7 +18,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "custom_strategies/relaxed_dof_updater.h"
@@ -150,12 +149,16 @@ public:
         KRATOS_TRY
 
         auto& r_nodes = rModelPart.Nodes();
+        const int number_of_nodes = r_nodes.size();
 
-        VariableUtils variable_utilities;
-        variable_utilities.SetHistoricalVariableToZero(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, r_nodes);
-        variable_utilities.SetHistoricalVariableToZero(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, r_nodes);
-        variable_utilities.SetHistoricalVariableToZero(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, r_nodes);
-        variable_utilities.SetHistoricalVariableToZero(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, r_nodes);
+#pragma omp parallel for
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+            auto& r_node = *(r_nodes.begin() + i_node);
+            r_node.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+            r_node.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+            r_node.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+            r_node.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+        }
 
         auto& r_elements = rModelPart.Elements();
         const int number_of_elements = r_elements.size();
@@ -209,10 +212,10 @@ public:
                 for (int i = 0; i < size; ++i) {
                     auto& r_node = r_geometry[i];
                     r_node.SetLock();
-                    r_node.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) += p_plus[i];
-                    r_node.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) += q_plus[i];
-                    r_node.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) += p_minus[i];
-                    r_node.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) += q_minus[i];
+                    r_node.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) += p_plus[i];
+                    r_node.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) += q_plus[i];
+                    r_node.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) += p_minus[i];
+                    r_node.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) += q_minus[i];
                     r_node.UnSetLock();
                 }
             }
@@ -227,38 +230,38 @@ public:
                     auto& r_node_0 = r_condition.GetGeometry()[0];
                     auto& r_node_1 = r_condition.GetGeometry()[1];
 
-                    double p_plus = r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-                    double q_plus = r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-                    double p_minus = r_node_0.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
-                    double q_minus = r_node_0.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    double p_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                    double q_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    double p_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                    double q_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
-                    p_plus += r_node_1.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-                    q_plus += r_node_1.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-                    p_minus += r_node_1.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
-                    q_minus += r_node_1.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    p_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                    q_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    p_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                    q_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
                     r_node_0.SetLock();
-                    r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) = p_plus;
-                    r_node_0.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_plus;
-                    r_node_0.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) = p_minus;
-                    r_node_0.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_minus;
+                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
+                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
+                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
+                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
                     r_node_0.UnSetLock();
 
                     r_node_1.SetLock();
-                    r_node_1.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) = p_plus;
-                    r_node_1.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_plus;
-                    r_node_1.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) = p_minus;
-                    r_node_1.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_minus;
+                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
+                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
+                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
+                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
                     r_node_1.UnSetLock();
                 }
             }
         }
 
         Communicator& r_communicator = rModelPart.GetCommunicator();
-        r_communicator.AssembleCurrentData(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-        r_communicator.AssembleCurrentData(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-        r_communicator.AssembleCurrentData(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
-        r_communicator.AssembleCurrentData(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+        r_communicator.AssembleNonHistoricalData(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+        r_communicator.AssembleNonHistoricalData(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+        r_communicator.AssembleNonHistoricalData(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+        r_communicator.AssembleNonHistoricalData(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
         KRATOS_CATCH("")
     }
@@ -504,10 +507,10 @@ private:
             rRMinus = 1.0;
             rRPlus = 1.0;
         } else {
-            const double q_plus = rNode.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-            const double p_plus = rNode.FastGetSolutionStepValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-            const double q_minus = rNode.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-            const double p_minus = rNode.FastGetSolutionStepValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+            const double q_plus = rNode.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+            const double p_plus = rNode.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+            const double q_minus = rNode.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+            const double p_minus = rNode.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
 
             rRPlus = 1.0;
             if (p_plus > 0.0) {
