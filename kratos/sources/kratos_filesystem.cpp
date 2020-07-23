@@ -78,18 +78,21 @@ std::string CurrentWorkingDirectory()
 
 std::string JoinPaths(const std::vector<std::string>& rPaths)
 {
-    const std::size_t num_paths = rPaths.size();
+    auto paths(rPaths); // create local copy
+
+    // first remove empty paths
+    paths.erase(std::remove_if(paths.begin(), paths.end(),
+                         [](const std::string& s)
+                         { std::cout << s << std::endl;return s.empty(); }), paths.end());
+
+    const std::size_t num_paths = paths.size();
 
     if (num_paths == 0) { return ""; }
 
-    for (std::size_t i=0; i<num_paths; ++i) {
-        KRATOS_ERROR_IF(rPaths[i] == "") << "Path in position " << i << " is empty!" << std::endl;
-    }
-
-    std::string full_path = rPaths[0];
+    std::string full_path = paths[0];
     if (num_paths > 1) {
         for(std::size_t i=1; i<num_paths; ++i) {
-            full_path += "/" + rPaths[i]; // using portable separator "/"
+            full_path += "/" + paths[i]; // using portable separator "/"
         }
     }
 
