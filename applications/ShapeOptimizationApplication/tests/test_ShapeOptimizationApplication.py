@@ -17,12 +17,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from shape_optimization_test_factory import opt_process_shell_test
 from shape_optimization_test_factory import opt_process_solid_test
 from shape_optimization_test_factory import opt_process_vertex_morphing_test
+from shape_optimization_test_factory import opt_process_vertex_morphing_small_test
 from shape_optimization_test_factory import opt_process_eigenfrequency_test
 from shape_optimization_test_factory import opt_process_weighted_eigenfrequency_test
 from shape_optimization_test_factory import algorithm_steepest_descent_test
 from shape_optimization_test_factory import algorithm_penalized_projection_test
 from shape_optimization_test_factory import algorithm_trust_region_test
 from shape_optimization_test_factory import trust_region_projector_test
+from shape_optimization_test_factory import algorithm_gradient_projection_test
 from shape_optimization_test_factory import algorithm_bead_optimization_test
 from shape_optimization_test_factory import opt_process_step_adaption_test
 from shape_optimization_test_factory import mapper_test
@@ -35,6 +37,7 @@ from shape_optimization_test_factory import in_plane_opt_test
 from shape_optimization_test_factory import packaging_mesh_based_test
 from shape_optimization_test_factory import packaging_plane_based_test
 from wrl_io_test.test_wrl_io import WrlIOTest
+from surface_normal_shape_change_response_test.test_surface_normal_shape_change_response import SurfaceNormalShapeChangeTest
 
 # Niglty tests
 
@@ -60,7 +63,10 @@ def AssembleTestSuites():
     # Adding small tests (tests that take < 1s)
     smallSuite = suites['small']
     smallSuite.addTest(mapper_test('test_execution'))
+    smallSuite.addTest(opt_process_vertex_morphing_small_test('test_execution'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([WrlIOTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SurfaceNormalShapeChangeTest]))
+    smallSuite.addTest(algorithm_gradient_projection_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']

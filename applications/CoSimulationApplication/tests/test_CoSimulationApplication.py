@@ -28,6 +28,9 @@ if numpy_available:
     from test_convergence_criteria import TestConvergenceCriteriaWrapper
     from test_convergence_accelerators import TestConvergenceAcceleratorWrapper
     from test_co_simulation_coupled_solver import TestCoupledSolverGetSolver
+    from test_co_simulation_coupled_solver import TestCoupledSolverModelAccess
+    from test_co_simulation_coupled_solver import TestCoupledSolverPassingModel
+    from test_co_simulation_coupled_solver import TestCoupledSolverCouplingInterfaceDataAccess
 
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
@@ -62,6 +65,9 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteriaWrapper]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverGetSolver]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverModelAccess]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverPassingModel]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverCouplingInterfaceDataAccess]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))

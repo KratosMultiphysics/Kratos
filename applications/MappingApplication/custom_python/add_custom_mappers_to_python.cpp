@@ -139,22 +139,24 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
     // Exposing the base class of the Mappers to Python, but without constructor
     const auto mapper
         = py::class_< MapperType, typename MapperType::Pointer >(m, rName.c_str())
-            .def("UpdateInterface",  UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
-            .def("UpdateInterface",  UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
-            .def("UpdateInterface",  UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
-            .def("UpdateInterface",  &MapperType::UpdateInterface) // with options & search-radius
+            .def("UpdateInterface",     UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
+            .def("UpdateInterface",     UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
+            .def("UpdateInterface",     UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
+            .def("UpdateInterface",     &MapperType::UpdateInterface) // with options & search-radius
 
-            .def("Map",              MapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("Map",              MapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
-            .def("Map",              MapWithOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("Map",              MapWithOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("Map",                 MapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("Map",                 MapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("Map",                 MapWithOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("Map",                 MapWithOptionsVector<TSparseSpace, TDenseSpace>)
 
-            .def("InverseMap",       InverseMapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",       InverseMapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",       InverseMapWithOptionsScalar<TSparseSpace, TDenseSpace>)
-            .def("InverseMap",       InverseMapWithOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",          InverseMapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",          InverseMapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",          InverseMapWithOptionsScalar<TSparseSpace, TDenseSpace>)
+            .def("InverseMap",          InverseMapWithOptionsVector<TSparseSpace, TDenseSpace>)
 
-            .def("__str__",          PrintObject<MapperType>)
+            .def("AreMeshesConforming", &MapperType::AreMeshesConforming)
+
+            .def("__str__",             PrintObject<MapperType>)
             ;
 
     // Adding the flags that can be used for mapping
