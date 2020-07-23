@@ -74,6 +74,12 @@ public:
     /// Destructor.
     ~RansNutKOmegaUpdateProcess() override = default;
 
+    /// Assignment operator.
+    RansNutKOmegaUpdateProcess& operator=(RansNutKOmegaUpdateProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansNutKOmegaUpdateProcess(RansNutKOmegaUpdateProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -108,16 +114,6 @@ private:
     double mMinValue;
     int mEchoLevel;
     bool mIsInitialized = false;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansNutKOmegaUpdateProcess& operator=(RansNutKOmegaUpdateProcess const& rOther);
-
-    /// Copy constructor.
-    RansNutKOmegaUpdateProcess(RansNutKOmegaUpdateProcess const& rOther);
 
     ///@}
 

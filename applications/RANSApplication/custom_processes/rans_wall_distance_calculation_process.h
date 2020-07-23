@@ -107,6 +107,12 @@ public:
     /// Destructor.
     ~RansWallDistanceCalculationBaseProcess() override = default;
 
+    /// Assignment operator.
+    RansWallDistanceCalculationBaseProcess& operator=(RansWallDistanceCalculationBaseProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansWallDistanceCalculationBaseProcess(RansWallDistanceCalculationBaseProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -323,16 +329,6 @@ private:
     }
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansWallDistanceCalculationBaseProcess& operator=(RansWallDistanceCalculationBaseProcess const& rOther);
-
-    /// Copy constructor.
-    RansWallDistanceCalculationBaseProcess(RansWallDistanceCalculationBaseProcess const& rOther);
-
-    ///@}
 
 }; // Class RansWallDistanceCalculationBaseProcess
 
@@ -369,6 +365,12 @@ public:
     /// Destructor.
     ~RansWallDistanceCalculationProcess() override = default;
 
+    /// Assignment operator.
+    RansWallDistanceCalculationProcess& operator=(RansWallDistanceCalculationProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansWallDistanceCalculationProcess(RansWallDistanceCalculationProcess const& rOther) = delete;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -384,16 +386,6 @@ private:
     void CreateLinearSolver() override;
 
     void CreateBuilderAndSolver() override;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansWallDistanceCalculationProcess& operator=(RansWallDistanceCalculationProcess const& rOther);
-
-    /// Copy constructor.
-    RansWallDistanceCalculationProcess(RansWallDistanceCalculationProcess const& rOther);
 
     ///@}
 };

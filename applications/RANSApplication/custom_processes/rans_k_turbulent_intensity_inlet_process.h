@@ -73,6 +73,12 @@ public:
     /// Destructor.
     ~RansKTurbulentIntensityInletProcess() override = default;
 
+    /// Assignment operator.
+    RansKTurbulentIntensityInletProcess& operator=(RansKTurbulentIntensityInletProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansKTurbulentIntensityInletProcess(RansKTurbulentIntensityInletProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -119,16 +125,6 @@ private:
     ///@{
 
     void CalculateTurbulentValues(NodeType& rNode);
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansKTurbulentIntensityInletProcess& operator=(RansKTurbulentIntensityInletProcess const& rOther);
-
-    /// Copy constructor.
-    RansKTurbulentIntensityInletProcess(RansKTurbulentIntensityInletProcess const& rOther);
 
     ///@}
 

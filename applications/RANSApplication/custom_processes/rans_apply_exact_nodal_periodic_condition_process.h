@@ -67,6 +67,12 @@ public:
     /// Destructor.
     ~RansApplyExactNodalPeriodicConditionProcess() override = default;
 
+    /// Assignment operator.
+    RansApplyExactNodalPeriodicConditionProcess& operator=(RansApplyExactNodalPeriodicConditionProcess const& rOther) = delete;
+
+    /// Copy constructor.
+    RansApplyExactNodalPeriodicConditionProcess(RansApplyExactNodalPeriodicConditionProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
@@ -127,17 +133,6 @@ private:
 
     void CalculateRotationMatrix(
         BoundedMatrix<double, 3, 3>& rOutput) const;
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    RansApplyExactNodalPeriodicConditionProcess& operator=(
-        RansApplyExactNodalPeriodicConditionProcess const& rOther);
-
-    /// Copy constructor.
-    RansApplyExactNodalPeriodicConditionProcess(RansApplyExactNodalPeriodicConditionProcess const& rOther);
 
     ///@}
 
