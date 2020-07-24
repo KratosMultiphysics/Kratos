@@ -93,23 +93,20 @@ catch(Exception& e) { Block throw Exception(e) << KRATOS_CODE_LOCATION << MoreIn
 catch(std::exception& e) { Block KRATOS_THROW_ERROR(std::runtime_error, e.what(), MoreInfo) } \
 catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 
-#ifdef KRATOS_DISABLE_TRYCATCH
-    #define KRATOS_CATCH_BLOCK_BEGIN
-    #define KRATOS_CATCH_BLOCK_END
+#ifdef KRATOS_DISABLE_CATCH
+    #define KRATOS_TRY { };
+    #define KRATOS_CATCH(MoreInfo) { };
 #else
-    #define KRATOS_CATCH_BLOCK_BEGIN class ExceptionBlock{public: void operator()(void){
-    #define KRATOS_CATCH_BLOCK_END }} exception_block; exception_block();
-#endif
+    #ifndef __SUNPRO_CC
+        #define KRATOS_TRY try {
 
-#ifndef __SUNPRO_CC
-#define KRATOS_TRY try {
+        #define KRATOS_CATCH(MoreInfo) \
+            KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
+    #else
+        #define KRATOS_TRY { };
 
-#define KRATOS_CATCH(MoreInfo) \
-  KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY { };
-
-#define KRATOS_CATCH(MoreInfo) { };
+        #define KRATOS_CATCH(MoreInfo) { };
+    #endif
 #endif
 
 //-----------------------------------------------------------------
