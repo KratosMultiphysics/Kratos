@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -48,6 +46,11 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
         # Logger
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactImplicitMechanicalSolver]:: ", "Construction finished")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        auxiliar_methods_solvers.AuxiliarValidateSettings(self)
 
     def AddVariables(self):
 

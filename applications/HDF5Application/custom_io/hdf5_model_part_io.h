@@ -109,7 +109,7 @@ private:
 
     std::vector<std::size_t> ReadContainerIds(std::string const& rPath) const;
 
-    void WriteSubModelParts(ModelPart const& rModelPart);
+    void WriteSubModelParts(ModelPart const& rModelPart, const std::string& GroupName);
 
     void ReadSubModelParts(ModelPart& rModelPart);
 

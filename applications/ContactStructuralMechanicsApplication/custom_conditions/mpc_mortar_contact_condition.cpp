@@ -75,11 +75,11 @@ MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::~MPCMortarContactCond
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::Initialize( )
+void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    BaseType::Initialize();
+    BaseType::Initialize(rCurrentProcessInfo);
 
     // We initailize the previous mortar operators
     if (this->Is(SLIP)) {
@@ -122,7 +122,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::Initialize( )
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -175,7 +175,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::InitializeSoluti
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -220,7 +220,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::InitializeNonLin
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -238,7 +238,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::FinalizeSolution
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -253,8 +253,8 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::FinalizeNonLinea
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -264,12 +264,12 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_slave_geometry = this->GetParentGeometry();
-    GeometryType& r_master_geometry = this->GetPairedGeometry();
+    const GeometryType& r_slave_geometry = this->GetParentGeometry();
+    const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        NodeType& r_master_node = r_master_geometry[i_master];
+        const NodeType& r_master_node = r_master_geometry[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -277,7 +277,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& r_slave_node = r_slave_geometry[ i_slave ];
+        const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -292,8 +292,8 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -303,12 +303,12 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetDofList(
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_slave_geometry = this->GetParentGeometry();
-    GeometryType& r_master_geometry = this->GetPairedGeometry();
+    const GeometryType& r_slave_geometry = this->GetParentGeometry();
+    const GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ){ // NOTE: Assuming same number of nodes for master and slave
-        NodeType& r_master_node = r_master_geometry[i_master];
+        const NodeType& r_master_node = r_master_geometry[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
@@ -316,7 +316,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetDofList(
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& r_slave_node = r_slave_geometry[ i_slave ];
+        const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
@@ -333,7 +333,7 @@ template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -350,12 +350,12 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateLocalSy
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Resizing as needed the LHS
     if ( rLeftHandSideMatrix.size1() != MatrixSize || rLeftHandSideMatrix.size2() != MatrixSize )
-            rLeftHandSideMatrix.resize( MatrixSize, MatrixSize, false );
+        rLeftHandSideMatrix.resize( MatrixSize, MatrixSize, false );
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix( MatrixSize, MatrixSize );
 }
@@ -366,7 +366,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateLeftHan
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Resizing as needed the RHS
@@ -414,7 +414,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateRightHa
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -430,7 +430,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateMassMat
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -444,7 +444,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateDamping
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -466,7 +466,7 @@ template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ConstraintDofDatabaseUpdate(
     Matrix& rRelationMatrix,
     Vector& rConstantVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     auto p_const = this->GetValue(CONSTRAINT_POINTER);
@@ -594,7 +594,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     MortarConditionMatrices& rMortarConditionMatrices,
     Matrix& rRelationMatrix,
     Vector& rConstantVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool DualLM
     )
 {
@@ -720,7 +720,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     MortarConditionMatrices& rMortarConditionMatrices,
     Matrix& rRelationMatrix,
     Vector& rConstantVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool DualLM
     )
 {
@@ -839,7 +839,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
     MortarConditionMatrices& rMortarConditionMatrices,
     Matrix& rRelationMatrix,
     Vector& rConstantVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool DualLM
     )
 {
@@ -941,49 +941,10 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo)
+void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ComputePreviousMortarOperators(const ProcessInfo& rCurrentProcessInfo)
 {
     const IndexType integration_order = this->GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? this->GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
     MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, false, TNumNodesMaster>::ComputePreviousMortarOperators(this, rCurrentProcessInfo, mPreviousMortarOperators, integration_order, false);
-}
-
-//******************************* GET DOUBLE VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET ARRAY_1D VALUE *******************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET VECTOR VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -1059,7 +1020,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateOnInteg
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-int MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
+int MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1067,7 +1028,7 @@ int MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::Check( const Proc
     int ierr = Condition::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    KRATOS_ERROR_IF(this->GetParentGeometry().NumberOfGeometryParts() == 0) << "YOU HAVE NOT INITIALIZED THE PAIR GEOMETRY IN THE MeshTyingMortarCondition" << std::endl;
+    KRATOS_ERROR_IF(this->GetParentGeometry().NumberOfGeometryParts() == 0) << "YOU HAVE NOT INITIALIZED THE PAIR GEOMETRY IN THE MPCMortarContactCondition" << std::endl;
 
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
@@ -1075,15 +1036,16 @@ int MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::Check( const Proc
     KRATOS_CHECK_VARIABLE_KEY(NORMAL)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( IndexType i = 0; i < TNumNodes; i++ ) {
-        Node<3> &rnode = this->GetParentGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
+    const GeometryType& r_current_slave = this->GetParentGeometry();
+    for ( IndexType i = 0; i < TNumNodes; ++i ) {
+        const auto& r_node = r_current_slave[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
     }
 
     return ierr;

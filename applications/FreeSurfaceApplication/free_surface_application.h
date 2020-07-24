@@ -53,7 +53,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosFreeSurfaceApplication : public KratosApplication {
+class KRATOS_API(FREE_SURFACE_APPLICATION) KratosFreeSurfaceApplication : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{

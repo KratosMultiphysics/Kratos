@@ -58,14 +58,14 @@ IsotropicShellElement::~IsotropicShellElement()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix lhs(18,18);
     CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
@@ -591,7 +591,7 @@ void IsotropicShellElement::CalculateBendingElasticityTensor( BoundedMatrix<doub
 void IsotropicShellElement::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     BoundedMatrix<double,18,18> mKloc_system;
     BoundedMatrix<double,3,3> mEm;
@@ -700,7 +700,7 @@ void IsotropicShellElement::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
@@ -722,7 +722,7 @@ void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, Proc
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
     ElementalDofList.reserve(18);
@@ -741,7 +741,7 @@ void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessI
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetValuesVector(Vector& values, int Step)
+void IsotropicShellElement::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -937,17 +937,6 @@ void IsotropicShellElement::NicePrint(const Matrix& A)
         std::cout << std::endl;
     }
 }
-
-
-//************************************************************************************
-//************************************************************************************
-void IsotropicShellElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
 
 
 //************************************************************************************
@@ -1942,7 +1931,7 @@ void IsotropicShellElement::SetupOrientationAngles()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::Initialize()
+void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //calculate local coordinates and rotation matrix
@@ -1969,7 +1958,7 @@ void IsotropicShellElement::Initialize()
 ////************************************************************************************
 ////************************************************************************************
 
-void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void IsotropicShellElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1979,7 +1968,7 @@ void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcess
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -2003,7 +1992,7 @@ void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProce
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -2044,7 +2033,7 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize)   values.resize(MatSize,false);
@@ -2061,7 +2050,7 @@ void IsotropicShellElement::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
+void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize) values.resize(MatSize,false);
@@ -2087,7 +2076,7 @@ void IsotropicShellElement::GetSecondDerivativesVector(Vector& values, int Step)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

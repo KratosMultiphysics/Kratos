@@ -20,16 +20,6 @@
 // Project includes
 #include "includes/kratos_application.h"
 
-// Element includes
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_epsilon.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
-#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
-
-// Condition includes
-#include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
-#include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_vms_monolithic_wall.h"
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -71,9 +61,7 @@ public:
     KratosRANSApplication();
 
     /// Destructor.
-    ~KratosRANSApplication() override
-    {
-    }
+    ~KratosRANSApplication() override = default;
 
     ///@}
     ///@name Operators
@@ -171,26 +159,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    /// k-epsilon turbulence model elements
-    const RansEvmKEpsilonLowReKElement<2, 3> mRansEvmKEpsilonLowReK2D;
-    const RansEvmKEpsilonLowReKElement<3, 4> mRansEvmKEpsilonLowReK3D;
-
-    const RansEvmKEpsilonLowReEpsilonElement<2, 3> mRansEvmKEpsilonLowReEpsilon2D;
-    const RansEvmKEpsilonLowReEpsilonElement<3, 4> mRansEvmKEpsilonLowReEpsilon3D;
-
-    const RansEvmKEpsilonKElement<2, 3> mRansEvmKEpsilonK2D;
-    const RansEvmKEpsilonKElement<3, 4> mRansEvmKEpsilonK3D;
-
-    const RansEvmKEpsilonEpsilon<2, 3> mRansEvmKEpsilonEpsilon2D;
-    const RansEvmKEpsilonEpsilon<3, 4> mRansEvmKEpsilonEpsilon3D;
-
-    /// k-epsilon turbulence model conditions
-    const RansEvmKEpsilonEpsilonWall<2> mRansEvmKEpsilonEpsilonWall2D2N;
-    const RansEvmKEpsilonEpsilonWall<3> mRansEvmKEpsilonEpsilonWall3D3N;
-
-    const RansEvmKEpsilonVmsMonolithicWall<2> mRansEvmKEpsilonVmsMonolithicWall2D2N;
-    const RansEvmKEpsilonVmsMonolithicWall<3> mRansEvmKEpsilonVmsMonolithicWall3D3N;
 
     ///@}
     ///@name Private Operators

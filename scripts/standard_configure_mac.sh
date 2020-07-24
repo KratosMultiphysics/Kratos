@@ -32,7 +32,7 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/Library/Frameworks/Python.framew
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -46,8 +46,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 /Applications/CMake.app/Contents/bin/cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -L/usr/local/opt/llvm/lib" \
  -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib" \
- -DLAPACK_LIBRARIES="/usr/lib/liblapack.dylib" \
- -DBLAS_LIBRARIES="/usr/lib/libblas.dylib" \
+ -DUSE_EIGEN_MKL=OFF
 
 # Buid
-/Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j3
+/Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)

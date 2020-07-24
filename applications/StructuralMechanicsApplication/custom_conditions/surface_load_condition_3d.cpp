@@ -105,22 +105,6 @@ SurfaceLoadCondition3D::~SurfaceLoadCondition3D()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SurfaceLoadCondition3D::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector< array_1d<double, 3 > >& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    this->CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SurfaceLoadCondition3D::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector< array_1d<double, 3 > >& rOutput,
@@ -246,7 +230,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         if (rRightHandSideVector.size() != mat_size) {
             rRightHandSideVector.resize(mat_size, false);
         }
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
     }
 
     // Reading integration points and local gradients

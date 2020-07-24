@@ -21,8 +21,16 @@
 #include "includes/model_part.h"
 #include "interface_communicator.h"
 
-namespace Kratos
+namespace Kratos {
+
+namespace {
+
+bool SearchNotSuccessful(const InterfaceCommunicator::MapperInterfaceInfoPointerType& rpInterfaceInfo)
 {
+    return !(rpInterfaceInfo->GetLocalSearchWasSuccessful());
+}
+
+}
 
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
@@ -48,10 +56,15 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     // radius was either computed or specified properly)
     // only if some points did not find a neighbor or dont have a valid
     // projection, more search iterations are necessary
+    mMeshesAreConforming = 1;
     ConductSearchIteration(rOptions, rpInterfaceInfo);
 
     while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm)) {
         mSearchRadius *= increase_factor;
+
+        // If all neighbours were not found in the first iteration, the meshes are not conforming
+        // for the initial given search radius.
+        mMeshesAreConforming = 0;
 
         KRATOS_WARNING_IF("Mapper", mEchoLevel >= 1 && rComm.MyPID() == 0)
             << "search radius was increased, another search iteration is conducted\n"
@@ -126,8 +139,7 @@ void InterfaceCommunicator::FilterInterfaceInfosSuccessfulSearch()
         auto new_end = std::remove_if(
             r_interface_infos_rank.begin(),
             r_interface_infos_rank.end(),
-            [](const auto& rp_interface_info)
-            { return !((*rp_interface_info).GetLocalSearchWasSuccessful()); });
+            SearchNotSuccessful); // cannot use lambda here bcs it is not supported by some older compilers
 
         r_interface_infos_rank.erase(new_end, r_interface_infos_rank.end());
     }

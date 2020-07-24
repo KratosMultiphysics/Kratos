@@ -9,32 +9,31 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
 )
 
-# generate variables with the sources
-set(KRATOS_IGA_APPLICATION_SOURCES
+# Define application core sources (pure C++ parts)
+file(GLOB_RECURSE KRATOS_IGA_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/iga_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_truss_element.cpp
-    # utilities
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp
-    # elements
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
-    # conditions
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_coupling_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-## generate variables with the testing sources
+# Define python interface sources
+file(GLOB_RECURSE KRATOS_IGA_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
+
+# Generate variables with the testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
   file(GLOB_RECURSE KRATOS_IGA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-# define library Kratos which defines the basic python interface
-pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES} ${KRATOS_IGA_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosIgaApplication PRIVATE KratosCore)
+add_library(KratosIgaCore SHARED ${KRATOS_IGA_APPLICATION_CORE} ${KRATOS_IGA_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosIgaCore PUBLIC KratosCore)
+set_target_properties(KratosIgaCore PROPERTIES COMPILE_DEFINITIONS "IGA_APPLICATION=EXPORT,API")
+
+# Define library Kratos which defines the basic python interface
+pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosIgaApplication PRIVATE KratosIgaCore)
 set_target_properties(KratosIgaApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
@@ -49,6 +48,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosIgaCore)
     cotire(KratosIgaApplication)
 endif(USE_COTIRE MATCHES ON)
 
@@ -72,4 +72,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosIgaApplication DESTINATION libs)
+install(TARGETS KratosIgaCore DESTINATION libs )
+install(TARGETS KratosIgaApplication DESTINATION libs )

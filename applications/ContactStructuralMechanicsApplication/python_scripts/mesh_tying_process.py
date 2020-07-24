@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -41,7 +40,6 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
-            "computing_model_part_name"   : "computing_domain",
             "mesh_tying_model_part"       : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "mesh_tying_property_ids"     : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
@@ -66,7 +64,8 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                     "higher_bounding_box_coefficient" : 1.0
                 }
             },
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "consider_tessellation"       : false
         }
         """)
 
@@ -78,13 +77,13 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         base_process_settings = KM.Parameters("""{}""")
         base_process_settings.AddValue("mesh_id", self.mesh_tying_settings["mesh_id"])
         base_process_settings.AddValue("model_part_name", self.mesh_tying_settings["model_part_name"])
-        base_process_settings.AddValue("computing_model_part_name", self.mesh_tying_settings["computing_model_part_name"])
         base_process_settings.AddValue("search_model_part", self.mesh_tying_settings["mesh_tying_model_part"])
         base_process_settings.AddValue("assume_master_slave", self.mesh_tying_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.mesh_tying_settings["mesh_tying_property_ids"])
         base_process_settings.AddValue("interval", self.mesh_tying_settings["interval"])
         base_process_settings.AddValue("zero_tolerance_factor", self.mesh_tying_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
+        base_process_settings.AddValue("consider_tessellation", self.mesh_tying_settings["consider_tessellation"])
         base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
 
         # Construct the base process.
@@ -95,9 +94,9 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self.variable_name = self.mesh_tying_settings["variable_name"].GetString()
         if KM.KratosGlobals.HasVariable(self.variable_name):
             var_type = KM.KratosGlobals.GetVariableType(self.variable_name)
-            if (var_type == "Array"):
+            if var_type == "Array":
                 self.type_variable = "Components"
-            elif (var_type == "Double"):
+            elif var_type == "Double":
                 self.type_variable = "Scalar"
             else:
                 raise Exception("Variable " + self.variable_name + " not compatible")
@@ -236,19 +235,19 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         if self.predefined_master_slave and self.dimension == 3:
             slave_defined = False
             master_defined = False
-            for elem in self.computing_model_part.Elements:
+            for elem in self.main_model_part.Elements:
                 nodes = elem.GetNodes()
                 for node in nodes:
-                    if (node.Is(KM.SLAVE)):
+                    if node.Is(KM.SLAVE):
                         number_nodes = len(elem.GetNodes())
                         slave_defined = True
-                    if (node.Is(KM.MASTER)):
+                    if node.Is(KM.MASTER):
                         number_nodes_master = len(elem.GetNodes())
                         master_defined = True
-                if (slave_defined and master_defined):
+                if slave_defined and master_defined:
                     break
         else:
-            number_nodes = len(self.computing_model_part.Elements[1].GetNodes())
+            number_nodes = len(self.main_model_part.Elements[1].GetNodes())
             number_nodes_master = number_nodes
 
         return number_nodes, number_nodes_master

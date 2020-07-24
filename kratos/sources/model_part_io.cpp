@@ -1558,7 +1558,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
 
     NodesContainerType& rThisNodes = rThisModelPart.Nodes();
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -1662,7 +1662,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
     VariablesList r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
     NodesContainerType& r_this_nodes = rThisModelPart.Nodes();
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -1689,7 +1689,8 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
         else if(KratosComponents<Variable<int>>::Has(variable_name))
         {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-            auto Variable = static_cast<Kratos::Variable<int> const& >(KratosComponents<Kratos::Variable<int> >::Get(variable_name));
+            const auto& Variable = KratosComponents<Kratos::Variable<int> >::Get(variable_name);
+            
             for(std::size_t j = 0; j < r_this_nodes.size(); j++)
             {
                 auto it_node = r_this_nodes.begin() + j;
@@ -1702,7 +1703,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
         else if(KratosComponents<Variable<double>>::Has(variable_name))
         {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-            auto Variable = static_cast<Kratos::Variable<double> const& >(KratosComponents<Kratos::Variable<double> >::Get(variable_name));
+            const auto& Variable = KratosComponents<Kratos::Variable<double> >::Get(variable_name);
             for(std::size_t j = 0; j < r_this_nodes.size(); j++)
             {
                 auto it_node = r_this_nodes.begin() + j;
@@ -1715,7 +1716,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
         else if(KratosComponents<array_1d_component_type>::Has(variable_name))
         {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-            auto Variable = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name));
+            const auto& Variable = KratosComponents<array_1d_component_type >::Get(variable_name);
             for(std::size_t j = 0; j < r_this_nodes.size(); j++)
             {
                 auto it_node = r_this_nodes.begin() + j;
@@ -1730,7 +1731,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
             if(KratosComponents<array_1d_component_type>::Has(variable_name + "_X")) // To check if it defined by components or as a vector
             {
                 (*mpStream) << "Begin NodalData\t" << variable_name << "_X" << std::endl;
-                auto VariableX = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_X"));
+                const auto& VariableX = KratosComponents<array_1d_component_type >::Get(variable_name+"_X");
                 for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                 {
                     auto it_node = r_this_nodes.begin() + j;
@@ -1741,7 +1742,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 
                 (*mpStream) << "Begin NodalData\t" << variable_name << "_Y" << std::endl;
-                auto VariableY = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_Y"));
+                const auto&  VariableY = KratosComponents<array_1d_component_type >::Get(variable_name+"_Y");
                 for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                 {
                     auto it_node = r_this_nodes.begin() + j;
@@ -1752,7 +1753,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 
                 (*mpStream) << "Begin NodalData\t" << variable_name << "_Z" << std::endl;
-                auto VariableZ = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_Z"));
+                const auto&  VariableZ = KratosComponents<array_1d_component_type >::Get(variable_name+"_Z");
                 for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                 {
                     auto it_node = r_this_nodes.begin() + j;
@@ -1804,7 +1805,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
 
 template<class TObjectsContainerType>
 void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName){
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
     std::unordered_set<std::string> variables;
 
     for(auto& object :rThisObjectContainer){
@@ -1847,7 +1848,7 @@ void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContain
 
 template<class TVariableType, class TObjectsContainerType>
 void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName){
-    const TVariableType variable = KratosComponents<TVariableType>::Get(rVariable->Name());
+    const TVariableType& variable = KratosComponents<TVariableType>::Get(rVariable->Name());
     (*mpStream) << "Begin "<<rObjectName<<"alData "<<variable.Name()<<std::endl;
     for(auto& object : rThisObjectContainer){
         if(object.Has(variable)){
@@ -1999,7 +2000,7 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -2115,7 +2116,7 @@ void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditi
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string variable_name;
 
@@ -3465,7 +3466,7 @@ void ModelPartIO::DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string word;
 
@@ -3653,7 +3654,7 @@ void ModelPartIO::DivideElementalDataBlock(OutputFilesContainerType& OutputFiles
 {
     KRATOS_TRY
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string word;
 
@@ -3778,7 +3779,7 @@ void ModelPartIO::DivideConditionalDataBlock(OutputFilesContainerType& OutputFil
     KRATOS_TRY
 
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef Variable<double> array_1d_component_type;
 
     std::string word, variable_name;
 
@@ -4490,6 +4491,20 @@ TValueType& ModelPartIO::ExtractValue(std::string rWord, TValueType & rValue)
     std::stringstream value(rWord);
 
     value >> rValue;
+
+    return rValue;
+}
+
+bool& ModelPartIO::ExtractValue(std::string rWord, bool & rValue)
+{
+
+    if (rWord == "1" || rWord == "true" || rWord == "True") {
+        rValue = true;
+    } else if (rWord == "0" || rWord == "false" || rWord == "False") {
+        rValue = false;
+    } else {
+        KRATOS_ERROR << "Boolean argument could not be determined: " << rWord << std::endl;
+    }
 
     return rValue;
 }

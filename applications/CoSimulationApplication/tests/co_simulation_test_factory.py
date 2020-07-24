@@ -14,9 +14,10 @@ try:
 except ImportError:
     numpy_available = False
 
-have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "ExternalSolversApplication")
-have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
-have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
+have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
+have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
+have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
+have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
 
 using_pykratos = UsingPyKratos()
 
@@ -156,6 +157,19 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_sdof", "cosim_sdof_fsi")
+            # self.__AddVtkOutputToCFD() # uncomment to get output
+            self._runTest()
+
+    def test_sdof_static_fsi(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
+        if not have_potential_fsi_dependencies:
+            self.skipTest("FSI dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_sdof_static", "project_cosim_naca0012_small_fsi")
             # self.__AddVtkOutputToCFD() # uncomment to get output
             self._runTest()
 

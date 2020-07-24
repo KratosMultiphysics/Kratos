@@ -1,0 +1,63 @@
+{
+    "properties": [{
+        "model_part_name": "PorousModelPart.Body_Part-auto-1",
+        "properties_id": 3,
+        "Material": {
+            "constitutive_law": {
+                "name": "LinearElasticSolid3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 1.0e6,
+                "POISSON_RATIO": 0.2,
+                "DENSITY_SOLID": 0.0,
+                "DENSITY_WATER": 1.0e3,
+                "POROSITY": 0.3,
+                "BULK_MODULUS_SOLID": 1.0e12,
+                "BULK_MODULUS_FLUID": 2.0e9,
+                "PERMEABILITY_XX": 4.5e-10,
+                "PERMEABILITY_YY": 4.5e-10,
+                "PERMEABILITY_ZZ": 4.5e-10,
+                "PERMEABILITY_XY": 0.0,
+                "PERMEABILITY_YZ": 0.0,
+                "PERMEABILITY_ZX": 0.0,
+                "DYNAMIC_VISCOSITY": 1.0e-3,
+                "THICKNESS": 1.0,
+                "DAMAGE_THRESHOLD": 1.0e-4,
+                "STRENGTH_RATIO": 10.0,
+                "FRACTURE_ENERGY": 100.0,
+                "RESIDUAL_STRENGTH": 0.8,
+                "SOFTENING_SLOPE": 9000.0
+            },
+            "Tables": {}
+        }
+    },{
+        "model_part_name": "PorousModelPart.Interface_Part-auto-1",
+        "properties_id": 4,
+        "Material": {
+            "constitutive_law": {
+                "name": "BilinearCohesive3DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 1.0e6,
+                "POISSON_RATIO": 0.2,
+                "DENSITY_SOLID": 0.0,
+                "DENSITY_WATER": 1.0e3,
+                "POROSITY": 0.3,
+                "BULK_MODULUS_SOLID": 1.0e12,
+                "BULK_MODULUS_FLUID": 2.0e9,
+                "TRANSVERSAL_PERMEABILITY": 1.0e-10,
+                "DYNAMIC_VISCOSITY": 1.0e-3,
+                "THICKNESS": 1.0,
+                "DAMAGE_THRESHOLD": 0.04,
+                "MINIMUM_JOINT_WIDTH": 1.0e-3,
+                "CRITICAL_DISPLACEMENT": 0.05,
+                "YIELD_STRESS": 3.5e6,
+                "FRICTION_COEFFICIENT": 0.4,
+                "FRACTURE_ENERGY": 100.0,
+                "SHEAR_FRACTURE_ENERGY": 100.0,
+                "STATE_VARIABLE": 1.0e-12
+            },
+            "Tables": {}
+        }
+    }]
+}

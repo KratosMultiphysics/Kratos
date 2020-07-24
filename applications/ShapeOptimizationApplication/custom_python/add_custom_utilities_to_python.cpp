@@ -90,6 +90,20 @@ inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable<
     return utils.ComputeMaxNormOfNodalVariable(variable);
 }
 
+inline void AssembleMatrixForVariableList(
+    OptimizationUtilities& utils,
+    Matrix& rMatrix,
+    pybind11::list& rVariables)
+{
+    std::size_t list_length = pybind11::len(rVariables);
+    std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
+    for (std::size_t i = 0; i < list_length; i++)
+    {
+        variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
+    }
+    return utils.AssembleMatrix(rMatrix, variables_vector);
+}
+
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -158,6 +172,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
         .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
         .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
+        .def("AssembleVector", &OptimizationUtilities::AssembleVector)
+        .def("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def("AssembleMatrix", &AssembleMatrixForVariableList)
+        .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
     // ========================================================================
@@ -167,7 +185,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
+        .def("ProjectNodalVariableOnDirection", &GeometryUtilities::ProjectNodalVariableOnDirection)
+        .def("ProjectNodalVariableOnTangentPlane", &GeometryUtilities::ProjectNodalVariableOnTangentPlane)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
+        .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
         ;
 
     // ========================================================================
@@ -176,10 +197,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
         .def(py::init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("RevertMeshUpdateAccordingInputVariable", &MeshControllerUtilities::RevertMeshUpdateAccordingInputVariable)
         .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
         .def("SetReferenceMeshToMesh", &MeshControllerUtilities::SetReferenceMeshToMesh)
         .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)
+        .def("WriteCoordinatesToVariable", &MeshControllerUtilities::WriteCoordinatesToVariable)
+        .def("SubtractCoordinatesFromVariable", &MeshControllerUtilities::SubtractCoordinatesFromVariable)
+        .def("AddFirstVariableToSecondVariable", &MeshControllerUtilities::AddFirstVariableToSecondVariable)
         ;
 
     // ========================================================================

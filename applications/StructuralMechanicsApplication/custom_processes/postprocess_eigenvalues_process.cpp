@@ -199,7 +199,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
                 const Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
 
                 KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
-                    << "Number of results on node #" << (nodes_begin+i)->Id() << " is wrong" << std::endl;
+                    << "Number of results on node #" << (nodes_begin+k)->Id() << " is wrong" << std::endl;
 
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
@@ -225,7 +225,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
         const std::string variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
 
         if( KratosComponents< Variable<double> >::Has( variable_name ) ) {
-            const Variable<double > variable = KratosComponents< Variable<double > >::Get(variable_name);
+            const Variable<double >& variable = KratosComponents< Variable<double > >::Get(variable_name);
 
             KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
@@ -233,7 +233,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 
             rRequestedDoubleResults.push_back(variable);
         } else if (KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) {
-            const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
+            const Variable<array_1d<double,3> >& variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
 
             KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
@@ -265,9 +265,12 @@ std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue
     } else if (lable_type == "frequency") {
         label += "_EigenFrequency_[Hz]_";
         label_number = std::sqrt(EigenvalueSolution) / (2 * Globals::Pi);
+    } else if(lable_type == "load_multiplier"){
+        label += "_LoadMultiplier_[-]_";
+        label_number = EigenvalueSolution;
     } else {
         KRATOS_ERROR << "The requested label_type \"" << lable_type << "\" is not available!\n"
-                        << "Available options are: \"angular_frequency\", \"frequency\"" << std::endl;
+                        << "Available options are: \"angular_frequency\", \"frequency\", \"load_multiplier\"" << std::endl;
     }
 
     // reset the stringstream

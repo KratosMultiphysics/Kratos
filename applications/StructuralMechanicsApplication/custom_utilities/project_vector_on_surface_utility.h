@@ -62,7 +62,7 @@ public:
     ///@name Operations
     ///@{
 
-    static void Execute(ModelPart& rModelPart, const Parameters ThisParameters);
+    static void Execute(ModelPart& rModelPart,Parameters ThisParameters);
 
     ///@}
 
@@ -76,21 +76,24 @@ private:
         const Parameters ThisParameters,
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
-        const int EchoLevel);
+        const int EchoLevel,
+        const bool rCheckLocalSpaceDimension);
 
     static void RadialProjection(
         ModelPart& rModelPart,
         const Parameters ThisParameters,
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
-        const int EchoLevel);
+        const int EchoLevel,
+        const bool rCheckLocalSpaceDimension);
 
     static void SphericalProjection(
         ModelPart& rModelPart,
         const Parameters ThisParameters,
         const Vector3& rGlobalDirection,
         const ArrayVariableType& rVariable,
-        const int EchoLevel);
+        const int EchoLevel,
+        const bool rCheckLocalSpaceDimension);
 
     ///@}
 

@@ -32,6 +32,7 @@
 #include "custom_advanced_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_3d.h"
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
+#include "custom_advanced_constitutive/wrinkling_linear_2d_law.h"
 
 // Plastic, damage laws and viscosities
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
@@ -92,6 +93,10 @@ namespace Python {
 void  AddCustomAdvancedConstitutiveLawsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    py::class_< WrinklingLinear2DLaw, typename WrinklingLinear2DLaw::Pointer, ConstitutiveLaw >
+    (m, "WrinklingLinear2DLaw").def(py::init<>() )
+    ;
 
     py::class_< TrussPlasticityConstitutiveLaw, typename TrussPlasticityConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TrussPlasticityConstitutiveLaw").def(py::init<>() )
@@ -1720,8 +1725,12 @@ void  AddCustomAdvancedConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw>
     (m,"SmallStrainOrthotropicDamageSimoJu2D").def(py::init<>());
 
-    py::class_< RuleOfMixturesLaw, typename RuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
-    (m,"RuleOfMixturesLaw").def(py::init<>())
+    py::class_< ParallelRuleOfMixturesLaw<3>, typename ParallelRuleOfMixturesLaw<3>::Pointer,  ConstitutiveLaw  >
+    (m,"ParallelRuleOfMixturesLaw3D").def(py::init<>())
+    ;
+
+    py::class_< ParallelRuleOfMixturesLaw<2>, typename ParallelRuleOfMixturesLaw<2>::Pointer,  ConstitutiveLaw  >
+    (m,"ParallelRuleOfMixturesLaw2D").def(py::init<>())
     ;
 
     py::class_< SerialParallelRuleOfMixturesLaw, typename SerialParallelRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >

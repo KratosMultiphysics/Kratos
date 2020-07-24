@@ -97,7 +97,7 @@ Begin Elements Element2D3N
   50  1  36 34 31
 End Elements
 
-Begin Conditions Condition2D2N
+Begin Conditions LineCondition2D2N
   1  0  2 1
   2  0  26 28
   3  0  5 2
@@ -110,7 +110,7 @@ Begin Conditions Condition2D2N
   10  0  35 36
 End Conditions
 
-Begin Conditions Condition2D2N
+Begin Conditions LineCondition2D2N
   11  0  1 3
   12  0  3 6
   13  0  6 11

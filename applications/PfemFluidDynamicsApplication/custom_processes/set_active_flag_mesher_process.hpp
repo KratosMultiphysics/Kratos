@@ -35,209 +35,283 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
+	///@name Kratos Globals
+	///@{
 
-///@}
-///@name Type Definitions
-///@{
-typedef ModelPart::NodesContainerType NodesContainerType;
-typedef ModelPart::ElementsContainerType ElementsContainerType;
-typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
-
-typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
-typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-   */
-class SetActiveFlagMesherProcess
-	: public SetActiveFlagProcess
-{
-public:
+	///@}
 	///@name Type Definitions
 	///@{
+	typedef ModelPart::NodesContainerType NodesContainerType;
+	typedef ModelPart::ElementsContainerType ElementsContainerType;
+	typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
 
-	/// Pointer definition of SetActiveFlagMesherProcess
-	KRATOS_CLASS_POINTER_DEFINITION(SetActiveFlagMesherProcess);
-
-	///@}
-	///@name Life Cycle
-	///@{
-
-	/// Default constructor.
-	SetActiveFlagMesherProcess(ModelPart &rModelPart,
-							   bool unactivePeakElements,
-							   bool unactiveSliverElements,
-							   int EchoLevel)
-		: SetActiveFlagProcess(rModelPart, unactivePeakElements, unactiveSliverElements, EchoLevel)
-	{
-	}
-
-	/// Destructor.
-	virtual ~SetActiveFlagMesherProcess()
-	{
-	}
-
-	void operator()()
-	{
-		Execute();
-	}
+	typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+	typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
 	///@}
-	///@name Operations
+	///@name  Enum's
 	///@{
 
-	void Execute() override{
+	///@}
+	///@name  Functions
+	///@{
 
-		KRATOS_TRY
-#pragma omp parallel
-		{
-			double tolerance = 0.0000000001;
-	const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-	const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-	const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+	///@}
+	///@name Kratos Classes
+	///@{
 
-	// const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
-	ModelPart::ElementIterator ElemBegin;
-	ModelPart::ElementIterator ElemEnd;
-	OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
-	double ModelPartVolume = 0;
-	if (mUnactiveSliverElements == true)
+	/// Short class definition.
+	/** Detail class definition.
+   */
+	class SetActiveFlagMesherProcess
+		: public SetActiveFlagProcess
 	{
-		MesherUtilities MesherUtils;
-		ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
-	}
-	for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-	{
-		bool sliverEliminationCriteria = false;
-		bool peakElementsEliminationCriteria = false;
-		bool wallElementsEliminationCriteria = false;
-		unsigned int numNodes = itElem->GetGeometry().size();
+	public:
+		///@name Type Definitions
+		///@{
 
-		// ELIMINATION CHECK FOR SLIVERS
-		if (mUnactiveSliverElements == true)
+		/// Pointer definition of SetActiveFlagMesherProcess
+		KRATOS_CLASS_POINTER_DEFINITION(SetActiveFlagMesherProcess);
+
+		///@}
+		///@name Life Cycle
+		///@{
+
+		/// Default constructor.
+		SetActiveFlagMesherProcess(ModelPart &rModelPart,
+								   bool unactivePeakElements,
+								   bool unactiveSliverElements,
+								   int EchoLevel)
+			: SetActiveFlagProcess(rModelPart, unactivePeakElements, unactiveSliverElements, EchoLevel)
 		{
-			double ElementalVolume = 0;
-			if (dimension == 2)
-			{
-				ElementalVolume = (itElem)->GetGeometry().Area();
-			}
-			else if (dimension == 3)
-			{
-				ElementalVolume = 0;
-				if (itElem->GetGeometry().Dimension() == 3)
-					ElementalVolume = (itElem)->GetGeometry().Volume();
-			}
-			else
-			{
-				ElementalVolume = 0;
-			}
-			double CriticalVolume = 0.01 * ModelPartVolume / double(mrModelPart.Elements().size());
-			// if(ElementalVolume<CriticalVolume && ElementalVolume>0){
-			if (ElementalVolume < CriticalVolume)
-			{
-				sliverEliminationCriteria = true;
-				std::cout << "RESET ACTIVE FOR THIS SLIVER! \t";
-				std::cout << "its volume is " << ElementalVolume << " vs CriticalVolume " << CriticalVolume << std::endl;
-			}
 		}
 
-		// ELIMINATION CHECK FOR PEAK ELEMENTS (those annoying elements created by pfem remeshing and placed bewteen the free-surface and the walls)
-		if (mUnactivePeakElements == true && sliverEliminationCriteria == false)
+		/// Destructor.
+		virtual ~SetActiveFlagMesherProcess()
 		{
-			double scalarProduct = 1.0;
-			bool doNotErase = false;
-			unsigned int elementRigidNodes = 0;
-			for (unsigned int i = 0; i < numNodes; i++)
+		}
+
+		void operator()()
+		{
+			Execute();
+		}
+
+		///@}
+		///@name Operations
+		///@{
+
+		void Execute() override{
+
+			KRATOS_TRY
+#pragma omp parallel
 			{
-				if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID))
+				double tolerance = 0.0000000001;
+		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+		const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+		const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+		unsigned int sliversDetectedFromVolume = 0;
+		unsigned int sliversDetectedFromShape = 0;
+		// const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
+		ModelPart::ElementIterator ElemBegin;
+		ModelPart::ElementIterator ElemEnd;
+		OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
+		double ModelPartVolume = 0;
+		if (mUnactiveSliverElements == true)
+		{
+			MesherUtilities MesherUtils;
+			ModelPartVolume = MesherUtils.ComputeModelPartVolume(mrModelPart);
+		}
+		for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+		{
+			bool sliverEliminationCriteria = false;
+			bool peakElementsEliminationCriteria = false;
+			bool wallElementsEliminationCriteria = false;
+			unsigned int numNodes = itElem->GetGeometry().size();
+
+			// ELIMINATION CHECK FOR SLIVERS
+			if (mUnactiveSliverElements == true && numNodes == (dimension + 1))
+			{
+				double ElementalVolume = 0;
+				if (dimension == 2)
 				{
-					elementRigidNodes++;
+					ElementalVolume = (itElem)->GetGeometry().Area();
 				}
-				if (itElem->GetGeometry()[i].IsNot(RIGID) && itElem->GetGeometry()[i].IsNot(FREE_SURFACE))
+				else if (dimension == 3)
 				{
-					peakElementsEliminationCriteria = false;
-					doNotErase = true;
-					// break;
+					ElementalVolume = 0;
+					if (itElem->GetGeometry().Dimension() == 3)
+						ElementalVolume = (itElem)->GetGeometry().Volume();
 				}
-				else if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE) && doNotErase == false)
+				else
 				{
-					peakElementsEliminationCriteria = true;
-					const array_1d<double, 3> &wallVelocity = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-					double normWallVelocity = norm_2(wallVelocity);
-					if (normWallVelocity == 0)
-					{ // up to now this is for fixed walls only
-						for (unsigned int j = 0; j < numNodes; j++)
+					ElementalVolume = 0;
+				}
+				double CriticalVolume = 0.005 * ModelPartVolume / double(mrModelPart.Elements().size());
+				// if(ElementalVolume<CriticalVolume && ElementalVolume>0){
+				if (fabs(ElementalVolume) < CriticalVolume)
+				{
+					sliverEliminationCriteria = true;
+					sliversDetectedFromVolume++;
+					// std::cout << "RESET ACTIVE FOR THIS SLIVER! \t";
+					// std::cout << "its volume is " << ElementalVolume << " vs CriticalVolume " << CriticalVolume <<"number of elements= "<<mrModelPart.Elements().size()<<std::endl;
+					// for (unsigned int i = 0; i < numNodes; i++)
+					// {
+					// 	itElem->GetGeometry()[i].Set(ACTIVE,true);
+					// }
+				}
+
+				if (sliverEliminationCriteria == false && dimension == 3)
+				{
+
+					array_1d<double, 3> nodeA = itElem->GetGeometry()[0].Coordinates();
+					array_1d<double, 3> nodeB = itElem->GetGeometry()[1].Coordinates();
+					array_1d<double, 3> nodeC = itElem->GetGeometry()[2].Coordinates();
+					array_1d<double, 3> nodeD = itElem->GetGeometry()[3].Coordinates();
+
+					double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+					double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+					double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+					a1 = (nodeB[1] - nodeA[1]) * (nodeC[2] - nodeA[2]) - (nodeC[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
+					b1 = (nodeB[2] - nodeA[2]) * (nodeC[0] - nodeA[0]) - (nodeC[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
+					c1 = (nodeB[0] - nodeA[0]) * (nodeC[1] - nodeA[1]) - (nodeC[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
+					double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+					double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+					double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+					a2 = (nodeB[1] - nodeA[1]) * (nodeD[2] - nodeA[2]) - (nodeD[1] - nodeA[1]) * (nodeB[2] - nodeA[2]);
+					b2 = (nodeB[2] - nodeA[2]) * (nodeD[0] - nodeA[0]) - (nodeD[2] - nodeA[2]) * (nodeB[0] - nodeA[0]);
+					c2 = (nodeB[0] - nodeA[0]) * (nodeD[1] - nodeA[1]) - (nodeD[0] - nodeA[0]) * (nodeB[1] - nodeA[1]);
+					double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+					double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+					double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+					a3 = (nodeB[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeB[2] - nodeC[2]);
+					b3 = (nodeB[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeB[0] - nodeC[0]);
+					c3 = (nodeB[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeB[1] - nodeC[1]);
+					double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+					double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+					double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+					a4 = (nodeA[1] - nodeC[1]) * (nodeD[2] - nodeC[2]) - (nodeD[1] - nodeC[1]) * (nodeA[2] - nodeC[2]);
+					b4 = (nodeA[2] - nodeC[2]) * (nodeD[0] - nodeC[0]) - (nodeD[2] - nodeC[2]) * (nodeA[0] - nodeC[0]);
+					c4 = (nodeA[0] - nodeC[0]) * (nodeD[1] - nodeC[1]) - (nodeD[0] - nodeC[0]) * (nodeA[1] - nodeC[1]);
+
+					double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+					double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+					double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
+					double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+					double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+					double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+
+					// if two faces are coplanar, I will erase the element (which is probably a sliver)
+					double limit = 0.99999;
+					if (fabs(cosAngle12) > limit || fabs(cosAngle13) > limit || fabs(cosAngle14) > limit || fabs(cosAngle23) > limit || fabs(cosAngle24) > limit || fabs(cosAngle34) > limit)
+					{
+						unsigned int fsNodes = 0;
+						for (unsigned int i = 0; i < numNodes; i++)
 						{
-
-							if (itElem->GetGeometry()[j].IsNot(RIGID) && itElem->GetGeometry()[j].Is(FREE_SURFACE))
+							if (itElem->GetGeometry()[i].Is(FREE_SURFACE))
 							{
-								Point freeSurfaceToRigidNodeVector = Point{itElem->GetGeometry()[i].Coordinates() - itElem->GetGeometry()[j].Coordinates()};
-								const array_1d<double, 3> &freeSurfaceVelocity = itElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+								fsNodes++;
+							}
+							NodeWeakPtrVectorType &rN = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_NODES);
+							unsigned int neighborNodes = rN.size();
+							if (neighborNodes == numNodes)
+							{
+								fsNodes = 4;
+								// std::cout << "ATTENTION WITH THIS, ONE NODE COULD BE ALONE IN THE LINEAR SYSTEM" << std::endl;
+							}
+						}
+						if (fsNodes < 3)
+						{
+							sliverEliminationCriteria = true;
+							sliversDetectedFromShape++;
+						}
+					}
+				}
+			}
 
-								double freeSurfaceToRigidNodeDistance = sqrt(freeSurfaceToRigidNodeVector[0] * freeSurfaceToRigidNodeVector[0] +
-																			 freeSurfaceToRigidNodeVector[1] * freeSurfaceToRigidNodeVector[1] +
-																			 freeSurfaceToRigidNodeVector[2] * freeSurfaceToRigidNodeVector[2]);
-								double displacementFreeSurface = timeInterval * (sqrt(freeSurfaceVelocity[0] * freeSurfaceVelocity[0] +
-																					  freeSurfaceVelocity[1] * freeSurfaceVelocity[1] +
-																					  freeSurfaceVelocity[2] * freeSurfaceVelocity[2]));
-								if (dimension == 2)
+			// ELIMINATION CHECK FOR PEAK ELEMENTS (those annoying elements created by pfem remeshing and placed bewteen the free-surface and the walls)
+			if (mUnactivePeakElements == true && sliverEliminationCriteria == false)
+			{
+				double scalarProduct = 1.0;
+				bool doNotErase = false;
+				unsigned int elementRigidNodes = 0;
+				for (unsigned int i = 0; i < numNodes; i++)
+				{
+					if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID))
+					{
+						elementRigidNodes++;
+					}
+					if (itElem->GetGeometry()[i].IsNot(RIGID) && itElem->GetGeometry()[i].IsNot(FREE_SURFACE))
+					{
+						peakElementsEliminationCriteria = false;
+						doNotErase = true;
+						// break;
+					}
+					else if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE) && doNotErase == false)
+					{
+						peakElementsEliminationCriteria = true;
+						const array_1d<double, 3> &wallVelocity = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+						double normWallVelocity = norm_2(wallVelocity);
+						if (normWallVelocity == 0)
+						{ // up to now this is for fixed walls only
+							for (unsigned int j = 0; j < numNodes; j++)
+							{
+
+								if (itElem->GetGeometry()[j].IsNot(RIGID) && itElem->GetGeometry()[j].Is(FREE_SURFACE))
 								{
-									scalarProduct = freeSurfaceToRigidNodeVector[0] * freeSurfaceVelocity[0] + freeSurfaceToRigidNodeVector[1] * freeSurfaceVelocity[1];
-								}
-								else if (dimension == 3)
-								{
-									scalarProduct = freeSurfaceToRigidNodeVector[0] * freeSurfaceVelocity[0] + freeSurfaceToRigidNodeVector[1] * freeSurfaceVelocity[1] + freeSurfaceToRigidNodeVector[2] * freeSurfaceVelocity[2];
-								}
-								if (scalarProduct > tolerance && displacementFreeSurface > (0.01 * freeSurfaceToRigidNodeDistance))
-								{
-									// if(scalarProduct>tolerance){
-									peakElementsEliminationCriteria = false;
-									doNotErase = true;
-									break;
-								}
-								else
-								{
-									// I will not unactive the element if the free-surface node is sorrounded by rigd nodes only
-									NodeWeakPtrVectorType &rN = itElem->GetGeometry()[j].GetValue(NEIGHBOUR_NODES);
-									unsigned int rigidNodes = 0;
-									unsigned int freeSurfaceNodes = 0;
-									for (unsigned int i = 0; i < rN.size(); i++)
-									{
-										if (rN[i].Is(RIGID) && rN[i].IsNot(SOLID))
-											rigidNodes += 1;
-										if (rN[i].Is(FREE_SURFACE) && rN[i].IsNot(RIGID))
-											freeSurfaceNodes += 1;
-									}
+									Point freeSurfaceToRigidNodeVector = Point{itElem->GetGeometry()[i].Coordinates() - itElem->GetGeometry()[j].Coordinates()};
+									const array_1d<double, 3> &freeSurfaceVelocity = itElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+
+									double freeSurfaceToRigidNodeDistance = sqrt(freeSurfaceToRigidNodeVector[0] * freeSurfaceToRigidNodeVector[0] +
+																				 freeSurfaceToRigidNodeVector[1] * freeSurfaceToRigidNodeVector[1] +
+																				 freeSurfaceToRigidNodeVector[2] * freeSurfaceToRigidNodeVector[2]);
+									double displacementFreeSurface = timeInterval * (sqrt(freeSurfaceVelocity[0] * freeSurfaceVelocity[0] +
+																						  freeSurfaceVelocity[1] * freeSurfaceVelocity[1] +
+																						  freeSurfaceVelocity[2] * freeSurfaceVelocity[2]));
 									if (dimension == 2)
 									{
-										if (rigidNodes == rN.size())
-										{
-											peakElementsEliminationCriteria = false;
-											doNotErase = true;
-											break;
-										}
+										scalarProduct = freeSurfaceToRigidNodeVector[0] * freeSurfaceVelocity[0] + freeSurfaceToRigidNodeVector[1] * freeSurfaceVelocity[1];
 									}
 									else if (dimension == 3)
 									{
-										if (rigidNodes == rN.size() || freeSurfaceNodes == 1 || (scalarProduct > tolerance && freeSurfaceNodes < 4))
+										scalarProduct = freeSurfaceToRigidNodeVector[0] * freeSurfaceVelocity[0] + freeSurfaceToRigidNodeVector[1] * freeSurfaceVelocity[1] + freeSurfaceToRigidNodeVector[2] * freeSurfaceVelocity[2];
+									}
+									if (scalarProduct > tolerance && displacementFreeSurface > (0.01 * freeSurfaceToRigidNodeDistance))
+									{
+										// if(scalarProduct>tolerance){
+										peakElementsEliminationCriteria = false;
+										doNotErase = true;
+										break;
+									}
+									else
+									{
+										// I will not unactive the element if the free-surface node is sorrounded by rigd nodes only
+										NodeWeakPtrVectorType &rN = itElem->GetGeometry()[j].GetValue(NEIGHBOUR_NODES);
+										unsigned int rigidNodes = 0;
+										unsigned int freeSurfaceNodes = 0;
+										for (unsigned int i = 0; i < rN.size(); i++)
 										{
-											peakElementsEliminationCriteria = false;
-											doNotErase = true;
-											break;
+											if (rN[i].Is(RIGID) && rN[i].IsNot(SOLID))
+												rigidNodes += 1;
+											if (rN[i].Is(FREE_SURFACE) && rN[i].IsNot(RIGID))
+												freeSurfaceNodes += 1;
+										}
+										if (dimension == 2)
+										{
+											if (rigidNodes == rN.size())
+											{
+												peakElementsEliminationCriteria = false;
+												doNotErase = true;
+												break;
+											}
+										}
+										else if (dimension == 3)
+										{
+											if (rigidNodes == rN.size() || freeSurfaceNodes == 1 || (scalarProduct > tolerance && freeSurfaceNodes < 4))
+											{
+												peakElementsEliminationCriteria = false;
+												doNotErase = true;
+												break;
+											}
 										}
 									}
 								}
@@ -245,47 +319,53 @@ public:
 						}
 					}
 				}
-			}
-			if (elementRigidNodes == numNodes)
-			{
-				wallElementsEliminationCriteria = true;
-				Geometry<Node<3>> wallElementNodes = itElem->GetGeometry();
-				this->SetPressureToIsolatedWallNodes(wallElementNodes);
-			}
-		}
-		// ELIMINATION CHECK FOR ELEMENTS FORMED BY WALL PARTICLES ONLY (this is included for computational efficiency purpose also in the previous peak element check)
-		else if (mUnactivePeakElements == false)
-		{
-			unsigned int elementRigidNodes = 0;
-			for (unsigned int i = 0; i < numNodes; i++)
-			{
-				if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID))
+				if (elementRigidNodes == numNodes)
 				{
-					elementRigidNodes++;
+					wallElementsEliminationCriteria = true;
+					Geometry<Node<3>> wallElementNodes = itElem->GetGeometry();
+					this->SetPressureToIsolatedWallNodes(wallElementNodes);
+				}
+			}
+			// ELIMINATION CHECK FOR ELEMENTS FORMED BY WALL PARTICLES ONLY (this is included for computational efficiency purpose also in the previous peak element check)
+			else if (mUnactivePeakElements == false)
+			{
+				unsigned int elementRigidNodes = 0;
+				for (unsigned int i = 0; i < numNodes; i++)
+				{
+					if (itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID))
+					{
+						elementRigidNodes++;
+					}
+				}
+
+				if (elementRigidNodes == numNodes)
+				{
+					wallElementsEliminationCriteria = true;
+					Geometry<Node<3>> wallElementNodes = itElem->GetGeometry();
+					this->SetPressureToIsolatedWallNodes(wallElementNodes);
 				}
 			}
 
-			if (elementRigidNodes == numNodes)
+			if (sliverEliminationCriteria == true || peakElementsEliminationCriteria == true || wallElementsEliminationCriteria == true)
 			{
-				wallElementsEliminationCriteria = true;
-				Geometry<Node<3>> wallElementNodes = itElem->GetGeometry();
-				this->SetPressureToIsolatedWallNodes(wallElementNodes);
+				(itElem)->Set(ACTIVE, false);
+			}
+			else
+			{
+				(itElem)->Set(ACTIVE, true);
 			}
 		}
-
-		if (sliverEliminationCriteria == true || peakElementsEliminationCriteria == true || wallElementsEliminationCriteria == true)
-		{
-			(itElem)->Set(ACTIVE, false);
-		}
-		else
-		{
-			(itElem)->Set(ACTIVE, true);
-		}
+		// if (sliversDetectedFromShape > 0)
+		// {
+		// 	std::cout << "I have set ACTIVE=false to " << sliversDetectedFromShape << " slivers due to shape." << std::endl;
+		// }
+		// if (sliversDetectedFromVolume > 0)
+		// {
+		// 	std::cout << "I have set ACTIVE=false to " << sliversDetectedFromVolume << " slivers due to volume." << std::endl;
+		// }
 	}
 
-}
-
-KRATOS_CATCH(" ")
+	KRATOS_CATCH(" ")
 }; // namespace Kratos
 
 ///@}

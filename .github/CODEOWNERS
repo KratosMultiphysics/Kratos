@@ -1,0 +1,12 @@
+# see https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+/*                    @KratosMultiphysics/technical-committee
+/kratos/              @KratosMultiphysics/technical-committee
+/.github/             @KratosMultiphysics/technical-committee
+/cmake_modules/       @KratosMultiphysics/technical-committee
+/external_libraries/  @KratosMultiphysics/technical-committee
+/scripts/             @KratosMultiphysics/technical-committee
+
+# Applications
+/applications/TrilinosApplication/              @KratosMultiphysics/technical-committee
+/applications/MetisApplication/                 @KratosMultiphysics/technical-committee

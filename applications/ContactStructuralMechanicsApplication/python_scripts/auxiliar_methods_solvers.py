@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
@@ -88,15 +86,6 @@ def  AuxiliarExplicitContactSettings():
     return contact_settings
 
 def  AuxiliarSetSettings(settings, contact_settings):
-    if not settings["clear_storage"].GetBool():
-        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
-        settings["clear_storage"].SetBool(True)
-    if not settings["reform_dofs_at_each_step"].GetBool():
-        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
-        settings["reform_dofs_at_each_step"].SetBool(True)
-    if not settings["use_computing_model_part"].GetBool():
-        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
-        settings["use_computing_model_part"].SetBool(True)
     mortar_type = contact_settings["mortar_type"].GetString()
     if "Frictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
@@ -110,15 +99,6 @@ def  AuxiliarMPCSetSettings(settings, contact_settings):
     if not settings["compute_reactions"].GetBool():
         KM.Logger.PrintInfo("Compute reactions", "Storage must be cleared each step. Switching to True")
         settings["compute_reactions"].SetBool(True)
-    if not settings["clear_storage"].GetBool():
-        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
-        settings["clear_storage"].SetBool(True)
-    if not settings["reform_dofs_at_each_step"].GetBool():
-        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
-        settings["reform_dofs_at_each_step"].SetBool(True)
-    if not settings["use_computing_model_part"].GetBool():
-        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
-        settings["use_computing_model_part"].SetBool(True)
 
     return settings
 
@@ -126,6 +106,17 @@ def  AuxiliarValidateSettings(solver):
     default_settings = solver.GetDefaultSettings()
     default_settings.RecursivelyAddMissingParameters(solver.settings)
     solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+
+    # Common settings
+    if not solver.settings["clear_storage"].GetBool():
+        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
+        solver.settings["clear_storage"].SetBool(True)
+    if not solver.settings["reform_dofs_at_each_step"].GetBool():
+        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+        solver.settings["reform_dofs_at_each_step"].SetBool(True)
+    if solver.settings["use_computing_model_part"].GetBool():
+        KM.Logger.PrintInfo("Using Computing-ModelPart. Switching to False")
+        solver.settings["use_computing_model_part"].SetBool(False)
 
 def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":
@@ -198,7 +189,15 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
                         delta_time = delta_time/float(inner_iterations)
                         KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
         return delta_time
+    elif settings["time_stepping"].Has("time_step_table"):
+        current_time = main_model_part.ProcessInfo[KM.TIME]
+        time_step_table = settings["time_stepping"]["time_step_table"].GetMatrix()
+        tb = KM.PiecewiseLinearTable()
+        for interval in range(time_step_table.Size1()):
+            tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+        return tb.GetValue(current_time)
     elif settings["time_stepping"].Has("time_step_intervals"):
+        KM.Logger.PrintWarning("::[Contact Mechanical Static Solver]:: ", "Legacy way to consider time stepping by intervals. Use time_step_table instead")
         current_time = main_model_part.ProcessInfo[KM.TIME]
         for key in settings["time_stepping"]["time_step_intervals"].keys():
             interval_settings = settings["time_stepping"]["time_step_intervals"][key]
@@ -208,9 +207,9 @@ def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, c
             if interval.IsInInterval(current_time):
                 return interval_settings["time_step"].GetDouble()
         # If we arrive here we raise an error because the intervals are not well defined
-        raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+        raise Exception("::[Contact Mechanical Static Solver]:: Time stepping not well defined!")
     else:
-        raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
+        raise Exception("::[Contact Mechanical Static Solver]:: Time stepping not defined!")
 
 def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
     # Create an auxiliary Kratos parameters object to store the convergence settings.

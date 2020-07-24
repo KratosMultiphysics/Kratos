@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -61,10 +60,10 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
-            "computing_model_part_name"     : "computing_domain",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "friction_coefficients"         : {"0": 0.0,"1": 0.0,"2": 0.0,"3": 0.0,"4": 0.0,"5": 0.0,"6": 0.0,"7": 0.0,"8": 0.0,"9": 0.0},
             "contact_type"                  : "Frictionless",
             "not_normal_update_frictional"  : false,
             "interval"                      : [0.0,"End"],
@@ -76,6 +75,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
+            "consider_tessellation"         : false,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
@@ -134,13 +134,13 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         base_process_settings = KM.Parameters("""{}""")
         base_process_settings.AddValue("mesh_id", self.contact_settings["mesh_id"])
         base_process_settings.AddValue("model_part_name", self.contact_settings["model_part_name"])
-        base_process_settings.AddValue("computing_model_part_name", self.contact_settings["computing_model_part_name"])
         base_process_settings.AddValue("search_model_part", self.contact_settings["contact_model_part"])
         base_process_settings.AddValue("assume_master_slave", self.contact_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.contact_settings["contact_property_ids"])
         base_process_settings.AddValue("interval", self.contact_settings["interval"])
         base_process_settings.AddValue("zero_tolerance_factor", self.contact_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.contact_settings["integration_order"])
+        base_process_settings.AddValue("consider_tessellation", self.contact_settings["consider_tessellation"])
         base_process_settings.AddValue("search_parameters", self.contact_settings["search_parameters"])
 
         # Construct the base process.
@@ -191,7 +191,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             if "PureSlip" in contact_type:
                 self.pure_slip = True
             else:
-                self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
+                auxiliar_total_friction_coefficient = 0.0
+                for key in self.settings["search_model_part"].keys():
+                    if self.settings["search_model_part"][key].size() > 0:
+                        auxiliar_total_friction_coefficient += self.contact_settings["friction_coefficients"][key].GetDouble()
+                if auxiliar_total_friction_coefficient < sys.float_info.epsilon:
+                    self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
+                else:
+                    self.pure_slip = False
 
         # We call to the base process
         super(ALMContactProcess, self).ExecuteInitialize()
@@ -240,14 +247,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             total_contact_force = 0
 
             # Computing total load applied (I will consider only surface loads for now)
-            for cond in self.computing_model_part.Conditions:
+            for cond in self.main_model_part.Conditions:
                 geom = cond.GetGeometry()
                 if cond.Has(SMA.LINE_LOAD):
                     total_load += geom.Length() * cond.GetValue(SMA.LINE_LOAD)
                 if cond.Has(SMA.SURFACE_LOAD):
                     total_load += geom.Area() * cond.GetValue(SMA.SURFACE_LOAD)
 
-            for node in self.computing_model_part.Nodes:
+            for node in self.main_model_part.Nodes:
                 if node.Has(KM.NODAL_AREA) and node.Has(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE):
                     total_contact_force += node.GetValue(KM.NODAL_AREA) * node.GetValue(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE)
 
@@ -272,8 +279,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             zero_vector[0] = 0.0
             zero_vector[1] = 0.0
             zero_vector[2] = 0.0
-            KM.VariableUtils().SetNonHistoricalVariable(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0, self.computing_model_part.Nodes, KM.ACTIVE, False)
-            KM.VariableUtils().SetNonHistoricalVariable(CSMA.AUGMENTED_TANGENT_CONTACT_PRESSURE, zero_vector, self.computing_model_part.Nodes, KM.ACTIVE, False)
+            KM.VariableUtils().SetNonHistoricalVariable(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0, self.main_model_part.Nodes, KM.ACTIVE, False)
+            KM.VariableUtils().SetNonHistoricalVariable(CSMA.AUGMENTED_TANGENT_CONTACT_PRESSURE, zero_vector, self.main_model_part.Nodes, KM.ACTIVE, False)
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -400,14 +407,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         super(ALMContactProcess, self)._initialize_search_values()
 
         # We set the CONTACT flag
-        self.computing_model_part.Set(KM.CONTACT, True)
+        self.main_model_part.Set(KM.CONTACT, True)
         self._get_process_model_part().Set(KM.CONTACT, True)
         # We consider frictional contact (We use the SLIP flag because was the easiest way)
         if self.is_frictional:
-            self.computing_model_part.Set(KM.SLIP, True)
+            self.main_model_part.Set(KM.SLIP, True)
             self._get_process_model_part().Set(KM.SLIP, True)
         else:
-            self.computing_model_part.Set(KM.SLIP, False)
+            self.main_model_part.Set(KM.SLIP, False)
             self._get_process_model_part().Set(KM.SLIP, False)
 
         # We call the process info
@@ -470,6 +477,22 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call to the base process
         super(ALMContactProcess, self)._initialize_search_conditions()
 
+        # Assign the friction friction_coefficients
+        if self.is_frictional:
+            for key in self.settings["search_model_part"].keys():
+                if self.settings["search_model_part"][key].size() > 0:
+                    sub_search_model_part_name = "ContactSub"+key
+                    if self._get_process_model_part().HasSubModelPart(sub_search_model_part_name):
+                        sub_search_model_part = self._get_process_model_part().GetSubModelPart(sub_search_model_part_name)
+                    else:
+                        sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
+                    for prop in sub_search_model_part.GetProperties():
+                        if not prop.Has(KM.FRICTION_COEFFICIENT):
+                            prop[KM.FRICTION_COEFFICIENT] = self.contact_settings["friction_coefficients"][key].GetDouble()
+                        else:
+                            KM.Logger.PrintWarning("FRICTION_COEFFICIENT: ", "{:.2e}".format(prop[KM.FRICTION_COEFFICIENT]), " already defined in Properties, please define it as a condition pair property")
+
+        # Initialize the ALM parameters
         alm_init_var = CSMA.ALMFastInit(self._get_process_model_part())
         alm_init_var.Execute()
 

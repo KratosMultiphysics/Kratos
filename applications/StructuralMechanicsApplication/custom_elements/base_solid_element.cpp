@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-void BaseSolidElement::Initialize()
+void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -302,8 +302,8 @@ Element::Pointer BaseSolidElement::Clone (
 
 void BaseSolidElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -338,8 +338,8 @@ void BaseSolidElement::EquationIdVector(
 
 void BaseSolidElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -370,7 +370,7 @@ void BaseSolidElement::GetDofList(
 void BaseSolidElement::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -394,7 +394,7 @@ void BaseSolidElement::GetValuesVector(
 void BaseSolidElement::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -415,7 +415,7 @@ void BaseSolidElement::GetFirstDerivativesVector(
 void BaseSolidElement::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -436,7 +436,7 @@ void BaseSolidElement::GetSecondDerivativesVector(
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double>& rDestinationVariable,
+    const Variable<double>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -469,7 +469,7 @@ void BaseSolidElement::AddExplicitContribution(
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1185,7 +1185,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<bool>& rVariable,
     std::vector<bool>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1203,7 +1203,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1221,7 +1221,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1239,7 +1239,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1257,7 +1257,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1274,7 +1274,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > > rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1292,7 +1292,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 6 > >& rVariable,
     std::vector<array_1d<double, 6 > > rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1310,7 +1310,7 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetValueOnIntegrationPoints(
+void BaseSolidElement::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1325,89 +1325,6 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<bool>& rVariable,
-    std::vector<bool>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<int>& rVariable,
-    std::vector<int>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 6>>& rVariable,
-    std::vector<array_1d<double, 6>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1432,7 +1349,7 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY;
 
@@ -1854,7 +1771,7 @@ void BaseSolidElement::save( Serializer& rSerializer ) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
-    rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
 }
 
 /***********************************************************************************/
@@ -1866,6 +1783,6 @@ void BaseSolidElement::load( Serializer& rSerializer )
     int IntMethod;
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
-    rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 }
 } // Namespace Kratos

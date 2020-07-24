@@ -1,12 +1,8 @@
-/*
 //  KRATOS  _____________
 //         /  _/ ____/   |
 //         / // / __/ /| |
 //       _/ // /_/ / ___ |
 //      /___/\____/_/  |_| Application
-//
-//  Main authors:   Thomas Oberbichler
-*/
 
 // System includes
 
@@ -20,6 +16,8 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
+    , mShell3pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaTrussElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
@@ -32,16 +30,25 @@ KratosIgaApplication::KratosIgaApplication()
 }
 
 void KratosIgaApplication::Register() {
-    KratosApplication::Register();
-    KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
+
+KRATOS_INFO("") << "    KRATOS  _____ _____\n"
+                << "           |_   _/ ____|   /\\\n"
+                << "             | || |  __   /  \\\n"
+                << "             | || | |_ | / /\\ \\\n"
+                << "            _| || |__| |/ ____ \\\n"
+                << "           |_____\\_____/_/    \\_\\\n"
+                << "Initializing KratosIgaApplication..." << std::endl;
 
     // ELEMENTS
+    KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
+
+    KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(NURBS_CONTROL_POINT_WEIGHT)

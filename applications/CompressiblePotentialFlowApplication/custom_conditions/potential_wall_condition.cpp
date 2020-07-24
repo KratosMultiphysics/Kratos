@@ -11,6 +11,7 @@
 //
 
 #include "potential_wall_condition.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -193,6 +194,16 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(Process
     std::vector<double> density;
     pElem->GetValueOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
     this->SetValue(DENSITY, density[0]);
+
+    // Get local mach number
+    std::vector<double> local_mach_number;
+    pElem->GetValueOnIntegrationPoints(MACH, local_mach_number, rCurrentProcessInfo);
+    this->SetValue(MACH, local_mach_number[0]);
+
+    // Get local speed of sound
+    std::vector<double> local_speed_of_sound;
+    pElem->GetValueOnIntegrationPoints(SOUND_VELOCITY, local_speed_of_sound, rCurrentProcessInfo);
+    this->SetValue(SOUND_VELOCITY, local_speed_of_sound[0]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -53,6 +53,7 @@ public:
 
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointer;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -69,17 +70,21 @@ public:
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+
+    static constexpr IndexType SURFACE_INDEX = -1;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor for untrimmed patch
-    BrepSurface( 
+    BrepSurface(
         typename NurbsSurfaceType::Pointer pSurface)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
     {
+        mIsTrimmed = false;
     }
 
     /// Constructor for trimmed patch
@@ -91,6 +96,21 @@ public:
         , mpNurbsSurface(pSurface)
         , mOuterLoopArray(BrepOuterLoopArray)
         , mInnerLoopArray(BrepInnerLoopArray)
+    {
+        mIsTrimmed = !(mOuterLoopArray.size() == 0 && mInnerLoopArray.size() == 0);
+    }
+
+    /// Constructor for trimmed patch including IsTrimmed
+    BrepSurface(
+        typename NurbsSurfaceType::Pointer pSurface,
+        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+        bool IsTrimmed)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mOuterLoopArray(BrepOuterLoopArray)
+        , mInnerLoopArray(BrepInnerLoopArray)
+        , mIsTrimmed(IsTrimmed)
     {
     }
 
@@ -105,6 +125,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
 
@@ -116,6 +137,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
 
@@ -143,6 +165,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
 
@@ -164,6 +187,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
 
@@ -177,17 +201,100 @@ public:
     }
 
     ///@}
+    ///@name Access to Geometry Parts
+    ///@{
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    * @param Index: trim_index or SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
+    {
+        const auto& const_this = *this;
+        return std::const_pointer_cast<GeometryType>(
+            const_this.pGetGeometryPart(Index));
+    }
+
+    /**
+    * @brief This function returns the pointer of the geometry
+    *        which is corresponding to the trim index.
+    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    * @param Index: trim_index or SURFACE_INDEX.
+    * @return pointer of geometry, corresponding to the index.
+    */
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return mpNurbsSurface;
+
+        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
+            {
+                if (mOuterLoopArray[i][j]->Id() == Index)
+                    return mOuterLoopArray[i][j];
+            }
+        }
+
+        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
+            {
+                if (mInnerLoopArray[i][j]->Id() == Index)
+                    return mInnerLoopArray[i][j];
+            }
+        }
+
+        KRATOS_ERROR << "Index " << Index << " not existing in BrepSurface: "
+            << this->Id() << std::endl;
+    }
+
+    /**
+    * @brief This function is used to check if this BrepSurface
+    *        has certain trim or surface object.
+    * @param Index of the geometry part.
+    * @return true if has trim or surface
+    */
+    bool HasGeometryPart(const IndexType Index) const override
+    {
+        if (Index == SURFACE_INDEX)
+            return true;
+
+        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
+            {
+                if (mOuterLoopArray[i][j]->Id() == Index)
+                    return true;
+            }
+        }
+
+        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
+        {
+            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
+            {
+                if (mInnerLoopArray[i][j]->Id() == Index)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
     /*
-    * @brief checks if the Brep Face has any boundary trim information
-    * @return true if face has no boundary trimming curves
+    * @brief checks if the BrepSurface has any boundary trim information.
+    * @return true if has no trimming.
     */
     bool IsTrimmed() const
     {
-        if (mOuterLoopArray.size() == 0 && mInnerLoopArray.size() == 0)
-            return false;
+        return mIsTrimmed;
     }
 
     ///@}
@@ -211,6 +318,44 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->CreateIntegrationPoints(
+            rIntegrationPoints);
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief creates a list of quadrature point geometries
+     *        from a list of integration points on the
+     *        nurbs surface of this geometry.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of provided integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives) override
+    {
+        mpNurbsSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives);
+    }
+
+    ///@}
     ///@name Shape Function
     ///@{
 
@@ -231,11 +376,6 @@ public:
 
         return rResult;
     }
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
 
     ///@}
     ///@name Information
@@ -280,6 +420,11 @@ private:
     BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
+    /** IsTrimmed is used to optimize processes as
+    *   e.g. creation of integration domain.
+    */
+    bool mIsTrimmed;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -292,6 +437,7 @@ private:
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("OuterLoopArray", mOuterLoopArray);
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
+        rSerializer.save("IsTrimmed", mIsTrimmed);
     }
 
     void load( Serializer& rSerializer ) override
@@ -300,6 +446,7 @@ private:
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("OuterLoopArray", mOuterLoopArray);
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
+        rSerializer.load("IsTrimmed", mIsTrimmed);
     }
 
     BrepSurface()

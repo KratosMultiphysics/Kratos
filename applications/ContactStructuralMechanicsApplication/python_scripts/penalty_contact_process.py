@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -43,10 +42,10 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
-            "computing_model_part_name"     : "computing_domain",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "friction_coefficients"         : {"0": 0.0,"1": 0.0,"2": 0.0,"3": 0.0,"4": 0.0,"5": 0.0,"6": 0.0,"7": 0.0,"8": 0.0,"9": 0.0},
             "contact_type"                  : "Frictionless",
             "not_normal_update_frictional"  : false,
             "interval"                      : [0.0,"End"],
@@ -58,6 +57,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
+            "consider_tessellation"          : false,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
@@ -231,7 +231,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
 
         if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
             # We compute NODAL_H that can be used in the search and some values computation
-            self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
+            self.find_nodal_h = KM.FindNodalHProcess(self.main_model_part)
             self.find_nodal_h.Execute()
 
             # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)

@@ -59,9 +59,9 @@ VALUE: 0.1
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Move_Mesh#CB#(true,false)
 VALUE: false
-QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
-VALUE: SuperLUSolver
-HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
+QUESTION: Solver_Type#CB#(skyline_lu_factorization,SuperLUSolver,BICGSTABSolver,amgcl,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
+VALUE: amgcl
+HELP: OpenMP solvers: skyline_lu_factorization (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
 QUESTION: Verbosity
 VALUE: 0
 
@@ -141,7 +141,7 @@ VALUE: 0.0
 QUESTION: GravityY
 VALUE: 0.0
 QUESTION: GravityZ
-VALUE: 0.0
+VALUE: -9.81
 QUESTION: MaxTimeStep
 VALUE: 5e-5
 

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -31,6 +30,12 @@ class TestAxisProjection(KratosUnittest.TestCase):
 
     def test_PlanarProjection_Shell(self):
         self.execute_test_planar_projection("ShellThinElementCorotational3D4N")
+
+    def test_RadialProjection_Membrane(self):
+        self.execute_test_radial_projection("MembraneElement3D4N")
+
+    def test_PlanarProjection_Membrane(self):
+        self.execute_test_planar_projection("MembraneElement3D4N")
 
     def execute_test_radial_projection(self, element_name):
         current_model = KratosMultiphysics.Model()

@@ -47,7 +47,7 @@ void GenericConvergenceCriteria<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVecto
 
     // Set a partition for OpenMP
     PartitionVector DofPartition;
-    int NumThreads = OpenMPUtils::GetNumThreads();
+    const int NumThreads = OpenMPUtils::GetNumThreads();
     OpenMPUtils::DivideInPartitions(NumDofs, NumThreads, DofPartition);
 
     const Communicator& r_communicator = rModelPart.GetCommunicator();
@@ -56,7 +56,7 @@ void GenericConvergenceCriteria<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVecto
     // Loop over Dofs
 #pragma omp parallel reduction(+ : solution_norm, increase_norm, dof_num)
     {
-        int k = OpenMPUtils::ThisThread();
+        const int k = OpenMPUtils::ThisThread();
         typename DofsArrayType::iterator DofBegin = rDofSet.begin() + DofPartition[k];
         typename DofsArrayType::iterator DofEnd = rDofSet.begin() + DofPartition[k + 1];
 

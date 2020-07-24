@@ -12,6 +12,10 @@ from KratosMultiphysics.HDF5Application.xdmf_utils import TryOpenH5File
 from KratosMultiphysics.HDF5Application.xdmf_utils import CreateXdmfSpatialGrid
 from KratosMultiphysics.HDF5Application.xdmf_utils import XdmfNodalResults
 from KratosMultiphysics.HDF5Application.xdmf_utils import XdmfElementResults
+from KratosMultiphysics.HDF5Application.xdmf_utils import XdmfConditionResults
+from KratosMultiphysics.HDF5Application.xdmf_utils import XdmfNodalFlags
+from KratosMultiphysics.HDF5Application.xdmf_utils import XdmfElementFlags
+from KratosMultiphysics.HDF5Application.xdmf_utils import XdmfConditionFlags
 from KratosMultiphysics.HDF5Application.xdmf_utils import XdmfResults
 from KratosMultiphysics.HDF5Application.xdmf_utils import TimeLabel
 from KratosMultiphysics.HDF5Application.xdmf_utils import FindMatchingFiles
@@ -57,7 +61,7 @@ class TestCreateXdmfSpatialGrid(KratosUnittest.TestCase):
             elem2d4n.attrs["NumberOfNodes"] = 4
             elem2d4n.create_dataset("Connectivities", (10, 4), "int32")
             sgrid = CreateXdmfSpatialGrid(f["/ModelPart"])
-        self.assertEqual(sgrid.grids[0].name, "Element2D4N")
+        self.assertEqual(sgrid.grids[0].name, "RootModelPart.Elements.Element2D4N")
         self.assertEqual(sgrid.grids[0].geometry.coords.file_name, "kratos.h5")
         self.assertEqual(
             sgrid.grids[0].geometry.coords.name, "/ModelPart/Nodes/Local/Coordinates")
@@ -97,6 +101,18 @@ class TestXdmfNodalResults(KratosUnittest.TestCase):
         self.assertEqual(results[0].attribute_type, "Scalar")
 
     @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfNodalFlags(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_dataset(
+                "/Results/NodalFlagValues/SLIP", (15,), "int32")
+            results = XdmfNodalFlags(f["/Results"])
+        self.assertEqual(results[0].name, "SLIP")
+        self.assertEqual(results[0].data.file_name, "kratos.h5")
+        self.assertEqual(results[0].data.name, "/Results/NodalFlagValues/SLIP")
+        self.assertEqual(results[0].data.dtype, "int32")
+        self.assertEqual(results[0].attribute_type, "Scalar")
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_XdmfNodalResults_RepeatedVariableException(self):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_dataset(
@@ -110,6 +126,13 @@ class TestXdmfNodalResults(KratosUnittest.TestCase):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_group("/Results/NodalSolutionStepData")
             results = XdmfNodalResults(f["/Results"])
+            self.assertEqual(len(results), 0)
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfNodalFlags_NoFlagsFound(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_group("/Results")
+            results = XdmfNodalFlags(f["/Results"])
             self.assertEqual(len(results), 0)
 
 
@@ -128,10 +151,70 @@ class TestXdmfElementResults(KratosUnittest.TestCase):
         self.assertEqual(results[0].attribute_type, "Scalar")
 
     @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfElementFlags(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_dataset(
+                "/Results/ElementFlagValues/SLIP", (15,), "int32")
+            results = XdmfElementFlags(f["/Results"])
+        self.assertEqual(results[0].name, "SLIP")
+        self.assertEqual(results[0].data.file_name, "kratos.h5")
+        self.assertEqual(results[0].data.name, "/Results/ElementFlagValues/SLIP")
+        self.assertEqual(results[0].data.dtype, "int32")
+        self.assertEqual(results[0].attribute_type, "Scalar")
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_XdmfElementResults_NoResultsFound(self):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_group("/Results")
             results = XdmfElementResults(f["/Results"])
+            self.assertEqual(len(results), 0)
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfElementFlags_NoFlagsFound(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_group("/Results")
+            results = XdmfElementFlags(f["/Results"])
+            self.assertEqual(len(results), 0)
+
+
+class TestXdmfConditionResults(KratosUnittest.TestCase):
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfConditionResults(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_dataset(
+                "/Results/ConditionDataValues/DENSITY", (15,), "float64")
+            results = XdmfConditionResults(f["/Results"])
+        self.assertEqual(results[0].name, "DENSITY")
+        self.assertEqual(results[0].data.file_name, "kratos.h5")
+        self.assertEqual(results[0].data.name, "/Results/ConditionDataValues/DENSITY")
+        self.assertEqual(results[0].data.dtype, "float64")
+        self.assertEqual(results[0].attribute_type, "Scalar")
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfConditionFlags(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_dataset(
+                "/Results/ConditionFlagValues/SLIP", (15,), "int32")
+            results = XdmfConditionFlags(f["/Results"])
+        self.assertEqual(results[0].name, "SLIP")
+        self.assertEqual(results[0].data.file_name, "kratos.h5")
+        self.assertEqual(results[0].data.name, "/Results/ConditionFlagValues/SLIP")
+        self.assertEqual(results[0].data.dtype, "int32")
+        self.assertEqual(results[0].attribute_type, "Scalar")
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfConditionResults_NoResultsFound(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_group("/Results")
+            results = XdmfConditionResults(f["/Results"])
+            self.assertEqual(len(results), 0)
+
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
+    def test_XdmfConditionFlags_NoFlagsFound(self):
+        with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
+            f.create_group("/Results")
+            results = XdmfConditionFlags(f["/Results"])
             self.assertEqual(len(results), 0)
 
 
@@ -153,6 +236,10 @@ class TestTimeLabel(KratosUnittest.TestCase):
         self.assertEqual(TimeLabel("kratos-1.2.h5"), "1.2")
         self.assertEqual(TimeLabel("kratos-1.2e+00.h5"), "1.2e+00")
         self.assertEqual(TimeLabel("kratos-1.2E+00.h5"), "1.2E+00")
+        self.assertEqual(TimeLabel("kratos-1.2E-01.h5"), "1.2E-01")
+        self.assertEqual(TimeLabel("kratos-kratos-1.2E-01.h5"), "1.2E-01")
+        self.assertEqual(TimeLabel("kratos1-kratos-1.2E-01.h5"), "1.2E-01")
+        self.assertEqual(TimeLabel("kratos1-kratos-1.2E+01.h5"), "1.2E+01")
 
 
 class TestFindMatchingFiles(KratosUnittest.TestCase):
@@ -198,13 +285,13 @@ class TestCreateXdmfTemporalGridFromMultifile(KratosUnittest.TestCase):
         sgrid0 = tgrid.grids[0]
         ugrid0 = sgrid0.grids[0]
         self.assertEqual(time0.time, "0.0")
-        self.assertEqual(ugrid0.name, "Element2D4N")
+        self.assertEqual(ugrid0.name, "RootModelPart.Elements.Element2D4N")
         self.assertEqual(len(ugrid0.attributes), 0)
         time1 = tgrid.times[1]
         sgrid1 = tgrid.grids[1]
         ugrid1 = sgrid1.grids[0]
         self.assertEqual(time1.time, "1.0")
-        self.assertEqual(ugrid1.name, "Element2D4N")
+        self.assertEqual(ugrid1.name, "RootModelPart.Elements.Element2D4N")
         self.assertEqual(len(ugrid1.attributes), 1)
         result1 = ugrid1.attributes[0]
         self.assertEqual(result1.name, "VELOCITY")
@@ -226,10 +313,10 @@ class TestCreateXdmfTemporalGridFromMultifile(KratosUnittest.TestCase):
         self.assertEqual(len(tgrid.grids), 2)
         sgrid0 = tgrid.grids[0]
         ugrid0 = sgrid0.grids[0]
-        self.assertEqual(ugrid0.name, "Element2D4N")
+        self.assertEqual(ugrid0.name, "RootModelPart.Elements.Element2D4N")
         sgrid1 = tgrid.grids[1]
         ugrid1 = sgrid1.grids[0]
-        self.assertEqual(ugrid1.name, "Element3D3N")
+        self.assertEqual(ugrid1.name, "RootModelPart.Elements.Element3D3N")
 
     @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_CreateXdmfTemporalGridFromMultifile_XdmfNotFound(self):

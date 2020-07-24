@@ -314,6 +314,27 @@ public:
     }
 
     /**
+     * @brief This method removes the model parts with computing conditions
+     * @details So for example we can remove potential errors in remeshing processes
+     * @param rModelPart The modelpart to clean up
+     */
+    static inline void CleanContactModelParts(ModelPart& rModelPart)
+    {
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
+        const auto it_cond_begin = r_conditions_array.begin();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            const auto& r_geometry = it_cond->GetGeometry();
+            if (r_geometry.NumberOfGeometryParts() > 0) {
+                it_cond->Set(TO_ERASE);
+            }
+        }
+        rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    }
+
+    /**
      * @brief It computes the explicit contributions of the conditions
      * @param rModelPart The modelpart to update
      */
@@ -322,7 +343,7 @@ public:
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
         KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
         const auto it_cond_begin = r_conditions_array.begin();
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
@@ -344,9 +365,9 @@ public:
         #pragma omp parallel for firstprivate(is_active)
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
-            GeometryType& r_geometry = it_cond->GetGeometry();
+            const GeometryType& r_geometry = it_cond->GetGeometry();
             if (r_geometry.NumberOfGeometryParts() > 0) {
-                GeometryType& r_parent_geometry = r_geometry.GetGeometryPart(0);
+                const GeometryType& r_parent_geometry = r_geometry.GetGeometryPart(0);
                 is_active = false;
                 for ( IndexType i_node = 0; i_node < r_parent_geometry.size(); ++i_node ) {
                     if (r_parent_geometry[i_node].Is(ACTIVE)) {

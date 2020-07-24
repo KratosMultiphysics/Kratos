@@ -30,6 +30,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
@@ -134,10 +136,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "    \"loads_process_list\": \[\{"
         # Force
         set Groups [GiD_Info conditions Force groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups POINT_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FORCE_LOAD $TableDict $NumGroups
         # Face_Load
         set Groups [GiD_Info conditions Face_Load groups]
-        WriteLoadVectorProcess FileVar iGroup $Groups LINE_LOAD $TableDict $NumGroups
+        WriteLoadVectorProcess FileVar iGroup $Groups FORCE_LOAD $TableDict $NumGroups
 
         # Normal_Load
         set Groups [GiD_Info conditions Normal_Load groups]

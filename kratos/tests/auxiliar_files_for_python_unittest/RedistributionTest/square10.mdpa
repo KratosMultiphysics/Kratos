@@ -133,7 +133,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Conditions Condition3D // GUI group identifier: Parts Auto1
+Begin Conditions SurfaceCondition3D3N // GUI group identifier: Parts Auto1
          1          1         91         75         87
          2          1         75         73         87
          3          1         93         79         91

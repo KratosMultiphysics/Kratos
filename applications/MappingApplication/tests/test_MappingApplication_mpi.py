@@ -1,6 +1,8 @@
 # import Kratos
 import KratosMultiphysics
-from KratosMultiphysics.mpi import mpi # make sure mpi is imported, independent of "--using-mpi"
+if not KratosMultiphysics.IsDistributedRun():
+    raise Exception("These tests can only be executed in MPI / distributed!")
+
 import KratosMultiphysics.MappingApplication
 
 # Import Kratos "wrapper" for unittests

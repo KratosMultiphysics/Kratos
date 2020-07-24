@@ -91,7 +91,7 @@ void RV_SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResu
     if(rResult.size() != element_size)
         rResult.resize(element_size,false);                         // False says not to preserve existing storage!!
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
 
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)
@@ -110,7 +110,7 @@ void RV_SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList
     if(rElementalDofList.size() != element_size)
         rElementalDofList.resize(element_size);
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
 
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)
@@ -219,7 +219,7 @@ void RV_SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.porosity = 0.0;
     rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     for (size_t i = 0; i < TNumNodes; i++)
     {
         rVariables.manning2 += rGeom[i].FastGetSolutionStepValue(EQUIVALENT_MANNING);
@@ -256,7 +256,7 @@ void RV_SWE<TNumNodes, TFramework>::CalculateGeometry(BoundedMatrix<double, TNum
 template< size_t TNumNodes, ElementFramework TFramework >
 void RV_SWE<TNumNodes, TFramework>::GetNodalValues(ElementVariables& rVariables)
 {
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     size_t counter = 0;
     for (size_t i = 0; i < TNumNodes; i++)
     {

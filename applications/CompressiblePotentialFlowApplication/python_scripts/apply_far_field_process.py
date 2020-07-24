@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
@@ -27,7 +28,12 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "speed_of_sound": 340,
                 "heat_capacity_ratio": 1.4,
                 "inlet_potential": 1.0,
-                "initialize_flow_field": true
+                "mach_number_limit": 0.94,
+                "mach_number_squared_limit": 3.0,
+                "critical_mach": 0.99,
+                "upwind_factor_constant": 1.0,
+                "initialize_flow_field": true,
+                "perturbation_field": false
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)
 
@@ -41,7 +47,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.free_stream_speed_of_sound = settings["speed_of_sound"].GetDouble()
         self.heat_capacity_ratio = settings["heat_capacity_ratio"].GetDouble()
         self.inlet_potential_0 = settings["inlet_potential"].GetDouble()
+        self.mach_number_limit = settings["mach_number_limit"].GetDouble()
+        self.mach_number_squared_limit = settings["mach_number_squared_limit"].GetDouble()
+        self.critical_mach = settings["critical_mach"].GetDouble()
+        self.upwind_factor_constant = settings["upwind_factor_constant"].GetDouble()
         self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
+        self.perturbation_field = settings["perturbation_field"].GetBool()
+        if(self.perturbation_field):
+            self.initialize_flow_field = False
 
         # Computing free stream velocity
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
@@ -54,10 +67,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_DENSITY,self.density_inf)
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
+        self.fluid_model_part.ProcessInfo.SetValue(KratosCFD.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_SQUARED_LIMIT,self.mach_number_squared_limit)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.CRITICAL_MACH,self.critical_mach)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.UPWIND_FACTOR_CONSTANT,self.upwind_factor_constant)
 
     def ExecuteInitializeSolutionStep(self):
-        far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field)
+        far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field, self.perturbation_field)
         far_field_process.Execute()
 
         # self.Execute()
@@ -107,7 +124,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def _AssignDirichletFarFieldBoundaryCondition(self, reference_inlet_node, cond):
         for node in cond.GetNodes():
             # Computing the value of the potential at the inlet
-            inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
+            if(self.perturbation_field):
+                inlet_potential = 0.0
+            else:
+                inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
 
             # Fixing the potential at the inlet nodes
             node.Fix(CPFApp.VELOCITY_POTENTIAL)

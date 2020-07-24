@@ -119,7 +119,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./Structure_drag.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._removeH5Files("MainModelPart")
@@ -141,7 +141,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'NoSlip2D_Cylinder_drag.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'MainModelPart.NoSlip2D_Cylinder_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
             self._removeH5Files("MainModelPart")
@@ -163,7 +163,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/steady_cylinder_test',[1.0,0.0,0.0],'NoSlip2D_Cylinder_drag.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/steady_cylinder_test',[1.0,0.0,0.0],'MainModelPart.NoSlip2D_Cylinder_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
             self._removeH5Files("MainModelPart")
