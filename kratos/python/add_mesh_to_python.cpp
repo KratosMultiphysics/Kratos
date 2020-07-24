@@ -611,7 +611,7 @@ void  AddMeshToPython(pybind11::module& m)
     ;
 
     py::class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
-    .def_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
+    .def_property("Nodes", [](MeshType& self){return self.pNodes();}, &MeshType::SetNodes)
     .def("NodesArray", &MeshType::NodesArray, py::return_value_policy::reference_internal)
     .def("NumberOfNodes", &MeshType::NumberOfNodes)
 
