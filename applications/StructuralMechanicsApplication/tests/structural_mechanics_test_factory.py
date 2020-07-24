@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import IsDistributedRun
@@ -23,7 +21,7 @@ def SelectAndVerifyLinearSolver(settings, skiptest):
 
         else:
             default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type": "EigenSolversApplication.sparse_lu"
+                "solver_type": "LinearSolversApplication.sparse_lu"
             }""")
         settings["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
 
@@ -254,6 +252,9 @@ class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
 
 class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
+
+class AnisotropyTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/AnisotropyCube/anisotropy_test"
 
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"

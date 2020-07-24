@@ -132,7 +132,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 

@@ -70,11 +70,11 @@ void EmbeddedFluidElement<TBaseElement>::Initialize()
     // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
     const array_1d<double,3> zero_vel = ZeroVector(3);
     for (auto &r_node : this->GetGeometry()) {
+        r_node.SetLock();
         if (!r_node.Has(EMBEDDED_VELOCITY)) {
-            r_node.SetLock();
             r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
-            r_node.UnSetLock();
         }
+        r_node.UnSetLock();
     }
 
     KRATOS_CATCH("");
@@ -144,7 +144,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::Calculate(
     const Variable<double> &rVariable,
-    double& rOutput,
+    double &rOutput,
     const ProcessInfo &rCurrentProcessInfo)
 {
     if (rVariable == CUTTED_AREA) {
@@ -154,6 +154,7 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
         this->InitializeGeometryData(data);
         // Calculate the intersection area as the Gauss weights summation
         const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
+        rOutput = 0.0;
         for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
             rOutput += data.PositiveInterfaceWeights[g];
         }

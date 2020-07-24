@@ -148,10 +148,10 @@ Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::Initialize()
+void AdjointSolidElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    mPrimalElement.Initialize();
+    mPrimalElement.Initialize(rCurrentProcessInfo);
     this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     KRATOS_CATCH("");
 }
@@ -219,7 +219,7 @@ void AdjointSolidElement<TPrimalElement>::CalculateSecondDerivativesLHS(
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY;
     const auto& r_geom = mPrimalElement.GetGeometry();
@@ -240,7 +240,7 @@ void AdjointSolidElement<TPrimalElement>::GetValuesVector(Vector& rValues, int S
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
-                                                           ProcessInfo& rCurrentProcessInfo)
+                                                           const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     auto& r_geom = mPrimalElement.GetGeometry();
@@ -279,7 +279,7 @@ void AdjointSolidElement<TPrimalElement>::EquationIdVector(EquationIdVectorType&
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     auto& r_geom = mPrimalElement.GetGeometry();
@@ -309,7 +309,7 @@ void AdjointSolidElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalD
 }
 
 template <class TPrimalElement>
-int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointSolidElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);

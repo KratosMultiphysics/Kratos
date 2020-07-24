@@ -1,0 +1,26 @@
+
+name: Build docker image wheelbuilder-windows
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'scripts/docker_files/docker_file_wheelbuilder_windows/*'
+      - '.github/workflows/build_docker_image_wheelbuilder_windows.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the Docker image
+        run: docker build scripts/docker_files/docker_file_wheelbuilder_windows/ --tag kratosmultiphysics/kratos-wheelbuilder-windows
+      - name: Docker Login
+        uses: azure/docker-login@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Publish the Docker image
+        run: docker push kratosmultiphysics/kratos-wheelbuilder-windows

@@ -6,18 +6,14 @@ import KratosMultiphysics as KM
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
-# CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-
-def Create(settings, solver_wrappers):
-    cs_tools.SettingsTypeCheck(settings)
-    return ComputeNormalsOperation(settings, solver_wrappers)
+def Create(*args):
+    return ComputeNormalsOperation(*args)
 
 class ComputeNormalsOperation(CoSimulationCouplingOperation):
     """This operation computes the Normals (NORMAL) on a given ModelPart
     """
-    def __init__(self, settings, solver_wrappers):
-        super(ComputeNormalsOperation, self).__init__(settings)
+    def __init__(self, settings, solver_wrappers, process_info):
+        super(ComputeNormalsOperation, self).__init__(settings, process_info)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)

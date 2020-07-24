@@ -103,9 +103,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -202,9 +202,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -318,7 +318,7 @@ namespace Kratos
             })" );
             r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
             BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
-            
+
             const SparseSpaceType::MatrixType& rA_scale = BuildSystem(r_model_part, p_scheme, p_builder_and_solver_scale);
 
             KRATOS_CHECK(rA.size1() == 6);
@@ -331,7 +331,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(4,2) - -2069000000.000000000)/rA(4,2)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA_scale(5,5) - 2.26648e+10)/rA_scale(5,5)), 1.0e-4);
-            
+
             SparseSpaceType::MatrixType copy_A(rA);
             const double condition_number_not_scale = ConditionNumberUtility().GetConditionNumber(copy_A);
             SparseSpaceType::MatrixType copy_A_scale(rA_scale);

@@ -8,21 +8,22 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.factories.helpers as factories_helper
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-def Create(settings, solver_name):
-    return GaussSeidelStrongCoupledSolver(settings, solver_name)
+def Create(settings, models, solver_name):
+    return GaussSeidelStrongCoupledSolver(settings, models, solver_name)
 
 class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
-    def __init__(self, settings, solver_name):
-        super(GaussSeidelStrongCoupledSolver, self).__init__(settings, solver_name)
+    def __init__(self, settings, models, solver_name):
+        super(GaussSeidelStrongCoupledSolver, self).__init__(settings, models, solver_name)
 
-        self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
+        self.convergence_accelerators_list = factories_helper.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
             self.solver_wrappers,
             self.echo_level)
 
-        self.convergence_criteria_list = cs_tools.CreateConvergenceCriteria(
+        self.convergence_criteria_list = factories_helper.CreateConvergenceCriteria(
             self.settings["convergence_criteria"],
             self.solver_wrappers,
             self.echo_level)

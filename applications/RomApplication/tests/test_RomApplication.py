@@ -32,6 +32,7 @@ def AssembleTestSuites():
     smallSuite.addTest(ROMStationaryConvDiff('test_ConvDiff_Stationary_ROM_2D'))
     smallSuite.addTest(ROMDynamicConvDiff('test_ConvDiff_Dynamic_ROM_2D'))
     smallSuite.addTest(ROMStaticStruct('test_Struct_Static_ROM_2D'))
+    smallSuite.addTest(ROMStaticStruct('test_Struct_Static_HROM_2D'))
     smallSuite.addTest(ROMDynamicStruct('test_Struct_Dynamic_ROM_2D'))
 
     # Create a test suit with the selected tests

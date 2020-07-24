@@ -271,6 +271,15 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  const ProcessInfo& rCurrentProcessInfo) const
+    {
+        const_cast<Condition*>(this)->EquationIdVector(rResult, const_cast<ProcessInfo&>(rCurrentProcessInfo)); // TODO remove this after the transition period and uncomment the following
+        // if (rResult.size() != 0) {
+        //     rResult.resize(0);
+        // }
+    }
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
                   ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)
@@ -322,17 +331,15 @@ public:
      */
     virtual void GetValuesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Condition*>(this)->GetValuesVector(values, Step); // TODO remove this after the transition period and uncomment the following
-        // if (values.size() != 0) {
-        //     values.resize(0, false);
-        // }
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetValuesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const auto& r_const_this = *this;
+        r_const_this.GetValuesVector(values, Step);
     }
 
     /**
@@ -340,17 +347,15 @@ public:
      */
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Condition*>(this)->GetFirstDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
-        // if (values.size() != 0) {
-        //     values.resize(0, false);
-        // }
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const auto& r_const_this = *this;
+        r_const_this.GetFirstDerivativesVector(values, Step);
     }
 
     /**
@@ -358,17 +363,15 @@ public:
      */
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0) const
     {
-        const_cast<Condition*>(this)->GetSecondDerivativesVector(values, Step); // TODO remove this after the transition period and uncomment the following
-        // if (values.size() != 0) {
-        //     values.resize(0, false);
-        // }
+        if (values.size() != 0) {
+            values.resize(0, false);
+        }
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
     {
-        if (values.size() != 0) {
-            values.resize(0, false);
-        }
+        const auto& r_const_this = *this;
+        r_const_this.GetSecondDerivativesVector(values, Step);
     }
 
     /**
@@ -866,7 +869,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        AddExplicitContribution(rRHSVector, rRHSVariable, const_cast<Variable<double >&>(rDestinationVariable), rCurrentProcessInfo); // TODO remove this after the transition period
         KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
@@ -877,7 +879,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+        const auto& r_destination_variable = rDestinationVariable;
+        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
@@ -889,24 +892,24 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddExplicitContribution(
-        const VectorType& rRHS,
+        const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
         const Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        AddExplicitContribution(rRHS, rRHSVariable, const_cast<Variable<array_1d<double,3>>&>(rDestinationVariable), rCurrentProcessInfo); // TODO remove this after the transition period
         KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
     virtual void AddExplicitContribution(
-        const VectorType& rRHS,
+        const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
         Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-         KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+        const auto& r_destination_variable = rDestinationVariable;
+        this->AddExplicitContribution(rRHSVector, rRHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
@@ -924,7 +927,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        AddExplicitContribution(rLHSMatrix, rLHSVariable, const_cast<Variable<Matrix>&>(rDestinationVariable), rCurrentProcessInfo); // TODO remove this after the transition period
         KRATOS_ERROR << "Base condition class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
     // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please add the missing \"const\"")
@@ -935,7 +937,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-         KRATOS_ERROR << "Base condition class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+        const auto& r_destination_variable = rDestinationVariable;
+        this->AddExplicitContribution(rLHSMatrix, rLHSVariable, r_destination_variable, rCurrentProcessInfo);
     }
 
     /**
@@ -975,49 +978,55 @@ public:
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
-     * these methods are: OPTIONAL
      */
 
     virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
                           std::vector<bool>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                           std::vector<int>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                          std::vector< array_1d<double, 3 > >& Output,
+                          std::vector< array_1d<double, 3 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                          std::vector< array_1d<double, 6 > >& Output,
+                          std::vector< array_1d<double, 6 > >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-                          std::vector< Vector >& Output,
+                          std::vector< Vector >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-                          std::vector< Matrix >& Output,
+                          std::vector< Matrix >& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
     {
+        this->GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     /**
@@ -1071,42 +1080,49 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
                          std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                          std::vector<array_1d<double, 3 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                          std::vector<array_1d<double, 6 > >& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                          std::vector<Vector>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"CalculateOnIntegrationPoints\"")
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                          std::vector<Matrix>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
@@ -1126,7 +1142,6 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
-        const_cast<Condition*>(this)->Check(rCurrentProcessInfo); // TODO remove this after the transition period
 
         KRATOS_ERROR_IF( this->Id() < 1 ) << "Condition found with Id " << this->Id() << std::endl;
 
@@ -1141,14 +1156,9 @@ public:
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        KRATOS_ERROR_IF( this->Id() < 1 ) << "Condition found with Id " << this->Id() << std::endl;
-
-        const double domain_size = this->GetGeometry().DomainSize();
-        KRATOS_ERROR_IF( domain_size < 0.0 ) << "Condition " << this->Id() << " has negative size " << domain_size << std::endl;
-
-        return 0;
-
+        // calling the const version for backward compatibility
+        const Condition& r_const_this = *this;
+        return r_const_this.Check(rCurrentProcessInfo);
         KRATOS_CATCH("")
     }
 

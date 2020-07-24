@@ -16,8 +16,8 @@ from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis
 # Other imports
 import math
 
-def Create(settings, solver_name):
-    return ParticleMechanicsWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return ParticleMechanicsWrapper(settings, model, solver_name)
 
 class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the ParticleMechanicsApplication of Kratos"""
@@ -36,20 +36,20 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
             ## IMPOSED DISPLACEMENT
             total_displacement = coupling_node.GetSolutionStepValue(KM.DISPLACEMENT,0)
-            old_displacement = model_part.GetCondition(coupling_id).GetValue(KPM.MPC_DISPLACEMENT)
+            old_displacement = model_part.GetCondition(coupling_id).CalculateOnIntegrationPoints(KPM.MPC_DISPLACEMENT, model_part.ProcessInfo)[0]
             incremental_displacement = total_displacement - old_displacement
-            model_part.GetCondition(coupling_id).SetValue(KPM.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
+            model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_IMPOSED_DISPLACEMENT, [incremental_displacement], model_part.ProcessInfo)
 
             ## ADD VELOCITY
             current_velocity = coupling_node.GetSolutionStepValue(KM.VELOCITY,0)
-            model_part.GetCondition(coupling_id).SetValue(KPM.MPC_VELOCITY, current_velocity)
+            model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_VELOCITY, [current_velocity], model_part.ProcessInfo)
 
             ## ADD NORMAL
             normal = coupling_node.GetSolutionStepValue(KM.NORMAL,0)
             # Check and see whether the normal is not zero
             norm_normal = math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
             if norm_normal > 1.e-10:
-                model_part.GetCondition(coupling_id).SetValue(KPM.MPC_NORMAL, normal)
+                model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_NORMAL, [normal], model_part.ProcessInfo)
 
         super(ParticleMechanicsWrapper, self).SolveSolutionStep()
 
@@ -57,5 +57,5 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
         for mpc in model_part.Conditions:
             if (mpc.Is(KM.INTERFACE)):
                 coupling_id   = mpc.Id
-                contact_force = mpc.GetValue(KPM.MPC_CONTACT_FORCE)
+                contact_force = mpc.CalculateOnIntegrationPoints(KPM.MPC_CONTACT_FORCE, model_part.ProcessInfo)[0]
                 coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KM.CONTACT_FORCE,0,contact_force)

@@ -81,8 +81,10 @@ std::vector<double> mNeighbourContactRadius;
 std::vector<double> mNeighbourRigidContactRadius;
 std::vector<double> mNeighbourIndentation;
 std::vector<double> mNeighbourRigidIndentation;
-std::vector<double> mNeighbourTgOfFriAng;
-std::vector<double> mNeighbourRigidTgOfFriAng;
+std::vector<double> mNeighbourTgOfStatFriAng;
+std::vector<double> mNeighbourTgOfDynFriAng;
+std::vector<double> mNeighbourRigidTgOfStatFriAng;
+std::vector<double> mNeighbourRigidTgOfDynFriAng;
 std::vector<double> mNeighbourContactStress;
 std::vector<double> mNeighbourRigidContactStress;
 

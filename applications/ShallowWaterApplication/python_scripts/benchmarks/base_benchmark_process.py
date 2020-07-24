@@ -24,7 +24,6 @@ class BaseBenchmarkProcess(KM.Process):
             }
             """
             )
-
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model[settings["model_part_name"].GetString()]
@@ -34,9 +33,19 @@ class BaseBenchmarkProcess(KM.Process):
         self.error_variables = GenerateVariableListFromInput(settings["error_variables_list"])
         self.benchmark_settings = settings["benchmark_settings"]
 
+    def ExecuteInitialize(self):
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(SW.TOPOGRAPHY, self.Topography(node))
+
+    def ExecuteBeforeSolutionLoop(self):
+        time = self.model_part.ProcessInfo[KM.TIME]
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(SW.HEIGHT, self.Height(node, time))
+            node.SetSolutionStepValue(KM.VELOCITY, self.Velocity(node, time))
+            node.SetSolutionStepValue(KM.MOMENTUM, self.Momentum(node, time))
+
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KM.TIME]
-
         for node in self.model_part.Nodes:
             for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
                 if variable == SW.HEIGHT:
@@ -67,6 +76,9 @@ class BaseBenchmarkProcess(KM.Process):
                 msg = var.Name() + " variable type does not match the " + error.Name() + " variable type"
                 raise Exception(msg)
 
+    def Topography(self, coordinates):
+        raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
+
     def Height(self, coordinates, time):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
 
@@ -74,4 +86,4 @@ class BaseBenchmarkProcess(KM.Process):
         raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
 
     def Momentum(self, coordinates, time):
-        raise Exception("Calling the base class of the benchmark. Please, implement the custom benchmark")
+        return [self.Height(coordinates, time)*v for v in self.Velocity(coordinates, time)]

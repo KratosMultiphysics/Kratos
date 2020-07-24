@@ -169,17 +169,16 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculateSystemContributions(Element::Pointer pCurrentElement,
+    void CalculateSystemContributions(Element& rCurrentElement,
                                       LocalSystemMatrixType& rLHS_Contribution,
                                       LocalSystemVectorType& rRHS_Contribution,
                                       Element::EquationIdVectorType& rEquationId,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
-        auto& r_current_element = *pCurrentElement;
         const auto k = OpenMPUtils::ThisThread();
-        r_current_element.GetValuesVector(mAdjointValuesVector[k]);
+        rCurrentElement.GetValuesVector(mAdjointValuesVector[k]);
         const auto local_size = mAdjointValuesVector[k].size();
         if (rRHS_Contribution.size() != local_size)
         {
@@ -191,61 +190,61 @@ public:
         }
         this->CheckAndResizeThreadStorage(local_size);
 
-        this->CalculateGradientContributions(r_current_element, rLHS_Contribution,
+        this->CalculateGradientContributions(rCurrentElement, rLHS_Contribution,
                                              rRHS_Contribution, rCurrentProcessInfo);
 
         this->CalculateFirstDerivativeContributions(
-            r_current_element, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         this->CalculateSecondDerivativeContributions(
-            r_current_element, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         this->CalculatePreviousTimeStepContributions(
-            r_current_element, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         this->CalculateResidualLocalContributions(
-            r_current_element, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-        r_current_element.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
 
-    void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
-                                    LocalSystemMatrixType& rLHS_Contribution,
-                                    Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLHSContribution(Element& rCurrentElement,
+                                  LocalSystemMatrixType& rLHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationId,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
         LocalSystemVectorType RHS_Contribution;
-        CalculateSystemContributions(pCurrentElement, rLHS_Contribution, RHS_Contribution,
+        CalculateSystemContributions(rCurrentElement, rLHS_Contribution, RHS_Contribution,
                                      rEquationId, rCurrentProcessInfo);
         KRATOS_CATCH("");
     }
 
-    void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-                                                LocalSystemMatrixType& rLHS_Contribution,
-                                                LocalSystemVectorType& rRHS_Contribution,
-                                                Condition::EquationIdVectorType& rEquationId,
-                                                ProcessInfo& rCurrentProcessInfo) override
+    void CalculateSystemContributions(Condition& rCurrentCondition,
+                                      LocalSystemMatrixType& rLHS_Contribution,
+                                      LocalSystemVectorType& rRHS_Contribution,
+                                      Condition::EquationIdVectorType& rEquationId,
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
         // NOT TESTED !!!
-        pCurrentCondition->CalculateLocalSystem(
+        rCurrentCondition.CalculateLocalSystem(
             rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         KRATOS_CATCH("");
     }
 
-    void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-                                              LocalSystemMatrixType& rLHS_Contribution,
-                                              Condition::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLHSContribution(Condition& rCurrentCondition,
+                                  LocalSystemMatrixType& rLHS_Contribution,
+                                  Condition::EquationIdVectorType& rEquationId,
+                                  const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
         LocalSystemVectorType RHS_Contribution;
-        Condition_CalculateSystemContributions(pCurrentCondition,
-                                               rLHS_Contribution, RHS_Contribution,
-                                               rEquationId, rCurrentProcessInfo);
+        CalculateSystemContributions(rCurrentCondition,
+                                     rLHS_Contribution, RHS_Contribution,
+                                     rEquationId, rCurrentProcessInfo);
         KRATOS_CATCH("");
     }
 
@@ -369,7 +368,7 @@ private:
     void CalculateGradientContributions(Element& rCurrentElement,
                                         LocalSystemMatrixType& rLHS_Contribution,
                                         LocalSystemVectorType& rRHS_Contribution,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
         rCurrentElement.CalculateLeftHandSide(mLeftHandSide[k], rCurrentProcessInfo);
@@ -382,7 +381,7 @@ private:
     void CalculateFirstDerivativeContributions(Element& rCurrentElement,
                                                LocalSystemMatrixType& rLHS_Contribution,
                                                LocalSystemVectorType& rRHS_Contribution,
-                                               ProcessInfo& rCurrentProcessInfo)
+                                               const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
         rCurrentElement.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rCurrentProcessInfo);
@@ -397,7 +396,7 @@ private:
     void CalculateSecondDerivativeContributions(Element& rCurrentElement,
                                                 LocalSystemMatrixType& rLHS_Contribution,
                                                 LocalSystemVectorType& rRHS_Contribution,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
         auto& r_response_function = *(this->mpResponseFunction);
@@ -414,7 +413,7 @@ private:
     void CalculatePreviousTimeStepContributions(Element& rCurrentElement,
                                                 LocalSystemMatrixType& rLHS_Contribution,
                                                 LocalSystemVectorType& rRHS_Contribution,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
     {
         const auto& r_geometry = rCurrentElement.GetGeometry();
         const auto k = OpenMPUtils::ThisThread();
@@ -444,7 +443,7 @@ private:
     void CalculateResidualLocalContributions(Element& rCurrentElement,
                                              LocalSystemMatrixType& rLHS_Contribution,
                                              LocalSystemVectorType& rRHS_Contribution,
-                                             ProcessInfo& rCurrentProcessInfo)
+                                             const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
         auto& r_residual_adjoint = mAdjointValuesVector[k];
@@ -506,7 +505,7 @@ private:
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
 
         const int number_of_elements = rModelPart.NumberOfElements();
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         Vector adjoint2_aux, adjoint3_aux;
         std::vector<IndirectScalar<double>> adjoint2_old, adjoint3_old;
 #pragma omp parallel for private(adjoint2_aux, adjoint3_aux, adjoint2_old, adjoint3_old)
@@ -585,7 +584,7 @@ private:
 
         // Loop over elements to assemble the remaining terms
         const int number_of_elements = rModelPart.NumberOfElements();
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         Vector aux_adjoint_vector;
 #pragma omp parallel for private(aux_adjoint_vector)
         for (int i = 0; i < number_of_elements; ++i)

@@ -48,7 +48,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
         << "AdjointFiniteDifferencingSmallDisplacementElement::CalculateStressDisplacementDerivative: Invalid element dimension! Currently only 3D SmallDisplacementElements are supported!" << std::endl;
 
     // Build vector of variables containing the DOF-variables of the primal problem
-    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list {DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z};
+    std::vector<const Variable<double>*> primal_solution_variable_list {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
 
     std::vector<Matrix> stress_tensor;
     this->mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_tensor, rCurrentProcessInfo);
@@ -77,8 +77,8 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
         const IndexType index = i * num_dofs_per_node;
         for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
         {
-            initial_state_variables[index + j] = this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+            initial_state_variables[index + j] = this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]);
+            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
         }
     }
 
@@ -94,7 +94,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
 
         for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
         {
-            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
+            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 1.0;
             this->mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, partial_stress_derivatives, rCurrentProcessInfo);
 
             for(IndexType k = 0; k < number_integration_points; ++k)
@@ -124,7 +124,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
                 rOutput(index+j, k) = sensitivity_entry_k;
             }
 
-            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = 0.0;
         }
     }
 
@@ -133,14 +133,14 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
     {
         const IndexType index = i * num_dofs_per_node;
         for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
-            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+            this->mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(*primal_solution_variable_list[j]) = initial_state_variables[index + j];
     }
 
     KRATOS_CATCH("")
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

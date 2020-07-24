@@ -12,6 +12,7 @@ End Table
 
 Begin Properties 1
 IS_RESTARTED 1
+COMPUTE_LUMPED_MASS_MATRIX False
 COMPUTE_DYNAMIC_TANGENT 0
 DENSITY 3.4E-5  //scalar
 THICKNESS 19.5
@@ -84,8 +85,9 @@ End NodalData
 
 Begin SubModelPart Inlets
 	Begin SubModelPartData
-	IS_RESTARTED 1
-	COMPUTE_DYNAMIC_TANGENT 0
+	IS_RESTARTED True
+	COMPUTE_LUMPED_MASS_MATRIX true
+	COMPUTE_DYNAMIC_TANGENT false
 	End SubModelPartData
 
 	Begin SubModelPartTables

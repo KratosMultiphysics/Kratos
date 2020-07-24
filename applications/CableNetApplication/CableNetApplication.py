@@ -2,10 +2,9 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
-import KratosMultiphysics as KM
+from KratosMultiphysics import _ImportApplication
 from KratosCableNetApplication import *
 application = KratosCableNetApplication()
 application_name = "KratosCableNetApplication"
-application_folder = "CableNetApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+_ImportApplication(application, application_name)

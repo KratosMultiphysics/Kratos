@@ -49,7 +49,7 @@ double CalculateDeltaTime(
     double mass_factor = ThisParameters["mass_factor"].GetDouble(); // How the density of the solid is going to be multiplied (1.0 by default)
     const double desired_delta_time = ThisParameters["desired_delta_time"].GetDouble(); // The minimum delta time we want, if the value is negative not mass factor will be computed
     const bool compute_mass_factor = desired_delta_time < 0.0 ? false : true;
-    const bool max_number_of_iterations = ThisParameters["max_number_of_iterations"].GetInt();
+    const int max_number_of_iterations = ThisParameters["max_number_of_iterations"].GetInt();
 
     // Getting process info
     ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();

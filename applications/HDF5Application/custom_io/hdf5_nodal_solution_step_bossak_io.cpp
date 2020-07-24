@@ -37,7 +37,6 @@ void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNod
     WriteInfo info;
     for (const std::string& r_name : VariableNames())
         RegisteredComponentLookup<Variable<array_1d<double, 3>>,
-                                 VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_name)
             .Execute<WriteNodalBossakVariableFunctor>(local_nodes, GetFile(), prefix,
                                            mAlphaBossak, info);

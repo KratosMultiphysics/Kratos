@@ -22,17 +22,12 @@
         "material_import_settings" :{
             "materials_filename": "eigen_test/Eigen_Q4_Thick_2x2_Plate_test_materials.json"
         },
-	"eigensolver_settings":{
-        "solver_type": "feast",
-        "print_feast_output": false,
-        "perform_stochastic_estimate": false,
-        "solve_eigenvalue_problem": true,
-        "lambda_min": 0.0,
-        "lambda_max": 1.0e4,
-        "search_dimension": 9,
-        "linear_solver_settings":{
-            "solver_type": "skyline_lu_complex"
-        }
+        "eigensolver_settings":{
+            "solver_type": "feast",
+            "symmetric": true,
+            "e_min": 0.0,
+            "e_max": 1.0e4,
+            "subspace_size": 9
         },
         "rotation_dofs"                      : true
     },
