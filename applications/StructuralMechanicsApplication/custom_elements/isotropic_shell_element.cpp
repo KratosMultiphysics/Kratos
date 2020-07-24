@@ -58,14 +58,14 @@ IsotropicShellElement::~IsotropicShellElement()
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix lhs(18,18);
     CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
@@ -1958,7 +1958,7 @@ void IsotropicShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 ////************************************************************************************
 ////************************************************************************************
 
-void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void IsotropicShellElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1968,7 +1968,7 @@ void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcess
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void IsotropicShellElement::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1992,7 +1992,7 @@ void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProce
 
 //************************************************************************************
 //************************************************************************************
-void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
