@@ -67,6 +67,11 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     void ExecuteInitializeSolutionStep() override;
 
     /**
+     * @brief Function finalizes the solution step
+     */
+    void ExecuteFinalizeSolutionStep() override;
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;

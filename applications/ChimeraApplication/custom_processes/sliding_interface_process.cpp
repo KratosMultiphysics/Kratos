@@ -19,6 +19,7 @@
 #include "custom_processes/sliding_interface_process.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -45,7 +46,19 @@ SlidingInterfaceProcess::~SlidingInterfaceProcess()
     */
 void SlidingInterfaceProcess::ExecuteInitialize()
 {
+}
+
+/**
+    * @brief Function initializes the solution step
+    */
+void SlidingInterfaceProcess::ExecuteInitializeSolutionStep()
+{
+
     KRATOS_TRY;
+    mrMasterModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+    VariableUtils().SetHistoricalVariableToZero<double>(MESH_VELOCITY_X, mrMasterModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero<double>(MESH_VELOCITY_Y, mrMasterModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero<double>(MESH_VELOCITY_Z, mrMasterModelPart.Nodes());
     const int domain_size = mrMasterModelPart.GetProcessInfo()[DOMAIN_SIZE];
     // Rotate the master so it goes to the slave
     if (domain_size == 2){
@@ -60,19 +73,19 @@ void SlidingInterfaceProcess::ExecuteInitialize()
     KRATOS_CATCH("");
 }
 
-/**
-    * @brief Function initializes the solution step
-    */
-void SlidingInterfaceProcess::ExecuteInitializeSolutionStep()
+
+void SlidingInterfaceProcess::ExecuteFinalizeSolutionStep()
 {
+    mrMasterModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
 }
+
 
 
 const Parameters SlidingInterfaceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters(R"(
     {
-        "variable_names":["VELOCITY_X", "VELOCITY_Y", "VELOCITY_Z","PRESSURE"],
+        "variable_names":[],
         "search_settings":{
             "max_results":100000,
             "tolerance": 1E-6
@@ -101,7 +114,6 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
 
     const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
     const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
-
     IndexType num_slaves_found = 0;
 
     #pragma omp parallel for schedule(guided, 512) reduction( + : num_slaves_found )
@@ -120,12 +132,11 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
             for (int j = 0; j < num_vars; j++)
             {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
-                // Checking if the variable is a vector variable
                 ConstraintSlaveNodeWithConditionForVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
             }
         }
     }
-    KRATOS_WARNING_IF("SlidingInterfaceProcess",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Sliding interface condition cannot be applied for all the nodes."<<std::endl;
+    KRATOS_WARNING_IF("SlidingInterfaceProcess",num_slaves_found != num_slave_nodes)<<"Sliding interface condition cannot be applied for all the nodes.  "<<  num_slaves_found <<std::endl;
     const double end_apply = OpenMPUtils::GetCurrentTime();
     KRATOS_INFO("SlidingInterfaceProcess")<<"Applying sliding interface took : "<<end_apply - start_apply<<" seconds." <<std::endl;
 }
@@ -134,6 +145,10 @@ template <int TDim>
 void SlidingInterfaceProcess::ConstraintSlaveNodeWithConditionForVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,const std::string& rVarName )
 {
     const VariableType& r_var = KratosComponents<VariableType>::Get(rVarName);
+    auto slave_variable_val = rSlaveNode.GetSolutionStepValue(r_var);
+    auto n_slave_variable_val = rSlaveNode.GetSolutionStepValue(r_var,1);
+    n_slave_variable_val = 0.0;
+    slave_variable_val = 0.0;
 
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
@@ -142,10 +157,15 @@ void SlidingInterfaceProcess::ConstraintSlaveNodeWithConditionForVariable(NodeTy
     for (auto& master_node : rHostedGeometry)
     {
         const double master_weight = rWeights(master_index);
+        const auto master_variable_val = master_node.GetSolutionStepValue(r_var);
+        const auto n_master_variable_val = master_node.GetSolutionStepValue(r_var,1);
         #pragma omp critical
         {
-            int current_constraint_id = ( mrMasterModelPart.GetRootModelPart().MasterSlaveConstraints().end()-1 )->Id();
+            slave_variable_val += master_weight*master_variable_val;
+            n_slave_variable_val += master_weight*n_master_variable_val;
+            int current_constraint_id = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
             auto constraint = r_clone_constraint.Create(++current_constraint_id,master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
+            constraint->Set(TO_ERASE);
             mrMasterModelPart.AddMasterSlaveConstraint(constraint);
         }
         master_index++;

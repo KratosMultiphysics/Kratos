@@ -918,7 +918,7 @@ public:
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
             if (std::abs(distance) > 1.0e-6 * Length()) {
                 KRATOS_WARNING_FIRST_N("Line2D2", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << " it is in a distance: " << std::abs(distance) << std::endl;
-                return false;
+                // return false;
             }
         }
 
