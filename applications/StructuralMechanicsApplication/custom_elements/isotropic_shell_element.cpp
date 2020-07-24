@@ -591,7 +591,7 @@ void IsotropicShellElement::CalculateBendingElasticityTensor( BoundedMatrix<doub
 void IsotropicShellElement::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     BoundedMatrix<double,18,18> mKloc_system;
     BoundedMatrix<double,3,3> mEm;

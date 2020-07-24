@@ -317,7 +317,7 @@ private:
     void CalculateAllMatrices(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     );
 
     Vector& CalculateVolumeForce(
