@@ -181,5 +181,18 @@ namespace Kratos
                 "Available is only 'SHAPE_SENSITIVITY_X','SHAPE_SENSITIVITY_Y' and 'SHAPE_SENSITIVITY_Z' " << std::endl;
     }
 
+    void FiniteDifferenceUtility::ComputeFiniteDifferences( array_1d<double, 3 >& rArrayUndisturbed, array_1d<double, 3 >& rArrayDisturbed, const double& rDelta)
+    {
+        KRATOS_TRY;
+
+        for(IndexType i = 0; i < 3; ++i)
+        {
+            rArrayDisturbed[i] -= rArrayUndisturbed[i];
+            rArrayDisturbed[i] /= rDelta;
+        }
+
+        KRATOS_CATCH("")
+    }
+
 }  // namespace Kratos.
 

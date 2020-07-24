@@ -14,7 +14,7 @@
 
 // Project includes
 #include "generalized_influence_functions_extension.h"
-#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
+#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
@@ -280,7 +280,7 @@ namespace Kratos
                 perturbation_size *= rElement.GetProperties()[rDesignVariable];
         }
 
-        ElementFiniteDifferenceUtility::CalculateIntegrationPointsResultsDerivative(rElement, rQuantityVariable,
+        FiniteDifferenceUtility::CalculateIntegrationPointsResultsDerivative(rElement, rQuantityVariable,
             rDesignVariable, perturbation_size, rOutput, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -293,7 +293,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        std::string primal_element_name;
+        /*std::string primal_element_name;
         CompareElementsAndConditionsUtility::GetRegisteredName(rElement, primal_element_name);
 
         if(primal_element_name == "CrLinearBeamElement3D2N")
@@ -328,7 +328,7 @@ namespace Kratos
             }
         }
         else
-            KRATOS_ERROR << "CalculatePseudoQuantityWithChainRule is currently only implemented for CrLinearBeamElement3D2N!" << std::endl;
+            KRATOS_ERROR << "CalculatePseudoQuantityWithChainRule is currently only implemented for CrLinearBeamElement3D2N!" << std::endl;*/
 
         KRATOS_CATCH("");
     }
@@ -340,7 +340,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
+        /*const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
 
         // Save property pointer
         Properties::Pointer p_global_properties = rElement.pGetProperties();
@@ -399,7 +399,7 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(rQuantityVariable, rOutput, rCurrentProcessInfo);
 
         // Give element original properties back
-        rElement.SetProperties(p_global_properties);
+        rElement.SetProperties(p_global_properties);*/
 
         KRATOS_CATCH("");
     }

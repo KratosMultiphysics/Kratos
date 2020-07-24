@@ -111,9 +111,67 @@ public:
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
+
+    template <typename TDataType>
+    static void CalculateIntegrationPointsResultsDerivative(Element& rElement,
+                                                const Variable<TDataType>& rQuantityOfInterestVariable,
+                                                const Variable<double>& rDesignVariable,
+                                                const double& rPertubationSize,
+                                                std::vector< TDataType >& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        std::vector< TDataType > undisturbed_values;
+
+        // Compute undisturbed quantity of interest
+        rElement.CalculateOnIntegrationPoints(rQuantityOfInterestVariable, undisturbed_values, rCurrentProcessInfo);
+
+        if( rElement.GetProperties().Has(rDesignVariable) )
+        {
+            // Save property pointer
+            Properties::Pointer p_global_properties = rElement.pGetProperties();
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+            rElement.SetProperties(p_local_property);
+
+            // Perturb the design variable
+            const double current_property_value = rElement.GetProperties()[rDesignVariable];
+            //const double delta = current_property_value * rPertubationSize; --> this should be done 'outside'
+            p_local_property->SetValue(rDesignVariable, (current_property_value + rPertubationSize));
+
+            // Compute quantity of interest after disturbance of design variable
+            rElement.CalculateOnIntegrationPoints(rQuantityOfInterestVariable, rOutput, rCurrentProcessInfo);
+
+            // Compute derivative of stress w.r.t. design variable with finite differences
+            for(IndexType i = 0; i < rOutput.size(); ++i)
+                FiniteDifferenceUtility::ComputeFiniteDifferences(undisturbed_values[i], rOutput[i], rPertubationSize);
+
+            // Give element original properties back
+            rElement.SetProperties(p_global_properties);
+
+
+        }
+        else
+        {
+            const SizeType  write_points_number = rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod());
+            if (rOutput.size() != write_points_number)
+                rOutput.resize(write_points_number);
+            for(IndexType i = 0; i < write_points_number; ++i)
+                rOutput[i].clear();
+        }
+
+
+        KRATOS_CATCH("")
+    }
+
 private:
 
     static std::size_t GetCoordinateDirection(const array_1d_component_type& rDesignVariable);
+
+    static void ComputeFiniteDifferences( array_1d<double, 3 >& rArrayUndisturbed, array_1d<double, 3 >& rArrayDisturbed, const double& rDelta);
+
 
 }; // class FiniteDifferenceUtility.
 
