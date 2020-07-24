@@ -400,38 +400,61 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
 
 void ModelPart::RemoveNodes(Flags IdentifierFlag)
 {
-    // This method is optimized to free the memory
-    //loop over all the meshes
-    ModelPart::MeshesContainerType& meshes = this->GetMeshes();
-    for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
-    {
+    // Lambda to remove nodes from a mesh
+    auto remove_nodes_from_mesh = [&](ModelPart::MeshType& r_mesh) {
         //count the nodes to be erase
-        const unsigned int nnodes = i_mesh->Nodes().size();
+        const unsigned int nnodes = r_mesh.Nodes().size();
         unsigned int erase_count = 0;
         #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nnodes); ++i)
-        {
-            ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
+        for(int i=0; i<static_cast<int>(nnodes); ++i) {
+            ModelPart::NodesContainerType::iterator i_node = r_mesh.NodesBegin() + i;
 
             if( i_node->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
         ModelPart::NodesContainerType temp_nodes_container;
-        temp_nodes_container.reserve(i_mesh->Nodes().size() - erase_count);
+        temp_nodes_container.reserve(r_mesh.Nodes().size() - erase_count);
 
-        temp_nodes_container.swap(i_mesh->Nodes());
+        temp_nodes_container.swap(r_mesh.Nodes());
 
-        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
-        {
+        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; ++i_node) {
             if( i_node->IsNot(IdentifierFlag) )
-                (i_mesh->Nodes()).push_back(std::move(*(i_node.base())));
+                (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
+        }
+    };
+
+    // This method is optimized to free the memory
+    // Loop over all the local meshes (Is this still necessary with Submodelparts?)
+    for(auto& r_mesh: this->GetMeshes()) {
+        remove_nodes_from_mesh(r_mesh);
+    }
+
+    if (IsDistributed()) {
+        // Mark the IdentifierFlag across partitions coherently
+        this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
+
+        // Remove the nodes from the mpi-interfaces in case there is any
+        remove_nodes_from_mesh(this->GetCommunicator().LocalMesh());
+        for(auto& r_mesh: this->GetCommunicator().LocalMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
+        }
+
+        remove_nodes_from_mesh(this->GetCommunicator().GhostMesh());
+        for(auto& r_mesh: this->GetCommunicator().GhostMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
+        }
+
+        remove_nodes_from_mesh(this->GetCommunicator().InterfaceMesh());
+        for(auto& r_mesh: this->GetCommunicator().InterfaceMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
         }
     }
 
-    //now recursively remove the nodes in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveNodes(IdentifierFlag);
+    // Now recursively remove the nodes in the submodelparts
+    for (auto& r_sub_model_part : SubModelParts()) {
+        r_sub_model_part.RemoveNodes(IdentifierFlag);
+    }
 }
 
 void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
@@ -441,6 +464,14 @@ void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
 }
 
 ModelPart& ModelPart::GetRootModelPart()
+{
+    if (IsSubModelPart())
+        return mpParentModelPart->GetRootModelPart();
+    else
+        return *this;
+}
+
+const ModelPart& ModelPart::GetRootModelPart() const
 {
     if (IsSubModelPart())
         return mpParentModelPart->GetRootModelPart();
@@ -1624,9 +1655,25 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
     return *p_model_part;
 }
 
+ModelPart& ModelPart::GetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return *i;
+}
+
+ModelPart* ModelPart::pGetSubModelPart(std::string const& SubModelPartName)
+{
+    SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+    KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
+
+    return (i.base()->second).get();
+}
+
 /** Remove a sub modelpart with given name.
 */
-void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
+void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 {
     // finding the sub model part
     SubModelPartIterator i_sub_model_part = mSubModelParts.find(ThisSubModelPartName);
@@ -1640,7 +1687,7 @@ void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 
 /** Remove given sub model part.
 */
-void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
+void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 {
     std::string name = ThisSubModelPart.Name();
     // finding the sub model part
@@ -1649,6 +1696,21 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
     KRATOS_ERROR_IF(i_sub_model_part == mSubModelParts.end()) << "The sub model part  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
 
     mSubModelParts.erase(name);
+}
+
+
+ModelPart* ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return mpParentModelPart;
+    } else {
+        return const_cast<ModelPart*>(this);
+    }
+}
+
+bool ModelPart::HasSubModelPart(std::string const& ThisSubModelPartName) const
+{
+    return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
 }
 
 std::vector<std::string> ModelPart::GetSubModelPartNames()
