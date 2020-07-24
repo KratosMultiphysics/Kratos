@@ -43,7 +43,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         settings.RemoveValue("rotation_option")
 
         # Initiate base class - Dirichlet condition
-        super(ApplyMPM3DRotatingDirichletConditionProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -63,7 +63,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
     def ExecuteInitializeSolutionStep(self):
 
         # If compute rotation center automatically is needed and if the center is moved
-        if (self.compute_rotation_center and self.rotation_option == "moving_center"):
+        if self.compute_rotation_center and self.rotation_option == "moving_center":
             self._ComputeCenterRotation()
 
         # Compute delta quaternion
@@ -119,7 +119,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         self._rotation_matrix.fill_identity()
 
     def _ComputeDeltaQuaternion(self, rot_velocity):
-        if((not isinstance(rot_velocity, KratosMultiphysics.Vector)) and rot_velocity.Size() != 3):
+        if (not isinstance(rot_velocity, KratosMultiphysics.Vector)) and rot_velocity.Size() != 3:
             raise Exception("expected input shall be a KratosMultiphysics.Vector object with size 3")
 
         omega = math.sqrt(rot_velocity[0]*rot_velocity[0] + rot_velocity[1]*rot_velocity[1] + rot_velocity[2]*rot_velocity[2])
@@ -135,7 +135,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         self._delta_quaternion.Z = math.sin(omega * dt / 2.0) * rot_velocity[2] / omega
 
     def _TransposeMatrix(self, A):
-        if(not isinstance(A, KratosMultiphysics.Matrix)):
+        if not isinstance(A, KratosMultiphysics.Matrix):
             raise Exception("expected input shall be a KratosMultiphysics.Matrix object with equal number of row-column (square)")
 
         result = KratosMultiphysics.Matrix(A.Size2(),A.Size1())
