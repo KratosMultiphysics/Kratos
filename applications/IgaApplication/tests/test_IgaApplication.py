@@ -6,6 +6,9 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Shell tests
+from iga_5p_element_tests import Iga5pElementTests as TIga5pElementTests
+
 # Import the tests o test_classes to create the suits
 
 def AssembleTestSuites():
@@ -25,8 +28,10 @@ def AssembleTestSuites():
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([]))
 
     allSuite = suites['all']
+    allSuite.addTests(smallSuite)
     allSuite.addTests(nightSuite)
 
     return suites
