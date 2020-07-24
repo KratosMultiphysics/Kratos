@@ -86,13 +86,12 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
             # Update impose_displacement
             imposed_disp = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,self.model_part.ProcessInfo)[0]
             
-
-            imposed_disp += new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * radius) - radius
+            imposed_disp += new_rotation_matrix * (self._rotation_matrix.transpose() * radius) - radius
             mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[imposed_disp],self.model_part.ProcessInfo)
 
             # Update normal vector
             normal = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_NORMAL,self.model_part.ProcessInfo)[0]
-            modified_normal = new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * normal)
+            modified_normal = new_rotation_matrix * (self._rotation_matrix.transpose() * normal)
             mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_NORMAL,[modified_normal],self.model_part.ProcessInfo)
 
 
@@ -133,14 +132,3 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         self._delta_quaternion.X = math.sin(omega * dt / 2.0) * rot_velocity[0] / omega
         self._delta_quaternion.Y = math.sin(omega * dt / 2.0) * rot_velocity[1] / omega
         self._delta_quaternion.Z = math.sin(omega * dt / 2.0) * rot_velocity[2] / omega
-
-    def _TransposeMatrix(self, A):
-        if not isinstance(A, KratosMultiphysics.Matrix):
-            raise Exception("expected input shall be a KratosMultiphysics.Matrix object with equal number of row-column (square)")
-
-        result = KratosMultiphysics.Matrix(A.Size2(),A.Size1())
-        for i in range (A.Size1()):
-            for j in range (A.Size2()):
-                result[j,i] = A[i,j]
-
-        return result 
