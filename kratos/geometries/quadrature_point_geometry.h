@@ -212,6 +212,19 @@ public:
     }
 
     ///@}
+    ///@name  Geometry Shape Function Container
+    ///@{
+
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     */
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rGeometryShapeFunctionContainer) override
+    {
+        mGeometryData.SetGeometryShapeFunctionContainer(rGeometryShapeFunctionContainer);
+    }
+
+    ///@}
     ///@name Parent
     ///@{
 

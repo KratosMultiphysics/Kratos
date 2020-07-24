@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 class GiDDamOutputProcess(Process):
 
@@ -13,7 +14,7 @@ class GiDDamOutputProcess(Process):
                 "MultiFileFlag": "SingleFile"
             },
             "output_control_type": "time_s",
-            "output_frequency": 1.0,
+            "output_interval": 1.0,
             "start_output_results": 0,
             "body_output": true,
             "node_output": false,
@@ -78,7 +79,9 @@ class GiDDamOutputProcess(Process):
         if param is None:
             param = self.defaults
         else:
-            # Note: this only validadtes the first level of the JSON tree.
+            # Warning: we may be changing the parameters object here:
+            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+            # Note: this only validates the first level of the JSON tree.
             # I'm not going for recursive validation because some branches may
             # not exist and I don't want the validator assinging defaults there.
             param.ValidateAndAssignDefaults(self.defaults)
@@ -112,6 +115,26 @@ class GiDDamOutputProcess(Process):
     def Flush(cls,a):
         a.flush()
 
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'output_frequency'
+            new_name = 'output_interval'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
+        if settings.Has('result_file_configuration'):
+            sub_settings_where_var_is = settings['result_file_configuration']
+            old_name = 'write_properties_id'
+            new_name = 'write_ids'
+
+            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
+                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
+
+
     def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
@@ -144,7 +167,7 @@ class GiDDamOutputProcess(Process):
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
 
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
         self.start_output_results = result_file_configuration["start_output_results"].GetDouble()
 
         if self.start_time >= self.start_output_results:
@@ -274,7 +297,7 @@ class GiDDamOutputProcess(Process):
     def PrintOutput(self):
 
         result_file_configuration = self.param["result_file_configuration"]
-        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.output_frequency = result_file_configuration["output_interval"].GetDouble()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()

@@ -72,7 +72,6 @@ Begin Nodes
    59   1.0000000000   0.8000000000   0.0000000000
    60   0.8000000000   1.0000000000   0.0000000000
    61   1.0000000000   1.0000000000   0.0000000000
-   62   1.0000000000   1.0000000000   0.0000000000
 End Nodes
 
 
@@ -174,8 +173,8 @@ Begin Elements Element2D3N// GUI group identifier: Parts Auto2
        95          1         56         54         60 
        96          1         43         54         56 
        97          1         59         58         53 
-       98          1         62         58         59 
-       99          1         60         58         62 
+       98          1         61         58         59 
+       99          1         60         58         61 
       100          1         53         58         60 
 End Elements
 
@@ -241,7 +240,7 @@ Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
            58
            59
            60
-           62
+           61
     End SubModelPartNodes
     Begin SubModelPartElements
             1
