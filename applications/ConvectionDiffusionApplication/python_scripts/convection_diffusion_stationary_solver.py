@@ -29,7 +29,7 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
         super(ConvectionDiffusionStationarySolver, self).__init__(main_model_part, custom_settings)
 
         # Overwrite the base solver minimum buffer size
-        if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
+        if (self.settings["element_replace_settings"]["element_name"].GetString() in ["EulerianConvDiff","SymbolicQuasiStaticEulerianConvectionDiffusionExplicit","SymbolicDynamicEulerianConvectionDiffusionExplicit"]):
             self.min_buffer_size = 2
         else:
             self.min_buffer_size = 1
