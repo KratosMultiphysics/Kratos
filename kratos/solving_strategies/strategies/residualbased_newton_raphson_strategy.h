@@ -1281,7 +1281,7 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@}
     ///@name Member Variables
     ///@{
-
+    
     typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
