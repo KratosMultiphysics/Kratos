@@ -6,8 +6,11 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Import python based Iga simulation test
+from shell_3p_element_tests import KratosUnittest
+
 # Import Iga test factory tests
-from iga_test_factory import SinglePatchTest as SinglePatchTest
+from iga_test_factory import Shell3pElementTests
 
 # Import the tests o test_classes to create the suits
 
@@ -25,7 +28,8 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        SinglePatchTest
+        SinglePatchTest,
+		Shell3pElementTests
         ]))
 
 
