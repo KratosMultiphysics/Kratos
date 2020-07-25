@@ -97,16 +97,19 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
             is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
 
-            self.__CommunicateStateOfConvergence(is_converged)
-
             if is_converged:
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
+                self.__CommunicateStateOfConvergence(True)
                 return True
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
                 cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                self.__CommunicateStateOfConvergence(True) # True because max number of iterations is achieved. Otherwise external solver is stuck in time
                 return False
+
+            # if it reaches here it means that the coupling has not converged and this was not the last coupling iteration
+            self.__CommunicateStateOfConvergence(False)
 
             # do relaxation only if this iteration is not the last iteration of this timestep
             for conv_acc in self.convergence_accelerators_list:
