@@ -1,10 +1,8 @@
-#
 #   KRATOS  _____________
 #          /  _/ ____/   |
 #          / // / __/ /| |
 #        _/ // /_/ / ___ |
 #       /___/\____/_/  |_| Application
-#
 
 
 import KratosMultiphysics as KM
