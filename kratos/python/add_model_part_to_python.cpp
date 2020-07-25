@@ -125,7 +125,6 @@ Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std:
     return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
 }
 
-
 // Nodes
 
 ModelPart::SizeType ModelPartNumberOfNodes1(ModelPart& rModelPart)
@@ -874,8 +873,18 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
         .def("CreateNewNode", ModelPartCreateNewNode)
-        .def("CreateNewElement", ModelPartCreateNewElement)
-        .def("CreateNewCondition", ModelPartCreateNewCondition)
+        .def("CreateNewElement", [](ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id,
+            std::vector<ModelPart::IndexType> ElementNodeIds, ModelPart::PropertiesType::Pointer pProperties)
+            {return rModelPart.CreateNewElement(ElementName, Id, ElementNodeIds, pProperties); })
+        .def("CreateNewElement", [](ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id,
+            ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
+            {return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties);})
+        .def("CreateNewCondition", [](ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id,
+            std::vector<ModelPart::IndexType> ConditionNodeIds, ModelPart::PropertiesType::Pointer pProperties)
+            {return rModelPart.CreateNewCondition(ConditionName, Id, ConditionNodeIds, pProperties); })
+        .def("CreateNewCondition", [](ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, 
+                                      ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
+                                      {return rModelPart.CreateNewCondition(ConditionName, Id, pGeometry, pProperties);})
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
         .def("Check", &ModelPart::Check)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)
