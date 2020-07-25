@@ -6,22 +6,23 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import python based Iga simulation test
-from shell_3p_element_tests import KratosUnittest
-
 # Import Iga test factory tests
-from iga_test_factory import Shell3pElementTests
+from iga_test_factory import SinglePatchTest as SinglePatchTest
+
+# Import python based Iga simulation test
+from shell_3p_element_tests import Shell3pElementTests
 
 # Import the tests o test_classes to create the suits
 
 def AssembleTestSuites():
-    ''' Populates the test suites to run.
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
-    Return
-    ------
-    suites: A dictionary of suites
-        The set of suites with its test_cases added.
+    '''
+    This application provides some tests for the element formulation
+    of this application. It is recommended to use the IgaTestfactory
+    to add more tests.
+    It can be necessary to have the StructuralMechanicsApplication
+    compiled to run all tests.
+    The IgaApplication is part of the CI, thus tests in the "small"-suite
+    need to run very fast.
     '''
 
     suites = KratosUnittest.KratosSuites
@@ -29,7 +30,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
-		Shell3pElementTests
+        Shell3pElementTests
         ]))
 
 
