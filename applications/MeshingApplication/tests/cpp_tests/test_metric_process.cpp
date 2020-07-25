@@ -205,8 +205,8 @@ namespace Kratos
 
             // Compute metric
             Parameters parameters = Parameters(R"({"enforce_anisotropy_relative_variable" : true})");
-            auto hessian_process = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
-            hessian_process.Execute();
+            auto hessian_process_constant = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
+            hessian_process_constant.Execute();
 
 //             // DEBUG
 //             GiDIODebugMetric(r_model_part);
@@ -220,6 +220,40 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
             KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+
+            // Compute metric
+            parameters = Parameters(R"({
+                "enforce_anisotropy_relative_variable" : true,
+                "hessian_strategy_parameters": {
+                    "normalization_method" : "value"
+                 }})");
+            auto hessian_process_value = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
+            hessian_process_value.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+
+            // Compute metric
+            parameters = Parameters(R"({
+                "enforce_anisotropy_relative_variable" : true,
+                "hessian_strategy_parameters": {
+                    "normalization_method" : "norm_gradient"
+                 }})");
+            auto hessian_process_norm_gradient = ComputeHessianSolMetricProcess(r_model_part, DISTANCE, parameters);
+            hessian_process_norm_gradient.Execute();
+
+//             // DEBUG
+//             GiDIODebugMetric(r_model_part);
+
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
         }
 
         /**

@@ -16,7 +16,6 @@ if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
 # Import the tests or test_classes to create the suits
 
 # Shell tests
-from evm_k_epsilon_tests import EvmKEpsilonTest
 
 
 def AssembleTestSuites():
@@ -38,8 +37,6 @@ def AssembleTestSuites():
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
-    nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonTransientMPI'))
-    nightlyMPISuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyMPI'))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

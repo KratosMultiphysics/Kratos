@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
+from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
 from unittest.util import safe_repr
@@ -26,13 +27,14 @@ class TestLoader(TestLoader):
 
 class TestCase(TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        if (sys.version_info < (3, 2)):
-            cls.assertRaisesRegex = cls.assertRaisesRegexp
-
     def run(self, result=None):
         super(TestCase,self).run(result)
+
+    def skipTestIfApplicationsNotAvailable(self, *application_names):
+        '''Skips the test if required applications are not available'''
+        required_but_not_available_apps = GetNotAvailableApplications(*application_names)
+        if len(required_but_not_available_apps) > 0:
+            self.skipTest('Required Applications are missing: "{}"'.format('", "'.join(required_but_not_available_apps)))
 
     def assertEqualTolerance(self, first, second, tolerance, msg=None):
         ''' Fails if first and second have a difference greater than
@@ -72,9 +74,9 @@ class TestCase(TestCase):
             err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
             yield err_msg
 
-        self.assertEqual(vector1.Size(), vector2.Size(), msg="\nCheck failed because vector arguments do not have the same size")
-        for i in range(vector1.Size()):
-            self.assertAlmostEqual(vector1[i], vector2[i], prec, msg=GetErrMsg(i))
+        self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
+        for i, (v1, v2) in enumerate(zip(vector1, vector2)):
+            self.assertAlmostEqual(v1, v2, prec, msg=GetErrMsg(i))
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
         def GetDimErrMsg():
@@ -94,6 +96,13 @@ class TestCase(TestCase):
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=GetValErrMsg(i,j))
+
+
+def skipIfApplicationsNotAvailable(*application_names):
+    '''Skips the test if required applications are not available'''
+    required_but_not_available_apps = GetNotAvailableApplications(*application_names)
+    reason_for_skip = 'Required Applications are missing: "{}"'.format('", "'.join(required_but_not_available_apps))
+    return skipIf(len(required_but_not_available_apps) > 0, reason_for_skip)
 
 
 @contextmanager

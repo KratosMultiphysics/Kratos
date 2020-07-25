@@ -283,7 +283,7 @@ public:
         else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
         {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+            const component_type& var_component = KratosComponents< component_type >::Get(mvariable_name);
             InternalApplyValue< component_type, double>(var_component , is_fixed,  mdouble_value);
         }
         else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
@@ -390,7 +390,7 @@ private:
     ///@name Static Member Variables
     ///@{
     template< class TVarType, class TDataType >
-    void InternalApplyValue(TVarType& rVar, const bool to_be_fixed, const TDataType value)
+    void InternalApplyValue(const TVarType& rVar, const bool to_be_fixed, const TDataType value)
     {
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
@@ -415,7 +415,7 @@ private:
     }
 
     template< class TVarType, class TDataType >
-    void InternalApplyValueWithoutFixing(TVarType& rVar, const TDataType value)
+    void InternalApplyValueWithoutFixing(const TVarType& rVar, const TDataType value)
     {
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 

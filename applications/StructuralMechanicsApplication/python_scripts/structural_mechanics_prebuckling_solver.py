@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -34,7 +32,8 @@ class PrebucklingSolver(MechanicalSolver):
                 "initial_load_increment"    : 1.0,
                 "small_load_increment"      : 0.0005,
                 "path_following_step"       : 0.5,
-                "convergence_ratio"         : 0.05
+                "convergence_ratio"         : 0.05,
+                "make_matrices_symmetric"   : true
             },
             "eigensolver_settings" : {
                 "solver_type"           : "eigen_eigensystem",
@@ -116,7 +115,4 @@ class PrebucklingSolver(MechanicalSolver):
                                                                   builder_and_solver,
                                                                   convergence_criteria,
                                                                   self.settings["max_iteration"].GetInt(),
-                                                                  buckling_settings["initial_load_increment"].GetDouble(),
-                                                                  buckling_settings["small_load_increment"].GetDouble(),
-                                                                  buckling_settings["path_following_step"].GetDouble(),
-                                                                  buckling_settings["convergence_ratio"].GetDouble() )
+                                                                  buckling_settings )

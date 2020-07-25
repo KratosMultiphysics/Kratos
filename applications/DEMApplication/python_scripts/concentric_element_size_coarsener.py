@@ -65,6 +65,7 @@ class ElementSizeModifier(DEMAnalysisStage):
         project_parameters["GravityX"].SetDouble(0.0)
         project_parameters["GravityY"].SetDouble(0.0)
         project_parameters["GravityZ"].SetDouble(0.0)
+        project_parameters["RollingFrictionOption"].SetBool(False)
         project_parameters["OutputFileType"].SetString("Ascii")
         project_parameters["MaxTimeStep"].SetDouble(self.size_modifier_parameters["time_step"].GetDouble())
         total_needed_time = self.size_modifier_parameters["initiation_time"].GetDouble() + self.size_modifier_parameters["process_duration"].GetDouble()
