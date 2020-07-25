@@ -68,7 +68,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = this->GetGeometry();
     const unsigned int local_size = r_geometry.size();
@@ -98,7 +98,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix LeftHandSide;
     this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
@@ -110,7 +110,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RightHandSide;
     this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
@@ -121,7 +121,7 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     auto& r_geometry = this->GetGeometry();

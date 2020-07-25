@@ -68,7 +68,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
@@ -98,7 +98,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix LeftHandSide;
     this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
@@ -110,7 +110,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType RightHandSide;
     this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
@@ -122,7 +122,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& r_unknown_var = p_settings->GetUnknownVariable();
@@ -140,19 +140,19 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Equ
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
-    DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& r_unknown_var = p_settings->GetUnknownVariable();
     unsigned int local_size = GetGeometry().PointsNumber();
-    if (ElementalDofList.size() != local_size)
-        ElementalDofList.resize(local_size);
+    if (rElementalDofList.size() != local_size)
+        rElementalDofList.resize(local_size);
     for (unsigned int i = 0; i < local_size; i++)
     {
-        ElementalDofList[i] = GetGeometry()[i].pGetDof(r_unknown_var);
+        rElementalDofList[i] = GetGeometry()[i].pGetDof(r_unknown_var);
     }
 
     KRATOS_CATCH("")
@@ -163,7 +163,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Get
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     auto& r_geometry = GetGeometry();
