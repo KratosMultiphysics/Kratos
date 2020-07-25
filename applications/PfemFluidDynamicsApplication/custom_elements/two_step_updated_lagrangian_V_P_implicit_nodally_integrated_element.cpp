@@ -698,7 +698,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1), false);
 
-  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++)
+  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
   {
     // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
     rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
@@ -818,7 +818,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   Tau *= (1.0 / double(NumNodes));
 
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -883,7 +883,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   double Tau = 0;
   this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -948,7 +948,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   double Tau = 0;
   this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -1057,7 +1057,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
 
   double totalVolume = 0;
   bool computeElement = false;
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     totalVolume += GaussWeight;
@@ -1169,7 +1169,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
   double Tau = 0;
   this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
 
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
@@ -1254,7 +1254,7 @@ void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::Calculate
   double Tau = 0;
   this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
 
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];

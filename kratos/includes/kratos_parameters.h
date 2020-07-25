@@ -660,6 +660,12 @@ public:
         const std::string& rEntry,
         const Matrix& rValue
         );
+        
+    /**
+     * @brief This method sets the string array contained in the current Parameter
+     * @param Value The string array
+     */
+    void SetStringArray(const std::vector<std::string>& rValue);
 
     /**
      * @brief This returns the begin iterator

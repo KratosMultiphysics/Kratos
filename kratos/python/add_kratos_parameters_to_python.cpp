@@ -115,6 +115,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("AddString", &Parameters::AddString)
     .def("AddVector", &Parameters::AddVector)
     .def("AddMatrix", &Parameters::AddMatrix)
+    .def("SetStringArray", &Parameters::SetStringArray)
     .def("size", &Parameters::size)
     //.def("GetArrayItem", GetArrayItem) //Do not export this method. users shall adopt the operator [] syntax
     .def("__setitem__", &Parameters::SetValue)

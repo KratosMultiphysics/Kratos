@@ -696,7 +696,7 @@ void Parameters::SetMatrix(const Matrix& rValue)
 
 /***********************************************************************************/
 /***********************************************************************************/
-
+  
 void Parameters::AddDouble(
     const std::string& rEntry,
     const double Value
@@ -770,6 +770,21 @@ void Parameters::AddMatrix(
     Parameters aux_parameters(R"({"value": []})");
     aux_parameters["value"].SetMatrix(rValue);
     this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::SetStringArray(const std::vector<std::string>& rValue)
+{
+    const SizeType size = rValue.size();
+
+    nlohmann::json j_array(0.0, size);
+    (*mpValue) = j_array;
+
+    for (IndexType i = 0; i < size; ++i) {
+        (*mpValue)[i] = rValue[i];
+    }
 }
 
 /***********************************************************************************/
