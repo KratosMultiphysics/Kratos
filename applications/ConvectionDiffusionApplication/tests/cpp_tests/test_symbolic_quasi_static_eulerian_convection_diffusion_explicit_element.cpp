@@ -92,9 +92,10 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.166667, 0.166667, 0.166667};
         Matrix expected_LHS(3,3);
@@ -140,9 +141,10 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.609959,-0.631728,0.0217689};
         Matrix expected_LHS(3,3);
@@ -234,9 +236,10 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(4);
         Matrix LHS = ZeroMatrix(4,4);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.0416667, 0.0416667, 0.0416667, 0.0416667};
         Matrix expected_LHS = ZeroMatrix(4,4);
@@ -284,9 +287,10 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(4);
         Matrix LHS = ZeroMatrix(4,4);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.193585,-0.182373,0.0137885,0.0166667};
         Matrix expected_LHS = ZeroMatrix(4,4);

@@ -93,10 +93,11 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
         p_element->Initialize(r_test_process_info);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.159836,0.159836,0.159836};
 
@@ -132,10 +133,11 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(3);
         Matrix LHS = ZeroMatrix(3,3);
         p_element->Initialize(r_test_process_info);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.581946,-0.565736,0.0416667};
         Matrix expected_LHS(3,3);
@@ -229,10 +231,11 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(4);
         Matrix LHS = ZeroMatrix(4,4);
         p_element->Initialize(r_test_process_info);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.0402397,0.0402397,0.0402397,0.0402397};
 
@@ -269,10 +272,11 @@ namespace Testing
 
         // Test element
         auto p_element = r_test_model_part.pGetElement(1);
+        const auto process_info = r_test_model_part.GetProcessInfo();
         Vector RHS = ZeroVector(4);
         Matrix LHS = ZeroMatrix(4,4);
         p_element->Initialize(r_test_process_info);
-        p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, process_info);
 
         std::vector<double> expected_RHS = {0.187453,-0.169938,0.0166667,0.0186764};
         Matrix expected_LHS = ZeroMatrix(4,4);
