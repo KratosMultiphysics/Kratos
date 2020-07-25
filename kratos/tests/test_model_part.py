@@ -833,6 +833,7 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_create_non_existing_element(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
         props = model_part.CreateNewProperties(0)
 
@@ -842,6 +843,7 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_create_non_existing_condition(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
         props = model_part.CreateNewProperties(0)
 
