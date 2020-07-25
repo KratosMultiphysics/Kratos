@@ -46,7 +46,7 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
 
         id = 1
-        for geometry in quadrature_point_geometries :
+        for geometry in quadrature_point_geometries:
             model_part.CreateNewElement('Shell3pElement', id, geometry, shell_properties)
 
         # add dofs
