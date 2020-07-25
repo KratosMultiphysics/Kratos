@@ -209,7 +209,6 @@ namespace Kratos
         MetricVariables& rMetric)
     {
         const IndexType IntegrationPointIndex = 0;
-
         const GeometryType& r_geometry = GetGeometry();
 
         r_geometry.Jacobian(rMetric.J, IntegrationPointIndex);
@@ -234,8 +233,7 @@ namespace Kratos
         rMetric.a_ab[2] = rMetric.a1[0] * rMetric.a2[0] + rMetric.a1[1] * rMetric.a2[1] + rMetric.a1[2] * rMetric.a2[2];
 
         CalculateHessian(
-            rMetric.H,
-            GetGeometry().ShapeFunctionDerivatives(
+            rMetric.H, GetGeometry().ShapeFunctionDerivatives(
                 2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
         // base vector derivatives
@@ -343,13 +341,13 @@ namespace Kratos
         array_1d<double, 3>& rDw_D2,
         array_1d<double, 2>& rw_alpha,
         Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric)
+        const MetricVariables& rActualMetric,
+        IndexType IntegrationPointIndex)
     {
-        KRATOS_TRY; 
-        
-        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
-        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-        const SizeType number_of_control_points = GetGeometry().size();
+        const GeometryType& r_geometry = GetGeometry();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+        const SizeType number_of_control_points = r_geometry.size();
         double w_1, w_2;
 
         for (IndexType i = 0; i < number_of_control_points; ++i) 
@@ -357,14 +355,14 @@ namespace Kratos
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
             // ROTATION_Y = w_2 (second component of hierarchic shear difference vector)
-            w_1 = GetGeometry()[i].GetDof(ROTATION_X).GetSolutionStepValue();
-            w_2 = GetGeometry()[i].GetDof(ROTATION_Y).GetSolutionStepValue();
-            rDw_alpha_Dbeta(0, 0) += DN_De(i, 0) * w_1;
-            rDw_alpha_Dbeta(0, 1) += DN_De(i, 1) * w_1;
-            rDw_alpha_Dbeta(1, 0) += DN_De(i, 0) * w_2;
-            rDw_alpha_Dbeta(1, 1) += DN_De(i, 1) * w_2; 
-            rw_alpha(0) += N[i] * w_1;
-            rw_alpha(1) += N[i] * w_2;
+            w_1 = r_geometry[i].GetDof(ROTATION_X).GetSolutionStepValue();
+            w_2 = r_geometry[i].GetDof(ROTATION_Y).GetSolutionStepValue();
+            rDw_alpha_Dbeta(0, 0) += r_DN_De(i, 0) * w_1;
+            rDw_alpha_Dbeta(0, 1) += r_DN_De(i, 1) * w_1;
+            rDw_alpha_Dbeta(1, 0) += r_DN_De(i, 0) * w_2;
+            rDw_alpha_Dbeta(1, 1) += r_DN_De(i, 1) * w_2;
+            rw_alpha(0) += r_N(IntegrationPointIndex, i) * w_1;
+            rw_alpha(1) += r_N(IntegrationPointIndex, i) * w_2;
         }
 
         // derivatives of the shear difference vector
@@ -378,8 +376,6 @@ namespace Kratos
         }
 
         rw = rw_alpha(0) * rActualMetric.a1 + rw_alpha(1) * rActualMetric.a2;
-        
-        KRATOS_CATCH("")
     }
     
     void Shell5pHierarchicElement::CalculateInitialBaseVectorsLinearised(
@@ -388,7 +384,7 @@ namespace Kratos
         array_1d<double, 3>& rG1_con,
         array_1d<double, 3>& rG2_con)
     {
-        double thickness = GetProperties().GetValue(THICKNESS);
+        double thickness = GetProperties()[THICKNESS];
         
         array_1d<double, 3> DA3_D1(3, 0.0), DA3_D2(3, 0.0), DA1_D1xA2(3, 0.0), A1xDA2_D1(3, 0.0), DA1_D2xA2(3, 0.0), A1xDA2_D2(3, 0.0), 
             G1xG2(3, 0.0), G_ab(3, 0.0), G_ab_con(3, 0.0);
@@ -434,19 +430,12 @@ namespace Kratos
         array_1d<double, 3>& rg3
         )
     {
-        KRATOS_TRY;
-        
-        SizeType number_of_control_points = GetGeometry().size();
-        double thickness = GetProperties().GetValue(THICKNESS);
+        double thickness = GetProperties()[THICKNESS];
 
         double DdA_D1 = 0.0;
         double DdA_D2 = 0.0;
         array_1d<double, 3> Da1xa2_D1(3, 0.0), Da1xa2_D2(3, 0.0);
         array_1d<double, 3> Da3_KL_D1(3, 0.0), Da3_KL_D2(3, 0.0);
-
-        // shape functions
-        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
-        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
         // derivatives of a3_kirchhoff_love w.r.t. theta_alpha
         // derivative of a3_kirchhoff_love w.r.t. theta1: (a1xa2)'= a1'xa2 + a1xa2'
@@ -479,8 +468,6 @@ namespace Kratos
         rg1 = rActualMetric.a1 + thickness / 2.0 * mZeta*(Da3_KL_D1 + rDw_D1);
         rg2 = rActualMetric.a2 + thickness / 2.0 * mZeta*(Da3_KL_D2 + rDw_D2);
         rg3 = rActualMetric.a3_kirchhoff_love + rw;     // g3 = a3
-
-        KRATOS_CATCH("")
     }
 
     void Shell5pHierarchicElement::CalculateDeformationGradient(
@@ -634,10 +621,12 @@ namespace Kratos
 
     void Shell5pHierarchicElement::CalculateB(
         Matrix& rB,
-        const MetricVariables& rActualMetric)
+        const MetricVariables& rActualMetric,
+        IndexType IntegrationPointIndex)
     {
-        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-        const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
+        const GeometryType& r_geometry = GetGeometry();
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
         const double thickness = GetProperties().GetValue(THICKNESS);
 
         SizeType number_of_control_points = GetGeometry().size();
@@ -656,9 +645,9 @@ namespace Kratos
             if (dirr == 0 || dirr == 1 || dirr == 2)
             {
                 // strain corresponding to E11, E22, E12
-                dE_curvilinear[0] = DN_De(kr, 0)*rActualMetric.a1(dirr);
-                dE_curvilinear[1] = DN_De(kr, 1)*rActualMetric.a2(dirr);
-                dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*rActualMetric.a2(dirr) + rActualMetric.a1(dirr)*DN_De(kr, 1));
+                dE_curvilinear[0] = r_DN_De(kr, 0)*rActualMetric.a1(dirr);
+                dE_curvilinear[1] = r_DN_De(kr, 1)*rActualMetric.a2(dirr);
+                dE_curvilinear[2] = 0.5*(r_DN_De(kr, 0)*rActualMetric.a2(dirr) + rActualMetric.a1(dirr)* r_DN_De(kr, 1));
             }
             // calculated with simplified mInitialTransConToCar
             rB(0, r) += mInitialTransConToCar(0, 0) * dE_curvilinear[0] + mInitialTransConToCar(0, 1) * dE_curvilinear[1] 
@@ -686,17 +675,17 @@ namespace Kratos
             unsigned int index = 5 * i;
             //first line
             dg3(0, 0) = 0;
-            dg3(0, 1) = -DN_De(i, 0) * rActualMetric.a2[2] + DN_De(i, 1)*rActualMetric.a1[2];
-            dg3(0, 2) = DN_De(i, 0) * rActualMetric.a2[1] - DN_De(i, 1)*rActualMetric.a1[1];
+            dg3(0, 1) = -r_DN_De(i, 0) * rActualMetric.a2[2] + r_DN_De(i, 1)*rActualMetric.a1[2];
+            dg3(0, 2) = r_DN_De(i, 0) * rActualMetric.a2[1] - r_DN_De(i, 1)*rActualMetric.a1[1];
 
             //second line
-            dg3(1, 0) = DN_De(i, 0) * rActualMetric.a2[2] - DN_De(i, 1)*rActualMetric.a1[2];
+            dg3(1, 0) = r_DN_De(i, 0) * rActualMetric.a2[2] - r_DN_De(i, 1)*rActualMetric.a1[2];
             dg3(1, 1) = 0;
-            dg3(1, 2) = -DN_De(i, 0)*rActualMetric.a2[0] + DN_De(i, 1)*rActualMetric.a1[0];
+            dg3(1, 2) = -r_DN_De(i, 0)*rActualMetric.a2[0] + r_DN_De(i, 1)*rActualMetric.a1[0];
 
             //third line
-            dg3(2, 0) = -DN_De(i, 0) * rActualMetric.a2[1] + DN_De(i, 1) * rActualMetric.a1[1];
-            dg3(2, 1) = DN_De(i, 0) * rActualMetric.a2[0] - DN_De(i, 1) * rActualMetric.a1[0];
+            dg3(2, 0) = -r_DN_De(i, 0) * rActualMetric.a2[1] + r_DN_De(i, 1) * rActualMetric.a1[1];
+            dg3(2, 1) = r_DN_De(i, 0) * rActualMetric.a2[0] - r_DN_De(i, 1) * rActualMetric.a1[0];
             dg3(2, 2) = 0;
 
             for (unsigned int j = 0; j < 3; j++)
@@ -712,11 +701,13 @@ namespace Kratos
             // "index" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
             for (unsigned int j = 0; j < 3; j++)
             {
-                for (unsigned int k = 0; k < 3; k++)
-                {
-                    b(k, index_KL + j) = - mZeta * thickness / 2.0 * (DDN_DDe(i, k) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, k) * dn(j, 0) 
-                    + rActualMetric.H(1, k) * dn(j, 1) + rActualMetric.H(2, k) * dn(j, 2));
-                }
+                b(0, index_KL + j) = -mZeta * thickness / 2.0 * (r_DDN_DDe(i, 0) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 0) * dn(j, 0)
+                    + rActualMetric.H(1, 0) * dn(j, 1) + rActualMetric.H(2, 0) * dn(j, 2));
+                b(1, index_KL + j) = -mZeta * thickness / 2.0 * (r_DDN_DDe(i, 2) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 1) * dn(j, 0)
+                    + rActualMetric.H(1, 1) * dn(j, 1) + rActualMetric.H(2, 1) * dn(j, 2));
+                b(2, index_KL + j) = -mZeta * thickness / 2.0 * (r_DDN_DDe(i, 1) * rActualMetric.a3_kirchhoff_love[j] + rActualMetric.H(0, 2) * dn(j, 0)
+                    + rActualMetric.H(1, 2) * dn(j, 1) + rActualMetric.H(2, 2) * dn(j, 2));
+
                 rB(0, index + j) += mInitialTransConToCar(0, 0) * b(0, index_KL + j);
                 rB(1, index + j) += mInitialTransConToCar(1, 0) * b(0, index_KL + j) + mInitialTransConToCar(1, 1) * b(1, index_KL + j)
                     + mInitialTransConToCar(1, 2) * b(2, index_KL + j);
@@ -727,146 +718,145 @@ namespace Kratos
 
     void Shell5pHierarchicElement::CalculateSecondVariations(
         SecondVariations& rSecondVariations,
-        const MetricVariables& rActualMetric)
+        const MetricVariables& rActualMetric,
+        IndexType IntegrationPointIndex)
     {
-        if (Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES) && Has(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES))
-        {
-            const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-            const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
-            const double thickness = GetProperties().GetValue(THICKNESS);
+        const GeometryType& r_geometry = GetGeometry();
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
+        const double thickness = GetProperties().GetValue(THICKNESS);
 
-            SizeType number_of_control_points = GetGeometry().size();
-            SizeType mat_size_KL = number_of_control_points * 3;
-            SizeType mat_size = number_of_control_points * 5;
+        SizeType number_of_control_points = r_geometry.size();
+        SizeType mat_size_KL = number_of_control_points * 3;
+        SizeType mat_size = number_of_control_points * 5;
            
-            double lg3_3 = pow(rActualMetric.dA, 3);
-            double lg3_5 = pow(rActualMetric.dA, 5);
-            double inv_lg3 = 1 / rActualMetric.dA;
-            double inv_lg3_3 = 1 / lg3_3;
-            double inv_lg3_5 = 1 / lg3_5;
+        double lg3_3 = pow(rActualMetric.dA, 3);
+        double lg3_5 = pow(rActualMetric.dA, 5);
+        double inv_lg3 = 1 / rActualMetric.dA;
+        double inv_lg3_3 = 1 / lg3_3;
+        double inv_lg3_5 = 1 / lg3_5;
 
-            SecondVariations second_variations_KL(mat_size_KL);
-            Matrix S_dg3 = ZeroMatrix(3, mat_size_KL);
-            Vector S_g3dg3 = ZeroVector(mat_size_KL);
-            Vector S_g3dg3lg3_3 = ZeroVector(mat_size_KL);
-            Matrix S_dn = ZeroMatrix(3, mat_size_KL);
-            // first variation of strain and curvature w.r.t. dof
-            for (IndexType r = 0; r < mat_size_KL; r++)
+        SecondVariations second_variations_KL(mat_size_KL);
+        Matrix S_dg3 = ZeroMatrix(3, mat_size_KL);
+        Vector S_g3dg3 = ZeroVector(mat_size_KL);
+        Vector S_g3dg3lg3_3 = ZeroVector(mat_size_KL);
+        Matrix S_dn = ZeroMatrix(3, mat_size_KL);
+        // first variation of strain and curvature w.r.t. dof
+        for (IndexType r = 0; r < mat_size_KL; r++)
+        {
+            // local node number kr and dof direction dirr
+            unsigned int kr = r / 3;
+            unsigned int dirr = r % 3;
+
+            array_1d<double, 3> S_dg_1(3, 0.0), S_dg_2(3, 0.0);
+            S_dg_1(dirr) = r_DN_De(kr, 0);
+            S_dg_2(dirr) = r_DN_De(kr, 1);
+
+            // curvature
+            S_dg3(0, r) = S_dg_1(1)*rActualMetric.a2(2) - S_dg_1(2)*rActualMetric.a2(1) + rActualMetric.a1(1)*S_dg_2(2) - rActualMetric.a1(2)*S_dg_2(1);
+            S_dg3(1, r) = S_dg_1(2)*rActualMetric.a2(0) - S_dg_1(0)*rActualMetric.a2(2) + rActualMetric.a1(2)*S_dg_2(0) - rActualMetric.a1(0)*S_dg_2(2);
+            S_dg3(2, r) = S_dg_1(0)*rActualMetric.a2(1) - S_dg_1(1)*rActualMetric.a2(0) + rActualMetric.a1(0)*S_dg_2(1) - rActualMetric.a1(1)*S_dg_2(0);
+
+            S_g3dg3[r] = rActualMetric.a3_kirchhoff_love_tilde[0] * S_dg3(0, r) + rActualMetric.a3_kirchhoff_love_tilde[1] * S_dg3(1, r) + rActualMetric.a3_kirchhoff_love_tilde[2] * S_dg3(2, r);
+            S_g3dg3lg3_3[r] = S_g3dg3[r] * inv_lg3_3;
+
+            S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rActualMetric.a3_kirchhoff_love_tilde[0] * S_g3dg3lg3_3[r];
+            S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rActualMetric.a3_kirchhoff_love_tilde[1] * S_g3dg3lg3_3[r];
+            S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rActualMetric.a3_kirchhoff_love_tilde[2] * S_g3dg3lg3_3[r];
+        }
+
+        // second variation of strain and curvature w.r.t. dofs
+        for (IndexType r = 0; r < mat_size_KL; r++)
+        {
+            // local node number kr and dof direction dirr
+            unsigned int kr = r / 3;
+            unsigned int dirr = r % 3;
+
+            for (IndexType s = 0; s <= r; s++)
             {
-                // local node number kr and dof direction dirr
-                unsigned int kr = r / 3;
-                unsigned int dirr = r % 3;
+                // local node number ks and dof direction dirs
+                unsigned int ks = s / 3;
+                unsigned int dirs = s % 3;
 
-                array_1d<double, 3> S_dg_1(3, 0.0), S_dg_2(3, 0.0);
-                S_dg_1(dirr) = DN_De(kr, 0);
-                S_dg_2(dirr) = DN_De(kr, 1);
-
-                // curvature
-                S_dg3(0, r) = S_dg_1(1)*rActualMetric.a2(2) - S_dg_1(2)*rActualMetric.a2(1) + rActualMetric.a1(1)*S_dg_2(2) - rActualMetric.a1(2)*S_dg_2(1);
-                S_dg3(1, r) = S_dg_1(2)*rActualMetric.a2(0) - S_dg_1(0)*rActualMetric.a2(2) + rActualMetric.a1(2)*S_dg_2(0) - rActualMetric.a1(0)*S_dg_2(2);
-                S_dg3(2, r) = S_dg_1(0)*rActualMetric.a2(1) - S_dg_1(1)*rActualMetric.a2(0) + rActualMetric.a1(0)*S_dg_2(1) - rActualMetric.a1(1)*S_dg_2(0);
-
-                S_g3dg3[r] = rActualMetric.a3_kirchhoff_love_tilde[0] * S_dg3(0, r) + rActualMetric.a3_kirchhoff_love_tilde[1] * S_dg3(1, r) + rActualMetric.a3_kirchhoff_love_tilde[2] * S_dg3(2, r);
-                S_g3dg3lg3_3[r] = S_g3dg3[r] * inv_lg3_3;
-
-                S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rActualMetric.a3_kirchhoff_love_tilde[0] * S_g3dg3lg3_3[r];
-                S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rActualMetric.a3_kirchhoff_love_tilde[1] * S_g3dg3lg3_3[r];
-                S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rActualMetric.a3_kirchhoff_love_tilde[2] * S_g3dg3lg3_3[r];
-            }
-
-            // second variation of strain and curvature w.r.t. dofs
-            for (IndexType r = 0; r < mat_size_KL; r++)
-            {
-                // local node number kr and dof direction dirr
-                unsigned int kr = r / 3;
-                unsigned int dirr = r % 3;
-
-                for (IndexType s = 0; s <= r; s++)
-                {               
-                    // local node number ks and dof direction dirs
-                    unsigned int ks = s / 3;
-                    unsigned int dirs = s % 3;
-
-                    // strain
-                    array_1d<double, 3> ddE_cu(3, 0.0);
-                    if (dirr == dirs)
-                    {
-                        ddE_cu[0] = DN_De(kr, 0)*DN_De(ks, 0);
-                        ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
-                        ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
-
-                        // calculated with reduced mInitialTransConToCar
-                        second_variations_KL.B11(r, s) += mInitialTransConToCar(0, 0) * ddE_cu[0];
-                        second_variations_KL.B22(r, s) += mInitialTransConToCar(1, 0) * ddE_cu[0] + mInitialTransConToCar(1, 1) * ddE_cu[1]
-                            + mInitialTransConToCar(1, 2) * ddE_cu[2];
-                        second_variations_KL.B12(r, s) += mInitialTransConToCar(2, 0) * ddE_cu[0] + mInitialTransConToCar(2, 2) * ddE_cu[2];
-                    }
-
-                    // curvature
-                    array_1d<double, 3> ddg3(3, 0.0);
-                    unsigned int dirt = 4 - dirr - dirs;
-                    unsigned int ddir = dirr - dirs;
-                    if (ddir == -1)      ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
-                    else if (ddir == 2) ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
-                    else if (ddir == 1) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
-                    else if (ddir == -2) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
-
-                    double c = -(ddg3[0] * rActualMetric.a3_kirchhoff_love_tilde[0] + ddg3[1] * rActualMetric.a3_kirchhoff_love_tilde[1] + ddg3[2] * rActualMetric.a3_kirchhoff_love_tilde[2]
-                        + S_dg3(0, r)*S_dg3(0, s) + S_dg3(1, r)*S_dg3(1, s) + S_dg3(2, r)*S_dg3(2, s)
-                        )*inv_lg3_3;
-
-                    double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
-
-                    array_1d<double, 3> ddn(3, 0.0);
-                    ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[0];
-                    ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[1];
-                    ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[2];
-
-                    array_1d<double, 3> ddK_cu(3, 0.0);
-                    ddK_cu[0] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
-                        + rActualMetric.H(0, 0)*ddn[0] + rActualMetric.H(1, 0)*ddn[1] + rActualMetric.H(2, 0)*ddn[2]);
-                    ddK_cu[1] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)
-                        + rActualMetric.H(0, 1)*ddn[0] + rActualMetric.H(1, 1)*ddn[1] + rActualMetric.H(2, 1)*ddn[2]);
-                    ddK_cu[2] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
-                        + rActualMetric.H(0, 2)*ddn[0] + rActualMetric.H(1, 2)*ddn[1] + rActualMetric.H(2, 2)*ddn[2]);
+                // strain
+                array_1d<double, 3> ddE_cu(3, 0.0);
+                if (dirr == dirs)
+                {
+                    ddE_cu[0] = r_DN_De(kr, 0)* r_DN_De(ks, 0);
+                    ddE_cu[1] = r_DN_De(kr, 1)* r_DN_De(ks, 1);
+                    ddE_cu[2] = 0.5*(r_DN_De(kr, 0)* r_DN_De(ks, 1) + r_DN_De(kr, 1)* r_DN_De(ks, 0));
 
                     // calculated with reduced mInitialTransConToCar
-                    second_variations_KL.B11(r, s) += mInitialTransConToCar(0, 0) * ddK_cu[0];
-                    second_variations_KL.B22(r, s) += mInitialTransConToCar(1, 0) * ddK_cu[0] + mInitialTransConToCar(1, 1) * ddK_cu[1] 
-                        + mInitialTransConToCar(1, 2) * ddK_cu[2];
-                    second_variations_KL.B12(r, s) += mInitialTransConToCar(2, 0) * ddK_cu[0] + mInitialTransConToCar(2, 2) * ddK_cu[2];
-                    
-                    // symmetric B matrices
-                    if (r != s){
-                        second_variations_KL.B11(s, r) = second_variations_KL.B11(r, s);
-                        second_variations_KL.B22(s, r) = second_variations_KL.B22(r, s);
-                        second_variations_KL.B12(s, r) = second_variations_KL.B12(r, s);
-                    }
+                    second_variations_KL.B11(r, s) += mInitialTransConToCar(0, 0) * ddE_cu[0];
+                    second_variations_KL.B22(r, s) += mInitialTransConToCar(1, 0) * ddE_cu[0] + mInitialTransConToCar(1, 1) * ddE_cu[1]
+                        + mInitialTransConToCar(1, 2) * ddE_cu[2];
+                    second_variations_KL.B12(r, s) += mInitialTransConToCar(2, 0) * ddE_cu[0] + mInitialTransConToCar(2, 2) * ddE_cu[2];
                 }
-            }
 
-            // transfer Kirchhoff-Love-second-variations to Reissner-Mindlin-second-variations
-            for (IndexType r = 0; r < mat_size; r++) {
-                unsigned int kr = r / 5;
-                unsigned int dirr = r % 5;
-                unsigned int r_KL = kr * 3 + dirr;
-                if (dirr != 3 && dirr != 4){
-                    for (unsigned int s = 0; s < mat_size; s++){
-                        unsigned int ks = s / 5;
-                        unsigned int dirs = s % 5;
-                        unsigned int s_KL = ks * 3 + dirs;
-                        if (dirs != 3 && dirs != 4){
-                            rSecondVariations.B11(r, s) += second_variations_KL.B11(r_KL, s_KL);
-                            rSecondVariations.B22(r, s) += second_variations_KL.B22(r_KL, s_KL);
-                            rSecondVariations.B12(r, s) += second_variations_KL.B12(r_KL, s_KL);               
-                        }
+                // curvature
+                array_1d<double, 3> ddg3(3, 0.0);
+                unsigned int dirt = 4 - dirr - dirs;
+                unsigned int ddir = dirr - dirs;
+                if (ddir == -1)      ddg3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir == 2)  ddg3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir == 1)  ddg3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir == -2) ddg3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
+
+                double c = -(ddg3[0] * rActualMetric.a3_kirchhoff_love_tilde[0] + ddg3[1] * rActualMetric.a3_kirchhoff_love_tilde[1] + ddg3[2] * rActualMetric.a3_kirchhoff_love_tilde[2]
+                    + S_dg3(0, r)*S_dg3(0, s) + S_dg3(1, r)*S_dg3(1, s) + S_dg3(2, r)*S_dg3(2, s)
+                    )*inv_lg3_3;
+
+                double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
+
+                array_1d<double, 3> ddn(3, 0.0);
+                ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[0];
+                ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[1];
+                ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rActualMetric.a3_kirchhoff_love_tilde[2];
+
+                array_1d<double, 3> ddK_cu(3, 0.0);
+                ddK_cu[0] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 0)*S_dn(dirr, s) + r_DDN_DDe(ks, 0)*S_dn(dirs, r)
+                    + rActualMetric.H(0, 0)*ddn[0] + rActualMetric.H(1, 0)*ddn[1] + rActualMetric.H(2, 0)*ddn[2]);
+                ddK_cu[1] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 2)*S_dn(dirr, s) + r_DDN_DDe(ks, 2)*S_dn(dirs, r)
+                    + rActualMetric.H(0, 1)*ddn[0] + rActualMetric.H(1, 1)*ddn[1] + rActualMetric.H(2, 1)*ddn[2]);
+                ddK_cu[2] = - mZeta * thickness / 2.0 * (r_DDN_DDe(kr, 1)*S_dn(dirr, s) + r_DDN_DDe(ks, 1)*S_dn(dirs, r)
+                    + rActualMetric.H(0, 2)*ddn[0] + rActualMetric.H(1, 2)*ddn[1] + rActualMetric.H(2, 2)*ddn[2]);
+
+                // calculated with reduced mInitialTransConToCar
+                second_variations_KL.B11(r, s) += mInitialTransConToCar(0, 0) * ddK_cu[0];
+                second_variations_KL.B22(r, s) += mInitialTransConToCar(1, 0) * ddK_cu[0] + mInitialTransConToCar(1, 1) * ddK_cu[1] 
+                    + mInitialTransConToCar(1, 2) * ddK_cu[2];
+                second_variations_KL.B12(r, s) += mInitialTransConToCar(2, 0) * ddK_cu[0] + mInitialTransConToCar(2, 2) * ddK_cu[2];
+                    
+                // symmetric B matrices
+                if (r != s){
+                    second_variations_KL.B11(s, r) = second_variations_KL.B11(r, s);
+                    second_variations_KL.B22(s, r) = second_variations_KL.B22(r, s);
+                    second_variations_KL.B12(s, r) = second_variations_KL.B12(r, s);
+                }
+            }
+        }
+
+        // transfer Kirchhoff-Love-second-variations to Reissner-Mindlin-second-variations
+        for (IndexType r = 0; r < mat_size; r++) {
+            unsigned int kr = r / 5;
+            unsigned int dirr = r % 5;
+            unsigned int r_KL = kr * 3 + dirr;
+            if (dirr != 3 && dirr != 4){
+                for (unsigned int s = 0; s < mat_size; s++){
+                    unsigned int ks = s / 5;
+                    unsigned int dirs = s % 5;
+                    unsigned int s_KL = ks * 3 + dirs;
+                    if (dirs != 3 && dirs != 4){
+                        rSecondVariations.B11(r, s) += second_variations_KL.B11(r_KL, s_KL);
+                        rSecondVariations.B22(r, s) += second_variations_KL.B22(r_KL, s_KL);
+                        rSecondVariations.B12(r, s) += second_variations_KL.B12(r_KL, s_KL);               
                     }
                 }
             }
-        }   // if HasShapeFunctions
+        }
     }
 
-    void Shell5pHierarchicElement::CalculateVariationsReissnerMindlin(        
+    void Shell5pHierarchicElement::CalculateVariationsReissnerMindlin(
         Matrix& rB,
         SecondVariations& rSecondVariations,
         const Vector& rw,
@@ -875,13 +865,15 @@ namespace Kratos
         const Vector& rw_alpha,
         const Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric,
-        const bool& rCalculateStiffnessMatrixFlag)
+        const bool& rCalculateStiffnessMatrixFlag,
+        IndexType IntegrationPointIndex)
     {
-        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
-        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-        const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
+        const GeometryType& r_geometry = GetGeometry();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex);
         const double thickness = GetProperties().GetValue(THICKNESS);
-        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int number_of_control_points = r_geometry.size();
         const unsigned int mat_size = number_of_control_points * 5;
 
         // 1. First strain variation
@@ -896,19 +888,19 @@ namespace Kratos
             array_1d<double, 2> dE_cur = ZeroVector(2);
             
             if (dirr == 0 || dirr == 1 || dirr == 2){
-                Dw_Dr(dirr, r) = rw_alpha(0) * DN_De(kr, 0) + rw_alpha(1) * DN_De(kr, 1);
-                dE_cur[0] = 0.5 * (rw(dirr) * DN_De(kr, 1));
-                dE_cur[1] = 0.5 * (rw(dirr) * DN_De(kr, 0));
+                Dw_Dr(dirr, r) = rw_alpha(0) * r_DN_De(kr, 0) + rw_alpha(1) * r_DN_De(kr, 1);
+                dE_cur[0] = 0.5 * (rw(dirr) * r_DN_De(kr, 1));
+                dE_cur[1] = 0.5 * (rw(dirr) * r_DN_De(kr, 0));
             }
             else if(dirr == 3){
-                Dw_Dr(0, r) = N(kr) * rActualMetric.a1(0);
-                Dw_Dr(1, r) = N(kr) * rActualMetric.a1(1);
-                Dw_Dr(2, r) = N(kr) * rActualMetric.a1(2);
+                Dw_Dr(0, r) = r_N(IntegrationPointIndex, kr) * rActualMetric.a1(0);
+                Dw_Dr(1, r) = r_N(IntegrationPointIndex, kr) * rActualMetric.a1(1);
+                Dw_Dr(2, r) = r_N(IntegrationPointIndex, kr) * rActualMetric.a1(2);
             }
             else {
-                Dw_Dr(0, r) = N(kr) * rActualMetric.a2(0);
-                Dw_Dr(1, r) = N(kr) * rActualMetric.a2(1);
-                Dw_Dr(2, r) = N(kr) * rActualMetric.a2(2);                
+                Dw_Dr(0, r) = r_N(IntegrationPointIndex, kr) * rActualMetric.a2(0);
+                Dw_Dr(1, r) = r_N(IntegrationPointIndex, kr) * rActualMetric.a2(1);
+                Dw_Dr(2, r) = r_N(IntegrationPointIndex, kr) * rActualMetric.a2(2);
             }
             dE_cur[0] += 0.5 * (Dw_Dr(0, r) * rActualMetric.a2(0) + Dw_Dr(1, r) * rActualMetric.a2(1) + Dw_Dr(2, r) * rActualMetric.a2(2));
             dE_cur[1] += 0.5 * (Dw_Dr(0, r) * rActualMetric.a1(0) + Dw_Dr(1, r) * rActualMetric.a1(1) + Dw_Dr(2, r) * rActualMetric.a1(2));
@@ -924,33 +916,33 @@ namespace Kratos
             array_1d<double, 3> DDw_DD2r = ZeroVector(3);
 
             if (dirr == 0 || dirr == 1 || dirr == 2){
-                DDw_DD1r[dirr] = rDw_alpha_Dbeta(0, 0) * DN_De(kr, 0)  + rw_alpha[0] * DDN_DDe(kr, 0)
-                    + rDw_alpha_Dbeta(1, 0) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 2);
-                DDw_DD2r[dirr] = rDw_alpha_Dbeta(0, 1) * DN_De(kr, 0) + rw_alpha[0] * DDN_DDe(kr, 2)
-                    + rDw_alpha_Dbeta(1, 1) * DN_De(kr, 1) + rw_alpha[1] * DDN_DDe(kr, 1);
-                dK_cu[0] = rDw_D1[dirr] * DN_De(kr, 0);
-                dK_cu[1] = rDw_D2[dirr] * DN_De(kr, 1);
-                dK_cu[2] = 0.5 * (rDw_D1[dirr] * DN_De(kr, 1) + rDw_D2[dirr] * DN_De(kr, 0));
+                DDw_DD1r[dirr] = rDw_alpha_Dbeta(0, 0) * r_DN_De(kr, 0)  + rw_alpha[0] * r_DDN_DDe(kr, 0)
+                    + rDw_alpha_Dbeta(1, 0) * r_DN_De(kr, 1) + rw_alpha[1] * r_DDN_DDe(kr, 1);
+                DDw_DD2r[dirr] = rDw_alpha_Dbeta(0, 1) * r_DN_De(kr, 0) + rw_alpha[0] * r_DDN_DDe(kr, 1)
+                    + rDw_alpha_Dbeta(1, 1) * r_DN_De(kr, 1) + rw_alpha[1] * r_DDN_DDe(kr, 2);
+                dK_cu[0] = rDw_D1[dirr] * r_DN_De(kr, 0);
+                dK_cu[1] = rDw_D2[dirr] * r_DN_De(kr, 1);
+                dK_cu[2] = 0.5 * (rDw_D1[dirr] * r_DN_De(kr, 1) + rDw_D2[dirr] * r_DN_De(kr, 0));
             }
             else if (dirr == 3){
-                DDw_DD1r += DN_De(kr, 0) * rActualMetric.a1;
-                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 0);
-                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 0);
-                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 0);
-                DDw_DD2r += DN_De(kr, 1) * rActualMetric.a1;
-                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 2);
-                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 2);
-                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 2);                
+                DDw_DD1r += r_DN_De(kr, 0) * rActualMetric.a1;
+                DDw_DD1r[0] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(0, 0);
+                DDw_DD1r[1] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(1, 0);
+                DDw_DD1r[2] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(2, 0);
+                DDw_DD2r += r_DN_De(kr, 1) * rActualMetric.a1;
+                DDw_DD2r[0] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(0, 2);
+                DDw_DD2r[1] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(1, 2);
+                DDw_DD2r[2] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(2, 2);
             }
             else if (dirr == 4){
-                DDw_DD1r += DN_De(kr, 0) * rActualMetric.a2;
-                DDw_DD1r[0] += N(kr) * rActualMetric.H(0, 2);
-                DDw_DD1r[1] += N(kr) * rActualMetric.H(1, 2);
-                DDw_DD1r[2] += N(kr) * rActualMetric.H(2, 2);
-                DDw_DD2r += DN_De(kr, 1) * rActualMetric.a2;
-                DDw_DD2r[0] += N(kr) * rActualMetric.H(0, 1);
-                DDw_DD2r[1] += N(kr) * rActualMetric.H(1, 1);
-                DDw_DD2r[2] += N(kr) * rActualMetric.H(2, 1);
+                DDw_DD1r += r_DN_De(kr, 0) * rActualMetric.a2;
+                DDw_DD1r[0] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(0, 2);
+                DDw_DD1r[1] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(1, 2);
+                DDw_DD1r[2] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(2, 2);
+                DDw_DD2r += r_DN_De(kr, 1) * rActualMetric.a2;
+                DDw_DD2r[0] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(0, 1);
+                DDw_DD2r[1] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(1, 1);
+                DDw_DD2r[2] += r_N(IntegrationPointIndex, kr) * rActualMetric.H(2, 1);
             }
             dK_cu[0] += inner_prod(DDw_DD1r, rActualMetric.a1);
             dK_cu[1] += inner_prod(DDw_DD2r, rActualMetric.a2);
@@ -976,34 +968,34 @@ namespace Kratos
                     array_1d <double, 2> ddE_cu = ZeroVector(2);
 
                     if (dirs == 0 || dirs == 1 || dirs == 2){
-                        Dw_Ds(dirs) = rw_alpha(0) * DN_De(ks, 0) + rw_alpha(1) * DN_De(ks, 1);
+                        Dw_Ds(dirs) = rw_alpha(0) * r_DN_De(ks, 0) + rw_alpha(1) * r_DN_De(ks, 1);
                     }
                     else if(dirs == 3){
-                        Dw_Ds(0) = N(ks) * rActualMetric.a1(0);
-                        Dw_Ds(1) = N(ks) * rActualMetric.a1(1);
-                        Dw_Ds(2) = N(ks) * rActualMetric.a1(2);
+                        Dw_Ds(0) = r_N(IntegrationPointIndex, ks) * rActualMetric.a1(0);
+                        Dw_Ds(1) = r_N(IntegrationPointIndex, ks) * rActualMetric.a1(1);
+                        Dw_Ds(2) = r_N(IntegrationPointIndex, ks) * rActualMetric.a1(2);
                     }
                     else {
-                        Dw_Ds(0) = N(ks) * rActualMetric.a2(0);
-                        Dw_Ds(1) = N(ks) * rActualMetric.a2(1);
-                        Dw_Ds(2) = N(ks) * rActualMetric.a2(2);                
+                        Dw_Ds(0) = r_N(IntegrationPointIndex, ks) * rActualMetric.a2(0);
+                        Dw_Ds(1) = r_N(IntegrationPointIndex, ks) * rActualMetric.a2(1);
+                        Dw_Ds(2) = r_N(IntegrationPointIndex, ks) * rActualMetric.a2(2);
                     }
                     if (dirr == 0 || dirr == 1 || dirr == 2){
-                        ddE_cu[0] = 0.5 * Dw_Ds(dirr) * DN_De(kr, 1);
-                        ddE_cu[1] = 0.5 * Dw_Ds(dirr) * DN_De(kr, 0);
+                        ddE_cu[0] = 0.5 * Dw_Ds(dirr) * r_DN_De(kr, 1);
+                        ddE_cu[1] = 0.5 * Dw_Ds(dirr) * r_DN_De(kr, 0);
                     }
                     if (dirs == 0 || dirs == 1 || dirs == 2){
-                        ddE_cu[0] += 0.5 * Dw_Dr(dirs, r) * DN_De(ks, 1);
-                        ddE_cu[1] += 0.5 * Dw_Dr(dirs, r) * DN_De(ks, 0);
+                        ddE_cu[0] += 0.5 * Dw_Dr(dirs, r) * r_DN_De(ks, 1);
+                        ddE_cu[1] += 0.5 * Dw_Dr(dirs, r) * r_DN_De(ks, 0);
                     }
                     if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2))
-                        DDw_DDrs(dirs) += N(kr) * DN_De(ks, 0);
+                        DDw_DDrs(dirs) += r_N(IntegrationPointIndex, kr) * r_DN_De(ks, 0);
                     else if (dirr == 4 && (dirs == 0 || dirs == 1 || dirs == 2))
-                        DDw_DDrs(dirs) += N(kr) * DN_De(ks, 1);
+                        DDw_DDrs(dirs) += r_N(IntegrationPointIndex, kr) * r_DN_De(ks, 1);
                     if (dirs == 3 && (dirr == 0 || dirr == 1 || dirr == 2))
-                        DDw_DDrs(dirr) += N(ks) * DN_De(kr, 0);       
+                        DDw_DDrs(dirr) += r_N(IntegrationPointIndex, ks) * r_DN_De(kr, 0);
                     else if (dirs == 4 && (dirr == 0 || dirr == 1 || dirr == 2))
-                        DDw_DDrs(dirr) += N(ks) * DN_De(kr, 1);
+                        DDw_DDrs(dirr) += r_N(IntegrationPointIndex, ks) * r_DN_De(kr, 1);
                     ddE_cu[0] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.a2);
                     ddE_cu[1] += 0.5 * inner_prod(DDw_DDrs, rActualMetric.a1);
 
@@ -1024,57 +1016,57 @@ namespace Kratos
                     array_1d<double, 3> DDw_DD2s = ZeroVector(3);
 
                     if (dirs == 0 || dirs == 1 || dirs == 2){
-                        DDw_DD1s[dirs] = rDw_alpha_Dbeta(0, 0) * DN_De(ks, 0)  + rw_alpha[0] * DDN_DDe(ks, 0)
-                        + rDw_alpha_Dbeta(1, 0) * DN_De(ks, 1) + rw_alpha[1] * DDN_DDe(ks, 2);
-                        DDw_DD2s[dirs] = rDw_alpha_Dbeta(0, 1) * DN_De(ks, 0) + rw_alpha[0] * DDN_DDe(ks, 2)
-                        + rDw_alpha_Dbeta(1, 1) * DN_De(ks, 1) + rw_alpha[1] * DDN_DDe(ks, 1);
+                        DDw_DD1s[dirs] = rDw_alpha_Dbeta(0, 0) * r_DN_De(ks, 0)  + rw_alpha[0] * r_DDN_DDe(ks, 0)
+                        + rDw_alpha_Dbeta(1, 0) * r_DN_De(ks, 1) + rw_alpha[1] * r_DDN_DDe(ks, 1);
+                        DDw_DD2s[dirs] = rDw_alpha_Dbeta(0, 1) * r_DN_De(ks, 0) + rw_alpha[0] * r_DDN_DDe(ks, 1)
+                        + rDw_alpha_Dbeta(1, 1) * r_DN_De(ks, 1) + rw_alpha[1] * r_DDN_DDe(ks, 2);
                     }
                     else if (dirs == 3){
-                        DDw_DD1s += DN_De(ks, 0) * rActualMetric.a1;
-                        DDw_DD1s[0] += N(ks) * rActualMetric.H(0, 0);
-                        DDw_DD1s[1] += N(ks) * rActualMetric.H(1, 0);
-                        DDw_DD1s[2] += N(ks) * rActualMetric.H(2, 0);
-                        DDw_DD2s += DN_De(ks, 1) * rActualMetric.a1;
-                        DDw_DD2s[0] += N(ks) * rActualMetric.H(0, 2);
-                        DDw_DD2s[1] += N(ks) * rActualMetric.H(1, 2);
-                        DDw_DD2s[2] += N(ks) * rActualMetric.H(2, 2);                
+                        DDw_DD1s += r_DN_De(ks, 0) * rActualMetric.a1;
+                        DDw_DD1s[0] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(0, 0);
+                        DDw_DD1s[1] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(1, 0);
+                        DDw_DD1s[2] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(2, 0);
+                        DDw_DD2s += r_DN_De(ks, 1) * rActualMetric.a1;
+                        DDw_DD2s[0] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(0, 2);
+                        DDw_DD2s[1] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(1, 2);
+                        DDw_DD2s[2] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(2, 2);
                     }
                     else if (dirs == 4){
-                        DDw_DD1s += DN_De(ks, 0) * rActualMetric.a2;
-                        DDw_DD1s[0] += N(ks) * rActualMetric.H(0, 2);
-                        DDw_DD1s[1] += N(ks) * rActualMetric.H(1, 2);
-                        DDw_DD1s[2] += N(ks) * rActualMetric.H(2, 2);
-                        DDw_DD2s += DN_De(ks, 1) * rActualMetric.a2;
-                        DDw_DD2s[0] += N(ks) * rActualMetric.H(0, 1);
-                        DDw_DD2s[1] += N(ks) * rActualMetric.H(1, 1);
-                        DDw_DD2s[2] += N(ks) * rActualMetric.H(2, 1);
+                        DDw_DD1s += r_DN_De(ks, 0) * rActualMetric.a2;
+                        DDw_DD1s[0] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(0, 2);
+                        DDw_DD1s[1] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(1, 2);
+                        DDw_DD1s[2] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(2, 2);
+                        DDw_DD2s += r_DN_De(ks, 1) * rActualMetric.a2;
+                        DDw_DD2s[0] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(0, 1);
+                        DDw_DD2s[1] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(1, 1);
+                        DDw_DD2s[2] += r_N(IntegrationPointIndex, ks) * rActualMetric.H(2, 1);
                     }
                     
                     if (dirr == 0 || dirr == 1 || dirr == 2){
-                        ddK_cu[0] = mZeta * thickness /2.0 * DDw_DD1s[dirr] * DN_De(kr, 0);
-                        ddK_cu[1] = mZeta * thickness /2.0 * DDw_DD2s[dirr] * DN_De(kr, 1);
-                        ddK_cu[2] = mZeta * thickness /2.0 * 0.5 * (DDw_DD1s[dirr] * DN_De(kr, 1) + DDw_DD2s[dirr] * DN_De(kr, 0));
+                        ddK_cu[0] = mZeta * thickness /2.0 * DDw_DD1s[dirr] * r_DN_De(kr, 0);
+                        ddK_cu[1] = mZeta * thickness /2.0 * DDw_DD2s[dirr] * r_DN_De(kr, 1);
+                        ddK_cu[2] = mZeta * thickness /2.0 * 0.5 * (DDw_DD1s[dirr] * r_DN_De(kr, 1) + DDw_DD2s[dirr] * r_DN_De(kr, 0));
                         }
                     else if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2)){
-                        DDDw_DDD1rs[dirs] = DN_De(kr, 0) * DN_De(ks, 0) + N(kr) * DDN_DDe(ks, 0);
-                        DDDw_DDD2rs[dirs] = DN_De(kr, 1) * DN_De(ks, 0) + N(kr) * DDN_DDe(ks, 2);
+                        DDDw_DDD1rs[dirs] = r_DN_De(kr, 0) * r_DN_De(ks, 0) + r_N(IntegrationPointIndex, kr) * r_DDN_DDe(ks, 0);
+                        DDDw_DDD2rs[dirs] = r_DN_De(kr, 1) * r_DN_De(ks, 0) + r_N(IntegrationPointIndex, kr) * r_DDN_DDe(ks, 1);
                     }
                     else if (dirr == 4 && (dirs == 0 || dirs == 1 || dirs == 2)){
-                        DDDw_DDD1rs[dirs] += DN_De(kr, 0) * DN_De(ks, 1) + N(kr) * DDN_DDe(ks, 2);
-                        DDDw_DDD2rs[dirs] += DN_De(kr, 1) * DN_De(ks, 1) + N(kr) * DDN_DDe(ks, 1);
+                        DDDw_DDD1rs[dirs] += r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_N(IntegrationPointIndex, kr) * r_DDN_DDe(ks, 1);
+                        DDDw_DDD2rs[dirs] += r_DN_De(kr, 1) * r_DN_De(ks, 1) + r_N(IntegrationPointIndex, kr) * r_DDN_DDe(ks, 2);
                     }
                     if (dirs == 0 || dirs == 1 || dirs == 2){
-                        ddK_cu[0] += mZeta * thickness /2.0 * DDw_DD1r[dirs] * DN_De(ks, 0);
-                        ddK_cu[1] += mZeta * thickness /2.0 * DDw_DD2r[dirs] * DN_De(ks, 1);
-                        ddK_cu[2] += mZeta * thickness /2.0 * 0.5 * (DDw_DD1r[dirs] * DN_De(ks, 1) + DDw_DD2r[dirs] * DN_De(ks, 0));
+                        ddK_cu[0] += mZeta * thickness /2.0 * DDw_DD1r[dirs] * r_DN_De(ks, 0);
+                        ddK_cu[1] += mZeta * thickness /2.0 * DDw_DD2r[dirs] * r_DN_De(ks, 1);
+                        ddK_cu[2] += mZeta * thickness /2.0 * 0.5 * (DDw_DD1r[dirs] * r_DN_De(ks, 1) + DDw_DD2r[dirs] * r_DN_De(ks, 0));
                         }
                     else if (dirs == 3 && (dirr == 0 || dirr == 1 || dirr == 2)){
-                        DDDw_DDD1rs[dirr] += DN_De(ks, 0) * DN_De(kr, 0) + N(ks) * DDN_DDe(kr, 0);
-                        DDDw_DDD2rs[dirr] += DN_De(ks, 1) * DN_De(kr, 0) + N(ks) * DDN_DDe(kr, 2);
+                        DDDw_DDD1rs[dirr] += r_DN_De(ks, 0) * r_DN_De(kr, 0) + r_N(IntegrationPointIndex, ks) * r_DDN_DDe(kr, 0);
+                        DDDw_DDD2rs[dirr] += r_DN_De(ks, 1) * r_DN_De(kr, 0) + r_N(IntegrationPointIndex, ks) * r_DDN_DDe(kr, 1);
                     }
                     else if (dirs == 4 && (dirr == 0 || dirr == 1 || dirr == 2)){
-                        DDDw_DDD1rs[dirr] += DN_De(ks, 0) * DN_De(kr, 1) + N(ks) * DDN_DDe(kr, 2);
-                        DDDw_DDD2rs[dirr] += DN_De(ks, 1) * DN_De(kr, 1) + N(ks) * DDN_DDe(kr, 1);
+                        DDDw_DDD1rs[dirr] += r_DN_De(ks, 0) * r_DN_De(kr, 1) + r_N(IntegrationPointIndex, ks) * r_DDN_DDe(kr, 1);
+                        DDDw_DDD2rs[dirr] += r_DN_De(ks, 1) * r_DN_De(kr, 1) + r_N(IntegrationPointIndex, ks) * r_DDN_DDe(kr, 2);
                     }
                     ddK_cu[0] += mZeta * thickness / 2.0 * inner_prod(DDDw_DDD1rs, rActualMetric.a1);
                     ddK_cu[1] += mZeta * thickness / 2.0 * inner_prod(DDDw_DDD2rs, rActualMetric.a2);
@@ -1305,19 +1297,14 @@ namespace Kratos
 
     int Shell5pHierarchicElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
-        if (DISPLACEMENT.Key() == 0)
-            KRATOS_ERROR << "DISPLACEMENT has Key zero! check if the application is correctly registered" << std::endl;
-        if (SHAPE_FUNCTION_VALUES.Key() == 0)
-            KRATOS_ERROR << "SHAPE_FUNCTION_VALUES has Key zero! check if the application is correctly registered" << std::endl;
-        if (SHAPE_FUNCTION_LOCAL_DERIVATIVES.Key() == 0)
-            KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
-        if (SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES.Key() == 0)
-            KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
+        KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0)
+            << "DISPLACEMENT has Key zero! check if the application is correctly registered" << std::endl;
+        KRATOS_ERROR_IF(ROTATION.Key() == 0)
+            << "ROTATION has Key zero! Shell5pHierarchic requires ROTATION dofs." << std::endl;
+
         // Check whether ConstitutiveLaw is 3D
-        if (mConstitutiveLawVector[0]->GetStrainSize() != 6){
-            KRATOS_WATCH("ConstitutiveLaw is not 3D.")  // not Kratos style, but output is not shown with KRATOS_ERROR 
-            KRATOS_ERROR << "ConstitutiveLaw is not 3D." << std::endl;
-        }
+        KRATOS_ERROR_IF(mConstitutiveLawVector[0]->GetStrainSize() != 6) << "ConstitutiveLaw is not 3D." << std::endl;
+
         return 0;
     }
 

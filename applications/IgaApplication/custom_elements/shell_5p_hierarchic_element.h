@@ -434,7 +434,8 @@ private:
         array_1d<double, 3>& rDw_D2,
         array_1d<double, 2>& rw_alpha,
         Matrix& rDw_alpha_Dbeta,
-        const MetricVariables& rActualMetric);
+        const MetricVariables& rActualMetric,
+        IndexType IntegrationPointIndex = 0);
     
     /* @brief Calculation of the base vectors of the shell body (in contrast to the mid-surface) for the initial configuration
      * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed. Base vector a refer to the mid-span and base vector g refer to the shell body.
@@ -531,12 +532,14 @@ private:
      */
     void CalculateB(
         Matrix& rB,
-        const MetricVariables& rActualMetric);
+        const MetricVariables& rActualMetric,
+        IndexType IntegrationPointIndex = 0);
 
     /// @brief The method calculates the second variations according to Kirchhoff-Love
     void CalculateSecondVariations(
         SecondVariations& rSecondVariations,
-        const MetricVariables& rActualMetric);
+        const MetricVariables& rActualMetric,
+        IndexType IntegrationPointIndex = 0);
 
     /* @brief The method calculates the additional terms of the B matrix and the second variations according to Reissner-Mindlin
      * @param rw = hierarchic shear difference vector
@@ -554,7 +557,8 @@ private:
         const Vector& rw_alpha,
         const Matrix& rDw_alpha_Dbeta,
         const MetricVariables& rActualMetric,
-        const bool& rCalculateStiffnessMatrixFlag);
+        const bool& rCalculateStiffnessMatrixFlag,
+        IndexType IntegrationPointIndex = 0);
  
     /// @brief Stress recovery
     void Calculate(
