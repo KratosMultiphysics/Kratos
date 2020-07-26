@@ -376,8 +376,6 @@ private:
             rCurrentElement, mLeftHandSide[k], mResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) = mLeftHandSide[k];
         noalias(rRHS_Contribution) = -1. * mResponseGradient[k];
-        KRATOS_WATCH(rLHS_Contribution)
-        KRATOS_WATCH(rRHS_Contribution)
     }
 
     void CalculateFirstDerivativeContributions(Element& rCurrentElement,
@@ -393,10 +391,6 @@ private:
         noalias(rLHS_Contribution) += mBossak.C6 * mFirstDerivsLHS[k];
         noalias(rRHS_Contribution) -=
             mBossak.C6 * mFirstDerivsResponseGradient[k];
-        KRATOS_WATCH(rLHS_Contribution)
-        KRATOS_WATCH(mBossak.C6)
-        KRATOS_WATCH(mFirstDerivsResponseGradient[k])
-        KRATOS_WATCH(rRHS_Contribution)
     }
 
     void CalculateSecondDerivativeContributions(Element& rCurrentElement,
@@ -414,8 +408,6 @@ private:
         noalias(rLHS_Contribution) += mBossak.C7 * mSecondDerivsLHS[k];
         noalias(rRHS_Contribution) -=
             mBossak.C7 * mSecondDerivsResponseGradient[k];
-        KRATOS_WATCH(rLHS_Contribution)
-        KRATOS_WATCH(rRHS_Contribution)
     }
 
     void CalculatePreviousTimeStepContributions(Element& rCurrentElement,
@@ -446,7 +438,6 @@ private:
                 ++local_index;
             }
         }
-        KRATOS_WATCH(rRHS_Contribution)
     }
 
     void CalculateResidualLocalContributions(Element& rCurrentElement,
@@ -458,7 +449,6 @@ private:
         auto& r_residual_adjoint = mAdjointValuesVector[k];
         rCurrentElement.GetValuesVector(r_residual_adjoint);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
-        KRATOS_WATCH(rRHS_Contribution)
     }
 
     void InitializeNodeNeighbourCount(ModelPart::NodesContainerType& rNodes)

@@ -39,8 +39,6 @@ namespace Kratos
         rResponseGradient.clear();
 
         rResponseGradient(2) = mAlphaResponseWeight * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-
-        KRATOS_WATCH(rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT))
         
         KRATOS_CATCH("");
     }
@@ -59,8 +57,6 @@ namespace Kratos
         rResponseGradient.clear();
 
         rResponseGradient(2) = (1 - mAlphaResponseWeight) * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
-        KRATOS_WATCH(rResponseGradient(2))
-        KRATOS_WATCH(rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY))
 
         KRATOS_CATCH("");
     }
