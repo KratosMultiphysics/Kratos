@@ -126,10 +126,7 @@ public:
         : mpModelPart(&rModelPart)
     {
         this->ValidateAndAssignParameters(ThisParameters);
-        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
-        SetMoveMeshFlag(move_mesh_flag);
-        const int echo_level = ThisParameters["echo_level"].GetInt();
-        SetEchoLevel(echo_level);
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -488,6 +485,24 @@ protected:
         // The default parameters
         const Parameters default_parameters = this->GetDefaultParameters();
         rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        // By default mesh is not moved
+        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
+        SetMoveMeshFlag(move_mesh_flag);
+
+        // Be default the minimal information is shown
+        const int echo_level = ThisParameters["echo_level"].GetInt();
+        SetEchoLevel(echo_level);
+
+        // By default the matrices are rebuilt at each iteration
+        this->SetRebuildLevel(ThisParameters["build_level"].GetInt());
     }
 
     ///@}
