@@ -135,9 +135,8 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit LineSearchStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
-    {
-    }
+        : LineSearchStrategy(rModelPart, ThisParameters, LineSearchStrategy::StaticGetDefaultSettings())
+    { }
 
     /**
      * Default Constructor
@@ -247,6 +246,32 @@ public:
     {
     }
 
+    /**
+     * @brief This method returns the default settings
+     */
+    Parameters GetDefaultSettings() const override
+    {
+        return LineSearchStrategy::StaticGetDefaultSettings();
+    }
+
+    static Parameters StaticGetDefaultSettings()
+    {
+        std::cout << "LINE SEARCH STRATEGY GetDefaultSettings" << std::endl;
+
+        Parameters default_parameters(R"({
+            "max_line_search_iterations" : 5,
+            "first_alpha_value"          : 0.5,
+            "second_alpha_value"         : 1.0,
+            "min_alpha"                  : 0.1,
+            "max_alpha"                  : 2.0,
+            "line_search_tolerance"      : 0.5
+        })");
+
+        default_parameters.AddMissingParameters(BaseType::StaticGetDefaultSettings());
+
+        return default_parameters;
+    }
+
 
     ///@}
     ///@name Operators
@@ -269,7 +294,7 @@ public:
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
-    
+
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
@@ -485,24 +510,6 @@ protected:
     }
 
     /**
-     * @brief This method returns the default settings
-     */
-    Parameters GetDefaultSettings() override
-    {
-        Parameters base_default_settings = BaseType::GetDefaultSettings();
-        Parameters default_settings(R"({
-            "max_line_search_iterations" : 5,
-            "first_alpha_value"          : 0.5,
-            "second_alpha_value"         : 1.0,
-            "min_alpha"                  : 0.1,
-            "max_alpha"                  : 2.0,
-            "line_search_tolerance"      : 0.5
-        })");
-        default_settings.AddMissingParameters(base_default_settings);
-        return default_settings;
-    }
-
-    /**
      * @brief This method assigns settings to member variables
      * @param Settings Parameters that are assigned to the member variables
      */
@@ -535,6 +542,20 @@ protected:
         DefaultSettings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
         DefaultSettings["calculate_reactions"].SetBool(CalculateReactions);
     }
+
+
+    explicit LineSearchStrategy(ModelPart& rModelPart, Parameters ThisParameters, Parameters DefaultSettings)
+        : BaseType(rModelPart, ThisParameters, DefaultSettings)
+    {
+        // by this point the baseclass validated and assigned defaults
+        mMaxLineSearchIterations = ThisParameters["max_line_search_iterations"].GetInt();
+        mFirstAlphaValue = ThisParameters["first_alpha_value"].GetDouble();
+        mSecondAlphaValue = ThisParameters["second_alpha_value"].GetDouble();
+        mMinAlpha = ThisParameters["min_alpha"].GetDouble();
+        mMaxAlpha = ThisParameters["max_alpha"].GetDouble();
+        mLineSearchTolerance = ThisParameters["line_search_tolerance"].GetDouble();
+    }
+
 
 
 

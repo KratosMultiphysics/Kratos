@@ -116,9 +116,9 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ThisParameters The configuration parameters
      */
     explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : ResidualBasedNewtonRaphsonStrategy(rModelPart, ThisParameters, ResidualBasedNewtonRaphsonStrategy::StaticGetDefaultSettings())
     {
-        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        std::cout << "Normal CTor of NR Strategy" << std::endl;
     }
 
     /**
@@ -432,6 +432,27 @@ class ResidualBasedNewtonRaphsonStrategy
         mpb.reset();
 
         Clear();
+    }
+
+    Parameters GetDefaultSettings() const override
+    {
+        return ResidualBasedNewtonRaphsonStrategy::StaticGetDefaultSettings();
+    }
+
+    static Parameters StaticGetDefaultSettings()
+    {
+        std::cout << "NR STRATEGY GetDefaultSettings" << std::endl;
+
+        Parameters default_parameters(R"({
+            "use_old_stiffness_in_first_iteration": false,
+            "max_iterations"           : 30,
+            "reform_dofs_at_each_step" : false,
+            "calculate_reactions"      : false
+        })");
+
+        default_parameters.AddMissingParameters(BaseType::StaticGetDefaultSettings());
+
+        return default_parameters;
     }
 
     /**
@@ -1196,7 +1217,7 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
@@ -1307,20 +1328,6 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief This method returns the default settings
-     */
-    virtual Parameters GetDefaultSettings()
-    {
-        Parameters default_settings(R"({
-            "use_old_stiffness_in_first_iteration": false,
-            "max_iterations"           : 30,
-            "reform_dofs_at_each_step" : false,
-            "calculate_reactions"      : false
-        })");
-        return default_settings;
-    }
-
-    /**
      * @brief This method assigns settings to member variables
      * @param Settings Parameters that are assigned to the member variables
      */
@@ -1335,6 +1342,18 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@}
     ///@name Private Operations
     ///@{
+
+    explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters, Parameters DefaultSettings)
+        : BaseType(rModelPart, ThisParameters, DefaultSettings)
+    {
+        std::cout << "Protected CTor of NR Strategy" << std::endl;
+
+        // by this point the baseclass validated and assigned defaults
+        mMaxIterationNumber = ThisParameters["max_iterations"].GetInt();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["calculate_reactions"].GetBool();
+        mUseOldStiffnessInFirstIteration = ThisParameters["use_old_stiffness_in_first_iteration"].GetBool();
+    }
 
     ///@}
     ///@name Private  Access

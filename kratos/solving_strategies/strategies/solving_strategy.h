@@ -122,10 +122,9 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : mpModelPart(&rModelPart)
+        : SolvingStrategy(rModelPart, ThisParameters, SolvingStrategy::StaticGetDefaultSettings())
     {
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
-        SetMoveMeshFlag(move_mesh_flag);
+        std::cout << "Normal CTor of Solving Strategy" << std::endl;
     }
 
     /**
@@ -144,6 +143,22 @@ public:
     /** Destructor.
      */
     virtual ~SolvingStrategy(){}
+
+    virtual Parameters GetDefaultSettings() const
+    {
+        return SolvingStrategy::StaticGetDefaultSettings();
+    }
+
+    static Parameters StaticGetDefaultSettings()
+    {
+        std::cout << "SOLVING STRATEGY GetDefaultSettings" << std::endl;
+
+        const Parameters default_parameters(R"({
+            "move_mesh_flag" : false
+        })");
+
+        return default_parameters;
+    }
 
     ///@}
     ///@name Operators
@@ -453,6 +468,17 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
+    explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters, Parameters DefaultSettings)
+        : mpModelPart(&rModelPart)
+    {
+        std::cout << "Protected CTor of Solving Strategy" << std::endl;
+
+        ThisParameters.ValidateAndAssignDefaults(DefaultSettings);
+
+        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
+        SetMoveMeshFlag(move_mesh_flag);
+    }
 
 
     ///@}
