@@ -484,7 +484,9 @@ namespace Kratos
                 .def("Check", &ExplicitBuilderType::Check)
                 .def("GetDefaultParameters",&ExplicitBuilderType::GetDefaultParameters)
                 .def("SetEchoLevel", &ExplicitBuilderType::SetEchoLevel)
-                .def("GetEchoLevel", &ExplicitBuilderType::GetEchoLevel);
+                .def("GetEchoLevel", &ExplicitBuilderType::GetEchoLevel)
+                .def("Info", &ExplicitBuilderType::Info)
+                ;
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
             py::class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
@@ -576,6 +578,7 @@ namespace Kratos
                 .def("FinalizeSolutionStep", &BaseExplicitSolvingStrategyType::FinalizeSolutionStep)
                 .def("SolveSolutionStep", &BaseExplicitSolvingStrategyType::SolveSolutionStep)
                 .def("GetModelPart", [](BaseExplicitSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
+                .def("Info", &BaseExplicitSolvingStrategyType::Info)
                 ;
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
