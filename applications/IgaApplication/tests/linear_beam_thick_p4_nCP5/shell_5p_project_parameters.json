@@ -106,18 +106,6 @@
             }],
         "json_check_process": [
             {
-                "python_module": "json_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "JsonOutputProcess",
-                "Parameters": {
-                    "output_variables": [ "DISPLACEMENT" ],
-                    "gauss_points_output_variables": [],
-                    "output_file_name": "linear_beam_thick_p4_nCP5/linear_beam_thick_p4_nCP5_test_results.json",
-                    "model_part_name": "IgaModelPart",
-                    "time_frequency": 0.0
-                }
-            },
-            {
                 "python_module": "from_json_check_result_process",
                 "kratos_module": "KratosMultiphysics",
                 "Parameters": {
