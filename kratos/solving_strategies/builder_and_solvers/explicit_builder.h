@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -468,6 +469,15 @@ public:
         return 0;
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    virtual const Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"({})" );
+        return default_parameters;
     }
 
     /**
