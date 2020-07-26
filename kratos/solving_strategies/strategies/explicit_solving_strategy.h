@@ -95,10 +95,7 @@ public:
         : mpModelPart(&rModelPart)
     {
         this->ValidateAndAssignParameters(ThisParameters);
-        const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
-        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
-        SetMoveMeshFlag(move_mesh_flag);
-        SetRebuildLevel(rebuild_level);
+        this->AssignSettings(ThisParameters);
         mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
@@ -559,6 +556,18 @@ protected:
         // The default parameters
         const Parameters default_parameters = this->GetDefaultParameters();
         rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
+        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
+        SetMoveMeshFlag(move_mesh_flag);
+        SetRebuildLevel(rebuild_level);
     }
 
     ///@}
