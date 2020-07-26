@@ -279,6 +279,7 @@ namespace Kratos
                 .def("Clear",&BaseSchemeType::Clear)
                 .def("MoveMesh", MoveMesh)
                 .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
+                .def("GetDefaultParameters",&BaseSchemeType::GetDefaultParameters)
                 ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -378,6 +379,7 @@ namespace Kratos
                     .def("FinalizeNonLinearIteration", &ConvergenceCriteriaType::FinalizeNonLinearIteration)
                     .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
                     .def("Check", &ConvergenceCriteriaType::Check)
+                    .def("GetDefaultParameters",&ConvergenceCriteriaType::GetDefaultParameters)
                     .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
                     .def("Info", &ConvergenceCriteriaType::Info)
                     ;
@@ -450,6 +452,7 @@ namespace Kratos
                 .def("CalculateReactions", &BuilderAndSolverType::CalculateReactions)
                 .def("Clear", &BuilderAndSolverType::Clear)
                 .def("Check", &BuilderAndSolverType::Check)
+                .def("GetDefaultParameters",&BuilderAndSolverType::GetDefaultParameters)
                 .def("SetEchoLevel", &BuilderAndSolverType::SetEchoLevel)
                 .def("GetEchoLevel", &BuilderAndSolverType::GetEchoLevel)
                 ;
@@ -478,6 +481,7 @@ namespace Kratos
                 .def("FinalizeSolutionStep", &ExplicitBuilderType::FinalizeSolutionStep)
                 .def("Clear", &ExplicitBuilderType::Clear)
                 .def("Check", &ExplicitBuilderType::Check)
+                .def("GetDefaultParameters",&ExplicitBuilderType::GetDefaultParameters)
                 .def("SetEchoLevel", &ExplicitBuilderType::SetEchoLevel)
                 .def("GetEchoLevel", &ExplicitBuilderType::GetEchoLevel);
 
@@ -542,6 +546,7 @@ namespace Kratos
                     .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
                     .def("Clear", &BaseSolvingStrategyType::Clear)
                     .def("Check", &BaseSolvingStrategyType::Check)
+                    .def("GetDefaultParameters",&BaseSolvingStrategyType::GetDefaultParameters)
                     .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
                     .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
                     .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
@@ -565,6 +570,7 @@ namespace Kratos
                 .def("MoveMesh", &BaseExplicitSolvingStrategyType::MoveMesh)
                 .def("Clear", &BaseExplicitSolvingStrategyType::Clear)
                 .def("Check", &BaseExplicitSolvingStrategyType::Check)
+                .def("GetDefaultParameters",&BaseExplicitSolvingStrategyType::GetDefaultParameters)
                 .def("InitializeSolutionStep", &BaseExplicitSolvingStrategyType::InitializeSolutionStep)
                 .def("FinalizeSolutionStep", &BaseExplicitSolvingStrategyType::FinalizeSolutionStep)
                 .def("SolveSolutionStep", &BaseExplicitSolvingStrategyType::SolveSolutionStep)
