@@ -99,7 +99,8 @@ public:
      */
     explicit ConvergenceCriteria(Kratos::Parameters ThisParameters)
     {
-        this->ValidateAndAssignParameters(ThisParameters);
+        // Validate and assign defaults
+        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
         mActualizeRHSIsNeeded = false;
@@ -459,12 +460,14 @@ protected:
     /**
      * @brief This method validate and assign default parameters
      * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
      */
-    virtual void ValidateAndAssignParameters(Parameters& rParameters) const
+    virtual void ValidateAndAssignParameters(
+        Parameters& rParameters,
+        const Parameters DefaultParameters
+        ) const
     {
-        // The default parameters
-        const Parameters default_parameters = this->GetDefaultParameters();
-        rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+        rParameters.RecursivelyValidateAndAssignDefaults(DefaultParameters);
     }
 
     /**
