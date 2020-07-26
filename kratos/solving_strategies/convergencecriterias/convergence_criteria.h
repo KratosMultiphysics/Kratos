@@ -383,6 +383,7 @@ public:
     {
         const Parameters default_parameters = Parameters(R"(
         {
+            "name"       : "convergence_criteria",
             "echo_level" : 1
         })");
         return default_parameters;

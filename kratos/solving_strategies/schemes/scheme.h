@@ -1001,7 +1001,10 @@ public:
      */
     virtual const Parameters GetDefaultParameters() const
     {
-        const Parameters default_parameters = Parameters(R"({})" );
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "scheme"
+        })" );
         return default_parameters;
     }
 
