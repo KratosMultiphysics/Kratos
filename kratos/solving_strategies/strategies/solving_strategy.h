@@ -125,9 +125,10 @@ public:
     explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : mpModelPart(&rModelPart)
     {
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
+        this->ValidateAndAssignParameters(ThisParameters);
+        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
         SetMoveMeshFlag(move_mesh_flag);
-        const int echo_level = ThisParameters.Has("echo_level") ? ThisParameters["echo_level"].GetInt() : 1;
+        const int echo_level = ThisParameters["echo_level"].GetInt();
         SetEchoLevel(echo_level);
     }
 
