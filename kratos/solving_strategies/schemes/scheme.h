@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -993,6 +994,15 @@ public:
         )
     {
         pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    virtual const Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"({})" );
+        return default_parameters;
     }
 
     /**
