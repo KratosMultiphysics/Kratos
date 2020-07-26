@@ -626,7 +626,8 @@ public:
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "name" : "builder_and_solver"
+            "name"       : "builder_and_solver",
+            "echo_level" : 1
         })" );
         return default_parameters;
     }
@@ -755,6 +756,7 @@ protected:
      */
     virtual void AssignSettings(const Parameters ThisParameters)
     {
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
     }
 
     ///@}
