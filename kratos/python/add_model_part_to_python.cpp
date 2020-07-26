@@ -87,44 +87,6 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
-{
-    if (!KratosComponents<Element>::Has(ElementName)) {
-        std::stringstream msg;
-        KratosComponents<Element> instance; // creating an instance for using "PrintData"
-        instance.PrintData(msg);
-
-        KRATOS_ERROR << "The Element \"" << ElementName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Elements are registered:\n" << msg.str() << std::endl;
-    }
-
-    Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
-
-    for(unsigned int i = 0; i < NodeIdList.size(); i++) {
-        pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
-    }
-
-    return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
-}
-
-Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, std::vector< ModelPart::IndexType >& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
-{
-    if (!KratosComponents<Condition>::Has(ConditionName)) {
-        std::stringstream msg;
-        KratosComponents<Condition> instance; // creating an instance for using "PrintData"
-        instance.PrintData(msg);
-
-        KRATOS_ERROR << "The Condition \"" << ConditionName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Conditions are registered:\n" << msg.str() << std::endl;
-    }
-
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
-
-    for(unsigned int i = 0; i <NodeIdList.size(); i++) {
-        pConditionNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
-    }
-
-    return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
-}
-
 // Nodes
 
 ModelPart::SizeType ModelPartNumberOfNodes1(ModelPart& rModelPart)
