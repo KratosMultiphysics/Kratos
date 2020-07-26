@@ -18,6 +18,8 @@ KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
     , mShell3pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mShell5pHierarchicElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaTrussElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
@@ -41,6 +43,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
+    KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
 

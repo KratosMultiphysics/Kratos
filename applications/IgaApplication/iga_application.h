@@ -19,6 +19,7 @@
 
 //elements
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/iga_truss_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
 
@@ -102,6 +103,7 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
+    const Shell5pHierarchicElement mShell5pHierarchicElement;
     const IgaTrussElement mIgaTrussElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
 
