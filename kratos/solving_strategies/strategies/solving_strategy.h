@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -405,6 +406,19 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    virtual const Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "move_mesh_flag" :  false,
+            "echo_level"     :  1
+        })");
+        return default_parameters;
     }
 
     /**
