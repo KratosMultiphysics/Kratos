@@ -94,8 +94,9 @@ public:
         Parameters ThisParameters)
         : mpModelPart(&rModelPart)
     {
-        const bool rebuild_level = ThisParameters.Has("rebuild_level") ? ThisParameters["rebuild_level"].GetInt() : 0;
-        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
+        this->ValidateAndAssignParameters(ThisParameters);
+        const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
+        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
         SetMoveMeshFlag(move_mesh_flag);
         SetRebuildLevel(rebuild_level);
         // Setting up the default builder and solver
