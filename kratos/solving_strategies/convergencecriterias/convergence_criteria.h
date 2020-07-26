@@ -93,13 +93,16 @@ public:
         SetEchoLevel(1);
     }
 
-    /** Constructor with Parameters
-    */
-    explicit ConvergenceCriteria(Kratos::Parameters Settings)
+    /**
+     * @brief Constructor with Parameters
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ConvergenceCriteria(Kratos::Parameters ThisParameters)
     {
+        this->ValidateAndAssignParameters(ThisParameters);
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
-        SetEchoLevel(1);
+        SetEchoLevel(ThisParameters["echo_level"].GetInt());
     }
 
     /** Copy constructor.
@@ -374,10 +377,14 @@ public:
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
      */
     virtual const Parameters GetDefaultParameters() const
     {
-        const Parameters default_parameters = Parameters(R"({})" );
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "echo_level" : 1
+        })");
         return default_parameters;
     }
 
