@@ -136,7 +136,9 @@ public:
      */
     explicit ExplicitBuilder(Parameters ThisParameters)
     {
+        // Validate default parameters
         this->ValidateAndAssignParameters(ThisParameters);
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -828,6 +830,14 @@ protected:
         // The default parameters
         const Parameters default_parameters = this->GetDefaultParameters();
         rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
     }
 
     ///@}
