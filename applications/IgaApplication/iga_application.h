@@ -28,6 +28,7 @@
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/penalty_coupling_condition.h"
 #include "custom_conditions/lagrange_coupling_condition.h"
+#include "custom_conditions/nitsche_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 
 //modelers
@@ -115,6 +116,7 @@ private:
     const LoadCondition mLoadCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
     const LagrangeCouplingCondition mLagrangeCouplingCondition;
+    const NitscheCouplingCondition mNitscheCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
 
     // Modelers
