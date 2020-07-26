@@ -110,7 +110,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     //HERE THE TOOLS TO REGISTER EXPLICIT BUILDER
     py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, BaseFactoryMethods>(m, "ExplicitBuilderFactory")
      .def( py::init< >() )
-     .def("Create",[](ExplicitBuilderFactoryType& rBuilderAndSolverFactory, Kratos::Parameters Settings) {return rBuilderAndSolverFactory.Create(Settings);})
+     .def("Create",[](ExplicitBuilderFactoryType& rExplicitBuilderFactory, Kratos::Parameters Settings) {return rExplicitBuilderFactory.Create(Settings);})
      .def("__str__", PrintObject<ExplicitBuilderFactoryType>)
     ;
 
@@ -126,7 +126,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     //HERE THE TOOLS TO REGISTER EXPLICIT STRATEGIES
     py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, BaseFactoryMethods>(m, "ExplicitStrategyFactory")
      .def( py::init< >() )
-     .def("Create",[](ExplicitStrategyFactoryType& rStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rStrategyFactory.Create(rModelPart, Settings);})
+     .def("Create",[](ExplicitStrategyFactoryType& rExplicitStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rExplicitStrategyFactory.Create(rModelPart, Settings);})
      .def("__str__", PrintObject<ExplicitStrategyFactoryType>)
     ;
 
