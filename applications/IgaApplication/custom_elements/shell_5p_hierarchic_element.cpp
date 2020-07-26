@@ -38,8 +38,6 @@ namespace Kratos
 {
     void Shell5pHierarchicElement::Initialize()
     {
-        KRATOS_TRY
-
         //Constitutive Law initialisation
         InitializeMaterial();
 
@@ -47,8 +45,6 @@ namespace Kratos
 
         mZeta = 0.0;
         mInitialTransConToCar = ZeroMatrix(5, 5);
-
-        KRATOS_CATCH("")
     }
 
     void Shell5pHierarchicElement::InitializeMaterial()
