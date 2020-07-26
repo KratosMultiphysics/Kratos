@@ -100,9 +100,10 @@ public:
     explicit ConvergenceCriteria(Kratos::Parameters ThisParameters)
     {
         this->ValidateAndAssignParameters(ThisParameters);
+        this->AssignSettings(ThisParameters);
+
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
-        SetEchoLevel(ThisParameters["echo_level"].GetInt());
     }
 
     /** Copy constructor.
@@ -465,6 +466,16 @@ protected:
         const Parameters default_parameters = this->GetDefaultParameters();
         rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+    }
+
 
     ///@}
     ///@name Protected  Access
