@@ -1087,7 +1087,7 @@ protected:
         const Parameters DefaultParameters
         ) const
     {
-        rParameters.RecursivelyValidateAndAssignDefaults(DefaultParameters);
+        rParameters.ValidateAndAssignDefaults(DefaultParameters);
     }
 
     /**
