@@ -136,13 +136,7 @@ public:
      */
     explicit ExplicitBuilder(Parameters ThisParameters)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "explicit_builder"
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        this->ValidateAndAssignParameters(ThisParameters);
     }
 
     /**
@@ -473,10 +467,14 @@ public:
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
      */
     virtual const Parameters GetDefaultParameters() const
     {
-        const Parameters default_parameters = Parameters(R"({})" );
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "explicit_builder"
+        })");
         return default_parameters;
     }
 
@@ -819,6 +817,17 @@ protected:
                 }
             );
         }
+    }
+
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     */
+    virtual void ValidateAndAssignParameters(Parameters& rParameters) const
+    {
+        // The default parameters
+        const Parameters default_parameters = this->GetDefaultParameters();
+        rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     }
 
     ///@}
