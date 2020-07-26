@@ -735,6 +735,17 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     */
+    virtual void ValidateAndAssignParameters(Parameters& rParameters) const
+    {
+        // The default parameters
+        const Parameters default_parameters = this->GetDefaultParameters();
+        rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
