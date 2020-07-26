@@ -468,7 +468,10 @@ public:
             "explicit_solving_strategy" : "explicit_solving_strategy",
             "move_mesh_flag"            : false,
             "rebuild_level"             : 0,
-            "echo_level"                : 1
+            "echo_level"                : 1,
+            "explicit_builder_settings" : {
+                "name": "explicit_builder"
+            }
         })");
         return default_parameters;
     }
