@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.IgaApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 # Import KratosUnittest
@@ -38,6 +39,8 @@ class IgaTestFactory(KratosUnittest.TestCase):
 class SinglePatchTest(IgaTestFactory):
     file_name = "single_patch_test/single_patch"
 
+class Shell5pHierarchicLinearThickBeamTest(IgaTestFactory):
+    file_name = "linear_beam_thick_p4_nCP5/shell_5p"
 
 if __name__ == '__main__':
     KratosUnittest.main()
