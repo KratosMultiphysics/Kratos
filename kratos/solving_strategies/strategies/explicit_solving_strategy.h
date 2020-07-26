@@ -467,9 +467,10 @@ public:
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "move_mesh_flag" :  false,
-            "rebuild_level"  :  0,
-            "echo_level"     :  1
+            "explicit_solving_strategy" : "explicit_solving_strategy",
+            "move_mesh_flag"            : false,
+            "rebuild_level"             : 0,
+            "echo_level"                : 1
         })");
         return default_parameters;
     }

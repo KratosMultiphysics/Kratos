@@ -623,7 +623,10 @@ public:
      */
     virtual const Parameters GetDefaultParameters() const
     {
-        const Parameters default_parameters = Parameters(R"({})" );
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "builder_and_solver"
+        })" );
         return default_parameters;
     }
 
