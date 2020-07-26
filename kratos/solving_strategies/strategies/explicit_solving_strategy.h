@@ -95,10 +95,8 @@ public:
         : mpModelPart(&rModelPart)
     {
         this->ValidateAndAssignParameters(ThisParameters);
-        const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
-        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
-        SetMoveMeshFlag(move_mesh_flag);
-        SetRebuildLevel(rebuild_level);
+        this->AssignSettings(ThisParameters);
+
         // Setting up the default builder and solver
         const std::string& r_name = ThisParameters.Has("explicit_builder_settings") ? ThisParameters["explicit_builder_settings"].Has("name") ? ThisParameters["explicit_builder_settings"]["name"].GetString() : "explicit_builder" : "explicit_builder";
         if (KratosComponents<ExplicitBuilderType>::Has( r_name )) {
@@ -568,6 +566,18 @@ protected:
         // The default parameters
         const Parameters default_parameters = this->GetDefaultParameters();
         rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
+        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
+        SetMoveMeshFlag(move_mesh_flag);
+        SetRebuildLevel(rebuild_level);
     }
 
     ///@}
