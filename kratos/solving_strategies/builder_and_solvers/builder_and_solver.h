@@ -144,6 +144,7 @@ public:
     {
         // Validate default parameters
         this->ValidateAndAssignParameters(ThisParameters);
+        this->AssignSettings(ThisParameters);
 
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
@@ -744,6 +745,14 @@ protected:
         // The default parameters
         const Parameters default_parameters = this->GetDefaultParameters();
         rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
     }
 
     ///@}
