@@ -143,11 +143,7 @@ public:
         )
     {
         // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        this->ValidateAndAssignParameters(ThisParameters);
 
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
