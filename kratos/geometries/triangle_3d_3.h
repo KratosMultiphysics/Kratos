@@ -901,7 +901,7 @@ public:
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
             if (std::abs(distance) > 1.0e-6 * Length()) {
                 KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The " << rPoint << " is in a distance: " << std::abs(distance) << std::endl;
-                return false;
+                // return false;
             }
 
             // Not in the plane, but allowing certain distance, projecting
