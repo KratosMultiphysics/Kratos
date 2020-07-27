@@ -76,10 +76,10 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
                 "damp_factor_m" : -0.01
             },
             "convergence_criteria_settings" : {
-                "name"               : "residual_criteria",
-                "absolute_tolerance" : 1.0e-9,
-                "relative_tolerance" : 1.0e-4,
-                "echo_level"         : 0
+                "name"                        : "residual_criteria",
+                "residual_absolute_tolerance" : 1.0e-9,
+                "residual_relative_tolerance" : 1.0e-4,
+                "echo_level"                  : 0
             },
             "builder_and_solver_settings" : {
                 "name" : "block_builder_and_solver"

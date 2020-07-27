@@ -195,10 +195,10 @@ def _solve(mp):
             "name"          : "static_scheme"
         },
         "convergence_criteria_settings" : {
-            "name"               : "residual_criteria",
-            "absolute_tolerance" : 1.0e-20,
-            "relative_tolerance" : 1.0e-14,
-            "echo_level"         : 0
+            "name"                        : "residual_criteria",
+            "residual_absolute_tolerance" : 1.0e-20,
+            "residual_relative_tolerance" : 1.0e-14,
+            "echo_level"                  : 0
         },
         "builder_and_solver_settings" : {
             "name" : "block_builder_and_solver"

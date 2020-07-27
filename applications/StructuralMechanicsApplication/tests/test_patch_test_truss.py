@@ -144,10 +144,10 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                 "name"          : "static_scheme"
             },
             "convergence_criteria_settings" : {
-                "name"               : "residual_criteria",
-                "absolute_tolerance" : 1.0e-8,
-                "relative_tolerance" : 1.0e-12,
-                "echo_level"         : 0
+                "name"                        : "residual_criteria",
+                "residual_absolute_tolerance" : 1.0e-8,
+                "residual_relative_tolerance" : 1.0e-12,
+                "echo_level"                  : 0
             },
             "builder_and_solver_settings" : {
                 "name" : "block_builder_and_solver"
@@ -176,10 +176,10 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                 "damp_factor_m" : 0.0
             },
             "convergence_criteria_settings" : {
-                "name"               : "residual_criteria",
-                "absolute_tolerance" : 1.0e-8,
-                "relative_tolerance" : 1.0e-8,
-                "echo_level"         : 0
+                "name"                        : "residual_criteria",
+                "residual_absolute_tolerance" : 1.0e-8,
+                "residual_relative_tolerance" : 1.0e-8,
+                "echo_level"                  : 0
             },
             "builder_and_solver_settings" : {
                 "name" : "block_builder_and_solver"
