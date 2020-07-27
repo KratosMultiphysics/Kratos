@@ -17,7 +17,6 @@
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
 #include "structural_mechanics_application_variables.h"
-#include "spaces/ublas_space.h"
 
 //Processes
 #include "custom_processes/prism_neighbours_process.h"
@@ -31,8 +30,6 @@
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/impose_z_strain_process.h"
 #include "custom_processes/distribute_load_on_surface_process.h"
-#include "custom_processes/perturb_geometry_sparse_process.h"
-#include "custom_processes/perturb_geometry_subgrid_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -40,16 +37,6 @@ namespace Python {
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-    // Base types
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverTypeSparse;
-    typedef LinearSolverTypeSparse::Pointer LinearSolverPointerTypeSparse;
-
-    typedef LinearSolver<LocalSpaceType, LocalSpaceType > LinearSolverTypeDense;
-    typedef LinearSolverTypeDense::Pointer LinearSolverPointerTypeDense;
 
     /// Processes
     py::class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
@@ -85,18 +72,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
         .def(py::init<ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
-        ;
-
-    py::class_<PerturbGeometrySparseProcess, PerturbGeometrySparseProcess::Pointer, Process>(m,"PerturbGeometrySparseProcess")
-        .def(py::init<ModelPart&,LinearSolverPointerTypeSparse, Parameters>())
-        .def("CreateRandomFieldVectors", &PerturbGeometrySparseProcess::CreateRandomFieldVectors)
-        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseProcess::ApplyRandomFieldVectorsToGeometry)
-        ;
-
-    py::class_<PerturbGeometrySubgridProcess, PerturbGeometrySubgridProcess::Pointer, Process>(m,"PerturbGeometrySubgridProcess")
-        .def(py::init<ModelPart&, LinearSolverPointerTypeDense, Parameters>())
-        .def("CreateRandomFieldVectors", &PerturbGeometrySubgridProcess::CreateRandomFieldVectors)
-        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridProcess::ApplyRandomFieldVectorsToGeometry)
         ;
 
     //SPR_ERROR

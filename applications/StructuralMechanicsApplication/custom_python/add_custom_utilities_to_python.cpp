@@ -15,12 +15,15 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "spaces/ublas_space.h"
 
 //Utilities
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 #include "custom_utilities/explicit_integration_utilities.h"
 #include "custom_utilities/rve_periodicity_utility.h"
 #include "custom_utilities/project_vector_on_surface_utility.h"
+#include "custom_processes/perturb_geometry_sparse_process.h"
+#include "custom_processes/perturb_geometry_subgrid_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -28,6 +31,16 @@ namespace Python {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
+
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+    // Base types
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverTypeSparse;
+    typedef LinearSolverTypeSparse::Pointer LinearSolverPointerTypeSparse;
+
+    typedef LinearSolver<LocalSpaceType, LocalSpaceType > LinearSolverTypeDense;
+    typedef LinearSolverTypeDense::Pointer LinearSolverPointerTypeDense;
 
     // RayleighDampingCoefficientsUtilities
     m.def("ComputeDampingCoefficients",&RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients);
@@ -44,6 +57,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
         .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
+
+    py::class_<PerturbGeometrySparseProcess, PerturbGeometrySparseProcess::Pointer, Process>(m,"PerturbGeometrySparseProcess")
+        .def(py::init<ModelPart&,LinearSolverPointerTypeSparse, Parameters>())
+        .def("CreateRandomFieldVectors", &PerturbGeometrySparseProcess::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseProcess::ApplyRandomFieldVectorsToGeometry)
+        ;
+
+    py::class_<PerturbGeometrySubgridProcess, PerturbGeometrySubgridProcess::Pointer, Process>(m,"PerturbGeometrySubgridProcess")
+        .def(py::init<ModelPart&, LinearSolverPointerTypeDense, Parameters>())
+        .def("CreateRandomFieldVectors", &PerturbGeometrySubgridProcess::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridProcess::ApplyRandomFieldVectorsToGeometry)
+        ;
 }
 
 }  // namespace Python.
