@@ -154,51 +154,24 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
-        // Set flags to default values
-        SetMaxIterationNumber(ThisParameters.Has("max_iteration") ? ThisParameters["max_iteration"].GetInt() : 10);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
-        mMinIterationNumber = ThisParameters.Has("min_iteration") ? ThisParameters["min_iteration"].GetInt() : 4;
+        // Getting builder and solver
+        auto p_builder_and_solver = this->GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            // Tells to the builder and solver if the reactions have to be Calculated or not
+            p_builder_and_solver->SetCalculateReactionsFlag(this->GetCalculateReactionsFlag());
 
-        mReductionFactor = ThisParameters.Has("reduction_factor") ? ThisParameters["reduction_factor"].GetDouble() : 0.5;
-
-        mIncreaseFactor = ThisParameters.Has("increase_factor") ? ThisParameters["increase_factor"].GetDouble() : 1.3;
-
-        mNumberOfCycles = ThisParameters.Has("number_of_cycles") ? ThisParameters["number_of_cycles"].GetInt() : 5;
-
-        mCalculateReactionsFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_reactions"].GetBool() : false;
-
-        mReformDofSetAtEachStep = ThisParameters.Has("reform_dofs_at_each_step") ? ThisParameters["reform_dofs_at_each_step"].GetBool() : false;
-
-        // Saving the convergence criteria to be used
-        mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
-
-        // Saving the scheme
-        mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
-
-        // Saving the linear solver
-        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
-
-        // Setting up the default builder and solver
-        mpBuilderAndSolver = BuilderAndSolverFactoryType().Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
-
-        // Set flags to start correcty the calculations
-        mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
-
-        // Tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-        // Tells to the Builder And Solver if the system matrix and vectors need to
-        // be reshaped at each step or not
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
-
-        // By default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(2);
+            // Tells to the Builder And Solver if the system matrix and vectors need to
+            // be reshaped at each step or not
+            p_builder_and_solver->SetReshapeMatrixFlag(this->GetReformDofSetAtEachStepFlag());
+        } else {
+            KRATOS_WARNING("AdaptiveResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
+        }
 
         mpA = TSparseSpace::CreateEmptyMatrixPointer();
         mpDx = TSparseSpace::CreateEmptyVectorPointer();
@@ -850,6 +823,37 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters class_default_parameters = Parameters(R"(
+        {
+            "name"                                : "adaptative_newton_raphson_strategy",
+            "min_iteration"                       : 4,
+            "reduction_factor"                    : 0.5,
+            "increase_factor"                     : 1.3,
+            "number_of_cycles"                    : 5,
+            "max_iteration"                       : 10,
+            "reform_dofs_at_each_step"            : false,
+            "compute_reactions"                   : false,
+            "builder_and_solver_settings"         : {},
+            "convergence_criteria_settings"       : {},
+            "linear_solver_settings"              : {},
+            "scheme_settings"                     : {}
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        const Parameters default_parameters(class_default_parameters);
+
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -1108,6 +1112,49 @@ protected:
         }
 
     }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mMinIterationNumber = ThisParameters["min_iteration"].GetInt();
+        mReductionFactor = ThisParameters["reduction_factor"].GetDouble();
+        mIncreaseFactor = ThisParameters["increase_factor"].GetDouble();
+        mNumberOfCycles = ThisParameters["number_of_cycles"].GetInt();
+        mMaxIterationNumber = ThisParameters["max_iteration"].GetInt();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        // Saving the convergence criteria to be used
+        if (ThisParameters["convergence_criteria_settings"].Has("name")) {
+            mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
+        }
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
+        }
+    }
+
     /*@} */
     /**@name Private Operations*/
     /*@{ */
