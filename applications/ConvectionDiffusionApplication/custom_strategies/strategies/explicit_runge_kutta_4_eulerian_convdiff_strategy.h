@@ -139,6 +139,8 @@ public:
      */
     void Initialize() override
     {
+        KRATOS_TRY;
+
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         // Call the base method
@@ -149,6 +151,8 @@ public:
                 r_node.SetValue(UNKNOWN_PROJECTION, 0.0);
             }
         }
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -199,12 +203,16 @@ protected:
      */
     virtual void InitializeRungeKuttaIntermediateSubStep() override
     {
+        KRATOS_TRY;
+
         BaseType::InitializeRungeKuttaIntermediateSubStep();
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info[OSS_SWITCH] == 1) {
             ExecuteOSSStep();
         }
+
+        KRATOS_CATCH("");
     };
 
     /**
@@ -213,12 +221,16 @@ protected:
      */
     virtual void InitializeRungeKuttaLastSubStep() override
     {
+        KRATOS_TRY;
+
         BaseType::InitializeRungeKuttaLastSubStep();
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info[OSS_SWITCH] == 1) {
             ExecuteOSSStep();
         }
+
+        KRATOS_CATCH("");
     };
 
     /**
@@ -227,12 +239,16 @@ protected:
      */
     virtual void FinalizeSolutionStep() override
     {
+        KRATOS_TRY;
+
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
         if (r_process_info[OSS_SWITCH] == 1) {
             ExecuteOSSStep();
         }
         BaseType::FinalizeSolutionStep();
+
+        KRATOS_CATCH("");
     };
 
     /**
@@ -240,6 +256,8 @@ protected:
      */
     virtual void ExecuteOSSStep()
     {
+        KRATOS_TRY;
+
         // Get the required data from the explicit builder and solver
         const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
@@ -273,6 +291,8 @@ protected:
             const double mass = r_lumped_mass_vector(i_node);
             it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(UNKNOWN_PROJECTION) / mass;
         }
+
+        KRATOS_CATCH("");
     };
 
     ///@}

@@ -70,6 +70,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const auto& r_geometry = this->GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
@@ -90,6 +92,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 
     // Execute RHS-LHS build
     this->CalculateLocalSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -100,8 +104,12 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     Matrix LeftHandSide;
     this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -112,8 +120,12 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     VectorType RightHandSide;
     this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -123,6 +135,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     auto& r_geometry = this->GetGeometry();
     const unsigned int local_size = r_geometry.size();
@@ -134,6 +148,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExpl
         #pragma omp atomic
         r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -143,11 +159,15 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
     const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     BaseType::Initialize(rCurrentProcessInfo);
     // Resize and intialize output
     if (mUnknownSubScale.size() != TNumNodes) // number integration points = number nodes
         mUnknownSubScale.resize(TNumNodes, false);
     mUnknownSubScale = ZeroVector(TNumNodes);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -157,6 +177,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
     const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
     // Element variables
     ElementVariables rVariables;
@@ -176,6 +198,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Finaliz
         // Update unknown belonging to subgrid scale space on gauss integration point g
         this->UpdateUnknownSubgridScaleGaussPoint(rVariables,g);
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -187,6 +211,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     double& Output,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     auto& r_geometry = this->GetGeometry();
     const unsigned int local_size = r_geometry.size();
     VectorType rhs_oss;
@@ -195,6 +221,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
         #pragma omp atomic
         r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -205,6 +233,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const auto& r_geometry = this->GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
@@ -222,6 +252,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
 
     // Execute OSS step
     this->CalculateOrthogonalSubgridScaleSystemInternal(rVariables,rRightHandSideVector);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -231,11 +263,11 @@ template< unsigned int TDim, unsigned int TNumNodes >
 int SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
     int out = Element::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
-
     return 0;
 
     KRATOS_CATCH("");
@@ -250,6 +282,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::CalculateLocalSystem
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -614,6 +648,8 @@ const double crhs125 =             DN_DX_2_0*crhs66 + DN_DX_2_1*crhs72;
     const double local_size = 3;
     noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -624,6 +660,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::CalculateLocalSystem
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -1354,6 +1392,8 @@ const double crhs225 =             DN_DX_3_0*crhs100 + DN_DX_3_1*crhs110 + DN_DX
     const double local_size = 4;
     noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1364,6 +1404,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::CalculateOrthogonalS
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -1446,6 +1488,8 @@ const double crhs52 =             crhs14*(crhs19 + crhs21 + crhs44 + crhs45 + cr
     // All the weights of the gauss points are the same so we multiply by volume/n_nodes
     const double local_size = 3;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1455,6 +1499,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::CalculateOrthogonalS
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -1591,6 +1637,8 @@ const double crhs99 =             crhs26 + crhs27 + crhs94 + crhs95;
     // All the weights of the gauss points are the same so we multiply by volume/n_nodes
     const double local_size = 4;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1601,6 +1649,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::UpdateUnknownSubgrid
     ElementVariables& rVariables,
     unsigned int g)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& N = rVariables.N;
     const auto& f = rVariables.forcing;
@@ -1628,6 +1678,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<2>::UpdateUnknownSubgrid
     phi_subscale_gauss_new *= tau;
 
     mUnknownSubScale(g) = (tau*phi_subscale_gauss/delta_time) + phi_subscale_gauss_new;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1637,6 +1689,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgrid
     ElementVariables& rVariables,
     unsigned int g)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& N = rVariables.N;
     const auto& f = rVariables.forcing;
@@ -1669,6 +1723,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<3>::UpdateUnknownSubgrid
     phi_subscale_gauss_new *= tau;
 
     mUnknownSubScale(g) = (tau*phi_subscale_gauss/delta_time) + phi_subscale_gauss_new;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1678,6 +1734,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
     ElementVariables& rVariables)
 {
+    KRATOS_TRY;
+
     // Calculate h
     double h = this->ComputeH(rVariables.DN_DX);
     // Calculate tau for each gauss point
@@ -1709,6 +1767,8 @@ void SymbolicDynamicEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calcula
         inv_tau = std::max(inv_tau, 1e-2);
         rVariables.tau[g] = (1.0) / inv_tau;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/

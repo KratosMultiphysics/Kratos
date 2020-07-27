@@ -70,6 +70,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
@@ -90,6 +92,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 
     // Execute RHS-LHS build
     this->CalculateLocalSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -100,8 +104,12 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     Matrix LeftHandSide;
     this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -112,8 +120,12 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     VectorType RightHandSide;
     this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -124,6 +136,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Equ
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
+    KRATOS_TRY;
+
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& r_unknown_var = p_settings->GetUnknownVariable();
     unsigned int local_size = GetGeometry().PointsNumber();
@@ -133,6 +147,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Equ
     {
         rResult[i] = GetGeometry()[i].GetDof(r_unknown_var).EquationId();
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -143,7 +159,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Get
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY
+    KRATOS_TRY;
 
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& r_unknown_var = p_settings->GetUnknownVariable();
@@ -155,7 +171,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Get
         rElementalDofList[i] = GetGeometry()[i].pGetDof(r_unknown_var);
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -165,6 +181,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
@@ -176,6 +194,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Add
         #pragma omp atomic
         r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -186,6 +206,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateMassMat
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const unsigned int local_size = 3;
     // Resize, intialize and fill the mass matrix for linear triangular elements
     if (rMassMatrix.size1() != local_size)
@@ -198,6 +220,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateMassMat
     rMassMatrix(2,0) = one_twelve; rMassMatrix(2,1) = one_twelve; rMassMatrix(2,2) = one_six;
     // Assumption all the Gauss points have the same weight, so we multiply by the volume
     rMassMatrix *= GetGeometry().Area();
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -207,6 +231,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateMassMat
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const unsigned int local_size = 4;
     // Resize, intialize and fill the mass matrix for linear tetrahedral elements
     if (rMassMatrix.size1() != local_size)
@@ -220,6 +246,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateMassMat
     rMassMatrix(3,0) = one_twenty; rMassMatrix(3,1) = one_twenty; rMassMatrix(3,2) = one_twenty; rMassMatrix(3,3) = one_ten;
     // Assumption all the Gauss points have the same weight, so we multiply by the volume
     rMassMatrix *= GetGeometry().Volume();
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -231,6 +259,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     double& Output,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
     VectorType rhs_oss;
@@ -239,6 +269,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
         #pragma omp atomic
         r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -249,6 +281,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY;
+
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
 
@@ -266,6 +300,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 
     // Execute OSS step
     this->CalculateOrthogonalSubgridScaleSystemInternal(rVariables,rRightHandSideVector);
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -275,11 +311,11 @@ template< unsigned int TDim, unsigned int TNumNodes >
 int SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
     int out = Element::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
-
     return 0;
 
     KRATOS_CATCH("");
@@ -293,7 +329,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
     ElementVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+    KRATOS_TRY;
 
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
@@ -355,7 +391,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
     // divide by number of nodes scalar variables
     rVariables.diffusivity *= rVariables.lumping_factor;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -367,6 +403,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateLocalSy
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -397,6 +435,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateLocalSy
     const double local_size = 3;
     noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -407,6 +447,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateLocalSy
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -443,6 +485,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateLocalSy
     const double local_size = 4;
     noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -453,6 +497,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateOrthogo
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -477,6 +523,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateOrthogo
 
     const double local_size = 3;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -486,6 +534,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateOrthogo
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
+    KRATOS_TRY;
+
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
     const auto& f = rVariables.forcing;
@@ -516,6 +566,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateOrthogo
 
     const double local_size = 4;
     noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -525,6 +577,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 double SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
     BoundedMatrix<double,TNumNodes,TDim >& DN_DX)
 {
+    KRATOS_TRY;
+
     double h=0.0;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
@@ -537,6 +591,8 @@ double SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::C
     }
     h = sqrt(h)/static_cast<double>(TNumNodes);
     return h;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -546,6 +602,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
     ElementVariables& rVariables)
 {
+    KRATOS_TRY;
+
     // Calculate h
     double h = this->ComputeH(rVariables.DN_DX);
     // Calculate tau for each gauss point
@@ -577,6 +635,8 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
         inv_tau = std::max(inv_tau, 1e-2);
         rVariables.tau[g] = (1.0) / inv_tau;
     }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
