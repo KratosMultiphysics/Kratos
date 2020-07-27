@@ -91,9 +91,8 @@ namespace Python
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives)
     {
-        IntegrationInfo integration_info;
         return(dummy.CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info));
+            rResultGeometries, NumberOfShapeFunctionDerivatives));
     }
 
     array_1d<double,3> GetNormal(
