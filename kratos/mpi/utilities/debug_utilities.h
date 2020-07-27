@@ -56,6 +56,122 @@ public:
     //     }
     // }
 
+    // Non historical Variables
+
+    template<class TVarType>
+    static void CheckNonHistoricalNodeVariableConsistency(
+        ModelPart & rModelPart,
+        const TVarType & rVariable) 
+    {
+        // Build the list of indices and the pointer communicator
+        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        std::vector<int> indices;
+
+        auto container = rModelPart.Nodes();
+
+        for(auto& node : container) {
+            indices.push_back(node.Id());
+        }
+
+        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
+        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
+
+        GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+
+        CheckNonHistoricalVariableConsistency(rModelPart, container, rVariable, pointer_comm, gp_map);
+    }
+
+    template<class TVarType>
+    static void CheckNonHistoricalElementVariableConsistency(
+        ModelPart & rModelPart,
+        const TVarType & rVariable) 
+    {
+        // Build the list of indices and the pointer communicator
+        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        std::vector<int> indices;
+
+        auto container = rModelPart.Elements();
+
+        for(auto& element : container) {
+            indices.push_back(element.Id());
+        }
+
+        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
+        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
+
+        GlobalPointerCommunicator<Element> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+
+        CheckNonHistoricalVariableConsistency(rModelPart, container, rVariable, pointer_comm, gp_map);
+    }
+
+    template<class TVarType>
+    static void CheckNonHistoricalConditionVariableConsistency(
+        ModelPart & rModelPart,
+        const TVarType & rVariable) 
+    {
+        // Build the list of indices and the pointer communicator
+        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        std::vector<int> indices;
+
+        auto container = rModelPart.Conditions();
+
+        for(auto& condition : container) {
+            indices.push_back(element.Id());
+        }
+
+        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
+        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
+
+        GlobalPointerCommunicator<Element> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+
+        CheckNonHistoricalVariableConsistency(rModelPart, container, rVariable, pointer_comm, gp_map);
+    }
+
+    template<class TContainerType, class TVarType>
+    static void CheckNonHistoricalVariableConsistency(
+        ModelPart & rModelPart,
+        const TContainerType & rContainer,
+        const TVarType & rVariable,
+        GlobalPointerCommunicator<Node<3>> & rPointerCommunicator, 
+        std::unordered_map<int, GlobalPointer<Node<3>>> & gp_map) 
+    {
+        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+        
+        bool val_error_detected = false;
+        bool fix_error_detected = false;
+
+        std::stringstream error_stream;
+
+        // Create the data functior
+        auto data_proxy = rPointerCommunicator.Apply(
+            [rVariable](GlobalPointer< Node<3> >& gp)-> typename TVarType::Type {
+                return gp->GetValue(rVariable);
+            }
+        );
+
+        // Check variable for all entities.
+        for(auto& entity : rContainer) {
+            auto& gp = gp_map[entity.Id()];
+
+            // Check Variable
+            if(data_proxy.Get(gp).first != entity.GetValue(rVariable)) {
+                std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << node.Id() << " Expected: " << node.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
+                val_error_detected = true;
+            }
+        }
+
+        if(val_error_detected) {
+            error_stream << "Value error(s) found" << std::endl;
+        }
+
+        if(error_stream.rdbuf()->in_avail())
+        {
+            KRATOS_ERROR << error_stream.str() << std::endl;
+        }
+    }
+
+    // Historical Variables
+
     template<class TVarType>
     static void CheckNodalHistoricalVariableConsistency(
         ModelPart & rModelPart,
@@ -74,7 +190,7 @@ public:
         auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(node_list, indices, r_default_comm );
         auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(node_list, indices, r_default_comm );
 
-        GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+        GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
         CheckNodalHistoricalVariableConsistency(rModelPart, rVariable, pointer_comm, gp_map);
     }
@@ -95,7 +211,7 @@ public:
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
-            [rVariable](GlobalPointer< Node<3> >& gp)->std::pair<typename TVarType::Type, bool> {
+            [rVariable](GlobalPointer< Node<3> >& gp)-> std::pair<typename TVarType::Type, bool> {
                 return {gp->FastGetSolutionStepValue(rVariable),gp->IsFixed(rVariable)};
             }
         );
@@ -106,7 +222,7 @@ public:
 
             // Check Variable
             if(data_proxy.Get(gp).first != node.FastGetSolutionStepValue(rVariable)) {
-                std::cout << r_default_comm.Rank() << " Inconsistent variable Val for Id: " << node.Id() << " Expected: " << node.FastGetSolutionStepValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
+                std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << node.Id() << " Expected: " << node.FastGetSolutionStepValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
                 val_error_detected = true;
             }
         }
