@@ -20,6 +20,10 @@
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/variable_utils.h"
+#include "containers/model.h"
+#ifdef KRATOS_USING_MPI
+    #include "custom_utilities/gather_modelpart_on_all_ranks.h"
+#endif
 
 namespace Kratos
 {
@@ -77,6 +81,11 @@ void SlidingInterfaceProcess::ExecuteInitializeSolutionStep()
 void SlidingInterfaceProcess::ExecuteFinalizeSolutionStep()
 {
     mrMasterModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+    Model& current_model = mrMasterModelPart.GetModel();
+    const DataCommunicator &r_comm =
+        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
+    if (r_comm.IsDistributed())
+        current_model.DeleteModelPart("gathered_master");
 }
 
 
@@ -104,17 +113,38 @@ void SlidingInterfaceProcess::PrintInfo(std::ostream& rOStream) const
 }
 
 
+ModelPart& SlidingInterfaceProcess::GetSearchModelpart()
+{
+
+    const DataCommunicator &r_comm =
+        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
+    Model& current_model = mrMasterModelPart.GetModel();
+    ModelPart &gathered_master = r_comm.IsDistributed() ? current_model.CreateModelPart("gathered_master") : mrMasterModelPart;
+
+    #ifdef KRATOS_USING_MPI
+        GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
+    #endif
+
+    return gathered_master;
+}
+
 template <int TDim>
 void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
 {
     const double start_apply = OpenMPUtils::GetCurrentTime();
     const int num_vars = mParameters["variable_names"].size();
-    BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
+
+    ModelPart& r_search_modelpart = GetSearchModelpart();
+    BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(r_search_modelpart);
     bin_based_point_locator.UpdateSearchDatabase();
 
-    const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
-    const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
+    const int num_slave_nodes = mrSlaveModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.GetCommunicator().LocalMesh().NodesBegin();
     IndexType num_slaves_found = 0;
+
+    auto& r_comm = mrMasterModelPart.GetCommunicator();
+    const int current_rank = r_comm.MyPID();
+
 
     #pragma omp parallel for schedule(guided, 512) reduction( + : num_slaves_found )
     for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
@@ -123,6 +153,9 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
         VectorType shape_function_values;
         NodeIteratorType it_slave_node = it_slave_node_begin+i_node;
         const auto& slave_node_coords = it_slave_node->Coordinates();
+        // if(r_comm.IsDistributed())
+        //     if(it_slave_node->GetSolutionStepValue(PARTITION_INDEX) != current_rank)
+        //         continue;
 
         // Finding the host element for this node
         const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(slave_node_coords, shape_function_values, p_host_cond, mSearchMaxResults, mSearchTolerance);

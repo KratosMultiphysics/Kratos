@@ -109,6 +109,12 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
      */
     template <int TDim>
     void ConstraintSlaveNodeWithConditionForVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
+
+    /**
+     * @brief   The function checks if this is a MPI run, in case it is, it gathers the master modelpart on all the ranks
+     * and returns the reference to that.
+     */
+    ModelPart& GetSearchModelpart();
 }; // Class
 
 
