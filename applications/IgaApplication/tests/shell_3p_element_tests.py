@@ -46,8 +46,8 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
 
         id = 1
-        for geometry in quadrature_point_geometries:
-            model_part.CreateNewElement('Shell3pElement', id, geometry, shell_properties)
+        for i in range(0, quadrature_point_geometries):
+            model_part.CreateNewElement('Shell3pElement', id, quadrature_point_geometries[i], shell_properties)
 
         # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
@@ -73,7 +73,6 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         surface[5].Fix(KM.DISPLACEMENT_Z)
 
         # apply neumann conditions
-
         prop = model_part.GetProperties()[2]
 
         model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [7], prop)
