@@ -163,9 +163,6 @@ class TestFactories(KratosUnittest.TestCase):
             "scheme_settings" : {
                 "name" : "static_scheme"
             },
-            "convergence_criteria_settings" : {
-                "name" : "displacement_criteria"
-            },
             "builder_and_solver_settings" : {
                 "name" : "elimination_builder_and_solver"
             }
