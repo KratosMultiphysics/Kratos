@@ -403,6 +403,279 @@ class TestProcesses(KratosUnittest.TestCase):
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
+    def test_assign_scalar_input_to_nodes_historical(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module"   : "assign_scalar_input_to_nodes_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarInputToNodesProcess",
+                    "Parameters"            : {
+                        "model_part_name": "Main",
+                        "variable_name"  : "PRESSURE",
+                        "historical"     : true,
+                        "file"           : "auxiliar_files_for_python_unittest/test_processes/input_geometry.txt"
+                    }
+                }
+                ]
+            }
+        """
+        )
+
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        step = -1
+        for i in range(2):
+            time = 0.1 * i
+            step += 1
+            model_part.CloneTimeStep(time)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            list_near =[1, 2, 3, 5, 6, 7, 9, 10]
+            value_check = 0 if step == 0 else 2**i
+            for node in model_part.Nodes:
+                if node.Id in list_near:
+                    self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), value_check)
+                else:
+                    self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 0.5 * value_check)
+
+    def test_assign_scalar_input_to_nodes(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module"   : "assign_scalar_input_to_nodes_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarInputToNodesProcess",
+                    "Parameters"            : {
+                        "model_part_name": "Main",
+                        "variable_name"  : "PRESSURE",
+                        "file"           : "auxiliar_files_for_python_unittest/test_processes/input_geometry.txt"
+                    }
+                }
+                ]
+            }
+        """
+        )
+
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        step = -1
+        for i in range(2):
+            time = 0.1 * i
+            step += 1
+            model_part.CloneTimeStep(time)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            list_near =[1, 2, 3, 5, 6, 7, 9, 10]
+            value_check = 0 if step == 0 else 2**i
+            for node in model_part.Nodes:
+                if node.Id in list_near:
+                    self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE), value_check)
+                else:
+                    self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE), 0.5 * value_check)
+
+    def test_assign_scalar_input_to_elements(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module"   : "assign_scalar_input_to_elements_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarInputToElementsProcess",
+                    "Parameters"            : {
+                        "model_part_name": "Main",
+                        "variable_name"  : "PRESSURE",
+                        "file"           : "auxiliar_files_for_python_unittest/test_processes/input_geometry.txt"
+                    }
+                }
+                ]
+            }
+        """
+        )
+
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        step = -1
+        for i in range(6):
+            time = 0.1 * i
+            step += 1
+            model_part.CloneTimeStep(time)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            list_near =[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15]
+            value_check = 0 if step == 0 else 2**i
+            for elem in model_part.Elements:
+                if elem.Id in list_near:
+                    self.assertAlmostEqual(elem.GetValue(KratosMultiphysics.PRESSURE), value_check)
+                else:
+                    self.assertAlmostEqual(elem.GetValue(KratosMultiphysics.PRESSURE), 0.5 * value_check)
+
+    def test_assign_scalar_input_to_nodes_historical_json(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module"   : "assign_scalar_input_to_nodes_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarInputToNodesProcess",
+                    "Parameters"            : {
+                        "model_part_name": "Main",
+                        "variable_name"  : "PRESSURE",
+                        "historical"     : true,
+                        "file"           : "auxiliar_files_for_python_unittest/test_processes/input_geometry.json"
+                    }
+                }
+                ]
+            }
+        """
+        )
+
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        step = -1
+        for i in range(2):
+            time = 0.1 * i
+            step += 1
+            model_part.CloneTimeStep(time)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            list_near =[1, 2, 3, 5, 6, 7, 9, 10]
+            value_check = 0 if step == 0 else 2**i
+            for node in model_part.Nodes:
+                if node.Id in list_near:
+                    self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), value_check)
+                else:
+                    self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), 0.5 * value_check)
+
+    def test_assign_scalar_input_to_nodes_json(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module"   : "assign_scalar_input_to_nodes_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarInputToNodesProcess",
+                    "Parameters"            : {
+                        "model_part_name": "Main",
+                        "variable_name"  : "PRESSURE",
+                        "file"           : "auxiliar_files_for_python_unittest/test_processes/input_geometry.json"
+                    }
+                }
+                ]
+            }
+        """
+        )
+
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        step = -1
+        for i in range(2):
+            time = 0.1 * i
+            step += 1
+            model_part.CloneTimeStep(time)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            list_near =[1, 2, 3, 5, 6, 7, 9, 10]
+            value_check = 0 if step == 0 else 2**i
+            for node in model_part.Nodes:
+                if node.Id in list_near:
+                    self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE), value_check)
+                else:
+                    self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE), 0.5 * value_check)
+
+    def test_assign_scalar_input_to_elements_json(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters(
+        """
+        {
+            "process_list" : [
+                {
+                    "python_module"   : "assign_scalar_input_to_elements_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"          : "AssignScalarInputToElementsProcess",
+                    "Parameters"            : {
+                        "model_part_name": "Main",
+                        "variable_name"  : "PRESSURE",
+                        "file"           : "auxiliar_files_for_python_unittest/test_processes/input_geometry.json"
+                    }
+                }
+                ]
+            }
+        """
+        )
+
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        step = -1
+        for i in range(6):
+            time = 0.1 * i
+            step += 1
+            model_part.CloneTimeStep(time)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            list_near =[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15]
+            value_check = 0 if step == 0 else 2**i
+            for elem in model_part.Elements:
+                if elem.Id in list_near:
+                    self.assertAlmostEqual(elem.GetValue(KratosMultiphysics.PRESSURE), value_check)
+                else:
+                    self.assertAlmostEqual(elem.GetValue(KratosMultiphysics.PRESSURE), 0.5 * value_check)
 
     def test_assign_scalar_value_to_conditions(self):
         current_model = KratosMultiphysics.Model()

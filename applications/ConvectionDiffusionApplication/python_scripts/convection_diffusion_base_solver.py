@@ -169,7 +169,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
-            "buffer_size" : -1,
             "use_orthogonal_subscales" : false
         }
         """)

@@ -43,11 +43,11 @@ static Connection& GetConnection(const std::string& rConnectionName)
 }
 
 inline void SendControlSignal(
-    const std::string& rConnectionName,
     const Info& I_Info,
     const CoSimIO::ControlSignal Signal)
 {
-    // Internals::GetConnection(rConnectionName).SendControlSignal(I_Info, Signal);
+    const std::string connection_name = I_Info.Get<std::string>("connection_name");
+    Internals::GetConnection(connection_name).SendControlSignal("", Signal);
 }
 
 } // namespace Internals
