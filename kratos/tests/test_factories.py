@@ -233,19 +233,7 @@ class TestFactories(KratosUnittest.TestCase):
     def test_ExplicitStrategy(self):
         settings = KM.Parameters("""
         {
-            "name" : "explicit_strategy",
-            "linear_solver_settings" : {
-                "solver_type" : "amgcl"
-            },
-            "scheme_settings" : {
-                "name" : "static_scheme"
-            },
-            "convergence_criteria_settings" : {
-                "name" : "displacement_criteria"
-            },
-            "builder_and_solver_settings" : {
-                "name" : "elimination_builder_and_solver"
-            }
+            "name" : "explicit_strategy"
         }
         """)
         self._auxiliary_test_function_Strategy(settings, "ExplicitStrategy")

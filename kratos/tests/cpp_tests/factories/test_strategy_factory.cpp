@@ -146,20 +146,7 @@ namespace Kratos
         {
             Model this_model;
             auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"name" : "explicit_strategy",
-                                                        "linear_solver_settings" : {
-                                                            "solver_type" : "amgcl"
-                                                        },
-                                                        "scheme_settings" : {
-                                                            "name" : "static_scheme"
-                                                        },
-                                                        "convergence_criteria_settings" : {
-                                                            "name" : "displacement_criteria"
-                                                        },
-                                                        "builder_and_solver_settings" : {
-                                                            "name" : "elimination_builder_and_solver"
-                                                        }
-                                                        })");
+            Parameters this_parameters = Parameters(R"({"name" : "explicit_strategy"})");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "ExplicitStrategy");
         }
