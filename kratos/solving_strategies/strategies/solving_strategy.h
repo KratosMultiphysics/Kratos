@@ -418,11 +418,7 @@ public:
             "name"                         : "solving_strategy",
             "move_mesh_flag"               : false,
             "echo_level"                   : 1,
-            "build_level"                  : 2,
-            "builder_and_solver_settings"  : {},
-            "convergence_criteria_settings": {},
-            "linear_solver_settings"       : {},
-            "scheme_settings"              : {}
+            "build_level"                  : 2
         })");
         return default_parameters;
     }
