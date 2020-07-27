@@ -29,7 +29,7 @@
 // Chimera trilinos extensions
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver.h"
-#include "custom_strategies/custom_builder_and_solvers/trilinos_block_builder_and_solver_with_constraints.h"
+#include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver_with_constraints.h"
 #include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
@@ -58,7 +58,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
         TrilinosBlockBuilderAndSolverWithConstraintsType,
         typename TrilinosBlockBuilderAndSolverWithConstraintsType::Pointer,
         TrilinosBlockBuilderAndSolverType >
-    (m, "TrilinosBlockBuilderAndSolverWithConstraints").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
+    (m, "TrilinosChimeraBlockBuilderAndSolverWithConstraints").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
 
 
