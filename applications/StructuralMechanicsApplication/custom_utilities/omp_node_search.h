@@ -87,8 +87,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       ///@{
 
       /// Default constructor.
-      OMP_NodeSearch() {
-          mIsInitialized = false;
+      OMP_NodeSearch(NodesContainerType const& rStructureNodes) {
+        KRATOS_TRY;
+        NodesContainerType::ContainerType& nodes_model_part = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        mBins = new NodeBinsType(nodes_model_part.begin(), nodes_model_part.end());
+        KRATOS_CATCH("");
       }
 
       /// Destructor.
@@ -102,12 +105,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       ///@}
       ///@name Operations
       ///@{
-
-      /**
-       * @brief Initialize node search
-       * @param rStructureNodes Nodes container
-       **/
-      void InitializeSearch(NodesContainerType const& rStructureNodes);
 
       /**
        * @brief Perform Node Search

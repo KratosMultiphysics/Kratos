@@ -36,8 +36,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     correlation_matrix.resize(number_of_nodes,number_of_nodes,false);
     TSparseSpaceType::SetToZero(correlation_matrix);
     // Construct and initialize searcher
-    OMP_NodeSearch searcher;
-    searcher.InitializeSearch(nodes);
+    OMP_NodeSearch searcher(nodes);
 
     // Assemble correlation matrix
     int counter = 0;

@@ -18,18 +18,6 @@
 
 namespace Kratos {
 
-void OMP_NodeSearch::InitializeSearch(NodesContainerType const& rStructureNodes) {
-
-    KRATOS_TRY;
-    if(!mIsInitialized) {
-        NodesContainerType::ContainerType& nodes_model_part = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
-        mBins = new NodeBinsType(nodes_model_part.begin(), nodes_model_part.end());
-
-        mIsInitialized = true;
-    }
-    KRATOS_CATCH("");
-}
-
 void OMP_NodeSearch::SearchNodesInRadius(
         NodesContainerType const& rStructureNodes,
         int const Id,

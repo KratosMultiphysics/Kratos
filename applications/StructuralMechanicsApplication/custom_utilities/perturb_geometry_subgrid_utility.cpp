@@ -32,8 +32,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     // Get all nodes
     ModelPart::NodesContainerType nodes = mrInitialModelPart.Nodes();
     // Construct and initialize searcher class
-    OMP_NodeSearch searcher;
-    searcher.InitializeSearch(nodes);
+    OMP_NodeSearch searcher(nodes);
 
     // Define the reduced space vector
     std::vector<ModelPart::NodeType::Pointer> reduced_space_nodes;
