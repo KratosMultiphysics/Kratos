@@ -118,13 +118,6 @@ namespace Python
         return( dummy.UnitNormal(LocalCoords) );
     }
 
-    array_1d<double,3> FastGetUnitNormal(GeometryType& dummy)
-    {
-        CoordinatesArrayType LocalCoords;
-        LocalCoords.clear();
-        return( dummy.UnitNormal(LocalCoords) );
-    }
-
     array_1d<double, 3> GetUnitNormalIntegrationPointIndex(
         GeometryType& dummy, IndexType IntegrationPointIndex)
     {
@@ -202,7 +195,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Normal", GetNormal)
     .def("Normal", GetNormalIntegrationPointIndex)
     .def("UnitNormal", GetUnitNormal)
-    .def("UnitNormal", FastGetUnitNormal)
     .def("UnitNormal",GetUnitNormalIntegrationPointIndex)
      // Jacobian
     .def("Jacobian", GetJacobianIntegrationPointIndex)
