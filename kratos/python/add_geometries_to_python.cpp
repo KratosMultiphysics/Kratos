@@ -87,22 +87,6 @@ namespace Python
         return(dummy.IsIdSelfAssigned());
     }
 
-    void CreateQuadraturePointGeometries1(GeometryType& dummy,
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives)
-    {
-        return(dummy.CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives));
-    }
-
-    array_1d<double,3> GetNormal(
-        GeometryType& dummy,
-        CoordinatesArrayType& LocalCoords
-        )
-    {
-        return( dummy.Normal(LocalCoords) );
-    }
-
 void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -132,9 +116,12 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
     // Integration
-    .def("IntegrationPointsNumber", GetIntegrationPointsNumber)
+    .def("IntegrationPointsNumber", [](GeometryType& self)
+        { return(self.IntegrationPointsNumber()); })
     // Quadrature points
-    .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
+        { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
     // Normal
     .def("Normal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
         { return(self.Normal(LocalCoords)); })
@@ -152,7 +139,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
         { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
     // ShapeFunctionsValues
-    .def("ShapeFunctionsValues", [](GeometryType& self, IndexType IntegrationPointIndex)
+    .def("ShapeFunctionsValues", [](GeometryType& self)
         { return(self.ShapeFunctionDerivatives()); })
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
