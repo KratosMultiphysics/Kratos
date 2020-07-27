@@ -100,7 +100,7 @@ public:
         : BaseType()
     {
         // Validate and assign defaults
-        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
     }
 

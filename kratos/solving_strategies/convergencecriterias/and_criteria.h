@@ -101,7 +101,7 @@ public:
         :BaseType()
     {
         // Validate and assign defaults
-        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
         KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
