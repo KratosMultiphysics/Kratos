@@ -396,7 +396,7 @@ class TestProcesses(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             x = node.X - 10.0
             y = node.Z
-            z = node.Y
+            # z = node.Y
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY), x+100.0*y*t**2)
             self.assertFalse(node.IsFixed(KratosMultiphysics.VISCOSITY))
 
@@ -945,7 +945,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        KratosMultiphysics.FindNodalHProcess(model_part).Execute();
+        KratosMultiphysics.FindNodalHProcess(model_part).Execute()
 
         for i in range(1,len(model_part.Nodes)):
             self.assertEqual(model_part.GetNode(i).GetSolutionStepValue(KratosMultiphysics.NODAL_H), 0.25)
@@ -1379,6 +1379,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "Parameters"            : {
                         "position"         : [16.0, 0.2, 0.0],
                         "model_part_name"  : "Main",
+                        "interval"             : [0.0, "End"],
                         "output_file_settings": {
                             "file_name"   : "condition_output",
                             "write_buffer_size" : 512
@@ -1393,6 +1394,56 @@ class TestProcesses(KratosUnittest.TestCase):
                     "Parameters"            : {
                         "reference_file_name"   : "",
                         "output_file_name"      : "condition_output.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_point_output_process_interval(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/interval_output_ref.dat")
+
+        # Here we also test if setting the write_buffer_size works
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [ {
+                    "python_module"  : "point_output_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "PointOutputProcess",
+                    "Parameters"            : {
+                        "position"         : [16.0, 0.2, 0.0],
+                        "model_part_name"  : "Main",
+                        "interval"             : [0.3, 3.0],
+                        "output_file_settings": {
+                            "file_name"   : "interval_output",
+                            "write_buffer_size" : 512
+                        },
+                        "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                        "entity_type"      : "condition"
+                    }
+                },{
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "interval_output.dat",
                         "comparison_type"       : "dat_file"
                     }
                 } ]
@@ -1743,8 +1794,9 @@ class TestProcesses(KratosUnittest.TestCase):
                     "kratos_module"  : "KratosMultiphysics",
                     "process_name"   : "CSVPointsOutputProcess",
                     "Parameters"            : {
-                        "csv_file_path"         : "path",
-                        "model_part_name"   : "Main",
+                        "csv_file_path"        : "path",
+                        "model_part_name"      : "Main",
+                        "interval"             : [0.0, "End"],
                         "output_file_settings" : {
                             "file_name" : "csv_points_output"
                         },
