@@ -93,8 +93,11 @@ public:
     explicit ExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
         Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
+        // Validate and assign defaults
+        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -145,6 +148,26 @@ public:
     /** Destructor.
      */
     ~ExplicitSolvingStrategyRungeKutta4() override = default;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters class_default_parameters = Parameters(R"(
+        {
+            "name" : "explicit_solving_strategy_runge_kutta_4"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        const Parameters default_parameters(class_default_parameters);
+
+        return default_parameters;
+    }
 
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
