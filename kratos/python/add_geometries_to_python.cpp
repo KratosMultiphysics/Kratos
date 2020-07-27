@@ -103,26 +103,6 @@ namespace Python
         return( dummy.Normal(LocalCoords) );
     }
 
-    array_1d<double, 3> GetNormalIntegrationPointIndex(
-        GeometryType& dummy, IndexType IntegrationPointIndex)
-    {
-        return(dummy.Normal(IntegrationPointIndex));
-    }
-
-    array_1d<double,3> GetUnitNormal(
-        GeometryType& dummy,
-        CoordinatesArrayType& LocalCoords
-        )
-    {
-        return( dummy.UnitNormal(LocalCoords) );
-    }
-
-    array_1d<double, 3> GetUnitNormalIntegrationPointIndex(
-        GeometryType& dummy, IndexType IntegrationPointIndex)
-    {
-        return(dummy.UnitNormal(IntegrationPointIndex));
-    }
-
 void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -156,10 +136,14 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Quadrature points
     .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
     // Normal
-    .def("Normal", GetNormal)
-    .def("Normal", GetNormalIntegrationPointIndex)
-    .def("UnitNormal", GetUnitNormal)
-    .def("UnitNormal",GetUnitNormalIntegrationPointIndex)
+    .def("Normal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.Normal(LocalCoords)); })
+    .def("Normal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.Normal(IntegrationPointIndex)); })
+    .def("UnitNormal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.UnitNormal(LocalCoords)); })
+    .def("UnitNormal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.UnitNormal(IntegrationPointIndex)); })
      // Jacobian
     .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
         { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
