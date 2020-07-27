@@ -31,14 +31,16 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
         TShell3pLinearBeamThick,
-        TShell3pNonLinearBeamThick,
-        TShell3pNonLinearBeamThickSD,
-        TShell3pLinearScordelis
+        TShell3pNonLinearBeamThick
         ]))
 
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        TShell3pNonLinearBeamThickSD,
+        TShell3pLinearScordelis
+        ]))
 
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
