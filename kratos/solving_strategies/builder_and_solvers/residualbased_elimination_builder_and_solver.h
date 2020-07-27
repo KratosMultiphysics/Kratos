@@ -128,13 +128,9 @@ public:
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "ResidualBasedEliminationBuilderAndSolver"
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -947,6 +943,26 @@ public:
 
         return 0;
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters class_default_parameters = Parameters(R"(
+        {
+            "name" : "elimination_builder_and_solver"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        const Parameters default_parameters(class_default_parameters);
+
+        return default_parameters;
     }
 
     /**
