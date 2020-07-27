@@ -104,13 +104,6 @@ namespace Python
         return( dummy.Normal(LocalCoords) );
     }
 
-    array_1d<double,3> FastGetNormal(GeometryType& dummy)
-    {
-        CoordinatesArrayType LocalCoords;
-        LocalCoords.clear();
-        return( dummy.Normal(LocalCoords) );
-    }
-
     array_1d<double, 3> GetNormalIntegrationPointIndex(
         GeometryType& dummy, IndexType IntegrationPointIndex)
     {
@@ -207,7 +200,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
     // Normal
     .def("Normal", GetNormal)
-    .def("Normal", FastGetNormal)
     .def("Normal", GetNormalIntegrationPointIndex)
     .def("UnitNormal", GetUnitNormal)
     .def("UnitNormal", FastGetUnitNormal)
