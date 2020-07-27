@@ -80,6 +80,39 @@ void RotateRegionProcess::SetAngularVelocity(const double NewAngularVelocity)
   mAngularVelocityRadians = NewAngularVelocity;
 }
 
+void RotateRegionProcess::ExecuteFinalizeSolutionStep()
+{
+  const auto &r_process_info = mrModelPart.GetProcessInfo();
+  const int domain_size = r_process_info[DOMAIN_SIZE];
+  if (mParameters["is_ale"].GetBool())
+  {
+    const int num_nodes = static_cast<int>(mrModelPart.NumberOfNodes());
+    const NodeIteratorType it_node_begin = mrModelPart.NodesBegin();
+
+  #pragma omp parallel for schedule(guided, 512)
+    for (int i_node = 0; i_node < num_nodes; ++i_node)
+    {
+      auto it_node = it_node_begin;
+      std::advance(it_node, i_node);
+
+      auto& r_mesh_vel = it_node->FastGetSolutionStepValue(MESH_VELOCITY, 0);
+
+      r_mesh_vel = Kratos::array_1d<double, 3>(0.0) ;
+
+      auto& r_vel = it_node->FastGetSolutionStepValue(VELOCITY, 0);
+
+      if (it_node->IsFixed(VELOCITY_X))
+        r_vel[0] = it_node->FastGetSolutionStepValue(MESH_VELOCITY_X, 0);
+      if (it_node->IsFixed(VELOCITY_Y))
+        r_vel[1] = it_node->FastGetSolutionStepValue(MESH_VELOCITY_Y, 0);
+      if (domain_size > 2)
+        if (it_node->IsFixed(VELOCITY_Z))
+          r_vel[2] = it_node->FastGetSolutionStepValue(MESH_VELOCITY_Z, 0);
+    }
+  }
+}
+
+
 void RotateRegionProcess::ExecuteInitializeSolutionStep()
 {
   KRATOS_TRY;

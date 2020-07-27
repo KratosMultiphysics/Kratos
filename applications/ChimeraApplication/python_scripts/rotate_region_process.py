@@ -87,5 +87,5 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if self.interval.IsInInterval(current_time):
+        if not self.interval.IsInInterval(current_time):
             self.rotate_region_process.ExecuteFinalizeSolutionStep()

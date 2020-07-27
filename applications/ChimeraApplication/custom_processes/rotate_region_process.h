@@ -66,6 +66,11 @@ public:
 
   void ExecuteInitializeSolutionStep() override;
 
+  /**
+   * @brief Function finalizes the solution step
+   */
+  void ExecuteFinalizeSolutionStep() override;
+
   std::string Info() const override;
 
   /// Print information about this object.
