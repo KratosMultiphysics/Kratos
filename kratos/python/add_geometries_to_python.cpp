@@ -140,7 +140,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
     // ShapeFunctionsValues
     .def("ShapeFunctionsValues", [](GeometryType& self)
-        { return(self.ShapeFunctionDerivatives()); })
+        { return(self.ShapeFunctionsValues()); })
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
         { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
