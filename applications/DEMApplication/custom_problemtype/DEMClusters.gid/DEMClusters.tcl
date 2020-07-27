@@ -269,7 +269,17 @@ proc DEMClusters::call_makeTreeMedial { } {
     # catch { set ::DEMClusters::pid [exec $program {*}$argv] &} msg
 
     # proces can be canceled but not ouput on process info screen
-    catch {set ::DEMClusters::pid [open "|$program $argv"]} msg
+    catch {set ::DEMClusters::pid [open "|$program $argv" w+]} msg
+
+    set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
+    set outfl [open $ouputpath w]
+
+    puts $outfl [read $::DEMClusters::pid]
+    close $outfl
+
+    #W [read $::DEMClusters::pid]
+    #W "SPH generation finished"
+
 
     # view output using view process info but process cannot be canceled. requires tk_exec modified version of exec proc:
     # set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
@@ -421,9 +431,6 @@ proc DEMClusters::call_makeTreeHubbard { } {
     set minSamples [GiD_AccessValue get gendata minSamples]
     #set genericOBJFilename [file join $::DEMClusters::ProblemPath generic.obj]
     #set genericOBJFilename "\"$genericOBJFilename\""
-    set modelname [GiD_Info Project ModelName]
-    set genericOBJFilename [file join ${modelname}.gid generic.obj]
-
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
