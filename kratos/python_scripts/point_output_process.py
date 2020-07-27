@@ -39,31 +39,22 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "output_file_settings": {}
         }''')
 
-        # Detect "End" as a tag and replace it by a large number
-        if(params.Has("interval")):
-            if(params["interval"][1].IsString()):
-                if(params["interval"][1].GetString() == "End"):
-                    params["interval"][1].SetDouble(1e30)
-                else:
-                    raise Exception("The second value of interval can be \"End\" or a number, interval currently:" +
-                                    params["interval"].PrettyPrintJsonString())
-
         self.model = model
-
+        self.interval = KratosMultiphysics.IntervalUtility(params)
         self.params = params
         self.params.ValidateAndAssignDefaults(default_settings)
 
+        # variables for search of given position in model part
         self.search_done = False
         self.point = KratosMultiphysics.Point(0,0,0)
 
-        # These quantites are lists such that they can be looped
+        # these quantites are lists such that they can be looped
         # => needed for mpi in case the point is in a different partition
         self.output_file = []
         self.entity = []
         self.area_coordinates = []
         self.output_variables = []
 
-        self.interval = params["interval"].GetVector()
         self.format = self.params["print_format"].GetString()
         self.historical_value = self.params["historical_value"].GetBool()
         self.search_tolerance = self.params["search_tolerance"].GetDouble()
@@ -116,14 +107,14 @@ class PointOutputProcess(KratosMultiphysics.Process):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         # search for point, moved here, so search happens at start time of the time interval
-        if time >= self.interval[0] and not self.search_done:
+        if self.interval.IsInInterval(time) and not self.search_done:
             self.search_done = True
             self.__SearchPoint()
 
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        if(time >= self.interval[0] and time <= self.interval[1]):
+        if self.interval.IsInInterval(time):
             # zip works with the shortes list, which is what we want here
             # i.e. if no entity was found then also no output_file will be
             # initialized which means that the loop body will never be executed
