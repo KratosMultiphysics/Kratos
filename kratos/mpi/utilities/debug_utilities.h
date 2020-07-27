@@ -116,13 +116,13 @@ public:
         auto container = rModelPart.Conditions();
 
         for(auto& condition : container) {
-            indices.push_back(element.Id());
+            indices.push_back(condition.Id());
         }
 
         auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
         auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
 
-        GlobalPointerCommunicator<Element> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+        GlobalPointerCommunicator<Condition> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
         CheckNonHistoricalVariableConsistency(rModelPart, container, rVariable, pointer_comm, gp_map);
     }
@@ -155,7 +155,7 @@ public:
 
             // Check Variable
             if(data_proxy.Get(gp).first != entity.GetValue(rVariable)) {
-                std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << node.Id() << " Expected: " << node.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
+                std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << entity.Id() << " Expected: " << entity.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
                 val_error_detected = true;
             }
         }
