@@ -111,6 +111,12 @@ namespace Python
         return( dummy.Normal(LocalCoords) );
     }
 
+    array_1d<double, 3> GetNormalIntegrationPointIndex(
+        GeometryType& dummy, IndexType IntegrationPointIndex)
+    {
+        return(dummy.Normal(IntegrationPointIndex));
+    }
+
     array_1d<double,3> GetUnitNormal(
         GeometryType& dummy,
         CoordinatesArrayType& LocalCoords
@@ -124,6 +130,32 @@ namespace Python
         CoordinatesArrayType LocalCoords;
         LocalCoords.clear();
         return( dummy.UnitNormal(LocalCoords) );
+    }
+
+    array_1d<double, 3> GetUnitNormalIntegrationPointIndex(
+        GeometryType& dummy, IndexType IntegrationPointIndex)
+    {
+        return(dummy.UnitNormal(IntegrationPointIndex));
+    }
+
+    Matrix GetJacobianIntegrationPointIndex(
+        GeometryType& dummy, IndexType IntegrationPointIndex)
+    {
+        Matrix results;
+        return(dummy.Jacobian(results, IntegrationPointIndex));
+    }
+
+    Vector GetDeterminantOfJacobian(
+            GeometryType& dummy)
+    {
+        Vector results;
+        return(dummy.DeterminantOfJacobian(results));
+    }
+
+    double GetDeterminantOfJacobianIntegrationPointIndex(
+        GeometryType& dummy, IndexType IntegrationPointIndex)
+    {
+        return(dummy.DeterminantOfJacobian(IntegrationPointIndex));
     }
 
 void  AddGeometriesToPython(pybind11::module& m)
@@ -156,20 +188,28 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("PointsNumber",&GeometryType::PointsNumber)
     // Quadrature points
     .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
-    .def("Normal",GetNormal)
-    .def("Normal",FastGetNormal)
-    .def("UnitNormal",GetUnitNormal)
-    .def("UnitNormal",FastGetUnitNormal)
+    // Normal
+    .def("Normal", GetNormal)
+    .def("Normal", FastGetNormal)
+    .def("Normal", GetNormalIntegrationPointIndex)
+    .def("UnitNormal", GetUnitNormal)
+    .def("UnitNormal", FastGetUnitNormal)
+    .def("UnitNormal",GetUnitNormalIntegrationPointIndex)
+     // Jacobian
+    .def("Jacobian", GetJacobianIntegrationPointIndex)
+    .def("DeterminantOfJacobian", GetDeterminantOfJacobian)
+    .def("DeterminantOfJacobian", GetDeterminantOfJacobianIntegrationPointIndex)
+    // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
+    // Print
     .def("__str__", PrintObject<GeometryType>)
+    // Access to nodes
     .def("__getitem__", [](GeometryType& self, unsigned int i){return self(i);} )
     .def("__iter__",    [](GeometryType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
     .def("__len__",     [](GeometryType& self){return self.PointsNumber();} )
-//     .def("Points", &GeometryType::ConstGetPoints)
-//     .def("Points", &GeometryType::GetPoints)
     ;
 
     // 2D
