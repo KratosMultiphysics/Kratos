@@ -117,6 +117,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         # Call the base solver to do the PrepareModelPart
         # Note that his also calls the PrepareModelPart of the turbulence model
         super(TrilinosNavierStokesSolverMonolithic, self).PrepareModelPart()
+        self.distributed_model_part_importer.CreateCommunicators()
 
 
     def Finalize(self):
@@ -206,10 +207,11 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 trilinos_linear_solver,
                 KratosFluid.PATCH_INDEX)
         else:
-            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
-                epetra_communicator,
-                guess_row_size,
-                trilinos_linear_solver)
+            # builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
+            #     epetra_communicator,
+            #     guess_row_size,
+            #     trilinos_linear_solver)
+            builder_and_solver =  KratosTrilinos.TrilinosBlockBuilderAndSolverWithConstraints(epetra_communicator,guess_row_size,trilinos_linear_solver)
         return builder_and_solver
 
     def _CreateSolutionStrategy(self):
