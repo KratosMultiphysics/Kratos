@@ -777,10 +777,13 @@ public:
     {
         Parameters class_default_parameters = Parameters(R"(
         {
-            "name"                     : "linear_strategy",
-            "compute_norm_dx"          : false,
-            "reform_dofs_at_each_step" : false,
-            "compute_reactions"        : false
+            "name"                         : "linear_strategy",
+            "compute_norm_dx"              : false,
+            "reform_dofs_at_each_step"     : false,
+            "compute_reactions"            : false,
+            "builder_and_solver_settings"  : {},
+            "linear_solver_settings"       : {},
+            "scheme_settings"              : {}
         })");
 
         // Getting base class default parameters
