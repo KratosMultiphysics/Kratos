@@ -19,7 +19,6 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_utilities/perturb_geometry_base_utility.h"
-#include "custom_utilities/omp_node_search.h"
 
 namespace Kratos
 {

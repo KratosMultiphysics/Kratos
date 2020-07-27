@@ -14,11 +14,11 @@
 // External includes
 
 // Project includes
-#include "omp_node_search.h"
+#include "node_search_utility.h"
 
 namespace Kratos {
 
-void OMP_NodeSearch::SearchNodesInRadius(
+void NodeSearchUtility::SearchNodesInRadius(
         NodeType& rNode,
         double const Radius,
         ResultNodesContainerType& rResults ) {

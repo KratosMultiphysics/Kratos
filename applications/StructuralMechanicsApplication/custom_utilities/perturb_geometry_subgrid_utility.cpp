@@ -16,6 +16,7 @@
 // Project includes
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
 #include "utilities/builtin_timer.h"
+#include "custom_utilities/node_search_utility.h"
 
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
@@ -33,7 +34,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     // Get all nodes
     ModelPart::NodesContainerType nodes = mrInitialModelPart.Nodes();
     // Construct and initialize searcher class
-    OMP_NodeSearch searcher(nodes);
+    NodeSearchUtility searcher(nodes);
 
     // Define the reduced space vector
     std::vector<ModelPart::NodeType::Pointer> reduced_space_nodes;

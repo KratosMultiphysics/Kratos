@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
-#include "custom_utilities/omp_node_search.h"
+#include "custom_utilities/node_search_utility.h"
 #include "utilities/builtin_timer.h"
 
 
@@ -36,7 +36,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     correlation_matrix.resize(number_of_nodes,number_of_nodes,false);
     TSparseSpaceType::SetToZero(correlation_matrix);
     // Construct and initialize searcher
-    OMP_NodeSearch searcher(nodes);
+    NodeSearchUtility searcher(nodes);
 
     // Assemble correlation matrix
     int counter = 0;

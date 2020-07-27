@@ -10,8 +10,8 @@
 //
 // This file is partly copied from "DEMApplication/custom_utilities/omp_dem_search.h" and modified
 
-#if !defined(KRATOS_OMP_NODE_SEARCH_H_INCLUDED )
-#define  KRATOS_OMP_NODE_SEARCH_H_INCLUDED
+#if !defined(KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED )
+#define  KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED
 
 // System includes
 #include <string>
@@ -57,7 +57,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class OMP_NodeSearch
+ * @class NodeSearchUtility
  * @ingroup StructuralMechanicsApplication
  * @brief Node Search
  * @details This class provides a method to search for neighbouring nodes of one node
@@ -65,14 +65,14 @@ namespace Kratos
  * @author Manuel Messmer
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
 {
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of OMP_NodeSearch
-      KRATOS_CLASS_POINTER_DEFINITION(OMP_NodeSearch);
+      /// Pointer definition of NodeSearchUtility
+      KRATOS_CLASS_POINTER_DEFINITION(NodeSearchUtility);
 
       //Node Types
       typedef ModelPart::NodeType                           NodeType;
@@ -89,7 +89,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       ///@{
 
       /// Default constructor.
-      OMP_NodeSearch(NodesContainerType const& rStructureNodes) {
+      NodeSearchUtility(NodesContainerType const& rStructureNodes) {
         KRATOS_TRY;
         NodesContainerType::ContainerType& nodes_model_part = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
         mBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
@@ -98,7 +98,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       }
 
       /// Destructor.
-      ~OMP_NodeSearch(){
+      ~NodeSearchUtility(){
       }
 
       ///@}
@@ -233,20 +233,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       ///@{
 
       /// Assignment operator.
-      OMP_NodeSearch& operator=(OMP_NodeSearch const& rOther)
+      NodeSearchUtility& operator=(NodeSearchUtility const& rOther)
       {
           return *this;
       }
 
       /// Copy constructor.
-      OMP_NodeSearch(OMP_NodeSearch const& rOther)
+      NodeSearchUtility(NodeSearchUtility const& rOther)
       {
           *this = rOther;
       }
 
       ///@}
 
-    }; // Class DEMSearch
+    }; // Class NodeSearchUtility
 
   ///@}
 
@@ -265,4 +265,4 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NODE_SEARCH_H_INCLUDED  defined
+#endif // KRATOS_NODE_SEARCH_UTILITY_H_INCLUDED  defined
