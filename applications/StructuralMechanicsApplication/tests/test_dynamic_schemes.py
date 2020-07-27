@@ -390,7 +390,6 @@ def create_solver(mp, scheme_name):
         convergence_criterion.SetEchoLevel(0)
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,

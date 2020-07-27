@@ -20,7 +20,14 @@ KratosIgaApplication::KratosIgaApplication()
 }
 
 void KratosIgaApplication::Register() {
-    KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
+
+KRATOS_INFO("") << "    KRATOS  _____ _____\n"
+                << "           |_   _/ ____|   /\\\n"
+                << "             | || |  __   /  \\\n"
+                << "             | || | |_ | / /\\ \\\n"
+                << "            _| || |__| |/ ____ \\\n"
+                << "           |_____\\_____/_/    \\_\\\n"
+                << "Initializing KratosIgaApplication..." << std::endl;
 
     // Variables
     KRATOS_REGISTER_VARIABLE(BREP_ID)
