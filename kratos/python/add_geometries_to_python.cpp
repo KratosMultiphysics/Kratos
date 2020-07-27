@@ -158,6 +158,12 @@ namespace Python
         return(dummy.DeterminantOfJacobian(IntegrationPointIndex));
     }
 
+    Matrix GetShapeFunctionsValues(
+        GeometryType& dummy)
+    {
+        return(dummy.ShapeFunctionsValues());
+    }
+
 void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -201,6 +207,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Jacobian", GetJacobianIntegrationPointIndex)
     .def("DeterminantOfJacobian", GetDeterminantOfJacobian)
     .def("DeterminantOfJacobian", GetDeterminantOfJacobianIntegrationPointIndex)
+    // ShapeFunctionsValues
+    .def("ShapeFunctionsValues", GetShapeFunctionsValues)
     // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
