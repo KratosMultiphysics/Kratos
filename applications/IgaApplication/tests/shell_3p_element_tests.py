@@ -193,13 +193,13 @@ class Shell3pElementTests(KratosUnittest.TestCase):
 
             nodes = KM.NodesVector()
             nodes.append(node1)
-            nodes.append(node2)
-            nodes.append(node3)
             nodes.append(node4)
-            nodes.append(node5)
-            nodes.append(node6)
             nodes.append(node7)
+            nodes.append(node2)
+            nodes.append(node5)
             nodes.append(node8)
+            nodes.append(node3)
+            nodes.append(node6)
             nodes.append(node9)
 
             knots_u = KM.Vector(4)
