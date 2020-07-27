@@ -22,8 +22,8 @@
 #include "custom_utilities/explicit_integration_utilities.h"
 #include "custom_utilities/rve_periodicity_utility.h"
 #include "custom_utilities/project_vector_on_surface_utility.h"
-#include "custom_processes/perturb_geometry_sparse_process.h"
-#include "custom_processes/perturb_geometry_subgrid_process.h"
+#include "custom_utilities/perturb_geometry_sparse_utility.h"
+#include "custom_utilities/perturb_geometry_subgrid_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -58,16 +58,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<ProjectVectorOnSurfaceUtility>(m,"ProjectVectorOnSurfaceUtility")
         .def_static("Execute",&ProjectVectorOnSurfaceUtility::Execute);
 
-    py::class_<PerturbGeometrySparseProcess, PerturbGeometrySparseProcess::Pointer, Process>(m,"PerturbGeometrySparseProcess")
+    py::class_<PerturbGeometrySparseUtility, PerturbGeometrySparseUtility::Pointer>(m,"PerturbGeometrySparseUtility")
         .def(py::init<ModelPart&,LinearSolverPointerTypeSparse, Parameters>())
-        .def("CreateRandomFieldVectors", &PerturbGeometrySparseProcess::CreateRandomFieldVectors)
-        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseProcess::ApplyRandomFieldVectorsToGeometry)
+        .def("CreateRandomFieldVectors", &PerturbGeometrySparseUtility::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySparseUtility::ApplyRandomFieldVectorsToGeometry)
         ;
 
-    py::class_<PerturbGeometrySubgridProcess, PerturbGeometrySubgridProcess::Pointer, Process>(m,"PerturbGeometrySubgridProcess")
+    py::class_<PerturbGeometrySubgridUtility, PerturbGeometrySubgridUtility::Pointer>(m,"PerturbGeometrySubgridUtility")
         .def(py::init<ModelPart&, LinearSolverPointerTypeDense, Parameters>())
-        .def("CreateRandomFieldVectors", &PerturbGeometrySubgridProcess::CreateRandomFieldVectors)
-        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridProcess::ApplyRandomFieldVectorsToGeometry)
+        .def("CreateRandomFieldVectors", &PerturbGeometrySubgridUtility::CreateRandomFieldVectors)
+        .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry)
         ;
 }
 

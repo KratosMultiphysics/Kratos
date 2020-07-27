@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/perturb_geometry_base_process.h"
+#include "custom_utilities/perturb_geometry_base_utility.h"
 #include "utilities/builtin_timer.h"
 
 #include "utilities/openmp_utils.h"
@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-void PerturbGeometryBaseProcess::ApplyRandomFieldVectorsToGeometry( ModelPart& rThisModelPart, const std::vector<double>& variables )
+void PerturbGeometryBaseUtility::ApplyRandomFieldVectorsToGeometry( ModelPart& rThisModelPart, const std::vector<double>& variables )
 {
     KRATOS_TRY;
     BuiltinTimer assemble_eigenvectors_timer;
@@ -31,7 +31,7 @@ void PerturbGeometryBaseProcess::ApplyRandomFieldVectorsToGeometry( ModelPart& r
     const int num_of_eigenvectors = rPerturbationMatrix.size2();
     const int num_of_nodes = rThisModelPart.NumberOfNodes();
 
-    KRATOS_WARNING_IF("PerturbGeometryBaseProcess",
+    KRATOS_WARNING_IF("PerturbGeometryBaseUtility",
                     num_of_random_variables != num_of_eigenvectors)
         << "Number of random variables does not match number of eigenvectors: "
         << "Number of random variables: " << num_of_random_variables << ", "
@@ -82,13 +82,13 @@ void PerturbGeometryBaseProcess::ApplyRandomFieldVectorsToGeometry( ModelPart& r
         // it_node_perturb->FastGetSolutionStepValue(DISPLACEMENT_Z) += normal(2)*random_field[i];
     }
 
-    KRATOS_INFO_IF("PerturbGeometryBaseProcess: Apply Random Field to Geometry Time", mEchoLevel > 0)
+    KRATOS_INFO_IF("PerturbGeometryBaseUtility: Apply Random Field to Geometry Time", mEchoLevel > 0)
         << assemble_eigenvectors_timer.ElapsedSeconds() << std::endl;
 
     KRATOS_CATCH("")
 }
 
-double PerturbGeometryBaseProcess::CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLength)
+double PerturbGeometryBaseUtility::CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLength)
 {
     array_1d<double, 3> coorrdinate;
     coorrdinate = itNode1->GetInitialPosition().Coordinates() - itNode2->GetInitialPosition().Coordinates();

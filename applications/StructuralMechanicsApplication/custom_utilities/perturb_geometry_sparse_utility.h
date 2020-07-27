@@ -9,15 +9,15 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTUB_GEOMETRY_SPARSE_PROCESS)
-#define KRATOS_PERTUB_GEOMETRY_SPARSE_PROCESS
+#if !defined(KRATOS_PERTUB_GEOMETRY_SPARSE_UTILITY)
+#define KRATOS_PERTUB_GEOMETRY_SPARSE_UTILITY
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_processes/perturb_geometry_base_process.h"
+#include "custom_utilities/perturb_geometry_base_utility.h"
 #include "custom_utilities/omp_node_search.h"
 
 namespace Kratos
@@ -38,14 +38,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class PerturbGeometrySparseProcess
+ * @class PerturbGeometrySparseUtility
  * @ingroup StructuralMechanicsApplication
  * @brief This class generates a random field based on a sparse correlation matrix
  * @details Random field is used to perturb initial geometry
  * @author Manuel Messmer
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySparseProcess
-    : public PerturbGeometryBaseProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySparseUtility
+    : public PerturbGeometryBaseUtility
 {
 public:
 
@@ -60,21 +60,21 @@ public:
 
     typedef typename TSparseSpaceType::MatrixType           SparseMatrixType;
 
-    /// Pointer definition of PerturbGeometrySparseProcess
-    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySparseProcess);
+    /// Pointer definition of PerturbGeometrySparseUtility
+    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySparseUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    PerturbGeometrySparseProcess( ModelPart& rInitialModelPart, LinearSolverPointerType pEigenSolver, Parameters Settings) :
-        PerturbGeometryBaseProcess(rInitialModelPart, Settings){
+    PerturbGeometrySparseUtility( ModelPart& rInitialModelPart, LinearSolverPointerType pEigenSolver, Parameters Settings) :
+        PerturbGeometryBaseUtility(rInitialModelPart, Settings){
             mpEigenSolver = pEigenSolver;
     }
 
     /// Destructor.
-    ~PerturbGeometrySparseProcess() override
+    ~PerturbGeometrySparseUtility() override
     = default;
 
     ///@}
@@ -126,13 +126,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "PerturbGeometrySparseProcess";
+        return "PerturbGeometrySparseUtility";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "PerturbGeometrySparseProcess";
+        rOStream << "PerturbGeometrySparseUtility";
     }
 
     /// Print object's data.
@@ -217,15 +217,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    PerturbGeometrySparseProcess& operator=(PerturbGeometrySparseProcess const& rOther) = delete;
+    PerturbGeometrySparseUtility& operator=(PerturbGeometrySparseUtility const& rOther) = delete;
 
     /// Copy constructor.
-    PerturbGeometrySparseProcess(PerturbGeometrySparseProcess const& rOther) = delete;
+    PerturbGeometrySparseUtility(PerturbGeometrySparseUtility const& rOther) = delete;
 
 
     ///@}
 
-}; // Class PerturbGeometrySparseProcess
+}; // Class PerturbGeometrySparseUtility
 
 ///@}
 
@@ -238,4 +238,4 @@ private:
 ///@{
 
 }
-#endif /* KRATOS_PERTUB_GEOMETRY_SPARSE_PROCESS defined */
+#endif /* KRATOS_PERTUB_GEOMETRY_SPARSE_UTILITY defined */

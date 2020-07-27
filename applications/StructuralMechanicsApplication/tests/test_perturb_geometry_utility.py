@@ -3,13 +3,13 @@ import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_process import PerturbGeometrySparseProcess
-from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_process import PerturbGeometrySubgridProcess
+from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_utility import PerturbGeometrySparseUtility
+from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_utility import PerturbGeometrySubgridUtility
 
 import numpy as np
 
-class SparseProcessCustom(PerturbGeometrySparseProcess):
-    """ SparseProcessCustom
+class SparseUtilityCustom(PerturbGeometrySparseUtility):
+    """ SparseUtilityCustom
     This class is derived to override the PerturbGeometry method
     """
     def __init__(self, mp, settings ):
@@ -19,8 +19,8 @@ class SparseProcessCustom(PerturbGeometrySparseProcess):
         # Apply random field vectors to geometry
         self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
 
-class SubgridProcessCustom(PerturbGeometrySubgridProcess):
-    """SubgridProcessCustom
+class SubgridUtilityCustom(PerturbGeometrySubgridUtility):
+    """SubgridUtilityCustom
     This class is derived to override the PerturbGeometry method
     """
     def __init__(self, mp, settings):
@@ -117,7 +117,7 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
                         "echo_level"                : 0
                     }
                 }""")
-        SparseProcess = SparseProcessCustom(mp_sparse, settings)
+        SparseProcess = SparseUtilityCustom(mp_sparse, settings)
         SparseProcess.PerturbGeometry(mp_sparse)
         # Subgrid method
         model_subgrid =  KratosMultiphysics.Model()
@@ -136,7 +136,7 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
                 "echo_level"                : 0
             }
         }""")
-        SubgridProcess = SubgridProcessCustom(mp_subgrid, settings)
+        SubgridProcess = SubgridUtilityCustom(mp_subgrid, settings)
         SubgridProcess.PerturbGeometry(mp_subgrid)
 
         # Check if first random field vectors are equal

@@ -9,8 +9,8 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTURB_GEOMETRY_SUBGRID_PROCESS)
-#define KRATOS_PERTURB_GEOMETRY_SUBGRID_PROCESS
+#if !defined(KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY)
+#define KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY
 
 // System includes
 
@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_processes/perturb_geometry_base_process.h"
+#include "custom_utilities/perturb_geometry_base_utility.h"
 #include "custom_utilities/omp_node_search.h"
 
 namespace Kratos
@@ -39,14 +39,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class PerturbGeometrySubgridProcess
+ * @class PerturbGeometrySubgridUtility
  * @ingroup StructuralMechanicsApplication
  * @brief This class generates a random field based on a reduced correlation matrix
  * @details Random field is used to perturb initial geometry
  * @author Manuel Messmer
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySubgridProcess
-    : public PerturbGeometryBaseProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySubgridUtility
+    : public PerturbGeometryBaseUtility
 {
 public:
 
@@ -59,22 +59,22 @@ public:
 
     typedef ModelPart::NodesContainerType::ContainerType        ResultNodesContainerType;
 
-    /// Pointer definition of PerturbGeometrySubgridProcess
-    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySubgridProcess);
+    /// Pointer definition of PerturbGeometrySubgridUtility
+    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySubgridUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    PerturbGeometrySubgridProcess( ModelPart& rInitialModelPart, LinearSolverPointerType pEigenSolver, Parameters Settings) :
-        PerturbGeometryBaseProcess(rInitialModelPart, Settings){
+    PerturbGeometrySubgridUtility( ModelPart& rInitialModelPart, LinearSolverPointerType pEigenSolver, Parameters Settings) :
+        PerturbGeometryBaseUtility(rInitialModelPart, Settings){
             mpEigenSolver = pEigenSolver;
             mMinDistanceSubgrid = Settings["min_distance_subgrid"].GetDouble();
     }
 
     /// Destructor.
-    ~PerturbGeometrySubgridProcess() override
+    ~PerturbGeometrySubgridUtility() override
     = default;
 
     ///@}
@@ -126,13 +126,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "PerturbGeometrySubgridProcess";
+        return "PerturbGeometrySubgridUtility";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "PerturbGeometrySubgridProcess";
+        rOStream << "PerturbGeometrySubgridUtility";
     }
 
     /// Print object's data.
@@ -219,14 +219,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    PerturbGeometrySubgridProcess& operator=(PerturbGeometrySubgridProcess const& rOther) = delete;
+    PerturbGeometrySubgridUtility& operator=(PerturbGeometrySubgridUtility const& rOther) = delete;
 
     /// Copy constructor.
-    PerturbGeometrySubgridProcess(PerturbGeometrySubgridProcess const& rOther) = delete;
+    PerturbGeometrySubgridUtility(PerturbGeometrySubgridUtility const& rOther) = delete;
 
     ///@}
 
-}; // Class PerturbGeometrySubgridProcess
+}; // Class PerturbGeometrySubgridUtility
 
 ///@}
 ///@name Type Definitions
@@ -238,4 +238,4 @@ private:
 ///@{
 
 }
-#endif /* KRATOS_PERTURB_GEOMETRY_SUBGRID_PROCESS defined */
+#endif /* KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY defined */

@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/perturb_geometry_sparse_process.h"
+#include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/omp_node_search.h"
 #include "utilities/builtin_timer.h"
 
@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
+int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     KRATOS_TRY;
 
     int number_of_nodes = mrInitialModelPart.NumberOfNodes();
@@ -58,7 +58,7 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
         }
     }
 
-    KRATOS_INFO_IF("PerturbGeometrySparseProcess: Build Correlation Matrix Time", mEchoLevel > 0)
+    KRATOS_INFO_IF("PerturbGeometrySparseUtility: Build Correlation Matrix Time", mEchoLevel > 0)
             << assemble_cl_matrix_timer.ElapsedSeconds() << std::endl
             << (double) counter / (double)(number_of_nodes*number_of_nodes) * 100 << "% of Matrix is populated" << std::endl;
 
@@ -82,7 +82,7 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
         if( epsilon < mTruncationError)
         {
             number_required_eigenvalues = i + 1;
-            KRATOS_INFO_IF("PerturbGeometrySparseProcess", mEchoLevel > 0)
+            KRATOS_INFO_IF("PerturbGeometrySparseUtility", mEchoLevel > 0)
                 << "Truncation Error  (" << mTruncationError
                 << ") is achieved with " << number_required_eigenvalues << " Eigenvalues" << std::endl;
 
@@ -91,7 +91,7 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
         else if( i == eigenvalues.size() - 1)
         {
             number_required_eigenvalues = eigenvalues.size();
-            KRATOS_INFO_IF("PerturbGeometrySparseProcess", mEchoLevel > 0)
+            KRATOS_INFO_IF("PerturbGeometrySparseUtility", mEchoLevel > 0)
                 << "Truncation Error is NOT achieved:  " << epsilon << " / " << mTruncationError << std::endl
                 << "Maximum number of computed eigenvalues is used: " << number_required_eigenvalues << std::endl;
         }
@@ -121,7 +121,7 @@ int PerturbGeometrySparseProcess::CreateRandomFieldVectors(){
         }
     }
 
-    KRATOS_INFO_IF("PerturbGeometrySparseProcess: Assemble Random Field Time", mEchoLevel > 0)
+    KRATOS_INFO_IF("PerturbGeometrySparseUtility: Assemble Random Field Time", mEchoLevel > 0)
         << assemble_random_field_time.ElapsedSeconds() << std::endl;
 
     return number_of_random_variables;

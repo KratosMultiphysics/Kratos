@@ -9,8 +9,8 @@
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_PERTURB_GEOMETRY_BASE_PROCESS)
-#define KRATOS_PERTURB_GEOMETRY_BASE_PROCESS
+#if !defined(KRATOS_PERTURB_GEOMETRY_BASE_UTILITY)
+#define KRATOS_PERTURB_GEOMETRY_BASE_UTILITY
 
 // System includes
 
@@ -21,7 +21,6 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-#include "processes/process.h"
 #include "utilities/mortar_utilities.h"
 
 
@@ -43,13 +42,12 @@ namespace Kratos
 ///@{
 
 /**
- * @class PerturbGeometryBaseProcess
+ * @class PerturbGeometryBaseUtility
  * @ingroup StructuralMechanicsApplication
- * @brief Base class for geometry perturbation process
+ * @brief Base class for geometry perturbation utility
  * @author Manuel Messmer
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometryBaseProcess
-    : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometryBaseUtility
 {
 public:
 
@@ -65,15 +63,15 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    /// Pointer definition of PerturbGeometryBaseProcess
-    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometryBaseProcess);
+    /// Pointer definition of PerturbGeometryBaseUtility
+    KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometryBaseUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    PerturbGeometryBaseProcess( ModelPart& rInitialModelPart, Parameters Settings) :
+    PerturbGeometryBaseUtility( ModelPart& rInitialModelPart, Parameters Settings) :
         mrInitialModelPart(rInitialModelPart),
         mCorrelationLength(Settings["correlation_length"].GetDouble()),
         mTruncationError(Settings["truncation_error"].GetDouble()),
@@ -87,8 +85,7 @@ public:
     }
 
     /// Destructor.
-    ~PerturbGeometryBaseProcess() override
-    = default;
+    virtual ~PerturbGeometryBaseUtility() {}
 
     ///@}
     ///@name Access
@@ -138,19 +135,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
-        return "PerturbGeometryBaseProcess";
+        return "PerturbGeometryBaseUtility";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "PerturbGeometryBaseProcess";
+        rOStream << "PerturbGeometryBaseUtility";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -246,15 +243,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    PerturbGeometryBaseProcess& operator=(PerturbGeometryBaseProcess const& rOther) = delete;
+    PerturbGeometryBaseUtility& operator=(PerturbGeometryBaseUtility const& rOther) = delete;
 
     /// Copy constructor.
-    PerturbGeometryBaseProcess(PerturbGeometryBaseProcess const& rOther) = delete;
+    PerturbGeometryBaseUtility(PerturbGeometryBaseUtility const& rOther) = delete;
 
 
     ///@}
 
-}; // Class PerturbGeometryBaseProcess
+}; // Class PerturbGeometryBaseUtility
 
 ///@}
 
@@ -267,4 +264,4 @@ private:
 ///@{
 
 }
-#endif /* KRATOS_PERTURB_GEOMETRY_BASE_PROCESS defined */
+#endif /* KRATOS_PERTURB_GEOMETRY_BASE_UTILITY defined */

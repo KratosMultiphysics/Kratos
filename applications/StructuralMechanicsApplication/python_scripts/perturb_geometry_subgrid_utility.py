@@ -8,9 +8,9 @@ from KratosMultiphysics import eigen_solver_factory
 
 import numpy as np
 
-class PerturbGeometrySparseProcess(KratosMultiphysics.Process):
+class PerturbGeometrySubgridUtility(KratosMultiphysics.Process):
     """A process to perturb the initial geometry of a structure
-    based on a sparse correlation matrix.
+    based on a reduced correlation matrix.
     """
     def __init__(self, mp, settings ):
         """Constructor of Process-Object
@@ -21,14 +21,11 @@ class PerturbGeometrySparseProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""{
             "eigensolver_settings"  : {
-                "solver_type"               : "eigen_eigensystem",
-                "max_iteration"             : 1000,
-                "tolerance"                 : 1e-6,
-                "number_of_eigenvalues"     : 1,
-		        "normalize_eigenvectors"    : false,
-                "echo_level"                : 0
+                "solver_type"               : "dense_eigensolver",
+                "ascending_order"           : false
                 },
             "perturbation_settings" : {
+                "min_distance_subgrid"      : 10,
                 "max_displacement"          : 1,
                 "correlation_length"        : 100,
                 "truncation_error"          : 1e-3,
@@ -37,23 +34,26 @@ class PerturbGeometrySparseProcess(KratosMultiphysics.Process):
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
+        eigensolver_settings = settings["eigensolver_settings"]
 
-        eigen_solver = eigen_solver_factory.ConstructSolver(settings["eigensolver_settings"])
+        if( eigensolver_settings["ascending_order"].GetBool() ):
+            warn_msg = 'Eigenvalues must be sorted in descending order. \n'
+            warn_msg += '''Parameter: '"ascending_order" : true' specification is ignored.'''
+            KratosMultiphysics.Logger.PrintWarning("PerturbGeometrySubgridUtility", warn_msg)
+            eigensolver_settings["ascending_order"].SetBool(False)
+
+        eigen_solver = eigen_solver_factory.ConstructSolver(eigensolver_settings)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         perturbation_settings = settings["perturbation_settings"]
         # Initialize process
-        self.process = StructuralMechanicsApplication.PerturbGeometrySparseProcess(mp, eigen_solver, perturbation_settings)
+        self.process = StructuralMechanicsApplication.PerturbGeometrySubgridUtility(mp, eigen_solver, perturbation_settings)
         # Generate perturbation matrix
         self.number_random_variables = self.process.CreateRandomFieldVectors()
 
+
     def PerturbGeometry(self, mp ):
-        """ Apply perturbation matrix to geometry.
+        """Apply perturbation matrix to geometry.
         Random field approach requires normal distributed random numbers (mean=0, sigma=1)
         """
         random_numbers = np.random.normal(0, 1, self.number_random_variables)
         self.process.ApplyRandomFieldVectorsToGeometry(mp, random_numbers)
-
-
-
-
-

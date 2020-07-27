@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/perturb_geometry_subgrid_process.h"
+#include "custom_utilities/perturb_geometry_subgrid_utility.h"
 #include "utilities/builtin_timer.h"
 
 #include "utilities/openmp_utils.h"
@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
+int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     KRATOS_TRY;
 
     int num_of_nodes = mrInitialModelPart.NumberOfNodes();
@@ -65,7 +65,7 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
     }
     const int num_nodes_reduced_space = reduced_space_nodes.size();
 
-    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Find Reduced Space Time", mEchoLevel > 0)
+    KRATOS_INFO_IF("PerturbGeometrySubgridUtility: Find Reduced Space Time", mEchoLevel > 0)
         << reduced_space_timer.ElapsedSeconds() << std::endl
         << "Number of Nodes in Reduced Space: " << num_nodes_reduced_space << " / " << num_of_nodes << std::endl;
 
@@ -86,7 +86,7 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
             }
         }
     }
-    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Build Correlation Matrix Time", mEchoLevel > 0)
+    KRATOS_INFO_IF("PerturbGeometrySubgridUtility: Build Correlation Matrix Time", mEchoLevel > 0)
         << build_cl_matrix_timer.ElapsedSeconds() << std::endl;
 
     // Construct eigensolver and solve eigenproblem
@@ -108,7 +108,7 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
         reduced_sum_eigenvalues += eigenvalues(i);
         num_eigenvalues_required++;
         if( reduced_sum_eigenvalues > (1 - mTruncationError)*total_sum_eigenvalues){
-            KRATOS_INFO_IF("PerturbGeometrySubgridProcess", mEchoLevel > 0)
+            KRATOS_INFO_IF("PerturbGeometrySubgridUtility", mEchoLevel > 0)
                 << "Truncation Error (" <<  mTruncationError
                 << ") is achieved with " << num_eigenvalues_required << " Eigenvalues" << std::endl;
             break;
@@ -145,7 +145,7 @@ int PerturbGeometrySubgridProcess::CreateRandomFieldVectors(){
             }
         }
     }
-    KRATOS_INFO_IF("PerturbGeometrySubgridProcess: Assemble Random Field Time", mEchoLevel > 0)
+    KRATOS_INFO_IF("PerturbGeometrySubgridUtility: Assemble Random Field Time", mEchoLevel > 0)
             << assemble_random_field_time.ElapsedSeconds() << std::endl;
 
     return num_random_variables;
