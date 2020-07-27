@@ -16,10 +16,10 @@
         "solver_type": "stationary",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "test_symbolic_eulerian_convection_diffusion_explicit_element/square_level_1"
+            "input_filename": "test_symbolic_convection_diffusion_explicit_element/square_level_1"
         },
         "material_import_settings"           : {
-            "materials_filename" : "test_symbolic_eulerian_convection_diffusion_explicit_element/materials_steady_state_explicit_solution.json"
+            "materials_filename" : "test_symbolic_convection_diffusion_explicit_element/materials_steady_state_explicit_solution.json"
         },
         "time_stepping" : {
             "time_step": 1.1
@@ -29,7 +29,7 @@
         "processes_sub_model_part_list": ["Subpart_Boundary"],
         "auxiliary_variables_list" : [],
         "element_replace_settings" : {
-            "element_name" : "SymbolicQuasiStaticEulerianConvectionDiffusionExplicit",
+            "element_name" : "SymbolicQSConvectionDiffusionExplicit",
             "condition_name" : "ThermalFace"
         },
         "use_orthogonal_subscales": true

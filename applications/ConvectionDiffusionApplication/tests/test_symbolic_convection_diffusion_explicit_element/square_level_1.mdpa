@@ -20,7 +20,7 @@ Begin Nodes
 	11	0.72501	0.299993	0
 End Nodes
 
-Begin Elements	SymbolicQuasiStaticEulerianConvectionDiffusionExplicit2D3N
+Begin Elements	SymbolicQSConvectionDiffusionExplicit2D3N
 	1	0	5	8	4	
 	2	0	11	7	10	
 	3	0	10	3	4	

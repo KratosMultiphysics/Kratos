@@ -10,7 +10,7 @@
 //  Main author:     Riccardo Tosi
 //
 
-#include "symbolic_quasi_static_eulerian_convection_diffusion_explicit.h"
+#include "symbolic_qs_convection_diffusion_explicit.h"
 
 namespace Kratos
 {
@@ -19,7 +19,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQuasiStaticEulerianConvectionDiffusionExplicit(
+SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQSConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {}
@@ -27,7 +27,7 @@ SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Symbolic
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQuasiStaticEulerianConvectionDiffusionExplicit(
+SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::SymbolicQSConvectionDiffusionExplicit(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
@@ -36,36 +36,36 @@ SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Symbolic
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::~SymbolicQuasiStaticEulerianConvectionDiffusionExplicit() {}
+SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::~SymbolicQSConvectionDiffusionExplicit() {}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
+Element::Pointer SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicQuasiStaticEulerianConvectionDiffusionExplicit>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<SymbolicQSConvectionDiffusionExplicit>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
+Element::Pointer SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<SymbolicQuasiStaticEulerianConvectionDiffusionExplicit>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SymbolicQSConvectionDiffusionExplicit>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -100,7 +100,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -116,7 +116,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -132,7 +132,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -155,7 +155,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Equ
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -178,7 +178,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Get
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -202,7 +202,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Add
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateMassMatrix(
+void SymbolicQSConvectionDiffusionExplicit<2>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -227,7 +227,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateMassMat
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateMassMatrix(
+void SymbolicQSConvectionDiffusionExplicit<3>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -254,7 +254,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateMassMat
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
     const Variable<double>& rVariable,
     double& Output,
     const ProcessInfo& rCurrentProcessInfo)
@@ -277,7 +277,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateOrthogonalSubgridScaleSystem(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateOrthogonalSubgridScaleSystem(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -308,7 +308,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
+int SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -325,7 +325,7 @@ int SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Chec
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
     ElementVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -398,7 +398,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Ini
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
+void SymbolicQSConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -658,7 +658,7 @@ const double crhs72 =             tau[2]*(DN_DX_2_0*crhs23 + DN_DX_2_1*crhs29);
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
+void SymbolicQSConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
     ElementVariables& rVariables,
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
@@ -1161,7 +1161,7 @@ const double crhs135 =             tau[3]*(DN_DX_3_0*crhs40 + DN_DX_3_1*crhs50 +
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
+void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
@@ -1248,7 +1248,7 @@ const double crhs46 =             crhs11*(crhs16 + crhs18 + crhs38 + crhs39 + cr
 /***********************************************************************************/
 
 template <>
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
+void SymbolicQSConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
     ElementVariables& rVariables,
     VectorType& rRightHandSideVector)
 {
@@ -1387,7 +1387,7 @@ const double crhs90 =             crhs23 + crhs24 + crhs85 + crhs86;
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-double SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
+double SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
     BoundedMatrix<double,TNumNodes,TDim >& DN_DX)
 {
     KRATOS_TRY;
@@ -1412,7 +1412,7 @@ double SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::C
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
+void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
     ElementVariables& rVariables)
 {
     KRATOS_TRY;
@@ -1456,7 +1456,7 @@ void SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::Cal
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::IntegrationMethod SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
+Element::IntegrationMethod SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
 }
@@ -1464,8 +1464,8 @@ Element::IntegrationMethod SymbolicQuasiStaticEulerianConvectionDiffusionExplici
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<2>;
-template class SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<3>;
+template class SymbolicQSConvectionDiffusionExplicit<2>;
+template class SymbolicQSConvectionDiffusionExplicit<3>;
 
 /***********************************************************************************/
 /***********************************************************************************/

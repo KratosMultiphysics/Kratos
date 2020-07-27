@@ -26,7 +26,7 @@ namespace Kratos
 {
 namespace Testing
 {
-    void SetSymbolicDynamicEulerianConvectionDiffusionExplicitTestModelPart(ModelPart &rModelPart)
+    void SetSymbolicDConvectionDiffusionExplicitTestModelPart(ModelPart &rModelPart)
     {
         // Set buffer size
         rModelPart.SetBufferSize(2);
@@ -70,19 +70,19 @@ namespace Testing
         r_process_info.SetValue(RUNGE_KUTTA_STEP, 4);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicitNullConvection2D3N, KratosConvectionDiffusionFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SymbolicDConvectionDiffusionExplicitNullConvection2D3N, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetSymbolicDynamicEulerianConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        SetSymbolicDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-        r_test_model_part.CreateNewElement("SymbolicDynamicEulerianConvectionDiffusionExplicit2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("SymbolicDConvectionDiffusionExplicit2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
         auto &r_test_process_info = r_test_model_part.GetProcessInfo();
 
         // Set the nodal values
@@ -104,19 +104,19 @@ namespace Testing
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicit2D3N, KratosConvectionDiffusionFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SymbolicDConvectionDiffusionExplicit2D3N, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetSymbolicDynamicEulerianConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        SetSymbolicDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-        r_test_model_part.CreateNewElement("SymbolicDynamicEulerianConvectionDiffusionExplicit2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("SymbolicDConvectionDiffusionExplicit2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
         auto &r_test_process_info = r_test_model_part.GetProcessInfo();
 
         // Set the nodal values
@@ -155,12 +155,12 @@ namespace Testing
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-3)
     }
 
-    // KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicitOssStep2D3N, KratosConvectionDiffusionFastSuite)
+    // KRATOS_TEST_CASE_IN_SUITE(SymbolicDConvectionDiffusionExplicitOssStep2D3N, KratosConvectionDiffusionFastSuite)
     // {
     //     // Create the test element
     //     Model model;
     //     auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-    //     SetSymbolicDynamicEulerianConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+    //     SetSymbolicDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
     //     // Fill the process info container
     //     auto &r_test_process_info = r_test_model_part.GetProcessInfo();
     //     r_test_process_info.SetValue(OSS_SWITCH, 1);
@@ -170,7 +170,7 @@ namespace Testing
     //     r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     //     r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
     //     std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-    //     r_test_model_part.CreateNewElement("SymbolicDynamicEulerianConvectionDiffusionExplicit2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+    //     r_test_model_part.CreateNewElement("SymbolicDConvectionDiffusionExplicit2D3N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
     //     // Set the nodal values
     //     for (auto &i_node : r_test_model_part.Nodes()) {
@@ -207,12 +207,12 @@ namespace Testing
     //     KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-6)
     // }
 
-    KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicitNullConvection3D4N, KratosConvectionDiffusionFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SymbolicDConvectionDiffusionExplicitNullConvection3D4N, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetSymbolicDynamicEulerianConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        SetSymbolicDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -220,7 +220,7 @@ namespace Testing
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         r_test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
-        r_test_model_part.CreateNewElement("SymbolicDynamicEulerianConvectionDiffusionExplicit3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("SymbolicDConvectionDiffusionExplicit3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
         auto &r_test_process_info = r_test_model_part.GetProcessInfo();
 
         // Set the nodal values
@@ -242,12 +242,12 @@ namespace Testing
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-6)
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicit3D4N, KratosConvectionDiffusionFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SymbolicDConvectionDiffusionExplicit3D4N, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetSymbolicDynamicEulerianConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+        SetSymbolicDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
         auto &r_test_process_info = r_test_model_part.GetProcessInfo();
 
         // Element creation
@@ -256,7 +256,7 @@ namespace Testing
         r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
         r_test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
         std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
-        r_test_model_part.CreateNewElement("SymbolicDynamicEulerianConvectionDiffusionExplicit3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+        r_test_model_part.CreateNewElement("SymbolicDConvectionDiffusionExplicit3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
         // Set the nodal values
         for (auto &i_node : r_test_model_part.Nodes()) {
@@ -300,12 +300,12 @@ namespace Testing
         KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-3)
     }
 
-    // KRATOS_TEST_CASE_IN_SUITE(SymbolicDynamicEulerianConvectionDiffusionExplicitOssStep3D4N, KratosConvectionDiffusionFastSuite)
+    // KRATOS_TEST_CASE_IN_SUITE(SymbolicDConvectionDiffusionExplicitOssStep3D4N, KratosConvectionDiffusionFastSuite)
     // {
     //     // Create the test element
     //     Model model;
     //     auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-    //     SetSymbolicDynamicEulerianConvectionDiffusionExplicitTestModelPart(r_test_model_part);
+    //     SetSymbolicDConvectionDiffusionExplicitTestModelPart(r_test_model_part);
     //     // Fill the process info container
     //     auto &r_test_process_info = r_test_model_part.GetProcessInfo();
     //     r_test_process_info.SetValue(OSS_SWITCH, 1);
@@ -316,7 +316,7 @@ namespace Testing
     //     r_test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
     //     r_test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
     //     std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
-    //     r_test_model_part.CreateNewElement("SymbolicDynamicEulerianConvectionDiffusionExplicit3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
+    //     r_test_model_part.CreateNewElement("SymbolicDConvectionDiffusionExplicit3D4N", 1, elem_nodes, r_test_model_part.pGetProperties(0));
 
     //     // Set the nodal values
     //     for (auto &i_node : r_test_model_part.Nodes()) {

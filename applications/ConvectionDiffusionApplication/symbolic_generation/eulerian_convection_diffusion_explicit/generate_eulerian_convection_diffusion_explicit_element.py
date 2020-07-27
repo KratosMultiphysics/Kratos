@@ -69,21 +69,21 @@ elif (dim_to_compute == "Both"):
 
 # Initialize the outstring to be filled with the template .cpp file
 if dynamic_subscales:
-    template_filename = "symbolic_dynamic_eulerian_convection_diffusion_explicit_cpp_template.cpp"
+    template_filename = "symbolic_d_convection_diffusion_explicit_cpp_template.cpp"
 else:
-    template_filename = "symbolic_quasi_static_eulerian_convection_diffusion_explicit_cpp_template.cpp"
+    template_filename = "symbolic_qs_convection_diffusion_explicit_cpp_template.cpp"
 templatefile = open(template_filename)
 outstring = templatefile.read()
 
 # Set the output filename
-if template_filename == "symbolic_dynamic_eulerian_convection_diffusion_explicit_cpp_template.cpp":
-    output_filename = "symbolic_dynamic_eulerian_convection_diffusion_explicit.cpp"
-elif template_filename == "symbolic_quasi_static_eulerian_convection_diffusion_explicit_cpp_template.cpp":
-    output_filename = "symbolic_quasi_static_eulerian_convection_diffusion_explicit.cpp"
+if template_filename == "symbolic_d_convection_diffusion_explicit_cpp_template.cpp":
+    output_filename = "symbolic_d_convection_diffusion_explicit.cpp"
+elif template_filename == "symbolic_qs_convection_diffusion_explicit_cpp_template.cpp":
+    output_filename = "symbolic_qs_convection_diffusion_explicit.cpp"
 else:
     err_msg = "Wrong template_filename provided. Must be (template --> output):\n"
-    err_msg +=  "\t- symbolic_dynamic_eulerian_convection_diffusion_explicit_cpp_template.cpp --> symbolic_dynamic_eulerian_convection_diffusion_explicit.cpp\n"
-    err_msg +=  "\t- symbolic_quasi_static_eulerian_convection_diffusion_explicit_cpp_template.cpp --> symbolic_quasi_static_eulerian_convection_diffusion_explicit.cpp"
+    err_msg +=  "\t- symbolic_d_convection_diffusion_explicit_cpp_template.cpp --> symbolic_d_convection_diffusion_explicit.cpp\n"
+    err_msg +=  "\t- symbolic_qs_convection_diffusion_explicit_cpp_template.cpp --> symbolic_qs_convection_diffusion_explicit.cpp"
     raise Exception(err_msg)
 
 for dim in dim_vector:

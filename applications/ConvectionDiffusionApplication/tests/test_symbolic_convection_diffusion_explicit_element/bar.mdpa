@@ -27,7 +27,7 @@ Begin Nodes
     16   0.35000000000   0.0500000000   0.0000000000
 End Nodes
 
-Begin Elements SymbolicQuasiStaticEulerianConvectionDiffusionExplicit2D3N// GUI group identifier: Domain
+Begin Elements SymbolicQSConvectionDiffusionExplicit2D3N// GUI group identifier: Domain
         1           0          1          2          3
         2           0          2          3          4
         3           0          3          4          5

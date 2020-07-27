@@ -8,7 +8,7 @@ from math import *
 class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
 
     def testSymbolicEulerianConvectionDiffusionElementUnsteadyDOSS(self):
-        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_DOSS.json"
+        project_parameters_file_name = "test_symbolic_convection_diffusion_explicit_element/project_parameters_bar_DOSS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -30,7 +30,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(error,0.0017678016487118946,delta=1e-12)
 
     def testSymbolicEulerianConvectionDiffusionElementUnsteadyQOSS(self):
-        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_QOSS.json"
+        project_parameters_file_name = "test_symbolic_convection_diffusion_explicit_element/project_parameters_bar_QOSS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -52,7 +52,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(error,0.0017678016487242358,delta=1e-12)
 
     def testSymbolicEulerianConvectionDiffusionElementUnsteadyDASGS(self):
-        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_DASGS.json"
+        project_parameters_file_name = "test_symbolic_convection_diffusion_explicit_element/project_parameters_bar_DASGS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -74,7 +74,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(error,0.04953302968545053,delta=1e-12)
 
     def testSymbolicEulerianConvectionDiffusionElementUnsteadyQASGS(self):
-        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_bar_QASGS.json"
+        project_parameters_file_name = "test_symbolic_convection_diffusion_explicit_element/project_parameters_bar_QASGS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -96,7 +96,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(error,0.17200571595025685,delta=1e-12)
 
     def testSymbolicEulerianConvectionDiffusionElementSteadyQASGS(self):
-        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_steady_state_explicit_solution_QASGS.json"
+        project_parameters_file_name = "test_symbolic_convection_diffusion_explicit_element/project_parameters_steady_state_explicit_solution_QASGS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
@@ -118,7 +118,7 @@ class TestSymbolicEulerianConvectionDiffusionElement(KratosUnittest.TestCase):
         self.assertAlmostEqual(error,0.5056562564233146,delta=1e-12)
 
     def testSymbolicEulerianConvectionDiffusionElementSteadyQOSS(self):
-        project_parameters_file_name = "test_symbolic_eulerian_convection_diffusion_explicit_element/project_parameters_steady_state_explicit_solution_QOSS.json"
+        project_parameters_file_name = "test_symbolic_convection_diffusion_explicit_element/project_parameters_steady_state_explicit_solution_QOSS.json"
         with open(project_parameters_file_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()

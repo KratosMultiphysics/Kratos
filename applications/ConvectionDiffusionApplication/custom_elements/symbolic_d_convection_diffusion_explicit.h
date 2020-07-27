@@ -10,8 +10,8 @@
 //  Main author:     Riccardo Tosi
 //
 
-#ifndef KRATOS_SYMBOLIC_QUASI_STATIC_EULERIAN_CONVECTION_DIFFUSION_EXPLICIT_H
-#define KRATOS_SYMBOLIC_QUASI_STATIC_EULERIAN_CONVECTION_DIFFUSION_EXPLICIT_H
+#ifndef KRATOS_SYMBOLIC_D_CONVECTION_DIFFUSION_EXPLICIT_H
+#define KRATOS_SYMBOLIC_D_CONVECTION_DIFFUSION_EXPLICIT_H
 
 // System includes
 
@@ -20,14 +20,7 @@
 
 
 // Project includes
-#include "includes/element.h"
-#include "includes/serializer.h"
-#include "includes/checks.h"
-#include "includes/variables.h"
-#include "includes/convection_diffusion_settings.h"
-#include "geometries/geometry.h"
-#include "utilities/geometry_utilities.h"
-#include "includes/cfd_variables.h"
+#include "symbolic_qs_convection_diffusion_explicit.h"
 
 namespace Kratos
 {
@@ -52,7 +45,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SymbolicQuasiStaticEulerianConvectionDiffusionExplicit
+ * @class SymbolicDConvectionDiffusionExplicit
  * @ingroup ConvectionDiffusionApplication
  * @brief This element solves the convection-diffusion equation, stabilized with
  * algebraic subgrid scale or orthogonal subgrid scale.
@@ -60,23 +53,31 @@ namespace Kratos
  * $ \frac{\partial \phi}{\partial t} + v \cdot  \nabla \phi + \phi \nabla \cdot v - \nabla \cdot k \nabla \phi = f $
  * where $ \phi $ is the scalar unknown, $ v $ the convective velocity, $ k > 0 $ the diffusivity coefficient,
  * $ f $ the forcing term.
- * Quasi-static algebraic subgrid scale and quasi-static orthogonal subgrid scale methods are exploited for stabilization.
+ * Dynamic algebraic subgrid scale and dynamic orthogonal subgrid scale methods are exploited for stabilization.
  * The element is designed to use an explicit integration method.
  * @author Riccardo Tosi
  */
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-class SymbolicQuasiStaticEulerianConvectionDiffusionExplicit : public Element
+class SymbolicDConvectionDiffusionExplicit : public SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-        typedef Element BaseType;
+        typedef SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes> BaseType;
+        typedef typename BaseType::ElementVariables ElementVariables;
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
+        typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+        typedef Vector VectorType;
+        typedef Matrix MatrixType;
+        typedef std::size_t IndexType;
+        typedef std::vector<std::size_t> EquationIdVectorType;
+        typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+        typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Pointer definition of SymbolicQuasiStaticEulerianConvectionDiffusionExplicit
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicQuasiStaticEulerianConvectionDiffusionExplicit);
+    /// Pointer definition of SymbolicDConvectionDiffusionExplicit
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicDConvectionDiffusionExplicit);
 
     ///@}
     ///@name Life Cycle
@@ -85,11 +86,11 @@ public:
     //Constructors.
 
     /// Default constuctor.
-    SymbolicQuasiStaticEulerianConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry);
-    SymbolicQuasiStaticEulerianConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    SymbolicDConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry);
+    SymbolicDConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    virtual ~SymbolicQuasiStaticEulerianConvectionDiffusionExplicit();
+    virtual ~SymbolicDConvectionDiffusionExplicit();
 
     ///@}
     ///@name Operators
@@ -123,20 +124,14 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo) const override;
-
     void AddExplicitContribution(
         const ProcessInfo &rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(
-        MatrixType &rMassMatrix,
-        const ProcessInfo &rCurrentProcessInfo) override;
+    void Initialize(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -160,13 +155,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "SymbolicQuasiStaticEulerianConvectionDiffusionExplicitElement #";
+        return "SymbolicDConvectionDiffusionExplicitElement #";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << this->Id();
     }
 
     ///@}
@@ -176,33 +171,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    struct ElementVariables
-    {
-        // scalars
-        double diffusivity;
-        double lumping_factor;
-        double weight;
-        double delta_time;
-        double RK_time_coefficient;
-        double dynamic_tau;
-        double unknown_subscale;
-	    double volume;
-        // arrays
-	    array_1d<double,TNumNodes> tau;
-        array_1d<double,TNumNodes> forcing;
-        array_1d<double,TNumNodes> unknown;
-        array_1d<double,TNumNodes> unknown_old;
-        array_1d<double,TNumNodes> oss_projection;
-        // matrices
-        BoundedMatrix<double,TNumNodes,3> convective_velocity;
-        // auxiliary containers for the symbolically-generated matrices
-        BoundedMatrix<double,TNumNodes,TNumNodes> lhs;
-        array_1d<double,TNumNodes> rhs;
-        // auxiliary containers for the symbolically-generated variables for Gauss integration
-        array_1d<double,TNumNodes> N;
-        BoundedMatrix<double,TNumNodes,TNumNodes> N_gausspoint;
-	    BoundedMatrix<double,TNumNodes,TDim> DN_DX;
-    };
+    VectorType mUnknownSubScale;
 
     ///@}
     ///@name Protected Operators
@@ -213,10 +182,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void InitializeEulerianElement(
-        ElementVariables& rVariables,
-        const ProcessInfo& rCurrentProcessInfo);
-
     void CalculateLocalSystemInternal(
         ElementVariables& rVariables,
         MatrixType& rLeftHandSideMatrix,
@@ -226,8 +191,9 @@ protected:
         ElementVariables& rVariables,
         VectorType& rRightHandSideVector);
 
-    double ComputeH(
-        BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
+    void UpdateUnknownSubgridScaleGaussPoint(
+        ElementVariables& rVariables,
+        unsigned int g);
 
     void CalculateTau(
         ElementVariables& rVariables);
@@ -241,14 +207,12 @@ protected:
     ///@name Protected Inquiry
     ///@{
 
-    IntegrationMethod GetIntegrationMethod() const override;
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
     // Protected default constructor necessary for serialization
-    SymbolicQuasiStaticEulerianConvectionDiffusionExplicit() : Element()
+    SymbolicDConvectionDiffusionExplicit() : SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>()
     {
     }
 
@@ -304,15 +268,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    SymbolicQuasiStaticEulerianConvectionDiffusionExplicit& operator=(SymbolicQuasiStaticEulerianConvectionDiffusionExplicit const& rOther);
+    SymbolicDConvectionDiffusionExplicit& operator=(SymbolicDConvectionDiffusionExplicit const& rOther);
 
     /// Copy constructor.
-    SymbolicQuasiStaticEulerianConvectionDiffusionExplicit(SymbolicQuasiStaticEulerianConvectionDiffusionExplicit const& rOther);
+    SymbolicDConvectionDiffusionExplicit(SymbolicDConvectionDiffusionExplicit const& rOther);
 
     ///@}
 
 
-}; // Class SymbolicQuasiStaticEulerianConvectionDiffusionExplicit
+}; // Class SymbolicDConvectionDiffusionExplicit
 
 ///@}
 
@@ -328,7 +292,7 @@ private:
 /// input stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 inline std::istream& operator >>(std::istream& rIStream,
-                                 SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+                                 SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -336,7 +300,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const SymbolicQuasiStaticEulerianConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+                                 const SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -350,4 +314,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_SYMBOLIC_QUASI_STATIC_EULERIAN_CONVECTION_DIFFUSION_EXPLICIT_H
+#endif // KRATOS_SYMBOLIC_D_CONVECTION_DIFFUSION_EXPLICIT_H

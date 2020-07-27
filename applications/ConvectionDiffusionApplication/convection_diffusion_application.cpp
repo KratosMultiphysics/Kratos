@@ -54,10 +54,10 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mAdjointThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mAdjointThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mSymbolicQuasiStaticEulerianConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mSymbolicQuasiStaticEulerianConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-      mSymbolicDynamicEulerianConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mSymbolicDynamicEulerianConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
+      mSymbolicQSConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mSymbolicQSConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mSymbolicDConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mSymbolicDConvectionDiffusionExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
 
 void KratosConvectionDiffusionApplication::Register() {
     KRATOS_INFO("") <<
@@ -98,10 +98,10 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D4N", mLaplacian3D4N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D8N", mLaplacian3D8N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D27N", mLaplacian3D27N);
-    KRATOS_REGISTER_ELEMENT("SymbolicQuasiStaticEulerianConvectionDiffusionExplicit2D3N", mSymbolicQuasiStaticEulerianConvectionDiffusionExplicit2D3N);
-    KRATOS_REGISTER_ELEMENT("SymbolicQuasiStaticEulerianConvectionDiffusionExplicit3D4N", mSymbolicQuasiStaticEulerianConvectionDiffusionExplicit3D4N);
-    KRATOS_REGISTER_ELEMENT("SymbolicDynamicEulerianConvectionDiffusionExplicit2D3N", mSymbolicDynamicEulerianConvectionDiffusionExplicit2D3N);
-    KRATOS_REGISTER_ELEMENT("SymbolicDynamicEulerianConvectionDiffusionExplicit3D4N", mSymbolicDynamicEulerianConvectionDiffusionExplicit3D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicQSConvectionDiffusionExplicit2D3N", mSymbolicQSConvectionDiffusionExplicit2D3N);
+    KRATOS_REGISTER_ELEMENT("SymbolicQSConvectionDiffusionExplicit3D4N", mSymbolicQSConvectionDiffusionExplicit3D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicDConvectionDiffusionExplicit2D3N", mSymbolicDConvectionDiffusionExplicit2D3N);
+    KRATOS_REGISTER_ELEMENT("SymbolicDConvectionDiffusionExplicit3D4N", mSymbolicDConvectionDiffusionExplicit3D4N);
 
     KRATOS_REGISTER_ELEMENT("AdjointDiffusionElement2D3N", mAdjointDiffusionElement2D3N);
     KRATOS_REGISTER_ELEMENT("AdjointDiffusionElement3D4N", mAdjointDiffusionElement3D4N);
