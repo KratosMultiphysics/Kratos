@@ -75,6 +75,8 @@ public:
 
     using IndexType = std::size_t;
 
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of LaplaceElement
@@ -119,7 +121,7 @@ public:
     /**
      * Copy Constructor
      */
-    KinematicSimulationEffectiveWaveNumberElement(LaplaceElement const& rOther)
+    KinematicSimulationEffectiveWaveNumberElement(KinematicSimulationEffectiveWaveNumberElement const& rOther)
         : BaseType(rOther)
     {
     }
@@ -191,7 +193,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    const Variable<double>& GetVariable() const
+    const Variable<double>& GetVariable() const override
     {
         return EFFECTIVE_WAVE_NUMBER;
     }
@@ -208,7 +210,7 @@ public:
      * to calculate the elemental right hand side matrix only
      * @param rRHS the right hans side vector
      */
-    void CalculateRightHandSideContribution(Vector& rRHS)
+    void CalculateRightHandSideContribution(Vector& rRHS) const override
     {
         if (rRHS.size() != TNumNodes)
         {
@@ -228,8 +230,8 @@ public:
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
 
-            const Vector gauss_shape_functions = row(shape_functions, g);
-            double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, r_shape_values)
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
 
             noalias(rRHS) += gauss_shape_functions * (gauss_weights[g] * turbulent_energy_dissipation_rate);
         }
@@ -265,17 +267,21 @@ public:
                                         ) const override
     {
         double output = 0.0;
-        double k1 = 2*M_PI*TurbulentEnergyDissipationRate*pow(TurbulentKineticEnergy, -1.5)
-        double kN = pow(TurbulentEnergyDissipationRate, 0.25)*pow(KinematicViscosity, -0.75)
-        double dk = (log(kN) - log(k1))/(TotalWaveNumber-1)
-        double kn = k1
-        for (unsigned int i = 0; i < TotalWaveNumber; ++i)
+        double k1 = 2*M_PI*TurbulentEnergyDissipationRate*std::pow(TurbulentKineticEnergy, -1.5);
+        double kN = std::pow(TurbulentEnergyDissipationRate, 0.25)*std::pow(KinematicViscosity, -0.75);
+        double dk = (std::log(kN) - std::log(k1))/(TotalWaveNumber-1);
+        double kn = k1;
+        double kn_pre = 0.0; 
+        for (int i = 0; i < TotalWaveNumber; ++i)
         {
-            output += (2/(pow(EffectiveWaveNumber,2))) * dk * exp(-2*pow((kn/kN), 2))
+            output += (2*std::pow(kn,2)/(std::pow(EffectiveWaveNumber,2))) * (kn-kn_pre) * std::exp(-2*std::pow((kn/kN), 2))
              * (SpectralConstantU*TurbulentKineticEnergyU
-             + ((pow(kn/EffectiveWaveNumber),2)*(SpectralConstantV*TurbulentKineticEnergyV+SpectralConstantW*TurbulentKineticEnergyW) / (1+pow((kn/EffectiveWaveNumber), 2))))
-             / (pow(1+pow((kn/EffectiveWaveNumber), 2), 5/6))
-            kn += dk
+             + (std::pow((kn/EffectiveWaveNumber),2)
+             *(SpectralConstantV*TurbulentKineticEnergyV+SpectralConstantW*TurbulentKineticEnergyW) 
+             / (1+std::pow((kn/EffectiveWaveNumber), 2))))
+             / (std::pow(1+std::pow((kn/EffectiveWaveNumber), 2), 0.83333333333333));
+            kn_pre = kn;
+            kn = std::exp(std::log(k1)+(i+1)*dk);
         }
 
         return output;
@@ -288,7 +294,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                              const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -297,7 +303,8 @@ public:
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
-        const double total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
+        //const double total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
+        const int total_wave_number = rCurrentProcessInfo[ACTIVATION_LEVEL];
 
         // Get Shape function data
         Vector gauss_weights;
@@ -310,24 +317,32 @@ public:
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
-            const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector gauss_shape_functions = row(shape_functions, g);
-            const Matrix& r_shape_values = shape_functions[g];
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+            //const Matrix& r_shape_values = shape_functions[g];
 
-            const double turbulent_kinetic_energy = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, r_shape_values)
-            const double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, r_shape_values)
-            const double effective_wave_number = RansCalculationUtilities::EvaluateInPoint(r_geometry, EFFECTIVE_WAVE_NUMBER, r_shape_values)
-            const double spectral_constant_u = RansCalculationUtilities::EvaluateInPoint(r_geometry, SPECTRAL_CONSTANT_U, r_shape_values)
-            const double spectral_constant_v = RansCalculationUtilities::EvaluateInPoint(r_geometry, SPECTRAL_CONSTANT_V, r_shape_values)
-            const double spectral_constant_w = RansCalculationUtilities::EvaluateInPoint(r_geometry, SPECTRAL_CONSTANT_W, r_shape_values)
-            const double turbulent_kinetic_energy_u = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY_U, r_shape_values)
-            const double turbulent_kinetic_energy_v = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY_V, r_shape_values)
-            const double turbulent_kinetic_energy_w = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY_W, r_shape_values)
-            const double kinematic_viscosity = RansCalculationUtilities::EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, r_shape_values);
+            const double turbulent_kinetic_energy = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
+            const double effective_wave_number = RansCalculationUtilities::EvaluateInPoint(r_geometry, EFFECTIVE_WAVE_NUMBER, gauss_shape_functions);
+            const double spectral_constant_u = RansCalculationUtilities::EvaluateInPoint(r_geometry, SPECTRAL_CONSTANT_U, gauss_shape_functions);
+            const double spectral_constant_v = RansCalculationUtilities::EvaluateInPoint(r_geometry, SPECTRAL_CONSTANT_V, gauss_shape_functions);
+            const double spectral_constant_w = RansCalculationUtilities::EvaluateInPoint(r_geometry, SPECTRAL_CONSTANT_W, gauss_shape_functions);
+            const double turbulent_kinetic_energy_u = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY_U, gauss_shape_functions);
+            const double turbulent_kinetic_energy_v = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY_V, gauss_shape_functions);
+            const double turbulent_kinetic_energy_w = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY_W, gauss_shape_functions);
+            const double kinematic_viscosity = RansCalculationUtilities::EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
             const double r_wavenumber_integration=    this-> CalculateWaveNumberIntegration(total_wave_number,turbulent_energy_dissipation_rate,
                                                   turbulent_kinetic_energy,effective_wave_number, kinematic_viscosity,
                                                   spectral_constant_u, spectral_constant_v, spectral_constant_w,
-                                                  turbulent_kinetic_energy_u, turbulent_kinetic_energy_v, turbulent_kinetic_energy_w)
+                                                  turbulent_kinetic_energy_u, turbulent_kinetic_energy_v, turbulent_kinetic_energy_w);
+
+            KRATOS_WATCH(turbulent_kinetic_energy_u)
+            KRATOS_WATCH(turbulent_kinetic_energy_v)
+            KRATOS_WATCH(turbulent_kinetic_energy_w)
+            KRATOS_WATCH(turbulent_energy_dissipation_rate)
+            KRATOS_WATCH(spectral_constant_u)
+            KRATOS_WATCH(spectral_constant_v)
+            KRATOS_WATCH(spectral_constant_w)
+            KRATOS_WATCH(r_wavenumber_integration)
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {
@@ -358,7 +373,7 @@ public:
 
         int check = BaseType::Check(rCurrentProcessInfo);
 
-        const Variable<double>& r_variable = this->GetVariable();
+        //const Variable<double>& r_variable = this->GetVariable();
 
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {

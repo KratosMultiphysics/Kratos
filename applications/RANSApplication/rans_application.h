@@ -25,6 +25,10 @@
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_k.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_epsilon.h"
 #include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_low_re_k.h"
+#include "custom_elements/kinematic_simulation/kinematic_simulation_spectral_constant_u.h"
+#include "custom_elements/kinematic_simulation/kinematic_simulation_spectral_constant_v.h"
+#include "custom_elements/kinematic_simulation/kinematic_simulation_spectral_constant_w.h"
+#include "custom_elements/kinematic_simulation/kinematic_simulation_effective_wave_number.h"
 
 // Condition includes
 #include "custom_conditions/evm_k_epsilon/rans_evm_k_epsilon_epsilon_wall.h"
@@ -223,6 +227,13 @@ private:
 
     const RansEvmMonolithicKEpsilonVMSAdjointWallCondition<2> mRansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N;
     const RansEvmMonolithicKEpsilonVMSAdjointWallCondition<3> mRansEvmMonolithicKEpsilonVMSAdjointWallCondition3D3N;
+
+    // Kinematic equation elements
+    const KinematicSimulationSpectralConstantUElement<4> mKinematicSimulationSpectralConstantUElement3D4N;
+    const KinematicSimulationSpectralConstantVElement<4> mKinematicSimulationSpectralConstantVElement3D4N;
+    const KinematicSimulationSpectralConstantWElement<4> mKinematicSimulationSpectralConstantWElement3D4N;
+    const KinematicSimulationEffectiveWaveNumberElement<4> mKinematicSimulationEffectiveWaveNumberElement3D4N;
+
     ///@}
     ///@name Private Operators
     ///@{

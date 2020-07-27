@@ -125,7 +125,7 @@ public:
     /**
      * Copy Constructor
      */
-    KinematicSimulationElement(LaplaceElement const& rOther) : Element(rOther)
+    KinematicSimulationElement(KinematicSimulationElement const& rOther) : Element(rOther)
     {
     }
 
@@ -283,18 +283,20 @@ public:
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
+
         // Calculate RHS
         this->CalculateRightHandSideContribution(rRightHandSideVector);
+        KRATOS_WATCH(rRightHandSideVector)
 
         // Calculate LHS
         this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
         VectorType values;
         this->GetValuesVector(values, 0);
+        KRATOS_WATCH(values)
 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
     }
-
 
     /**
      * this is called during the assembling process in order
@@ -303,7 +305,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override
+                                const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -326,7 +328,7 @@ public:
      * to calculate the elemental right hand side matrix only
      * @param rRHS the right hans side vector
      */
-    virtual void CalculateRightHandSideContribution(Vector& rRHS)
+    virtual void CalculateRightHandSideContribution(Vector& rRHS) const
     {
         if (rRHS.size() != TNumNodes)
         {
@@ -346,16 +348,12 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const GeometryType& r_geometry = this->GetGeometry();
+        //const GeometryType& r_geometry = this->GetGeometry();
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
-            const Vector gauss_shape_functions = row(shape_functions, g);
-
-            for (IndexType a = 0; a < TNumNodes; ++a)
-            {
-                rRHS[a] += gauss_shape_functions * gauss_weights[g];
-            }
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+            noalias(rRHS) += gauss_shape_functions * gauss_weights[g];
         }
     }
 
@@ -372,17 +370,25 @@ public:
                                         const double TurbulentEnergyDissipationRate,
                                         const double TurbulentKineticEnergy,
                                         const double EffectiveWaveNumber,
-                                        const double KinematicViscosity) const
+                                        const double KinematicViscosity,
+                                        const double SpectralConstantU,
+                                        const double SpectralConstantV,
+                                        const double SpectralConstantW,
+                                        const double TurbulentKineticEnergyU,
+                                        const double TurbulentKineticEnergyV,
+                                        const double TurbulentKineticEnergyW) const 
     {
         double output = 0.0;
-        double k1 = 2*M_PI*TurbulentEnergyDissipationRate*pow(TurbulentKineticEnergy, -1.5)
-        double kN = pow(TurbulentEnergyDissipationRate, 0.25)*pow(KinematicViscosity, -0.75)
-        double dk = (log(kN) - log(k1))/(TotalWaveNumber-1)
-        double kn = k1
-        for (unsigned int i = 0; i < TotalWaveNumber; ++i)
+        double k1 = 2*M_PI*TurbulentEnergyDissipationRate*std::pow(TurbulentKineticEnergy, -1.5);
+        double kN = std::pow(TurbulentEnergyDissipationRate, 0.25)*std::pow(KinematicViscosity, -0.75);
+        double dk = (std::log(kN) - std::log(k1))/(TotalWaveNumber-1);
+        double kn = k1;
+        double kn_pre = 0.0; 
+        for (int i = 0; i < TotalWaveNumber; ++i)
         {
-            output += (2/EffectiveWaveNumber) * dk * pow((kn/EffectiveWaveNumber),2) exp(-2*pow((kn/kN), 2)) / (pow(1+pow((kn/EffectiveWaveNumber), 2), 11/6))
-            kn += dk
+            output += (2/EffectiveWaveNumber) * (kn-kn_pre) * std::pow((kn/EffectiveWaveNumber),2) * std::exp(-2*std::pow((kn/kN), 2)) / (std::pow(1+std::pow((kn/EffectiveWaveNumber), 2), 1.833333333));
+            kn_pre = kn;
+            kn = std::exp(std::log(k1)+(i+1)*dk);
         }
         return output;
     }
@@ -394,14 +400,15 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
+                               const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
         if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
 
-        const double total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
+        const int total_wave_number = rCurrentProcessInfo[ACTIVATION_LEVEL];
+        //const int total_wave_number = TOTAL_WAVE_NUMBER[0];
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
@@ -414,15 +421,30 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
+        KRATOS_WATCH(shape_functions);
+        
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Vector gauss_shape_functions = row(shape_functions, g);
 
-            const double turbulent_kinetic_energy = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, r_shape_values);
-            const double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, r_shape_values);
-            const double effective_wave_number = RansCalculationUtilities::EvaluateInPoint(r_geometry, EFFECTIVE_WAVE_NUMBER, r_shape_values);
-            const double kinematic_viscosity = RansCalculationUtilities::EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, r_shape_values);
-            const double r_wavenumber_integration= this->CalculateWaveNumberIntegration(total_wave_number, turbulent_energy_dissipation_rate,turbulent_kinetic_energy,effective_wave_number, kinematic_viscosity);
+            KRATOS_WATCH(gauss_shape_functions);
+            KRATOS_WATCH(gauss_weights[g]);
+            KRATOS_WATCH(TOTAL_WAVE_NUMBER);
+
+            const double turbulent_kinetic_energy = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
+            const double effective_wave_number = RansCalculationUtilities::EvaluateInPoint(r_geometry, EFFECTIVE_WAVE_NUMBER, gauss_shape_functions);
+            const double kinematic_viscosity = RansCalculationUtilities::EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double r_wavenumber_integration= this-> CalculateWaveNumberIntegration(total_wave_number,turbulent_energy_dissipation_rate,
+                                                  turbulent_kinetic_energy,effective_wave_number, kinematic_viscosity,
+                                                  0, 0, 0,
+                                                  0, 0, 0);
+
+            KRATOS_WATCH(turbulent_kinetic_energy)
+            KRATOS_WATCH(turbulent_energy_dissipation_rate)
+            KRATOS_WATCH(effective_wave_number)
+            KRATOS_WATCH(kinematic_viscosity)
+            KRATOS_WATCH(r_wavenumber_integration)
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {
@@ -457,6 +479,13 @@ public:
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {
             const NodeType& r_node = this->GetGeometry()[iNode];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(EFFECTIVE_WAVE_NUMBER, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_U, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_V, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_W, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node);
             KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node);
         }
@@ -482,13 +511,13 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "LaplaceElement #" << this->Id();
+        buffer << "KinematicSimulationElement #" << this->Id();
         return buffer.str();
     }
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "LaplaceElement #" << this->Id();
+        rOStream << "KinematicSimulationElement #" << this->Id();
     }
 
     ///@}
@@ -519,7 +548,7 @@ protected:
      * @param rNContainer   Shape function values. Each row contains shape functions for respective gauss point
      * @param rDN_DX        List of matrices containing shape function derivatives for each gauss point
      */
-    virtual void CalculateGeometryData(Vector& rGaussWeights,
+    void CalculateGeometryData(Vector& rGaussWeights,
                                        Matrix& rNContainer,
                                        ShapeFunctionDerivativesArrayType& rDN_DX) const
     {
@@ -609,12 +638,12 @@ private:
 
 template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                LaplaceElement<TNumNodes>& rThis);
+                                KinematicSimulationElement<TNumNodes>& rThis);
 
 /// output stream function
 template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const LaplaceElement<TNumNodes>& rThis)
+                                const KinematicSimulationElement<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

@@ -119,7 +119,7 @@ public:
     /**
      * Copy Constructor
      */
-    KinematicSimulationSpectralConstantUElement(LaplaceElement const& rOther)
+    KinematicSimulationSpectralConstantUElement(KinematicSimulationSpectralConstantUElement const& rOther)
         : BaseType(rOther)
     {
     }
@@ -128,10 +128,6 @@ public:
      * Destructor
      */
     ~KinematicSimulationSpectralConstantUElement() override = default;
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -191,7 +187,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    const Variable<double>& GetVariable() const
+    const Variable<double>& GetVariable() const override
     {
         return SPECTRAL_CONSTANT_U;
     }
@@ -216,56 +212,34 @@ public:
                                         const double TurbulentEnergyDissipationRate,
                                         const double TurbulentKineticEnergy,
                                         const double EffectiveWaveNumber,
-                                        const double KinematicViscosity) const override
+                                        const double KinematicViscosity,
+                                        const double SpectralConstantU,
+                                        const double SpectralConstantV,
+                                        const double SpectralConstantW,
+                                        const double TurbulentKineticEnergyU,
+                                        const double TurbulentKineticEnergyV,
+                                        const double TurbulentKineticEnergyW) const override
     {
         double output = 0.0;
-        double k1 = 2*M_PI*TurbulentEnergyDissipationRate*pow(TurbulentKineticEnergy, -1.5)
-        double kN = pow(TurbulentEnergyDissipationRate, 0.25)*pow(KinematicViscosity, -0.75)
-        double dk = (log(kN) - log(k1))/(TotalWaveNumber-1)
-        double kn = k1
-        for (unsigned int i = 0; i < TotalWaveNumber; ++i)
+        double k1 = 2*M_PI*TurbulentEnergyDissipationRate*std::pow(TurbulentKineticEnergy, -1.5);
+        double kN = std::pow(TurbulentEnergyDissipationRate, 0.25)*std::pow(KinematicViscosity, -0.75);
+        double dk = (std::log(kN) - std::log(k1))/(TotalWaveNumber-1);
+        double kn = k1;
+        double kn_pre = 0.0; 
+        KRATOS_WATCH(k1)
+        KRATOS_WATCH(kN)
+        KRATOS_WATCH(dk)
+        KRATOS_WATCH(TotalWaveNumber)
+        for (int i = 0; i < TotalWaveNumber; ++i)
         {
-            output += (2/EffectiveWaveNumber) * dk * exp(-2*pow((kn/kN), 2)) / (pow(1+pow((kn/EffectiveWaveNumber), 2), 5/6))
-            kn += dk
+            KRATOS_WATCH(kn)
+            output += (2/EffectiveWaveNumber) * (kn-kn_pre) * std::exp(-2*std::pow((kn/kN), 2)) / (std::pow(1+std::pow((kn/EffectiveWaveNumber), 2), 0.8333333333));
+            kn_pre = kn;
+            kn = std::exp(std::log(k1)+(i+1)*dk);
         }
+        return output;
     }
 
-
-    /**
-     * This method provides the place to perform checks on the completeness of the input
-     * and the compatibility with the problem options as well as the contitutive laws selected
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     * this method is: MANDATORY
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        int check = BaseType::Check(rCurrentProcessInfo);
-
-        const Variable<double>& r_variable = this->GetVariable();
-
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
-        {
-            const NodeType& r_node = this->GetGeometry()[iNode];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(SPECTRAL_CONSTANT_U, r_node);
-        }
-
-        return check;
-
-        KRATOS_CATCH("");
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
 
     ///@}
     ///@name Input and output
@@ -285,58 +259,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -360,27 +283,11 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
 }; // Class LaplaceElement
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 

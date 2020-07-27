@@ -119,7 +119,7 @@ public:
     /**
      * Copy Constructor
      */
-    KinematicSimulationSpectralConstantVElement(LaplaceElement const& rOther)
+    KinematicSimulationSpectralConstantVElement(KinematicSimulationSpectralConstantVElement const& rOther)
         : BaseType(rOther)
     {
     }
@@ -191,7 +191,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    const Variable<double>& GetVariable() const
+    const Variable<double>& GetVariable() const override
     {
         return SPECTRAL_CONSTANT_V;
     }
@@ -203,34 +203,6 @@ public:
      * same calculations only once: MANDATORY
      */
 
-
-    /**
-     * This method provides the place to perform checks on the completeness of the input
-     * and the compatibility with the problem options as well as the contitutive laws selected
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     * this method is: MANDATORY
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        int check = BaseType::Check(rCurrentProcessInfo);
-
-        const Variable<double>& r_variable = this->GetVariable();
-
-        for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
-        {
-            const NodeType& r_node = this->GetGeometry()[iNode];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(SPECTRAL_CONSTANT_V, r_node);
-        }
-
-        return check;
-
-        KRATOS_CATCH("");
-    }
 
     ///@}
     ///@name Access

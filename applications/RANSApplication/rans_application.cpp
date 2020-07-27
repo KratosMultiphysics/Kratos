@@ -117,7 +117,25 @@ KratosRANSApplication::KratosRANSApplication()
       mRansEvmMonolithicKEpsilonVMSAdjointWallCondition3D3N(
           0,
           Element::GeometryType::Pointer(
-              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3))))
+              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+
+      mKinematicSimulationSpectralConstantUElement3D4N(
+          0,
+          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mKinematicSimulationSpectralConstantVElement3D4N(
+          0,
+          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mKinematicSimulationSpectralConstantWElement3D4N(
+          0,
+          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mKinematicSimulationEffectiveWaveNumberElement3D4N(
+          0,
+          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4))))                                          
+
 {
 }
 
@@ -206,6 +224,16 @@ void KratosRANSApplication::Register()
                             mRansEvmMonolithicKEpsilonVMSAdjoint2D);
     KRATOS_REGISTER_ELEMENT("RansEvmMonolithicKEpsilonVMSAdjoint3D",
                             mRansEvmMonolithicKEpsilonVMSAdjoint3D);
+
+    // Registering Kinematic equation elements
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationSpectralConstantUElement3D4N",
+                            mKinematicSimulationSpectralConstantUElement3D4N);    
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationSpectralConstantVElement3D4N",
+                            mKinematicSimulationSpectralConstantVElement3D4N); 
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationSpectralConstantWElement3D4N",
+                            mKinematicSimulationSpectralConstantWElement3D4N); 
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationEffectiveWaveNumberElement3D4N",
+                            mKinematicSimulationEffectiveWaveNumberElement3D4N);                                                                                     
 
     // Registering adjoint conditions
     KRATOS_REGISTER_CONDITION("RansEvmEpsilonAdjointWallCondition2D2N",
