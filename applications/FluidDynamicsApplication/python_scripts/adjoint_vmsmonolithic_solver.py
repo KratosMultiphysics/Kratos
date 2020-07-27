@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -7,8 +6,6 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_solver import AdjointFluidSolver
-
-from KratosMultiphysics.FluidDynamicsApplication.adjoint_turbulence_model_solver import CreateAdjointTurbulenceModel
 
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicSolver(main_model_part, custom_settings)
@@ -50,8 +47,8 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "automatic_time_step" : false,
                 "time_step"           : -0.1
             },
-            "adjoint_turbulence_model_solver_settings": {},
-            "consider_periodic_conditions": false
+            "consider_periodic_conditions": false,
+            "assign_neighbour_elements_to_conditions": false
         }""")
 
         default_settings.AddMissingParameters(super(AdjointVMSMonolithicSolver, cls).GetDefaultSettings())
@@ -62,27 +59,18 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         super(AdjointVMSMonolithicSolver,self).__init__(model,custom_settings)
         self.element_has_nodal_properties = True
 
-        # construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        self.element_name = "VMSAdjointElement"
+        if self.settings["domain_size"].GetInt() == 2:
+            self.condition_name = "LineCondition"
+        elif self.settings["domain_size"].GetInt() == 3:
+            self.condition_name = "SurfaceCondition"
 
-        if not self.settings["adjoint_turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            # if not empty
-            self._adjoint_turbulence_model_solver = CreateAdjointTurbulenceModel(model, self.settings["adjoint_turbulence_model_solver_settings"])
-            self.element_name = self._adjoint_turbulence_model_solver.GetAdjointElementName()
-            self.condition_name = self._adjoint_turbulence_model_solver.GetAdjointConditionName()
-        else:
-            self.element_name = "VMSAdjointElement"
-            if self.settings["domain_size"].GetInt() == 2:
-                self.condition_name = "LineCondition"
-            elif self.settings["domain_size"].GetInt() == 3:
-                self.condition_name = "SurfaceCondition"
-
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicSolver finished.")
 
     def AddVariables(self):
-
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
@@ -97,75 +85,51 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
-        # Adding variables required for the turbulence modelling
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.fluid_model_part = self.main_model_part
-            self._adjoint_turbulence_model_solver.AddVariables()
-
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
 
-    def AddDofs(self):
-        super(AdjointVMSMonolithicSolver, self).AddDofs()
-
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.AddDofs()
-
     def Initialize(self):
+        # Construct and set the solution strategy
+        solution_strategy = self._GetSolutionStrategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        self.computing_model_part = self.GetComputingModelPart()
+        # Initialize the strategy and adjoint utilities
+        solution_strategy.Initialize()
+        self.GetResponseFunction().Initialize()
+        self.GetSensitivityBuilder().Initialize()
 
-        self.response_function = self.GetResponseFunction()
-
-        self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
-
-        if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
-            self.time_scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
-        elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = KratosMultiphysics.ResidualBasedAdjointSteadyScheme(self.response_function)
-        else:
-            raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
-
-        if self.settings["consider_periodic_conditions"].GetBool() == True:
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
-                    self.linear_solver, KratosCFD.PATCH_INDEX)
-        else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-
-        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part,
-                                                                     self.time_scheme,
-                                                                     self.linear_solver,
-                                                                     builder_and_solver,
-                                                                     False,
-                                                                     False,
-                                                                     False,
-                                                                     False)
-
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-
-        if hasattr(self, "_adjoint_turbulence_model_solver"):
-            self._adjoint_turbulence_model_solver.Initialize()
-
-        (self.solver).Initialize()
-        (self.response_function).Initialize()
-        (self.sensitivity_builder).Initialize()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
-    def GetResponseFunction(self):
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-
-        if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
-            if (domain_size == 2):
-                return KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
-            elif (domain_size == 3):
-                return KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+    def _CreateScheme(self):
+        response_function = self.GetResponseFunction()
+        scheme_type = self.settings["scheme_settings"]["scheme_type"].GetString()
+        if scheme_type == "bossak":
+            scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(
+                self.settings["scheme_settings"],
+                response_function)
+        elif scheme_type == "steady":
+            scheme = KratosMultiphysics.ResidualBasedAdjointSteadyScheme(response_function)
         else:
-            raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
+            raise Exception("Invalid scheme_type: " + scheme_type)
+        return scheme
+
+    def _CreateSolutionStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
+        calculate_reaction_flag = False
+        reform_dof_set_at_each_step = False
+        calculate_norm_dx_flag = False
+        move_mesh_flag = False
+        return KratosMultiphysics.ResidualBasedLinearStrategy(
+            computing_model_part,
+            time_scheme,
+            linear_solver,
+            builder_and_solver,
+            calculate_reaction_flag,
+            reform_dof_set_at_each_step,
+            calculate_norm_dx_flag,
+            move_mesh_flag)

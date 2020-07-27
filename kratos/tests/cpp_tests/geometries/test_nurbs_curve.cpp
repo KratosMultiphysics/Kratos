@@ -53,6 +53,30 @@ typedef Node<3> NodeType;
         return curve;
     }
 
+    NurbsCurveGeometry<2, PointerVector<NodeType>> GenerateReferenceCurve2dNodes()
+    {
+        PointerVector<NodeType> points;
+
+        points.push_back(NodeType::Pointer(new NodeType(1, 0, 0, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(2, 3.3333333333333335, 1.6666666666666667, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(3, 6.6666666666666661, 3.333333333333333, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(4, 10, 5, 0)));
+
+        Vector knot_vector = ZeroVector(6);
+        knot_vector[0] = 0.0;
+        knot_vector[1] = 0.0;
+        knot_vector[2] = 0.0;
+        knot_vector[3] = 11.180339887498949;
+        knot_vector[4] = 11.180339887498949;
+        knot_vector[5] = 11.180339887498949;
+
+        int p = 3;
+
+        auto curve = NurbsCurveGeometry<2, PointerVector<NodeType>>(points, p, knot_vector);
+
+        return curve;
+    }
+
     NurbsCurveGeometry<3, PointerVector<NodeType>> GenerateReferenceCurve3d()
     {
         PointerVector<NodeType> points;
@@ -301,5 +325,71 @@ typedef Node<3> NodeType;
         }
     }
 
+    ///// Test integration points of nurbs curve
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateIntegrationPoints, KratosCoreNurbsGeometriesFastSuite) {
+        auto curve = GenerateReferenceCurve2d();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        curve.CreateIntegrationPoints(integration_points);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 4);
+        double area = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            area += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(area, 11.180339887498949, TOLERANCE);
+    }
+
+
+    // test quadrature points of curve on surface
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
+    {
+        // Nurbs curve on a Nurbs surface
+        auto curve = GenerateReferenceCurve3d();
+
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        curve.CreateIntegrationPoints(integration_points);
+
+        typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
+        curve.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
+
+        KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
+        double length = 0;
+        for (IndexType i = 0; i < quadrature_points.size(); ++i) {
+            for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
+                length += quadrature_points[i].IntegrationPoints()[j].Weight();
+            }
+        }
+        KRATOS_CHECK_NEAR(length, 131.892570399495, TOLERANCE);
+
+        auto element = Element(0, quadrature_points(2));
+
+        // Check shape functions. This is to guarantee that the information does not get lost.
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.pGetGeometry()->ShapeFunctionsValues(),
+            quadrature_points(2)->ShapeFunctionsValues(),
+            TOLERANCE);
+
+        // Check first derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(1, 0),
+            quadrature_points(2)->ShapeFunctionLocalGradient(0),
+            TOLERANCE);
+
+        // Check second derivatives
+        KRATOS_CHECK_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(2, 0),
+            quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
+            TOLERANCE);
+
+        array_1d<double, 3> global_coords;
+        array_1d<double, 3> local_coords;
+        local_coords[0] = integration_points[10][0];
+        local_coords[1] = integration_points[10][1];
+        curve.GlobalCoordinates(global_coords, local_coords);
+
+        KRATOS_CHECK_VECTOR_NEAR(quadrature_points[10].Center(), global_coords, TOLERANCE);
+    }
 } // namespace Testing.
 } // namespace Kratos.

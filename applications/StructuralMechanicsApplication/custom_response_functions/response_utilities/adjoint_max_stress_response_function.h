@@ -187,7 +187,7 @@ private:
                                       const std::string& rVariableName,
                                       const Matrix& rSensitivityMatrix,
                                       Vector& rSensitivityGradient,
-                                      ProcessInfo& rProcessInfo);
+                                      const ProcessInfo& rProcessInfo);
 
     void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 

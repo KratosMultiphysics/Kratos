@@ -144,7 +144,7 @@ void ComputeNodesMeanNormalModelPart(
     const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // Reset NORMAL
-    VariableUtils().SetVectorVar(NORMAL, zero_array, r_nodes_array);
+    VariableUtils().SetVariable(NORMAL, zero_array, r_nodes_array);
 
     // Declare auxiliar coordinates
     CoordinatesArrayType aux_coords;
@@ -462,7 +462,7 @@ void ResetValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVaria
     )
 {
     auto& r_nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetScalarVar(rThisVariable, 0.0, r_nodes_array);
+    VariableUtils().SetVariable(rThisVariable, 0.0, r_nodes_array);
 }
 
 /***********************************************************************************/
@@ -475,7 +475,7 @@ void ResetValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHi
     )
 {
     auto& r_nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetVectorVar(rThisVariable, ZeroVector(3), r_nodes_array);
+    VariableUtils().SetVariable(rThisVariable, ZeroVector(3), r_nodes_array);
 }
 
 /***********************************************************************************/

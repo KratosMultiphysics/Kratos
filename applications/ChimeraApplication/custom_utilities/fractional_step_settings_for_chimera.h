@@ -4,16 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 
@@ -77,7 +74,7 @@ template< class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver
           >
-class KRATOS_API(CHIMERA_APPLICATION) FractionalStepSettingsForChimera: public SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
+class FractionalStepSettingsForChimera: public SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -100,17 +97,28 @@ public:
     ///@{
 
     /// Constructor.
-    FractionalStepSettingsForChimera(ModelPart& rModelPart,
+    FractionalStepSettingsForChimera(ModelPart& r_model_part,
                    const std::size_t ThisDomainSize,
                    const std::size_t ThisTimeOrder,
-                   const bool UseSlip,
+                   const bool use_slip,
                    const bool MoveMeshFlag,
-                   const bool ReformDofSet):
-        BaseType(rModelPart,ThisDomainSize,ThisTimeOrder,UseSlip,MoveMeshFlag,ReformDofSet)
+                   const bool reform_dof_set):
+        BaseType(r_model_part,ThisDomainSize,ThisTimeOrder,use_slip,MoveMeshFlag,reform_dof_set)
     {}
 
     /// Destructor.
-    ~FractionalStepSettingsForChimera() override{}
+    ~FractionalStepSettingsForChimera() = default;
+
+
+    /// Default constructor.
+    FractionalStepSettingsForChimera() = delete;
+
+    /// Assignment operator.
+    FractionalStepSettingsForChimera& operator=(FractionalStepSettingsForChimera const& rOther) = delete;
+
+    /// Copy constructor.
+    FractionalStepSettingsForChimera(FractionalStepSettingsForChimera const& rOther) = delete;
+
 
     ///@}
     ///@name Operators
@@ -128,74 +136,77 @@ public:
     void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter) override 
+                             const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
-        // pointer types for solution strategy construcion
+        // pointer types for solution strategy construction
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType;
 
         // Default, fixed flags
-        bool CalculateReactions = false;
-        bool CalculateNormDxFlag = true;
+        bool calculate_reactions = false;
+        bool calculate_norm_dx_flag = true;
 
-        ModelPart& rModelPart = BaseType::GetModelPart();
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
-        bool UseSlip = BaseType::UseSlipConditions();
+        bool use_slip = BaseType::UseSlipConditions();
         // Modification of the DofSet is managed by the fractional step strategy, not the auxiliary velocity and pressure strategies.
-        bool ReformDofSet = false; //BaseType::GetReformDofSet();
-        std::size_t EchoLevel = BaseType::GetEchoLevel();
-        std::size_t StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel-1) : 0;
+        bool reform_dof_set = BaseType::GetReformDofSet();
+        std::size_t echo_level = BaseType::GetEchoLevel();
+        std::size_t strategy_echo_level = (echo_level > 0) ? (echo_level-1) : 0;
 
         if ( rStrategyLabel == BaseType::Velocity )
         {
-            ModelPart &r_fs_velocity_model_part = rModelPart.CreateSubModelPart("fs_velocity_model_part");
-            FastTransferBetweenModelPartsProcess(r_fs_velocity_model_part, rModelPart).Execute();
+            std::string fs_vel_mp_name = r_model_part.Name()+"fs_velocity_model_part";
+            ModelPart &r_fs_velocity_model_part = r_model_part.CreateSubModelPart(fs_vel_mp_name);
+            FastTransferBetweenModelPartsProcess(r_fs_velocity_model_part, r_model_part).Execute();
             // Velocity Builder and Solver
-            //ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver = new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver >(pLinearSolver);
-            ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
+            ResidualBasedBlockBuilderAndSolverPointerType p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
+            p_build_and_solver->SetEchoLevel(strategy_echo_level);
 
-            SchemePointerType pScheme;
+            SchemePointerType p_scheme;
             //initializing fractional velocity solution step
-            if (UseSlip)
+            if (use_slip)
             {
-                std::size_t DomainSize = BaseType::GetDomainSize();
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
-                pScheme.swap(Temp);
+                std::size_t domain_size = BaseType::GetDomainSize();
+                SchemePointerType p_temp = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace>> (domain_size,domain_size);
+                p_scheme.swap(p_temp);
             }
             else
             {
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-                pScheme.swap(Temp);
+                SchemePointerType p_temp = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace >>();
+                p_scheme.swap(p_temp);
             }
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (r_fs_velocity_model_part, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
+                                                                        (r_fs_velocity_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
-            ModelPart &r_fs_pressure_model_part = rModelPart.CreateSubModelPart("fs_pressure_model_part");
-            FastTransferBetweenModelPartsProcess(r_fs_pressure_model_part, rModelPart).Execute();
+            std::string fs_pressure_mp_name = r_model_part.Name()+"fs_pressure_model_part";
+            ModelPart &r_fs_pressure_model_part = r_model_part.CreateSubModelPart(fs_pressure_mp_name);
+            FastTransferBetweenModelPartsProcess(r_fs_pressure_model_part, r_model_part).Execute();
             // Pressure Builder and Solver
-            ResidualBasedBlockBuilderAndSolverPointerType pBuildAndSolver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
-            SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+            ResidualBasedBlockBuilderAndSolverPointerType p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(pLinearSolver);
+            SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace >> ();
+            p_build_and_solver->SetEchoLevel(strategy_echo_level);
 
             // Strategy
-            BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (r_fs_pressure_model_part, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
+                                                                        (r_fs_pressure_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettingsForChimera: Unknown strategy label.","");
+            KRATOS_ERROR << "Error in FractionalStepSettingsForChimera: Unknown strategy label."<<std::endl;
         }
 
         BaseType::mTolerances[rStrategyLabel] = Tolerance;
 
         BaseType::mMaxIter[rStrategyLabel] = MaxIter;
 
-        BaseType::mStrategies[rStrategyLabel]->SetEchoLevel(StrategyEchoLevel);
+        BaseType::mStrategies[rStrategyLabel]->SetEchoLevel(strategy_echo_level);
 
         KRATOS_CATCH("");
     }
@@ -240,88 +251,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Default constructor.
-    FractionalStepSettingsForChimera(){}
-
-    /// Assignment operator.
-    FractionalStepSettingsForChimera& operator=(FractionalStepSettingsForChimera const& rOther){}
-
-    /// Copy constructor.
-    FractionalStepSettingsForChimera(FractionalStepSettingsForChimera const& rOther){}
-
-
-    ///@}
 
 }; // Class FractionalStepSettingsForChimera
 

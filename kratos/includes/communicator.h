@@ -209,9 +209,17 @@ public:
 
     virtual int TotalProcesses() const;
 
+    SizeType GlobalNumberOfNodes() const;
+
+    SizeType GlobalNumberOfElements() const;
+
+    SizeType GlobalNumberOfConditions() const;
+
     SizeType GetNumberOfColors() const;
 
     void SetNumberOfColors(SizeType NewNumberOfColors);
+
+    void AddColors(SizeType NumberOfAddedColors);
 
     NeighbourIndicesContainerType& NeighbourIndices();
 
@@ -297,36 +305,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    void Barrier() const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool SumAll(int& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool SumAll(double& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool SumAll(array_1d<double, 3>& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MinAll(int& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MinAll(double& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MaxAll(int& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool MaxAll(double& rValue) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool ScanSum(const double& send_partial, double& receive_accumulated) const;
-
-    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator with GetDataCommunicator and use it directly.")
-    bool ScanSum(const int& send_partial, int& receive_accumulated) const;
 
     virtual bool SynchronizeNodalSolutionStepsData();
 
@@ -451,7 +429,7 @@ public:
     virtual void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream& rOStream, std::string const& rPrefixString="") const;
 
     ///@}
     ///@name Input and output

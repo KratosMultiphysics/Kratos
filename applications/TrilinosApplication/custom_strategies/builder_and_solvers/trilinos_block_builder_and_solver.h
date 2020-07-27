@@ -35,12 +35,16 @@
 #include "Epetra_SerialDenseVector.h"
 #include "Epetra_Vector.h"
 
+#if !defined(START_TIMER)
 #define START_TIMER(label, rank) \
     if (mrComm.MyPID() == rank)  \
         Timer::Start(label);
+#endif
+#if !defined(STOP_TIMER)
 #define STOP_TIMER(label, rank) \
     if (mrComm.MyPID() == rank) \
         Timer::Stop(label);
+#endif
 
 namespace Kratos {
 
@@ -182,7 +186,7 @@ public:
 
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         // assemble all elements
         for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
             // detect if the element is active or not. If the user did not make
@@ -258,7 +262,7 @@ public:
 
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
         for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
@@ -446,15 +450,16 @@ public:
 
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // assemble all elements
         for (auto it_elem = rModelPart.Elements().ptr_begin(); it_elem < rModelPart.Elements().ptr_end(); it_elem++) {
             // calculate elemental Right Hand Side Contribution
             bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
             if(element_is_active){
-                pScheme->Calculate_RHS_Contribution(*(it_elem), RHS_Contribution,
+                pScheme->CalculateRHSContribution(*(it_elem), RHS_Contribution,
                                                     equation_ids_vector, r_current_process_info);
+
                 // assemble the elemental contribution
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
@@ -467,8 +472,9 @@ public:
             // calculate elemental contribution
             bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
             if(condition_is_active){
-                pScheme->Condition_Calculate_RHS_Contribution(
+                pScheme->CalculateRHSContribution(
                     *(it_cond), RHS_Contribution, equation_ids_vector, r_current_process_info);
+
                 // assemble the elemental contribution
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
             }
@@ -496,8 +502,8 @@ public:
         // Gets the array of elements from the modeler
         ElementsArrayType& r_elements_array =
             rModelPart.GetCommunicator().LocalMesh().Elements();
-        DofsVectorType dof_list, second_dof_list;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        DofsVectorType dof_list;
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
         IndexType guess_num_dofs =
@@ -509,7 +515,7 @@ public:
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
             bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
             if(element_is_active){
-                pScheme->GetElementalDofList(*(it_elem), dof_list, r_current_process_info);
+                pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
                 for (typename DofsVectorType::iterator i_dof = dof_list.begin();
                     i_dof != dof_list.end(); ++i_dof)
                     temp_dofs_array.push_back(*i_dof);
@@ -521,13 +527,12 @@ public:
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
             bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
             if(condition_is_active){
-                pScheme->GetConditionDofList(*(it_cond), dof_list, r_current_process_info);
+                pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
                 for (typename DofsVectorType::iterator i_dof = dof_list.begin();
                     i_dof != dof_list.end(); ++i_dof)
                     temp_dofs_array.push_back(*i_dof);
             }
         }
-
 
         // Gets the array of constraints from the modeler
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
@@ -546,7 +551,7 @@ public:
 
         // throws an exception if there are no Degrees of freedom involved in
         // the analysis
-        if (BaseType::mDofSet.size() == 0)
+        if(rModelPart.GetCommunicator().GetDataCommunicator().SumAll(BaseType::mDofSet.size()) == 0)
             KRATOS_ERROR << "No degrees of freedom!";
 
 #ifdef KRATOS_DEBUG
@@ -657,7 +662,7 @@ public:
             // reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
             Element::EquationIdVectorType equation_ids_vector;
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // assemble all elements
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
@@ -682,6 +687,7 @@ public:
                             << ierr << std::endl;
                     }
                     std::fill(temp.begin(), temp.end(), 0);
+                }
                 }
             }
 

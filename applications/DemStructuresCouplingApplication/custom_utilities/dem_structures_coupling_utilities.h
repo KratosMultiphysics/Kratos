@@ -27,6 +27,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "custom_conditions/RigidFace.h"
+#include "custom_conditions/RigidEdge.h"
 #include "DEM_application_variables.h"
 #include "dem_structures_coupling_application_variables.h"
 #include "custom_elements/spheric_continuum_particle.h"
@@ -40,12 +41,10 @@ typedef ModelPart::NodesContainerType::ContainerType::iterator NodesIteratorType
 
 KRATOS_CLASS_POINTER_DEFINITION(DemStructuresCouplingUtilities);
 
-/// Default constructor.
+/// Default constructor
+DemStructuresCouplingUtilities(){}
 
- DemStructuresCouplingUtilities(){}
-
-/// Destructor.
-
+/// Destructor
 virtual ~DemStructuresCouplingUtilities(){}
 
 //***************************************************************************************************************
@@ -54,6 +53,7 @@ virtual ~DemStructuresCouplingUtilities(){}
 void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_destination_model_part, Properties::Pointer props) {
 
     std::string error = CheckProvidedProperties(props);
+    const int dimension = r_source_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
     if (error != "all_ok") KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing " << error << " . Exiting." << std::endl;
 
@@ -68,7 +68,13 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
     for (unsigned int i = 0; i < source_conditions.size(); i++) {
         ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
         Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
-        Condition::Pointer cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
+        Condition::Pointer cond;
+        if (dimension == 2) {
+            cond = Condition::Pointer(new RigidEdge3D(id, p_geometry, props));
+        } else {
+            cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
+        }
+
         cond->Set(DEMFlags::STICKY, true);
         r_destination_model_part.AddCondition(cond); //TODO: add all of them in a single sentence! AddConditions. Use a temporary PointerVector as a list (not std::vector!).
         id++;
@@ -79,13 +85,13 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
 }
 
 std::string CheckProvidedProperties(Properties::Pointer props) {
-    std::vector<Variable<double> > list_of_variables_double_to_check = {FRICTION, WALL_COHESION, SEVERITY_OF_WEAR, IMPACT_WEAR_SEVERITY, BRINELL_HARDNESS, YOUNG_MODULUS, POISSON_RATIO};
-    std::vector<Variable<bool> > list_of_variables_bool_to_check = {COMPUTE_WEAR};
+    std::vector<const Variable<double>* > list_of_variables_double_to_check = {&FRICTION, &WALL_COHESION, &SEVERITY_OF_WEAR, &IMPACT_WEAR_SEVERITY, &BRINELL_HARDNESS, &YOUNG_MODULUS, &POISSON_RATIO};
+    std::vector<const Variable<bool>* > list_of_variables_bool_to_check = {&COMPUTE_WEAR};
     for (int i=0; i<(int)list_of_variables_double_to_check.size(); i++) {
-        if(!props->Has(list_of_variables_double_to_check[i])) return list_of_variables_double_to_check[i].Name();
+        if(!props->Has(*list_of_variables_double_to_check[i])) return list_of_variables_double_to_check[i]->Name();
     }
     for (int i=0; i<(int)list_of_variables_bool_to_check.size(); i++) {
-        if(!props->Has(list_of_variables_bool_to_check[i])) return list_of_variables_bool_to_check[i].Name();
+        if(!props->Has(*list_of_variables_bool_to_check[i])) return list_of_variables_bool_to_check[i]->Name();
     }
     return "all_ok";
 }
@@ -103,11 +109,11 @@ void SmoothLoadTrasferredToFem(ModelPart& r_model_part, const double portion_of_
 
 void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
-    const std::string filename = "sand_production_graph.txt";
-    std::ifstream ifile(filename.c_str());
+    const std::string sand_prod_filename = "sand_production_graph.txt";
+    static std::ofstream ofs_sand_prod_file;
     static bool first_time_entered = true;
-    if ((bool) ifile && first_time_entered) {
-        std::remove("sand_production_graph.txt");
+    if (first_time_entered) {
+        ofs_sand_prod_file.open(sand_prod_filename, std::ofstream::out | std::ofstream::trunc);
         first_time_entered = false;
     }
 
@@ -120,15 +126,18 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_mod
         Element* raw_p_element = &(*it);
         SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
         if (p_sphere->Is(ISOLATED)) continue;
-        const double particle_radius = p_sphere->GetRadius();
         const double particle_density = p_sphere->GetDensity();
-        current_total_mass_in_grams += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
+        const double particle_volume = p_sphere->CalculateVolume();
+        current_total_mass_in_grams += particle_volume * particle_density * 1.0e3;
     }
     static const double initial_total_mass_in_grams = current_total_mass_in_grams;
     const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
 
-    ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
-    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    //ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
+    //const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    ProcessInfo& r_process_info = dem_model_part.GetProcessInfo();
+    const double Pascals_to_psi_factor = 0.000145;
+    const double face_pressure_in_psi = fabs(r_process_info[TARGET_STRESS_Z]) * Pascals_to_psi_factor;
 
     static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
@@ -162,13 +171,13 @@ void MarkBrokenSpheres(ModelPart& dem_model_part) {
 void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
     const std::string sand_prod_filename = "sand_production_graph_with_chunks_non_recursive.txt";
+    static std::ofstream ofs_sand_prod_file;
     const std::string granulometry_distr_filename = "granulometry_distribution.txt";
-    std::ifstream sand_prod_ifile(sand_prod_filename.c_str());
-    std::ifstream granulometry_distr_ifile(granulometry_distr_filename.c_str());
+    static std::ofstream ofs_granulometry_distr_file;
     static bool first_time_entered = true;
-    if (((bool) sand_prod_ifile || (bool) granulometry_distr_ifile) && first_time_entered) {
-        if ((bool) sand_prod_ifile) std::remove(sand_prod_filename.c_str());
-        if ((bool) granulometry_distr_ifile) std::remove(granulometry_distr_filename.c_str());
+    if (first_time_entered) {
+        ofs_sand_prod_file.open(sand_prod_filename, std::ofstream::out | std::ofstream::trunc);
+        ofs_granulometry_distr_file.open(granulometry_distr_filename, std::ofstream::out | std::ofstream::trunc);
         first_time_entered = false;
     }
 
@@ -193,18 +202,22 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
             SphericContinuumParticle* current_particle = stack_of_particles_to_check.back();
             stack_of_particles_to_check.pop_back();
             if (current_particle->Is(VISITED)) continue;
-
-            const double particle_radius = current_particle->GetRadius();
             const double particle_density = current_particle->GetDensity();
-            this_chunk_mass += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
+            const double particle_volume = current_particle->CalculateVolume();
+            this_chunk_mass += particle_volume * particle_density * 1.0e3;
 
             current_particle->Set(VISITED, true);
 
             for (size_t i = 0; i < current_particle->mContinuumInitialNeighborsSize; i++) {
                 SphericParticle* p_neighbour_sphere = current_particle->mNeighbourElements[i];
 		        if (p_neighbour_sphere == NULL) continue;
+
                 if (p_neighbour_sphere->Is(VISITED)) continue; //not necessary, but saves increasing and decreasing stack_of_particles_to_check's size
                 if (current_particle->mIniNeighbourFailureId[i]) continue;
+
+                auto existing_element_it = dem_model_part.GetMesh(0).Elements().find(p_neighbour_sphere->Id());
+                if (existing_element_it == dem_model_part.GetMesh(0).ElementsEnd()) continue;
+
                 SphericContinuumParticle* p_neigh_cont_sphere = dynamic_cast<SphericContinuumParticle*>(p_neighbour_sphere);
                 stack_of_particles_to_check.push_back(p_neigh_cont_sphere);
             }
@@ -217,24 +230,23 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     static const double initial_total_mass_in_grams = current_total_mass_in_grams;
     const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
 
-    ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
-    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    ProcessInfo& r_process_info = dem_model_part.GetProcessInfo();
+    const double Pascals_to_psi_factor = 0.000145;
+    const double face_pressure_in_psi = fabs(r_process_info[TARGET_STRESS_Z]) * Pascals_to_psi_factor;
 
-    static std::ofstream sand_prod_file(sand_prod_filename, std::ios_base::out | std::ios_base::app);
-    sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
-    sand_prod_file.flush();
+    ofs_sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
+    ofs_sand_prod_file.flush();
 
-    unsigned int number_of_time_steps_between_granulometry_prints = 100;
+    unsigned int number_of_time_steps_between_granulometry_prints = 1e9;
     static unsigned int printing_counter = 0;
-    static std::ofstream granulometry_distr_file(granulometry_distr_filename, std::ios_base::out | std::ios_base::app);
     if (printing_counter == number_of_time_steps_between_granulometry_prints) {
-        granulometry_distr_file << time;
-        for (unsigned int k = 0; k < chunks_masses.size(); k++) granulometry_distr_file << " " << chunks_masses[k];
-        granulometry_distr_file << '\n';
+        ofs_granulometry_distr_file << time;
+        for (unsigned int k = 0; k < chunks_masses.size(); k++) ofs_granulometry_distr_file << " " << chunks_masses[k];
+        ofs_granulometry_distr_file << '\n';
         printing_counter = 0;
     }
     printing_counter++;
-    granulometry_distr_file.flush();
+    ofs_granulometry_distr_file.flush();
 }
 
 void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
@@ -273,7 +285,8 @@ void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelP
     const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
 
     ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
-    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+    const double Pascals_to_psi_factor = 0.000145;
+    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * Pascals_to_psi_factor;
 
     static std::ofstream sand_prod_file(filename, std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
@@ -325,9 +338,10 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
     ModelPart::ConditionsContainerType::iterator condition_begin_1 = outer_walls_model_part_1.ConditionsBegin();
     ModelPart::ConditionsContainerType::iterator condition_begin_2 = outer_walls_model_part_2.ConditionsBegin();
 
+    const double Pascals_to_psi_factor = 0.000145;
     const double face_pressure_in_psi = (condition_begin_1->GetValue(POSITIVE_FACE_PRESSURE) +
                                          condition_begin_2->GetValue(POSITIVE_FACE_PRESSURE) +
-                                         3.45e6) * 0.000145 * 0.33333333333333; // 3.45e6 is the sigma_z constant pressure
+                                         3.45e6) * Pascals_to_psi_factor * 0.33333333333333; // 3.45e6 is the sigma_z constant pressure
 
     static std::ofstream sand_prod_file(filename, std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
@@ -336,15 +350,6 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-
-///@}
-///@name Inquiry
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
@@ -365,82 +370,11 @@ virtual void PrintData(std::ostream& rOStream) const
 {
 }
 
-
-///@}
-///@name Friends
-///@{
-
-///@}
-
 protected:
-///@name Protected static Member r_variables
-///@{
-
-
-///@}
-///@name Protected member r_variables
-///@{ template<class T, std::size_t dim>
-
-
-///@}
-///@name Protected Operators
-///@{
-
-
-///@}
-///@name Protected Operations
-///@{
-
-
-///@}
-///@name Protected  Access
-///@{
-
-///@}
-///@name Protected Inquiry
-///@{
-
-
-///@}
-///@name Protected LifeCycle
-///@{
-
-
-///@}
 
 private:
 
-///@name Static Member r_variables
-///@{
-
-
-///@}
-///@name Member r_variables
-///@{
-///@}
-///@name Private Operators
-///@{
-
-///@}
-///@name Private Operations
-///@{
-
-
-///@}
-///@name Private  Access
-///@{
-
-
-///@}
-///@name Private Inquiry
-///@{
-
-
-///@}
-///@name Un accessible methods
-///@{
-
-/// Assignment operator.
+/// Assignment operator
 DemStructuresCouplingUtilities & operator=(DemStructuresCouplingUtilities const& rOther);
 
 

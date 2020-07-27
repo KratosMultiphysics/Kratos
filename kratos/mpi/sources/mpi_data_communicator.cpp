@@ -10,7 +10,10 @@
 //  Main author:     Jordi Cotela
 //
 
+#include "includes/parallel_environment.h"
+
 #include "mpi/includes/mpi_data_communicator.h"
+#include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
@@ -225,14 +228,27 @@ namespace Kratos {
 MPIDataCommunicator::MPIDataCommunicator(MPI_Comm MPIComm):
     DataCommunicator(),
     mComm(MPIComm)
-{}
+{
+    if (!ParallelEnvironment::MPIIsInitialized())
+    {
+        ParallelEnvironment::SetUpMPIEnvironment(MPIManager::Create());
+    }
+}
 
 MPIDataCommunicator::~MPIDataCommunicator()
-{}
-
-DataCommunicator::UniquePointer MPIDataCommunicator::Clone() const
 {
-    return Kratos::make_unique<MPIDataCommunicator>(mComm);
+    // If the MPI_Comm object is not one of the standard ones, it is our responsibility to manage its lifetime.
+    if(mComm != MPI_COMM_WORLD && mComm != MPI_COMM_SELF && mComm != MPI_COMM_NULL)
+    {
+        MPI_Comm_free(&mComm);
+    }
+}
+
+// New communicator creation
+
+MPIDataCommunicator::UniquePointer MPIDataCommunicator::Create(MPI_Comm Comm)
+{
+    return Kratos::make_unique<MPIDataCommunicator>(Comm);
 }
 
 // Barrier wrapper
@@ -414,6 +430,16 @@ int MPIDataCommunicator::Size() const
 bool MPIDataCommunicator::IsDistributed() const
 {
     return true;
+}
+
+bool MPIDataCommunicator::IsDefinedOnThisRank() const
+{
+    return !this->IsNullOnThisRank();
+}
+
+bool MPIDataCommunicator::IsNullOnThisRank() const
+{
+    return mComm == MPI_COMM_NULL;
 }
 
 // IO

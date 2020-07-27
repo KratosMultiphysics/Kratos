@@ -4,16 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 // System includes
 
@@ -43,7 +40,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
 {
 
     namespace py = pybind11;
-
     typedef ApplyChimera<2> BaseApplyChimera2D;
     typedef ApplyChimera<3> BaseApplyChimera3D;
 

@@ -143,8 +143,9 @@ class FluidElementTest(UnitTest.TestCase):
             constitutive_law = Newtonian2DLaw()
             self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
 
+        process_info = self.fluid_model_part.ProcessInfo
         for element in self.fluid_model_part.Elements:
-            element.Initialize()
+            element.Initialize(process_info)
 
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:

@@ -30,8 +30,14 @@ KratosIgaApplication::KratosIgaApplication()
 }
 
 void KratosIgaApplication::Register() {
-    KratosApplication::Register();
-    KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
+
+KRATOS_INFO("") << "    KRATOS  _____ _____\n"
+                << "           |_   _/ ____|   /\\\n"
+                << "             | || |  __   /  \\\n"
+                << "             | || | |_ | / /\\ \\\n"
+                << "            _| || |__| |/ ____ \\\n"
+                << "           |_____\\_____/_/    \\_\\\n"
+                << "Initializing KratosIgaApplication..." << std::endl;
 
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
@@ -41,6 +47,8 @@ void KratosIgaApplication::Register() {
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
+
+    KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(NURBS_CONTROL_POINT_WEIGHT)

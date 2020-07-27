@@ -1,19 +1,14 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosChimeraApplicationApplicationApplicationApplication ****")
+message("**** configuring KratosChimeraApplication****")
 
-
-## Check if fluid dynamics app is being compile dor not
-if(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF )
-    MESSAGE( FATAL_ERROR "ChimeraApplication needs FluidDynamicsApplicaiton to work. Please set FLUID_DYNAMICS_APPLICATION=ON in the configuration file." )
-endif(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/ChimeraApplication )
 
 ## ChimeraApplication Core sources
 file(GLOB_RECURSE KRATOS_CHIMERA_APPLICATION_CORE
@@ -51,19 +46,19 @@ set_target_properties(KratosChimeraApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set_target_properties(KratosChimeraApplicationApplication PROPERTIES SUFFIX .pyd)
+    set_target_properties(KratosChimeraApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so (OS X)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(KratosChimeraApplicationApplication PROPERTIES SUFFIX .so)
+    set_target_properties(KratosChimeraApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosChimeraApplicationCore)
-    cotire(KratosChimeraApplicationApplication)
+    cotire(KratosChimeraApplication)
 endif(USE_COTIRE MATCHES ON)
 
 
@@ -87,11 +82,6 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
         PATTERN "*.hpp" EXCLUDE
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
-
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosChimeraApplicationCore)
-    cotire(KratosChimeraApplication)
-endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosChimeraApplicationCore DESTINATION libs )
 install(TARGETS KratosChimeraApplication DESTINATION libs )

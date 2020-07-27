@@ -8,21 +8,22 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.factories.helpers as factories_helper
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-def Create(settings, solver_name):
-    return GaussSeidelStrongCoupledSolver(settings, solver_name)
+def Create(settings, models, solver_name):
+    return GaussSeidelStrongCoupledSolver(settings, models, solver_name)
 
 class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
-    def __init__(self, settings, solver_name):
-        super(GaussSeidelStrongCoupledSolver, self).__init__(settings, solver_name)
+    def __init__(self, settings, models, solver_name):
+        super(GaussSeidelStrongCoupledSolver, self).__init__(settings, models, solver_name)
 
-        self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
+        self.convergence_accelerators_list = factories_helper.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
             self.solver_wrappers,
             self.echo_level)
 
-        self.convergence_criteria_list = cs_tools.CreateConvergenceCriteria(
+        self.convergence_criteria_list = factories_helper.CreateConvergenceCriteria(
             self.settings["convergence_criteria"],
             self.solver_wrappers,
             self.echo_level)
@@ -96,20 +97,24 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
             is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
 
-            self.__CommunicateStateOfConvergence(is_converged)
-
             if is_converged:
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
+                self.__CommunicateStateOfConvergence(True)
                 return True
-            else:
-                # TODO I think this should not be done in the last iterations if the solution does not converge in this timestep
-                for conv_acc in self.convergence_accelerators_list:
-                    conv_acc.ComputeAndApplyUpdate()
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
                 cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                self.__CommunicateStateOfConvergence(True) # True because max number of iterations is achieved. Otherwise external solver is stuck in time
                 return False
+
+            # if it reaches here it means that the coupling has not converged and this was not the last coupling iteration
+            self.__CommunicateStateOfConvergence(False)
+
+            # do relaxation only if this iteration is not the last iteration of this timestep
+            for conv_acc in self.convergence_accelerators_list:
+                conv_acc.ComputeAndApplyUpdate()
+
 
     def Check(self):
         super(GaussSeidelStrongCoupledSolver, self).Check()

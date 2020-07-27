@@ -57,6 +57,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "Structure.SelfWeight3D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "value"           : [0.0,0.0,-9.81],
                 "interval"        : [0.0,"End"]
             }

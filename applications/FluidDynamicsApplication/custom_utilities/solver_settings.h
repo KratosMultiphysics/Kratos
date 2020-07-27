@@ -119,13 +119,7 @@ public:
     virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const unsigned int MaxIter) {}
-
-    virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
-                             typename TLinearSolver::Pointer pLinearSolver,
-                             const double Tolerance,
-                             const std::size_t MaxIter,
-                             typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver){}
+                             const unsigned int MaxIter) = 0;
 
     virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,
@@ -181,12 +175,12 @@ public:
                 pThisStrategy.swap(itStrategy->second);
                 return true;
             } else {
-                KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+                KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
                 return false;
             }
         }
         else {
-            KRATOS_INFO("SolverSettingsFSStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
+            KRATOS_INFO("SolverSettingsFractionalStepStrategy")<<"Strategy for :: "<<rStrategyLabel<<" not found."<<std::endl;
             return false;
         }
     }

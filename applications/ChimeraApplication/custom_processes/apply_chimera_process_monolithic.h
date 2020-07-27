@@ -4,34 +4,26 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 #if !defined(KRATOS_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED)
 #define KRATOS_APPLY_CHIMERA_MONOLITHIC_H_INCLUDED
 
 // System includes
-#include <algorithm>
-#include <numeric>
-#include <unordered_map>
-#include "omp.h"
 
 // External includes
 
 // Project includes
 #include "apply_chimera_process.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
@@ -51,9 +43,17 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+/**
+ * @class ApplyChimeraProcessMonolithic
+ *
+ * @ingroup ChimeraApplication
+ *
+ * @brief This class extends ApplyChimera base class and overwrites the function ApplyContinuityWithMpcs to use same container for storing pressure and velocity constraints.
+ *
+*/
 template <int TDim>
-class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessMonolithic : public ApplyChimera<TDim>
-{
+class KRATOS_API(CHIMERA_APPLICATION) ApplyChimeraProcessMonolithic
+    : public ApplyChimera<TDim> {
 public:
     ///@name Type Definitions
     ///@{
@@ -74,16 +74,14 @@ public:
 
     /**
      * @brief Constructor
-     * @param rMainModelPart The reference to the modelpart which will be used for computations later on.
+     * @param rMainModelPart The reference to the modelpart which will be used
+     * for computations later on.
      * @param iParameters The settings parameters.
      */
-    explicit ApplyChimeraProcessMonolithic(ModelPart &rMainModelPart, Parameters iParameters) : BaseType(rMainModelPart, iParameters)
-    {
-    }
+    explicit ApplyChimeraProcessMonolithic(ModelPart& rMainModelPart, Parameters iParameters);
 
     /// Destructor.
-    virtual ~ApplyChimeraProcessMonolithic() {}
-
+    ~ApplyChimeraProcessMonolithic() = default;
     ///@}
     ///@name Operators
     ///@{
@@ -92,22 +90,13 @@ public:
     ///@name Operations
     ///@{
 
-    std::string Info() const override
-    {
-        return "ApplyChimeraProcessMonolithic";
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const override
-    {
-        rOStream << "ApplyChimeraProcessMonolithic" << std::endl;
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const override
-    {
-        KRATOS_INFO("ApplyChimeraProcessMonolithic") << std::endl;
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -132,33 +121,14 @@ protected:
     ///@{
 
     /**
-     * @brief Applies the continuity between the boundary modelpart and the background.
-     * @param rBoundaryModelPart The boundary modelpart for which the continuity is to be enforced.
-     * @param rBinLocator The bin based locator formulated on the background. This is used to locate nodes of rBoundaryModelPart on background.
+     * @brief Applies the continuity between the boundary modelpart and the
+     * background.
+     * @param rBoundaryModelPart The boundary modelpart for which the continuity
+     * is to be enforced.
+     * @param rBinLocator The bin based locator formulated on the background.
+     * This is used to locate nodes of rBoundaryModelPart on background.
      */
-    void ApplyContinuityWithMpcs(ModelPart &rBoundaryModelPart, PointLocatorType &rBinLocator) override
-    {
-        auto& r_comm = BaseType::mrMainModelPart.GetCommunicator().GetDataCommunicator();
-        //loop over nodes and find the triangle in which it falls, then do interpolation
-        MasterSlaveContainerVectorType master_slave_container_vector;
-        BaseType::ReserveMemoryForConstraintContainers(rBoundaryModelPart, master_slave_container_vector);
-        std::vector<int> constraints_id_vector;
-        int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
-        BaseType::CreateConstraintIds(constraints_id_vector, num_constraints_required);
-
-        const int n_boundary_nodes = static_cast<int> (rBoundaryModelPart.Nodes().size());
-        for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn)
-        {
-            ModelPart::NodesContainerType::iterator i_boundary_node = rBoundaryModelPart.NodesBegin() + i_bn;
-            BaseType::mNodeIdToConstraintIdsMap[i_boundary_node->Id()].reserve(150);
-        }
-
-        BaseType::FormulateConstraints(rBoundaryModelPart, rBinLocator, master_slave_container_vector, master_slave_container_vector);
-        BuiltinTimer mpc_add_time;
-        BaseType::AddConstraintsToModelpart(BaseType::mrMainModelPart, master_slave_container_vector);
-        auto add_time = mpc_add_time.ElapsedSeconds();
-        KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took         : ", BaseType::mEchoLevel > 1)<< r_comm.Max(add_time, 0)<< " seconds"<< std::endl;
-    }
+    void ApplyContinuityWithMpcs(ModelPart& rBoundaryModelPart, PointLocatorType& rBinLocator) override;
 
     ///@}
     ///@name Protected  Access
@@ -203,7 +173,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ApplyChimeraProcessMonolithic &operator=(ApplyChimeraProcessMonolithic const &rOther);
+    ApplyChimeraProcessMonolithic& operator=(ApplyChimeraProcessMonolithic const& rOther);
 
     ///@}
 }; // Class ApplyChimeraProcessMonolithic

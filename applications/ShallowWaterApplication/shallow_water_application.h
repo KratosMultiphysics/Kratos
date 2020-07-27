@@ -35,6 +35,7 @@
 #include "custom_elements/rv_swe.h"
 #include "custom_elements/cv_swe.h"
 #include "custom_elements/swe.h"
+#include "custom_elements/conserved_element.h"
 #include "custom_conditions/nothing_condition.hpp"
 
 
@@ -207,6 +208,8 @@ namespace Kratos
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;
         const SWE<4, PFEM2> mLagrangianSWE2D4N;
+        const ConservedElement<3> mConservedElement2D3N;
+        const ConservedElement<4> mConservedElement2D4N;
         // Condition
         const NothingCondition<2> mNothingCondition2D2N;
 

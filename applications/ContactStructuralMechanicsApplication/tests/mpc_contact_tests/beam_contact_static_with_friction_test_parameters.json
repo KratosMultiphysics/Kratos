@@ -64,10 +64,11 @@
             "kratos_module" : "ContactStructuralMechanicsApplication",
             "process_name"  : "MPCContactProcess",
             "Parameters"    : {
-                "model_part_name"     : "Structure",
-                "contact_type"        : "Frictional",
-                "contact_model_part"  : {"0" : ["CONTACT_Contact_slave_Auto1","CONTACT_Contact_master_Auto1"]},
-                "assume_master_slave" : {"0" : ["CONTACT_Contact_slave_Auto1"]}
+                "model_part_name"       : "Structure",
+                "contact_type"          : "Frictional",
+                "contact_model_part"    : {"0" : ["CONTACT_Contact_slave_Auto1","CONTACT_Contact_master_Auto1"]},
+                "assume_master_slave"   : {"0" : ["CONTACT_Contact_slave_Auto1"]},
+                "friction_coefficients" : {"0" : 0.1}
             }
         }],
         "loads_process_list"       : [{
@@ -140,7 +141,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "vigas_contacto_static",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
@@ -171,7 +172,7 @@
             "process_name"  : "VtkOutputProcess",
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
-                "model_part_name"                    : "Structure.computing_domain",
+                "model_part_name"                    : "Structure",
                 "output_control_type"                : "step",
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",

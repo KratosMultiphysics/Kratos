@@ -1,14 +1,10 @@
 import time
-import KratosMultiphysics.FluidDynamicsApplication as kfd
+import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-have_external_solvers = kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-
-from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
 from chimera_analysis_base_test import ChimeraAnalysisBaseTest
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class FlowOverCylinderMonolithic(ChimeraAnalysisBaseTest):
     def test_MonolithicFlowOverCylinder(self):
         start = time.clock()
@@ -31,27 +27,6 @@ class FlowOverCylinderFractionalStep(ChimeraAnalysisBaseTest):
         end = time.clock()
         print("Time taken for fractional step chimera simulation",end-start)
 
-class MonolithicMultiPatch(ChimeraAnalysisBaseTest):
-    def test_MultipleOverlappingPatchMonolithic(self):
-        start = time.clock()
-        work_folder = "multiple_over_lapping_patches_monolithic"
-        settings_file_name = "multiple_overlapping_patches_monolithic.json"
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._run_test(settings_file_name)
-
-        end = time.clock()
-        print("Time taken for Multiple overlapping chimera simulation using Monolithic solver ",end-start)
-
-class FractionalStepMultiPatch(ChimeraAnalysisBaseTest):
-    def test_MultipleOverlappingPatchFractionalStep(self): #TODO: Check and correct this
-        start = time.clock()
-        work_folder = "multiple_over_lapping_patches_fractionalstep"
-        settings_file_name = "multiple_overlapping_patches_fractionalstep.json"
-        with UnitTest.WorkFolderScope(work_folder, __file__):
-            self._run_test(settings_file_name)
-
-        end = time.clock()
-        print("Time taken for Multiple overlapping chimera simulation using fractional step solver ",end-start)
 
 class FlowOverCrossMonolithic(ChimeraAnalysisBaseTest):
     def test_FlowOverCrossMonolithic(self):

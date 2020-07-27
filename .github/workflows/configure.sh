@@ -16,15 +16,13 @@ add_app () {
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-
-# Set build type
-export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:="Custom"}
-export PYTHON_EXECUTABLE="/usr/bin/python3.6"
+export PYTHON_EXECUTABLE="/usr/bin/python3.8"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
+add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
@@ -42,6 +40,12 @@ add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/IgaApplication;
+add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/ChimeraApplication;
+add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
+add_app ${KRATOS_APP_DIR}/StatisticsApplication;
+add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 
 # Clean
 clear
@@ -53,20 +57,19 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=ON \
--DPYBIND11_PYTHON_VERSION="3.6" \
--DCMAKE_CXX_FLAGS="-O0 -fopenmp -Wall \
--Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
--Werror=misleading-indentation -Werror=return-type \
--Werror=sign-compare -Werror=unused-but-set-variable \
--Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Wno-deprecated-declarations" \
--DEIGEN_ROOT="/usr/include/eigen3" \
+-DPYBIND11_PYTHON_VERSION="3.8" \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11 -O0 -fopenmp -Wall" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
--DUSE_COTIRE=ON
+-DBLAS_LIBRARIES="/usr/lib/x86_64-linux-gnu/blas/libblas.so.3" \
+-DLAPACK_LIBRARIES="/usr/lib/x86_64-linux-gnu/liblapack.so.3" \
+-DUSE_COTIRE=ON \
+-DINCLUDE_MMG=ON                                    \
+-DMMG_ROOT="/usr/local/"                            \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity    -- -j1 && \
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
-

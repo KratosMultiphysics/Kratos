@@ -4,16 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
-// 					Navaneeth K Narayanan
-//					Rishith Ellath Meethal
-// ==============================================================================
+// 					        Navaneeth K Narayanan
+//					        Rishith Ellath Meethal
 //
 // External includes
 
@@ -31,6 +28,14 @@ namespace Kratos
 
 namespace Python
 {
+
+    // Utility function to transfer the solution step data between the modelparts.
+    // Used in the python file chimera_modelpart_import.py
+    void TransferSolutionStepData(ModelPart& rFromModelPart, ModelPart& rToModelPart)
+    {
+      rToModelPart.SetNodalSolutionStepVariablesList( rFromModelPart.pGetNodalSolutionStepVariablesList() );
+    }
+
     namespace py = pybind11;
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
@@ -50,12 +55,16 @@ namespace Python
     SetStrategyByParamsWithBSType ThisSetStrategyOverload = &FractionalStepSettingsForChimeraType::SetStrategy;
 
     py::class_< FractionalStepSettingsForChimeraType, BaseSettingsType>
-        (m, "FractionalStepSettings")
+        (m, "FractionalStepSettingsChimera")
         .def(py::init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
         .def("SetStrategy",ThisSetStrategyOverload)
         .def("GetStrategy",&FractionalStepSettingsForChimeraType::pGetStrategy)
         .def("SetEchoLevel",&FractionalStepSettingsForChimeraType::SetEchoLevel)
         ;
+
+    // Utility function to transfer the solution step data between the modelparts.
+    // Used in the python file chimera_modelpart_import.py
+    m.def("TransferSolutionStepData", &TransferSolutionStepData, "Utility function to transfer the solution step data between the modelparts.");
   }
 
 }  // namespace Python.

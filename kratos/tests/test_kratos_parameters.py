@@ -1,7 +1,5 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import sys
-
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
@@ -17,16 +15,12 @@ try:
     import cPickle as pickle
     have_pickle_module = True
 except ImportError:
-    if sys.version_info > (3, 0):
-        try:
-            import pickle
-            have_pickle_module = True
-        except ImportError:
-            have_pickle_module = False
-            pickle_message = "No pickle module found"
-    else:
+    try:
+        import pickle
+        have_pickle_module = True
+    except ImportError:
         have_pickle_module = False
-        pickle_message = "No valid pickle module found"
+        pickle_message = "No pickle module found"
 
 # input string with ugly formatting
 json_string = """
@@ -753,6 +747,20 @@ class TestParameters(KratosUnittest.TestCase):
         } """)
         with self.assertRaisesRegex(RuntimeError, r'Error: Argument must be a string'):
             tmp["parameter"].GetStringArray()
+
+    def test_set_string_array_valid(self):
+        initial = Parameters("""{
+            "parameter": ["foo", "bar"]
+        } """)
+        string_array = initial["parameter"].GetStringArray()
+
+        new_param = Parameters()
+        new_param.AddEmptyValue("new_parameter")
+        new_param["new_parameter"].SetStringArray(string_array)
+
+        new_string_array = initial["parameter"].GetStringArray()
+
+        self.assertListEqual(new_string_array, string_array)
 
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):

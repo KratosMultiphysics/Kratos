@@ -1,9 +1,8 @@
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.ChimeraApplication as KratosChimera
-import warnings
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if ( not isinstance(settings, KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyRotateRegionProcess(Model, settings["Parameters"])
 
@@ -57,9 +56,9 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
                 raise Exception("The values (vector) of the entry 'axis_of_rotation' are all zero. This is not admissible.")
 
         if(settings["calculate_torque"].GetBool() and settings["moment_of_inertia"].GetDouble() == 0.0):
-            warnings.warn(" 'moment_of_inertia' is zero !!")
+            KratosMultiphysics.Logger.PrintWarning("RotateRegionProcess", " 'moment_of_inertia' is zero !!")
         if(settings["calculate_torque"].GetBool() and settings["rotational_damping"].GetDouble() == 0.0):
-            warnings.warn(" 'rotational_damping' is zero !!")
+            KratosMultiphysics.Logger.PrintWarning("RotateRegionProcess", " 'rotational_damping' is zero !!")
 
         # If no torque_model_part_name is specified remove it to avoid later problems
         if (settings["torque_model_part_name"].GetString() == ""):

@@ -4,19 +4,16 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
-#if !defined(KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA)
-#define KRATOS_SOLVING_STRATEGIES_BUILDER_AND_SOLVERS__RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA
+#if !defined(RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA)
+#define RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS_FOR_CHIMERA
 
 /* System includes */
 #include <unordered_set>
@@ -25,7 +22,6 @@
 /* External includes */
 
 /* Project includes */
-#include "spaces/ublas_space.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "includes/master_slave_constraint.h"
 
@@ -72,7 +68,7 @@ namespace Kratos
 template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver>
-class KRATOS_API(CHIMERA_APPLICATION) ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
+class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
     : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
@@ -107,9 +103,7 @@ public:
 
     /** Destructor.
      */
-    ~ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera() override
-    {
-    }
+    ~ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera() = default;
 
     ///@}
     ///@name Operators
@@ -156,13 +150,12 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    TSystemMatrixType mL; /// This is L matrix described above (at class definition)
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    TSystemMatrixType mL; /// This is L matrix described above (at class definition)
     ///@}
-    ///@name ProtectedM_LN2
+    ///@name Protected operators
     ///@{
 
     ///@}
@@ -214,21 +207,17 @@ protected:
             BuildMasterSlaveConstraints(rModelPart);
             // We compute the transposed matrix of the global relation matrix
             TSystemMatrixType L_transpose_matrix(mL.size2(), mL.size1());
-            // auto L_transpose_matrix =  boost::numeric::ublas::trans(mL);
             SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(L_transpose_matrix, mL, 1.0);
 
             TSystemVectorType b_modified(rb.size());
-            //boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rb, b_modified, true);
             TSparseSpace::Mult(L_transpose_matrix, rb, b_modified);
             TSparseSpace::Copy(b_modified, rb);
             b_modified.resize(0, false); //free memory
 
             TSystemMatrixType auxiliar_A_matrix(BaseType::mT.size2(), rA.size2());
-            //boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rA, auxiliar_A_matrix, true);
             SparseMatrixMultiplicationUtility::MatrixMultiplication(L_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
             L_transpose_matrix.resize(0, 0, false);                                                             //free memory
 
-            //boost::numeric::ublas::axpy_prod(auxiliar_A_matrix, BaseType::mT, rA, true);
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, BaseType::mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                                        //free memory
 
@@ -249,7 +238,7 @@ protected:
                 }
             }
             const double stop_constraints = OpenMPUtils::GetCurrentTime();
-            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Applying constraints time: " << stop_constraints - start_constraints << std::endl;
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera", this->GetEchoLevel() >= 1 )<< "Applying constraints time: " << stop_constraints - start_constraints << std::endl;
         }
 
         TSparseSpace::WriteMatrixMarketMatrix("T_matrix.mm", BaseType::mT, false);
@@ -267,35 +256,6 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
     ///@{
 
     ///@}

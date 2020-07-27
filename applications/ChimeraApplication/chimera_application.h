@@ -4,16 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 #if !defined(KRATOS_CHIMERA_APPLICATION_H_INCLUDED )
 #define  KRATOS_CHIMERA_APPLICATION_H_INCLUDED
@@ -30,8 +27,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
-
 
 
 namespace Kratos {
@@ -58,7 +53,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosChimeraApplication : public KratosApplication {
+class KRATOS_API(CHIMERA_APPLICATION) KratosChimeraApplication : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{
@@ -118,9 +113,6 @@ public:
 
 	///// Print object's data.
 	virtual void PrintData(std::ostream& rOStream) const override{
-  		KRATOS_WATCH("in my application");
-  		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-
 		rOStream << "Variables:" << std::endl;
 		KratosComponents<VariableData>().PrintData(rOStream);
 		rOStream << std::endl;
@@ -211,10 +203,10 @@ private:
 	///@{
 
 	/// Assignment operator.
-	KratosChimeraApplication& operator=(KratosChimeraApplication const& rOther);
+	KratosChimeraApplication& operator=(KratosChimeraApplication const& rOther) = delete;
 
 	/// Copy constructor.
-	KratosChimeraApplication(KratosChimeraApplication const& rOther);
+	KratosChimeraApplication(KratosChimeraApplication const& rOther) = delete;
 
 
 	///@}

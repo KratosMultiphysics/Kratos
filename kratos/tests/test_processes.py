@@ -26,6 +26,15 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, model_part)
+
         #reset all data
         for node in model_part.Nodes:
             node.Free(KratosMultiphysics.DISPLACEMENT_X)
@@ -275,7 +284,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         ############################################################
         ##time >= 20 - KratosMultiphysics.DISPLACEMENT applied as a vector. x,z components fixed, y component not imposed
-        ##time >= 20 - KratosMultiphysics.VELOCITY applied as a vector by componentes. All components free. y component is not zero.
+        ##time >= 20 - KratosMultiphysics.VELOCITY applied as a vector by components. All components free. y component is not zero.
         model_part.CloneTimeStep(20.1)
 
         for process in list_of_processes:
@@ -678,6 +687,14 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
 
         settings = KratosMultiphysics.Parameters(
         """
@@ -1433,6 +1450,77 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
+    def test_csv_points_output_process(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_input_file_name = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_input_ref.csv")
+        reference_file_name_1 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("auxiliar_files_for_python_unittest/point_output_process_ref_files/csv_points_output_3_ref.dat")
+
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [ {
+                    "python_module"  : "csv_points_output_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CSVPointsOutputProcess",
+                    "Parameters"            : {
+                        "csv_file_path"         : "path",
+                        "model_part_name"   : "Main",
+                        "output_file_settings" : {
+                            "file_name" : "csv_points_output"
+                        },
+                        "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
+                    }
+                },{
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "csv_points_output_1.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                } ,{
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "csv_points_output_2.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                }, {
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "csv_points_output_3.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                }]
+        }""")
+
+        settings["process_list"][0]["Parameters"]["csv_file_path"].SetString(reference_input_file_name)
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
+
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
     def test_assign_flag_process(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
@@ -1478,6 +1566,15 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, model_part)
 
         #reset all data
         for node in model_part.Nodes:

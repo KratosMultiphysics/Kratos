@@ -9,23 +9,20 @@
 //
 //  Main authors:    Aditya Ghantasala
 
-#if !defined(DISTANCE_CALCULATION_UTILITY )
-#define  DISTANCE_CALCULATION_UTILITY
+#if !defined(CHIMERA_DISTANCE_CALCULATION_UTILITY )
+#define  CHIMERA_DISTANCE_CALCULATION_UTILITY
 
 
 
 // System includes
 
-
 // External includes
-#include "omp.h"
-
 
 // Project includes
 #include "includes/define.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
-#include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
+#include "processes/calculate_distance_to_skin_process.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/gather_modelpart_on_all_ranks.h"
 
@@ -45,25 +42,25 @@ namespace Kratos
 
 /// Utility for calculating the Distance on a given modelpart
 template <int TDim>
-class KRATOS_API(CHIMERA_APPLICATION) DistanceCalculationUtility
+class ChimeraDistanceCalculationUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DistanceCalculationUtility
-    KRATOS_CLASS_POINTER_DEFINITION(DistanceCalculationUtility);
+    /// Pointer definition of ChimeraDistanceCalculationUtility
+    KRATOS_CLASS_POINTER_DEFINITION(ChimeraDistanceCalculationUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    DistanceCalculationUtility() = delete;
+    ChimeraDistanceCalculationUtility() = delete;
 
     /// Destructor.
     /// Deleted copy constructor
-    DistanceCalculationUtility(const DistanceCalculationUtility& rOther) = delete;
+    ChimeraDistanceCalculationUtility(const ChimeraDistanceCalculationUtility& rOther) = delete;
 
 
     ///@}
@@ -161,21 +158,7 @@ public:
 
     ///@}
 
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
-}; // Class DistanceCalculationUtility
+}; // Class ChimeraDistanceCalculationUtility
 
 ///@}
 

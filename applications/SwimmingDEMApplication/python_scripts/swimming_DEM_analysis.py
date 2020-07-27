@@ -377,13 +377,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
             Say(gauge.variables)
         # ANALYTICS END
 
-        import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_model_part,
-            self.custom_functions_tool)
-
         self.FillHistoryForcePrecalculatedVectors()
 
         self.PerformZeroStepInitializations()

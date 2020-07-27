@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/matrix_market_interface.h"
-#include "utilities/os_utilities.h"
+#include "includes/kratos_filesystem.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -64,7 +64,7 @@ namespace Kratos
             const std::string lhs = "%%MatrixMarket matrix coordinate real general\n16 16 184\n1 1 4.00969e+10\n1 2 0\n1 3 0\n1 4 0\n1 7 0\n1 8 0\n2 1 0\n2 2 1.35566e+11\n2 3 0\n2 4 0\n2 7 0\n2 8 0\n3 1 0\n3 2 0\n3 3 1.4559e+11\n3 4 0\n3 5 0\n3 6 0\n3 7 0\n3 8 0\n3 9 0\n3 10 0\n3 11 0\n3 12 0\n3 13 0\n3 14 0\n4 1 0\n4 2 0\n4 3 0\n4 4 2.22633e+10\n4 5 0\n4 6 -1.0345e+11\n4 7 0\n4 8 -6.20547e+09\n4 9 0\n4 10 -1.14853e-05\n4 11 0\n4 12 0.000525451\n4 13 0\n4 14 5.1725e+10\n5 3 0\n5 4 0\n5 5 2.069e+11\n5 6 0\n5 7 0\n5 8 0\n5 9 0\n5 10 0\n5 11 0\n5 12 0\n5 13 0\n5 14 0\n6 3 0\n6 4 -1.0345e+11\n6 5 0\n6 6 0\n6 7 0\n6 8 0\n6 9 0\n6 10 0\n6 11 0\n6 12 0.00103942\n6 13 0\n6 14 1.0345e+11\n7 1 0\n7 2 0\n7 3 0\n7 4 0\n7 5 0\n7 6 0\n7 7 1.4559e+11\n7 8 0\n7 9 0\n7 10 0\n7 11 0\n7 12 0\n7 13 0\n7 14 0\n8 1 0\n8 2 0\n8 3 0\n8 4 -6.20547e+09\n8 5 0\n8 6 0\n8 7 0\n8 8 2.22633e+10\n8 9 0\n8 10 -1.0345e+11\n8 11 0\n8 12 5.1725e+10\n8 13 0\n8 14 5.74263e-06\n9 3 0\n9 4 0\n9 5 0\n9 6 0\n9 7 0\n9 8 0\n9 9 2.069e+11\n9 10 0\n9 11 0\n9 12 0\n9 13 0\n9 14 0\n10 3 0\n10 4 -1.14853e-05\n10 5 0\n10 6 0\n10 7 0\n10 8 -1.0345e+11\n10 9 0\n10 10 0\n10 11 0\n10 12 1.0345e+11\n10 13 0\n10 14 1.14853e-05\n11 3 0\n11 4 0\n11 5 0\n11 6 0\n11 7 0\n11 8 0\n11 9 0\n11 10 0\n11 11 1.45464e+11\n11 12 0\n11 13 0\n11 14 0\n11 15 0\n11 16 0\n12 3 0\n12 4 0.000525451\n12 5 0\n12 6 0.00103942\n12 7 0\n12 8 5.1725e+10\n12 9 0\n12 10 1.0345e+11\n12 11 0\n12 12 2.22572e+10\n12 13 0\n12 14 -6.13145e+09\n12 15 0\n12 16 0\n13 3 0\n13 4 0\n13 5 0\n13 6 0\n13 7 0\n13 8 0\n13 9 0\n13 10 0\n13 11 0\n13 12 0\n13 13 1.45464e+11\n13 14 0\n13 15 0\n13 16 0\n14 3 0\n14 4 5.1725e+10\n14 5 0\n14 6 1.0345e+11\n14 7 0\n14 8 5.74263e-06\n14 9 0\n14 10 1.14853e-05\n14 11 0\n14 12 -6.13145e+09\n14 13 0\n14 14 2.22572e+10\n14 15 0\n14 16 0\n15 11 0\n15 12 0\n15 13 0\n15 14 0\n15 15 4.0137e+10\n15 16 0\n16 11 0\n16 12 0\n16 13 0\n16 14 0\n16 15 0\n16 16 1.35701e+11\n";
 
             std::filebuf buffer_lhs;
-            buffer_lhs.open(OSUtilities::GetCurrentWorkingDir() + "/A_testing_condensation.mm",std::ios::out);
+            buffer_lhs.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "A_testing_condensation.mm"}),std::ios::out);
             std::ostream os_lhs(&buffer_lhs);
             os_lhs << lhs;
             buffer_lhs.close();
@@ -72,7 +72,7 @@ namespace Kratos
             const std::string rhs = "%%MatrixMarket matrix array real general\n16 1\n0\n0\n0\n-5.1725e+07\n0\n-1.0345e+08\n0\n-5.1725e+07\n0\n-1.0345e+08\n0\n-6.23386e+08\n0\n-6.23386e+08\n0\n0\n";
 
             std::filebuf buffer_rhs;
-            buffer_rhs.open(OSUtilities::GetCurrentWorkingDir() + "/b_testing_condensation.rhs",std::ios::out);
+            buffer_rhs.open(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "b_testing_condensation.rhs"}),std::ios::out);
             std::ostream os_rhs(&buffer_rhs);
             os_rhs << rhs;
             buffer_rhs.close();
@@ -957,12 +957,12 @@ namespace Kratos
 
             // CHANGE THIS TO ADAPT TO YOUR PROBLEM
             CreateAuxiliarFiles();
-            const bool read_a = Kratos::ReadMatrixMarketMatrix((OSUtilities::GetCurrentWorkingDir() + "/A_testing_condensation.mm").c_str(), A);
-            const bool read_b = Kratos::ReadMatrixMarketVector((OSUtilities::GetCurrentWorkingDir() + "/b_testing_condensation.rhs").c_str(), b);
+            const bool read_a = Kratos::ReadMatrixMarketMatrix(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "A_testing_condensation.mm"}).c_str(), A);
+            const bool read_b = Kratos::ReadMatrixMarketVector(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "b_testing_condensation.rhs"}).c_str(), b);
 
             // Removing files
-            remove((OSUtilities::GetCurrentWorkingDir() + "/A_testing_condensation.mm").c_str());
-            remove((OSUtilities::GetCurrentWorkingDir() + "/b_testing_condensation.rhs").c_str());
+            Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "A_testing_condensation.mm"}));
+            Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), "b_testing_condensation.rhs"}));
 
             if (read_a && read_b) {
                 // We solve the reference system

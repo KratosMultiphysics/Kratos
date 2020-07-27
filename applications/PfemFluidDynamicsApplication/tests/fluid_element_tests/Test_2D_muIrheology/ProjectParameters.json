@@ -20,6 +20,9 @@
             "input_type"       : "mdpa",
             "input_filename"   : "fluid_element_tests/Test_2D_muIrheology/Test_2D_muIrheology"
         },
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_element_tests/Test_2D_muIrheology/PfemFluidDynamicsMaterials.json"
+        },
         "maximum_pressure_iterations"        : 2,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
@@ -61,6 +64,11 @@
             "meshing_frequency"     : 1.0,
             "write_totalVolumeBeforeMeshing" : false,
             "meshing_before_output" : true,
+            "update_conditions_on_free_surface" : {
+                "update_conditions"        : false,
+                "sub_model_part_list"      : [],
+                "reference_condition_list" : []
+            },
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",
                 "python_module"                   : "fluid_meshing_domain",

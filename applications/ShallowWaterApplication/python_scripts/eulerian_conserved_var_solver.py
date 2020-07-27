@@ -14,8 +14,8 @@ class EulerianConservedVarSolver(ShallowWaterBaseSolver):
         super(EulerianConservedVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
-        self.element_name = "ConservativeSWE"
-        self.condition_name = "Condition"
+        self.element_name = "ConservedElement"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
 
     def AddVariables(self):
@@ -32,8 +32,3 @@ class EulerianConservedVarSolver(ShallowWaterBaseSolver):
     def FinalizeSolutionStep(self):
         super(EulerianConservedVarSolver, self).FinalizeSolutionStep()
         SW.ShallowWaterUtilities().ComputeVelocity(self.main_model_part)
-
-    def InitializeSolutionStep(self):
-        KM.VariableUtils().CopyVectorVar(KM.MOMENTUM, SW.PROJECTED_VECTOR1, self.main_model_part.Nodes)
-        KM.VariableUtils().CopyScalarVar(SW.HEIGHT, SW.PROJECTED_SCALAR1, self.main_model_part.Nodes)
-        super(EulerianConservedVarSolver, self).InitializeSolutionStep

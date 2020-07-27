@@ -178,12 +178,14 @@ public:
 
     TDataType& operator[](const key_type& Key)
     {
-		return *(mData[Key].second);
+		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+		return *(mData.find(Key)->second);
     }
 
     pointer_type& operator()(const key_type& Key)
     {
-		return mData[Key].second;
+		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+		return mData.find(Key)->second;
 	}
 
     bool operator==( const PointerHashMapSet& r ) const // nothrow

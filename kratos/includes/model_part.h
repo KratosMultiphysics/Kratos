@@ -107,8 +107,7 @@ public:
 
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofsVectorType;
-    typedef Kratos::Variable<double> DoubleVariableType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<double> DoubleVariableType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
@@ -248,6 +247,9 @@ public:
     /// Const Geometry Iterator
     typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
 
+    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
+    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
+
     /// The container of the sub model parts. A hash table is used.
     /**
     */
@@ -366,7 +368,6 @@ public:
                 else
                     aux.push_back( *(it.base()) );
             }
-            (aux.end()-1)->SetSolutionStepVariablesList(mpVariablesList);
         }
 
         //now add to the root model part
@@ -457,8 +458,11 @@ public:
      */
     void RemoveNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
-    /** this function gives back the "root" model part, that is the model_part that has no father */
+    /** this function gives back the "root" model part, that is the model_part that has no father (non-const version)*/
     ModelPart& GetRootModelPart();
+
+    /** this function gives back the "root" model part, that is the model_part that has no father (const version)*/
+    const ModelPart& GetRootModelPart() const;
 
     NodeIterator NodesBegin(IndexType ThisIndex = 0)
     {
@@ -735,16 +739,6 @@ public:
                                                                                     const DoubleVariableType& rSlaveVariable,
                                                                                     const double Weight,
                                                                                     const double Constant,
-                                                                                    IndexType ThisIndex = 0);
-
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
-                                                                                    NodeType& rMasterNode,
-                                                                                    const VariableComponentType& rMasterVariable,
-                                                                                    NodeType& rSlaveNode,
-                                                                                    const VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant,
                                                                                     IndexType ThisIndex = 0);
 
     /**
@@ -1429,20 +1423,33 @@ public:
         return mGeometries.GeometriesBegin();
     }
 
-    ///// Begin geometry const iterator
-    //GeometryConstantIterator GeometriesBegin() const {
-    //    return mGeometries.GeometriesBegin();
-    //}
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
 
     /// End geometry iterator
     GeometryIterator GeometriesEnd() {
         return mGeometries.GeometriesEnd();
     }
 
-    ///// End geometry const iterator
-    //GeometryConstantIterator GeometriesEnd() const {
-    //    return mGeometries.GeometriesEnd();
-    //}
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
+
+
+    /// Get geometry map containe
+    GeometriesMapType& Geometries()
+    {
+        return mGeometries.Geometries();
+    }
+
+    /// Get geometry map containe
+    const GeometriesMapType& Geometries() const
+    {
+        return mGeometries.Geometries();
+    }
 
     ///@}
     ///@name Sub model parts
@@ -1461,24 +1468,12 @@ public:
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart& GetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
-
-        return *i;
-    }
+    ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
     /** Returns a shared pointer to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
-
-        return (i.base()->second).get();
-    }
+    ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
     /** Remove a sub modelpart with given name.
     */
@@ -1513,20 +1508,19 @@ public:
         return mSubModelParts;
     }
 
-
-    ModelPart* GetParentModelPart() const
+    const SubModelPartsContainerType& SubModelParts() const
     {
-        if (IsSubModelPart()) {
-            return mpParentModelPart;
-        } else {
-            return const_cast<ModelPart*>(this);
-        }
+        return mSubModelParts;
     }
 
-    bool HasSubModelPart(std::string const& ThisSubModelPartName) const
-    {
-        return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
-    }
+    /** Returns a pointer to the Parent ModelPart
+     * Returns a pointer to itself if it is not a SubModelPart
+    */
+    ModelPart* GetParentModelPart() const;
+
+    /** Returns whether this ModelPart has a SubModelPart with a given name
+    */
+    bool HasSubModelPart(std::string const& ThisSubModelPartName) const;
 
     ///@}
     ///@name Access
@@ -1630,7 +1624,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This method returns the full name of the model part (including the parents model parts)
      * @details This is evaluated in a recursive way
@@ -1644,7 +1638,7 @@ public:
         }
         return full_name;
     }
-    
+
     /**
      * @brief This method returns the name list of submodelparts
      * @return A vector conrtaining the list of submodelparts contained

@@ -31,22 +31,9 @@ namespace Kratos
 		, mrGeometry(rGeometry)
         , mrOutputModelPart(rOutputModelPart) {
 
-		Parameters default_parameters(R"(
-            {
-	            "create_skin_sub_model_part": true,
-	            "start_node_id":1,
-                "start_element_id":1,
-                "start_condition_id":1,
-                "number_of_divisions":1,
-                "elements_properties_id":0,
-                "conditions_properties_id":0,
-                "element_name": "PLEASE SPECIFY IT",
-                "condition_name": "PLEASE SPECIFY IT"
-            }  )");
-
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
 
-		TheParameters.ValidateAndAssignDefaults(default_parameters);
+		TheParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
 		mStartNodeId = TheParameters["start_node_id"].GetInt();
 		mStartElementId = TheParameters["start_element_id"].GetInt();
@@ -77,6 +64,23 @@ namespace Kratos
 			KRATOS_ERROR << "Not supported geometry is given" << std::endl;
 
 	}
+
+	const Parameters StructuredMeshGeneratorProcess::GetDefaultParameters() const
+	{
+        const Parameters default_parameters(R"(
+        {
+            "create_skin_sub_model_part": true,
+            "start_node_id":1,
+            "start_element_id":1,
+            "start_condition_id":1,
+            "number_of_divisions":1,
+            "elements_properties_id":0,
+            "conditions_properties_id":0,
+            "element_name": "PLEASE SPECIFY IT",
+            "condition_name": "PLEASE SPECIFY IT"
+        }  )");
+        return default_parameters;
+    }
 
 	std::string StructuredMeshGeneratorProcess::Info() const {
 		return "StructuredMeshGeneratorProcess";

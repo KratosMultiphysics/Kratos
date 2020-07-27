@@ -6,33 +6,43 @@
         "start_time": 0.0,
         "end_time": 0.5
     },
-    "output_processes": {},
+    "output_processes" : {},
     "solver_settings": {
         "chimera_settings":{
-            "chimera_echo_level" : 1,
+            "chimera_echo_level":0,
             "reformulate_chimera_every_step":true,
-            "chimera_parts": [
+            "chimera_parts":[
                 [
-                    {
-                        "model_part_name": "FluidModelPart.GENERIC_background_surface",
-                        "overlap_distance": 0.01
+                {
+                    "model_part_name":"FluidModelPart.Parts_background_surface",
+                    "overlap_distance":0.7,
+                    "model_import_settings":{
+                        "input_type":"mdpa",
+                        "perform_partitioning":false,
+                        "input_filename":"../mdpa_for_tests/flow_over_cross/background"
                     }
+                }
                 ],
                 [
-                    {
-                        "model_part_name": "FluidModelPart.GENERIC_patch_surface",
-                        "overlap_distance": 0.7
-                    }
+                {
+                    "model_part_name":"FluidModelPart.Parts_patch_surface",
+                    "overlap_distance":0.7,
+                    "model_import_settings":{
+                        "input_type":"mdpa",
+                        "perform_partitioning":false,
+                        "input_filename":"../mdpa_for_tests/flow_over_cross/patch"
+                    },
+                    "internal_parts_for_chimera":["FluidModelPart.NoSlip2D_cross"]
+                }
                 ]
-            ],
-            "internal_parts_for_chimera":["FluidModelPart.NoSlip2D_cross"]
+            ]
         },
         "model_part_name": "FluidModelPart",
         "domain_size": 2,
         "solver_type": "Monolithic",
         "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": "../mdpa_for_tests/flow_over_cross"
+            "input_type": "chimera",
+            "input_filename": ""
         },
         "material_import_settings": {
             "materials_filename": "../mdpa_for_tests/FluidMaterials.json"
@@ -44,24 +54,8 @@
         "absolute_velocity_tolerance": 1e-5,
         "relative_pressure_tolerance": 0.001,
         "absolute_pressure_tolerance": 1e-5,
-        "linear_solver_settings": {
-            "solver_type": "ExternalSolversApplication.amgcl",
-            "max_iteration": 200,
-            "tolerance": 1e-7,
-            "provide_coordinates": false,
-            "smoother_type": "ilu0",
-            "krylov_type": "gmres",
-            "coarsening_type": "aggregation",
-            "scaling": false
-        },
-        "volume_model_part_name": "Parts_both_surfaces",
-        "skin_parts": [
-            "AutomaticInlet2D_inlet",
-            "Outlet2D_outlet",
-            "NoSlip2D_cross",
-            "NoSlip2D_top",
-            "NoSlip2D_bottom"
-        ],
+        "volume_model_part_name": "FluidModelPart",
+        "skin_parts": ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_top","NoSlip2D_bottom","NoSlip2D_cross"],
         "no_skin_parts": [],
         "time_stepping": {
             "automatic_time_step": false,
@@ -76,53 +70,46 @@
     "processes": {
         "initial_conditions_process_list": [],
         "boundary_conditions_process_list": [
-            {
-                "python_module": "apply_inlet_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "variable_name": "VELOCITY",
-                    "modulus": 1.0,
-                    "direction": "automatic_inwards_normal",
-                    "interval": [
-                        0.0,
-                        "End"
-                    ]
-                }
-            },
-            {
-                "python_module": "apply_outlet_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.Outlet2D_outlet",
-                    "variable_name": "PRESSURE",
-                    "constrained": true,
-                    "value": 0.0,
-                    "hydrostatic_outlet": false,
-                    "h_top": 0.0
-                }
-            },
-            {
-                "python_module": "apply_noslip_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.NoSlip2D_cross"
-                }
-            },
-            {
-                "python_module": "apply_noslip_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.NoSlip2D_top"
-                }
-            },
-            {
-                "python_module": "apply_noslip_process",
-                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.NoSlip2D_bottom"
-                }
+        {
+            "python_module" : "apply_inlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.AutomaticInlet2D_inlet",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "modulus"         : 1.0,
+                "direction"       : "automatic_inwards_normal"
             }
+        },{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Outlet2D_outlet",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_top"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_bottom"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_cross"
+            }
+        }
         ],
         "gravity": [
             {
@@ -130,7 +117,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignVectorByDirectionProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.Parts_both_surfaces",
+                    "model_part_name": "FluidModelPart",
                     "variable_name": "BODY_FORCE",
                     "modulus": 0.0,
                     "constrained": false,
@@ -147,7 +134,7 @@
             "kratos_module": "ChimeraApplication",
             "process_name": "RotateRegionProcess",
             "Parameters": {
-                "model_part_name": "FluidModelPart.GENERIC_patch_surface",
+                "model_part_name": "FluidModelPart.Parts_patch_surface",
                 "center_of_rotation":[5.91526,4.84748,0],
                 "angular_velocity_radians":0.005,
                 "axis_of_rotation":[0.0,0.0,1.0],

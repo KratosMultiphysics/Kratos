@@ -74,6 +74,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.FixParametersInconsistencies()
 
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
+        if not "WriteMdpaFromResults" in self.DEM_parameters.keys():
+            self.write_mdpa_from_results = False
+        else:
+            self.write_mdpa_from_results = self.DEM_parameters["WriteMdpaFromResults"].GetBool()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
@@ -320,6 +324,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
+        if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
+            self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
+
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
 
@@ -543,8 +550,6 @@ class DEMAnalysisStage(AnalysisStage):
             if output_process.IsOutputStep():
                 output_process.PrintOutput()
 
-        self.FinalizeTimeStep(self.time)
-
     def AfterSolveOperations(self):
         message = 'Warning!'
         message += '\nFunction \'AfterSolveOperations\' is deprecated.'
@@ -559,8 +564,6 @@ class DEMAnalysisStage(AnalysisStage):
         #Phantom Walls
         self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
 
-    def FinalizeTimeStep(self, time):
-        pass
 
     def BreakSolutionStepsLoop(self):
         return False
@@ -578,15 +581,21 @@ class DEMAnalysisStage(AnalysisStage):
         self.model.DeleteModelPart(self.spheres_model_part.Name)
 
     def Finalize(self):
-
         self.KratosPrintInfo("Finalizing execution...")
+        super(DEMAnalysisStage, self).Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
+
+        self.AdditionalFinalizeOperations()
+
         self.CleanUpOperations()
+
+    def AdditionalFinalizeOperations(self):
+        pass
 
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)
@@ -653,6 +662,9 @@ class DEMAnalysisStage(AnalysisStage):
             if self.DEM_parameters["post_vtk_option"].GetBool():
                 self.vtk_output.WriteResults(self.time)
 
+        self.file_msh = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.msh")
+        self.file_res = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.res")
+
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
@@ -690,8 +702,6 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self._GetSolver().dt:
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
-        self.FinalizeTimeStep(self.time)
-
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:

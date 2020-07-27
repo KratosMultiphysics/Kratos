@@ -49,14 +49,45 @@ namespace Kratos {
       MoveModelPartProcess MoveModelPartProcess(model_part, moving_parameters);
       MoveModelPartProcess.Execute();
 
-      Matrix reference = ZeroMatrix(3,3);
-      reference(0,0) = 5.0; reference(0,1) = 5.0;
-      reference(1,0) = 5.0; reference(1,1) = 7.0;
-      reference(2,0) = 5.0; reference(2,1) = 3.0;
+      std::array<double, 6> reference{5.0, 5.0, 5.0, 7.0, 5.0, 3.0};
 
-      for (std::size_t i_node = 0; i_node<reference.size1(); i_node++){
-        for (std::size_t i_dim = 0; i_dim<reference.size2(); i_dim++){
-          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference(i_node,i_dim), 1e-6);
+      for (std::size_t i_node = 0; i_node<3; i_node++){
+        for (std::size_t i_dim = 0; i_dim<2; i_dim++){
+          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
+        }
+      }
+    }
+
+      KRATOS_TEST_CASE_IN_SUITE(MoveModelModelPartProcessOnlyRotation, CompressiblePotentialApplicationFastSuite)
+    {
+
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      // Nodes creation
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, -1.0, 0.0, 0.0);
+
+      // Process parameters
+      Parameters moving_parameters = Parameters(R"(
+        {
+            "origin"                        : [0.0,0.0,0.0],
+            "sizing_multiplier"             : 1.0
+
+        })" );
+
+      moving_parameters.AddEmptyValue("rotation_angle");
+      moving_parameters["rotation_angle"].SetDouble(Globals::Pi/6);
+
+      MoveModelPartProcess MoveModelPartProcess(model_part, moving_parameters);
+      MoveModelPartProcess.Execute();
+
+      std::array<double, 6> reference{0.0, 0.0, cos(Globals::Pi/6), sin(Globals::Pi/6) , -cos(Globals::Pi/6), -sin(Globals::Pi/6)};
+
+      for (std::size_t i_node = 0; i_node<3; i_node++){
+        for (std::size_t i_dim = 0; i_dim<2; i_dim++){
+          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
         }
       }
     }
@@ -109,7 +140,7 @@ namespace Kratos {
       Vector resultant_force(3);
       ComputeEmbeddedLiftProcess<2,3>(model_part, resultant_force).Execute();
 
-      std::array<double,3> reference({0.0, 0.5, 0.0});
+      std::array<double,3> reference{0.0, 0.5, 0.0};
       KRATOS_WATCH(resultant_force)
 
       for (unsigned int i = 0; i < 3; i++) {
@@ -189,18 +220,19 @@ namespace Kratos {
       std::vector<ModelPart::IndexType> cond3{4, 3};
       std::vector<ModelPart::IndexType> cond4{3, 1};
 
-      model_part.CreateNewCondition("Condition2D2N", 1, cond1, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 2, cond2, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 3, cond3, pProp);
-      model_part.CreateNewCondition("Condition2D2N", 4, cond4, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 1, cond1, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 2, cond2, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 3, cond3, pProp);
+      model_part.CreateNewCondition("LineCondition2D2N", 4, cond4, pProp);
 
 
       // Set initial potential
       const double initial_potential = 1.0;
       const bool initialize_flow_field = true;
+      const bool perturbation_field = false;
 
       // Construct the ApplyFarFieldProcess
-      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field);
+      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field, perturbation_field);
 
       // Execute the ApplyFarFieldProcess
       ApplyFarFieldProcess.Execute();
@@ -244,7 +276,7 @@ namespace Kratos {
       std::vector<ModelPart::IndexType> elemNodes_1{ 1, 2, 3 };
       model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes_1, pElemProp);
 
-      auto r_element = model_part.GetElement(1);
+      auto& r_element = model_part.GetElement(1);
 
       r_element.GetValue(WAKE) = 1;
       Vector wake_elemental_distances(3);
@@ -282,10 +314,10 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(nodal_area, 0.166667, 1e-6);
         auto nodal_velocity = r_node.GetValue(VELOCITY);
         KRATOS_CHECK_NEAR(nodal_velocity[0], 1, 1e-6);
-        KRATOS_CHECK_NEAR(nodal_velocity[1], 2, 1e-6);
+        KRATOS_CHECK_NEAR(nodal_velocity[1], 1, 1e-6);
         KRATOS_CHECK_NEAR(nodal_velocity[2], 0, 1e-6);
         auto nodal_pressure = r_node.GetValue(PRESSURE_COEFFICIENT);
-        KRATOS_CHECK_NEAR(nodal_pressure, 0.95, 1e-6);
+        KRATOS_CHECK_NEAR(nodal_pressure, 0.98, 1e-6);
       }
     }
   } // namespace Testing

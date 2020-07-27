@@ -1,14 +1,12 @@
 import KratosMultiphysics
-import numpy as np
-import math
+import KratosMultiphysics.ChimeraApplication as KratosChimera
 import os
-import time
 import json
 from copy import deepcopy
 
 def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, material_file="", parallel_type="OpenMP"):
     '''
-        This function extends the functionalies of the
+        This function extends the functionalities of the
         mpda_manipulator from: https://github.com/philbucher/mdpa-manipulator
 
         main_modelpart      : The modelpart to which the new modelparts are appended to.
@@ -22,7 +20,6 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
         }
     '''
     if parallel_type == "OpenMP":
-        import KratosMultiphysics
         for mp_import_setting in chimera_mp_import_settings_list:
             mdpa_file_name = mp_import_setting["input_filename"].GetString()
             if mdpa_file_name.endswith('.mdpa'):
@@ -30,11 +27,11 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
 
             model = KratosMultiphysics.Model()
             model_part = model.CreateModelPart("new_modelpart")
+            KratosChimera.TransferSolutionStepData(main_modelpart, model_part)
 
             ReadModelPart(mdpa_file_name, model_part, material_file)
             AddModelPart(main_modelpart, model_part)
     elif(parallel_type == "MPI"):
-        import KratosMultiphysics
         input_settings = KratosMultiphysics.Parameters("""{
         "model_import_settings":{
             "input_type": "mdpa",
@@ -46,6 +43,7 @@ def ImportChimeraModelparts(main_modelpart, chimera_mp_import_settings_list, mat
         for mp_import_setting in chimera_mp_import_settings_list:
             model = KratosMultiphysics.Model()
             model_part = model.CreateModelPart("new_modelpart")
+            KratosChimera.TransferSolutionStepData(main_modelpart, model_part)
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
             mdpa_file_name = mp_import_setting["input_filename"].GetString()
             if mdpa_file_name.endswith('.mdpa'):
@@ -89,9 +87,9 @@ def AddModelPart(model_part_1,
     '''
     Adding the model_part_2 to model_part_1 (appending)
     '''
-    if (type(model_part_1) != KratosMultiphysics.ModelPart):
+    if ( not isinstance(model_part_1, KratosMultiphysics.ModelPart) ):
             raise Exception("input is expected to be provided as a Kratos ModelPart object")
-    if (type(model_part_2) != KratosMultiphysics.ModelPart):
+    if ( not isinstance(model_part_2, KratosMultiphysics.ModelPart) ):
             raise Exception("input is expected to be provided as a Kratos ModelPart object")
 
     comm = model_part_1.GetCommunicator().GetDataCommunicator()
@@ -144,25 +142,28 @@ def __AddEntitiesToSubModelPart(original_sub_model_part,
     '''
     # making list containing node IDs of particular submodel part
     num_nodes_other = other_sub_model_part.NumberOfNodes()
-    smp_node_id_array = np.zeros(num_nodes_other, dtype=np.int)
+    # smp_node_id_array = np.zeros(num_nodes_other, dtype=np.int)
+    smp_node_id_array = [0]*num_nodes_other
     for node_i, node in enumerate(other_sub_model_part.Nodes):
         smp_node_id_array[node_i] = node.Id
 
     # making list containing element IDs of particular submodel part
     num_elements_other = other_sub_model_part.NumberOfElements()
-    smp_element_id_array = np.zeros(num_elements_other, dtype=np.int)
+    smp_element_id_array = [0]*num_elements_other
     for element_i, element in enumerate(other_sub_model_part.Elements):
         smp_element_id_array[element_i] = element.Id
 
     # making list containing condition IDs of particular submodel part
     num_conditions_other = other_sub_model_part.NumberOfConditions()
-    smp_condition_id_array = np.zeros(num_conditions_other, dtype=np.int)
+    # TODO: Can be a potential problem with data type conversion keep in mind
+    # Change back to numpy once it is available.
+    smp_condition_id_array = [0]*num_conditions_other
     for condition_i, condition in enumerate(other_sub_model_part.Conditions):
         smp_condition_id_array[condition_i] = condition.Id
 
-    original_sub_model_part.AddNodes(smp_node_id_array.tolist())
-    original_sub_model_part.AddElements(smp_element_id_array.tolist())
-    original_sub_model_part.AddConditions(smp_condition_id_array.tolist())
+    original_sub_model_part.AddNodes(smp_node_id_array)
+    original_sub_model_part.AddElements(smp_element_id_array)
+    original_sub_model_part.AddConditions(smp_condition_id_array)
 
 def __AddSubModelPart(original_model_part,
                       other_model_part):
@@ -277,11 +278,3 @@ def __MaterialsListsAreEqual(original_materials,
         mat.pop("new_properties_id")
 
     return copy_original_materials == other_materials
-
-
-
-if __name__ == "__main__":
-    mp_names = ["test_patch_mp.mdpa","test_bg_mp.mdpa"]
-    model = KratosMultiphysics.Model()
-    main_mp = model.CreateModelPart("MainModelpart")
-    ImportChimeraModelparts(main_mp, mp_names,parallel_type="MPI")

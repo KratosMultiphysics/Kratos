@@ -57,6 +57,9 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
             self.bodies_list = True
             self.bodies_parts_list = Parameters["bodies_list"]
 
+        if Parameters.Has("material_import_settings"):
+            self.material_import_settings = Parameters["material_import_settings"]
+
 #============================================================================================================================
     def Execute(self):
         """This function executes the process
@@ -91,6 +94,7 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         for node in self.FEM_model_part.Nodes:
             node.Id = node.Id + max_id
             node.SetValue(KratosPfemFluid.NO_MESH, True)
+            node.Set(KratosMultiphysics.SOLID, True)
             femdem_model_part.AddNode(node, 0)
 
         for node in self.FEM_model_part.GetSubModelPart("SkinDEMModelPart").Nodes:

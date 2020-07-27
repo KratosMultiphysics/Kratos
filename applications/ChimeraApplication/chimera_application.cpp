@@ -4,16 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
 //
 
 // System includes
@@ -32,8 +29,6 @@ KratosChimeraApplication::KratosChimeraApplication():KratosApplication("ChimeraA
 
 void KratosChimeraApplication::Register()
 {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
     KRATOS_INFO("") <<"     Kratos.............................................................\n"
                     <<"           .............________  ________  _____________  ___..........\n"
                     <<"           ............/ ____/ / / /  _/  |/  / ____/ __ \\/   |.........\n"
@@ -48,11 +43,7 @@ void KratosChimeraApplication::Register()
     KRATOS_REGISTER_VARIABLE(ROTATIONAL_VELOCITY);
     KRATOS_REGISTER_VARIABLE(ROTATION_MESH_DISPLACEMENT);
     KRATOS_REGISTER_VARIABLE(ROTATION_MESH_VELOCITY);
-
-    // Flag for distinguishing b/w velocity and pressure constraints.
-    KRATOS_REGISTER_FLAG(FS_CHIMERA_VELOCITY_CONSTRAINT);
-    KRATOS_REGISTER_FLAG(FS_CHIMERA_PRESSURE_CONSTRAINT);
-    KRATOS_REGISTER_FLAG(CHIMERA_INTERNAL_BOUNDARY);
+    KRATOS_REGISTER_VARIABLE(CHIMERA_INTERNAL_BOUNDARY);
 }
 
 } // namespace Kratos.

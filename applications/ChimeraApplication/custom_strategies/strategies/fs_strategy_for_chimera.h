@@ -4,17 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-// ==============================================================================
-//  ChimeraApplication
 //
 //  License:         BSD License
-//                   license: ChimeraApplication/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
-// ==============================================================================
-// 
+//
 
 #ifndef KRATOS_FS_STRATEGY_FOR_CHIMERA_H
 #define KRATOS_FS_STRATEGY_FOR_CHIMERA_H
@@ -22,7 +19,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 // FluidDynamicsApp Includes
-#include "custom_strategies/strategies/fs_strategy.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
 // Application includes
 #include "chimera_application_variables.h"
 #include "custom_utilities/fractional_step_settings_for_chimera.h"
@@ -63,16 +60,16 @@ template<class TSparseSpace,
 class TDenseSpace,
 class TLinearSolver
 >
-class FSStrategyForChimera : public FSStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+class FractionalStepStrategyForChimera : public FractionalStepStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of FSStrategyForChimera
-    KRATOS_CLASS_POINTER_DEFINITION(FSStrategyForChimera);
+    /// Counted pointer of FractionalStepStrategyForChimera
+    KRATOS_CLASS_POINTER_DEFINITION(FractionalStepStrategyForChimera);
 
-    typedef FSStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef FractionalStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef FractionalStepSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -80,16 +77,36 @@ public:
     ///@name Life Cycle
     ///@{
 
-    FSStrategyForChimera(ModelPart& rModelPart,
+    FractionalStepStrategyForChimera(ModelPart& rModelPart,
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
         BaseType(rModelPart,rSolverConfig,PredictorCorrector)
+    {
+        KRATOS_WARNING("FractionalStepStrategyForChimera") << "This constructor is deprecated. Use the one with the \'CalculateReactionsFlag\' instead." << std::endl;
+        this->InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
+
+    FractionalStepStrategyForChimera(
+        ModelPart &rModelPart,
+        SolverSettingsType &rSolverConfig,
+        bool PredictorCorrector,
+        bool CalculateReactionsFlag)
+        : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag)
     {
         this->InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
     /// Destructor.
-    ~FSStrategyForChimera() override{}
+    ~FractionalStepStrategyForChimera() = default;
+
+
+    /// Assignment operator.
+    FractionalStepStrategyForChimera& operator=(FractionalStepStrategyForChimera const& rOther) = delete;
+
+    /// Copy constructor.
+    FractionalStepStrategyForChimera(FractionalStepStrategyForChimera const& rOther) = delete;
+
+
 
     ///@}
     ///@name Operators
@@ -118,12 +135,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "FSStrategyForChimera" ;
+        buffer << "FractionalStepStrategyForChimera" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "FSStrategyForChimera";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "FractionalStepStrategyForChimera";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -161,155 +178,123 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-   void SetActiveStateOnConstraint(const Flags& TheFlagToSet ,const bool ValToSet)
-    {
-        ModelPart& rModelPart = BaseType::GetModelPart();
-#pragma omp parallel
-        {
-            ModelPart::MasterSlaveConstraintIteratorType ConstraintsBegin;
-            ModelPart::MasterSlaveConstraintIteratorType ConstraintsEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.MasterSlaveConstraints(),ConstraintsBegin,ConstraintsEnd);
-
-            for ( ModelPart::MasterSlaveConstraintIteratorType itConstraint = ConstraintsBegin; itConstraint != ConstraintsEnd; ++itConstraint )
-            {
-                if (itConstraint->Is(TheFlagToSet))
-                    itConstraint->Set(ACTIVE, ValToSet);
-            }
-        }
-    }
-
-    double SolveStep() override
+    std::tuple<bool,double> SolveStep() override
     {
 
         double start_solve_time = OpenMPUtils::GetCurrentTime();
-        ModelPart& rModelPart = BaseType::GetModelPart();
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
         // 1. Fractional step momentum iteration
-        rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
-        bool Converged = false;
-        int Rank = rModelPart.GetCommunicator().MyPID();
-
-        // Activate Constraints for VELOCITY and deactivate PRESSURE
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, false);
+        bool converged = false;
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
+            KRATOS_INFO("FRACTIONAL STEP :: ")<<it+1<<std::endl;
             // build momentum system and solve for fractional step velocity increment
-            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
-            double NormDv = BaseType::mpMomentumStrategy->Solve();
+            r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+            double norm_dv = BaseType::mpMomentumStrategy->Solve();
 
-            // SetHoleVariablesToZero(rModelPart);
             // Check convergence
-            Converged = BaseType::CheckFractionalStepConvergence(NormDv);
+            converged = BaseType::CheckFractionalStepConvergence(norm_dv);
 
-            if (Converged)
+            if (converged)
             {
-                KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+                KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
                     "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
                 break;
             }
         }
 
-        // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, false);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
-
-        KRATOS_INFO_IF("FSStrategyForChimera ", (BaseType::GetEchoLevel() > 0 && Rank == 0) && !Converged)<<
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera ", (BaseType::GetEchoLevel() > 0) && !converged)<<
             "Fractional velocity iterations did not converge "<< std::endl;
 
         // Compute projections (for stabilization)
-        rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
-        ComputeSplitOssProjections(rModelPart);
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
+        ComputeSplitOssProjections(r_model_part);
 
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
-        rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
     #pragma omp parallel
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),nodes_begin,nodes_end);
 
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+            for (ModelPart::NodeIterator it_node = nodes_begin; it_node != nodes_end; ++it_node)
             {
-                const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
+                const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
+                it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -old_press;
             }
         }
 
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<
             "Calculating Pressure."<< std::endl;
-        //double NormDp = 0;
-        double NormDp = BaseType::mpPressureStrategy->Solve();
+        //double norm_dp = 0;
+        double norm_dp = BaseType::mpPressureStrategy->Solve();
 
 #pragma omp parallel
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),nodes_begin,nodes_end);
 
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+            for (ModelPart::NodeIterator it_node = nodes_begin; it_node != nodes_end; ++it_node)
+                it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) += it_node->FastGetSolutionStepValue(PRESSURE);
 
         }
 
         // 3. Compute end-of-step velocity
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<"Updating Velocity." << std::endl;
-        rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera ", BaseType::GetEchoLevel() > 0 )<<"Updating Velocity." << std::endl;
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
         CalculateEndOfStepVelocity();
-
-        // Activate Constraints for PRESSURE and deactivate VELOCITY
-        SetActiveStateOnConstraint(FS_CHIMERA_VELOCITY_CONSTRAINT, true);
-        SetActiveStateOnConstraint(FS_CHIMERA_PRESSURE_CONSTRAINT, true);
 
        // Additional steps
         for (std::vector<Process::Pointer>::iterator iExtraSteps = BaseType::mExtraIterationSteps.begin();
              iExtraSteps != BaseType::mExtraIterationSteps.end(); ++iExtraSteps)
             (*iExtraSteps)->Execute();
 
-        // SetHoleVariablesToZero(rModelPart);
-
         const double stop_solve_time = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("FSStrategyForChimera", (BaseType::GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
+        KRATOS_INFO_IF("FractionalStepStrategyForChimera", BaseType::GetEchoLevel() >= 1) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
 
-        return NormDp;
+        // Set the output tuple as the fractional velocity convergence and pressure norm
+        return std::make_tuple(converged, norm_dp);
     }
 
 
 
     void ComputeSplitOssProjections(ModelPart& rModelPart) override
     {
-        const array_1d<double,3> Zero(3,0.0);
+        const array_1d<double,3> zero(3,0.0);
 
-        array_1d<double,3> Out(3,0.0);
+        array_1d<double,3> out(3,0.0);
 
 #pragma omp parallel
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),nodes_begin,nodes_end);
 
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
+            for ( ModelPart::NodeIterator it_node = nodes_begin; it_node != nodes_end; ++it_node )
             {
-                itNode->FastGetSolutionStepValue(CONV_PROJ) = Zero;
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) = Zero;
-                itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+                it_node->FastGetSolutionStepValue(CONV_PROJ) = zero;
+                it_node->FastGetSolutionStepValue(PRESS_PROJ) = zero;
+                it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
+                it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
             }
         }
 
 #pragma omp parallel
         {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
+            ModelPart::ElementIterator elem_begin;
+            ModelPart::ElementIterator elem_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),elem_begin,elem_end);
 
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
+            for ( ModelPart::ElementIterator it_elem = elem_begin; it_elem != elem_end; ++it_elem )
             {
-                itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
+                it_elem->Calculate(CONV_PROJ,out,rModelPart.GetProcessInfo());
             }
         }
 
@@ -323,26 +308,26 @@ protected:
         ChimeraProjectionCorrection(rModelPart);
 #pragma omp parallel
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),nodes_begin,nodes_end);
 
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
+            for ( ModelPart::NodeIterator it_node = nodes_begin; it_node != nodes_end; ++it_node )
             {
-                const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if( NodalArea > mAreaTolerence )
+                const double nodal_area = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                if( nodal_area > mAreaTolerance )
                 {
-                    itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
-                    itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
-                    itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
+                    it_node->FastGetSolutionStepValue(CONV_PROJ) /= nodal_area;
+                    it_node->FastGetSolutionStepValue(PRESS_PROJ) /= nodal_area;
+                    it_node->FastGetSolutionStepValue(DIVPROJ) /= nodal_area;
                 }
             }
         }
 
 
          //For correcting projections for chimera
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
             const auto& master_dofs = constraint.GetMasterDofsVector();
@@ -380,180 +365,51 @@ protected:
 
     void CalculateEndOfStepVelocity() override
     {
-        ModelPart& rModelPart = BaseType::GetModelPart();
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
-        const array_1d<double,3> Zero(3,0.0);
-        array_1d<double,3> Out(3,0.0);
+        const array_1d<double,3> zero(3,0.0);
+        array_1d<double,3> out(3,0.0);
 
 #pragma omp parallel
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),nodes_begin,nodes_end);
 
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
+            for ( ModelPart::NodeIterator it_node = nodes_begin; it_node != nodes_end; ++it_node )
             {
-                itNode->FastGetSolutionStepValue(FRACT_VEL) = Zero;
+                it_node->FastGetSolutionStepValue(FRACT_VEL) = zero;
             }
         }
 
 #pragma omp parallel
         {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
+            ModelPart::ElementIterator elem_begin;
+            ModelPart::ElementIterator elem_end;
+            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),elem_begin,elem_end);
 
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
+            for ( ModelPart::ElementIterator it_elem = elem_begin; it_elem != elem_end; ++it_elem )
             {
-                itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
+                it_elem->Calculate(VELOCITY,out,r_model_part.GetProcessInfo());
             }
         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
-        //PeriodicConditionVelocityCorrection(rModelPart);
+        r_model_part.GetCommunicator().AssembleCurrentData(FRACT_VEL);
+        //PeriodicConditionVelocityCorrection(r_model_part);
 
         // Force the end of step velocity to verify slip conditions in the model
         if (BaseType::mUseSlipConditions)
             BaseType::EnforceSlipCondition(SLIP);
 
-        if (BaseType::mDomainSize > 2)
-        {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+        if (BaseType::mDomainSize == 2) InterpolateVelocity<2>(r_model_part);
+        if (BaseType::mDomainSize == 3) InterpolateVelocity<3>(r_model_part);
 
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if(NodalArea >mAreaTolerence){
-                        if ( ! itNode->IsFixed(VELOCITY_X) )
-                            itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                        if ( ! itNode->IsFixed(VELOCITY_Y) )
-                            itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                        if ( ! itNode->IsFixed(VELOCITY_Z) )
-                            itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
-                    }
-                }
-            }
-
-            auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-            const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
-            for(const auto& constraint : r_constraints_container)
-            {
-                const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                for(const auto& slave_dof : slave_dofs)
-                {
-                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
-                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
-                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Z)=0;
-                }
-            }
-
-            for(const auto& constraint : r_constraints_container)
-            {
-                const auto& master_dofs = constraint.GetMasterDofsVector();
-                const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                ModelPart::MatrixType r_relation_matrix;
-                ModelPart::VectorType r_constant_vector;
-                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
-
-                IndexType slave_i = 0;
-                for(const auto& slave_dof : slave_dofs)
-                {
-                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    IndexType master_j = 0;
-                    for(const auto& master_dof : master_dofs)
-                    {
-                        const auto master_node_id = master_dof->Id();
-                        const double weight = r_relation_matrix(slave_i, master_j);
-                        auto& r_master_node = rModelPart.Nodes()[master_node_id];
-
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Z))*weight;
-
-                        ++master_j;
-                    }
-                    ++slave_i;
-                }
-            }
-        }
-        else
-        {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-
-                    if(NodalArea >mAreaTolerence)
-                    {
-                        if ( ! itNode->IsFixed(VELOCITY_X) )
-                            itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                        if ( ! itNode->IsFixed(VELOCITY_Y) )
-                            itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                    }
-                }
-            }
-
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
-            for(const auto& constraint : r_constraints_container)
-            {
-                const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                for(const auto& slave_dof : slave_dofs)
-                {
-                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
-                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
-                }
-            }
-
-            for(const auto& constraint : r_constraints_container)
-            {
-                const auto& master_dofs = constraint.GetMasterDofsVector();
-                const auto& slave_dofs = constraint.GetSlaveDofsVector();
-                ModelPart::MatrixType r_relation_matrix;
-                ModelPart::VectorType r_constant_vector;
-                constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
-
-                IndexType slave_i = 0;
-                for(const auto& slave_dof : slave_dofs)
-                {
-                    const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
-                    auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
-                    IndexType master_j = 0;
-                    for(const auto& master_dof : master_dofs)
-                    {
-                        const auto master_node_id = master_dof->Id();
-                        const double weight = r_relation_matrix(slave_i, master_j);
-                        auto& r_master_node = rModelPart.Nodes()[master_node_id];
-
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
-                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
-
-                        ++master_j;
-                    }
-                    ++slave_i;
-                }
-            }
-        }
     }
 
-     void ChimeraProjectionCorrection(ModelPart& rModelPart)
-     {
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+    void ChimeraProjectionCorrection(ModelPart& rModelPart)
+    {
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
             const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -579,12 +435,12 @@ protected:
             IndexType slave_i = 0;
             for(const auto& slave_dof : slave_dofs)
             {
-                const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                const IndexType slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
                 auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
                 IndexType master_j = 0;
                 for(const auto& master_dof : master_dofs)
                 {
-                    const auto master_node_id = master_dof->Id();
+                    const IndexType master_node_id = master_dof->Id();
                     const double weight = r_relation_matrix(slave_i, master_j);
                     auto& r_master_node = rModelPart.Nodes()[master_node_id];
 
@@ -604,27 +460,27 @@ protected:
         rModelPart.GetCommunicator().AssembleNonHistoricalData(PRESS_PROJ);
         rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
 
-        for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+        for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); it_node++)
         {
-            if (itNode->GetValue(NODAL_AREA) > mAreaTolerence)
+            if (it_node->GetValue(NODAL_AREA) > mAreaTolerance)
             {
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
-                itNode->FastGetSolutionStepValue(CONV_PROJ) = itNode->GetValue(CONV_PROJ);
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) = itNode->GetValue(PRESS_PROJ);
-                itNode->FastGetSolutionStepValue(DIVPROJ) = itNode->GetValue(DIVPROJ);
+                it_node->FastGetSolutionStepValue(NODAL_AREA) = it_node->GetValue(NODAL_AREA);
+                it_node->FastGetSolutionStepValue(CONV_PROJ) = it_node->GetValue(CONV_PROJ);
+                it_node->FastGetSolutionStepValue(PRESS_PROJ) = it_node->GetValue(PRESS_PROJ);
+                it_node->FastGetSolutionStepValue(DIVPROJ) = it_node->GetValue(DIVPROJ);
                 // reset for next iteration
-                itNode->GetValue(NODAL_AREA) = 0.0;
-                itNode->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
-                itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
-                itNode->GetValue(DIVPROJ) = 0.0;
+                it_node->GetValue(NODAL_AREA) = 0.0;
+                it_node->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
+                it_node->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
+                it_node->GetValue(DIVPROJ) = 0.0;
             }
         }
      }
 
     void ChimeraVelocityCorrection(ModelPart& rModelPart)
     {
-        auto &pre_modelpart = rModelPart.GetSubModelPart("fs_pressure_model_part");
-        const auto& r_constraints_container = pre_modelpart.MasterSlaveConstraints();
+        auto &r_pre_modelpart = rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
         for(const auto& constraint : r_constraints_container)
         {
             const auto& slave_dofs = constraint.GetSlaveDofsVector();
@@ -667,13 +523,13 @@ protected:
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(FRACT_VEL);
 
-        for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+        for (typename ModelPart::NodeIterator it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); it_node++)
         {
-            array_1d<double,3>& rDeltaVel = itNode->GetValue(FRACT_VEL);
-            if ( rDeltaVel[0]*rDeltaVel[0] + rDeltaVel[1]*rDeltaVel[1] + rDeltaVel[2]*rDeltaVel[2] != 0.0)
+            array_1d<double,3>& r_delta_vel = it_node->GetValue(FRACT_VEL);
+            if ( r_delta_vel[0]*r_delta_vel[0] + r_delta_vel[1]*r_delta_vel[1] + r_delta_vel[2]*r_delta_vel[2] != 0.0)
             {
-                itNode->FastGetSolutionStepValue(FRACT_VEL) = itNode->GetValue(FRACT_VEL);
-                rDeltaVel = array_1d<double,3>(3,0.0);
+                it_node->FastGetSolutionStepValue(FRACT_VEL) = it_node->GetValue(FRACT_VEL);
+                r_delta_vel = array_1d<double,3>(3,0.0);
             }
         }
     }
@@ -704,7 +560,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const double mAreaTolerence=1E-12;
+    const double mAreaTolerance=1E-12;
 
     ///@}
     ///@name Private Operators
@@ -715,18 +571,78 @@ private:
     ///@name Private Operations
     ///@{
 
-
-    void SetHoleVariablesToZero(ModelPart& rModelPart)
+    template <int TDim>
+    void InterpolateVelocity(ModelPart& rModelPart)
     {
-        const array_1d<double,3> Zero(3,0.0);
-        for ( auto itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem )
+#pragma omp parallel
         {
-            if(!(*itElem)->Is(ACTIVE))
-            {
-                for(auto& node : (*itElem)->GetGeometry()){
-                    node.FastGetSolutionStepValue(VELOCITY)  = Zero;
-                    node.FastGetSolutionStepValue(PRESSURE)  = 0.0;
+            ModelPart::NodeIterator nodes_begin;
+            ModelPart::NodeIterator nodes_end;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+
+            for (ModelPart::NodeIterator it_node = nodes_begin; it_node != nodes_end; ++it_node) {
+                const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                if (NodalArea > mAreaTolerance) {
+                    if (!it_node->IsFixed(VELOCITY_X))
+                        it_node->FastGetSolutionStepValue(VELOCITY_X) +=
+                            it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                    if (!it_node->IsFixed(VELOCITY_Y))
+                        it_node->FastGetSolutionStepValue(VELOCITY_Y) +=
+                            it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                    if(TDim > 2)
+                        if (!it_node->IsFixed(VELOCITY_Z))
+                            it_node->FastGetSolutionStepValue(VELOCITY_Z) +=
+                                it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
                 }
+            }
+        }
+
+        auto& r_pre_modelpart =
+            rModelPart.GetSubModelPart(rModelPart.Name()+"fs_pressure_model_part");
+        const auto& r_constraints_container = r_pre_modelpart.MasterSlaveConstraints();
+        for (const auto& constraint : r_constraints_container) {
+            const auto& slave_dofs = constraint.GetSlaveDofsVector();
+            for (const auto& slave_dof : slave_dofs) {
+                const auto slave_node_id =
+                    slave_dof->Id(); // DOF ID is same as node ID
+                auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                r_slave_node.FastGetSolutionStepValue(VELOCITY_X) = 0;
+                r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) = 0;
+                if(TDim > 2)
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) = 0;
+            }
+        }
+
+        for (const auto& constraint : r_constraints_container) {
+            const auto& master_dofs = constraint.GetMasterDofsVector();
+            const auto& slave_dofs = constraint.GetSlaveDofsVector();
+            ModelPart::MatrixType r_relation_matrix;
+            ModelPart::VectorType r_constant_vector;
+            constraint.CalculateLocalSystem(r_relation_matrix, r_constant_vector,
+                                            rModelPart.GetProcessInfo());
+
+            IndexType slave_i = 0;
+            for (const auto& slave_dof : slave_dofs) {
+                const auto slave_node_id =
+                    slave_dof->Id(); // DOF ID is same as node ID
+                auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                IndexType master_j = 0;
+                for (const auto& master_dof : master_dofs) {
+                    const auto master_node_id = master_dof->Id();
+                    const double weight = r_relation_matrix(slave_i, master_j);
+                    auto& r_master_node = rModelPart.Nodes()[master_node_id];
+
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=
+                        (r_master_node.FastGetSolutionStepValue(VELOCITY_X)) * weight;
+                    r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=
+                        (r_master_node.FastGetSolutionStepValue(VELOCITY_Y)) * weight;
+                    if(TDim > 2)
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) +=
+                            (r_master_node.FastGetSolutionStepValue(VELOCITY_Z)) * weight;
+
+                    ++master_j;
+                }
+                ++slave_i;
             }
         }
     }
@@ -760,7 +676,7 @@ private:
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,BaseType::mVelocityTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,BaseType::mMaxVelocityIter);
-            KRATOS_INFO("FSStrategyForChimera ")<<"Velcoity strategy successfully set !"<<std::endl;
+            KRATOS_INFO("FractionalStepStrategyForChimera ")<<"Velcoity strategy successfully set !"<<std::endl;
         }
         else
         {
@@ -774,7 +690,7 @@ private:
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,BaseType::mPressureTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,BaseType::mMaxPressureIter);
 
-            KRATOS_INFO("FSStrategyForChimera ")<<"Pressure strategy successfully set !"<<std::endl;
+            KRATOS_INFO("FractionalStepStrategyForChimera ")<<"Pressure strategy successfully set !"<<std::endl;
         }
         else
         {
@@ -801,13 +717,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    FSStrategyForChimera& operator=(FSStrategyForChimera const& rOther){}
-
-    /// Copy constructor.
-    FSStrategyForChimera(FSStrategyForChimera const& rOther){}
-
 
     ///@}
 

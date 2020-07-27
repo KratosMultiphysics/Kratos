@@ -5,7 +5,8 @@ message("**** configuring KratosFemToDemApplication ****")
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/SolidMechanicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -16,6 +17,8 @@ include_directories(${CMAKE_SOURCE_DIR}/applications/DEMApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/MeshingApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
 include_directories(${CMAKE_SOURCE_DIR}/applications/DelaunayMeshingApplication)
+include_directories(${CMAKE_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
+#include_directories(${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 # generate variables with the sources
 set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
@@ -26,8 +29,6 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_small_strain_femdem_element.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_large_displacement_femdem_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/extend_pressure_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_pressure_value_pfem_conditions_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_pressure_volume_process.cpp
@@ -44,9 +45,12 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/remove_alone_DEM_elements_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/FEMDEM_coupling_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_flag_no_remesh_femdem_boundary_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_femdem_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_mixtures_femdem_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_small_strain_femdem_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp

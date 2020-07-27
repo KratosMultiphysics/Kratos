@@ -179,11 +179,7 @@ public:
             KRATOS_ERROR_IF(elem_i.GetGeometry().Dimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
                 <<" for solid elements in 3D and surface elements in 2D!" << std::endl;
 
-            Element::GeometryType::GeometriesArrayType boundaries;
-            if (domain_size==3)
-                boundaries = elem_i.GetGeometry().Faces();
-            else if (domain_size == 2)
-                boundaries = elem_i.GetGeometry().Edges();
+            Element::GeometryType::GeometriesArrayType boundaries = elem_i.GetGeometry().GenerateBoundariesEntities();
 
             for(unsigned int boundary=0; boundary<boundaries.size(); boundary++)
             {

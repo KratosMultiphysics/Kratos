@@ -54,20 +54,23 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
-    /* Geometry Hash Map Container.
-    *  Hash of Id are keys to corresponding intrusive pointer */
+    typedef typename TGeometryType::Pointer GeometryPointerType;
+
+
+    /// Geometry Hash Map Container.
+    // Stores with hash of Ids to corresponding geometries.
     typedef PointerHashMapSet<
         TGeometryType,
         std::hash<std::size_t>,
         GetGeometryId,
-        typename TGeometryType::Pointer
-    > GeometriesContainerType;
+        GeometryPointerType
+        > GeometriesMapType;
 
     /// Geometry Iterator
-    typedef typename GeometriesContainerType::iterator GeometryIterator;
+    typedef typename GeometriesMapType::iterator GeometryIterator;
 
     /// Const Geometry Iterator
-    typedef typename GeometriesContainerType::const_iterator GeometryConstantIterator;
+    typedef typename GeometriesMapType::const_iterator GeometryConstantIterator;
 
     ///@}
     ///@name Life Cycle
@@ -85,7 +88,7 @@ public:
 
     /// Components Constructor
     GeometryContainer(
-        GeometriesContainerType& NewGeometries)
+        GeometriesMapType& NewGeometries)
         : mGeometries(NewGeometries)
     {}
 
@@ -98,7 +101,7 @@ public:
 
     GeometryContainer Clone()
     {
-        typename GeometriesContainerType::Pointer p_geometries(new GeometriesContainerType(*mGeometries));
+        typename GeometriesMapType::Pointer p_geometries(new GeometriesMapType(*mGeometries));
 
         return GeometryContainer(p_geometries);
     }
@@ -123,7 +126,7 @@ public:
     ///@{
 
     /// Adds a geometry to the geometry container.
-    GeometryIterator AddGeometry(typename TGeometryType::Pointer pNewGeometry)
+    GeometryIterator AddGeometry(GeometryPointerType pNewGeometry)
     {
         auto i = mGeometries.find(pNewGeometry->Id());
         if(i == mGeometries.end())
@@ -140,7 +143,7 @@ public:
     ///@{
 
     /// Returns the Geometry::Pointer corresponding to its Id
-    typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId)
+    GeometryPointerType pGetGeometry(IndexType GeometryId)
     {
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
@@ -149,7 +152,7 @@ public:
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
-    const typename TGeometryType::Pointer pGetGeometry(IndexType GeometryId) const
+    const GeometryPointerType pGetGeometry(IndexType GeometryId) const
     {
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
@@ -158,7 +161,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    typename TGeometryType::Pointer pGetGeometry(std::string GeometryName)
+    GeometryPointerType pGetGeometry(std::string GeometryName)
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mGeometries.find(hash_index);
@@ -168,7 +171,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    const typename TGeometryType::Pointer pGetGeometry(std::string GeometryName) const
+    const GeometryPointerType pGetGeometry(std::string GeometryName) const
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mGeometries.find(hash_index);
@@ -180,37 +183,25 @@ public:
     /// Returns a reference geometry corresponding to the id
     TGeometryType& GetGeometry(IndexType GeometryId)
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *i;
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
     const TGeometryType& GetGeometry(IndexType GeometryId) const
     {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *i;
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
     TGeometryType& GetGeometry(std::string GeometryName)
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return *i;
+        return *pGetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
     const TGeometryType& GetGeometry(std::string GeometryName) const
     {
-        auto hash_index = TGeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end())
-            << " geometry index not found: " << GeometryName << ".";
-        return *i;
+        return *pGetGeometry(GeometryName);
     }
 
     ///@}
@@ -275,12 +266,12 @@ public:
     ///@name Container Functions
     ///@{
 
-    GeometriesContainerType& Geometries()
+    GeometriesMapType& Geometries()
     {
         return mGeometries;
     }
 
-    const GeometriesContainerType& Geometries() const
+    const GeometriesMapType& Geometries() const
     {
         return mGeometries;
     }
@@ -326,7 +317,7 @@ private:
     ///@{
 
     /// Geometry Container
-    GeometriesContainerType mGeometries;
+    GeometriesMapType mGeometries;
 
     ///@}
     ///@name Serialization

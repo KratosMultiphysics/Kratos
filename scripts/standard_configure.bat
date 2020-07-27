@@ -27,7 +27,7 @@ if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
 
 rem Set applications to compile
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
 
@@ -39,9 +39,7 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 rem Configure
 @echo on
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
--DINCLUDE_FEAST=OFF                                                                                 ^
--DLAPACK_LIBRARIES="C:\CompiledLibs\blas_x64\liblapack.lib"                                         ^
--DBLAS_LIBRARIES="C:\CompiledLibs\blas_x64\libblas.lib"
+-DUSE_EIGEN_MKL=OFF
 
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64

@@ -12,14 +12,94 @@
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
 // Project includes
+#include "includes/key_hash.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos
 {
+void AuxiliarModelPartUtilities::RecursiveEnsureModelPartOwnsProperties(const bool RemovePreviousProperties)
+{
+    // First we do in this model part
+    EnsureModelPartOwnsProperties(RemovePreviousProperties);
+
+    // Now we do in submodelparts
+    for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
+        AuxiliarModelPartUtilities(r_sub_model_part).RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties(const bool RemovePreviousProperties)
+{
+    // First we clear the properties if we want so
+    if (RemovePreviousProperties) {
+        mrModelPart.GetMesh(0).pProperties()->clear();
+    }
+
+    // The list of properties
+    std::unordered_set<Properties::Pointer, IndexedObjecPointertHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> list_of_properties;
+
+    // Iterating over the elements
+    auto& r_elements_array = mrModelPart.Elements();
+    const auto it_elem_begin= r_elements_array.begin();
+    const int number_of_elements = static_cast<int>(r_elements_array.size());
+
+    // Iterating over the conditions
+    auto& r_conditions_array = mrModelPart.Conditions();
+    const auto it_cond_begin= r_conditions_array.begin();
+    const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+
+    #pragma omp parallel
+    {
+        // The list of properties
+        std::unordered_set<Properties::Pointer, IndexedObjecPointertHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> buffer_list_of_properties;
+
+        #pragma omp for schedule(dynamic, 512) nowait
+        for (int i = 0; i < number_of_elements; ++i) {
+            auto it_elem = it_elem_begin + i;
+
+            Properties::Pointer p_prop = it_elem->pGetProperties();
+
+            if (buffer_list_of_properties.find(p_prop) == buffer_list_of_properties.end()) {
+                buffer_list_of_properties.insert(p_prop);
+            }
+        }
+
+        #pragma omp for schedule(dynamic, 512) nowait
+        for (int i = 0; i < number_of_conditions; ++i) {
+            auto it_cond = it_cond_begin + i;
+
+            Properties::Pointer p_prop = it_cond->pGetProperties();
+            if (buffer_list_of_properties.find(p_prop) == buffer_list_of_properties.end()) {
+                buffer_list_of_properties.insert(p_prop);
+            }
+        }
+
+        // Combine buffers together
+        #pragma omp critical
+        {
+            list_of_properties.insert(buffer_list_of_properties.begin(),buffer_list_of_properties.end());
+        }
+    }
+
+    // Add properties to respective model parts
+    for (auto p_prop : list_of_properties) {
+        if (!mrModelPart.HasProperties(p_prop->Id())) {
+            mrModelPart.AddProperties(p_prop);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AuxiliarModelPartUtilities::RemoveElementAndBelongings(
     IndexType ElementId, Flags IdentifierFlag, IndexType ThisIndex)
 {
@@ -123,7 +203,7 @@ void AuxiliarModelPartUtilities::RemoveElementsAndBelongings(Flags IdentifierFla
                 }
             }
         }
-        
+
         bool condition_to_remove;
         for (auto& cond : i_mesh->Conditions()) {
             condition_to_remove = true;
@@ -257,7 +337,7 @@ void AuxiliarModelPartUtilities::RemoveConditionsAndBelongings(Flags IdentifierF
                 }
             }
         }
-        
+
         bool element_to_remove;
         for (auto& elem : i_mesh->Elements()) {
             element_to_remove = true;

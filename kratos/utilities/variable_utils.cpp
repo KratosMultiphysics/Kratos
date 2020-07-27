@@ -14,6 +14,7 @@
 //
 
 /* System includes */
+#include <functional>
 
 /* External includes */
 
@@ -284,41 +285,6 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
-    const ArrayVarType& rVar,
-    const ModelPart& rModelPart,
-    const unsigned int rBuffStep
-    )
-{
-    KRATOS_TRY
-
-    array_1d<double, 3> sum_value = ZeroVector(3);
-    auto& r_comm = rModelPart.GetCommunicator();
-
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
-            private_sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
-
-    return r_comm.GetDataCommunicator().SumAll(sum_value);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
     const ArrayVarType& rVar,
     const ModelPart& rModelPart
@@ -490,5 +456,116 @@ void VariableUtils::UpdateCurrentPosition(
 
     KRATOS_CATCH("");
 }
+
+void VariableUtils::AuxiliaryInitializeValue(double &rValue)
+{
+    rValue = 0.0;
+}
+
+void VariableUtils::AuxiliaryInitializeValue(array_1d<double, 3> &rValue)
+{
+    rValue = ZeroVector(3);
+}
+
+void VariableUtils::AuxiliaryAtomicAdd(
+    const double &rPrivateValue,
+    double &rSumValue)
+{
+#pragma omp atomic
+        rSumValue += rPrivateValue;
+}
+
+void VariableUtils::AuxiliaryAtomicAdd(
+    const array_1d<double, 3> &rPrivateValue,
+    array_1d<double, 3> &rSumValue)
+{
+#pragma omp atomic
+        rSumValue[0] += rPrivateValue[0];
+#pragma omp atomic
+        rSumValue[1] += rPrivateValue[1];
+#pragma omp atomic
+        rSumValue[2] += rPrivateValue[2];
+}
+
+template <>
+ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template <>
+ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+template <class TDataType, class TContainerType, class TWeightDataType>
+void VariableUtils::WeightedAccumulateVariableOnNodes(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const Variable<TWeightDataType>& rWeightVariable,
+    const bool IsInverseWeightProvided)
+{
+    KRATOS_TRY
+
+    SetNonHistoricalVariableToZero(rVariable, rModelPart.Nodes());
+
+    auto& r_entities = GetContainer<TContainerType>(rModelPart);
+    const int n_entities = r_entities.size();
+
+    const std::function<double(const Node<3>&)>& r_weight_method =
+        (IsInverseWeightProvided) ?
+        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
+        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
+
+#pragma omp parallel for
+    for (int i_entity = 0; i_entity < n_entities; ++i_entity)
+    {
+        auto it_entity = r_entities.begin() + i_entity;
+        auto& r_geometry = it_entity->GetGeometry();
+
+        const auto& r_value = it_entity->GetValue(rVariable);
+        for (int i_node = 0; i_node < static_cast<int>(r_geometry.PointsNumber()); ++i_node)
+        {
+            auto& r_node = r_geometry[i_node];
+
+            KRATOS_DEBUG_ERROR_IF(!r_node.Has(rWeightVariable))
+                << "Non-historical nodal " << rWeightVariable.Name() << " at "
+                << r_node << " is not initialized in " << rModelPart.Name()
+                << ". Please initialize it first.";
+
+            const double weight = r_weight_method(r_node);
+
+            r_node.SetLock();
+            r_node.GetValue(rVariable) += r_value * weight;
+            r_node.UnSetLock();
+        }
+    }
+
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rVariable);
+
+    KRATOS_CATCH("");
+}
+
+// template instantiations
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>(
+    ModelPart&, const Variable<double>&, const Variable<int>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, int>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<int>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, int>(
+    ModelPart&, const Variable<double>&, const Variable<int>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, int>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<int>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, double>(
+    ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, double>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, double>(
+    ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
 } /* namespace Kratos.*/

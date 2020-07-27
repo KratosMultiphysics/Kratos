@@ -77,14 +77,10 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
     {
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
         GeneralVariables Variables;
 
         // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-
-        // Normal Vector
-        const array_1d<double,3> & unit_normal_vector = this->GetValue(MPC_NORMAL);
+        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -92,7 +88,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
-            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
             r_geometry[i].UnSetLock();
         }
     }
@@ -138,16 +134,11 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
     }
 
-    // Get imposed displacement and normal vector
-    const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_IMPOSED_DISPLACEMENT);
-
     // Prepare variables
     GeneralVariables Variables;
-    const double penalty_factor = this->GetValue(PENALTY_FACTOR);
 
     // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
     Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
     // Check contact: Check contact penetration: if <0 apply constraint, otherwise no
@@ -155,8 +146,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     if (Is(CONTACT))
     {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
-        array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
-        ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -169,7 +158,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             }
         }
 
-        const double penetration = MathUtils<double>::Dot((field_displacement - imposed_displacement), unit_normal_vector);
+        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
@@ -199,7 +188,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             for ( unsigned int j = 0; j < dimension; j++)
             {
-                gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - imposed_displacement[j]);
+                gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
             }
         }
 
@@ -207,13 +196,13 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         if ( CalculateStiffnessMatrixFlag == true )
         {
             noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
-            rLeftHandSideMatrix  *= penalty_factor * this->GetIntegrationWeight();
+            rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
         }
 
         if ( CalculateResidualVectorFlag == true )
         {
             noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
-            rRightHandSideVector *= penalty_factor * this->GetIntegrationWeight();
+            rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
         }
     }
     else{
@@ -254,6 +243,80 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
     }
 
     KRATOS_CATCH( "" )
+}
+
+void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == PENALTY_FACTOR) {
+        rValues[0] = m_penalty;
+    }
+    else {
+        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
+        rValues[0] = m_imposed_displacement;
+    }
+    else if (rVariable == MPC_NORMAL) {
+        rValues[0] = m_unit_normal;
+    }
+    else {
+        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == PENALTY_FACTOR) {
+        m_penalty = rValues[0];
+    }
+    else {
+        MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
+        m_imposed_displacement = rValues[0];
+    }
+    else if (rVariable == MPC_NORMAL) {
+        m_unit_normal = rValues[0];
+        ParticleMechanicsMathUtilities<double>::Normalize(m_unit_normal);
+    }
+    else {
+        MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
 }
 
 int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )

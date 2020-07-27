@@ -176,7 +176,7 @@ public:
 	int splitted_edges = 0;
 	int internal_node = 0;
 
-	ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+	const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 	int edge_ids[6];
 	int t[56];
 	std::vector<int> aux;
@@ -253,7 +253,7 @@ public:
 		  // Generate new element by cloning the base one
 		  Element::Pointer p_element;
 		  p_element = it->Create(current_id, geom, it->pGetProperties());
-		  p_element->Initialize();
+		  p_element->Initialize(rCurrentProcessInfo);
 		  p_element->InitializeSolutionStep(rCurrentProcessInfo);
 		  p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -377,7 +377,7 @@ public:
             int  nint            = 0;
             array_1d<int, 6> aux;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+            const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
             unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
@@ -416,7 +416,7 @@ public:
                             // Generate new condition by cloning the base one
                             Condition::Pointer pcond;
                             pcond = it->Create(current_id, newgeom, it->pGetProperties());
-                            pcond ->Initialize();
+                            pcond ->Initialize(rCurrentProcessInfo);
                             pcond ->InitializeSolutionStep(rCurrentProcessInfo);
                             pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 

@@ -38,16 +38,7 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
     , mParameters(ThisParameters)
     , mUniformRefinement(mrRefinedModelPart)
 {
-    Parameters DefaultParameters = Parameters(R"(
-    {
-        "number_of_divisions_at_subscale"     : 2,
-        "echo_level"                          : 0,
-        "subscale_interface_base_name"        : "refined_interface",
-        "subscale_boundary_condition"         : "Condition2D2N"
-    }
-    )");
-
-    mParameters.ValidateAndAssignDefaults(DefaultParameters);
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mDivisionsAtSubscale = mParameters["number_of_divisions_at_subscale"].GetInt();
     mEchoLevel = mParameters["echo_level"].GetInt();
@@ -828,6 +819,19 @@ void MultiscaleRefiningProcess::GetLastId(
         if (rCondsId < cond->Id())
             rCondsId = cond->Id();
     }
+}
+
+const Parameters MultiscaleRefiningProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "number_of_divisions_at_subscale"     : 2,
+        "echo_level"                          : 0,
+        "subscale_interface_base_name"        : "refined_interface",
+        "subscale_boundary_condition"         : "LineCondition2D2N"
+    })" );
+
+    return default_parameters;
 }
 
 } // namespace Kratos

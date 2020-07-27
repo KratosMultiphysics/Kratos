@@ -134,6 +134,9 @@
             "input_type" : "mdpa",
             "input_filename" : "PFEM-DEM_tests/sdem_pfem_coupling_one_way_test"
         },
+        "material_import_settings"           : {
+            "materials_filename" : "PFEM-DEM_tests/PfemFluidDynamicsMaterials.json"
+        },
         "move_mesh_flag": false,
         "maximum_pressure_iterations" : 7,
         "velocity_tolerance" : 1e-5,
@@ -206,6 +209,11 @@
             "meshing_control_type" : "step",
             "meshing_frequency" : 1.0,
             "meshing_before_output" : true,
+            "update_conditions_on_free_surface" : {
+                "update_conditions"        : false,
+                "sub_model_part_list"      : [],
+                "reference_condition_list" : []
+            },
             "meshing_domains" : [{
                 "model_part_name" : "Body1",
                 "python_module" : "fluid_meshing_domain",

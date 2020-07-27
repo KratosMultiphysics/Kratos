@@ -2,7 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ChimeraApplication
 from KratosMultiphysics.ChimeraApplication.fluid_chimera_analysis import FluidChimeraAnalysis
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 class ChimeraAnalysisBaseTest(UnitTest.TestCase):
 
@@ -23,7 +22,29 @@ class ChimeraAnalysisBaseTest(UnitTest.TestCase):
                     "process_name"  : "VtkOutputProcess",
                     "help"          : "This process writes postprocessing files for Paraview",
                     "Parameters"    : {
-                        "model_part_name"                    : "FluidModelPart",
+                        "model_part_name"                    : "FluidModelPart.Parts_background_surface",
+                        "output_control_type"                : "step",
+                        "output_frequency"                   : 1,
+                        "file_format"                        : "ascii",
+                        "output_precision"                   : 3,
+                        "output_sub_model_parts"             : false,
+                       "write_deformed_configuration"        : true,
+                        "folder_name"                        : "test_vtk_output",
+                        "save_output_files_in_folder"        : true,
+                        "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","DISTANCE","MESH_VELOCITY"],
+                        "nodal_data_value_variables"         : [],
+                        "element_flags"                      : ["ACTIVE"],
+                        "nodal_flags"                        : ["VISITED","CHIMERA_INTERNAL_BOUNDARY"],
+                        "element_data_value_variables"       : [],
+                        "condition_data_value_variables"     : []
+                    }
+                },{
+                    "python_module" : "vtk_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "VtkOutputProcess",
+                    "help"          : "This process writes postprocessing files for Paraview",
+                    "Parameters"    : {
+                        "model_part_name"                    : "FluidModelPart.Parts_patch_surface",
                         "output_control_type"                : "step",
                         "output_frequency"                   : 1,
                         "file_format"                        : "ascii",

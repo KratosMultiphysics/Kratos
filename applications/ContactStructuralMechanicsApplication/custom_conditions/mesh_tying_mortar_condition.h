@@ -107,7 +107,7 @@ public:
     typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
 
     // Type definition of the components of an array_1d
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentsType;
+    typedef Variable<double> Array1DComponentsType;
 
     typedef typename std::vector<array_1d<PointType,TDim>>                  ConditionArrayListType;
 
@@ -189,38 +189,38 @@ public:
    /**
     * Called at the beginning of each solution step
     */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * Called at the beginning of each solution step
     * @param rCurrentProcessInfo The current process info instance
     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * Called at the beginning of each iteration
     * @param rCurrentProcessInfo The current process info instance
     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Called at the ending of each solution step
     * @param rCurrentProcessInfo The current process info instance
     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * Called at the end of each iteration
     * @param rCurrentProcessInfo The current process info instance
     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Initialize Mass Matrix
     */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -228,7 +228,7 @@ public:
     */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -283,8 +283,8 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
@@ -293,35 +293,8 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a double Value
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a array_1d Value
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Get on rVariable a Vector Value
-     */
-    void GetValueOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
     /**
      * Calculate a double Variable
@@ -355,7 +328,7 @@ public:
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
      * @param rCurrentProcessInfo The current process information
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -440,18 +413,18 @@ protected:
          */
         void UpdateMasterPair(
             const GeometryType& rGeometryInput,
-            std::vector<Variable<double>>& rDoubleVariables,
-            std::vector<Variable<array_1d<double, 3>>>& rArray1DVariables
+            std::vector<const Variable<double>*>& rpDoubleVariables,
+            std::vector<const Variable<array_1d<double, 3>>*>& rpArray1DVariables
             )
         {
             /* DoF */
             if (TTensor == 1) {
                 for (IndexType i_node = 0; i_node < NumNodesMaster; ++i_node) {
-                    u2(i_node, 0) = rGeometryInput[i_node].FastGetSolutionStepValue(rDoubleVariables[0]);
+                    u2(i_node, 0) = rGeometryInput[i_node].FastGetSolutionStepValue(*rpDoubleVariables[0]);
                 }
             } else {
                 for (IndexType i_node = 0; i_node < NumNodesMaster; ++i_node) {
-                    const array_1d<double, 3>& value = rGeometryInput[i_node].FastGetSolutionStepValue(rArray1DVariables[0]);
+                    const array_1d<double, 3>& value = rGeometryInput[i_node].FastGetSolutionStepValue(*rpArray1DVariables[0]);
                     for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof) {
                         u2(i_node, i_dof) = value[i_dof];
                     }
@@ -465,11 +438,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    MortarConditionMatrices mrThisMortarConditionMatrices;         /// The mortar operators
+    MortarConditionMatrices mrThisMortarConditionMatrices;                /// The mortar operators
 
-    std::vector<Variable<double>> mDoubleVariables;                /// The list of double variables
+    std::vector<const Variable<double>*> mpDoubleVariables;               /// The list of double variables
 
-    std::vector<Variable<array_1d<double, 3>>> mArray1DVariables;  /// The list of components array1d
+    std::vector<const Variable<array_1d<double, 3>>*> mpArray1DVariables; /// The list of components array1d
 
     ///@}
     ///@name Protected Operators
@@ -494,7 +467,7 @@ protected:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -505,7 +478,7 @@ protected:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -516,7 +489,7 @@ protected:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -541,14 +514,14 @@ protected:
 
         if (TTensor == ScalarValue) {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
-                const double value = GetParentGeometry()[i_node].FastGetSolutionStepValue(mDoubleVariables[0]);
+                const double value = GetParentGeometry()[i_node].FastGetSolutionStepValue(*mpDoubleVariables[0]);
                 const double lm = GetParentGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
                 rDofData.u1(i_node, 0) = value;
                 rDofData.LagrangeMultipliers(i_node, 0) = lm;
             }
         } else {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
-                const array_1d<double, 3>& value = GetParentGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[0]);
+                const array_1d<double, 3>& value = GetParentGeometry()[i_node].FastGetSolutionStepValue(*mpArray1DVariables[0]);
                 const array_1d<double, 3>& lm = GetParentGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                 for (IndexType i_dof = 0; i_dof < TDim; i_dof++) {
                     rDofData.u1(i_node, i_dof) = value[i_dof];
@@ -565,8 +538,8 @@ protected:
         const array_1d<double, 3>& rNormalMaster,
         MatrixDualLM& rAe,
         GeneralVariables& rVariables,
-        ConditionArrayListType& rConditionsPointsSlave,
-        IntegrationMethod ThisIntegrationMethod
+        const ConditionArrayListType& rConditionsPointsSlave,
+        const IntegrationMethod ThisIntegrationMethod
         );
 
     /**
@@ -578,7 +551,7 @@ protected:
         const array_1d<double, 3>& rNormalMaster,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        GeometryPointType& rGeometryDecomp,
+        const GeometryPointType& rGeometryDecomp,
         const bool DualLM = false
         );
 

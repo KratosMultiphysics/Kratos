@@ -202,9 +202,16 @@ public:
 
             int converged = 0;
 
+            double local_dimension = 0;
+            double dimension = 0;
+
+            if (r_model_part.GetCommunicator().LocalMesh().NumberOfElements() > 0)
+                local_dimension = r_model_part.GetCommunicator().LocalMesh().ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+            MPI_Allreduce(&local_dimension,&dimension,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+
             if (r_model_part.GetCommunicator().MyPID() == 0)
             {
-                const double dimension = (r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
                 const double vel_norm = sqrt( recvbuff[0] );
                 const double vel_diff_norm = sqrt( recvbuff[1] );
                 const double pr_norm = sqrt( recvbuff[2] );

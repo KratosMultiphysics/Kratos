@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
@@ -88,15 +86,6 @@ def  AuxiliarExplicitContactSettings():
     return contact_settings
 
 def  AuxiliarSetSettings(settings, contact_settings):
-    if not settings["clear_storage"].GetBool():
-        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
-        settings["clear_storage"].SetBool(True)
-    if not settings["reform_dofs_at_each_step"].GetBool():
-        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
-        settings["reform_dofs_at_each_step"].SetBool(True)
-    if not settings["use_computing_model_part"].GetBool():
-        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
-        settings["use_computing_model_part"].SetBool(True)
     mortar_type = contact_settings["mortar_type"].GetString()
     if "Frictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
@@ -110,15 +99,6 @@ def  AuxiliarMPCSetSettings(settings, contact_settings):
     if not settings["compute_reactions"].GetBool():
         KM.Logger.PrintInfo("Compute reactions", "Storage must be cleared each step. Switching to True")
         settings["compute_reactions"].SetBool(True)
-    if not settings["clear_storage"].GetBool():
-        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
-        settings["clear_storage"].SetBool(True)
-    if not settings["reform_dofs_at_each_step"].GetBool():
-        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
-        settings["reform_dofs_at_each_step"].SetBool(True)
-    if not settings["use_computing_model_part"].GetBool():
-        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
-        settings["use_computing_model_part"].SetBool(True)
 
     return settings
 
@@ -126,6 +106,17 @@ def  AuxiliarValidateSettings(solver):
     default_settings = solver.GetDefaultSettings()
     default_settings.RecursivelyAddMissingParameters(solver.settings)
     solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+
+    # Common settings
+    if not solver.settings["clear_storage"].GetBool():
+        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
+        solver.settings["clear_storage"].SetBool(True)
+    if not solver.settings["reform_dofs_at_each_step"].GetBool():
+        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+        solver.settings["reform_dofs_at_each_step"].SetBool(True)
+    if solver.settings["use_computing_model_part"].GetBool():
+        KM.Logger.PrintInfo("Using Computing-ModelPart. Switching to False")
+        solver.settings["use_computing_model_part"].SetBool(False)
 
 def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":

@@ -16,7 +16,7 @@ class TestArray1DInterface(KratosUnittest.TestCase):
 
         model_part.AddProperties(KM.Properties(1))
         model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
-        model_part.CreateNewCondition("Condition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         return model_part
 
     def test_SetNodalArrayValueFromPython_Array3(self):

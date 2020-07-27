@@ -705,6 +705,10 @@ namespace Kratos {
         ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
 
+        RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+
+        SetNormalRadiiOnAllParticles(*mpDem_model_part);
+
         #pragma omp parallel
         {
             #pragma omp for nowait
@@ -813,6 +817,12 @@ namespace Kratos {
 
                 ModelPart& submp = *sub_model_part;
                 NodesArrayType& pNodes = sub_model_part->Nodes();
+
+                if (submp.Has(RIGID_BODY_OPTION)) {
+                    if (submp[RIGID_BODY_OPTION] == false) {
+                        continue;
+                    }
+                }
 
                 #pragma omp parallel for
                 for (int i=0; i<(int)pTConditions.size(); i++) {
@@ -1155,6 +1165,12 @@ namespace Kratos {
 
             ModelPart& submp = *sub_model_part;
 
+            if (submp.Has(RIGID_BODY_OPTION)) {
+                if (submp[RIGID_BODY_OPTION] == false) {
+                    continue;
+                }
+            }
+
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
@@ -1322,6 +1338,12 @@ namespace Kratos {
 
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
+            if ((*sub_model_part).Has(RIGID_BODY_OPTION)) {
+                if ((*sub_model_part)[RIGID_BODY_OPTION] == false) {
+                    continue;
+                }
+            }
+
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
@@ -1402,6 +1424,10 @@ namespace Kratos {
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
+        typedef std::map<SphericParticle*,std::vector<SphericParticle*>> ConnectivitiesMap;
+        std::vector<ConnectivitiesMap> thread_maps_of_connectivities;
+        thread_maps_of_connectivities.resize(OpenMPUtils::GetNumThreads());
+
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->mNeighbourElements.clear();
@@ -1411,9 +1437,36 @@ namespace Kratos {
                 if (mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) && (mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId())) continue;
                 if (mListOfSphericParticles[i]->Is(DEMFlags::POLYHEDRON_SKIN)) continue;
                 mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);
+                std::vector<SphericParticle*>& neighbours_of_this_neighbour_for_this_thread = thread_maps_of_connectivities[OpenMPUtils::ThisThread()][p_spheric_neighbour_particle];
+                neighbours_of_this_neighbour_for_this_thread.push_back(mListOfSphericParticles[i]);
             }
             this->GetResults()[i].clear();
             this->GetResultsDistances()[i].clear();
+        }
+
+        // the next loop ensures consistency in neighbourhood (if A is neighbour of B, B must be neighbour of A)
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (int i = 0; i < number_of_particles; i++) {
+            auto& current_neighbours = mListOfSphericParticles[i]->mNeighbourElements;
+            std::vector<SphericParticle*> neighbours_to_add;
+            for (size_t k = 0; k < thread_maps_of_connectivities.size(); k++){
+                ConnectivitiesMap::iterator it = thread_maps_of_connectivities[k].find(mListOfSphericParticles[i]);
+                if (it != thread_maps_of_connectivities[k].end()) {
+                    neighbours_to_add.insert(neighbours_to_add.end(), it->second.begin(), it->second.end());
+                }
+            }
+            for (size_t l = 0; l < neighbours_to_add.size(); l++) {
+                bool found = false;
+                for (size_t m = 0; m < current_neighbours.size(); m++){
+                    if (neighbours_to_add[l] == current_neighbours[m]) {
+                        found = true;
+                        break;
+                    }
+                }
+                if ( found == false ) {
+                    current_neighbours.push_back(neighbours_to_add[l]);
+                }
+            }
         }
         KRATOS_CATCH("")
     }

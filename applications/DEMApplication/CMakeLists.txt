@@ -58,6 +58,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_bilinear_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Rankine_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.cpp
@@ -93,6 +94,8 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_checker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/automatic_dt_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_generalized_2d_utilities.cpp
 )
 
 set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE

@@ -3,8 +3,31 @@
         "problem_name"    : "Mok_CSM",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 1.0,
+        "end_time"        : 15.0,
         "echo_level"      : 0
+    },
+    "co_sim_settings" : {
+        "INFO" : "this block is only used if Kratos is used as an external solver for CoSimulation!",
+        "connection_name" : "structure",
+        "is_strong_coupling" : true,
+        "io_settings" : {
+            "echo_level" : 0
+        },
+        "communication_settings" : {
+            "export_meshes" : [
+                "Structure.GENERIC_FSI"
+            ],
+            "export_fields" : [{
+                "identifier"      : "disp",
+                "model_part_name" : "Structure.GENERIC_FSI",
+                "variable_name"   : "DISPLACEMENT"
+            }],
+            "import_fields" : [{
+                "identifier"      : "load",
+                "model_part_name" : "Structure.GENERIC_FSI",
+                "variable_name"   : "POINT_LOAD"
+            }]
+        }
     },
     "solver_settings"          : {
         "solver_type"                        : "dynamic",
@@ -30,10 +53,9 @@
         "displacement_absolute_tolerance"    : 1e-6,
         "residual_relative_tolerance"        : 1e-6,
         "residual_absolute_tolerance"        : 1e-6,
-        "max_iteration"                      : 20,
-            "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu",
-            "scaling"     : false
+        "max_iteration"                      : 25,
+        "linear_solver_settings"             : {
+            "solver_type" : "LinearSolversApplication.sparse_qr"
         },
 		"use_computing_model_part" : false,
         "rotation_dofs"            : false
@@ -52,25 +74,5 @@
         }],
         "loads_process_list"       : [],
         "list_other_processes"     : []
-    },
-    "_output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","POINT_LOAD"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
     }
 }
