@@ -123,20 +123,6 @@ namespace Python
         return(dummy.UnitNormal(IntegrationPointIndex));
     }
 
-    Matrix GetJacobianIntegrationPointIndex(
-        GeometryType& dummy, IndexType IntegrationPointIndex)
-    {
-        Matrix results;
-        return(dummy.Jacobian(results, IntegrationPointIndex));
-    }
-
-    Vector GetDeterminantOfJacobian(
-            GeometryType& dummy)
-    {
-        Vector results;
-        return(dummy.DeterminantOfJacobian(results));
-    }
-
     double GetDeterminantOfJacobianIntegrationPointIndex(
         GeometryType& dummy, IndexType IntegrationPointIndex)
     {
@@ -196,9 +182,12 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("UnitNormal", GetUnitNormal)
     .def("UnitNormal",GetUnitNormalIntegrationPointIndex)
      // Jacobian
-    .def("Jacobian", GetJacobianIntegrationPointIndex)
-    .def("DeterminantOfJacobian", GetDeterminantOfJacobian)
-    .def("DeterminantOfJacobian", GetDeterminantOfJacobianIntegrationPointIndex)
+    .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { Matrix results; return(dummy.Jacobian(results, IntegrationPointIndex)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { Vector results; return(dummy.DeterminantOfJacobian(results)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(dummy.DeterminantOfJacobian(IntegrationPointIndex)); })
     // ShapeFunctionsValues
     .def("ShapeFunctionsValues", GetShapeFunctionsValues)
     .def("ShapeFunctionDerivatives", GetShapeFunctionDerivatives)
