@@ -186,6 +186,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    // Integration
+    .def("IntegrationPointsNumber", GetIntegrationPointsNumber)
     // Quadrature points
     .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
     // Normal
