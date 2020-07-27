@@ -164,6 +164,15 @@ namespace Python
         return(dummy.ShapeFunctionsValues());
     }
 
+    Matrix GetShapeFunctionDerivatives(
+        GeometryType& dummy,
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex)
+    {
+        return(dummy.ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, dummy.GetDefaultIntegrationMethod()));
+    }
+
 void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -209,6 +218,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("DeterminantOfJacobian", GetDeterminantOfJacobianIntegrationPointIndex)
     // ShapeFunctionsValues
     .def("ShapeFunctionsValues", GetShapeFunctionsValues)
+    .def("ShapeFunctionDerivatives", GetShapeFunctionDerivatives)
     // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
