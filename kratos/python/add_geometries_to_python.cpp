@@ -123,27 +123,6 @@ namespace Python
         return(dummy.UnitNormal(IntegrationPointIndex));
     }
 
-    double GetDeterminantOfJacobianIntegrationPointIndex(
-        GeometryType& dummy, IndexType IntegrationPointIndex)
-    {
-        return(dummy.DeterminantOfJacobian(IntegrationPointIndex));
-    }
-
-    Matrix GetShapeFunctionsValues(
-        GeometryType& dummy)
-    {
-        return(dummy.ShapeFunctionsValues());
-    }
-
-    Matrix GetShapeFunctionDerivatives(
-        GeometryType& dummy,
-        IndexType DerivativeOrderIndex,
-        IndexType IntegrationPointIndex)
-    {
-        return(dummy.ShapeFunctionDerivatives(
-            DerivativeOrderIndex, IntegrationPointIndex, dummy.GetDefaultIntegrationMethod()));
-    }
-
 void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -183,14 +162,17 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("UnitNormal",GetUnitNormalIntegrationPointIndex)
      // Jacobian
     .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
-        { Matrix results; return(dummy.Jacobian(results, IntegrationPointIndex)); })
+        { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self)
+        { Vector results; return(self.DeterminantOfJacobian(results)); })
     .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
-        { Vector results; return(dummy.DeterminantOfJacobian(results)); })
-    .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
-        { return(dummy.DeterminantOfJacobian(IntegrationPointIndex)); })
+        { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
     // ShapeFunctionsValues
-    .def("ShapeFunctionsValues", GetShapeFunctionsValues)
-    .def("ShapeFunctionDerivatives", GetShapeFunctionDerivatives)
+    .def("ShapeFunctionsValues", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.ShapeFunctionDerivatives()); })
+    .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex)
+        { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
     // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
