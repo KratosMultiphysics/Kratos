@@ -74,6 +74,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       /// Pointer definition of OMP_NodeSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_NodeSearch);
 
+      //Node Types
+      typedef ModelPart::NodeType                           NodeType;
       //Configure Types
       typedef NodeConfigureForNodeSearch                    NodeConfigureType;
       typedef ModelPart::NodesContainerType                 NodesContainerType;
@@ -90,7 +92,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       OMP_NodeSearch(NodesContainerType const& rStructureNodes) {
         KRATOS_TRY;
         NodesContainerType::ContainerType& nodes_model_part = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
-        mBins = new NodeBinsType(nodes_model_part.begin(), nodes_model_part.end());
+        mBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
+        mMaxNumberOfNodes = rStructureNodes.size();
         KRATOS_CATCH("");
       }
 
@@ -115,8 +118,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
        * @param rResults Results container.
        **/
       void SearchNodesInRadius(
-          NodesContainerType const& rStructureNodes,
-          int const Id,
+          NodeType& rNode,
           double const Radius,
           ResultNodesContainerType& rResults );
 
@@ -203,9 +205,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OMP_NodeSearch
       ///@}
       ///@name Member Variables
       ///@{
-      NodeBinsType* mBins;
+      Kratos::unique_ptr<NodeBinsType> mBins;
 
-      bool mIsInitialized;
+      int mMaxNumberOfNodes;
       ///@}
       ///@name Private Operators
       ///@{

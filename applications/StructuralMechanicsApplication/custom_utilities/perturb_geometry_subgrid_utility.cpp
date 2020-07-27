@@ -56,7 +56,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
             it_node->Set(VISITED,true);
             reduced_space_nodes.push_back( &(*it_node) );
             results = {};
-            searcher.SearchNodesInRadius(nodes, it_node->GetId()-1, radius, results);
+            searcher.SearchNodesInRadius(*it_node, radius, results);
             for( size_t i = 0; i < results.size(); i++ ){
                 results[i]->Set(VISITED,true);
             }

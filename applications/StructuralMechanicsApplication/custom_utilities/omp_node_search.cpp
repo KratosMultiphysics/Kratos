@@ -19,22 +19,19 @@
 namespace Kratos {
 
 void OMP_NodeSearch::SearchNodesInRadius(
-        NodesContainerType const& rStructureNodes,
-        int const Id,
+        NodeType& rNode,
         double const Radius,
         ResultNodesContainerType& rResults ) {
 
     KRATOS_TRY
-    int max_num_of_nodes = rStructureNodes.size();
 
-    NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
-
-    ResultNodesContainerType local_results(max_num_of_nodes);
+    ResultNodesContainerType local_results(mMaxNumberOfNodes);
     std::size_t num_of_results = 0;
 
     ResultNodesContainerType::iterator ResultsPointer = local_results.begin();
+    NodeType::Pointer p_node = &rNode;
 
-    num_of_results = mBins->SearchObjectsInRadius( nodes_array[Id],Radius,ResultsPointer,max_num_of_nodes);
+    num_of_results = mBins->SearchObjectsInRadius( p_node,Radius,ResultsPointer,mMaxNumberOfNodes);
 
     rResults.insert(rResults.begin(), local_results.begin(), local_results.begin() + num_of_results);
 

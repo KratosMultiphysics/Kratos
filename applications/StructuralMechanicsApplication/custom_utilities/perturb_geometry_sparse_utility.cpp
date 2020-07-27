@@ -47,7 +47,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
         // Add current nodes to results
         results = { mrInitialModelPart.Nodes().GetContainer()[i] };
         // Find all neighbouring nodes
-        searcher.SearchNodesInRadius(nodes, it_node->GetId()-1, 3*mCorrelationLength, results);
+        searcher.SearchNodesInRadius(*it_node, 3*mCorrelationLength, results);
         for( size_t j = 0; j < results.size(); j++){
             counter++;
             int index = results[j]->GetId() - 1;
