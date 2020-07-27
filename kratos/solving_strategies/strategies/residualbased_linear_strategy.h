@@ -121,30 +121,11 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit ResidualBasedLinearStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
-        mCalculateNormDxFlag = ThisParameters.Has("compute_norm_dx") ? ThisParameters["compute_norm_dx"].GetBool() : false;
-
-        mCalculateReactionsFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_reactions"].GetBool() : false;
-
-        mReformDofSetAtEachStep = ThisParameters.Has("reform_dofs_at_each_step") ? ThisParameters["reform_dofs_at_each_step"].GetBool() : false;
-
-        // Saving the scheme
-        mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
-
-        // Setting up the default builder and solver
-        const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
-        if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
-            // Defining the linear solver
-            auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
-
-            // Defining the builder and solver
-            mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
-        } else {
-            KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
-                            "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
-                            KratosComponents<TBuilderAndSolverType>() << std::endl;
-        }
+        // Validate and assign defaults
+        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
@@ -156,14 +137,6 @@ public:
         // Tells to the Builder And Solver if the system matrix and vectors need to
         // be reshaped at each step or not
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        const int echo_level = ThisParameters.Has("echo_level") ? ThisParameters["echo_level"].GetInt() : 1;
-        SetEchoLevel(echo_level);
-
-        // By default the matrices are rebuilt at each solution step
-        const int build_level = ThisParameters.Has("build_level") ? ThisParameters["build_level"].GetInt() : 1;
-        this->SetRebuildLevel(build_level);
     }
 
     /**
@@ -832,6 +805,29 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters class_default_parameters = Parameters(R"(
+        {
+            "name"                     : "linear_strategy",
+            "compute_norm_dx"          : false,
+            "reform_dofs_at_each_step" : false,
+            "compute_reactions"        : false
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        const Parameters default_parameters(class_default_parameters);
+
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -902,6 +898,39 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mCalculateNormDxFlag = ThisParameters["compute_norm_dx"].GetBool();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access
