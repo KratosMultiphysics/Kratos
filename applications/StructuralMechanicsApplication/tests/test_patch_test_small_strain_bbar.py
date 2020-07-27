@@ -110,6 +110,7 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
         if linear:
           settings["name"].SetString("linear_strategy")
           settings.RemoveValue("max_iteration")
+          settings.RemoveValue("convergence_criteria_settings")
         strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
         strategy.Check()
         strategy.Solve()
