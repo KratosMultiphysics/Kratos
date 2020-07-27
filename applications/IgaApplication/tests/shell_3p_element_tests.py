@@ -48,6 +48,7 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         id = 1
         for i in range(0, len(quadrature_point_geometries)):
             model_part.CreateNewElement('Shell3pElement', id, quadrature_point_geometries[i], shell_properties)
+            id += 1
 
         # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
