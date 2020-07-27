@@ -97,20 +97,17 @@ public:
     /**
      * @brief Default constructor. (with parameters)
      * @details It takes two different convergence criteria in order to work
+     * @param ThisParameters The configuration parameters
      */
-    explicit Or_Criteria(Kratos::Parameters Settings)
+    explicit Or_Criteria(Kratos::Parameters ThisParameters)
         :BaseType()
     {
-        // We check if the criterion are defined
-        if (Settings.Has("first_criterion_settings") && Settings.Has("second_criterion_settings")) {
-            mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(Settings["first_criterion_settings"]);
-            mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(Settings["second_criterion_settings"]);
-        } else { // Displacement criteria and residual criteria will be combined
-            Settings["name"].SetString("displacement_criteria");
-            mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(Settings);
-            Settings["name"].SetString("residual_criteria");
-            mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(Settings);
-        }
+        // Validate and assign defaults
+        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(ThisParameters["first_criterion_settings"]);
+        mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(ThisParameters["second_criterion_settings"]);
     }
 
     /**
@@ -334,6 +331,36 @@ public:
         return check1 + check2;
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters class_default_parameters = Parameters(R"(
+        {
+            "name"                     : "or_criteria",
+            "first_criterion_settings" : {
+                "name"                            : "residual_criteria",
+                "residual_absolute_tolerance"     : 1.0e-4,
+                "residual_relative_tolerance"     : 1.0e-9
+            },
+            "second_criterion_settings" : {
+                "name"                            : "displacement_criteria",
+                "displacement_relative_tolerance" : 1.0e-4,
+                "displacement_absolute_tolerance" : 1.0e-9
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        const Parameters default_parameters(class_default_parameters);
+
+        return default_parameters;
     }
 
     /**
