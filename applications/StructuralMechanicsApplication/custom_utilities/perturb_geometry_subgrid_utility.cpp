@@ -18,6 +18,7 @@
 #include "utilities/builtin_timer.h"
 
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -40,15 +41,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
 
     BuiltinTimer reduced_space_timer;
     // Mark all nodes as unvisited
-    #pragma omp parallel
-    {
-        const auto it_node_begin = mrInitialModelPart.NodesBegin();
-        #pragma omp for
-        for (int i = 0; i < num_of_nodes; i++){
-            auto it_node = it_node_begin + i;
-            it_node->Set(VISITED,false);
-        }
-    }
+    VariableUtils().SetFlag(VISITED,false,mrInitialModelPart.Nodes());
 
     // Generate reduced space
     for (ModelPart::NodeIterator it_node = mrInitialModelPart.NodesBegin(); it_node != mrInitialModelPart.NodesEnd(); it_node++){
