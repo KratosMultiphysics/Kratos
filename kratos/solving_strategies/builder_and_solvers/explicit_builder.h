@@ -137,7 +137,7 @@ public:
     explicit ExplicitBuilder(Parameters ThisParameters)
     {
         // Validate and assign defaults
-        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
     }
 
@@ -825,13 +825,15 @@ protected:
      * @brief This method validate and assign default parameters
      * @param rParameters Parameters to be validated
      * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
      */
-    virtual void ValidateAndAssignParameters(
-        Parameters& rParameters,
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
         const Parameters DefaultParameters
         ) const
     {
-        rParameters.ValidateAndAssignDefaults(DefaultParameters);
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
     }
 
     /**
