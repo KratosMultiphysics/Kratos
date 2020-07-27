@@ -12,7 +12,7 @@
 //
 
 
-// this process does not work at the moment,
+// this process does not work at the moment
 // base class was moved to the core
 
 
