@@ -32,6 +32,7 @@
 
 // //Builder And Solver
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_with_constraints.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
@@ -114,6 +115,14 @@ void AddStrategies(pybind11::module& m)
         TrilinosBlockBuilderAndSolverType  >
     (m, "TrilinosBlockBuilderAndSolverPeriodic").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& >() )
     ;
+
+    py::class_<
+        TrilinosBlockBuilderAndSolverWithConstraints< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
+        typename TrilinosBlockBuilderAndSolverWithConstraints< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Pointer,
+        TrilinosBlockBuilderAndSolverType  >
+    (m, "TrilinosBlockBuilderAndSolverWithConstraints").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > ())
+    ;
+
 
     // Strategy base class
     py::class_< TrilinosBaseSolvingStrategyType, typename TrilinosBaseSolvingStrategyType::Pointer >(m, "TrilinosSolvingStrategy")

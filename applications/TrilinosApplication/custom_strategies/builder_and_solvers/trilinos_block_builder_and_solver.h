@@ -35,17 +35,6 @@
 #include "Epetra_SerialDenseVector.h"
 #include "Epetra_Vector.h"
 
-#if !defined(START_TIMER)
-#define START_TIMER(label, rank) \
-    if (mrComm.MyPID() == rank)  \
-        Timer::Start(label);
-#endif
-#if !defined(STOP_TIMER)
-#define STOP_TIMER(label, rank) \
-    if (mrComm.MyPID() == rank) \
-        Timer::Stop(label);
-#endif
-
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -375,13 +364,7 @@ public:
     {
         KRATOS_TRY
 
-        if (BaseType::GetEchoLevel() > 0)
-            START_TIMER("Build", 0)
-
         Build(pScheme, rModelPart, rA, rb);
-
-        if (BaseType::GetEchoLevel() > 0)
-            STOP_TIMER("Build", 0)
 
         // apply dirichlet conditions
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
@@ -391,13 +374,8 @@ public:
             << "\nSystem Matrix = " << rA << "\nunknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
 
-        if (BaseType::GetEchoLevel() > 0)
-            START_TIMER("System solve time ", 0)
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
-
-        if (BaseType::GetEchoLevel() > 0)
-            STOP_TIMER("System solve time ", 0)
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nAfter the solution of the system"
@@ -521,7 +499,6 @@ public:
                     temp_dofs_array.push_back(*i_dof);
             }
         }
-
         // Taking dofs of conditions
         auto& r_conditions_array = rModelPart.Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
@@ -534,6 +511,11 @@ public:
             }
         }
 
+
+        auto& r_comm = rModelPart.GetCommunicator();
+        const auto& r_data_comm = r_comm.GetDataCommunicator();
+        int current_rank = r_comm.MyPID();
+
         // Gets the array of constraints from the modeler
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
         const int number_of_constraints = static_cast<int>(r_constraints_array.size());
@@ -541,10 +523,16 @@ public:
             auto it_const = r_constraints_array.begin() + i;
             // Gets list of Dof involved on every element
             it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-            temp_dofs_array.insert(dof_list.begin(), dof_list.end());
-            temp_dofs_array.insert(second_dof_list.begin(), second_dof_list.end());
-        }
+            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
+                i_dof != dof_list.end(); ++i_dof)
+                temp_dofs_array.push_back(*i_dof);
 
+            for (typename DofsVectorType::iterator i_dof = second_dof_list.begin();
+                i_dof != second_dof_list.end(); ++i_dof)
+                temp_dofs_array.push_back(*i_dof);
+            // temp_dofs_array.insert(dof_list.begin(), dof_list.end());
+            // temp_dofs_array.insert(second_dof_list.begin(), second_dof_list.end());
+        }
 
         temp_dofs_array.Unique();
         BaseType::mDofSet = temp_dofs_array;
