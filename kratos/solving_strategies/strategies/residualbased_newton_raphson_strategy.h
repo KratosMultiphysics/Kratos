@@ -115,10 +115,42 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+    explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart)
+        : ResidualBasedNewtonRaphsonStrategy(rModelPart, this->GetDefaultParameters())
     {
-        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart),
+          mSolutionStepIsInitialized(false),
+          mInitializeWasPerformed(false),
+          mKeepSystemConstantDuringIterations(false)
+    {
+        // Validate and assign defaults
+        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Getting builder and solver
+        auto p_builder_and_solver = GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            // Tells to the builder and solver if the reactions have to be Calculated or not
+            p_builder_and_solver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+
+            // Tells to the Builder And Solver if the system matrix and vectors need to
+            // be reshaped at each step or not
+            p_builder_and_solver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        } else {
+            KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
+        }
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
     }
 
     /**
@@ -141,7 +173,7 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : BaseType(rModelPart, MoveMeshFlag),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
@@ -197,7 +229,7 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : BaseType(rModelPart, MoveMeshFlag),
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
@@ -270,14 +302,13 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("")
     }
 
-
     /**
      * Constructor with Parameters
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param Parameters Settings used in the strategy
+     * @param Settings Settings used in the strategy
      */
     ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
@@ -285,7 +316,7 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         Parameters Settings)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
+        : BaseType(rModelPart),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mSolutionStepIsInitialized(false),
@@ -293,10 +324,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY;
-
-        Parameters default_settings = this->GetDefaultSettings();
-        Settings.AddMissingParameters(default_settings);
-        this->AssignSettings(Settings);
 
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
@@ -329,7 +356,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param pNewBuilderAndSolver The builder and solver employed
-     * @param Parameters Settings used in the strategy
+     * @param Settings Settings used in the strategy
      */
     ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
@@ -337,7 +364,7 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters Settings)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, Settings),
+        : BaseType(rModelPart),
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
@@ -346,10 +373,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
-
-        Parameters default_settings = this->GetDefaultSettings();
-        Settings.AddMissingParameters(default_settings);
-        this->AssignSettings(Settings);
 
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
@@ -1053,6 +1076,30 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters class_default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_strategy",
+            "use_old_stiffness_in_first_iteration": false,
+            "max_iteration"                       : 10,
+            "reform_dofs_at_each_step"            : false,
+            "compute_reactions"                   : false
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        const Parameters default_parameters(class_default_parameters);
+
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -1196,7 +1243,7 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed
@@ -1307,29 +1354,18 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief This method returns the default settings
-     */
-    virtual Parameters GetDefaultSettings()
-    {
-        Parameters default_settings(R"({
-            "use_old_stiffness_in_first_iteration": false,
-            "max_iterations"           : 30,
-            "reform_dofs_at_each_step" : false,
-            "calculate_reactions"      : false
-        })");
-        return default_settings;
-    }
-
-    /**
      * @brief This method assigns settings to member variables
-     * @param Settings Parameters that are assigned to the member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
      */
-    virtual void AssignSettings(Parameters Settings)
+    void AssignSettings(const Parameters ThisParameters) override
     {
-        mMaxIterationNumber = Settings["max_iterations"].GetInt();
-        mReformDofSetAtEachStep = Settings["reform_dofs_at_each_step"].GetBool();
-        mCalculateReactionsFlag = Settings["calculate_reactions"].GetBool();
-        mUseOldStiffnessInFirstIteration = Settings["use_old_stiffness_in_first_iteration"].GetBool();
+        BaseType::AssignSettings(ThisParameters);
+        mMaxIterationNumber = ThisParameters["max_iteration"].GetInt();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+        mUseOldStiffnessInFirstIteration = ThisParameters["use_old_stiffness_in_first_iteration"].GetBool();
+
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
     }
 
     ///@}
