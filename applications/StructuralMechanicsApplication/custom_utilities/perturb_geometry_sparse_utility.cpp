@@ -54,7 +54,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
             int index = results[j]->GetId() - 1;
             auto it_node_results = it_node_begin + index;
 
-            correlation_matrix(i, index) =  CorrelationFunction(it_node, it_node_results, mCorrelationLength);
+            correlation_matrix(i, index) =  CorrelationFunction( *it_node, *it_node_results, mCorrelationLength);
         }
     }
 

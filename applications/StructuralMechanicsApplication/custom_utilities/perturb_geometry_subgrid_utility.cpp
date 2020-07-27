@@ -36,7 +36,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     searcher.InitializeSearch(nodes);
 
     // Define the reduced space vector
-    std::vector<ModelPart::NodeIterator> reduced_space_nodes;
+    std::vector<ModelPart::NodeType::Pointer> reduced_space_nodes;
     ResultNodesContainerType  results;
 
     BuiltinTimer reduced_space_timer;
@@ -55,7 +55,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     for (ModelPart::NodeIterator it_node = mrInitialModelPart.NodesBegin(); it_node != mrInitialModelPart.NodesEnd(); it_node++){
         if( !it_node->Is(VISITED) ) {
             it_node->Set(VISITED,true);
-            reduced_space_nodes.push_back(it_node);
+            reduced_space_nodes.push_back( &(*it_node) );
             results = {};
             searcher.SearchNodesInRadius(nodes, it_node->GetId()-1, radius, results);
             for( size_t i = 0; i < results.size(); i++ ){
@@ -82,7 +82,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
             auto it_node = it_node_begin + row_counter;
             for( int column_counter = 0; column_counter < num_nodes_reduced_space; column_counter++){
                 auto it_node_2 = it_node_begin + column_counter;
-                correlation_matrix(row_counter ,column_counter ) = CorrelationFunction( *it_node, *it_node_2, mCorrelationLength);
+                correlation_matrix(row_counter ,column_counter ) = CorrelationFunction( **it_node, **it_node_2, mCorrelationLength);
             }
         }
     }
@@ -137,7 +137,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
             // Assemble correlation vector
             for( int j = 0; j < num_nodes_reduced_space; j++){
                 auto it_node_reduced = it_node_reduced_begin + j;
-                correlation_vector(j) = CorrelationFunction( it_node, *it_node_reduced, mCorrelationLength);
+                correlation_vector(j) = CorrelationFunction( *it_node, **it_node_reduced, mCorrelationLength);
             }
             // Assemble perturbation field
             for( int j = 0; j < num_random_variables; j++){

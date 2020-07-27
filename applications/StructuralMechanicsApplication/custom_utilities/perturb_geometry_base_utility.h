@@ -190,7 +190,7 @@ protected:
      * @brief Correlation function
      * @return Correlation value of two nodes
      */
-    double CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLenth);
+    double CorrelationFunction( ModelPart::NodeType& itNode1, ModelPart::NodeType& itNode2, double CorrelationLenth);
 
     ///@}
     ///@name Protected  Access

@@ -88,10 +88,10 @@ void PerturbGeometryBaseUtility::ApplyRandomFieldVectorsToGeometry( ModelPart& r
     KRATOS_CATCH("")
 }
 
-double PerturbGeometryBaseUtility::CorrelationFunction( ModelPart::NodeIterator itNode1, ModelPart::NodeIterator itNode2, double CorrelationLength)
+double PerturbGeometryBaseUtility::CorrelationFunction( ModelPart::NodeType& itNode1, ModelPart::NodeType& itNode2, double CorrelationLength)
 {
     array_1d<double, 3> coorrdinate;
-    coorrdinate = itNode1->GetInitialPosition().Coordinates() - itNode2->GetInitialPosition().Coordinates();
+    coorrdinate = itNode1.GetInitialPosition().Coordinates() - itNode2.GetInitialPosition().Coordinates();
 
     double norm = sqrt( coorrdinate(0)*coorrdinate(0) + coorrdinate(1)*coorrdinate(1) + coorrdinate(2)*coorrdinate(2) );
 
