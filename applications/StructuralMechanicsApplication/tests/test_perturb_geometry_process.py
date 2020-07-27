@@ -2,13 +2,9 @@
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics import kratos_utilities
+
 from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_sparse_process import PerturbGeometrySparseProcess
 from KratosMultiphysics.StructuralMechanicsApplication.perturb_geometry_subgrid_process import PerturbGeometrySubgridProcess
-
-if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
-    from KratosMultiphysics import LinearSolversApplication
-
 
 import numpy as np
 
