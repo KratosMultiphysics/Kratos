@@ -113,9 +113,22 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit ResidualBasedLinearStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
-        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        // Validate and assign defaults
+        this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Set flags to start correcty the calculations
+        mSolutionStepIsInitialized = false;
+        mInitializeWasPerformed = false;
+
+        // Tells to the builder and solver if the reactions have to be Calculated or not
+        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
     }
 
     /**
@@ -757,6 +770,29 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        Parameters class_default_parameters = Parameters(R"(
+        {
+            "name"                     : "linear_strategy",
+            "compute_norm_dx"          : false,
+            "reform_dofs_at_each_step" : false,
+            "compute_reactions"        : false
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+        const Parameters default_parameters(class_default_parameters);
+
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -828,6 +864,20 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mCalculateNormDxFlag = ThisParameters["compute_norm_dx"].GetBool();
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -850,7 +900,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the linear solver considered
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
 
