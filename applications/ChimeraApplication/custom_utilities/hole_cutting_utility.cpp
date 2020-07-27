@@ -53,9 +53,8 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
     {
         auto p_elem = rModelPart.pGetElement(i_element.Id());
         double nodal_distance = 0.0;
-        int num_nodes_outside = 0;
         bool is_elem_outside = true;
-        Geometry<Node<3>>& geom = (*p_elem)->GetGeometry();
+        Geometry<Node<3>>& geom = p_elem->GetGeometry();
         int num_nodes_outside = 0;
 
         for (auto& node : geom) {
@@ -103,7 +102,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         }
         else {
             if (Side == ChimeraHoleCuttingUtility::SideToExtract::OUTSIDE) {
-                rRemovedModelPart.AddElement(*p_elem);
+                rRemovedModelPart.AddElement(p_elem);
                 for (auto& node : geom)
                     vector_of_node_ids.push_back(node.Id());
             }

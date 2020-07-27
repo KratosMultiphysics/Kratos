@@ -221,6 +221,7 @@ void ApplyChimera<TDim>::FormulateChimera(const Parameters BackgroundParam,
                                           ChimeraHoleCuttingUtility::Domain DomainType)
 {
     Model& current_model = mrMainModelPart.GetModel();
+    const auto &r_comm = mrMainModelPart.GetCommunicator().GetDataCommunicator();
     ModelPart& r_background_model_part =
         current_model.GetModelPart(BackgroundParam["model_part_name"].GetString());
     ModelPart& r_background_boundary_model_part =

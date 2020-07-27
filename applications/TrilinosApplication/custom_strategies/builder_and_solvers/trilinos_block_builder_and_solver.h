@@ -196,7 +196,7 @@ public:
             if (element_is_active) {
                 // calculate elemental contribution
                 pScheme->CalculateSystemContributions(
-                    *(it_elem), LHS_Contribution, RHS_Contribution,
+                    **(it_elem), LHS_Contribution, RHS_Contribution,
                     equation_ids_vector, r_current_process_info);
 
                 // assemble the elemental contribution
@@ -219,8 +219,8 @@ public:
 
             if (condition_is_active) {
                 // calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(
-                    *(it_cond), LHS_Contribution, RHS_Contribution,
+                pScheme->CalculateSystemContributions(
+                    **(it_cond), LHS_Contribution, RHS_Contribution,
                     equation_ids_vector, r_current_process_info);
 
                 // assemble the condition contribution
@@ -269,7 +269,7 @@ public:
 
             bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
             if(element_is_active){
-                pScheme->Calculate_LHS_Contribution(*(it_elem), LHS_Contribution,
+                pScheme->CalculateLHSContribution(**(it_elem), LHS_Contribution,
                                                     equation_ids_vector, r_current_process_info);
                 // assemble the elemental contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
@@ -285,8 +285,8 @@ public:
             // calculate elemental contribution
             bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
             if(condition_is_active){
-                pScheme->Condition_Calculate_LHS_Contribution(
-                    *(it_cond), LHS_Contribution, equation_ids_vector, r_current_process_info);
+                pScheme->CalculateLHSContribution(
+                    **(it_cond), LHS_Contribution, equation_ids_vector, r_current_process_info);
                 // assemble the elemental contribution
                 TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
             }
@@ -457,7 +457,7 @@ public:
             // calculate elemental Right Hand Side Contribution
             bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
             if(element_is_active){
-                pScheme->CalculateRHSContribution(*(it_elem), RHS_Contribution,
+                pScheme->CalculateRHSContribution(**(it_elem), RHS_Contribution,
                                                     equation_ids_vector, r_current_process_info);
 
                 // assemble the elemental contribution
@@ -473,7 +473,7 @@ public:
             bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
             if(condition_is_active){
                 pScheme->CalculateRHSContribution(
-                    *(it_cond), RHS_Contribution, equation_ids_vector, r_current_process_info);
+                    **(it_cond), RHS_Contribution, equation_ids_vector, r_current_process_info);
 
                 // assemble the elemental contribution
                 TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
@@ -502,7 +502,7 @@ public:
         // Gets the array of elements from the modeler
         ElementsArrayType& r_elements_array =
             rModelPart.GetCommunicator().LocalMesh().Elements();
-        DofsVectorType dof_list;
+        DofsVectorType dof_list, second_dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
@@ -668,7 +668,7 @@ public:
             for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
                 bool element_is_active = (*it_elem)->IsDefined(ACTIVE) ? (*it_elem)->Is(ACTIVE) : true;
                 if(element_is_active){
-                    pScheme->EquationId(*(it_elem), equation_ids_vector,
+                    pScheme->EquationId(**(it_elem), equation_ids_vector,
                                         r_current_process_info);
 
                     // filling the list of active global indices (non fixed)
@@ -688,15 +688,14 @@ public:
                     }
                     std::fill(temp.begin(), temp.end(), 0);
                 }
-                }
             }
 
             // assemble all conditions
             for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
                 bool condition_is_active = (*it_cond)->IsDefined(ACTIVE) ? (*it_cond)->Is(ACTIVE) : true;
                 if(condition_is_active){
-                    pScheme->Condition_EquationId(
-                        *(it_cond), equation_ids_vector, r_current_process_info);
+                    pScheme->EquationId(
+                        **(it_cond), equation_ids_vector, r_current_process_info);
 
                     // filling the list of active global indices (non fixed)
                     IndexType num_active_indices = 0;

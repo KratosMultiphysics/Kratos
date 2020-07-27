@@ -39,7 +39,7 @@
 #include "chimera_application_variables.h"
 #include "custom_utilities/distance_calcuation_utility.h"
 #include "custom_utilities/gather_modelpart_on_all_ranks.h"
-
+#include "custom_utilities/hole_cutting_utility.h"
 namespace Kratos
 {
 
