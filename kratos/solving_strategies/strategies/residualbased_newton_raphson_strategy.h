@@ -128,7 +128,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ThisParameters The configuration parameters
      */
     explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart)
-        : ResidualBasedNewtonRaphsonStrategy(rModelPart, this->GetDefaultParameters())
+        : ResidualBasedNewtonRaphsonStrategy(rModelPart, ResidualBasedNewtonRaphsonStrategy::GetDefaultParameters())
     {
     }
 
