@@ -83,6 +83,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
         # Set default buffer size
         self.min_buffer_size = 1
+        if custom_settings.Has("buffer_size"):
+            self.custom_buffer_size = custom_settings["buffer_size"].GetInt()
 
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
@@ -479,6 +481,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         required_buffer_size = self.GetMinimumBufferSize()
         current_buffer_size = self.main_model_part.GetBufferSize()
         buffer_size = max(current_buffer_size, required_buffer_size)
+        buffer_size = max(buffer_size,self.custom_buffer_size)
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
