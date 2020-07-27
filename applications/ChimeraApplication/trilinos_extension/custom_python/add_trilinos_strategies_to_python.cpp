@@ -30,7 +30,6 @@
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/trilinos_block_builder_and_solver_with_constraints.h"
-#include "custom_strategies/strategies/fs_strategy.h"
 #include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
