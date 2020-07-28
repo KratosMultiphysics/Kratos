@@ -43,7 +43,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         Set boundary_condition_type:
         1. penalty
         2. lagrange (WIP)
-        3. fixdof (WIP)
+        3. fixdof 
         """
 
         # set type of boundary
