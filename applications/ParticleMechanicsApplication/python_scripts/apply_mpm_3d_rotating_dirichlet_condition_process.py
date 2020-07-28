@@ -43,7 +43,7 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
         settings.RemoveValue("rotation_option")
 
         # Initiate base class - Dirichlet condition
-        super(ApplyMPM3DRotatingDirichletConditionProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -63,35 +63,37 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
     def ExecuteInitializeSolutionStep(self):
 
         # If compute rotation center automatically is needed and if the center is moved
-        if (self.compute_rotation_center and self.rotation_option == "moving_center"):
+        if self.compute_rotation_center and self.rotation_option == "moving_center":
             self._ComputeCenterRotation()
 
         # Compute delta quaternion
         self._ComputeDeltaQuaternion(self.rotation_velocity)
-
-        # Compute quaternion multiplication
-        self._quaternion = self._MultiplyQuaternion(self._delta_quaternion, self._quaternion)
-
+        
+        self._quaternion = self._quaternion.MultiplyQuaternion(self._delta_quaternion, self._quaternion)
+        
         # Normalize quaternion
-        self._NormalizeQuaternion(self._quaternion)
-
+        self._quaternion.Normalize()
+        
         # Compute rotation matrix
-        new_rotation_matrix = self._ComputeRotationMatrixFromQuaternion(self._quaternion)
+        new_rotation_matrix = KratosMultiphysics.Matrix(3,3)
+        self._quaternion.ToRotationMatrix(new_rotation_matrix)
 
         for mpc in self.model_part.Conditions:
             # Compute current radius
-            xg_c = mpc.GetValue(KratosParticle.MPC_COORD)
-            radius = xg_c - self.rotation_center
+            mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
+            radius = mpc_coord - self.rotation_center
 
             # Update impose_displacement
-            imposed_disp = mpc.GetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT)
-            imposed_disp += new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * radius) - radius
-            mpc.SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT, imposed_disp)
+            imposed_disp = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,self.model_part.ProcessInfo)[0]
+            
+            imposed_disp += new_rotation_matrix * (self._rotation_matrix.transpose() * radius) - radius
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[imposed_disp],self.model_part.ProcessInfo)
 
             # Update normal vector
-            normal = mpc.GetValue(KratosParticle.MPC_NORMAL)
-            modified_normal = new_rotation_matrix * (self._TransposeMatrix(self._rotation_matrix) * normal)
-            mpc.SetValue(KratosParticle.MPC_NORMAL, modified_normal)
+            normal = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_NORMAL,self.model_part.ProcessInfo)[0]
+            modified_normal = new_rotation_matrix * (self._rotation_matrix.transpose() * normal)
+            mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_NORMAL,[modified_normal],self.model_part.ProcessInfo)
+
 
         # Copy rotation matrix
         self._rotation_matrix = new_rotation_matrix
@@ -100,28 +102,23 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
     def _ComputeCenterRotation(self):
         auto_rc = KratosMultiphysics.Vector(3)
         for mpc in self.model_part.Conditions:
-            auto_rc += mpc.GetValue(KratosParticle.MPC_COORD)
+            auto_rc += mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
 
         auto_rc = auto_rc / self.model_part.NumberOfConditions()
         self.rotation_center = auto_rc
 
     def _InitializeRotationVariables(self):
-        self._quaternion = KratosMultiphysics.Vector(4)
-        self._quaternion[0] = 1.0
-        self._quaternion[1] = 0.0
-        self._quaternion[2] = 0.0
-        self._quaternion[3] = 0.0
-
-        self._delta_quaternion = self._quaternion
+        self._quaternion = KratosMultiphysics.Quaternion()
+        self._quaternion = self._quaternion.Identity()
+        
+        self._delta_quaternion = KratosMultiphysics.Quaternion()
+        self._delta_quaternion = self._delta_quaternion.Identity()
 
         self._rotation_matrix = KratosMultiphysics.Matrix(3,3)
-        self._rotation_matrix.fill(0.0)
-        self._rotation_matrix[0,0] = 1.0
-        self._rotation_matrix[1,1] = 1.0
-        self._rotation_matrix[2,2] = 1.0
+        self._rotation_matrix.fill_identity()
 
     def _ComputeDeltaQuaternion(self, rot_velocity):
-        if((not isinstance(rot_velocity, KratosMultiphysics.Vector)) and rot_velocity.Size() != 3):
+        if (not isinstance(rot_velocity, KratosMultiphysics.Vector)) and rot_velocity.Size() != 3:
             raise Exception("expected input shall be a KratosMultiphysics.Vector object with size 3")
 
         omega = math.sqrt(rot_velocity[0]*rot_velocity[0] + rot_velocity[1]*rot_velocity[1] + rot_velocity[2]*rot_velocity[2])
@@ -129,62 +126,9 @@ class ApplyMPM3DRotatingDirichletConditionProcess(ApplyMPMParticleDirichletCondi
             omega = 1.e-12
 
         dt = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-        self._delta_quaternion[0] = math.cos(omega * dt / 2.0)
-        self._delta_quaternion[1] = math.sin(omega * dt / 2.0) * rot_velocity[0] / omega
-        self._delta_quaternion[2] = math.sin(omega * dt / 2.0) * rot_velocity[1] / omega
-        self._delta_quaternion[3] = math.sin(omega * dt / 2.0) * rot_velocity[2] / omega
-
-    def _MultiplyQuaternion(self, p, q):
-        if((not isinstance(p, KratosMultiphysics.Vector)) and p.Size() != 4):
-            raise Exception("expected input: p shall be a KratosMultiphysics.Vector object with size 4")
-        if((not isinstance(q, KratosMultiphysics.Vector)) and q.Size() != 4):
-            raise Exception("expected input: q shall be a KratosMultiphysics.Vector object with size 4")
-
-        result = KratosMultiphysics.Vector(4)
-        result[0] = p[0]*q[0] - p[1]*q[1] - p[2]*q[2] - p[3]*q[3]
-        result[1] = p[0]*q[1] + p[1]*q[0] + p[2]*q[3] - p[3]*q[2]
-        result[2] = p[0]*q[2] - p[1]*q[3] + p[2]*q[0] + p[3]*q[1]
-        result[3] = p[0]*q[3] + p[1]*q[2] - p[2]*q[1] + p[3]*q[0]
-
-        return result
-
-    def _NormalizeQuaternion(self, q):
-        if((not isinstance(q, KratosMultiphysics.Vector)) and q.Size() != 4):
-            raise Exception("expected input shall be a KratosMultiphysics.Vector object with size 4")
-
-        len_q = math.sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
-        if (len_q < 1.e-16):
-            len_q = 1.e-16
-
-        q = q/len_q
-
-    def _ComputeRotationMatrixFromQuaternion(self, q):
-        if((not isinstance(q, KratosMultiphysics.Vector)) and q.Size() != 4):
-            raise Exception("expected input shall be a KratosMultiphysics.Vector object with size 4")
-
-        rot_mat = KratosMultiphysics.Matrix(3,3)
-        rot_mat[0,0] = 2.0 * (q[0]*q[0] + q[1]*q[1]) - 1.0
-        rot_mat[0,1] = 2.0 * (q[1]*q[2] - q[0]*q[3])
-        rot_mat[0,2] = 2.0 * (q[1]*q[3] + q[0]*q[2])
-
-        rot_mat[1,0] = 2.0 * (q[1]*q[2] + q[0]*q[3])
-        rot_mat[1,1] = 2.0 * (q[0]*q[0] + q[2]*q[2]) - 1.0
-        rot_mat[1,2] = 2.0 * (q[2]*q[3] - q[0]*q[1])
-
-        rot_mat[2,0] = 2.0 * (q[1]*q[3] - q[0]*q[2])
-        rot_mat[2,1] = 2.0 * (q[2]*q[3] + q[0]*q[1])
-        rot_mat[2,2] = 2.0 * (q[0]*q[0] + q[3]*q[3]) - 1.0
-
-        return rot_mat
-
-    def _TransposeMatrix(self, A):
-        if(not isinstance(A, KratosMultiphysics.Matrix)):
-            raise Exception("expected input shall be a KratosMultiphysics.Matrix object with equal number of row-column (square)")
-
-        result = KratosMultiphysics.Matrix(A.Size2(),A.Size1())
-        for i in range (A.Size1()):
-            for j in range (A.Size2()):
-                result[j,i] = A[i,j]
-
-        return result 
+        
+        self._delta_quaternion = KratosMultiphysics.Quaternion()
+        self._delta_quaternion.W = math.cos(omega * dt / 2.0)
+        self._delta_quaternion.X = math.sin(omega * dt / 2.0) * rot_velocity[0] / omega
+        self._delta_quaternion.Y = math.sin(omega * dt / 2.0) * rot_velocity[1] / omega
+        self._delta_quaternion.Z = math.sin(omega * dt / 2.0) * rot_velocity[2] / omega

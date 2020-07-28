@@ -354,6 +354,9 @@ namespace MPMParticleGeneratorUtility
                         // Check Normal direction
                         if (flip_normal_direction) mpc_normal *= -1.0;
 
+                        // Check Normal direction
+                        if (flip_normal_direction) mpc_normal *= -1.0;
+
                         // 1. Loop over the conditions to create inner particle condition
                         unsigned int new_condition_id = 0;
                         for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
@@ -371,7 +374,6 @@ namespace MPMParticleGeneratorUtility
                                 }
                             }
 
-                            
 
                             ProcessInfo process_info = ProcessInfo();
 
@@ -403,6 +405,13 @@ namespace MPMParticleGeneratorUtility
                                 }
                                 
 
+                                if (boundary_condition_type == 1)
+                                {
+                                    std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
+                                    p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+                                }
+                                    
+
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
@@ -427,6 +436,7 @@ namespace MPMParticleGeneratorUtility
                             if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
                             const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
                             if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
+
 
                             // Create new material point condition
                             new_condition_id = last_condition_id + j;
