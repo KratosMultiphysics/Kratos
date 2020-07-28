@@ -17,6 +17,7 @@
 #include "custom_utilities/perturb_geometry_base_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -39,12 +40,14 @@ void PerturbGeometryBaseUtility::ApplyRandomFieldVectorsToGeometry( ModelPart& r
 
     std::vector<double> random_field(num_of_nodes,0.0);
 
-    #pragma omp parallel for
-    for( int i = 0; i < num_of_nodes; i++ ){
-        for( int j = 0; j < num_of_random_variables; j++){
-            random_field[i] += variables[j]* rPerturbationMatrix(i,j);
+    // Fill random field vector
+    IndexPartition<unsigned int>(num_of_nodes).for_each(
+        [num_of_random_variables, &random_field, &variables, &rPerturbationMatrix](unsigned int i){
+            for( int j = 0; j < num_of_random_variables; j++){
+                random_field[i] += variables[j]* rPerturbationMatrix(i,j);
+            }
         }
-    }
+    );
 
     // Shift random field to zero mean
     double shifted_mean = 1.0 / num_of_nodes * std::accumulate(random_field.begin(), random_field.end(), 0.0);

@@ -134,13 +134,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
       virtual std::string Info() const
       {
           std::stringstream buffer;
-          buffer << "OpenMPNodeSearch" ;
+          buffer << "NodeSearchUtility" ;
 
           return buffer.str();
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "OpenMPNodeSearch";}
+      virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "NodeSearchUtility";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const  {}

@@ -17,7 +17,7 @@
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/node_search_utility.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -59,7 +59,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
 
     KRATOS_INFO_IF("PerturbGeometrySparseUtility: Build Correlation Matrix Time", mEchoLevel > 0)
             << assemble_cl_matrix_timer.ElapsedSeconds() << std::endl
-            << (double) counter / (double)(number_of_nodes*number_of_nodes) * 100 << "% of Matrix is populated" << std::endl;
+            << (double) counter / ((double)number_of_nodes*(double)number_of_nodes) * 100.0 << "% of Matrix is populated" << std::endl;
 
     DenseMatrixType eigenvectors;
     DenseVectorType eigenvalues;
@@ -108,12 +108,13 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
 
     // Assemble perturbation matrix
     BuiltinTimer assemble_random_field_time;
-    #pragma omp parallel for
-    for( int i = 0; i < number_of_nodes; i++){
-        for( int j = 0; j < number_of_random_variables; j++){
-            rPerturbationMatrix(i,j) = std::sqrt(eigenvalues(j)) * inner_prod(row(eigenvectors,j),  row( correlation_matrix, i));
+    IndexPartition<unsigned int>(number_of_nodes).for_each(
+        [number_of_random_variables,&eigenvalues,&eigenvectors,&correlation_matrix,&rPerturbationMatrix](unsigned int i){
+            for( int j = 0; j < number_of_random_variables; j++){
+                rPerturbationMatrix(i,j) = std::sqrt(eigenvalues(j)) * inner_prod(row(eigenvectors,j),  row( correlation_matrix, i));
+            }
         }
-    }
+    );
 
     KRATOS_INFO_IF("PerturbGeometrySparseUtility: Assemble Random Field Time", mEchoLevel > 0)
         << assemble_random_field_time.ElapsedSeconds() << std::endl;
