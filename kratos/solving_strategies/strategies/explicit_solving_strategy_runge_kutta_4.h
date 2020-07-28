@@ -153,19 +153,16 @@ public:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
-    const Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const override
     {
-        Parameters class_default_parameters = Parameters(R"(
+        Parameters default_parameters = Parameters(R"(
         {
             "name" : "explicit_solving_strategy_runge_kutta_4"
         })");
 
         // Getting base class default parameters
         const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        class_default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-
-        const Parameters default_parameters(class_default_parameters);
-
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;
     }
 

@@ -411,7 +411,7 @@ public:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
-    virtual const Parameters GetDefaultParameters() const
+    virtual Parameters GetDefaultParameters() const
     {
         const Parameters default_parameters = Parameters(R"(
         {
