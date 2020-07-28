@@ -657,23 +657,27 @@ namespace MPMSearchElementUtility
 
 
 
-    inline typename Geometry<Node<3>>::Pointer PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
+    inline void PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         const array_1d<double, 3>& rLocalCoords,
         Element& rMasterMaterialPoint,
-        GeometryType& rGeometry,
+        typename GeometryType::Pointer pGeometry,
         const double Tolerance)
     {
         KRATOS_TRY;
 
         // If axisymmetric make normal MP
         if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC)) {
-            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC))
-                return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                    rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+            if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)) {
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pGeometry, rLocalCoords,
+                    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    (pGeometry->GetGeometryParent(0)));
+                return;
+            }
         }
 
-        const SizeType working_dim = rGeometry.WorkingSpaceDimension();
+        const SizeType working_dim = pGeometry->WorkingSpaceDimension();
         const double pqmpm_min_fraction = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION))
             ? std::max(rBackgroundGridModelPart.GetProcessInfo()[PQMPM_SUBPOINT_MIN_VOLUME_FRACTION], std::numeric_limits<double>::epsilon())
             : std::numeric_limits<double>::epsilon();
@@ -688,10 +692,13 @@ namespace MPMSearchElementUtility
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
-        if (mp_volume_vec[0] <= rGeometry.DomainSize()) {
-            if (CheckAllPointsAreInGeom(master_domain_points, rGeometry, Tolerance)) {
-                return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                    rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+        if (mp_volume_vec[0] <= pGeometry->DomainSize()) {
+            if (CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance)) {
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pGeometry, rLocalCoords,
+                    rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    (pGeometry->GetGeometryParent(0)));
+                return;
             }
         }
 
@@ -705,7 +712,7 @@ namespace MPMSearchElementUtility
 
         // Do neighbour searching to determine the intersected geometries
         IndexType recursion_count = 0;
-        intersected_geometries.push_back(&rGeometry);
+        intersected_geometries.push_back(pGeometry.get());
         RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
             intersected_geometries, point_low , point_high , recursion_count,
             rCoordinates, side_half_length);
@@ -760,16 +767,24 @@ namespace MPMSearchElementUtility
                     if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
                     else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
                     else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
-                    if (is_fixed) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                        rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+                    if (is_fixed) {
+                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                            pGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                            (pGeometry->GetGeometryParent(0)));
+                        return;
+                    }
 
                     active_node_index += 1;
                 }
                 active_subpoint_index += 1;
             }
         }
-        if (active_subpoint_index == 1) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-            rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+        if (active_subpoint_index == 1) {
+            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                pGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                (pGeometry->GetGeometryParent(0)));
+            return;
+        }
 
         IntegrationPointsArrayType ips_active(active_subpoint_index);
         PointerVector<Node<3>> nodes_list_active(active_node_index);
@@ -790,8 +805,12 @@ namespace MPMSearchElementUtility
         if (std::abs(vol_sum - 1.0) > Tolerance) {
             const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS))
                 ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS) : false;
-            if (is_pqmpm_fallback) return CreateQuadraturePointsUtility<Node<3>>::CreateFromLocalCoordinates(
-                rGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight());
+            if (is_pqmpm_fallback) {
+                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    pGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    (pGeometry->GetGeometryParent(0)));
+                return;
+            }
             else {
                 #pragma omp critical
                 KRATOS_INFO("MPMSearchElementUtility::Check")
@@ -808,7 +827,7 @@ namespace MPMSearchElementUtility
         } else CheckPQMPM(ips_active, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
 
         // Transfer data over
-        GeometryData::IntegrationMethod ThisDefaultMethod = rGeometry.GetDefaultIntegrationMethod();
+        GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
         IntegrationPointsContainerType ips_container;
         ips_container[ThisDefaultMethod] = ips_active;
         ShapeFunctionsValuesContainerType shape_function_container;
@@ -819,8 +838,15 @@ namespace MPMSearchElementUtility
             ips_container, shape_function_container, shape_function_derivatives_container);
 
         for (size_t i = 0; i < nodes_list_active.size(); ++i) nodes_list_active[i].Set(ACTIVE);
-        return CreateCustomQuadraturePoint(working_dim, rGeometry.LocalSpaceDimension(),
-            data_container, nodes_list_active, &rGeometry);
+
+        if (pGeometry->IntegrationPointsNumber() != 1) {
+            pGeometry = CreateCustomQuadraturePoint(working_dim, pGeometry->LocalSpaceDimension(),
+                data_container, nodes_list_active, &(pGeometry->GetGeometryParent(0)));
+        }
+        else {
+            pGeometry->Points() = nodes_list_active;
+            pGeometry->SetGeometryShapeFunctionContainer(data_container);
+        }
 
         KRATOS_CATCH("");
     }
@@ -874,17 +900,16 @@ namespace MPMSearchElementUtility
     }
 
 
-    inline typename Geometry<Node<3>>::Pointer CreateQuadraturePointForBinSearch(const ModelPart& rBackgroundGridModelPart,
+    inline void UpdatePartitionedQuadraturePoint(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         Element& rMasterMaterialPoint,
-        GeometryType::Pointer pGeometry,
+        GeometryType::Pointer pQuadraturePointGeometry,
         const double Tolerance)
     {
-
         array_1d<double, 3> local_coords;
-        pGeometry->IsInside(rCoordinates, local_coords, Tolerance);
-        return PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, rCoordinates,
-            local_coords, rMasterMaterialPoint, *pGeometry, Tolerance);
+        pQuadraturePointGeometry->IsInside(rCoordinates, local_coords, Tolerance);
+        PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, rCoordinates,
+            local_coords, rMasterMaterialPoint, pQuadraturePointGeometry, Tolerance);
     }
 
 
@@ -911,10 +936,9 @@ namespace MPMSearchElementUtility
                     ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
                 if (is_pqmpm)
                 {
-                    auto p_new_geometry = PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0],
-                        local_coordinates, *element_itr, r_found_geom, Tolerance);
-                    // Update geometry of particle element
-                    element_itr->SetGeometry(p_new_geometry);
+                    // Updates the quadrature point geometry.
+                    PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0],
+                        local_coordinates, *element_itr, element_itr->pGetGeometry(), Tolerance);
                 }
                 else
                 {
@@ -1052,10 +1076,9 @@ namespace MPMSearchElementUtility
                         ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM) : false;
                     if (is_pqmpm)
                     {
-                        auto p_new_geometry = CreateQuadraturePointForBinSearch(rBackgroundGridModelPart, xg[0],
+                        // Updates the quadrature point geometry.
+                        UpdatePartitionedQuadraturePoint(rBackgroundGridModelPart, xg[0],
                             *element_itr, pelem->pGetGeometry(), Tolerance);
-                        // Update geometry of particle element
-                        element_itr->SetGeometry(p_new_geometry);
                     }
                     else
                     {
