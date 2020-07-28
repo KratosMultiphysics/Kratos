@@ -9,7 +9,7 @@ from KratosMultiphysics import eigen_solver_factory
 import random
 
 class PerturbGeometrySparseUtility():
-    """A utility to perturb the initial geometry of a structure
+    """An utility to perturb the initial geometry of a structure
     based on a sparse correlation matrix.
     """
     def __init__(self, mp, settings ):
@@ -21,8 +21,8 @@ class PerturbGeometrySparseUtility():
             "eigensolver_settings"  : {
                 "solver_type"               : "eigen_eigensystem",
                 "max_iteration"             : 1000,
-                "tolerance"                 : 1e-6,
-                "number_of_eigenvalues"     : 1,
+                "tolerance"                 : 1e-4,
+                "number_of_eigenvalues"     : 100,
 		        "normalize_eigenvectors"    : false,
                 "echo_level"                : 0
                 },

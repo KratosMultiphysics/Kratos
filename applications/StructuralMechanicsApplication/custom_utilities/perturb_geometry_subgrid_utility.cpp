@@ -114,7 +114,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
 
     // Get and resize final perturbation matrix
     DenseMatrixType& rPerturbationMatrix = *mpPerturbationMatrix;
-    rPerturbationMatrix.resize(num_of_nodes,num_random_variables);
+    rPerturbationMatrix.resize(num_of_nodes, num_random_variables);
 
     // Construct Correlation vector
     DenseVectorType correlation_vector;

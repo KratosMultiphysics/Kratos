@@ -44,9 +44,9 @@ namespace Kratos {
 /**
  * @class NodeConfigureForNodeSearch
  * @ingroup StructuralMechanicsApplication
- * @brief Configuration file for Nodes.
+ * @brief Configuration file for nodes.
  * @details This class provides a configuration file for nodes to perform a node search
- * depending on the euclidean distance between two nodes
+ * depending on the euclidean distance between two nodes.
  * @author Manuel Messmer
  */
 

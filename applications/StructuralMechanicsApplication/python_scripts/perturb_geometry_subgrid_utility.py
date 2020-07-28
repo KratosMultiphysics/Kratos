@@ -9,7 +9,7 @@ from KratosMultiphysics import eigen_solver_factory
 import random
 
 class PerturbGeometrySubgridUtility():
-    """A utility to perturb the initial geometry of a structure
+    """An utility to perturb the initial geometry of a structure
     based on a reduced correlation matrix.
     """
     def __init__(self, mp, settings ):

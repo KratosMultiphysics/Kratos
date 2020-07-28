@@ -35,6 +35,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     SparseMatrixType correlation_matrix;
     correlation_matrix.resize(number_of_nodes,number_of_nodes,false);
     TSparseSpaceType::SetToZero(correlation_matrix);
+
     // Construct and initialize searcher
     NodeSearchUtility searcher(nodes);
 
@@ -47,7 +48,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
         // Add current nodes to results
         results = { mrInitialModelPart.Nodes().GetContainer()[i] };
         // Find all neighbouring nodes
-        searcher.SearchNodesInRadius(*it_node, 3*mCorrelationLength, results);
+        searcher.SearchNodesInRadius(*it_node, 3.0*mCorrelationLength, results);
         for( size_t j = 0; j < results.size(); j++){
             counter++;
             int index = results[j]->GetId() - 1;
@@ -109,7 +110,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     // Assemble perturbation matrix
     BuiltinTimer assemble_random_field_time;
     IndexPartition<unsigned int>(number_of_nodes).for_each(
-        [number_of_random_variables,&eigenvalues,&eigenvectors,&correlation_matrix,&rPerturbationMatrix](unsigned int i){
+        [number_of_random_variables, &eigenvalues, &eigenvectors, &correlation_matrix, &rPerturbationMatrix](unsigned int i){
             for( int j = 0; j < number_of_random_variables; j++){
                 rPerturbationMatrix(i,j) = std::sqrt(eigenvalues(j)) * inner_prod(row(eigenvectors,j),  row( correlation_matrix, i));
             }

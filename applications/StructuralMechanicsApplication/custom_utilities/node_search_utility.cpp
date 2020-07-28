@@ -28,10 +28,10 @@ void NodeSearchUtility::SearchNodesInRadius(
     ResultNodesContainerType local_results(mMaxNumberOfNodes);
     std::size_t num_of_results = 0;
 
-    ResultNodesContainerType::iterator ResultsPointer = local_results.begin();
+    ResultNodesContainerType::iterator results_iterator = local_results.begin();
     NodeType::Pointer p_node = &rNode;
 
-    num_of_results = mBins->SearchObjectsInRadius(p_node, Radius, ResultsPointer, mMaxNumberOfNodes);
+    num_of_results = mpBins->SearchObjectsInRadius(p_node, Radius, results_iterator, mMaxNumberOfNodes);
 
     rResults.insert(rResults.begin(), local_results.begin(), local_results.begin() + num_of_results);
 

@@ -24,8 +24,8 @@ class SubgridUtilityCustom(PerturbGeometrySubgridUtility):
         # Apply random field vectors to geometry
         self.utility.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
 
-# This test generates a random field for a square plate with 5x5 nodes with the sparse and the subgrid method
-# The test is passed when the first perturbation vectors from both models are equal
+# This test generates a random field for a square plate with 5x5 nodes with the sparse and the subgrid method.
+# The test is passed when the first perturbation vectors from both models are equal.
 class BaseTestPerturbGeometryUtility(KratosUnittest.TestCase):
     """BaseTestPerturbGeometryUtility
     Base class of the test

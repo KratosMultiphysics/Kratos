@@ -40,8 +40,8 @@ namespace Kratos
 /**
  * @class PerturbGeometrySubgridUtility
  * @ingroup StructuralMechanicsApplication
- * @brief This class generates a random field based on a reduced correlation matrix
- * @details Random field is used to perturb initial geometry
+ * @brief This class generates a random field based on a reduced correlation matrix.
+ * @details Random field is used to perturb initial geometry.
  * @author Manuel Messmer
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySubgridUtility

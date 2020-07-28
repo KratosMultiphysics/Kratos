@@ -86,7 +86,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
       NodeSearchUtility(NodesContainerType& rStructureNodes) {
         KRATOS_TRY;
         NodesContainerType::ContainerType& nodes_model_part = rStructureNodes.GetContainer();
-        mBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
+        mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
         mMaxNumberOfNodes = rStructureNodes.size();
         KRATOS_CATCH("");
       }
@@ -199,7 +199,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
       ///@}
       ///@name Member Variables
       ///@{
-      Kratos::unique_ptr<NodeBinsType> mBins;
+      Kratos::unique_ptr<NodeBinsType> mpBins;
 
       int mMaxNumberOfNodes;
       ///@}
