@@ -47,14 +47,16 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     // Generate reduced space
     // It is assumed that the reduced space contains less the 50% of all ndoes
     reduced_space_nodes.reserve((int)0.5*num_of_nodes);
-    for (ModelPart::NodeIterator it_node = mrInitialModelPart.NodesBegin(); it_node != mrInitialModelPart.NodesEnd(); it_node++){
+    const auto it_node_begin = mrInitialModelPart.NodesBegin();
+    for(int i = 0; i < num_of_nodes; ++i){
+        auto it_node = it_node_begin + i;
         if(!it_node->Is(VISITED)) {
             it_node->Set(VISITED,true);
             reduced_space_nodes.push_back(&(*it_node));
             results = {};
             searcher.SearchNodesInRadius(*it_node, radius, results);
-            for(size_t i = 0; i < results.size(); i++){
-                results[i]->Set(VISITED,true);
+            for(std::size_t j = 0; j < results.size(); ++j){
+                results[j]->Set(VISITED,true);
             }
         }
     }
@@ -96,10 +98,10 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     double reduced_sum_eigenvalues = 0.0;
     int num_eigenvalues_required = 0;
 
-    for( size_t i = 0; i < eigenvalues.size(); i++){
+    for( std::size_t i = 0; i < eigenvalues.size(); ++i){
         total_sum_eigenvalues += eigenvalues(i);
     }
-    for( size_t i = 0; i < eigenvalues.size(); i++){
+    for( std::size_t i = 0; i < eigenvalues.size(); ++i){
         reduced_sum_eigenvalues += eigenvalues(i);
         num_eigenvalues_required++;
         if( reduced_sum_eigenvalues > (1 - mTruncationError)*total_sum_eigenvalues){
@@ -121,7 +123,6 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
     correlation_vector.resize(num_nodes_reduced_space);
     // Generate random field over full domain
     BuiltinTimer assemble_random_field_time;
-    const auto it_node_begin = mrInitialModelPart.NodesBegin();
     #pragma omp parallel for firstprivate(correlation_vector)
     for( int i = 0; i < num_of_nodes; i++){
         auto it_node = it_node_begin + i;
