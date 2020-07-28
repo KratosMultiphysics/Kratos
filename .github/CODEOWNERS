@@ -15,3 +15,5 @@
 /applications/MappingApplication/                      @KratosMultiphysics/cosimulation
 /applications/CoSimulationApplication/                 @KratosMultiphysics/cosimulation
 /applications/MeshMovingApplication/                   @KratosMultiphysics/meshmoving
+/applications/DEMApplication/                          @KratosMultiphysics/dem
+/applications/SwimmingDEMApplication/                  @KratosMultiphysics/dem
