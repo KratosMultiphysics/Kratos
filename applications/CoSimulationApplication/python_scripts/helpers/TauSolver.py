@@ -254,12 +254,16 @@ for i in range(n_steps):
     SolveSolutionStep()
 
     if not coupling_interface_imported:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+        if tau_mpi_rank() == 0:
+            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+        tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface")
         ExportMesh(connection_name, "LowerInterface")
         coupling_interface_imported = True
 
-    TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+    if tau_mpi_rank() == 0:
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
+    tau_parallel_sync()
     ExportData(connection_name, "Upper_Interface_force")
     ExportData(connection_name, "Lower_Interface_force")
 
