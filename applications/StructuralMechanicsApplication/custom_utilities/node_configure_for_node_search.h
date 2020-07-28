@@ -21,23 +21,9 @@
 #include "spatial_containers/spatial_search.h"
 
 namespace Kratos {
-
-///@name Kratos Globals
+///@addtogroup StructuralMechanicsApplication
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -93,10 +79,6 @@ public:
 
     /// Default destructor
     virtual ~NodeConfigureForNodeSearch(){}
-
-    ///@}
-    ///@name Operators
-    ///@{
 
     ///@}
     ///@name Operations
@@ -221,62 +203,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -289,11 +218,6 @@ private:
     ///@}
 
     }; // Class NodeConfigureForNodeSearch
-
-    ///@}
-
-    ///@name Type Definitions
-    ///@{
 
     ///@}
     ///@name Input and output
@@ -314,7 +238,9 @@ private:
         return rOStream;
         }
 
-    ///@}
+///@}
+
+///@} addtogroup block
 
 }   // namespace Kratos.
 #endif	/* KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H */

@@ -20,28 +20,18 @@
 #include "custom_utilities/perturb_geometry_base_utility.h"
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-///@name Kratos Globals
+namespace Kratos {
+///@addtogroup StructuralMechanicsApplication
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
+///@name Kratos Classes
 ///@{
 
 /**
  * @class PerturbGeometrySparseUtility
  * @ingroup StructuralMechanicsApplication
- * @brief This class generates a random field based on a sparse correlation matrix
- * @details Random field is used to perturb initial geometry
+ * @brief This class generates a random field based on a sparse correlation matrix.
+ * @details Random field is used to perturb initial geometry.
  * @author Manuel Messmer
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometrySparseUtility
@@ -78,26 +68,6 @@ public:
     = default;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -108,20 +78,6 @@ public:
      * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix (colum-wise).
      */
     int CreateRandomFieldVectors() override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -141,80 +97,12 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     LinearSolverPointerType mpEigenSolver;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     /// Assignment operator.
     PerturbGeometrySparseUtility& operator=(PerturbGeometrySparseUtility const& rOther) = delete;
@@ -222,20 +110,12 @@ private:
     /// Copy constructor.
     PerturbGeometrySparseUtility(PerturbGeometrySparseUtility const& rOther) = delete;
 
-
     ///@}
 
-}; // Class PerturbGeometrySparseUtility
+    }; // Class PerturbGeometrySparseUtility
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
+///@} addtogroup block
 }
 #endif /* KRATOS_PERTUB_GEOMETRY_SPARSE_UTILITY defined */

@@ -28,25 +28,10 @@
 
 // External includes
 
-namespace Kratos
-{
-
-///@name Kratos Globals
+namespace Kratos {
+///@addtogroup StructuralMechanicsApplication
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -96,10 +81,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
       }
 
       ///@}
-      ///@name Operators
-      ///@{
-
-      ///@}
       ///@name Operations
       ///@{
 
@@ -115,16 +96,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
           NodeType& rNode,
           double const Radius,
           ResultNodesContainerType& rResults );
-
-      ///@}
-      ///@name Access
-      ///@{
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
 
       ///@}
       ///@name Input and output
@@ -145,82 +116,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const  {}
 
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
       ///@}
 
     private:
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
       ///@name Member Variables
       ///@{
       Kratos::unique_ptr<NodeBinsType> mpBins;
 
       int mMaxNumberOfNodes;
-      ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-      ///
 
       ///@}
       ///@name Un accessible methods
@@ -242,15 +145,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
 
     }; // Class NodeSearchUtility
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@} addtogroup block
 
 }  // namespace Kratos.
 

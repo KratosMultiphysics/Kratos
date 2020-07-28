@@ -23,27 +23,17 @@
 #include "utilities/mortar_utilities.h"
 
 
-namespace Kratos
-{
-///@name Kratos Globals
+namespace Kratos {
+///@addtogroup StructuralMechanicsApplication
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
+///@name Kratos Classes
 ///@{
 
 /**
  * @class PerturbGeometryBaseUtility
  * @ingroup StructuralMechanicsApplication
- * @brief Base class for geometry perturbation utilities
+ * @brief Base class for geometry perturbation utilities.
  * @author Manuel Messmer
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometryBaseUtility
@@ -87,26 +77,6 @@ public:
     virtual ~PerturbGeometryBaseUtility() {}
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -118,16 +88,6 @@ public:
      * @param random_field Random field vector. Stores nodal deviations.
      */
     void ApplyRandomFieldVectorsToGeometry(ModelPart& rThisModelPart, const std::vector<double>& variables );
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -151,18 +111,9 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
 
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
@@ -177,11 +128,6 @@ protected:
     int mEchoLevel;
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -192,54 +138,13 @@ protected:
     double CorrelationFunction( ModelPart::NodeType& itNode1, ModelPart::NodeType& itNode2, double CorrelationLenth);
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     double mMaximalDisplacement;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     /// Assignment operator.
     PerturbGeometryBaseUtility& operator=(PerturbGeometryBaseUtility const& rOther) = delete;
@@ -247,20 +152,12 @@ private:
     /// Copy constructor.
     PerturbGeometryBaseUtility(PerturbGeometryBaseUtility const& rOther) = delete;
 
-
     ///@}
 
-}; // Class PerturbGeometryBaseUtility
+    }; // Class PerturbGeometryBaseUtility
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
+///@} addtogroup block
 }
 #endif /* KRATOS_PERTURB_GEOMETRY_BASE_UTILITY defined */

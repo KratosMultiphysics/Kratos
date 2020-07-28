@@ -20,21 +20,11 @@
 #include "custom_utilities/perturb_geometry_base_utility.h"
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-///@name Kratos Globals
+namespace Kratos {
+///@addtogroup StructuralMechanicsApplication
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
+///@name Kratos Classes
 ///@{
 
 /**
@@ -77,26 +67,6 @@ public:
     = default;
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -107,16 +77,6 @@ public:
      * @param rPerturbationMatrix Perturbation matrix. Stores eigenvectors of correlation matrix (column-wise).
      */
     int CreateRandomFieldVectors() override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -140,82 +100,13 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     LinearSolverPointerType mpEigenSolver;
     double mMinDistanceSubgrid;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     /// Assignment operator.
     PerturbGeometrySubgridUtility& operator=(PerturbGeometrySubgridUtility const& rOther) = delete;
@@ -225,16 +116,10 @@ private:
 
     ///@}
 
-}; // Class PerturbGeometrySubgridUtility
+    }; // Class PerturbGeometrySubgridUtility
 
 ///@}
-///@name Type Definitions
-///@{
 
-
-///@}
-///@name Input and output
-///@{
-
+///@} addtogroup block
 }
 #endif /* KRATOS_PERTURB_GEOMETRY_SUBGRID_UTILITY defined */
