@@ -10,3 +10,4 @@
 # Applications
 /applications/TrilinosApplication/              @KratosMultiphysics/technical-committee
 /applications/MetisApplication/                 @KratosMultiphysics/technical-committee
+/applications/StructuralMechanicsApplication/   @KratosMultiphysics/structural-mechanics
