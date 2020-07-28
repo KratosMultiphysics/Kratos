@@ -73,9 +73,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         self.fluid_model_part.HasSolutionStepVariable(KratosRANS.EFFECTIVE_WAVE_NUMBER)
         self.fluid_model_part.HasSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         self.fluid_model_part.HasSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
-        self.fluid_model_part.HasVariable(KratosRANS.KINEMATIC_VISCOSITY)
-
-        super(GenerateVelocityFluctuation, self).AddVariables()
+        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.KINEMATIC_VISCOSITY)
 
     def ExecuteFinalizeSolutionStep(self):
 
