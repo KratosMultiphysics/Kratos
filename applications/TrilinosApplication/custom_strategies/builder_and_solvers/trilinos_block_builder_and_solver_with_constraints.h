@@ -500,8 +500,6 @@ protected:
                     TSparseSpace::Copy(mod_a, rA);
                 }
             }
-
-            TSparseSpace::WriteMatrixMarketMatrix("A_mod.mm", rA, false);
         }
     }
 
