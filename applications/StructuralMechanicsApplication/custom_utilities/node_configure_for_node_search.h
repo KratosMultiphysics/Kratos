@@ -219,7 +219,8 @@ private:
 
     }; // Class NodeConfigureForNodeSearch
 
-    ///@}
+///@} Kratos classes
+
     ///@name Input and output
     ///@{
 
@@ -238,7 +239,7 @@ private:
         return rOStream;
         }
 
-///@}
+    ///@}
 
 ///@} addtogroup block
 
