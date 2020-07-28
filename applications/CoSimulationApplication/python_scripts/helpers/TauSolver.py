@@ -169,6 +169,9 @@ def ImportData(conn_name, identifier):
         if tau_mpi_rank() == 0:
             new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
+            with open('new_displacement_up' + str(step) + '.dat','w') as fname:
+               for i in range(len(new_displacements)):
+                   fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
         tau_parallel_sync()
     elif identifier == "Lower_Interface_disp":
         Para_origin_down = PyPara.Parafile(para_path_down)
@@ -199,6 +202,10 @@ def ExportData(conn_name, identifier):
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
             forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP")
+            with open('forces_up' + str(step) + '.dat','w') as fname:
+               for i in range(len(forces)/3):
+                   fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
+
         elif identifier == "Lower_Interface_force":
             forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN")
         else:
