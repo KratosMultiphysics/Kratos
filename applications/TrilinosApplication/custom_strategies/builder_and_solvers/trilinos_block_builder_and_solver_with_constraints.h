@@ -15,6 +15,7 @@
 
 /* System includes */
 #include <set>
+#include <chrono>
 
 /* External includes */
 
@@ -280,12 +281,19 @@ public:
         TSparseSpace::Clear(p_Dx);
         TSparseSpace::Clear(p_b);
         TSparseSpace::Clear(p_A);
-
+        auto start_build_time = std::chrono::steady_clock::now();
         Build(pScheme, rModelPart, rA, rb);
+        auto end_build_time = std::chrono::steady_clock::now();
+        KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                <<"Build time : "<< std::chrono::duration_cast<std::chrono::seconds>(end_build_time - start_build_time).count() <<"s"<<std::endl;
 
         const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
         if(global_num_constraints > 0) {
+            auto start_ac_time = std::chrono::steady_clock::now();
             ApplyConstraints(pScheme, rModelPart, rA, rb);
+            auto end_ac_time = std::chrono::steady_clock::now();
+            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                    <<"Apply constraints time : "<< std::chrono::duration_cast<std::chrono::seconds>(end_ac_time - start_ac_time).count() <<"s"<<std::endl;
         }
 
         // apply dirichlet conditions
@@ -296,7 +304,12 @@ public:
             << "\nSystem Matrix = " << rA << "\nunknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
 
+
+        auto start_solve_time = std::chrono::steady_clock::now();
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        auto end_solve_time = std::chrono::steady_clock::now();
+        KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                <<"Solve time : "<< std::chrono::duration_cast<std::chrono::seconds>(end_solve_time - start_solve_time).count() <<"s"<<std::endl;
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nAfter the solution of the system"
