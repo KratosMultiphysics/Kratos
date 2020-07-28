@@ -701,7 +701,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    typename TLinearSolver::Pointer mpLinearSystemSolver; /// Pointer to the linear solver
+    typename TLinearSolver::Pointer mpLinearSystemSolver = nullptr; /// Pointer to the linear solver
 
     DofsArrayType mDofSet; /// The set containing the DoF of the system
 
@@ -783,4 +783,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_BUILDER_AND_SOLVER  defined */
-
