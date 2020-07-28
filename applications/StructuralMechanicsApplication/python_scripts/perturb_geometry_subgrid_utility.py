@@ -6,7 +6,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics import eigen_solver_factory
 
-import numpy as np
+import random
 
 class PerturbGeometrySubgridUtility(KratosMultiphysics.Process):
     """A process to perturb the initial geometry of a structure
@@ -55,5 +55,5 @@ class PerturbGeometrySubgridUtility(KratosMultiphysics.Process):
         """Apply perturbation matrix to geometry.
         Random field approach requires normal distributed random numbers (mean=0, sigma=1)
         """
-        random_numbers = np.random.normal(0, 1, self.number_random_variables)
+        random_numbers = [random.gauss(0, 1) for i in range(self.number_random_variables)]
         self.process.ApplyRandomFieldVectorsToGeometry(mp, random_numbers)

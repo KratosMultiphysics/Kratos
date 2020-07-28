@@ -12,9 +12,6 @@ class SparseUtilityCustom(PerturbGeometrySparseUtility):
     """ SparseUtilityCustom
     This class is derived to override the PerturbGeometry method
     """
-    def __init__(self, mp, settings ):
-        super().__init__(mp, settings)
-
     def PerturbGeometry(self, mp):
         # Apply random field vectors to geometry
         self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
@@ -23,9 +20,6 @@ class SubgridUtilityCustom(PerturbGeometrySubgridUtility):
     """SubgridUtilityCustom
     This class is derived to override the PerturbGeometry method
     """
-    def __init__(self, mp, settings):
-        super().__init__(mp, settings)
-
     def PerturbGeometry(self, mp):
         # Apply random field vectors to geometry
         self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
