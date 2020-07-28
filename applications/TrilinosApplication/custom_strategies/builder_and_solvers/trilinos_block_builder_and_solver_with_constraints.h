@@ -285,7 +285,7 @@ public:
         Build(pScheme, rModelPart, rA, rb);
         auto end_build_time = std::chrono::steady_clock::now();
         KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
-                <<"Build time : "<< std::chrono::duration_cast<std::chrono::seconds>(end_build_time - start_build_time).count() <<"s"<<std::endl;
+                <<"Build time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_time - start_build_time).count()/1000.0 <<"s"<<std::endl;
 
         const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
         if(global_num_constraints > 0) {
@@ -293,7 +293,7 @@ public:
             ApplyConstraints(pScheme, rModelPart, rA, rb);
             auto end_ac_time = std::chrono::steady_clock::now();
             KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
-                    <<"Apply constraints time : "<< std::chrono::duration_cast<std::chrono::seconds>(end_ac_time - start_ac_time).count() <<"s"<<std::endl;
+                    <<"Apply constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_ac_time - start_ac_time).count()/1000.0 <<"s"<<std::endl;
         }
 
         // apply dirichlet conditions
@@ -309,7 +309,7 @@ public:
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         auto end_solve_time = std::chrono::steady_clock::now();
         KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
-                <<"Solve time : "<< std::chrono::duration_cast<std::chrono::seconds>(end_solve_time - start_solve_time).count() <<"s"<<std::endl;
+                <<"Solve time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_solve_time - start_solve_time).count()/1000.0 <<" s"<<std::endl;
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nAfter the solution of the system"
