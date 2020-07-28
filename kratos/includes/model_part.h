@@ -291,6 +291,9 @@ public:
     /// Assignment operator.
     ModelPart & operator=(ModelPart const& rOther) = delete;
 
+    ///Function to wipe a modelpart clean
+    void Clear();
+
     ///@}
     ///@name Solution Steps
     ///@{
