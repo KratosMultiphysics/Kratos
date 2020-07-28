@@ -162,26 +162,12 @@ def ImportData(conn_name, identifier):
 
     # identifier is the data-name in json
     if identifier == "Upper_Interface_disp":
-###08/07/2020      ###  if tau_mpi_rank() == 0:
-###08/07/2020      ### 	    relative_displacements = TauFunctions.ExecuteBeforeMeshDeformation(displacements, step, para_path_mod, start_step)
-###08/07/2020      ###        tau_parallel_sync()
-        # Read tau's parameter file
-###08/07/2020      ###  Para = PyPara.Parafile(para_path_mod)
-
         Para_origin_up = PyPara.Parafile(para_path_up)
         # Read the interface fluid grid
         ids, coordinates = PySurfDeflect.read_tau_grid(Para_origin_up)
         tau_parallel_sync()
-        print('ids = ',)
-
-        # Write membrane's displacments in a file
         if tau_mpi_rank() == 0:
             new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
-            #with open('new_displacement' + str(step) + '.dat','w') as fname:
-            #    for i in range(len(new_displacements)):
-            #        fname.write("%f %f %f\n" %(new_displacements[i,0] + coordinates[0,i], new_displacements[i,1] + coordinates[1,i],new_displacements[i,2] +coordinates[2,i]))
-            print("MEMBRANE_UP")
-            print('num_of_points = ' + str(len(ids[:])))
             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_UP")
         tau_parallel_sync()
     elif identifier == "Lower_Interface_disp":
@@ -191,8 +177,6 @@ def ImportData(conn_name, identifier):
         tau_parallel_sync()
         if tau_mpi_rank() == 0:
             new_displacements = TauFunctions.ChangeFormatDisplacements(displacements)
-            print("MEMBRANE_DOWN")
-            print('num_of_points = ' + str(len(ids[:])))
             TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements,"MEMBRANE_DOWN")
         tau_parallel_sync()
     else:
