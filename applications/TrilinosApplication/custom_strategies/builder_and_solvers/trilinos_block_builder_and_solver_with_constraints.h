@@ -455,7 +455,12 @@ protected:
         const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
         if (global_num_constraints > 0) {
             // We make T and L matrices and C vector
+            auto start_build_ms_time = std::chrono::steady_clock::now();
             BuildMasterSlaveConstraints(rModelPart);
+            auto end_build_ms_time = std::chrono::steady_clock::now();
+            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                    <<"Build Master-Slave constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_ms_time - start_build_ms_time).count()/1000.0 <<" s"<<std::endl;
+            auto start_mod_b_time = std::chrono::steady_clock::now();
             {// To be able to clear res_b automatically.
                 TSystemVectorType res_b(rb.Map());
                 const double zero = 0.0;
@@ -470,9 +475,13 @@ protected:
                 }
                 TSparseSpace::Copy(res_b, rb);
             }
+            auto end_mod_b_time = std::chrono::steady_clock::now();
+            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                    <<"Modify RHS time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_mod_b_time - start_mod_b_time).count()/1000.0 <<" s"<<std::endl;
             int err = 0;
 
             // First we do aux = T'A
+            auto start_mod_a_time = std::chrono::steady_clock::now();
             { // To delete aux_mat
                 TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
                 err = EpetraExt::MatrixMatrix::Multiply(*mpT, true, rA, false, aux_mat, false);
@@ -500,6 +509,9 @@ protected:
                     TSparseSpace::Copy(mod_a, rA);
                 }
             }
+            auto end_mod_a_time = std::chrono::steady_clock::now();
+            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                    <<"Modify LHS time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_mod_a_time - start_mod_a_time).count()/1000.0 <<" s"<<std::endl;
         }
     }
 
