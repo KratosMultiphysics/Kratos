@@ -20,7 +20,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 #include "utilities/mortar_utilities.h"
 
 
@@ -44,7 +43,7 @@ namespace Kratos
 /**
  * @class PerturbGeometryBaseUtility
  * @ingroup StructuralMechanicsApplication
- * @brief Base class for geometry perturbation utility
+ * @brief Base class for geometry perturbation utilities
  * @author Manuel Messmer
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PerturbGeometryBaseUtility
@@ -57,11 +56,11 @@ public:
     typedef TUblasSparseSpace<double> TSparseSpaceType;
     typedef TUblasDenseSpace<double> TDenseSpaceType;
 
-    typedef typename TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
+    typedef TDenseSpaceType::MatrixPointerType DenseMatrixPointerType;
 
-    typedef typename TDenseSpaceType::VectorType DenseVectorType;
+    typedef TDenseSpaceType::VectorType DenseVectorType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    typedef TDenseSpaceType::MatrixType DenseMatrixType;
 
     /// Pointer definition of PerturbGeometryBaseUtility
     KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometryBaseUtility);

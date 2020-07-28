@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_utilities/perturb_geometry_base_utility.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -53,11 +54,11 @@ public:
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType> LinearSolverType;
 
-    typedef typename LinearSolverType::Pointer              LinearSolverPointerType;
+    typedef LinearSolverType::Pointer                       LinearSolverPointerType;
 
     typedef ModelPart::NodesContainerType::ContainerType    ResultNodesContainerType;
 
-    typedef typename TSparseSpaceType::MatrixType           SparseMatrixType;
+    typedef TSparseSpaceType::MatrixType                    SparseMatrixType;
 
     /// Pointer definition of PerturbGeometrySparseUtility
     KRATOS_CLASS_POINTER_DEFINITION(PerturbGeometrySparseUtility);

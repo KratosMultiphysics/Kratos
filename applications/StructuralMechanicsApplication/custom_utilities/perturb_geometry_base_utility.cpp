@@ -16,7 +16,6 @@
 // Project includes
 #include "custom_utilities/perturb_geometry_base_utility.h"
 #include "utilities/builtin_timer.h"
-
 #include "utilities/openmp_utils.h"
 
 namespace Kratos
@@ -93,9 +92,9 @@ double PerturbGeometryBaseUtility::CorrelationFunction( ModelPart::NodeType& itN
     array_1d<double, 3> coorrdinate;
     coorrdinate = itNode1.GetInitialPosition().Coordinates() - itNode2.GetInitialPosition().Coordinates();
 
-    double norm = sqrt( coorrdinate(0)*coorrdinate(0) + coorrdinate(1)*coorrdinate(1) + coorrdinate(2)*coorrdinate(2) );
+    double norm = std::sqrt( coorrdinate(0)*coorrdinate(0) + coorrdinate(1)*coorrdinate(1) + coorrdinate(2)*coorrdinate(2) );
 
-    return( exp( - norm*norm / (CorrelationLength*CorrelationLength) ) );
+    return( std::exp( - norm*norm / (CorrelationLength*CorrelationLength) ) );
 }
 
 } // namespace Kratos

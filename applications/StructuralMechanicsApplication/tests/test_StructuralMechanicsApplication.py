@@ -23,7 +23,7 @@ from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestCo
 from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
 from test_distribute_load_on_surface_process import TestDistributeLoadOnSurfaceProcess as TTestDistributeLoadOnSurfaceProcess
-from test_perturb_geometry_process import TestPerturbGeometryProcess as TTestPerturbGeometryProcess
+from test_perturb_geometry_utility import TestPerturbGeometryUtility as TTestPerturbGeometryUtility
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -342,7 +342,7 @@ def AssembleTestSuites():
     # Element damping test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
     # Perturb geometry process test
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)

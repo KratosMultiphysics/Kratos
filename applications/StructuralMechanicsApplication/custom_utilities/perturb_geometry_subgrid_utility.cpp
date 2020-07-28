@@ -15,9 +15,8 @@
 
 // Project includes
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
-#include "utilities/builtin_timer.h"
 #include "custom_utilities/node_search_utility.h"
-
+#include "utilities/builtin_timer.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -42,20 +41,23 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
 
     BuiltinTimer reduced_space_timer;
     // Mark all nodes as unvisited
-    VariableUtils().SetFlag(VISITED,false,mrInitialModelPart.Nodes());
+    VariableUtils().SetFlag(VISITED, false, mrInitialModelPart.Nodes());
 
     // Generate reduced space
+    // It is assumed that the reduced space contains less the 50% of all ndoes
+    reduced_space_nodes.reserve((int)0.5*num_of_nodes);
     for (ModelPart::NodeIterator it_node = mrInitialModelPart.NodesBegin(); it_node != mrInitialModelPart.NodesEnd(); it_node++){
-        if( !it_node->Is(VISITED) ) {
+        if(!it_node->Is(VISITED)) {
             it_node->Set(VISITED,true);
-            reduced_space_nodes.push_back( &(*it_node) );
+            reduced_space_nodes.push_back(&(*it_node));
             results = {};
             searcher.SearchNodesInRadius(*it_node, radius, results);
-            for( size_t i = 0; i < results.size(); i++ ){
+            for(size_t i = 0; i < results.size(); i++){
                 results[i]->Set(VISITED,true);
             }
         }
     }
+    reduced_space_nodes.shrink_to_fit();
     const int num_nodes_reduced_space = reduced_space_nodes.size();
 
     KRATOS_INFO_IF("PerturbGeometrySubgridUtility: Find Reduced Space Time", mEchoLevel > 0)
@@ -134,7 +136,7 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
             }
             // Assemble perturbation field
             for( int j = 0; j < num_random_variables; j++){
-                rPerturbationMatrix(i,j) = sqrt( 1/eigenvalues(j) ) * inner_prod(correlation_vector, column(eigenvectors,j) );
+                rPerturbationMatrix(i,j) = std::sqrt( 1.0/eigenvalues(j) ) * inner_prod(correlation_vector, column(eigenvectors,j) );
             }
         }
     }

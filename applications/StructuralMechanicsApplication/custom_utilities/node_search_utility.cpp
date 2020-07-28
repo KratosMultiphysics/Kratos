@@ -31,7 +31,7 @@ void NodeSearchUtility::SearchNodesInRadius(
     ResultNodesContainerType::iterator ResultsPointer = local_results.begin();
     NodeType::Pointer p_node = &rNode;
 
-    num_of_results = mBins->SearchObjectsInRadius( p_node,Radius,ResultsPointer,mMaxNumberOfNodes);
+    num_of_results = mBins->SearchObjectsInRadius(p_node, Radius, ResultsPointer, mMaxNumberOfNodes);
 
     rResults.insert(rResults.begin(), local_results.begin(), local_results.begin() + num_of_results);
 

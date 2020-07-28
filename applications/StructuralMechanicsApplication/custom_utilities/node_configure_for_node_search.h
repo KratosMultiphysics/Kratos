@@ -196,7 +196,7 @@ public:
         return true;
     }
 
-    /** @brief Calculates the distance betwen two objects.
+    /** @brief Calculates the distance between two objects.
      * @param rObj_1 First point.
      * @param rObj_2 Second point
      * @param distance The euclidean distance between 'rObj_1' and 'rObj_2'.

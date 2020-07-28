@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Manuel Messmer
 //
@@ -17,20 +17,14 @@
 #include <string>
 #include <iostream>
 
-// include kratos definitions
+// Include kratos definitions
 #include "includes/define.h"
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
 // Configures
 #include "node_configure_for_node_search.h"
-
-// Search
-#include "spatial_containers/point_search.h"
-#include "spatial_containers/bins_dynamic_objects.h"
-#include "spatial_containers/bins_dynamic.h"
 
 // External includes
 
@@ -89,9 +83,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
       ///@{
 
       /// Default constructor.
-      NodeSearchUtility(NodesContainerType const& rStructureNodes) {
+      NodeSearchUtility(NodesContainerType& rStructureNodes) {
         KRATOS_TRY;
-        NodesContainerType::ContainerType& nodes_model_part = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        NodesContainerType::ContainerType& nodes_model_part = rStructureNodes.GetContainer();
         mBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
         mMaxNumberOfNodes = rStructureNodes.size();
         KRATOS_CATCH("");
@@ -257,11 +251,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
   ///@}
   ///@name Input and output
   ///@{
-
-
-  ///@}
-
-  ///@} addtogroup block
 
 }  // namespace Kratos.
 

@@ -8,17 +8,15 @@ from KratosMultiphysics import eigen_solver_factory
 
 import random
 
-class PerturbGeometrySubgridUtility(KratosMultiphysics.Process):
-    """A process to perturb the initial geometry of a structure
+class PerturbGeometrySubgridUtility():
+    """A utility to perturb the initial geometry of a structure
     based on a reduced correlation matrix.
     """
     def __init__(self, mp, settings ):
-        """Constructor of Process-Object
+        """Constructor of Utility-Object
 
-        Checks parameter settings and initializes the process.
+        Checks parameter settings and initializes the utility.
         """
-        KratosMultiphysics.Process.__init__(self)
-
         default_settings = KratosMultiphysics.Parameters("""{
             "eigensolver_settings"  : {
                 "solver_type"               : "dense_eigensolver",
@@ -45,10 +43,10 @@ class PerturbGeometrySubgridUtility(KratosMultiphysics.Process):
         eigen_solver = eigen_solver_factory.ConstructSolver(eigensolver_settings)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         perturbation_settings = settings["perturbation_settings"]
-        # Initialize process
-        self.process = StructuralMechanicsApplication.PerturbGeometrySubgridUtility(mp, eigen_solver, perturbation_settings)
+        # Initialize utility
+        self.utility = StructuralMechanicsApplication.PerturbGeometrySubgridUtility(mp, eigen_solver, perturbation_settings)
         # Generate perturbation matrix
-        self.number_random_variables = self.process.CreateRandomFieldVectors()
+        self.number_random_variables = self.utility.CreateRandomFieldVectors()
 
 
     def PerturbGeometry(self, mp ):
@@ -56,4 +54,4 @@ class PerturbGeometrySubgridUtility(KratosMultiphysics.Process):
         Random field approach requires normal distributed random numbers (mean=0, sigma=1)
         """
         random_numbers = [random.gauss(0, 1) for i in range(self.number_random_variables)]
-        self.process.ApplyRandomFieldVectorsToGeometry(mp, random_numbers)
+        self.utility.ApplyRandomFieldVectorsToGeometry(mp, random_numbers)

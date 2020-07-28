@@ -17,7 +17,7 @@
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/node_search_utility.h"
 #include "utilities/builtin_timer.h"
-
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -30,7 +30,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     BuiltinTimer assemble_cl_matrix_timer;
 
     // Construct and initialize required containers
-    const ModelPart::NodesContainerType nodes = mrInitialModelPart.Nodes();
+    ModelPart::NodesContainerType nodes = mrInitialModelPart.Nodes();
     ResultNodesContainerType  results;
     SparseMatrixType correlation_matrix;
     correlation_matrix.resize(number_of_nodes,number_of_nodes,false);
@@ -75,11 +75,9 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     double sum_eigenvalues =  1 / eigenvalues(0);
     int number_required_eigenvalues = 0;
 
-    for( size_t i = 1; i < eigenvalues.size(); i++)
-    {
+    for( size_t i = 1; i < eigenvalues.size(); i++){
         double epsilon = 1 - sum_eigenvalues / ( sum_eigenvalues + 1 / eigenvalues(i) );
-        if( epsilon < mTruncationError)
-        {
+        if( epsilon < mTruncationError){
             number_required_eigenvalues = i + 1;
             KRATOS_INFO_IF("PerturbGeometrySparseUtility", mEchoLevel > 0)
                 << "Truncation Error  (" << mTruncationError
@@ -87,8 +85,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
 
             break;
         }
-        else if( i == eigenvalues.size() - 1)
-        {
+        else if( i == eigenvalues.size() - 1){
             number_required_eigenvalues = eigenvalues.size();
             KRATOS_INFO_IF("PerturbGeometrySparseUtility", mEchoLevel > 0)
                 << "Truncation Error is NOT achieved:  " << epsilon << " / " << mTruncationError << std::endl
@@ -98,8 +95,7 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     }
 
     // Normalize required eigenvectors
-    for( int i =  0; i < number_required_eigenvalues; i++)
-    {
+    for( int i =  0; i < number_required_eigenvalues; i++){
         double eucledian_norm =  norm_2( row(eigenvectors,i) );
         row(eigenvectors,i) = 1.0 / eucledian_norm * row(eigenvectors,i);
     }
@@ -114,9 +110,8 @@ int PerturbGeometrySparseUtility::CreateRandomFieldVectors(){
     BuiltinTimer assemble_random_field_time;
     #pragma omp parallel for
     for( int i = 0; i < number_of_nodes; i++){
-        for( int j = 0; j < number_of_random_variables; j++)
-        {
-            rPerturbationMatrix(i,j) = sqrt(eigenvalues(j)) * inner_prod(row(eigenvectors,j),  row( correlation_matrix, i));
+        for( int j = 0; j < number_of_random_variables; j++){
+            rPerturbationMatrix(i,j) = std::sqrt(eigenvalues(j)) * inner_prod(row(eigenvectors,j),  row( correlation_matrix, i));
         }
     }
 

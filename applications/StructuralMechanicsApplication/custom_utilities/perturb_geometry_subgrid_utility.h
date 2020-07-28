@@ -17,8 +17,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_utilities/perturb_geometry_base_utility.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -54,7 +54,7 @@ public:
 
     typedef LinearSolver<TDenseSpaceType, TDenseSpaceType>      LinearSolverType;
 
-    typedef typename LinearSolverType::Pointer                  LinearSolverPointerType;
+    typedef LinearSolverType::Pointer                           LinearSolverPointerType;
 
     typedef ModelPart::NodesContainerType::ContainerType        ResultNodesContainerType;
 

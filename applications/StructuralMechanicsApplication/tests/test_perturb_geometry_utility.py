@@ -14,7 +14,7 @@ class SparseUtilityCustom(PerturbGeometrySparseUtility):
     """
     def PerturbGeometry(self, mp):
         # Apply random field vectors to geometry
-        self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
+        self.utility.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
 
 class SubgridUtilityCustom(PerturbGeometrySubgridUtility):
     """SubgridUtilityCustom
@@ -22,12 +22,12 @@ class SubgridUtilityCustom(PerturbGeometrySubgridUtility):
     """
     def PerturbGeometry(self, mp):
         # Apply random field vectors to geometry
-        self.process.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
+        self.utility.ApplyRandomFieldVectorsToGeometry(mp, [1,0,0,0,0])
 
-# This test generates a random field for a sqaure plate with 5x5 nodes with the sparse and the subgrid method
+# This test generates a random field for a square plate with 5x5 nodes with the sparse and the subgrid method
 # The test is passed when the first perturbation vectors from both models are equal
-class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
-    """BaseTestPerturbGeometryProcess
+class BaseTestPerturbGeometryUtility(KratosUnittest.TestCase):
+    """BaseTestPerturbGeometryUtility
     Base class of the test
     """
     @classmethod
@@ -87,8 +87,8 @@ class BaseTestPerturbGeometryProcess(KratosUnittest.TestCase):
         self.assertLess( np.sqrt(sum_), 1.0e-10)
 
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
-class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
-    def test_perturb_geometry_process(self):
+class TestPerturbGeometryUtility(BaseTestPerturbGeometryUtility):
+    def test_perturb_geometry_utility(self):
         num_of_nodes_per_egde = 5
         length = 1000
         # Sparse method
@@ -111,8 +111,8 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
                         "echo_level"                : 0
                     }
                 }""")
-        SparseProcess = SparseUtilityCustom(mp_sparse, settings)
-        SparseProcess.PerturbGeometry(mp_sparse)
+        SparseUtility = SparseUtilityCustom(mp_sparse, settings)
+        SparseUtility.PerturbGeometry(mp_sparse)
         # Subgrid method
         model_subgrid =  KratosMultiphysics.Model()
         mp_subgrid = self._set_up_system(model_subgrid, num_of_nodes_per_egde, length)
@@ -130,8 +130,8 @@ class TestPerturbGeometryProcess(BaseTestPerturbGeometryProcess):
                 "echo_level"                : 0
             }
         }""")
-        SubgridProcess = SubgridUtilityCustom(mp_subgrid, settings)
-        SubgridProcess.PerturbGeometry(mp_subgrid)
+        SubgridUtility = SubgridUtilityCustom(mp_subgrid, settings)
+        SubgridUtility.PerturbGeometry(mp_subgrid)
 
         # Check if first random field vectors are equal
         self._compare_random_field_vectors(mp_sparse, mp_subgrid)
