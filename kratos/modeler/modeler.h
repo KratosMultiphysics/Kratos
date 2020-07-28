@@ -57,6 +57,10 @@ public:
     Modeler(
         Parameters ModelerParameters = Parameters())
         : mParameters(ModelerParameters)
+        , mEchoLevel(
+            ModelerParameters.Has("echo_level")
+            ? ModelerParameters["echo_level"].GetInt()
+            : 0)
     {}
    
     /// Constructor with Model
@@ -74,7 +78,8 @@ public:
     virtual ~Modeler() = default;
 
     /// Creates the Modeler Pointer
-    virtual Modeler::Pointer Create(const Parameters ModelParameters) const
+    virtual Modeler::Pointer Create(
+        Model& rModel, const Parameters ModelParameters) const
     {
         KRATOS_ERROR << "Trying to Create Modeler. Please check derived class 'Create' definition." << std::endl;
     }

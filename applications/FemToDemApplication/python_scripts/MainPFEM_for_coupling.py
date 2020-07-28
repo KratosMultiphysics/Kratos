@@ -114,3 +114,32 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         return solver
         
 #============================================================================================================================
+
+    def FinalizeSolutionStep(self):
+        """This function performs all the required operations that should be executed
+        (for each step) AFTER solving the solution step.
+        """
+        self.clock_time = self.StartTimeMeasuring();
+        self._GetSolver().FinalizeSolutionStep()
+        self.GraphicalOutputExecuteFinalizeSolutionStep()
+
+        # processes to be executed at the end of the solution step
+        self.model_processes.ExecuteFinalizeSolutionStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteFinalizeSolutionStep()
+        self.model_processes.ExecuteBeforeOutputStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeOutputStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        # self.GraphicalOutputPrintOutput()
+
+        # processes to be executed after witting the output
+        self.model_processes.ExecuteAfterOutputStep()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteAfterOutputStep()
+
+        self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);

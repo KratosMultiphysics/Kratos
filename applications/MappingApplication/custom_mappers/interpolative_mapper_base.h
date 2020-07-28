@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 template<class TSparseSpace, class TDenseSpace>
-class InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
+class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -182,6 +182,11 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    int AreMeshesConforming() const override
+    {
+        return mpIntefaceCommunicator->AreMeshesConforming();
+    }
 
     ///@}
     ///@name Input and output

@@ -38,6 +38,7 @@
 #include "custom_processes/mass_conservation_check_process.h"
 #include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
+#include "custom_processes/distance_smoothing_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -57,7 +58,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     py::class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
@@ -105,12 +105,15 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init <
         ModelPart&,
         ModelPart&,
-        const std::vector<Variable <double> >,
-        const std::vector<Variable< array_1d<double, 3> > >,
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >,
-        std::string,
+        const std::vector<const Variable <double>* >,
+        const std::vector<const Variable< array_1d<double, 3> >* >,
+        const std::vector<const Variable <double>* >,
+        const std::vector<const Variable< array_1d<double, 3> >* >,
+        const EmbeddedSkinVisualizationProcess::LevelSetType&,
+        const EmbeddedSkinVisualizationProcess::ShapeFunctionsType&,
         const bool >())
-    .def(py::init< ModelPart&, ModelPart&, Parameters& >())
+    .def(py::init< Model&, Parameters >())
+    .def(py::init< ModelPart&, ModelPart&, Parameters >())
     ;
 
     py::class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
@@ -143,6 +146,20 @@ void AddCustomProcessesToPython(pybind11::module& m)
     (m,"TwoFluidsInletProcess")
     .def(py::init< ModelPart&, Parameters&, Process::Pointer >())
     .def("SmoothDistanceField", &TwoFluidsInletProcess::SmoothDistanceField)
+    ;
+
+    py::class_<DistanceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, DistanceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"DistanceSmoothingProcess2D")
+    .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, Parameters >())
+    .def(py::init< Model&, Parameters >())
+    .def("Clear", &DistanceSmoothingProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
+    ;
+
+    py::class_<DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"DistanceSmoothingProcess3D")
+    .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, Parameters >())
+    .def(py::init< Model&, Parameters >())
+    .def("Clear", &DistanceSmoothingProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
     ;
 }
 

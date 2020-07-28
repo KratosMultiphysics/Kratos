@@ -22,7 +22,8 @@ jobs:
       FC: gfortran-7
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-bionic:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      options: --user 1001
 
     steps:
     - uses: actions/checkout@v2
@@ -65,6 +66,11 @@ jobs:
       with:
         python-version: '3.6'
 
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+
     - name: Build
       shell: cmd
       run: |
@@ -87,12 +93,13 @@ jobs:
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SwimmingDEMApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CSharpWrapperApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\LinearSolversApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\IgaApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ParticleMechanicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ChimeraApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MappingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CoSimulationApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StatisticsApplication;
 
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
@@ -105,6 +112,7 @@ jobs:
           -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
           -DINSTALL_RUNKRATOS=OFF                            ^
           -DCMAKE_CXX_FLAGS="/Od"                            ^
+          -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
           -DUSE_COTIRE=ON                                    || goto :error
 
         cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error

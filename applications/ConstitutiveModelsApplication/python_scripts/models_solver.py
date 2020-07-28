@@ -341,12 +341,7 @@ class MaterialsSolver(object):
             return value.GetDouble()
         else:
             function_expression = value.GetString()
-
-            if (sys.version_info > (3, 0)):
-                compiled_function = compiled_space_time_function(compile(function_expression, '', 'eval', optimize=2))
-            else:
-                compiled_function = compiled_space_time_function(compile(function_expression, '', 'eval'))
-
+            compiled_function = compiled_space_time_function(compile(function_expression, '', 'eval', optimize=2))
             time = self.process_info[KratosMultiphysics.TIME]
 
             # evolution parameters passed via process_info

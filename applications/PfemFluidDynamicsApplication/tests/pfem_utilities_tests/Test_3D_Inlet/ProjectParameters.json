@@ -2,7 +2,7 @@
     "problem_data"         : {
         "problem_name"   : "pfem_utilities_tests/Test_3D_Inlet/Test_3D_Inlet",
         "start_time"     : 0.0,
-        "end_time"       : 0.05,
+        "end_time"       : 0.005,
         "echo_level"     : 0,
         "parallel_type"  : "OpenMP",
         "threads"        : 1,
@@ -11,17 +11,19 @@
     "solver_settings"      : {
         "solver_type"                        : "pfem_fluid_solver",
         "model_part_name"                    : "PfemFluidModelPart",
-        "physics_type"                       : "fluid",
         "domain_size"                        : 3,
         "time_stepping"                      : {
             "automatic_time_step" : false,
-            "time_step"           : 0.002
+            "time_step"           : 0.005
         },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "pfem_utilities_tests/Test_3D_Inlet/Test_3D_Inlet"
+         },
+        "material_import_settings"           : {
+            "materials_filename" : "fluid_element_tests/Test_3D_Newtonian_Sloshing/PfemFluidDynamicsMaterials.json"
         },
-        "maximum_pressure_iterations"        : 7,
+        "maximum_pressure_iterations"        : 2,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
         "echo_level"                         : 0,
@@ -51,7 +53,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["VELOCITY_Parts_Auto2","INLET_Inlet_Auto1"],
         "material_import_settings"           : {
-            "materials_filename" : "pfem_utilities_tests/Test_3D_Inlet/PFEMFluidMaterials.json"
+            "materials_filename" : "pfem_utilities_tests/Test_3D_Inlet/PfemFluidDynamicsMaterials.json"
         }
     },
     "problem_process_list" : [{
@@ -236,7 +238,7 @@
                 "check_variables"     : ["VELOCITY_X","VELOCITY_Y", "VELOCITY_Z"],
                 "input_file_name"     : "pfem_utilities_tests/Test_3D_Inlet/Test_3D_Inlet_results.json",
                 "model_part_name"      : "PfemFluidModelPart",
-                "time_frequency"       : 0.002
+                "time_frequency"       : 0.005
             }
         }]
     },
@@ -247,7 +249,7 @@
             "output_variables"     : ["VELOCITY_X","VELOCITY_Y", "VELOCITY_Z"],
             "output_file_name"     : "pfem_utilities_tests/Test_3D_Inlet/Test_3D_Inlet_results.json",
             "model_part_name"      : "PfemFluidModelPart",
-            "time_frequency"       : 0.002
+            "time_frequency"       : 0.005
         }
     }]
 }

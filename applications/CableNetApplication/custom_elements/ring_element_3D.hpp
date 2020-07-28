@@ -33,7 +33,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class RingElement3D : public Element
+    class KRATOS_API(CABLE_NET_APPLICATION) RingElement3D : public Element
     {
     protected:
 

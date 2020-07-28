@@ -508,6 +508,30 @@ namespace Kratos
                   return vector;
             }
 
+
+            static double CalculateMatrixDoubleContraction(const Matrix& rInput)
+            {
+                double result = 0.0;
+                KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) 
+                    << "CalculateMatrixDoubleContraction only takes square matrices\n";
+                for (size_t i = 0; i < rInput.size1(); ++i)
+                {
+                    for (size_t j = 0; j < rInput.size2(); ++j)
+                    {
+                        result += rInput(i, j) * rInput(i, j);
+                    }
+                }
+                return result;
+            }
+
+
+            static double CalculateMatrixTrace(const Matrix& rInput)
+            {
+                KRATOS_ERROR_IF(rInput.size1() != rInput.size2()) << "Can only calculate trace of square matrices";
+                double trace = 0.0;
+                for (size_t i = 0; i < rInput.size1(); ++i) trace += rInput(i, i);
+                return trace;
+            }
    }; // end Class MPMStressPrincipalInvariantsUtility
 
 } // end namespace Kratos

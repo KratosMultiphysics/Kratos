@@ -18,6 +18,7 @@
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
+#include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
@@ -366,7 +367,7 @@ GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod
 // Inquiry
 
 template< class TElementData >
-int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
+int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     // Generic geometry check
     int out = Element::Check(rCurrentProcessInfo);
@@ -617,6 +618,78 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>> &rVariable,
+    array_1d<double, 3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<Vector >& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo )
+{
+    noalias( rOutput ) = ZeroVector( StrainSize );
+
+    if (rVariable == FLUID_STRESS) {
+
+        // creating a new data container that goes out of scope after the function is left
+        TElementData data_local;
+
+        // transferring the velocity (among other variables)
+        data_local.Initialize(*this, rCurrentProcessInfo);
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+
+        // computing DN_DX values for the strain rate
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        const unsigned int number_of_gauss_points = gauss_weights.size();
+
+        double sum_of_gauss_weights = 0.0;
+
+        for (unsigned int g = 0; g < number_of_gauss_points; g++){
+
+            this->UpdateIntegrationPointData(data_local, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+
+            const Vector gauss_point_contribution = data_local.ShearStress;
+
+            noalias( rOutput ) += gauss_point_contribution * gauss_weights[g];
+            sum_of_gauss_weights += gauss_weights[g];
+        }
+
+        for (unsigned int i = 0; i < StrainSize; i++){
+            rOutput[i] = ( 1.0 / sum_of_gauss_weights ) * rOutput[i];
+        }
+
+    } else {
+        Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::Calculate(
+    const Variable<Matrix> &rVariable,
+    Matrix &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
@@ -803,6 +876,12 @@ void StrainRateSpecialization<TElementData,3>::Calculate(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
+
+template class FluidElement< SymbolicStokesData<2,3> >;
+template class FluidElement< SymbolicStokesData<2,4> >;
+template class FluidElement< SymbolicStokesData<3,4> >;
+template class FluidElement< SymbolicStokesData<3,6> >;
+template class FluidElement< SymbolicStokesData<3,8> >;
 
 template class FluidElement< SymbolicNavierStokesData<2,3> >;
 template class FluidElement< SymbolicNavierStokesData<3,4> >;

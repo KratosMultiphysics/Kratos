@@ -87,7 +87,7 @@ def GetVariableHeaders(norm_type, variable_name):
         variable_type = Kratos.KratosGlobals.GetVariableType(variable_name)
         if (variable_type == "Double"):
             return [variable_name]
-        elif (variable_type == "Array" and Kratos.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
+        elif (variable_type == "Array" and Kratos.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
             return [variable_name + "_X", variable_name + "_Y", variable_name + "_Z"]
         else:
             raise Exception("Unsupported variable type " + variable_type)
