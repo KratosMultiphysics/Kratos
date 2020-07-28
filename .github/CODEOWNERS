@@ -12,9 +12,13 @@
 /applications/MetisApplication/                        @KratosMultiphysics/technical-committee
 /applications/StructuralMechanicsApplication/          @KratosMultiphysics/structural-mechanics
 /applications/ContactStructuralMechanicsApplication/   @KratosMultiphysics/structural-mechanics
+/applications/FluidDynamicsApplication/                @KratosMultiphysics/fluid-maintainers
+/applications/ConvectionDiffusionApplication           @KratosMultiphysics/fluid-maintainers
 /applications/MappingApplication/                      @KratosMultiphysics/cosimulation
 /applications/CoSimulationApplication/                 @KratosMultiphysics/cosimulation
 /applications/MeshMovingApplication/                   @KratosMultiphysics/meshmoving
 /applications/DEMApplication/                          @KratosMultiphysics/dem
 /applications/SwimmingDEMApplication/                  @KratosMultiphysics/dem
 /applications/ShapeOptimizationApplication/            @KratosMultiphysics/optimization
+/applications/CompressiblePotentialFlowApplication/    @KratosMultiphysics/potential-flow-team
+/applications/ChimeraApplication/                      @KratosMultiphysics/chimera
