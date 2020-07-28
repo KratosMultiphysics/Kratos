@@ -9,6 +9,7 @@ from KratosMultiphysics.RANSApplication.formulations.formulation import Formulat
 # import formulations
 from ..incompressible_potential_flow import IncompressiblePotentialFlowFormulation
 from ..k_epsilon import KEpsilonFormulation
+from ..rans_kinematic import RANSKinematicFormulation
 from .monolithic_velocity_pressure_formulation import MonolithicVelocityPressureFormulation
 
 class MonolithicKEpsilonFormulation(Formulation):
@@ -21,6 +22,7 @@ class MonolithicKEpsilonFormulation(Formulation):
             "incompressible_potential_flow_initialization_settings": {},
             "monolithic_flow_solver_settings": {},
             "k_epsilon_solver_settings": {},
+            "kinematic_solver_settings": {},
             "max_iterations": 1
         }''')
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -36,7 +38,12 @@ class MonolithicKEpsilonFormulation(Formulation):
         self.k_epsilon_formulation = KEpsilonFormulation(model_part, settings["k_epsilon_solver_settings"])
         self.AddFormulation(self.k_epsilon_formulation)
 
+        self.kinematic_formulation = RANSKinematicFormulation(model_part, settings["kinematic_solver_settings"])
+        self.AddFormulation(self.kinematic_formulation)
+
         self.SetMaxCouplingIterations(self.settings["max_iterations"].GetInt())
 
     def SetConstants(self, settings):
         self.k_epsilon_formulation.SetConstants(settings)
+        if hasattr(self, "kinematic_formulation"):
+            self.kinematic_formulation.SetConstants(settings)

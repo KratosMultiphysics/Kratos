@@ -49,6 +49,12 @@
 // vms monolithic wall conditions
 #include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
 
+// kinematic simulation elements
+#include "custom_elements/kinematic_simulation/kinematic_simulation_spectral_constant_u.h"
+#include "custom_elements/kinematic_simulation/kinematic_simulation_spectral_constant_v.h"
+#include "custom_elements/kinematic_simulation/kinematic_simulation_spectral_constant_w.h"
+#include "custom_elements/kinematic_simulation/kinematic_simulation_effective_wave_number.h"
+
 // fractional step wall conditions
 #include "custom_conditions/fractional_step_k_based_wall_condition.h"
 
@@ -214,6 +220,12 @@ private:
 
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, KOmegaSSTElementData::OmegaElementData<2>> mRansKOmegaSSTOmegaCWD2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, KOmegaSSTElementData::OmegaElementData<3>> mRansKOmegaSSTOmegaCWD3D;
+
+    // Kinematic equation elements
+    const KinematicSimulationSpectralConstantUElement<4> mKinematicSimulationSpectralConstantU3D4N;
+    const KinematicSimulationSpectralConstantVElement<4> mKinematicSimulationSpectralConstantV3D4N;
+    const KinematicSimulationSpectralConstantWElement<4> mKinematicSimulationSpectralConstantW3D4N;
+    const KinematicSimulationEffectiveWaveNumberElement<4> mKinematicSimulationEffectiveWaveNumber3D4N;
 
     // vms monolithic k based wall conditions
     const VMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWall2D2N;

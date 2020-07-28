@@ -72,6 +72,10 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaSSTKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansKOmegaSSTOmegaCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mKinematicSimulationSpectralConstantU3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mKinematicSimulationSpectralConstantV3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mKinematicSimulationSpectralConstantW3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      mKinematicSimulationEffectiveWaveNumber3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // vms monolithic k based wall conditions
       mRansVMSMonolithicKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansVMSMonolithicKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -159,6 +163,16 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( WALL_MODEL_PART_NAME )
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_NEIGHBOUR_CONDITIONS )
 
+    // Register kinematic simulation variables
+    KRATOS_REGISTER_VARIABLE( SPECTRAL_CONSTANT_U )
+    KRATOS_REGISTER_VARIABLE( SPECTRAL_CONSTANT_V )
+    KRATOS_REGISTER_VARIABLE( SPECTRAL_CONSTANT_W )
+    KRATOS_REGISTER_VARIABLE( EFFECTIVE_WAVE_NUMBER )
+    KRATOS_REGISTER_VARIABLE( TOTAL_WAVE_NUMBER )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_KINETIC_ENERGY_U )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_KINETIC_ENERGY_V )
+    KRATOS_REGISTER_VARIABLE( TURBULENT_KINETIC_ENERGY_W )
+
     // registering elements
     // registering fractional step elements
     KRATOS_REGISTER_ELEMENT("RansFractionalStep2D3N", mRansFractionalStep2D);
@@ -223,6 +237,12 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTKCWD3D4N", mRansKOmegaSSTKCWD3D);
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTOmegaCWD2D3N", mRansKOmegaSSTOmegaCWD2D);
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTOmegaCWD3D4N", mRansKOmegaSSTOmegaCWD3D);
+
+    // Registering Kinematic equation elements
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationSpectralConstantU3D4N", mKinematicSimulationSpectralConstantU3D4N);
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationSpectralConstantV3D4N", mKinematicSimulationSpectralConstantV3D4N);
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationSpectralConstantW3D4N", mKinematicSimulationSpectralConstantW3D4N);
+    KRATOS_REGISTER_ELEMENT("KinematicSimulationEffectiveWaveNumber3D4N", mKinematicSimulationEffectiveWaveNumber3D4N);
 
     // registering conditions
     // registering vms monolithic conditions
