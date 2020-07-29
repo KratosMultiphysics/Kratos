@@ -269,12 +269,13 @@ proc DEMClusters::call_makeTreeMedial { } {
     # catch { set ::DEMClusters::pid [exec $program {*}$argv] &} msg
 
     # proces can be canceled but not ouput on process info screen
-    catch {set ::DEMClusters::pid [open "|$program $argv" w+]} msg
+    catch {set ::DEMClusters::pid [open "|$program $argv"]} msg
 
     set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
     set outfl [open $ouputpath w]
 
-    puts $outfl [read $::DEMClusters::pid]
+    #puts $outfl [read $::DEMClusters::pid]
+    #flush stdout
     close $outfl
 
     #W [read $::DEMClusters::pid]
