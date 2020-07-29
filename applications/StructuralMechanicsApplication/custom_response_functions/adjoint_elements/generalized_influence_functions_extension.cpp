@@ -141,9 +141,9 @@ namespace Kratos
             // MFusseder TODO investigate signs!!
             for(IndexType i = 0; i < write_points_number; ++i)
             {
-                rOutput[i] = pseudo_moment[i][0] * adjoint_curvature[i][0] - pseudo_force[i][0] * adjoint_strain[i][0] +
-                             pseudo_moment[i][1] * adjoint_curvature[i][1] + pseudo_force[i][1] * adjoint_strain[i][1] +
-                             pseudo_moment[i][2] * adjoint_curvature[i][2] + pseudo_force[i][2] * adjoint_strain[i][2];
+                rOutput[i] = - pseudo_moment[i][0] * adjoint_curvature[i][0] - pseudo_force[i][0] * adjoint_strain[i][0] +
+                             - pseudo_moment[i][1] * adjoint_curvature[i][1] - pseudo_force[i][1] * adjoint_strain[i][1] +
+                             - pseudo_moment[i][2] * adjoint_curvature[i][2] - pseudo_force[i][2] * adjoint_strain[i][2];
             }
 
             // This is something special for normal stress response
