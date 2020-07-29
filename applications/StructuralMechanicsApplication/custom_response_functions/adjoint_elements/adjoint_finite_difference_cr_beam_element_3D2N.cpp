@@ -54,8 +54,8 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
 
             for (IndexType i = 0; i < rOutput.size(); ++i) {
                 rOutput[i][0] *=  1.0 / (G * J);
-                rOutput[i][1] *= -1.0 / (E * Iy);
-                rOutput[i][2] *= -1.0 / (E * Iz);
+                rOutput[i][1] *=  1.0 / (E * Iy);
+                rOutput[i][2] *=  1.0 / (E * Iz);
             }
         }
         else if (rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_STRAIN) {
