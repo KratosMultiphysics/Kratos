@@ -69,10 +69,25 @@ namespace Kratos
 
         rResponseGradient.clear();
 
-        rResponseGradient(2) = 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-        
+        if( rAdjointElement.Id() == mpNeighboringElement->Id() )
+        {
+            DofsVectorType dofs_of_element;
+            mpNeighboringElement->GetDofList(dofs_of_element, rProcessInfo);
+
+            const DoubleVariableType& r_traced_adjoint_dof =
+                KratosComponents<DoubleVariableType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
+
+            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+            {
+                if (dofs_of_element[i]->Id() == mpTracedNode->Id() &&
+                    dofs_of_element[i]->GetVariable() == r_traced_adjoint_dof)
+                {
+                    rResponseGradient[i] = 2 / (mEndTime - mStartTime) * rAdjointElement.GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
+                }
+            }
+        }
+
         KRATOS_CATCH("");
-        
     }
 
     void AdjointNodalDisplacementRootMeanSquareResponseFunction::CalculateFirstDerivativesGradient(
@@ -82,14 +97,7 @@ namespace Kratos
         const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
-
-        rResponseGradient(2) = (1 - mAlphaResponseWeight) * 2 * rAdjointElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
-
+        rResponseGradient = ZeroVector(rResidualGradient.size1());
         KRATOS_CATCH("");
     }
 
@@ -174,9 +182,30 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const double& x = mrModelPart.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT_Z);
-        const double& v = mrModelPart.GetNode(1).FastGetSolutionStepValue(VELOCITY_Z);  
-        return mAlphaResponseWeight * x * x + (1 - mAlphaResponseWeight) * v * v;
+        const double& x = mrModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(DISPLACEMENT_Z, 0);
+        return  x * x / (mEndTime - mStartTime);
+        
+        KRATOS_CATCH("");
+    }
+
+    /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
+    void AdjointNodalDisplacementRootMeanSquareResponseFunction::GetNeighboringElementPointer()
+    {
+        KRATOS_TRY;
+
+        for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
+        {
+            const SizeType number_of_nodes = (*elem_it)->GetGeometry().PointsNumber();
+            for(IndexType i = 0; i < number_of_nodes; ++i)
+            {
+                if((*elem_it)->GetGeometry()[i].Id() == mpTracedNode->Id())
+                {
+                    mpNeighboringElement = (*elem_it);
+                    return;
+                }
+            }
+        }
+        KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
 
         KRATOS_CATCH("");
     }
