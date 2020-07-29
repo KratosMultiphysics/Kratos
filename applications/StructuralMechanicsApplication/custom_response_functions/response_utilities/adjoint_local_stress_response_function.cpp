@@ -384,7 +384,8 @@ namespace Kratos
         KRATOS_TRY;
 
         DofsVectorType dofs_of_element;
-        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
+        const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+        mpTracedElement->GetDofList(dofs_of_element, rCurrentProcessInfo);
         rResult = ZeroVector(dofs_of_element.size());
 
         Array1DComponentsPointerType p_traced_dof;
