@@ -241,6 +241,8 @@ public:
             }
         });
 
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
+
         KRATOS_CATCH("");
     }
 
@@ -322,6 +324,8 @@ public:
                     p_orig_node->GetValue(rVariable);
             }
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
 
         KRATOS_CATCH("");
     }
