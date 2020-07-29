@@ -117,8 +117,8 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
-        if response_type == "adjoint_nodal_displacement":
-            self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        if response_type == "adjoint_nodal_displacement_root_mean_square":
+            self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementRootMeanSquareResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_test":
             self.response_function = StructuralMechanicsApplication.AdjointTestResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
