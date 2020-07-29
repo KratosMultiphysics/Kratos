@@ -377,6 +377,14 @@ private:
     void CalculateDTraction(
         IndexType IntegrationPointIndex,
         Matrix& rDTraction,
+        Matrix& rNCurvilinear,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        const PatchType& rPatch);
+
+    void CalculateNCurvilinear(
+        IndexType IntegrationPointIndex,
+        Matrix& rNCurvilinear,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
         const PatchType& rPatch);
@@ -385,7 +393,7 @@ private:
         IndexType IntegrationPointIndex,
         Matrix& rDDTraction,
         const KinematicVariables& rActualKinematic,
-        Matrix& rDTraction, 
+        Matrix& rNCurvilinear, 
         array_1d<double, 3>& rDispMaster,
         array_1d<double, 3>& rDispSlave,
         array_1d<double, 3>& rDDTractionProduct,

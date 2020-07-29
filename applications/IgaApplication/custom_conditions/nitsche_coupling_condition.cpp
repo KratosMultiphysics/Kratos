@@ -98,7 +98,7 @@ namespace Kratos
         if (rPatch==PatchType::Slave)
         {
             for (SizeType i=0;i<dimension*number_of_nodes;++i){
-                current_displacement[i] = current_displacement_total[i+GetGeometry().GetGeometryPart(0).size()];
+                current_displacement[i] = current_displacement_total[i+GetGeometry().GetGeometryPart(0).size()*3];
             }
         }
 
@@ -130,7 +130,13 @@ namespace Kratos
         rKinematicVariables.a_ab_covariant[2] = rKinematicVariables.a1[0] * rKinematicVariables.a2[0] + rKinematicVariables.a1[1] * rKinematicVariables.a2[1] + rKinematicVariables.a1[2] * rKinematicVariables.a2[2];
 
         //Compute the tangent and  the normal to the boundary vector
-        rKinematicVariables.t = g1/norm_2(g1);
+        rKinematicVariables.t = g2/norm_2(g2);
+
+        if (rPatch==PatchType::Slave)
+        {
+            rKinematicVariables.t = -rKinematicVariables.t;
+        }
+
         MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t, rKinematicVariables.a3);
 
         // transform the normal into the contavariant basis
@@ -174,6 +180,7 @@ namespace Kratos
         double l_a_contravariant_2 = norm_2(a_contravariant_2);
         array_1d<double, 3> e2 = a_contravariant_2 / l_a_contravariant_2;
 
+        //Transformation matrix T from contravariant to local cartesian basis
         // e * a_contravariant
         Matrix G = ZeroMatrix(2, 2);
         G(0, 0) = inner_prod(e1, a_contravariant_1);
@@ -198,29 +205,25 @@ namespace Kratos
         rT(2, 1) = 2 * G(0, 1) * G(1, 1);
         rT(2, 2) = 2 * (G(0, 0) * G(1, 1) + G(0, 1) * G(1, 0));
 
-        // e * a_covariant
-        Matrix G_hat = ZeroMatrix(2, 2);
-        G_hat(0, 0) = inner_prod(e1, rKinematicVariables.a1);
-        G_hat(0, 1) = inner_prod(e1, rKinematicVariables.a2);
-        G_hat(1, 0) = inner_prod(e2, rKinematicVariables.a1);
-        G_hat(1, 1) = inner_prod(e2, rKinematicVariables.a2);
 
-        //Transformation matrix T_hat
+        //Transformation matrix T from local cartesian basis to the covariant one
         if (rT_hat.size1() != 3 && rT_hat.size2() != 3)
             rT_hat.resize(3, 3);
         noalias(rT_hat) = ZeroMatrix(3, 3);
 
-        rT_hat(0, 0) = pow(G_hat(0, 0), 2);
-        rT_hat(0, 1) = pow(G_hat(1, 0), 2);
-        rT_hat(0, 2) = G_hat(0, 0) * G_hat(1, 0);
+        rT_hat(0, 0) = pow(G(0, 0), 2);
+        rT_hat(0, 1) = pow(G(1, 0), 2);
+        rT_hat(0, 2) = 2*G(0, 0) * G(1, 0);
 
-        rT_hat(1, 0) = pow(G_hat(0, 1), 2);
-        rT_hat(1, 1) = pow(G_hat(1, 1), 2);
-        rT_hat(1, 2) = G_hat(0, 1) * G_hat(1, 1);
+        rT_hat(1, 0) = pow(G(0, 1), 2);
+        rT_hat(1, 1) = pow(G(1, 1), 2);
+        rT_hat(1, 2) = 2*G(0, 1) * G(1, 1);
 
-        rT_hat(2, 0) = G_hat(0, 0) * G_hat(0, 1);
-        rT_hat(2, 1) = G_hat(1, 0) * G_hat(1, 1);
-        rT_hat(2, 2) = (G_hat(0, 0) * G_hat(1, 1) + G_hat(1, 0) * G_hat(0, 1));
+        rT_hat(2, 0) = G(0, 0) * G(0, 1);
+        rT_hat(2, 1) = G(1, 0) * G(1, 1);
+        rT_hat(2, 2) = (G(0, 0) * G(1, 1) + G(1, 0) * G(0, 1));
+
+
     }
 
     void NitscheCouplingCondition::CalculateConstitutiveVariables(
@@ -472,7 +475,8 @@ namespace Kratos
                 PatchType::Slave);
 
             //Define Prestress
-            array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+            array_1d<double, 3> prestress = GetProperties()[PRESTRESS];
+            double thickness = GetProperties()[THICKNESS];
 
             PrestresstransVariables prestresstrans_variables_master(3);
             PrestresstransVariables prestresstrans_variables_slave(3);
@@ -492,6 +496,9 @@ namespace Kratos
             constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
             constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
 
+            constitutive_variables_membrane_master.StressVector *= thickness;
+            constitutive_variables_membrane_slave.StressVector *= thickness;
+
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;
             array_1d<double, 3> traction_vector_slave;
@@ -499,12 +506,19 @@ namespace Kratos
             CalculateTraction(point_number, traction_vector_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
             CalculateTraction(point_number, traction_vector_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
 
+            // calculate the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
+            Matrix N_curvilinear_master = ZeroMatrix(3, 3*number_of_nodes_master);
+            Matrix N_curvilinear_slave = ZeroMatrix(3, 3*number_of_nodes_slave);
+
+            CalculateNCurvilinear(point_number, N_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
+            CalculateNCurvilinear(point_number, N_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+
             // calculate first variation of traction vectors
             Matrix d_traction_master = ZeroMatrix(3, 3*number_of_nodes_master);
             Matrix d_traction_slave = ZeroMatrix(3, 3*number_of_nodes_slave);
 
-            CalculateDTraction(point_number, d_traction_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
-            CalculateDTraction(point_number, d_traction_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
+            CalculateDTraction(point_number, d_traction_master, N_curvilinear_master, kinematic_variables_master, constitutive_variables_membrane_master, PatchType::Master);
+            CalculateDTraction(point_number, d_traction_slave, N_curvilinear_slave, kinematic_variables_slave, constitutive_variables_membrane_slave, PatchType::Slave);
 
             Matrix d_traction = ZeroMatrix(3, mat_size);
             for (SizeType i=0;i<3 * number_of_nodes_master;++i){
@@ -571,19 +585,19 @@ namespace Kratos
             array_1d<double, 3> dd_traction_product_vector_master_slave;
             array_1d<double, 3> dd_traction_product_vector_slave_master;
 
-            dd_traction_product_vector_master = prod(Pi_master, disp_vector_master);
-            dd_traction_product_vector_slave = prod(Pi_slave, disp_vector_slave);
-            dd_traction_product_vector_master_slave = prod(Pi_slave, disp_vector_master);
-            dd_traction_product_vector_slave_master = prod(Pi_master, disp_vector_slave);
+            dd_traction_product_vector_master = prod(trans(Pi_master), disp_vector_master);
+            dd_traction_product_vector_slave = prod(trans(Pi_slave), disp_vector_slave);
+            dd_traction_product_vector_master_slave = prod(trans(Pi_slave), disp_vector_master);
+            dd_traction_product_vector_slave_master = prod(trans(Pi_master), disp_vector_slave);
 
             // calculate second variation of traction vectors
 
             Matrix dd_traction_master = ZeroMatrix(3 * number_of_nodes_master, 3 * number_of_nodes_master);
             Matrix dd_traction_slave = ZeroMatrix(3 * number_of_nodes_slave, 3 * number_of_nodes_slave);
 
-            CalculateDDTraction(point_number, dd_traction_master, kinematic_variables_master, d_traction_master, disp_vector_master, disp_vector_slave, dd_traction_product_vector_master, dd_traction_product_vector_master_slave, PatchType::Master);
-            CalculateDDTraction(point_number, dd_traction_slave, kinematic_variables_slave, d_traction_slave, disp_vector_master, disp_vector_slave, dd_traction_product_vector_slave, dd_traction_product_vector_slave_master, PatchType::Slave);
-            
+            CalculateDDTraction(point_number, dd_traction_master, kinematic_variables_master, N_curvilinear_master, disp_vector_master, disp_vector_slave, dd_traction_product_vector_master, dd_traction_product_vector_slave_master, PatchType::Master);
+            CalculateDDTraction(point_number, dd_traction_slave, kinematic_variables_slave, N_curvilinear_slave, disp_vector_master, disp_vector_slave, dd_traction_product_vector_slave, dd_traction_product_vector_master_slave, PatchType::Slave);
+
             //Penalty part & RHS
             Matrix H = ZeroMatrix(3, mat_size);
             for (IndexType i = 0; i < number_of_nodes_master; i++)
@@ -637,11 +651,11 @@ namespace Kratos
             const double gammaTilde = 0.5;
 
             // Assembly
-            if (CalculateStiffnessMatrixFlag) {
+             if (CalculateStiffnessMatrixFlag) {
 
-                noalias(rLeftHandSideMatrix) += (prod(trans(d_traction), HH) + prod(trans(HH), d_traction))
+                noalias(rLeftHandSideMatrix) += (prod(trans(d_traction), H) + prod(trans(H), d_traction))
                     * integration_weight * determinat_jacobian * -gammaTilde;
-                     
+
                 for (IndexType i = 0; i < number_of_nodes_master; i++)
                 {
                     for (IndexType j = 0; j < number_of_nodes_master; j++)
@@ -660,7 +674,7 @@ namespace Kratos
 
                 noalias(rLeftHandSideMatrix) += prod(trans(H), H)
                     * integration_weight * determinat_jacobian * penalty;
-            }
+             }
 
             if (CalculateResidualVectorFlag) {
 
@@ -730,14 +744,17 @@ namespace Kratos
     {
         // Transform the 2nd Piola-kirchhoff stresses in the covariant systems
         array_1d<double, 3> stress_vector_covariant;
+        array_1d<double, 2> n_contravariant_vector;
 
         if (rPatch==PatchType::Master)
         {
             stress_vector_covariant = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.StressVector);
+            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
         }
-        if (rPatch==PatchType::Master)
+        if (rPatch==PatchType::Slave)
         {
             stress_vector_covariant = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.StressVector);
+            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
         }
 
         // Compute the stress components
@@ -748,7 +765,7 @@ namespace Kratos
         Palphabeta(1,0) = Palphabeta(0,1);
 
         array_1d<double, 2> P_n;
-        P_n = prod(Palphabeta, rActualKinematic.n_contravariant);
+        P_n = prod(Palphabeta, n_contravariant_vector);
         
         // Compute the traction vectors
         rTraction[0] = rActualKinematic.a1[0]*P_n[0] + rActualKinematic.a2[0]*P_n[1];
@@ -763,32 +780,38 @@ namespace Kratos
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
         const PatchType& rPatch)
     {
-        Matrix a_u = ZeroMatrix(3, 3); //covariant times normal vector
-
-        for (IndexType r = 0; r < 3; r++)
-        {
-            a_u (0, r) = rActualKinematic.a1[r] * rActualKinematic.n_contravariant[0];
-            a_u (1, r) = rActualKinematic.a2[r] * rActualKinematic.n_contravariant[1];
-            a_u (2, r) = rActualKinematic.a1[r] * rActualKinematic.n_contravariant[1] + rActualKinematic.a2[r] * rActualKinematic.n_contravariant[0];
-        }
+        array_1d<double, 2> n_contravariant_vector;
 
         if (rPatch==PatchType::Master)
         {
             rPi = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.ConstitutiveMatrix);
-            rPi = prod(rPi, m_T_vector_master[IntegrationPointIndex]);
+            rPi = prod(rPi, m_T_vector_master[IntegrationPointIndex])*GetProperties()[THICKNESS];
+
+            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
         }
-        if (rPatch==PatchType::Master)
+        if (rPatch==PatchType::Slave)
         {
             rPi = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.ConstitutiveMatrix);
-            rPi = prod(rPi, m_T_vector_slave[IntegrationPointIndex]);
+            rPi = prod(rPi, m_T_vector_slave[IntegrationPointIndex])*GetProperties()[THICKNESS];
+
+            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
+        }
+
+        Matrix a_u = ZeroMatrix(3, 3); //covariant times normal vector
+
+        for (IndexType r = 0; r < 3; r++)
+        {
+            a_u (r, 0) = rActualKinematic.a1[r] * n_contravariant_vector[0];
+            a_u (r, 1) = rActualKinematic.a2[r] * n_contravariant_vector[1];
+            a_u (r, 2) = rActualKinematic.a1[r] * n_contravariant_vector[1] + rActualKinematic.a2[r] * n_contravariant_vector[0];
         }
 
         rPi = prod(a_u, rPi);
     }
 
-    void NitscheCouplingCondition::CalculateDTraction(
+    void NitscheCouplingCondition::CalculateNCurvilinear(
         IndexType IntegrationPointIndex,
-        Matrix& rDTraction,
+        Matrix& rNCurvilinear,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
         const PatchType& rPatch)
@@ -806,15 +829,19 @@ namespace Kratos
 
         //Compute the first variation of the Green-Lagrange strains
         Matrix dE_cartesian = ZeroMatrix(3, mat_size);
-        Matrix T_patch = ZeroMatrix(3, 3); 
+        Matrix T_patch = ZeroMatrix(3, 3);
+
+        array_1d<double, 2> n_contravariant_vector; 
 
         if (rPatch==PatchType::Master)
         {
             T_patch = m_T_vector_master[IntegrationPointIndex];
+            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
         }
         if (rPatch==PatchType::Slave)
         {
             T_patch = m_T_vector_slave[IntegrationPointIndex];
+            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
         }
 
         for (IndexType r = 0; r < mat_size; r++)
@@ -836,34 +863,64 @@ namespace Kratos
 
         //Compute the first variations of the 2nd Piola-Kichhoff stresses in the local Cartesian bases
         Matrix dN_cartesian = ZeroMatrix(3, mat_size);
-        dN_cartesian = prod(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix,dE_cartesian);
+        dN_cartesian = prod(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix,dE_cartesian)*GetProperties()[THICKNESS];
 
         //Transform the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
-        Matrix dN_curvilinear = ZeroMatrix(3, mat_size);
-
         if (rPatch==PatchType::Master)
         {
-            dN_curvilinear = prod(m_T_hat_vector_master[IntegrationPointIndex], dN_cartesian);
+            rNCurvilinear = prod(m_T_hat_vector_master[IntegrationPointIndex], dN_cartesian);
         }
         if (rPatch==PatchType::Slave)
         {
-            dN_curvilinear = prod(m_T_hat_vector_slave[IntegrationPointIndex], dN_cartesian);
+            rNCurvilinear = prod(m_T_hat_vector_slave[IntegrationPointIndex], dN_cartesian);
+        }
+    }
+    
+
+    void NitscheCouplingCondition::CalculateDTraction(
+        IndexType IntegrationPointIndex,
+        Matrix& rDTraction,
+        Matrix& rNCurvilinear,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane, 
+        const PatchType& rPatch)
+    {
+        IndexType GeometryPart;
+        if (rPatch==PatchType::Master) GeometryPart = 0;
+        if (rPatch==PatchType::Slave) GeometryPart = 1;
+
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+        
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+        
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
+
+        array_1d<double, 2> n_contravariant_vector; 
+
+        if (rPatch==PatchType::Master)
+        {
+            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
+        }
+        if (rPatch==PatchType::Slave)
+        {
+            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
         }
 
         //Compute the first variation of the traction vectors
         Matrix n_a = ZeroMatrix(3, 3); //normal vector times covariant current
 
-        n_a(0, 0) = rActualKinematic.n_contravariant[0]*rActualKinematic.a1[0];
-        n_a(1, 0) = rActualKinematic.n_contravariant[0]*rActualKinematic.a1[1];
-        n_a(2, 0) = rActualKinematic.n_contravariant[0]*rActualKinematic.a1[2];
-        n_a(0, 1) = rActualKinematic.n_contravariant[1]*rActualKinematic.a2[0];
-        n_a(1, 1) = rActualKinematic.n_contravariant[1]*rActualKinematic.a2[1];
-        n_a(2, 1) = rActualKinematic.n_contravariant[1]*rActualKinematic.a2[2];
-        n_a(0, 2) = rActualKinematic.n_contravariant[1]*rActualKinematic.a1[0] + rActualKinematic.n_contravariant[0]*rActualKinematic.a2[0];
-        n_a(0, 2) = rActualKinematic.n_contravariant[1]*rActualKinematic.a1[1] + rActualKinematic.n_contravariant[0]*rActualKinematic.a2[1];
-        n_a(0, 2) = rActualKinematic.n_contravariant[1]*rActualKinematic.a1[2] + rActualKinematic.n_contravariant[0]*rActualKinematic.a2[2];
+        n_a(0, 0) = n_contravariant_vector[0]*rActualKinematic.a1[0];
+        n_a(1, 0) = n_contravariant_vector[0]*rActualKinematic.a1[1];
+        n_a(2, 0) = n_contravariant_vector[0]*rActualKinematic.a1[2];
+        n_a(0, 1) = n_contravariant_vector[1]*rActualKinematic.a2[0];
+        n_a(1, 1) = n_contravariant_vector[1]*rActualKinematic.a2[1];
+        n_a(2, 1) = n_contravariant_vector[1]*rActualKinematic.a2[2];
+        n_a(0, 2) = n_contravariant_vector[1]*rActualKinematic.a1[0] + n_contravariant_vector[0]*rActualKinematic.a2[0];
+        n_a(1, 2) = n_contravariant_vector[1]*rActualKinematic.a1[1] + n_contravariant_vector[0]*rActualKinematic.a2[1];
+        n_a(2, 2) = n_contravariant_vector[1]*rActualKinematic.a1[2] + n_contravariant_vector[0]*rActualKinematic.a2[2];
 
-        rDTraction = prod(n_a, dN_curvilinear); 
+        rDTraction = prod(n_a, rNCurvilinear); 
 
         // Transform the 2nd Piola-kirchhoff stresses in the covariant systems
         array_1d<double, 3> stress_vector_covariant;
@@ -891,15 +948,15 @@ namespace Kratos
             r_DN_Deta(2, 3 * r + 2) = r_DN_De(r, 1);
         }
 
-        rDTraction += r_DN_Dxi*(rActualKinematic.n_contravariant[0]*stress_vector_covariant[0]+rActualKinematic.n_contravariant[1]*stress_vector_covariant[2])+
-                      r_DN_Deta*(rActualKinematic.n_contravariant[1]*stress_vector_covariant[1]+rActualKinematic.n_contravariant[0]*stress_vector_covariant[2]);
+        rDTraction += r_DN_Dxi*(n_contravariant_vector[0]*stress_vector_covariant[0]+n_contravariant_vector[1]*stress_vector_covariant[2])+
+                      r_DN_Deta*(n_contravariant_vector[1]*stress_vector_covariant[1]+n_contravariant_vector[0]*stress_vector_covariant[2]);
     }
 
     void NitscheCouplingCondition::CalculateDDTraction(
         IndexType IntegrationPointIndex,
         Matrix& rDDTraction,
         const KinematicVariables& rActualKinematic,
-        Matrix& rDTraction, 
+        Matrix& rNCurvilinear, 
         array_1d<double, 3>& rDispMaster,
         array_1d<double, 3>& rDispSlave,
         array_1d<double, 3>& rDDTractionProduct,
@@ -931,15 +988,26 @@ namespace Kratos
             r_DN_Deta(2, 3 * r + 2) = r_DN_De(r, 1);
         }
 
+        array_1d<double, 2> n_contravariant_vector; 
+
+        if (rPatch==PatchType::Master)
+        {
+            n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
+        }
+        if (rPatch==PatchType::Slave)
+        {
+            n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
+        }
+
         Vector dNCovariant1 = ZeroVector(mat_size);
         Vector dNCovariant2 = ZeroVector(mat_size);
         Vector dNCovariant3 = ZeroVector(mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)
         {
-            dNCovariant1(r) = rDTraction(0, r);
-            dNCovariant2(r) = rDTraction(1, r);
-            dNCovariant3(r) = rDTraction(2, r);
+            dNCovariant1(r) = rNCurvilinear(0, r);
+            dNCovariant2(r) = rNCurvilinear(1, r);
+            dNCovariant3(r) = rNCurvilinear(2, r);
         }
 
         Matrix dispdNCovariant1_master = ZeroMatrix(3, mat_size); //dispVctI*dNCovariantI(1,:)
@@ -992,23 +1060,25 @@ namespace Kratos
         rDDTraction += prod(trans(r_DN_Deta), r_DN_Deta)*rDDTractionProduct(1);
         rDDTraction += 0.5*(prod(trans(r_DN_Dxi), r_DN_Deta) + prod(trans(r_DN_Deta), r_DN_Dxi))*rDDTractionProduct(2);
 
-        rDDTraction += prod(trans(r_DN_Dxi), dispdNCovariant1_master)*rActualKinematic.n_contravariant(0);
-        rDDTraction += prod(trans(r_DN_Deta), dispdNCovariant2_master)*rActualKinematic.n_contravariant(1);
-        rDDTraction += 0.5*(prod(trans(r_DN_Dxi), dispdNCovariant3_master)*rActualKinematic.n_contravariant(0) + prod(trans(r_DN_Deta), dispdNCovariant3_master)*rActualKinematic.n_contravariant(1));
-        rDDTraction += prod(trans(dispdNCovariant1_master), r_DN_Dxi)*rActualKinematic.n_contravariant(0);
-        rDDTraction += prod(trans(dispdNCovariant2_master), r_DN_Deta)*rActualKinematic.n_contravariant(1);
-        rDDTraction += 0.5*(prod(trans(dispdNCovariant3_master), r_DN_Dxi)*rActualKinematic.n_contravariant(0) + prod(trans(dispdNCovariant3_master), r_DN_Deta)*rActualKinematic.n_contravariant(1));
-        
+        rDDTraction += prod(trans(r_DN_Dxi), dispdNCovariant1_master)*n_contravariant_vector(0);
+        rDDTraction += prod(trans(r_DN_Deta), dispdNCovariant2_master)*n_contravariant_vector(1);
+        rDDTraction += (prod(trans(r_DN_Dxi), dispdNCovariant3_master)*n_contravariant_vector(1) + prod(trans(r_DN_Deta), dispdNCovariant3_master)*n_contravariant_vector(0));
+
+        rDDTraction += prod(trans(dispdNCovariant1_master), r_DN_Dxi)*n_contravariant_vector(0);
+        rDDTraction += prod(trans(dispdNCovariant2_master), r_DN_Deta)*n_contravariant_vector(1);
+        rDDTraction += (prod(trans(dispdNCovariant3_master), r_DN_Dxi)*n_contravariant_vector(1) + prod(trans(dispdNCovariant3_master), r_DN_Deta)*n_contravariant_vector(0));
+
         rDDTraction -= prod(trans(r_DN_Dxi), r_DN_Dxi)*rDDTractionProductMasterSlave(0);
         rDDTraction -= prod(trans(r_DN_Deta), r_DN_Deta)*rDDTractionProductMasterSlave(1);
         rDDTraction -= 0.5*(prod(trans(r_DN_Dxi), r_DN_Deta) + prod(trans(r_DN_Deta), r_DN_Dxi))*rDDTractionProductMasterSlave(2);
 
-        rDDTraction -= prod(trans(r_DN_Dxi), dispdNCovariant1_slave)*rActualKinematic.n_contravariant(0);
-        rDDTraction -= prod(trans(r_DN_Deta), dispdNCovariant2_slave)*rActualKinematic.n_contravariant(1);
-        rDDTraction -= 0.5*(prod(trans(r_DN_Dxi), dispdNCovariant3_slave)*rActualKinematic.n_contravariant(0) + prod(trans(r_DN_Deta), dispdNCovariant3_slave)*rActualKinematic.n_contravariant(1));
-        rDDTraction -= prod(trans(dispdNCovariant1_slave), r_DN_Dxi)*rActualKinematic.n_contravariant(0);
-        rDDTraction -= prod(trans(dispdNCovariant2_slave), r_DN_Deta)*rActualKinematic.n_contravariant(1);
-        rDDTraction -= 0.5*(prod(trans(dispdNCovariant3_slave), r_DN_Dxi)*rActualKinematic.n_contravariant(0) + prod(trans(dispdNCovariant3_slave), r_DN_Deta)*rActualKinematic.n_contravariant(1));
+        rDDTraction -= prod(trans(r_DN_Dxi), dispdNCovariant1_slave)*n_contravariant_vector(0);
+        rDDTraction -= prod(trans(r_DN_Deta), dispdNCovariant2_slave)*n_contravariant_vector(1);
+        rDDTraction -= (prod(trans(r_DN_Dxi), dispdNCovariant3_slave)*n_contravariant_vector(1) + prod(trans(r_DN_Deta), dispdNCovariant3_slave)*n_contravariant_vector(0));
+
+        rDDTraction -= prod(trans(dispdNCovariant1_slave), r_DN_Dxi)*n_contravariant_vector(0);
+        rDDTraction -= prod(trans(dispdNCovariant2_slave), r_DN_Deta)*n_contravariant_vector(1);
+        rDDTraction -= (prod(trans(dispdNCovariant3_slave), r_DN_Dxi)*n_contravariant_vector(1) + prod(trans(dispdNCovariant3_slave), r_DN_Deta)*n_contravariant_vector(0));
     }
 
     void NitscheCouplingCondition::GetValuesVector(
