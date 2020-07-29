@@ -232,9 +232,9 @@ namespace Kratos
         Matrix H = ZeroMatrix(3, 3);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
-        rKinematicVariables.b_ab_covariant[0] = H(0, 0)*rKinematicVariables.a3_tilde[0] + H(1, 0)*rKinematicVariables.a3_tilde[1] + H(2, 0)*rKinematicVariables.a3_tilde[2];
-        rKinematicVariables.b_ab_covariant[1] = H(0, 1)*rKinematicVariables.a3_tilde[0] + H(1, 1)*rKinematicVariables.a3_tilde[1] + H(2, 1)*rKinematicVariables.a3_tilde[2];
-        rKinematicVariables.b_ab_covariant[2] = H(0, 2)*rKinematicVariables.a3_tilde[0] + H(1, 2)*rKinematicVariables.a3_tilde[1] + H(2, 2)*rKinematicVariables.a3_tilde[2];
+        rKinematicVariables.b_ab_covariant[0] = H(0, 0)*rKinematicVariables.a3[0] + H(1, 0)*rKinematicVariables.a3[1] + H(2, 0)*rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant[1] = H(0, 1)*rKinematicVariables.a3[0] + H(1, 1)*rKinematicVariables.a3[1] + H(2, 1)*rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant[2] = H(0, 2)*rKinematicVariables.a3[0] + H(1, 2)*rKinematicVariables.a3[1] + H(2, 2)*rKinematicVariables.a3[2];
     }
 
     /* Computes the transformation matrix T from the contravariant curvilinear basis to

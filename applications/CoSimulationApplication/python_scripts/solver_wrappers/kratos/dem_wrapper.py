@@ -16,8 +16,8 @@ if not CheckIfApplicationsAvailable("DEMApplication"):
 from KratosMultiphysics import DEMApplication
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 
-def Create(settings, solver_name):
-    return DEMWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return DEMWrapper(settings, model, solver_name)
 
 class DEMWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the DEMApplication of Kratos"""
