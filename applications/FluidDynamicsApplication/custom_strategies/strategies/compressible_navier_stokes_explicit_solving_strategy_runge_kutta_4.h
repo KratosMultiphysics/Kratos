@@ -172,6 +172,7 @@ public:
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
+                r_node.SetValue(NODAL_AREA, 0.0);
                 r_node.SetValue(DENSITY_PROJECTION, 0.0);
                 r_node.SetValue(TOTAL_ENERGY_PROJECTION, 0.0);
                 r_node.SetValue(MOMENTUM_PROJECTION, ZeroVector(3));
@@ -223,11 +224,6 @@ public:
 //             it_node->GetValue(TOTAL_ENERGY_TIME_DERIVATIVE) = 0.0;
 //         }
 
-        // // If the mesh has changed, reinitialize the shock capturing method
-        // if (BaseType::MoveMeshFlag() && mShockCapturing) {
-        //     InitializeShockCapturing();
-        // }
-
         // Calculate the magnitudes time derivatives
         UpdateUnknownsTimeDerivatives(1.0);
 
@@ -237,9 +233,14 @@ public:
         //     CalculateOrthogonalSubScalesProjection();
         // }
 
-        // // Perform orthogonal projection shock capturing
-        // if (mShockCapturing) {
-        //     CalculateOrthogonalProjectionShockCapturing();
+        // Perform orthogonal projection shock capturing
+        if (mShockCapturing) {
+            CalculateOrthogonalProjectionShockCapturing();
+        }
+
+        // // If the mesh has changed, reinitialize the shock capturing method
+        // if (BaseType::MoveMeshFlag() && mShockCapturing) {
+        //     InitializeShockCapturing();
         // }
     }
 
@@ -352,16 +353,16 @@ protected:
         }
 
         // Perform orthogonal projection shock capturing
-        if (mShockCapturing) {
-            CalculateOrthogonalProjectionShockCapturing();
-        }
+        // if (mShockCapturing) {
+        //     CalculateOrthogonalProjectionShockCapturing();
+        // }
 
         // // Perform shock capturing
         // if (mShockCapturing) {
         //     // Call the shock detection process
         //     mpShockDetectionProcess->ExecuteInitializeSolutionStep();
         //     // Add the corresponding artificial magnitudes
-        //     CalculateShockCapturingMagnitudes();
+        //     // CalculateShockCapturingMagnitudes();
         // }
     }
 
@@ -382,10 +383,10 @@ protected:
             CalculateOrthogonalSubScalesProjection();
         }
 
-        // Perform orthogonal projection shock capturing
-        if (mShockCapturing) {
-            CalculateOrthogonalProjectionShockCapturing();
-        }
+        // // Perform orthogonal projection shock capturing
+        // if (mShockCapturing) {
+        //     CalculateOrthogonalProjectionShockCapturing();
+        // }
 
         // // Perform shock capturing
         // if (mShockCapturing) {
@@ -641,8 +642,8 @@ private:
 
         // Calculate shock capturing values
         const double zero_tol = 1.0e-12;
-        const double sc_visc_max_ratio = 1.0e3;
-        const double sc_cond_max_ratio = 1.0e3;
+        const double sc_visc_max_ratio = 1.0e0;
+        const double sc_cond_max_ratio = 1.0e0;
 
         array_1d<double,3> midpoint_v;
         Matrix midpoint_mom_grad_proj;
@@ -697,11 +698,24 @@ private:
             mom_grad_proj_norm = std::sqrt(mom_grad_proj_norm);
 
             // Calculate the shock capturing magnitudes
-            const double c_a = 0.05;
+            const double c_a = 0.8;
             const double v_norm = norm_2(midpoint_v);
             const double aux = 0.5 * c_a * v_norm * avg_h_function(r_geom);
-            it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = mom_grad_norm > zero_tol && mom_grad_proj_norm / mom_grad_norm < sc_visc_max_ratio? aux * mom_grad_proj_norm / mom_grad_norm : 0.0;
-            it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = tot_ener_grad_norm > zero_tol && tot_ener_grad_proj_norm / tot_ener_grad_norm < sc_cond_max_ratio ? aux * tot_ener_grad_proj_norm / tot_ener_grad_norm : 0.0;
+            // it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = mom_grad_norm > zero_tol ? aux * mom_grad_proj_norm / mom_grad_norm : 0.0;
+            // it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = tot_ener_grad_norm > zero_tol ? aux * tot_ener_grad_proj_norm / tot_ener_grad_norm : 0.0;
+            if (mom_grad_norm > zero_tol) {
+                const double sc_visc_ratio = mom_grad_proj_norm / mom_grad_norm;
+                it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = sc_visc_ratio < sc_visc_max_ratio ? aux * sc_visc_ratio : aux * sc_visc_max_ratio;
+            } else  {
+                it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = 0.0;
+            }
+
+            if (tot_ener_grad_norm > zero_tol) {
+                const double sc_cond_ratio = tot_ener_grad_proj_norm / tot_ener_grad_norm;
+                it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = sc_cond_ratio < sc_cond_max_ratio ? aux * sc_cond_ratio : aux * sc_cond_max_ratio;
+            } else {
+                it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = 0.0;
+            }
         }
     }
 
@@ -720,7 +734,8 @@ private:
     //     nodal_h_process.Execute();
 
     //     // Initialize the shock detection process
-    //     mpShockDetectionProcess = Kratos::make_unique<ShockDetectionProcess>(r_model_part, DENSITY, DENSITY_GRADIENT);
+    //     mpShockDetectionProcess = Kratos::make_unique<ShockDetectionProcess>(r_model_part, PRESSURE, DENSITY_GRADIENT);
+    //     // mpShockDetectionProcess = Kratos::make_unique<ShockDetectionProcess>(r_model_part, DENSITY, DENSITY_GRADIENT);
     //     mpShockDetectionProcess->ExecuteInitialize();
     // }
 
