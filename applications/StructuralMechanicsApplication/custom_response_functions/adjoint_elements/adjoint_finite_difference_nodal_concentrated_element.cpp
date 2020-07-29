@@ -121,9 +121,9 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::EquationId
         const IndexType index = i * dimension;
         const NodeType& iNode = geom[i];
 
-        rResult[index    ] = iNode.GetDof(ADJOINT_VECTOR_1_X).EquationId();
-        rResult[index + 1] = iNode.GetDof(ADJOINT_VECTOR_1_Y).EquationId();
-        rResult[index + 2] = iNode.GetDof(ADJOINT_VECTOR_1_Z).EquationId();
+        rResult[index    ] = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
+        rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
+        rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
     }
     KRATOS_CATCH("")
 }
@@ -148,9 +148,9 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetDofList
         const IndexType index = i * dimension;
         const NodeType& iNode = geom[i];
 
-        rElementalDofList[index    ] = iNode.pGetDof(ADJOINT_VECTOR_1_X);
-        rElementalDofList[index + 1] = iNode.pGetDof(ADJOINT_VECTOR_1_Y);
-        rElementalDofList[index + 2] = iNode.pGetDof(ADJOINT_VECTOR_1_Z);
+        rElementalDofList[index    ] = iNode.pGetDof(ADJOINT_DISPLACEMENT_X);
+        rElementalDofList[index + 1] = iNode.pGetDof(ADJOINT_DISPLACEMENT_Y);
+        rElementalDofList[index + 2] = iNode.pGetDof(ADJOINT_DISPLACEMENT_Z);
     }
 
     KRATOS_CATCH("")
@@ -175,9 +175,9 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::GetValuesV
         const IndexType index = i * dimension;
         const NodeType& iNode = geom[i];
 
-        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
-        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Y, Step);
-        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_1_Z, Step);
+        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, Step);
+        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y, Step);
+        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z, Step);
     }
     
     KRATOS_CATCH("")

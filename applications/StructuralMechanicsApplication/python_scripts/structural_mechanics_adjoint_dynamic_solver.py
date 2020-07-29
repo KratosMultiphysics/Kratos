@@ -31,10 +31,10 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         super(StructuralMechanicsAdjointDynamicSolver, self).AddVariables()
         self._add_dynamic_variables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_2)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_3)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_VECTOR_1)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
@@ -96,9 +96,9 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VECTOR_1_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VECTOR_1_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VECTOR_1_Z, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VECTOR_2_X, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VECTOR_2_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VECTOR_2_Z, self.main_model_part)
