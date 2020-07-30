@@ -1,72 +1,48 @@
-### ATTENTION ###
-# This is the GLOBAL gitignore, please do NOT change this file,
-# unless it should be available for everyone
-# Please change the LOCAL gitignore (.git/info/exclude) to cutomize
-# exluding files/folders from being recognized by git
+/applications/FloodTerrainApplication/
 
-# Recovery files
-*~
+/applications/GeodataProcessingApplication/
 
-# Compiled python
-*.pyc
+/applications/GeodataProcessingApplication/custom_utilities/copy/example_readme.md
+/applications/GeodataProcessingApplication/custom_utilities/copy/README.md
 
-# Common build directory
-~scripts/standard_configure_MINGW.sh
-~scripts/standard_configure_mac.sh
-~scripts/standard_configure.sh
-~scripts/standard_configure_MINGW.bat
-~scripts/standard_configure.bat
-scripts/*.sh
-scripts/*.bat
-build/*
-bin/*
+/applications/GeodataProcessingApplication/python_scripts/cfd_data/
+/applications/GeodataProcessingApplication/python_scripts/data/
+/applications/GeodataProcessingApplication/python_scripts/test_analysis/
 
-# Times files
-*.time
-
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-*.pyd
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# GiD post files
-*.post.res
-*.post.msh
-*.post.bin
-*.post.lst
-
-# VTK post files
-*.vtk
-*.vtu
-
-# Output of tests of meshing application (MMG)
-*.sol
-*.mesh
-*.o.sol
-*.o.mesh
-
-# Backup files
-*.bak
-
-# Most used editor files
-*.vscode
+/applications/GeodataProcessingApplication/python_scripts/0_TODO_code.txt
+/applications/GeodataProcessingApplication/python_scripts/OD_test_domain_generator.py
+/applications/GeodataProcessingApplication/python_scripts/OD_test_import_domain_and_building.py
+/applications/GeodataProcessingApplication/python_scripts/test_application.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_12.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_14_import_mdpa.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_ago27_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_ago29_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_ago30_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_ago30_2_buildings.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_oct_10.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept02_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept03_1_copy_building.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept03_2.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept03_3.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept04_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept05_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept06_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept09_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept10_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept12_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept13_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept19_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_cylinder_sept25_1.py
+/applications/GeodataProcessingApplication/python_scripts/test_import_17_sept.py
+/applications/GeodataProcessingApplication/python_scripts/test_import_and_CFD_part.py
+/applications/GeodataProcessingApplication/python_scripts/test_import_and_ClearConditions.py
+/applications/GeodataProcessingApplication/python_scripts/test_import_buildings.py
+/applications/GeodataProcessingApplication/python_scripts/test_import_mdpa.py
+/applications/GeodataProcessingApplication/python_scripts/test_import_mdpa_with_overlap.py
+/applications/GeodataProcessingApplication/python_scripts/test_january_2020.py
+/applications/GeodataProcessingApplication/python_scripts/test_json.py
+/applications/GeodataProcessingApplication/python_scripts/test_model_part.py
+/applications/GeodataProcessingApplication/python_scripts/test_simple_tetra_for_CleanConditionsAngle.py
+/applications/GeodataProcessingApplication/python_scripts/test_simple_tetra_for_separated_buildings.py
+/applications/GeodataProcessingApplication/python_scripts/test_simple_tetra.py
+/applications/GeodataProcessingApplication/python_scripts/test_split_obj.py
