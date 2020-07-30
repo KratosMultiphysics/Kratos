@@ -201,8 +201,7 @@ private:
     /// Computes Green Lagrange Strain for all integration points
     void CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) const;
 
-    Vector TrussElement3D2N::ComputeTangentModulus(
-        const ProcessInfo& rCurrentProcessInfo);
+    Vector ComputeTangentModulus(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization
