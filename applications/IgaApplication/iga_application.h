@@ -19,6 +19,7 @@
 
 //elements
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/truss_element.h"
 #include "custom_elements/iga_truss_element.h"
 
 //conditions
@@ -101,6 +102,7 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
+    const TrussElement mTrussElement;
     const IgaTrussElement mIgaTrussElement;
 
     //Conditions
