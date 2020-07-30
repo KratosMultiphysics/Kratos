@@ -29,12 +29,12 @@ namespace Kratos
         if ( norm_2( mResponseDirection ) > 1.0e-7 ){
             mResponseDirection /= norm_2( mResponseDirection );
         } else {
-            KRATOS_ERROR << "Error thrown in AdjointNodalDisplacementResponseFunction: 'response_direction' must not have a norm of 0.0." << std::endl;
+            KRATOS_ERROR << "AdjointNodalDisplacementResponseFunction: 'response_direction' must not have a norm of 0.0." << std::endl;
         }
 
         // Check if variable for traced dof is valid
         if( !( KratosComponents<ArrayVariableType>::Has(mTracedDofLabel)) ) {
-            KRATOS_ERROR << "Specified traced DOF is not available. Specified DOF: " << mTracedDofLabel << std::endl;
+            KRATOS_ERROR << "AdjointNodalDisplacementResponseFunction: Specified traced DOF is not available. Specified DOF: " << mTracedDofLabel << std::endl;
         }
         else {
             ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
@@ -42,16 +42,16 @@ namespace Kratos
                 KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
             for(auto& node_i : response_part.Nodes()){
                 KRATOS_ERROR_IF_NOT( node_i.SolutionStepsDataHas(r_traced_dof) )
-                    << "Specified DOF is not available at traced node." << std::endl;
+                    << "AdjointNodalDisplacementResponseFunction: Specified DOF is not available at traced node." << std::endl;
             }
         }
 
         // Check if variable for traced adjoint dof is valid
         if( !( KratosComponents<ArrayVariableType>::Has(std::string("ADJOINT_") + mTracedDofLabel)) ) {
-            KRATOS_ERROR << "Specified traced adjoint DOF is not available." << std::endl;
+            KRATOS_ERROR << "AdjointNodalDisplacementResponseFunction: Specified traced adjoint DOF is not available." << std::endl;
         }
 
-        this->GetNeighboringElementNodeMap();
+        this->ComputeNeighboringNodeElementMap();
     }
 
     AdjointNodalDisplacementResponseFunction::~AdjointNodalDisplacementResponseFunction(){}
@@ -67,17 +67,16 @@ namespace Kratos
             rResponseGradient.resize(rResidualGradient.size1(), false);
 
         rResponseGradient.clear();
+        const Variable<double>* adjoint_solution_variable = &KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofLabel + "_X");
 
-        std::map<std::pair<IndexType, IndexType>, IndexType>::iterator it;
-        for (it = mElementNodeMap.begin(); it != mElementNodeMap.end(); ++it) {
-            const auto element_id = (it->first).first;
-            const auto node_id = it->second;
+        std::map<IndexType, IndexType>::iterator it;
+        for (it = mNodeElementMap.begin(); it != mNodeElementMap.end(); ++it) {
+            const auto node_id = it->first;
+            const auto element_id = it->second;
 
             if( rAdjointElement.Id() == element_id ) {
-                const Variable<double>* adjoint_solution_variable = &KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofLabel + "_X");
-                Element::Pointer p_neighboring_element = mrModelPart.pGetElement(element_id);
                 DofsVectorType dofs_of_element;
-                p_neighboring_element->GetDofList(dofs_of_element, rProcessInfo);
+                rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
 
                 for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
                     if (dofs_of_element[i]->Id() == node_id &&
@@ -85,6 +84,7 @@ namespace Kratos
                         rResponseGradient[i]   = -1 * mResponseDirection[0];
                         rResponseGradient[i+1] = -1 * mResponseDirection[1];
                         rResponseGradient[i+2] = -1 * mResponseDirection[2];
+                        break;
                     }
                 }
             }
@@ -188,13 +188,11 @@ namespace Kratos
         const ArrayVariableType& r_traced_dof =
             KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
 
-
-
         double response_value = 0.0;
         ModelPart& response_part = rModelPart.GetSubModelPart(mResponsePartName);
         for(auto& node_i : response_part.Nodes()){
             // project displacement vector in the traced direction. As mResponseDirection is a normalized vector
-            // the result of the inner product is alreay the displacement value in the traced direction.
+            // the result of the inner product is already the displacement value in the traced direction.
             response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
         }
 
@@ -204,7 +202,7 @@ namespace Kratos
     }
 
     /// Find one element which is bounded by one of the traced nodes. The elements are needed for assembling the adjoint load.
-    void AdjointNodalDisplacementResponseFunction::GetNeighboringElementNodeMap()
+    void AdjointNodalDisplacementResponseFunction::ComputeNeighboringNodeElementMap()
     {
         KRATOS_TRY;
 
@@ -218,7 +216,7 @@ namespace Kratos
             const SizeType number_of_nodes = r_neighbours[0].GetGeometry().PointsNumber();
             for(IndexType i = 0; i < number_of_nodes; ++i) {
                 if(r_neighbours[0].GetGeometry()[i].Id() == node_i.Id()) {
-                    mElementNodeMap[{r_neighbours[0].Id(), i}] = node_i.Id();
+                    mNodeElementMap[node_i.Id()] = r_neighbours[0].Id();
                 }
             }
         }

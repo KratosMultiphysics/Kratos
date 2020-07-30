@@ -195,7 +195,7 @@ private:
     std::string mTracedDofLabel;
     std::string mResponsePartName;
     array_1d<double,3> mResponseDirection;
-    std::map<std::pair<IndexType, IndexType>, IndexType> mElementNodeMap;
+    std::map<IndexType, IndexType> mNodeElementMap;
 
     ///@}
     ///@name Private Operators
@@ -205,7 +205,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void GetNeighboringElementNodeMap();
+    void ComputeNeighboringNodeElementMap();
 
     ///@}
     ///@name Private  Access
