@@ -9,6 +9,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
 
+# Import python based truss tests
+from truss_element_tests import TrussElementTests as TTrussElementTests
+
 # Import the tests o test_classes to create the suits
 
 def AssembleTestSuites():
@@ -25,7 +28,8 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        SinglePatchTest
+        SinglePatchTest,
+        TTrussElementTests
         ]))
 
 
