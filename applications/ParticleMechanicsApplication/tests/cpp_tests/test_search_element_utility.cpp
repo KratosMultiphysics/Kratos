@@ -357,8 +357,8 @@ namespace Testing
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 9);
-        std::vector<double> result_weight = { 0.5, 0.0307296, 0.103553,0.0121636,
-            0.0785534, 0.103553, 0.128553, 0.0214466, 0.0214466 };
+        std::vector<double> result_weight = { 0.0307296, 0.103553,0.0121636, 0.5,
+            0.128553, 0.0214466, 0.103553, 0.0785534, 0.0214466 };
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
@@ -403,7 +403,7 @@ namespace Testing
         Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 5);
-        std::vector<double> result_weight = { 0.42, 0.018, 0.162, 0.32, 0.08};
+        std::vector<double> result_weight = { 0.018, 0.162, 0.42, 0.32, 0.08};
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
