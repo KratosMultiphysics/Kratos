@@ -590,7 +590,7 @@ namespace MPMSearchElementUtility
         return false;
     }
 
-    inline bool IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3> rCoord, const double SideHalfLength)
+    inline bool IntersectionCheckWithBoundingBox(const GeometryType& rGeom, const array_1d<double, 3>& rCoord, const double SideHalfLength)
     {
         const Point point_low(rCoord[0] - SideHalfLength, rCoord[1] - SideHalfLength,
             rCoord[2] - (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0);
@@ -613,7 +613,7 @@ namespace MPMSearchElementUtility
         const Point& rPointLow,
         const Point& rPointHigh,
         IndexType& RecursionCount,
-        const array_1d<double, 3> rCoordinates,
+        const array_1d<double, 3>& rCoordinates,
         const double SideHalfLength,
         const SizeType MaxRecursions = 100)
     {
@@ -661,23 +661,25 @@ namespace MPMSearchElementUtility
         const array_1d<double, 3>& rCoordinates,
         const array_1d<double, 3>& rLocalCoords,
         Element& rMasterMaterialPoint,
-        typename GeometryType::Pointer pGeometry,
+        typename GeometryType::Pointer pQuadraturePointGeometry,
         const double Tolerance)
     {
         KRATOS_TRY;
+
+        GeometryType& rParentGeom = pQuadraturePointGeometry->GetGeometryParent(0);
 
         // If axisymmetric make normal MP
         if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC)) {
             if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)) {
                 CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                    pGeometry, rLocalCoords,
+                    pQuadraturePointGeometry, rLocalCoords,
                     rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                    (pGeometry->GetGeometryParent(0)));
+                    rParentGeom);
                 return;
             }
         }
 
-        const SizeType working_dim = pGeometry->WorkingSpaceDimension();
+        const SizeType working_dim = rParentGeom.WorkingSpaceDimension();
         const double pqmpm_min_fraction = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION))
             ? std::max(rBackgroundGridModelPart.GetProcessInfo()[PQMPM_SUBPOINT_MIN_VOLUME_FRACTION], std::numeric_limits<double>::epsilon())
             : std::numeric_limits<double>::epsilon();
@@ -692,12 +694,12 @@ namespace MPMSearchElementUtility
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar
-        if (mp_volume_vec[0] <= pGeometry->DomainSize()) {
-            if (CheckAllPointsAreInGeom(master_domain_points, *pGeometry, Tolerance)) {
+        if (mp_volume_vec[0] <= rParentGeom.DomainSize()) {
+            if (CheckAllPointsAreInGeom(master_domain_points, rParentGeom, Tolerance)) {
                 CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                    pGeometry, rLocalCoords,
+                    pQuadraturePointGeometry, rLocalCoords,
                     rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                    (pGeometry->GetGeometryParent(0)));
+                    rParentGeom);
                 return;
             }
         }
@@ -712,7 +714,7 @@ namespace MPMSearchElementUtility
 
         // Do neighbour searching to determine the intersected geometries
         IndexType recursion_count = 0;
-        intersected_geometries.push_back(pGeometry.get());
+        intersected_geometries.push_back(&rParentGeom);
         RecursivePQMPMNeighbourSearch(rBackgroundGridModelPart,
             intersected_geometries, point_low , point_high , recursion_count,
             rCoordinates, side_half_length);
@@ -769,8 +771,8 @@ namespace MPMSearchElementUtility
                     else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
                     if (is_fixed) {
                         CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                            pGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                            (pGeometry->GetGeometryParent(0)));
+                            pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                            rParentGeom);
                         return;
                     }
 
@@ -781,8 +783,8 @@ namespace MPMSearchElementUtility
         }
         if (active_subpoint_index == 1) {
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                pGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                (pGeometry->GetGeometryParent(0)));
+                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                rParentGeom);
             return;
         }
 
@@ -807,8 +809,8 @@ namespace MPMSearchElementUtility
                 ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS) : false;
             if (is_pqmpm_fallback) {
                 CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                    pGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                    (pGeometry->GetGeometryParent(0)));
+                    pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                    rParentGeom);
                 return;
             }
             else {
@@ -821,13 +823,14 @@ namespace MPMSearchElementUtility
                     << "\nNumber of trial sub points = " << ips.size()
                     << "\nMaterial point volume = " << mp_volume_vec[0]
                     << "\nTotal volume fraction = " << vol_sum << "\nIndividual volume fractions:\n";
-                for (size_t i = 0; i < ips_active.size(); ++i) std::cout << ips_active[i].Weight() << std::endl;
+                for (size_t i = 0; i < ips_active.size(); ++i) std::cout << "\t" << ips_active[i].Weight()
+                    << "\t\t" << ips_active[i].Coordinates() << std::endl;
                 KRATOS_ERROR << "ERROR";
             }
         } else CheckPQMPM(ips_active, std::numeric_limits<double>::epsilon(), N_matrix, DN_De_vector);
 
         // Transfer data over
-        GeometryData::IntegrationMethod ThisDefaultMethod = pGeometry->GetDefaultIntegrationMethod();
+        GeometryData::IntegrationMethod ThisDefaultMethod = pQuadraturePointGeometry->GetDefaultIntegrationMethod();
         IntegrationPointsContainerType ips_container;
         ips_container[ThisDefaultMethod] = ips_active;
         ShapeFunctionsValuesContainerType shape_function_container;
@@ -839,13 +842,13 @@ namespace MPMSearchElementUtility
 
         for (size_t i = 0; i < nodes_list_active.size(); ++i) nodes_list_active[i].Set(ACTIVE);
 
-        if (pGeometry->IntegrationPointsNumber() != 1) {
-            pGeometry = CreateCustomQuadraturePoint(working_dim, pGeometry->LocalSpaceDimension(),
-                data_container, nodes_list_active, &(pGeometry->GetGeometryParent(0)));
+        if (pQuadraturePointGeometry->IntegrationPointsNumber() != 1) {
+            pQuadraturePointGeometry = CreateCustomQuadraturePoint(working_dim, pQuadraturePointGeometry->LocalSpaceDimension(),
+                data_container, nodes_list_active, &rParentGeom);
         }
         else {
-            pGeometry->Points() = nodes_list_active;
-            pGeometry->SetGeometryShapeFunctionContainer(data_container);
+            pQuadraturePointGeometry->Points() = nodes_list_active;
+            pQuadraturePointGeometry->SetGeometryShapeFunctionContainer(data_container);
         }
 
         KRATOS_CATCH("");
@@ -903,7 +906,7 @@ namespace MPMSearchElementUtility
     inline void UpdatePartitionedQuadraturePoint(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         Element& rMasterMaterialPoint,
-        GeometryType::Pointer pQuadraturePointGeometry,
+        typename GeometryType::Pointer pQuadraturePointGeometry,
         const double Tolerance)
     {
         array_1d<double, 3> local_coords;
