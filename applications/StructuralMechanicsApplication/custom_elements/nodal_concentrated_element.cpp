@@ -422,9 +422,11 @@ void NodalConcentratedElement::CalculateDampingMatrix(
             rCurrentProcessInfo,
             system_size);
     } else {
-        const array_1d<double, 3 >& nodal_damping_ratio = this->GetValue(NODAL_DAMPING_RATIO);
-        for ( unsigned int j = 0; j < dimension; ++j )
+        const auto& rconst_this = *this;
+        const array_1d<double, 3 >& nodal_damping_ratio = rconst_this.GetValue(NODAL_DAMPING_RATIO);
+        for ( unsigned int j = 0; j < dimension; ++j ) {
             rDampingMatrix(j, j) += nodal_damping_ratio[j];
+        }
     }
 
     KRATOS_CATCH( "" );

@@ -26,7 +26,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(1, 0.00, 0.00, 0.00)
         model_part.CreateNewNode(2, 1.00, 0.00, 0.00)
 
-        cond1 = model_part.CreateNewCondition("Condition2D2N", 1, [1, 2], model_part.GetProperties()[1])
+        cond1 = model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], model_part.GetProperties()[1])
         normal = cond1.GetGeometry().UnitNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(1).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
@@ -39,7 +39,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(3, 0.00, 0.001, 0.00)
         model_part.CreateNewNode(4, 1.00, 0.001, 0.00)
 
-        cond2 = model_part.CreateNewCondition("Condition2D2N", 2, [3, 4], model_part.GetProperties()[1])
+        cond2 = model_part.CreateNewCondition("LineCondition2D2N", 2, [3, 4], model_part.GetProperties()[1])
         normal = cond2.GetGeometry().UnitNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(3).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
@@ -73,7 +73,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(1, 0.00, 0.00, 0.00)
         model_part.CreateNewNode(2, 1.00, 0.00, 0.00)
 
-        cond1 = model_part.CreateNewCondition("Condition2D2N", 1, [1, 2], model_part.GetProperties()[1])
+        cond1 = model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], model_part.GetProperties()[1])
         normal = cond1.GetGeometry().UnitNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(1).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
@@ -86,7 +86,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(3, 0.50, 0.001, 0.00)
         model_part.CreateNewNode(4, 1.50, 0.001, 0.00)
 
-        cond2 = model_part.CreateNewCondition("Condition2D2N", 2, [3, 4], model_part.GetProperties()[1])
+        cond2 = model_part.CreateNewCondition("LineCondition2D2N", 2, [3, 4], model_part.GetProperties()[1])
         normal = cond2.GetGeometry().UnitNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(3).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
@@ -120,7 +120,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(1, 0.00, -0.5, 0.00)
         model_part.CreateNewNode(2, 1.00,  0.5, 0.00)
 
-        cond1 = model_part.CreateNewCondition("Condition2D2N", 1, [1, 2], model_part.GetProperties()[1])
+        cond1 = model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], model_part.GetProperties()[1])
 
         normal = cond1.GetGeometry().UnitNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
@@ -134,7 +134,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(3, 0.0, 0.5, 0.00)
         model_part.CreateNewNode(4, 1.0, 0.5, 0.00)
 
-        cond2 = model_part.CreateNewCondition("Condition2D2N", 2, [3, 4], model_part.GetProperties()[1])
+        cond2 = model_part.CreateNewCondition("LineCondition2D2N", 2, [3, 4], model_part.GetProperties()[1])
 
         normal = cond2.GetGeometry().UnitNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
@@ -400,7 +400,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(3, 1.00, 1.00, 0.00)
         model_part.CreateNewNode(4, 0.00, 1.00, 0.00)
 
-        cond1 = model_part.CreateNewCondition("Condition3D4N", 1, [1, 2, 3, 4], model_part.GetProperties()[1])
+        cond1 = model_part.CreateNewCondition("SurfaceCondition3D4N", 1, [1, 2, 3, 4], model_part.GetProperties()[1])
         normal = cond1.GetGeometry().UnitNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(1).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
@@ -417,7 +417,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(7, 1.00, 1.00, 0.01)
         model_part.CreateNewNode(8, 0.00, 1.00, 0.01)
 
-        cond2 = model_part.CreateNewCondition("Condition3D4N", 2, [5, 6, 7, 8], model_part.GetProperties()[1])
+        cond2 = model_part.CreateNewCondition("SurfaceCondition3D4N", 2, [5, 6, 7, 8], model_part.GetProperties()[1])
         normal = cond2.GetGeometry().UnitNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(5).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
@@ -468,7 +468,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(3, 1.00, 1.00, 0.00)
         model_part.CreateNewNode(4, 0.00, 1.00, 0.00)
 
-        cond1 = model_part.CreateNewCondition("Condition3D4N", 1, [1, 2, 3, 4], model_part.GetProperties()[1])
+        cond1 = model_part.CreateNewCondition("SurfaceCondition3D4N", 1, [1, 2, 3, 4], model_part.GetProperties()[1])
         normal = cond1.GetGeometry().UnitNormal()
         cond1.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(1).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)
@@ -486,7 +486,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
         model_part.CreateNewNode(7, 1.50, 1.50, 0.01)
         model_part.CreateNewNode(8, 0.50, 1.50, 0.01)
 
-        cond2 = model_part.CreateNewCondition("Condition3D4N", 2, [5, 6, 7, 8], model_part.GetProperties()[1])
+        cond2 = model_part.CreateNewCondition("SurfaceCondition3D4N", 2, [5, 6, 7, 8], model_part.GetProperties()[1])
         normal = cond2.GetGeometry().UnitNormal()
         cond2.SetValue(KratosMultiphysics.NORMAL, normal)
         model_part.GetNode(5).SetSolutionStepValue(KratosMultiphysics.NORMAL, normal)

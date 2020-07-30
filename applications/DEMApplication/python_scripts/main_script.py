@@ -4,28 +4,23 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-sys.path.insert(0, '')
 Logger.PrintInfo("DEM", "WARNING: main_script.py is is deprecated since 20/03/2019")
 Logger.PrintInfo("DEM", "WARNING: Please use DEM_analysis_stage.py")
 
-# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
-if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+if IsDistributedRun():
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi_no_partitions as DEM_procedures
-        import DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
     else:
         Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi as DEM_procedures
-        import DEM_material_test_script_mpi as DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures
 else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
-    import DEM_procedures
-    import DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
 class Solution(object):
 
@@ -47,7 +42,7 @@ class Solution(object):
 
     @classmethod
     def GetDefaultInputParameters(self):
-        import dem_default_input_parameters
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_default_input_parameters
         return dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
@@ -129,7 +124,7 @@ class Solution(object):
         return False
 
     def SetAnalyticParticleWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
 
         # is this being used? TODO
@@ -137,7 +132,7 @@ class Solution(object):
 
 
     def SetAnalyticFaceWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
         self.face_watcher_dict = dict()
         self.face_watcher_analysers = dict()
@@ -219,17 +214,17 @@ class Solution(object):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
         if self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
-            import sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
-            import continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericPartDEMElement3D":
-            import thermal_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "SinteringSphericConPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
-            import ice_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KratosPrintWarning('Error: Strategy unavailable. Select a different scheme-element')
 
@@ -434,17 +429,18 @@ class Solution(object):
         self.time_old_print = 0.0
         while self.time < self.end_time:
 
-            self.InitializeTimeStep()
             self.time = self.time + self.solver.dt
             self.step += 1
 
             self.UpdateTimeInModelParts()
 
-            self._BeforeSolveOperations(self.time)
+            self.InitializeSolutionStep()
+
+            self.solver.Predict()
 
             self.SolverSolve()
 
-            self.AfterSolveOperations()
+            self.FinalizeSolutionStep()
 
             self.solver._MoveAllMeshes(self.time, self.solver.dt)
 
@@ -507,19 +503,8 @@ class Solution(object):
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
-    def InitializeTimeStep(self):
-        pass
-
-    #TODO: deprecated
-    def BeforeSolveOperations(self, time):
-        message = 'Warning!'
-        message += '\nFunction \'BeforeSolveOperations\' is deprecated.'
-        message += '\nPlease call \'_BeforeSolveOperations\' instead.'
-        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
-        Logger.PrintWarning("main_script.py", message)
-        self._BeforeSolveOperations(time)
-
-    def _BeforeSolveOperations(self, time):
+    def InitializeSolutionStep(self):
+        self.solver.InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -527,7 +512,22 @@ class Solution(object):
     def BeforePrintingOperations(self, time):
         pass
 
+    def FinalizeSolutionStep(self):
+        self.solver.FinalizeSolutionStep()
+        if self.post_normal_impact_velocity_option:
+            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
+            if self.IsTimeToPrintPostProcess():
+                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
+                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+        #Phantom Walls
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
+
     def AfterSolveOperations(self):
+        message = 'Warning!'
+        message += '\nFunction \'AfterSolveOperations\' is deprecated.'
+        message += '\nIt will be removed after 10/31/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
             if self.IsTimeToPrintPostProcess():
@@ -592,7 +592,7 @@ class Solution(object):
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
-            import dem_vtk_output
+            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
@@ -636,17 +636,7 @@ class Solution(object):
         self.time = 0.0
         self.time_old_print = 0.0
 
-    #TODO: deprecated
-    def UpdateTimeParameters(self):
-        message = 'Warning!'
-        message += '\nFunction \'UpdateTimeParameters\' is deprecated.'
-        message += '\nPlease call \'_UpdateTimeParameters\' instead.'
-        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
-        Logger.PrintWarning("main_script.py", message)
-        self._UpdateTimeParameters()
-
     def _UpdateTimeParameters(self):
-        self.InitializeTimeStep()
         self.time = self.time + self.solver.dt
         self.step += 1
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)

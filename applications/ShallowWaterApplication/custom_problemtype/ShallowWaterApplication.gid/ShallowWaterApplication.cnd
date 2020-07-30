@@ -3,7 +3,7 @@ BOOK: Parts
 CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces
+GROUPALLOW: surfaces elements nodes
 QUESTION: Bathymetry#CB#(From_digital_model,By_function)
 VALUE: From_digital_model
 DEPENDENCIES: (From_digital_model,HIDE,Expression,#CURRENT#)(By_function,RESTORE,Expression,#CURRENT#)
@@ -17,7 +17,7 @@ BOOK: Initial_conditions
 CONDITION: Initial_water_level
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces
+GROUPALLOW: surfaces elements nodes
 QUESTION: Variable#CB#(FREE_SURFACE_ELEVATION,HEIGHT)
 VALUE: FREE_SURFACE_ELEVATION
 QUESTION: Value
@@ -30,13 +30,13 @@ BOOK: Boundary_conditions
 CONDITION: Slip_condition
 CONDTYPE: over groups
 CONDMESHTYPE: over face elements
-GROUPALLOW: lines
+GROUPALLOW: lines faces nodes
 END CONDITION
 
 CONDITION: Water_height
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: lines
+GROUPALLOW: lines faces nodes
 QUESTION: Water_height
 VALUE: 0.0
 HELP: Units in IS: m
@@ -55,7 +55,7 @@ END CONDITION
 CONDITION: Imposed_flux
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: lines
+GROUPALLOW: lines faces nodes
 QUESTION: Variable#CB#(VELOCITY,MOMENTUM)
 VALUE: VELOCITY
 QUESTION: Modulus
@@ -76,7 +76,7 @@ BOOK: Source_terms
 CONDITION: Bottom_friction
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: surfaces
+GROUPALLOW: surfaces elements nodes
 QUESTION: Manning_friction
 VALUE: 0.004
 END CONDITION
@@ -84,7 +84,7 @@ END CONDITION
 CONDITION: Rain_load
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: lines surfaces
+GROUPALLOW: lines surfaces faces elements nodes
 QUESTION: Rain_profile#CB#(Constant,Table_Interpolation)
 VALUE: Constant
 DEPENDENCIES: (Constant,RESTORE,Value,#CURRENT#)(Constant,HIDE,Table,#CURRENT#)(Table_Interpolation,HIDE,Value,#CURRENT#)(Table_Interpolation,RESTORE,Table,#CURRENT#)

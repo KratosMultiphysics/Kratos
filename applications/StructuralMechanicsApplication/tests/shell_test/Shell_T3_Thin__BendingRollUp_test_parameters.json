@@ -29,12 +29,7 @@
             "displacement_absolute_tolerance"    : 1e-9,
             "residual_relative_tolerance"        : 1e-6,
             "residual_absolute_tolerance"        : 1e-6,
-            "max_iteration"                      : 30,
-            "linear_solver_settings"             : {
-                "solver_type": "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]
+            "max_iteration"                      : 30
     },
     "processes" : {
     "constraints_process_list" : [],
@@ -49,7 +44,7 @@
         "Parameters"            : {
             "check_variables" : ["DISPLACEMENT_X"],
             "input_file_name" : "shell_test/Shell_T3_Thin__BendingRollUp_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "model_part_name"  : "Structure.DISPLACEMENT_Displacement_Auto1",
             "time_frequency"   : 0.01
         }
     }
@@ -65,7 +60,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_X"],
             "output_file_name" : "shell_test/Shell_T3_Thin__BendingRollUp_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "model_part_name"  : "Structure.DISPLACEMENT_Displacement_Auto1",
             "time_frequency"   : 0.01
         }
     }

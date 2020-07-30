@@ -191,6 +191,19 @@ CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
     KRATOS_CATCH("")
 }
 
+void CrBeamElementLinear3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        if(rOutput.size1() != msElementSize || rOutput.size2() != msElementSize) {
+            rOutput.resize(msElementSize, msElementSize, false);
+        }
+        noalias(rOutput) = CalculateInitialLocalCS();
+    } else {
+        CrBeamElement3D2N::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+}
+
 void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,

@@ -166,7 +166,7 @@ class FracStepSolver:
         #neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+        self.neighbour_search = FindNodalNeighboursProcess(model_part)
 
         self.model_part = model_part
         self.p_model_part = p_model_part
@@ -200,7 +200,7 @@ class FracStepSolver:
 
         ##handling slip condition
         self.slip_conditions_initialized = False
-        self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        self.neigh_finder = FindNodalNeighboursProcess(model_part)
         self.compute_reactions=False
         self.timer=Timer()    
         #self.particle_utils = ParticleUtils2D()
@@ -221,7 +221,7 @@ class FracStepSolver:
             self.particle_utils = ParticleUtils2D()	
             self.Mesher = TriGenPFEMModeler()
             
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
             self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)	
@@ -232,7 +232,7 @@ class FracStepSolver:
             self.particle_utils = ParticleUtils3D()
             
             self.Mesher = TetGenPfemModeler()
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,3, 20)
             self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 20, 30)
@@ -319,7 +319,7 @@ class FracStepSolver:
 
         self.node_erase_process = NodeEraseProcess(self.model_part);
 
-        (self.Mesher).ReGenerateMesh("Fluid3DGLS","Condition3D", self.model_part, self.node_erase_process,False, False, alpha_shape, h_factor)
+        (self.Mesher).ReGenerateMesh("Fluid3DGLS","SurfaceCondition3D3N", self.model_part, self.node_erase_process,False, False, alpha_shape, h_factor)
 
 
         (self.fluid_neigh_finder).Execute();
@@ -378,10 +378,10 @@ class FracStepSolver:
 
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("QFluid2D","LineCondition2D2N", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)
         elif (self.domain_size == 3):
             
-            (self.Mesher).ReGenerateMesh("QFluid3D","Condition3D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
+            (self.Mesher).ReGenerateMesh("QFluid3D","SurfaceCondition3D3N", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
 
 
         (self.fluid_neigh_finder).Execute();

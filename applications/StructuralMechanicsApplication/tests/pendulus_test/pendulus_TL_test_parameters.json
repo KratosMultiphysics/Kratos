@@ -31,8 +31,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"],
         "rotation_dofs"                      : false
     },
     "processes" : {
@@ -43,7 +41,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -57,8 +55,9 @@
         "process_name"  : "AssignDirectionVectorProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
+            "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
             "variable_name"   : "VOLUME_ACCELERATION",
+            "constrained"     : false,
             "modulus"         : 9.81,
             "direction"       : [0.0,-1.0,0.0],
             "interval"        : [0.0,"End"]
@@ -73,7 +72,7 @@
         "Parameters"            : {
             "check_variables" : ["DISPLACEMENT_Y"],
             "input_file_name" : "pendulus_test/pendulus_test_results.json",
-            "model_part_name"  : "SelfWeight2D_Self_weight_Auto1",
+            "model_part_name"  : "Structure.SelfWeight2D_Self_weight_Auto1",
             "time_frequency"   : 0.05
         }
     }
@@ -88,7 +87,7 @@
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Y"],
             "output_file_name" : "pendulus_test/pendulus_test_results.json",
-            "model_part_name"  : "SelfWeight2D_Self_weight_Auto1",
+            "model_part_name"  : "Structure.SelfWeight2D_Self_weight_Auto1",
             "time_frequency"   : 0.05
         }
     }

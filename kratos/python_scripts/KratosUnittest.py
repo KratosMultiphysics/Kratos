@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
 
 from unittest import * # needed to make all functions available to the tests using this file
+from unittest.util import safe_repr
 from contextlib import contextmanager
 
 import getopt
@@ -33,14 +34,49 @@ class TestCase(TestCase):
     def run(self, result=None):
         super(TestCase,self).run(result)
 
-    def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
-        ''' fails if first and second have a difference greater than
+    def assertEqualTolerance(self, first, second, tolerance, msg=None):
+        ''' Fails if first and second have a difference greater than
         tolerance '''
 
         if first < (second - tolerance) or first > (second + tolerance):
             raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
-    assertEqualTolerance = failUnlessEqualWithTolerance
+    def assertIsClose(self, first, second, rel_tol=None, abs_tol=None, msg=None):
+        ''' Fails if the two objects are unequal as determined by their
+        absolute and relative difference
+
+        If the two objects compare equal then they will automatically
+        compare relative almost equal. ''' 
+
+        if first == second:
+            # shortcut
+            return
+
+        if rel_tol is None:
+            rel_tol = 1e-09
+        if abs_tol is None:
+            abs_tol = 0.0
+
+        if isclose(first, second, rel_tol, abs_tol):
+            return
+
+        standardMsg = '%s != %s within %s rel-tol and %s abs-tol' % (safe_repr(first),
+                                                     safe_repr(second),
+                                                     rel_tol, abs_tol)
+        msg = self._formatMessage(msg, standardMsg)
+        raise self.failureException(msg)
+
+    def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
+        self.assertEqual(vector1.Size(), vector2.Size())
+        for i in range(vector1.Size()):
+            self.assertAlmostEqual(vector1[i], vector2[i], prec)
+
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
+        self.assertEqual(matrix1.Size1(), matrix2.Size1())
+        self.assertEqual(matrix1.Size2(), matrix2.Size2())
+        for i in range(matrix1.Size1()):
+            for j in range(matrix1.Size2()):
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
 
 @contextmanager
 def SupressConsoleOutput():
@@ -169,9 +205,9 @@ KratosSuites = {
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
-    '''Same implementation as math.isclose
-    self-implemented bcs msth.isclose was only introduced in python3.5
-    '''
+    ''' Same implementation as math.isclose
+    self-implemented bcs math.isclose was only introduced in python3.5
+    see https://www.python.org/dev/peps/pep-0485/ '''
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 

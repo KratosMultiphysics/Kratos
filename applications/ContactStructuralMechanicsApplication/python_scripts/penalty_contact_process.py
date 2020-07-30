@@ -43,7 +43,6 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "help"                          : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "mesh_id"                       : 0,
             "model_part_name"               : "Structure",
-            "computing_model_part_name"     : "computing_domain",
             "contact_model_part"            : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"           : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_property_ids"          : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
@@ -53,10 +52,13 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
             "tangent_factor"                : 1.0e-3,
-            "slip_convergence_coefficient"  : 1.0,
-            "slip_augmentation_coefficient" : 1.0,
+            "operator_threshold"            : 1.0e-3,
+            "slip_augmentation_coefficient" : 0.0,
+            "slip_threshold"                : 2.0e-2,
+            "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
+            "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
@@ -68,7 +70,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
-                "normal_orientation_threshold"        : 0.0,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -77,6 +79,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
@@ -227,7 +230,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
 
         if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
             # We compute NODAL_H that can be used in the search and some values computation
-            self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
+            self.find_nodal_h = KM.FindNodalHProcess(self.main_model_part)
             self.find_nodal_h.Execute()
 
             # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)

@@ -14,7 +14,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
@@ -64,7 +64,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
+        const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
 
@@ -123,15 +123,27 @@ namespace Kratos {
         double kn_el = equiv_young * calculation_area / initial_dist;
 
         if (&element1_props == &element2_props) {
-            mTensionLimit = element1->GetFastProperties()->GetContactSigmaMin()*1e6;
+            mTensionLimit = GetContactSigmaMax(element1);
         } else {
-            mTensionLimit = 0.5*1e6*(element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
+            mTensionLimit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         }
 
         const double Ntstr_el = mTensionLimit * calculation_area;
         double u1 = Ntstr_el / kn_el;
         if (u1 > 2*radius_sum) {u1 = 2*radius_sum;}   // avoid error in special cases with too high tensile
         return u1;
+    }
+
+    double DEM_KDEM::GetContactSigmaMax(SphericContinuumParticle* element) {
+
+        KRATOS_TRY
+
+        const double angle_of_internal_friction_in_radians = atan(element->GetFastProperties()->GetContactInternalFricc());
+        const double contact_tau_zero = element->GetFastProperties()->GetContactTauZero();
+
+        return (2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians)) / (1.0 + sin(angle_of_internal_friction_in_radians));
+
+        KRATOS_CATCH("")
     }
 
     void DEM_KDEM::CalculateForces(const ProcessInfo& r_process_info,
@@ -172,7 +184,8 @@ namespace Kratos {
                 element1,
                 element2,
                 i_neighbour_count,
-                time_steps);
+                time_steps,
+            r_process_info);
 
         CalculateTangentialForces(OldLocalElasticContactForce,
                 LocalElasticContactForce,
@@ -221,7 +234,8 @@ namespace Kratos {
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
             int i_neighbour_count,
-            int time_steps) {
+            int time_steps,
+            const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 
@@ -231,7 +245,7 @@ namespace Kratos {
         else { //tension
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
             if (failure_type == 0) {
-                double mTensionLimit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
+                double mTensionLimit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {
@@ -293,7 +307,7 @@ namespace Kratos {
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
 
-            const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
+            const double mTauZero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
             const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
 
             contact_tau = ShearForceNow / calculation_area;
@@ -311,6 +325,11 @@ namespace Kratos {
         }
         else {
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
+
+            if(equiv_tg_of_fri_ang < 0.0) {
+                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+            }
+
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
 
             if (Frictional_ShearForceMax < 0.0) {
@@ -378,6 +397,9 @@ namespace Kratos {
         const double element_mass  = element->GetMass();
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
+
+        AdjustEquivalentYoung(equiv_young, element, neighbor);
+
         const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson));
         const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
@@ -521,5 +543,7 @@ namespace Kratos {
             LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
         }
     }
+
+    void DEM_KDEM::AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) {}
 
 } // namespace Kratos

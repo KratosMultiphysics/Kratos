@@ -123,10 +123,6 @@ public:
 
     static constexpr IndexType StepSlip = TNormalVariation ? 0 : 1;
 
-    static constexpr double OperatorThreshold = 1.0e-3;
-
-    static constexpr double TangentCoefficient = 1.0;
-
     ///@}
     ///@name Life Cycle
     ///@{

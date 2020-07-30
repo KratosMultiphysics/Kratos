@@ -8,7 +8,7 @@ from simulation_definition import SimulationScenario
 
 # Import Monte Carlo library
 import KratosMultiphysics.MultilevelMonteCarloApplication.mc_utilities as mc_utilities
-import KratosMultiphysics.MultilevelMonteCarloApplication.cmlmc_utilities as cmlmc_utilities
+import KratosMultiphysics.MultilevelMonteCarloApplication.mlmc_utilities as mlmc_utilities
 
 # TODO: use json file instead of defining in the main file all the parameters
 
@@ -30,10 +30,10 @@ if __name__ == '__main__':
     mc_manager.Run()
 
 
-    """  __ __ __ _   __ __  __
-        / _|  V  | | |  V  |/ _|
-       | (_| \_/ | |_| \_/ | (_
-        \__|_| |_|___|_| |_|\__|
+    """ __ __ _   __ __  __
+       |  V  | | |  V  |/ _|
+       | \_/ | |_| \_/ | (_
+       |_| |_|___|_| |_|\__|
     """
 
     # set the ProjectParameters.json path
@@ -43,5 +43,5 @@ if __name__ == '__main__':
     # customize setting parameters of the metric of the adaptive refinement utility and setting parameters of the remesh of the adaptive refinement utility
     parameters_refinement_path = "problem_settings/parameters_refinement.json"
     # contruct MultilevelMonteCarlo class
-    mlmc_manager = cmlmc_utilities.MultilevelMonteCarlo(parameters_x_monte_carlo_path,project_parameters_path,parameters_refinement_path,SimulationScenario)
+    mlmc_manager = mlmc_utilities.MultilevelMonteCarlo(parameters_x_monte_carlo_path,project_parameters_path,parameters_refinement_path,SimulationScenario)
     mlmc_manager.Run()

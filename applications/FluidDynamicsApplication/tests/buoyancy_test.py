@@ -90,7 +90,8 @@ class BuoyancyTest(UnitTest.TestCase):
 
         self.fluid_solver = navier_stokes_solver.CreateSolver(self.model,settings["solver_settings"])
 
-        self.fluid_model_part = self.model.GetModelPart("Fluid")
+        print(self.model)
+        self.fluid_model_part = self.model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
         self.fluid_model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
 
     def setUpSolvers(self):
@@ -120,7 +121,7 @@ class BuoyancyTest(UnitTest.TestCase):
 
             thermal_model_part = self.model.CreateModelPart("Thermal")
             conv_diff_element = "EulerianConvDiff2D"
-            conv_diff_condition = "Condition2D2N"
+            conv_diff_condition = "LineCondition2D2N"
 
             MergeVariableListsUtility().Merge(self.fluid_model_part, thermal_model_part)
 

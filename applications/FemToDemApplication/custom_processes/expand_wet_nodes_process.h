@@ -55,7 +55,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ExpandWetNodesProcess);
 
     // Constructor
-    ExpandWetNodesProcess(ModelPart &r_model_part);
+    ExpandWetNodesProcess(ModelPart &rModelPart);
 
     // Destructor
     ~ExpandWetNodesProcess() override = default;
@@ -69,15 +69,23 @@ public:
         int& rPressureId,
         int& rNumberOfWetNodes);
 
+    bool ElementHasWetNodes2(
+        ElementIterator itElem,
+        int& rPressureId,
+        int& rNumberOfWetNodes);
+
     void ExpandWetNodes(
         ElementIterator itElem,
         const int PressureId);
 
     void ExpandWetNodesIfTheyAreSkin();
 
+    void ExpandWetNodesWithLatestPressureId();
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;
+    std::string mPressureName;
 };
 }
 #endif /* KRATOS_EXPAND_WET_NODES_PROCESS defined */

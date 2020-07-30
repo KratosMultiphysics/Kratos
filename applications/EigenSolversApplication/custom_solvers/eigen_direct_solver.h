@@ -15,23 +15,17 @@
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
-#include <Eigen/SparseQR>
-#include <Eigen/OrderingMethods>
-#if defined EIGEN_USE_MKL_ALL
-#include <Eigen/PardisoSupport>
-#endif
 
 // Project includes
 #include "includes/define.h"
-#include "linear_solvers/direct_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
-#include "spaces/ublas_space.h"
-#include "includes/ublas_interface.h"
+#include "factories/standard_linear_solver_factory.h"
 #include "includes/ublas_complex_interface.h"
+#include "includes/ublas_interface.h"
+#include "linear_solvers/direct_solver.h"
+#include "spaces/ublas_space.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 template <typename Scalar>
 struct SpaceType;
@@ -39,86 +33,35 @@ struct SpaceType;
 template <>
 struct SpaceType<double>
 {
-	using Global = UblasSpace<double, CompressedMatrix, Vector>;
-	using Local = UblasSpace<double, Matrix, Vector>;
+    using Global = UblasSpace<double, CompressedMatrix, Vector>;
+    using Local = UblasSpace<double, Matrix, Vector>;
 };
 
 template <>
 struct SpaceType<std::complex<double>>
 {
-	using Global = UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector>;
-	using Local = UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>;
+    using Global = UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector>;
+    using Local = UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>;
 };
-
-template <typename scalar_t>
-struct SolverType
-{
-    using TScalar = scalar_t;
-
-    using TSparseMatrix = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>;
-
-    using TGlobalSpace = typename SpaceType<scalar_t>::Global;
-
-    using TLocalSpace = typename SpaceType<scalar_t>::Local;
-};
-
-template <typename scalar_t>
-struct SparseLU : public SolverType<scalar_t>
-{
-    using TSolver = Eigen::SparseLU<typename SolverType<scalar_t>::TSparseMatrix>;
-
-    static constexpr auto Name = "SparseLU";
-};
-
-template <typename scalar_t>
-struct SparseQR : SolverType<scalar_t>
-{
-    using TSolver = Eigen::SparseQR<typename SolverType<scalar_t>::TSparseMatrix, Eigen::COLAMDOrdering<int>>;
-
-    static constexpr auto Name = "SparseQR";
-};
-
-#if defined EIGEN_USE_MKL_ALL
-template <typename scalar_t>
-struct PardisoLLT : SolverType<scalar_t>
-{
-    using TSolver = Eigen::PardisoLLT<typename SolverType<scalar_t>::TSparseMatrix>;
-
-    static constexpr auto Name = "PardisoLLT";
-};
-
-template <typename scalar_t>
-struct PardisoLDLT : SolverType<scalar_t>
-{
-    using TSolver = Eigen::PardisoLDLT<typename SolverType<scalar_t>::TSparseMatrix>;
-
-    static constexpr auto Name = "PardisoLDLT";
-};
-
-template <typename scalar_t>
-struct PardisoLU : SolverType<scalar_t>
-{
-    using TSolver = Eigen::PardisoLU<typename SolverType<scalar_t>::TSparseMatrix>;
-
-    static constexpr auto Name = "PardisoLU";
-};
-#endif
 
 template <
     class TSolverType,
-    class TSparseSpaceType = typename TSolverType::TGlobalSpace,
-    class TDenseSpaceType = typename TSolverType::TLocalSpace,
+    class TSparseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Global,
+    class TDenseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Local,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigenDirectSolver
     : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
-    typename TSolverType::TSolver m_solver;
+private:
+    TSolverType m_solver;
 
     EigenDirectSolver &operator=(const EigenDirectSolver &Other);
 
     EigenDirectSolver(const EigenDirectSolver &Other);
 
-  public:
+    UblasWrapper<typename TSolverType::Scalar> m_a_wrapper;
+
+public:
     KRATOS_CLASS_POINTER_DEFINITION(EigenDirectSolver);
 
     typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
@@ -131,9 +74,14 @@ class EigenDirectSolver
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    typedef StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver> FactoryType;
+
     EigenDirectSolver() {}
 
-    EigenDirectSolver(Parameters settings) : BaseType(settings) {}
+    EigenDirectSolver(Parameters settings) : BaseType(settings)
+    {
+        m_solver.Initialize(settings);
+    }
 
     ~EigenDirectSolver() override {}
 
@@ -148,13 +96,13 @@ class EigenDirectSolver
      */
     void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        UblasWrapper<DataType> a_wrapper(rA);
+        m_a_wrapper = UblasWrapper<DataType>(rA);
 
-        const auto& a = a_wrapper.matrix();
+        const auto& a = m_a_wrapper.matrix();
 
-        m_solver.compute(a);
+        const bool success = m_solver.Compute(a);
 
-        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Decomposition failed!" << std::endl;
+        KRATOS_ERROR_IF(!success) << "Decomposition failed!" << std::endl;
     }
 
     /**
@@ -166,12 +114,12 @@ class EigenDirectSolver
      */
     void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > x(rX.data().begin(), rX.size());
-        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > b(rB.data().begin(), rB.size());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1>> x(rX.data().begin(), rX.size());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1>> b(rB.data().begin(), rB.size());
 
-        x = m_solver.solve(b);
+        const bool success = m_solver.Solve(b, x);
 
-        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Solving failed!" << std::endl;
+        KRATOS_ERROR_IF(!success) << "Solving failed!\n" << m_solver.GetSolverErrorMessages() << std::endl;
     }
 
     /**
@@ -206,7 +154,7 @@ class EigenDirectSolver
      */
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "EigenDirectSolver<" << TSolverType::Name << "> finished.";
+        m_solver.PrintInfo(rOStream);
     }
 
     /**
@@ -214,6 +162,11 @@ class EigenDirectSolver
      */
     void PrintData(std::ostream &rOStream) const override
     {
+    }
+
+    static StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver> Factory()
+    {
+        return StandardLinearSolverFactory<TSparseSpaceType, TDenseSpaceType, EigenDirectSolver>();
     }
 }; // class EigenDirectSolver
 

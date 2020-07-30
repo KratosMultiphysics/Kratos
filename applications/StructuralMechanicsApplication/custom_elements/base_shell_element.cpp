@@ -130,17 +130,17 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
         const NodeType& i_node = r_geom[i];
-        const array_1d<double, 3>& vel = i_node.FastGetSolutionStepValue(VELOCITY, Step);
-        // TODO also include the angular velocity
+        const array_1d<double, 3>& r_vel = i_node.FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double, 3>& r_ang_vel = i_node.FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
 
         const IndexType index = i * 6;
-        rValues[index]     = vel[0];
-        rValues[index + 1] = vel[1];
-        rValues[index + 2] = vel[2];
+        rValues[index]     = r_vel[0];
+        rValues[index + 1] = r_vel[1];
+        rValues[index + 2] = r_vel[2];
 
-        rValues[index + 3] = 0.0;
-        rValues[index + 4] = 0.0;
-        rValues[index + 5] = 0.0;
+        rValues[index + 3] = r_ang_vel[0];
+        rValues[index + 4] = r_ang_vel[1];
+        rValues[index + 5] = r_ang_vel[2];
     }
 }
 
@@ -156,17 +156,17 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 
     for (IndexType i = 0; i < r_geom.size(); ++i) {
         const NodeType& i_node = r_geom[i];
-        const array_1d<double, 3>& acc = i_node.FastGetSolutionStepValue(ACCELERATION, Step);
-        // TODO also include the angular acceleration
+        const array_1d<double, 3>& r_acc = i_node.FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double, 3>& r_ang_acc = i_node.FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
 
         const IndexType index = i * 6;
-        rValues[index]     = acc[0];
-        rValues[index + 1] = acc[1];
-        rValues[index + 2] = acc[2];
+        rValues[index]     = r_acc[0];
+        rValues[index + 1] = r_acc[1];
+        rValues[index + 2] = r_acc[2];
 
-        rValues[index + 3] = 0.0;
-        rValues[index + 4] = 0.0;
-        rValues[index + 5] = 0.0;
+        rValues[index + 3] = r_ang_acc[0];
+        rValues[index + 4] = r_ang_acc[1];
+        rValues[index + 5] = r_ang_acc[2];
     }
 }
 
@@ -222,6 +222,29 @@ void BaseShellElement::Initialize()
             p_section_clone->InitializeCrossSection(r_props, r_geom, row(r_shape_fct_values, i));
             mSections.push_back(p_section_clone);
         }
+    }
+
+    if (this->Has(LOCAL_MATERIAL_AXIS_1)) {
+        // calculate the angle between the prescribed direction and the local axis 1
+        // this is currently required in teh derived classes TODO refactor
+
+        std::vector<array_1d<double, 3>> local_axes_1;
+		std::vector<array_1d<double, 3>> local_axes_2;
+        ProcessInfo tmp_process_info; // TODO refactor once Initialize gets ProcessInfo
+		this->CalculateOnIntegrationPoints(LOCAL_AXIS_1, local_axes_1 , tmp_process_info);
+		this->CalculateOnIntegrationPoints(LOCAL_AXIS_2, local_axes_2 , tmp_process_info);
+
+        const array_1d<double, 3> prescribed_direcition = this->GetValue(LOCAL_MATERIAL_AXIS_1);
+
+        double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
+
+        // make sure the angle is positively defined according to right hand rule
+        if (inner_prod(local_axes_2[0], prescribed_direcition) < 0.0) {
+            // mat_orientation_angle is currently negative, flip to positive definition
+            mat_orientation_angle *= -1.0;
+        }
+
+        this->SetValue(MATERIAL_ORIENTATION_ANGLE, mat_orientation_angle);
     }
 }
 

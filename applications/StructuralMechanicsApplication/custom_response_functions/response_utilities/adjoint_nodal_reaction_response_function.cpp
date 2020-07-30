@@ -43,7 +43,7 @@ namespace Kratos
         this->PerformResponseVariablesCheck();
 
         // Find neighbour elements and conditions because they are needed to construct the partial derivatives
-        FindNodalNeighboursProcess neigbhor_elements_finder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
+        FindNodalNeighboursProcess neigbhor_elements_finder(mrModelPart);
         FindConditionsNeighboursProcess neigbhor_conditions_finder = FindConditionsNeighboursProcess(mrModelPart, 10, 10);
         neigbhor_elements_finder.Execute();
         neigbhor_conditions_finder.Execute();

@@ -5,20 +5,29 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+
 # Import from Test Factories (with general analysis flows)
 from particle_mechanics_test_factory import AxisSymmetricCircularPlate2DTriTest as TAxisSymmetricCircularPlate2DTriTest
+
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticPointLoad2DTriTest as TBeamCantileverStaticLinearElasticPointLoad2DTriTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticParticlePointLoad2DTriTest as TBeamCantileverStaticLinearElasticParticlePointLoad2DTriTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticLineLoad2DQuadTest as TBeamCantileverStaticLinearElasticLineLoad2DQuadTest
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest as TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest
 from particle_mechanics_test_factory import BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from particle_mechanics_test_factory import BeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest
+
 from particle_mechanics_test_factory import CooksMembraneCompressibleTest as TCooksMembraneCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
+
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
+
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
+
 from particle_mechanics_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+
 from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
+
 
 # Import from Test Factories (with different analysis flows)
 from test_generate_mpm_particle             import TestGenerateMPMParticle            as TTestGenerateMPMParticle
@@ -86,13 +95,15 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
+    nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
 
     ### Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # already contains the smallSuite
+    allSuite.addTests(nightSuite) # already contains smallSuite for visibility
     allSuite.addTests(validationSuite)
 
     return suites

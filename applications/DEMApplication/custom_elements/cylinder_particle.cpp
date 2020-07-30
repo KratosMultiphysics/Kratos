@@ -29,14 +29,14 @@ namespace Kratos
       }
 
       /// Destructor.
-      CylinderParticle::~CylinderParticle() {}      
+      CylinderParticle::~CylinderParticle() {}
 
       double CylinderParticle::CalculateVolume(){
           return Globals::Pi * GetRadius() * GetRadius();
       }
-      
+
       double CylinderParticle::CalculateMomentOfInertia() {
-          return 0.5 * GetMass() * GetRadius() * GetRadius(); 
+          return 0.5 * GetMass() * GetRadius() * GetRadius();
       }
 
       void CylinderParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}

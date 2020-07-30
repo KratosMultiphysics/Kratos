@@ -150,6 +150,11 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
         strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
         constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+        for i in range(0, cl.GetStrainSize()):
+            stress_vector[i] = 0.0
+            strain_vector[i] = 0.0
+            for j in range(0, cl.GetStrainSize()):
+                constitutive_matrix[i,j] = 0.0
 
         # Setting the parameters - note that a constitutive law may not need them all!
         cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part, properties, geom)
@@ -296,6 +301,11 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
             stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
             strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
             constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+            for i in range(0, cl.GetStrainSize()):
+                stress_vector[i] = 0.0
+                strain_vector[i] = 0.0
+                for j in range(0, cl.GetStrainSize()):
+                    constitutive_matrix[i,j] = 0.0
 
             # Setting the parameters - note that a constitutive law may not need them all!
             cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part,     properties, geom)
@@ -356,6 +366,11 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
             stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
             strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
             constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+            for i in range(0, cl.GetStrainSize()):
+                stress_vector[i] = 0.0
+                strain_vector[i] = 0.0
+                for j in range(0, cl.GetStrainSize()):
+                    constitutive_matrix[i,j] = 0.0
 
             # Setting the parameters - note that a constitutive law may not need them all!
             cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part,     properties, geom)
@@ -415,6 +430,11 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
             stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
             strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
             constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+            for i in range(0, cl.GetStrainSize()):
+                stress_vector[i] = 0.0
+                strain_vector[i] = 0.0
+                for j in range(0, cl.GetStrainSize()):
+                    constitutive_matrix[i,j] = 0.0
 
             # Setting the parameters - note that a constitutive law may not need them all!
             cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part,     properties, geom)

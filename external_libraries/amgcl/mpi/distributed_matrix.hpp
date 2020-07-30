@@ -452,7 +452,7 @@ class distributed_matrix {
                 A_loc = Backend::copy_matrix(a_loc, bprm);
             }
 
-            if (!A_rem) {
+            if (!A_rem && a_rem && a_rem->nnz > 0) {
                 C->renumber(a_rem->nnz, a_rem->col);
                 A_rem = Backend::copy_matrix(a_rem, bprm);
             }
@@ -1071,6 +1071,13 @@ struct residual_impl<mpi::distributed_matrix<Backend>, Vec1, Vec2, Vec3>
         A.residual(rhs, x, r);
     }
 };
+
+// Diagonal of the matrix
+template <class Backend>
+std::shared_ptr< numa_vector<typename Backend::value_type> >
+diagonal(const mpi::distributed_matrix<Backend> &A, bool invert = false) {
+    return diagonal(*A.local(), invert);
+}
 
 // Estimate spectral radius of the matrix.
 template <bool scale, class Backend>

@@ -5,6 +5,7 @@ import math
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -17,13 +18,13 @@ class TestMortarUtilities(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        KratosMultiphysics.ComputeNodesMeanNormalModelPart(model_part, True)
+        KratosMultiphysics.MortarUtilities.ComputeNodesMeanNormalModelPart(model_part, True)
 
         ## DEBUG
         #self._post_process(model_part)
@@ -45,14 +46,14 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        KratosMultiphysics.InvertNormal(model_part.Conditions)
-        KratosMultiphysics.ComputeNodesMeanNormalModelPart(model_part, True)
+        KratosMultiphysics.MortarUtilities.InvertNormal(model_part.Conditions)
+        KratosMultiphysics.MortarUtilities.ComputeNodesMeanNormalModelPart(model_part, True)
 
         ## DEBUG
         #self._post_process(model_part)
@@ -70,7 +71,6 @@ class TestMortarUtilities(KratosUnittest.TestCase):
             self.assertLess(residual, 0.1)
 
     def _post_process(self, model_part):
-        from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(model_part,
                                     "gid_output",
                                     KratosMultiphysics.Parameters("""

@@ -67,7 +67,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
         {
             "model_part_name_slave"           : "example_part_slave",
             "model_part_name_master"          : "example_part_master",
-            "computing_model_part_name"       : "computing_domain",
+            "computing_model_part_name"       : "Structure",
             "element_id"                      : 1,
             "property_id"                     : 1,
             "debug_info"                      : false
@@ -100,11 +100,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
     {
         KRATOS_TRY;
         // delete elements and decrease mCurrentElementId
-        ModelPart &computing_model_part = mrModelPart.GetSubModelPart(mParameters["computing_model_part_name"].GetString());
-        // < because mCurrentElementId is incremented after last element is created
         for (IndexType element_id=mParameters["element_id"].GetInt();element_id<mCurrentElementId;element_id++)
         {
-            computing_model_part.RemoveElementFromAllLevels(element_id);
+            mrModelPart.RemoveElementFromAllLevels(element_id);
         }
         KRATOS_CATCH("");
     }
@@ -116,8 +114,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
         KRATOS_TRY;
         ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["model_part_name_master"].GetString());
         ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["model_part_name_slave"].GetString());
-        ModelPart &computing_model_part = mrModelPart.GetSubModelPart(mParameters["computing_model_part_name"].GetString());
-        //NodesArrayType &r_nodes_master  = master_model_part.Nodes();
+        //ModelPart &computing_model_part = mrModelPart.GetSubModelPart(mParameters["computing_model_part_name"].GetString());
         NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
 
         for(NodeType& node_i : r_nodes_slave)
@@ -136,7 +133,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
             const Element& rElem = KratosComponents<Element>::Get("WeakSlidingElement3D3N");
             Properties::Pointer p_elem_prop = slave_model_part.pGetProperties(mParameters["property_id"].GetInt());
             Element::Pointer pElem = rElem.Create(mCurrentElementId++, triangle_t, p_elem_prop);
-            computing_model_part.AddElement(pElem);
+            mrModelPart.AddElement(pElem);
         }
 
         KRATOS_CATCH("");

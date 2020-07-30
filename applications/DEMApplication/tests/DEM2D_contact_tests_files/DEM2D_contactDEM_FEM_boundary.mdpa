@@ -1,0 +1,88 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+  FRICTION 0.5773502691896257
+  WALL_COHESION 0.0
+  COMPUTE_WEAR 0
+  SEVERITY_OF_WEAR 0.001
+  IMPACT_WEAR_SEVERITY 0.001
+  BRINELL_HARDNESS 200.0
+  YOUNG_MODULUS 1e+20
+  POISSON_RATIO 0.25
+End Properties
+
+Begin Nodes
+    1  10.0000000000  -1.0000000000   0.0000000000
+    2   9.2307692308  -1.0000000000   0.0000000000
+    4   8.4615384615  -1.0000000000   0.0000000000
+    6   7.6923076923  -1.0000000000   0.0000000000
+    7   6.9230769231  -1.0000000000   0.0000000000
+    9   6.1538461538  -1.0000000000   0.0000000000
+   11   5.3846153846  -1.0000000000   0.0000000000
+   13   4.6153846154  -1.0000000000   0.0000000000
+   15   3.8461538462  -1.0000000000   0.0000000000
+   17   3.0769230769  -1.0000000000   0.0000000000
+   19   2.3076923077  -1.0000000000   0.0000000000
+   21   1.5384615385  -1.0000000000   0.0000000000
+   23   0.7692307692  -1.0000000000   0.0000000000
+   24   0.0000000000  -1.0000000000   0.0000000000
+End Nodes
+
+
+Begin Conditions RigidEdge2D2N// GUI group identifier: wall
+    7          2    24    23
+    8          2    23    21
+    9          2    21    19
+   10          2    19    17
+   11          2    17    15
+   12          2    15    13
+   13          2    13    11
+   14          2    11     9
+   15          2     9     7
+   16          2     7     6
+   17          2     6     4
+   18          2     4     2
+   19          2     2     1
+End Conditions
+
+Begin SubModelPart 1 // DEM-FEM-Wall2D - group identifier: wall
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: wall
+    IS_GHOST false
+    IDENTIFIER wall
+  End SubModelPartData
+  Begin SubModelPartNodes
+         1
+         2
+         4
+         6
+         7
+         9
+        11
+        13
+        15
+        17
+        19
+        21
+        23
+        24
+  End SubModelPartNodes
+Begin SubModelPartConditions
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+        19
+End SubModelPartConditions
+
+End SubModelPart
+

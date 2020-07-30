@@ -96,7 +96,7 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     double denominator = 1.0;
-    const unsigned int small_cut_instability_tolerance = 0.01;
+    const double small_cut_instability_tolerance = 0.01;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (rResult[i] < small_cut_instability_tolerance){

@@ -1,0 +1,394 @@
+{
+    "problem_data": {
+        "problem_name": "geometry",
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "output_processes": {},
+    "solver_settings": {
+        "model_part_name": "FluidModelPart",
+        "domain_size": 2,
+        "solver_type": "Monolithic",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "channel_flow"
+        },
+        "echo_level": 0,
+        "compute_reactions": true,
+        "consider_periodic_conditions": false,
+        "maximum_iterations": 10,
+        "relative_velocity_tolerance": 0.001,
+        "absolute_velocity_tolerance": 1e-7,
+        "relative_pressure_tolerance": 0.001,
+        "absolute_pressure_tolerance": 1e-7,
+        "volume_model_part_name": "Parts_fluid",
+        "skin_parts": [
+            "AutomaticInlet2D_inlet",
+            "Outlet2D_outlet",
+            "Slip2D"
+        ],
+        "material_import_settings": {
+            "materials_filename": "channel_flow_k_epsilon_material_properties.json"
+        },
+        "linear_solver_settings": {
+            "solver_type" : "skyline_lu_factorization"
+        },
+        "no_skin_parts": [],
+        "time_scheme" : "steady",
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 1.0
+        },
+        "formulation": {
+            "element_type": "vms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 0.0
+        },
+        "turbulence_model_solver_settings": {
+            "model_type": "k_epsilon",
+            "velocity_pressure_relaxation_factor": 0.5,
+            "auxiliar_process_list": [
+                {
+                    "python_module": "process_factory",
+                    "kratos_module": "KratosMultiphysics",
+                    "process_name": "ApplyConstantScalarValueProcess",
+                    "Parameters": {
+                        "model_part_name": "FluidModelPart.Slip2D",
+                        "variable_name": "RANS_Y_PLUS",
+                        "value" : 17.25677
+                    }
+                },
+                {
+                    "python_module": "cpp_process_factory",
+                    "kratos_module": "KratosMultiphysics.RANSApplication",
+                    "process_name": "NutKEpsilonHighReCalculationProcess",
+                    "Parameters": {
+                        "model_part_name": "FluidModelPart",
+                        "echo_level": 0
+                    }
+                },
+                {
+                    "python_module": "cpp_process_factory",
+                    "kratos_module": "KratosMultiphysics.RANSApplication",
+                    "process_name": "NutYPlusWallFunctionProcess",
+                    "Parameters": {
+                        "model_part_name": "FluidModelPart.Slip2D",
+                        "echo_level": 0
+                    }
+                },
+                {
+                    "python_module": "cpp_process_factory",
+                    "kratos_module": "KratosMultiphysics.RANSApplication",
+                    "process_name": "ClipScalarVariableProcess",
+                    "Parameters": {
+                        "model_part_name": "FluidModelPart",
+                        "variable_name": "TURBULENT_VISCOSITY",
+                        "echo_level": 0,
+                        "min_value": 1e-18,
+                        "max_value": 1e+30
+                    }
+                }
+            ],
+            "mesh_moving": false,
+            "echo_level": 0,
+            "model_settings": {
+                "scheme_settings": {
+                    "scheme_type": "steady",
+                    "alpha_bossak": -0.3
+                },
+                "echo_level": 0,
+                "turbulent_kinetic_energy_settings": {
+                    "is_periodic": false,
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-7,
+                    "max_iterations": 10,
+                    "echo_level": 0,
+                    "relaxation_factor": 0.5,
+                    "linear_solver_settings": {
+                        "solver_type": "skyline_lu_factorization"
+                    }
+                },
+                "turbulent_energy_dissipation_rate_settings": {
+                    "is_periodic": false,
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-7,
+                    "max_iterations": 10,
+                    "echo_level": 0,
+                    "relaxation_factor": 0.5,
+                    "linear_solver_settings": {
+                        "solver_type": "skyline_lu_factorization"
+                    }
+                },
+                "flow_parameters": {
+                    "ramp_up_time": 5e-4
+                },
+                "coupling_settings": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-8,
+                    "max_iterations": 10,
+                    "echo_level": 0
+                }
+            }
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [
+            {
+                "python_module": "cpp_process_factory",
+                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "process_name": "ApplyFlagProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Slip2D",
+                    "echo_level": 0,
+                    "flag_variable_name": "SLIP"
+                }
+            },
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "TURBULENT_KINETIC_ENERGY",
+                    "value": 6.1e-4
+                }
+            },
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
+                    "value": 9.422e-5
+                }
+            },
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "KINEMATIC_VISCOSITY",
+                    "value": 1.51312e-5
+                }
+            }
+        ],
+        "boundary_conditions_process_list": [
+            {
+                "python_module": "apply_inlet_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
+                    "variable_name": "VELOCITY",
+                    "modulus": 2.0,
+                    "direction": "automatic_inwards_normal",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            },
+            {
+                "python_module": "apply_outlet_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Outlet2D_outlet",
+                    "variable_name": "PRESSURE",
+                    "constrained": true,
+                    "value": 0.0,
+                    "hydrostatic_outlet": false,
+                    "h_top": 0.0
+                }
+            },
+            {
+                "python_module": "apply_slip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Slip2D"
+                }
+            },
+            {
+                "python_module": "cpp_process_factory",
+                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "process_name" : "KTurbulentIntensityInletProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
+                    "turbulent_intensity": 6.1e-4
+                }
+            },
+            {
+                "python_module": "cpp_process_factory",
+                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "process_name" : "EpsilonTurbulentMixingLengthInletProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
+                    "turbulent_mixing_length": 0.0588
+                }
+            }
+        ],
+        "gravity": [
+            {
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Parts_fluid",
+                    "variable_name": "BODY_FORCE",
+                    "modulus": 0.0,
+                    "constrained": false,
+                    "direction": [
+                        1.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
+        "auxiliar_process_list": [
+            {
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "point_output_process",
+                "help": "",
+                "process_name": "PointOutputProcess",
+                "Parameters": {
+                    "position": [
+                        3.14,
+                        0.2,
+                        0.0
+                    ],
+                    "model_part_name": "FluidModelPart.Parts_fluid",
+                    "output_file_settings": {
+                        "file_name": "channel_flow_step_k_epsilon_steady_test_probe1.dat"
+                    },
+                    "output_variables": [
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_VISCOSITY"
+                    ]
+                }
+            },
+            {
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "point_output_process",
+                "help": "",
+                "process_name": "PointOutputProcess",
+                "Parameters": {
+                    "position": [
+                        3.14,
+                        0.3,
+                        0.0
+                    ],
+                    "model_part_name": "FluidModelPart.Parts_fluid",
+                    "output_file_settings": {
+                        "file_name": "channel_flow_step_k_epsilon_steady_test_probe2.dat"
+                    },
+                    "output_variables": [
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_VISCOSITY"
+                    ]
+                }
+            },
+            {
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "point_output_process",
+                "help": "",
+                "process_name": "PointOutputProcess",
+                "Parameters": {
+                    "position": [
+                        3.14,
+                        0.5,
+                        0.0
+                    ],
+                    "model_part_name": "FluidModelPart.Parts_fluid",
+                    "output_file_settings": {
+                        "file_name": "channel_flow_step_k_epsilon_steady_test_probe3.dat"
+                    },
+                    "output_variables": [
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE",
+                        "TURBULENT_VISCOSITY"
+                    ]
+                }
+            },
+            {
+                "python_module": "compute_body_fitted_drag_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "process_name": "ComputeBodyFittedDragProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Slip2D",
+                    "write_drag_output_file": true,
+                    "print_drag_to_screen": false,
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            },
+            {
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "channel_flow_step_k_epsilon_steady_test_probe1.dat",
+                    "reference_file_name": "channel_flow_step_k_epsilon_steady_test_probe1_ref.dat",
+                    "comparison_type": "dat_file",
+                    "remove_output_file": true,
+                    "tolerance": 1e-5
+                }
+            },
+            {
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "channel_flow_step_k_epsilon_steady_test_probe2.dat",
+                    "reference_file_name": "channel_flow_step_k_epsilon_steady_test_probe2_ref.dat",
+                    "comparison_type": "dat_file",
+                    "remove_output_file": true,
+                    "tolerance": 1e-5
+                }
+            },
+            {
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "channel_flow_step_k_epsilon_steady_test_probe3.dat",
+                    "reference_file_name": "channel_flow_step_k_epsilon_steady_test_probe3_ref.dat",
+                    "comparison_type": "dat_file",
+                    "remove_output_file": true,
+                    "tolerance": 1e-5
+                }
+            },
+            {
+                "python_module": "compare_two_files_check_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "CompareTwoFilesCheckProcess",
+                "Parameters": {
+                    "output_file_name": "FluidModelPart.Slip2D_drag.dat",
+                    "reference_file_name": "channel_flow_step_k_epsilon_steady_drag_ref.dat",
+                    "comparison_type": "dat_file",
+                    "remove_output_file": true,
+                    "tolerance": 1e-5
+                }
+            }
+        ]
+    }
+}

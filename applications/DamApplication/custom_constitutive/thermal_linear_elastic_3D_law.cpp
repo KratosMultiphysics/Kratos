@@ -63,7 +63,7 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     /* Calculate Nodal Reference Temperature */
     double NodalReferenceTemperature;
     this->CalculateNodalReferenceTemperature(ElasticVariables, NodalReferenceTemperature);
-    
+
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION];
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){
@@ -117,9 +117,9 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
       }
 
     }
-    else if(Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)){ //This should be COMPUTE_THERMAL_STRAIN
+    else if(Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY)){ //This should be COMPUTE_THERMAL_STRAIN
 
-      // USE_ELEMENT_PROVIDED_STRAIN
+      // VOLUMETRIC_TENSOR_ONLY
       if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY)){
 
 	// Thermal strain

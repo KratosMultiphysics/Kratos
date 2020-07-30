@@ -3,7 +3,7 @@
 //  License:		 BSD License
 //					 license: FluidDynamicsApplication/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_VMS_ADJOINT_ELEMENT_H_INCLUDED)
@@ -13,6 +13,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <array>
 
 // Project includes
 #include "includes/define.h"
@@ -44,8 +45,8 @@ namespace Kratos {
  * @see VMS monolithic fluid element
  */
 template< unsigned int TDim >
-class VMSAdjointElement: public Element {
-    
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMSAdjointElement: public Element {
+
     class ThisExtensions : public AdjointExtensions
     {
         Element* mpElement;
@@ -155,11 +156,17 @@ public:
 
     typedef Element::VectorType VectorType;
 
+    typedef std::array<double, TFluidLocalSize> ArrayType;
+
     typedef Element::MatrixType MatrixType;
 
     typedef Element::DofsVectorType DofsVectorType;
 
+    typedef std::array<Dof<double>::Pointer, TFluidLocalSize> DofsArrayType;
+
     typedef Element::EquationIdVectorType EquationIdVectorType;
+
+    typedef std::array<std::size_t, TFluidLocalSize> EquationIdArrayType;
 
     typedef BoundedMatrix<double, TNumNodes, TDim>
     ShapeFunctionDerivativesType;
@@ -316,9 +323,15 @@ public:
     /// Returns the adjoint values stored in this element's nodes.
     void GetValuesVector(VectorType& rValues, int Step = 0) override
     {
+        ArrayType values;
+        this->GetValuesArray(values, Step);
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
+        std::copy(values.begin(), values.end(), rValues.begin());
+    }
 
+    void GetValuesArray(ArrayType& rValues, int Step = 0)
+    {
         GeometryType& rGeom = this->GetGeometry();
         IndexType LocalIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
@@ -341,12 +354,23 @@ public:
         rValues.clear();
     }
 
+    void GetFirstDerivativesArray(ArrayType& rValues, int Step = 0)
+    {
+        std::fill(rValues.begin(), rValues.end(), 0.0);
+    }
+
     /// Returns the adjoint acceleration values stored in this element's nodes.
     void GetSecondDerivativesVector(VectorType& rValues, int Step = 0) override
     {
+        ArrayType values;
+        this->GetSecondDerivativesArray(values, Step);
         if (rValues.size() != TFluidLocalSize)
             rValues.resize(TFluidLocalSize, false);
+        std::copy(values.begin(), values.end(), rValues.begin());
+    }
 
+    void GetSecondDerivativesArray(ArrayType& rValues, int Step = 0)
+    {
         GeometryType& rGeom = this->GetGeometry();
         IndexType LocalIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
@@ -412,6 +436,15 @@ public:
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
+        this->CalculateFirstDerivativesLHS(LHS, rCurrentProcessInfo);
+        rLeftHandSideMatrix.resize(LHS.size1(), LHS.size2());
+        noalias(rLeftHandSideMatrix) = LHS;
+    }
+
+    virtual void CalculateFirstDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
+                                              ProcessInfo& rCurrentProcessInfo)
+    {
         this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix, rCurrentProcessInfo);
         this->AddPrimalGradientOfVMSMassTerm(rLeftHandSideMatrix, ACCELERATION,
                                              -1.0, rCurrentProcessInfo);
@@ -431,6 +464,15 @@ public:
      */
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
+    {
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> LHS;
+        this->CalculateSecondDerivativesLHS(LHS, rCurrentProcessInfo);
+        rLeftHandSideMatrix.resize(LHS.size1(), LHS.size2(), false);
+        noalias(rLeftHandSideMatrix) = LHS;
+    }
+
+    void CalculateSecondDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo)
     {
         this->CalculateVMSMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
         rLeftHandSideMatrix = -trans(rLeftHandSideMatrix); // transpose
@@ -473,8 +515,11 @@ public:
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY)
         {
-            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
-            this->AddShapeGradientOfVMSMassTerm(rOutput, ACCELERATION, -1.0, rCurrentProcessInfo);
+            BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> local_matrix;
+            this->CalculateShapeGradientOfVMSSteadyTerm(local_matrix, rCurrentProcessInfo);
+            this->AddShapeGradientOfVMSMassTerm(local_matrix, ACCELERATION, -1.0, rCurrentProcessInfo);
+            rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
+            noalias(rOutput) = local_matrix;
         }
         else
         {
@@ -486,10 +531,29 @@ public:
     }
 
     void GetDofList(DofsVectorType& rElementalDofList,
-                    ProcessInfo& /*rCurrentProcessInfo*/) override;
+                    ProcessInfo& rCurrentProcessInfo) override
+    {
+        DofsArrayType dofs;
+        this->GetDofArray(dofs, rCurrentProcessInfo);
+        if (rElementalDofList.size() != dofs.size())
+            rElementalDofList.resize(dofs.size());
+        std::copy(dofs.begin(), dofs.end(), rElementalDofList.begin());
+    }
+
+    void GetDofArray(DofsArrayType& rElementalDofList,
+                    ProcessInfo& /*rCurrentProcessInfo*/);
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& /*rCurrentProcessInfo*/) override;
+                          ProcessInfo& rCurrentProcessInfo) override
+    {
+        EquationIdArrayType ids;
+        this->EquationIdArray(ids, rCurrentProcessInfo);
+        if (rResult.size() != ids.size())
+            rResult.resize(ids.size());
+        std::copy(ids.begin(), ids.end(), rResult.begin());
+    }
+
+    void EquationIdArray(EquationIdArrayType& rResult, ProcessInfo& /*rCurrentProcessInfo*/);
 
     ///@}
     ///@name Input and output
@@ -522,17 +586,15 @@ public:
     ///@}
 
 protected:
-    
+
     ///@name Protected Operations
     ///@{
 
     /// Calculate VMS-stabilized (lumped) mass matrix.
-    void CalculateVMSMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateVMSMassMatrix(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rMassMatrix,
+                                const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (rMassMatrix.size1() != TFluidLocalSize || rMassMatrix.size2() != TFluidLocalSize)
-            rMassMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
         rMassMatrix.clear();
 
@@ -622,26 +684,12 @@ protected:
      * is a constant vector with zeros for pressure dofs. The variable
      * determines the values for velocity dofs.
      */
-    void AddPrimalGradientOfVMSMassTerm(MatrixType& rOutputMatrix,
+    void AddPrimalGradientOfVMSMassTerm(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rOutputMatrix,
                                         const Variable<array_1d<double, 3>>& rVariable,
                                         double alpha,
                                         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (rOutputMatrix.size1() != TFluidLocalSize)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,
-                    "invalid matrix size detected. rOutputMatrix.size1() = ",
-                    rOutputMatrix.size1());
-        }
-
-        if (rOutputMatrix.size2() != TFluidLocalSize)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,
-                    "invalid matrix size detected. rOutputMatrix.size2() = ",
-                    rOutputMatrix.size2());
-        }
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -759,26 +807,12 @@ protected:
      * a constant vector with zeros for pressure dofs. The variable
      * determines the values for velocity dofs.
      */
-    void AddShapeGradientOfVMSMassTerm(MatrixType& rOutputMatrix,
+    void AddShapeGradientOfVMSMassTerm(BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rOutputMatrix,
                                        const Variable<array_1d<double, 3>>& rVariable,
                                        double alpha,
                                        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (rOutputMatrix.size1() != TCoordLocalSize)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,
-                    "invalid matrix size detected. rOutputMatrix.size1() = ",
-                    rOutputMatrix.size1());
-        }
-
-        if (rOutputMatrix.size2() != TFluidLocalSize)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,
-                    "invalid matrix size detected. rOutputMatrix.size2() = ",
-                    rOutputMatrix.size2());
-        }
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -939,13 +973,11 @@ protected:
      *
      * where the current adjoint step is the \f$n^{th}\f$ time step.
      */
-    void CalculatePrimalGradientOfVMSSteadyTerm(MatrixType& rAdjointMatrix,
-                                                const ProcessInfo& rCurrentProcessInfo)
+    void CalculatePrimalGradientOfVMSSteadyTerm(
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rAdjointMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (rAdjointMatrix.size1() != TFluidLocalSize || rAdjointMatrix.size2() != TFluidLocalSize)
-            rAdjointMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
         rAdjointMatrix.clear();
 
@@ -1174,16 +1206,11 @@ protected:
      * This function is only valid when the determinant of the Jacobian is constant
      * over the element.
      */
-    void CalculateShapeGradientOfVMSSteadyTerm(MatrixType& rShapeDerivativesMatrix,
-                                               const ProcessInfo& rCurrentProcessInfo)
+    void CalculateShapeGradientOfVMSSteadyTerm(
+        BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rShapeDerivativesMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (rShapeDerivativesMatrix.size1() != TCoordLocalSize
-                || rShapeDerivativesMatrix.size2() != TFluidLocalSize)
-        {
-            rShapeDerivativesMatrix.resize(TCoordLocalSize,TFluidLocalSize,false);
-        }
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -1577,7 +1604,7 @@ protected:
      * @param rDN_DX shape functions' gradients
      * @param Weight integration weight including dynamic viscosity
      */
-    void AddViscousTerm(MatrixType& rResult,
+    void AddViscousTerm(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rResult,
                         const ShapeFunctionDerivativesType& rDN_DX,
                         const double Weight);
 

@@ -4,7 +4,7 @@
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "includes/kratos_parameters.h"
 #include "includes/communicator.h"
-#include "custom_utilities/registered_variable_lookup.h"
+#include "custom_utilities/registered_component_lookup.h"
 #include "custom_utilities/local_ghost_splitting_utility.h"
 
 namespace Kratos
@@ -19,7 +19,7 @@ NodalSolutionStepBossakIO::NodalSolutionStepBossakIO(Parameters Settings, File::
 
 namespace {
 template <typename TVariable>
-class WriteVariableFunctor;
+class WriteNodalBossakVariableFunctor;
 }
 
 void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNodes)
@@ -36,10 +36,10 @@ void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNod
     const std::string& prefix = GetPrefix();
     WriteInfo info;
     for (const std::string& r_name : VariableNames())
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+        RegisteredComponentLookup<Variable<array_1d<double, 3>>,
                                  VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
                                  Variable<double>, Variable<int>>(r_name)
-            .Execute<WriteVariableFunctor>(local_nodes, GetFile(), prefix,
+            .Execute<WriteNodalBossakVariableFunctor>(local_nodes, GetFile(), prefix,
                                            mAlphaBossak, info);
 
     // Write block partition.
@@ -54,7 +54,7 @@ template <class TVariableType, class TFileDataType>
 void SetDataBuffer(TVariableType const&, std::vector<NodeType*> const&, double, Vector<TFileDataType>&);
 
 template <typename TVariable>
-class WriteVariableFunctor
+class WriteNodalBossakVariableFunctor
 {
 public:
     void operator()(TVariable const& rVariable,

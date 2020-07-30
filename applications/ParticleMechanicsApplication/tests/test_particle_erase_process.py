@@ -56,7 +56,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 
     def _create_conditions(self, initial_mp):
-        initial_mp.CreateNewCondition("Condition3D4N", 1, [2,4,8,6], initial_mp.GetProperties()[1])
+        initial_mp.CreateNewCondition("SurfaceCondition3D4N", 1, [2,4,8,6], initial_mp.GetProperties()[1])
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, initial_mp.Conditions)
         for condition in initial_mp.Conditions:
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, 0)

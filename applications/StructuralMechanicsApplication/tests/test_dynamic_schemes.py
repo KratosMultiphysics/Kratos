@@ -47,6 +47,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         c1 = 200.0
         c4 = 1.0
         # Solve the problem
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         while time <= end_time:
             time = time + dt
             step = step + 1
@@ -121,6 +122,7 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, - A * omega**2 * cos(omega*time))
 
         # Solve the problem
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         while time <= end_time:
             time = time + dt
             step = step + 1

@@ -379,9 +379,12 @@ class MPMSolver(PythonSolver):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
+        elif analysis_type == 'linear':
+                self.material_point_model_part.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
+                solution_strategy = self._CreateLinearStrategy();
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"non_linear\""
+            err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
         return solution_strategy
 
@@ -401,6 +404,20 @@ class MPMSolver(PythonSolver):
                                                                         self.settings["compute_reactions"].GetBool(),
                                                                         reform_dofs_at_each_step,
                                                                         self.settings["move_mesh_flag"].GetBool())
+
+    def _CreateLinearStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        solution_scheme = self._GetSolutionScheme()
+        linear_solver = self._GetLinearSolver()
+        reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
+        calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
+        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
+                                                              solution_scheme,
+                                                              linear_solver,
+                                                              self.settings["compute_reactions"].GetBool(),
+                                                              reform_dofs_at_each_step,
+                                                              calc_norm_dx_flag,
+                                                              self.settings["move_mesh_flag"].GetBool())
 
     def _SetBufferSize(self):
         current_buffer_size = self.grid_model_part.GetBufferSize()

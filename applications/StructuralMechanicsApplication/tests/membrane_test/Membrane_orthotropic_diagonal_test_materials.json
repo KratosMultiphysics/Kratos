@@ -1,0 +1,21 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_structure",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticOrthotropic2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"                : 0.001,
+                "DENSITY"                  : 7850.0,
+                "YOUNG_MODULUS"            : 2.1e+11,
+                "YOUNG_MODULUS_X"            : 1.05e+10,
+                "YOUNG_MODULUS_Y"            : 2.1e+11,
+                "SHEAR_MODULUS_XY"           : 7.894e+10,
+                "POISSON_RATIO_XY"            : 0.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}

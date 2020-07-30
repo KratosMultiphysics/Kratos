@@ -30,6 +30,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
+    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
+    puts $FileVar "  \"create_initial_skin\":             false,"
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
@@ -206,10 +208,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         AppendOutputVariables PutStrings iGroup Write_Integrated_Stress CONCRETE_STRESS_TENSOR
 		AppendOutputVariables PutStrings iGroup Write_Integrated_Stress STEEL_STRESS_TENSOR
     } else {
-		AppendOutputVariables PutStrings iGroup Write_Predictive_Stress STRESS_TENSOR
+		AppendOutputVariables PutStrings iGroup Write_Predictive_Stress CAUCHY_STRESS_TENSOR
 		AppendOutputVariables PutStrings iGroup Write_Integrated_Stress STRESS_TENSOR_INTEGRATED
 	}
-	AppendOutputVariables PutStrings iGroup Write_Strain STRAIN_TENSOR
+	AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_TENSOR
 	AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_ELEMENT
     AppendOutputVariables PutStrings iGroup Write_Is_Damaged IS_DAMAGED
     AppendOutputVariables PutStrings iGroup Stress_Threshold STRESS_THRESHOLD

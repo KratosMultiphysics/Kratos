@@ -14,7 +14,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_Dempack_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack_dev to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
@@ -88,7 +88,8 @@ namespace Kratos {
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
             int i_neighbour_count,
-            int time_steps) {
+            int time_steps,
+            const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 
@@ -119,25 +120,25 @@ namespace Kratos {
              mN1 = element1_props[SLOPE_FRACTION_N1];
              mN2 = element1_props[SLOPE_FRACTION_N2];
              mN3 = element1_props[SLOPE_FRACTION_N3];
-             mC1 = element1_props[SLOPE_LIMIT_COEFF_C1]*1e6;
-             mC2 = element1_props[SLOPE_LIMIT_COEFF_C2]*1e6;
-             mC3 = element1_props[SLOPE_LIMIT_COEFF_C3]*1e6;
+             mC1 = element1_props[SLOPE_LIMIT_COEFF_C1];
+             mC2 = element1_props[SLOPE_LIMIT_COEFF_C2];
+             mC3 = element1_props[SLOPE_LIMIT_COEFF_C3];
              mYoungPlastic = element1_props[YOUNG_MODULUS_PLASTIC];
-             mPlasticityLimit = element1_props[PLASTIC_YIELD_STRESS]*1e6;
+             mPlasticityLimit = element1_props[PLASTIC_YIELD_STRESS];
              mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6; //N/m2
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]; //N/m2
         } else {
 
             mN1 = 0.5*(element1_props[SLOPE_FRACTION_N1] + element2_props[SLOPE_FRACTION_N1] );
             mN2 = 0.5*(element1_props[SLOPE_FRACTION_N2] + element2_props[SLOPE_FRACTION_N2] );
             mN3 = 0.5*(element1_props[SLOPE_FRACTION_N3] + element2_props[SLOPE_FRACTION_N3] );
-            mC1 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C1] + element2_props[SLOPE_LIMIT_COEFF_C1]);
-            mC2 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C2] + element2_props[SLOPE_LIMIT_COEFF_C2]);
-            mC3 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C3] + element2_props[SLOPE_LIMIT_COEFF_C3]);
+            mC1 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C1] + element2_props[SLOPE_LIMIT_COEFF_C1]);
+            mC2 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C2] + element2_props[SLOPE_LIMIT_COEFF_C2]);
+            mC3 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C3] + element2_props[SLOPE_LIMIT_COEFF_C3]);
             mYoungPlastic = 0.5*(element1_props[YOUNG_MODULUS_PLASTIC] + element2_props[YOUNG_MODULUS_PLASTIC]);
-            mPlasticityLimit = 0.5*1e6*(element1_props[PLASTIC_YIELD_STRESS] + element2_props[PLASTIC_YIELD_STRESS]);
+            mPlasticityLimit = 0.5*(element1_props[PLASTIC_YIELD_STRESS] + element2_props[PLASTIC_YIELD_STRESS]);
             mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
         }
 
         const double kn_b = kn_el / mN1;
@@ -284,7 +285,7 @@ namespace Kratos {
             }
             Properties& element1_props = element1->GetProperties();
             Properties& element2_props = element2->GetProperties();
-            const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
+            const double mTauZero = 0.5 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
 
             contact_tau = ShearForceNow / effective_calculation_area;
@@ -302,6 +303,11 @@ namespace Kratos {
         }
         else {
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
+
+            if(equiv_tg_of_fri_ang < 0.0) {
+                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+            }
+
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
             if (Frictional_ShearForceMax < 0.0) {
                 Frictional_ShearForceMax = 0.0;

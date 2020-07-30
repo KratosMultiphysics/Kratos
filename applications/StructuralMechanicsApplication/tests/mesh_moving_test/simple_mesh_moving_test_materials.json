@@ -1,6 +1,6 @@
 {
     "properties": [{
-            "model_part_name": "Parts_All",
+            "model_part_name": "Structure.Parts_All",
             "properties_id": 1,
             "Material": {
                     "name": "Material",

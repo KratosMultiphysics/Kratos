@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -48,7 +48,7 @@ class InitialDemSkinProcess : public Process
             mrModelPart.RemoveSubModelPart(name_dem_model_part);
         }
 
-        FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(mrModelPart, 4, 4);
+        FindNodalNeighboursProcess neighbour_finder(mrModelPart);
         neighbour_finder.Execute();
 
         mrModelPart.CreateSubModelPart(name_dem_model_part);

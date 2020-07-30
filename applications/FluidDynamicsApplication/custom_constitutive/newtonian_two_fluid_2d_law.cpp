@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/cfd_variables.h"
-#include "custom_utilities/element_size_calculator.h"
+#include "utilities/element_size_calculator.h"
 #include "custom_constitutive/newtonian_two_fluid_2d_law.h"
 
 namespace Kratos

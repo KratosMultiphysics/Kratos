@@ -153,7 +153,6 @@ public:
 
     Element(Element const& rOther)
         : BaseType(rOther)
-        , mData(rOther.mData)
         , mpProperties(rOther.mpProperties)
     {
     }
@@ -1302,19 +1301,19 @@ public:
     ///@name Access
     ///@{
 
+    /**
+    * @brief returns the pointer to the property of the element.
+    *        Does not throw an error, to allow copying of
+    *        elements which don't have any property assigned.
+    * @return property pointer
+    */
     PropertiesType::Pointer pGetProperties()
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
     const PropertiesType::Pointer pGetProperties() const
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
@@ -1337,67 +1336,6 @@ public:
     void SetProperties(PropertiesType::Pointer pProperties)
     {
         mpProperties = pProperties;
-    }
-
-    ///@}
-    ///@name Elemental Data
-    ///@{
-
-    /**
-     * Access Data:
-     */
-    DataValueContainer& Data()
-    {
-        return mData;
-    }
-
-    DataValueContainer const& GetData() const
-    {
-      return mData;
-    }
-
-    void SetData(DataValueContainer const& rThisData)
-    {
-      mData = rThisData;
-    }
-
-    /**
-     * Check if the Data exists with Has(..) methods:
-     */
-    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-
-    template<class TAdaptorType> bool Has(
-        const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-
-    /**
-     * Set Data with SetValue and the Variable to set:
-     */
-    template<class TVariableType> void SetValue(
-        const TVariableType& rThisVariable,
-        typename TVariableType::Type const& rValue)
-    {
-        mData.SetValue(rThisVariable, rValue);
-    }
-
-    /**
-     * Get Data with GetValue and the Variable to get:
-     */
-    template<class TVariableType> typename TVariableType::Type& GetValue(
-        const TVariableType& rThisVariable)
-    {
-        return mData.GetValue(rThisVariable);
-    }
-
-    template<class TVariableType> typename TVariableType::Type const& GetValue(
-        const TVariableType& rThisVariable) const
-    {
-        return mData.GetValue(rThisVariable);
     }
 
     ///@}
@@ -1473,11 +1411,6 @@ private:
     ///@{
 
     /**
-     * pointer to the data related to this element
-     */
-    DataValueContainer mData;
-
-    /**
      * pointer to the element's properties
      */
     Properties::Pointer mpProperties;
@@ -1497,14 +1430,12 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
-        rSerializer.save("Data", mData);
         rSerializer.save("Properties", mpProperties);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
-        rSerializer.load("Data", mData);
         rSerializer.load("Properties", mpProperties);
     }
 

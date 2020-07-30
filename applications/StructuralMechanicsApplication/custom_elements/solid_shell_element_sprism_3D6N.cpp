@@ -510,7 +510,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     )
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
-    const IndexType mat_size = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes) * 3;
+    const IndexType mat_size = ( GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes) ) * 3;
 
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,

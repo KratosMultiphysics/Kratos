@@ -218,15 +218,15 @@ private:
     bool mExtrapolateNonHistorical;                             /// If the non-historical values are interpolated
     bool mAreaAverage;                                          /// If the values are averaged over area
 
-    std::vector<Variable<double>*> mDoubleVariable;             /// The double variables
-    std::vector<Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
-    std::vector<Variable<Vector>*> mVectorVariable;             /// The vector variables to compute
-    std::vector<Variable<Matrix>*> mMatrixVariable;             /// The matrix variables to compute
+    std::vector<const Variable<double>*> mDoubleVariable;             /// The double variables
+    std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
+    std::vector<const Variable<Vector>*> mVectorVariable;             /// The vector variables to compute
+    std::vector<const Variable<Matrix>*> mMatrixVariable;             /// The matrix variables to compute
 
-    std::unordered_map<Variable<Vector>*, SizeType, pVariableHasher<Variable<Vector>>, pVariableComparator<Variable<Vector>>> mSizeVectors; /// The size of the vector variables
-    std::unordered_map<Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher<Variable<Matrix>>, pVariableComparator<Variable<Matrix>>> mSizeMatrixes; /// The size of the matrixes variables
+    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher<Variable<Vector>>, pVariableComparator<Variable<Vector>>> mSizeVectors; /// The size of the vector variables
+    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher<Variable<Matrix>>, pVariableComparator<Variable<Matrix>>> mSizeMatrixes; /// The size of the matrixes variables
 
-    Variable<double>* mpAverageVariable = &NODAL_AREA;          /// The variable used to compute the average weight
+    const Variable<double>* mpAverageVariable;          /// The variable used to compute the average weight
 
     SizeType mEchoLevel;                                        /// The level of verbosity
 

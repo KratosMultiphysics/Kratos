@@ -127,6 +127,8 @@ struct ruge_stuben {
         for(size_t i = 0; i < n; ++i)
             if (cf[i] == 'C') cidx[i] = static_cast<ptrdiff_t>(nc++);
 
+        if (!nc) throw error::empty_level();
+
         auto P = std::make_shared<Matrix>();
         P->set_size(n, nc, true);
 

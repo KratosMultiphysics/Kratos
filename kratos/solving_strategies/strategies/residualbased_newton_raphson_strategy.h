@@ -138,7 +138,7 @@ class ResidualBasedNewtonRaphsonStrategy
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
-        
+
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
@@ -194,7 +194,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
-        
+
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
@@ -247,7 +247,7 @@ class ResidualBasedNewtonRaphsonStrategy
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
-        
+
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
@@ -480,6 +480,7 @@ class ResidualBasedNewtonRaphsonStrategy
     void Predict() override
     {
         KRATOS_TRY
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
@@ -499,18 +500,19 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Applying constraints if needed
         auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
-        const std::size_t number_of_constraints = r_constraints_array.size();
-        if(number_of_constraints != 0) {
+        const int local_number_of_constraints = r_constraints_array.size();
+        const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
+        if(global_number_of_constraints != 0) {
             const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
             const auto it_const_begin = r_constraints_array.begin();
 
             #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(number_of_constraints); ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                 (it_const_begin + i)->ResetSlaveDofs(r_process_info);
 
             #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(number_of_constraints); ++i)
+            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
                  (it_const_begin + i)->Apply(r_process_info);
 
             // The following is needed since we need to eventually compute time derivatives after applying
@@ -602,7 +604,10 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemVectorType& rb = *mpb;
 
         if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+        {
+            TSparseSpace::SetToZero(rb);
             GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), rb);
+        }
 
         return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
 
@@ -732,10 +737,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
-            SparseSpaceType::Clear(mpA);
-            SparseSpaceType::Clear(mpDx);
-            SparseSpaceType::Clear(mpb);
-
             this->Clear();
         }
 
@@ -1054,7 +1055,7 @@ class ResidualBasedNewtonRaphsonStrategy
   protected:
     ///@name Static Member Variables
     ///@{
-        
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -1162,7 +1163,7 @@ class ResidualBasedNewtonRaphsonStrategy
             << "ATTENTION: max iterations ( " << mMaxIterationNumber
             << " ) exceeded!" << std::endl;
     }
-    
+
     /**
      * @brief This method returns the default settings
      */
@@ -1175,7 +1176,7 @@ class ResidualBasedNewtonRaphsonStrategy
         })");
         return default_settings;
     }
-    
+
     /**
      * @brief This method assigns settings to member variables
      * @param Settings Parameters that are assigned to the member variables

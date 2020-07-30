@@ -2,10 +2,41 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics import IsDistributedRun
+import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+def SelectAndVerifyLinearSolver(settings, skiptest):
+    # The mechanical solver selects automatically the fastest linear-solver available
+    # this might not be appropriate for a test, therefore in case nothing is specified,
+    # the previous default linear-solver is set
+    if not settings["solver_settings"].Has("linear_solver_settings"):
+        # check if running in MPI because there we use a different default linear solver
+        if IsDistributedRun():
+            default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type" : "amesos",
+                "amesos_solver_type" : "Amesos_Klu"
+            }""")
+
+        else:
+            default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type": "EigenSolversApplication.sparse_lu"
+            }""")
+        settings["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+
+    solver_type = settings["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
+    solver_type_splitted = solver_type.split(".")
+    if len(solver_type_splitted) == 2:
+        # this means that we use a solver from an application
+        # hence we have to check if it exists, otherwise skip the test
+        app_name = solver_type_splitted[0]
+        solver_name = solver_type_splitted[1]
+        if not kratos_utils.CheckIfApplicationsAvailable(app_name):
+            skiptest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
+
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
@@ -16,19 +47,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            # The mechanical solver selects automatically the fastest linear-solver available
-            # this might not be appropriate for a test, therefore in case nothing is specified,
-            # the previous default linear-solver is set
-            if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
-                default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                    "solver_type": "ExternalSolversApplication.super_lu",
-                    "max_iteration": 500,
-                    "tolerance": 1e-9,
-                    "scaling": false,
-                    "symmetric_scaling": true,
-                    "verbosity": 0
-                }""")
-                ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+            SelectAndVerifyLinearSolver(ProjectParameters, self.skipTest)
 
             self.modify_parameters(ProjectParameters)
 
@@ -152,17 +171,23 @@ class EigenTL3D8NCubeTests(StructuralMechanicsTestFactory):
 class Eigen3D3NThinCircleTests(StructuralMechanicsTestFactory):
     file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
 
-class Fofi4PointTentnoCableTests(StructuralMechanicsTestFactory):
-    file_name = "formfinding_test/Fofi_4Point_Tent_noCable_test"
-
 class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
-    file_name = "formfinding_test/Fofi_4Point_Tent_Cable_test"
+    file_name = "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test"
 
-class MembraneQ4PointLoadTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_Q4_PointLoad_test"
+class MembraneHemisphereTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_hemisphere_test"
 
-class MembraneQ4TrussPointLoadTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_Q4_Truss_PointLoad_test"
+class MembraneOrthotropicDiagonalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_orthotropic_diagonal_test"
+
+class MembraneOrthotropicHorizontalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_orthotropic_horizontal_test"
+
+class MembranePreStressHorizontalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_prestress_horizontal_test"
+
+class MembranePreStressDiagonalTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/Membrane_prestress_diagonal_test"
 
 class Simple3D2NTrussTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_test"
@@ -181,6 +206,9 @@ class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
 
 class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
+
+class Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
 
 class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
@@ -223,6 +251,9 @@ class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
 
 class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
+
+class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
 
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"

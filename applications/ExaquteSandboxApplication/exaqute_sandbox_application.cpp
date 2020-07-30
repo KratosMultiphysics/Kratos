@@ -34,7 +34,8 @@ void KratosExaquteSandboxApplication::Register()
      KratosApplication::Register();
      KRATOS_INFO("") << "Initializing KratosExaquteSandboxApplication..." << std::endl;
 
-  KRATOS_REGISTER_VARIABLE( DIVERGENCE_WEIGHTED )
+  KRATOS_REGISTER_VARIABLE( AVERAGED_DIVERGENCE )
+  KRATOS_REGISTER_VARIABLE( DIVERGENCE )
   KRATOS_REGISTER_VARIABLE( VELOCITY_H1_SEMINORM )
 
 }

@@ -50,6 +50,8 @@ namespace Kratos
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
 
+
+
       /// Turn back information as a string.
       virtual std::string Info() const override
       {

@@ -62,9 +62,9 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
     def _apply_BCs(self, mp):
         bcs = mp.GetSubModelPart("FixedEdgeNodes")
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_X, 0.0, bcs.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_Y, 0.0, bcs.Nodes)
 
         KratosMultiphysics.VariableUtils().ApplyFixity(
@@ -73,9 +73,9 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             KratosMultiphysics.DISPLACEMENT_Y, True, bcs.Nodes)
 
         bcmn = mp.GetSubModelPart("MovingNodes")
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_X, 0.01, bcmn.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_Y, 0.0, bcmn.Nodes)
         KratosMultiphysics.VariableUtils().ApplyFixity(
             KratosMultiphysics.DISPLACEMENT_X, True, bcmn.Nodes)

@@ -8,7 +8,7 @@ import math
 
 class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         
-    def test_SimplestSurfaceLoadCondition3D4N(self):
+    def _SimplestSurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -27,7 +27,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
 
         #cond.Check()
 
@@ -47,7 +47,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         for i in range(len(rhs)):
             self.assertAlmostEqual(rhs[i],reference_res[i])
 
-    def test_SimpleOrientationSurfaceLoadCondition3D4N(self):
+    def _SimpleOrientationSurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -66,7 +66,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
 
         #cond.Check()
 
@@ -86,7 +86,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         for i in range(len(rhs)):
             self.assertAlmostEqual(rhs[i],reference_res[i])
 
-    def test_SimpleSurfaceLoadCondition3D4N(self):
+    def _SimpleSurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -105,7 +105,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,3,4], mp.GetProperties()[1])
 
         #cond.Check()
 
@@ -125,7 +125,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         for i in range(len(rhs)):
             self.assertAlmostEqual(rhs[i],reference_res[i])
 
-    def test_SurfaceLoadCondition3D4N(self):
+    def _SurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -148,7 +148,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-        cond = mp.CreateNewCondition("SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition(prefix + "SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
 
         #cond.Check()
 
@@ -199,6 +199,30 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         reference_res = [-44.872685126136794,46.372685126136815,0.0,-44.87268512613681,46.3726851261368,0.0,-56.657798145912594,58.1577981459126,0.0,-56.65779814591261,58.157798145912615,0.0]
         for i in range(len(rhs)):
             self.assertAlmostEqual(rhs[i],reference_res[i])
+
+    def test_SDSimplestSurfaceLoadCondition3D4N(self):
+        self._SimplestSurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SimplestSurfaceLoadCondition3D4N(self):
+        self._SimplestSurfaceLoadCondition3D4N()
+
+    def test_SDSimpleOrientationSurfaceLoadCondition3D4N(self):
+        self._SimpleOrientationSurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SimpleOrientationSurfaceLoadCondition3D4N(self):
+        self._SimpleOrientationSurfaceLoadCondition3D4N()
+
+    def test_SDSimpleSurfaceLoadCondition3D4N(self):
+        self._SimpleSurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SimpleSurfaceLoadCondition3D4N(self):
+        self._SimpleSurfaceLoadCondition3D4N()
+
+    def test_SDSurfaceLoadCondition3D4N(self):
+        self._SurfaceLoadCondition3D4N("SmallDisplacement")
+
+    def test_SurfaceLoadCondition3D4N(self):
+        self._SurfaceLoadCondition3D4N()
 
 if __name__ == '__main__':
     KratosUnittest.main()

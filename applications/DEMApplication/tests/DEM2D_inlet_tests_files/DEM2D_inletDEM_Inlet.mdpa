@@ -1,0 +1,69 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1 // Inlet group: Particle injectors Auto1
+    PARTICLE_DENSITY 25000.0
+    YOUNG_MODULUS 1e6
+    POISSON_RATIO 0.20
+    FRICTION 0.577350269189494
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 2
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    PARTICLE_SPHERICITY 1.0
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb2D
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+  163 -10.0000000000  10.0   0.0000000000
+  164 -10.0000000000  7.0    0.0000000000
+End Nodes
+
+
+Begin SubModelPart Inlet_Particle_injectors_Auto1 // Group Particle injectors Auto1 // Subtree Inlet
+    Begin SubModelPartData
+        PROPERTIES_ID 1
+        RIGID_BODY_MOTION 0
+        IDENTIFIER Inlet_Particle_injectors_Auto1
+        INJECTOR_ELEMENT_TYPE CylinderParticle2D
+        ELEMENT_TYPE CylinderParticle2D
+        CONTAINS_CLUSTERS 0
+        VELOCITY [3] (0.1, -1.0, 0.0)
+        MAX_RAND_DEVIATION_ANGLE 0.0
+        INLET_NUMBER_OF_PARTICLES 1000.0
+        IMPOSED_MASS_FLOW_OPTION 0
+        INLET_START_TIME 0.0
+        INLET_STOP_TIME 1e-3
+        RADIUS 0.5
+        PROBABILITY_DISTRIBUTION normal
+        STANDARD_DEVIATION 0.0
+    End SubModelPartData
+    Begin SubModelPartNodes
+       163
+    End SubModelPartNodes
+  End SubModelPart
+  
+  Begin SubModelPart Inlet_Particle_injectors_Auto2 // Group Particle injectors Auto2 // Subtree Inlet
+    Begin SubModelPartData
+        PROPERTIES_ID 1
+        RIGID_BODY_MOTION 0
+        IDENTIFIER Inlet_Particle_injectors_Auto2
+        INJECTOR_ELEMENT_TYPE CylinderParticle2D
+        ELEMENT_TYPE CylinderParticle2D
+        CONTAINS_CLUSTERS 0
+        VELOCITY [3] (0.1, 1.0, 0.0)
+        MAX_RAND_DEVIATION_ANGLE 0.0
+        INLET_NUMBER_OF_PARTICLES 1000
+        IMPOSED_MASS_FLOW_OPTION 0
+        INLET_START_TIME 0.0
+        INLET_STOP_TIME 1e-3
+        RADIUS 0.4
+        PROBABILITY_DISTRIBUTION normal
+        STANDARD_DEVIATION 0.0
+    End SubModelPartData
+    Begin SubModelPartNodes
+       164
+    End SubModelPartNodes
+  End SubModelPart

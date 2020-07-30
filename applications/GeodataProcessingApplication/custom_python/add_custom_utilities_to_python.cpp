@@ -25,14 +25,10 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_utilities/hello.h"
-
 #include "custom_utilities/cleaning_utilities.h"
 #include "custom_utilities/extrusion_height_utilities.h"
 #include "custom_utilities/fill_cfd_modelpart_utilities.h"
 #include "custom_utilities/building_utilities.h"
-// #include "custom_utilities/nicola.h"
-
 
 namespace Kratos {
 namespace Python {
@@ -40,18 +36,6 @@ namespace Python {
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
-/*     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType; */
-
-    // for testing --- delete ---
-    py::class_<Hello>(m,"Hello")
-        .def(py::init<>())
-        .def("Greet",&Hello::Greet)
-        .def("test_nicola", &Hello::test_nicola)
-        .def("CheckIfInternal", &Hello::CheckIfInternal)
-        ;
 
     // to set the extrusion height of the ground terrain
     py::class_<ExtrusionHeightUtilities>(m,"ExtrusionHeightUtilities")
@@ -70,7 +54,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("HardCopyAfterSurfaceDiscretization", &CleaningUtilities::HardCopyAfterSurfaceDiscretization)
         .def("FillBottom", &CleaningUtilities::FillBottom)  // [NG] CHECK WHETHER TO MOVE IT TO ANOTHER CLASS
         ;
-    
+
     // to fill cfd model part
     py::class_<FillCfdModelpartUtilities>(m,"FillCfdModelpartUtilities")
         .def(py::init< ModelPart& >())
@@ -80,14 +64,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("FillSlip", &FillCfdModelpartUtilities::FillSlip)
         .def("FillNoslip", &FillCfdModelpartUtilities::FillNoslip)
         ;
-    
+
 
     // some operations on buildings
     py::class_<BuildingUtilities>(m,"BuildingUtilities")
         .def(py::init< ModelPart& >())
         .def("CheckOverlapElement", &BuildingUtilities::CheckOverlapElement)
         .def("DeleteNotValidElements", &BuildingUtilities::DeleteNotValidElements)
-        // .def("SplitBuilding", &BuildingUtilities::SplitBuilding)
         ;
 }
 

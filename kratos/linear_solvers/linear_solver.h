@@ -240,14 +240,11 @@ public:
     )
     {}
 
-
-
-
     ///@}
     ///@name Access
     ///@{
 
-    virtual typename TReordererType::Pointer GetReorderer(void)
+    virtual typename TReordererType::Pointer GetReorderer()
     {
         return mpReorderer;
     }
@@ -257,48 +254,106 @@ public:
         mpReorderer = pNewReorderer;
     }
 
+    /**
+     * @brief This method allows to set the tolerance in the linear solver
+     * @param NewTolerance The new tolerance set
+     */
     virtual void SetTolerance(double NewTolerance)
     {
-        std::cout << "WARNING: Accessed base function Kratos::LinearSolver::SetTolerance(double). This does nothing !" << std::endl;
+        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::SetTolerance(double). This does nothing !" << std::endl;
     }
-
+    
+    /**
+     * @brief This method allows to get the tolerance in the linear solver
+     * @return The tolerance
+     */
     virtual double GetTolerance()
     {
-        std::cout << "WARNING: Accessed base function Kratos::LinearSolver::GetTolerance(). No tolerance defined, returning 0 !" << std::endl ;
+        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::GetTolerance(). No tolerance defined, returning 0 !" << std::endl ;
         return 0;
     }
-
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    virtual bool IsConsistent(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    /**
+     * @brief This method checks if the dimensions of the system of equations are consistent
+     * @param rA The LHS of the system of equations
+     * @param rX The vector containing the unkowns
+     * @param rB The RHS of the system of equations
+     * @return True if consistent, false otherwise
+     */
+    virtual bool IsConsistent(
+        SparseMatrixType& rA, 
+        VectorType& rX, 
+        VectorType& rB
+        )
     {
         const SizeType size = TSparseSpaceType::Size1(rA);
+        const SizeType size_a = TSparseSpaceType::Size2(rA);
+        const SizeType size_x = TSparseSpaceType::Size(rX);
+        const SizeType size_b = TSparseSpaceType::Size(rB);
 
-        return ((size ==  TSparseSpaceType::Size2(rA)) &&
-                (size ==  TSparseSpaceType::Size(rX)) &&
-                (size ==  TSparseSpaceType::Size(rB)));
+        return ((size ==  size_a) &&
+                (size ==  size_x) &&
+                (size ==  size_b));
     }
 
-    virtual bool IsConsistent(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    /**
+     * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix for RHS and unknowns version)
+     * @param rA The LHS of the system of equations
+     * @param rX The matrix containing the unkowns
+     * @param rB The matrix containing the RHSs of the system of equations
+     * @return True if consistent, false otherwise
+     */
+    virtual bool IsConsistent(
+        SparseMatrixType& rA, 
+        DenseMatrixType& rX,
+        DenseMatrixType& rB
+        ) 
     {
         const SizeType size = TSparseSpaceType::Size1(rA);
+        const SizeType size_a = TSparseSpaceType::Size2(rA);
+        const SizeType size_1_x = TDenseSpaceType::Size1(rX);
+        const SizeType size_1_b = TDenseSpaceType::Size1(rB);
+        const SizeType size_2_x = TDenseSpaceType::Size2(rX);
+        const SizeType size_2_b = TDenseSpaceType::Size2(rB);
 
-        return ((size ==  TSparseSpaceType::Size2(rA)) &&
-                (size ==  TDenseSpaceType::Size1(rX)) &&
-                (size ==  TDenseSpaceType::Size1(rB)) &&
-                (TDenseSpaceType::Size2(rX) == TDenseSpaceType::Size2(rB)));
+        return ((size ==  size_a) &&
+                (size ==  size_1_x) &&
+                (size ==  size_1_b) &&
+                (size_2_x == size_2_b));
     }
 
-
-    virtual bool IsNotConsistent(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    /**
+     * @brief This method checks if the dimensions of the system of equations are not consistent
+     * @param rA The LHS of the system of equations
+     * @param rX The vector containing the unkowns
+     * @param rB The RHS of the system of equations
+     * @return False if consistent, true otherwise
+     */
+    virtual bool IsNotConsistent(
+        SparseMatrixType& rA, 
+        VectorType& rX, 
+        VectorType& rB
+        )
     {
         return (!IsConsistent(rA, rX, rB));
     }
-
-    virtual bool IsNotConsistent(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    
+    /**
+     * @brief This method checks if the dimensions of the system of equations are not consistent
+     * @param rA The LHS of the system of equations
+     * @param rX The matrix containing the unkowns
+     * @param rB The matrix containing the RHSs of the system of equations
+     * @return False if consistent, true otherwise
+     */
+    virtual bool IsNotConsistent(
+        SparseMatrixType& rA, 
+        DenseMatrixType& rX, 
+        DenseMatrixType& rB
+        ) 
     {
         return (!IsConsistent(rA, rX, rB));
     }
@@ -323,7 +378,6 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
-
 
     ///@}
     ///@name Friends
@@ -446,7 +500,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_LINEAR_SOLVER_H_INCLUDED  defined
-
-
-
-

@@ -47,6 +47,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
+            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : true,
@@ -205,14 +206,14 @@ class NavierStokesCompressibleSolver(FluidSolver):
             #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
             #{
                 #"element_name":"CompressibleNavierStokes3D4N",
-                #"condition_name": "Condition3D3N"
+                #"condition_name": "SurfaceCondition3D3N"
             #}
             #""")
         #elif(domain_size == 2):
             #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
             #{
                 #"element_name":"CompressibleNavierStokes2D3N",
-                #"condition_name": "Condition2D2N"
+                #"condition_name": "LineCondition2D2N"
             #}
             #""")
         #else:

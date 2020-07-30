@@ -1,0 +1,116 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 1000000.0
+    POISSON_RATIO 0.20
+    FRICTION 0.009138776996010534
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    PARTICLE_SPHERICITY 1.0
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+    1   7.0000000000   0.0000000000   0.0000000000
+    2   6.0000000000   0.0000000000   0.0000000000
+    3   5.0000000000   0.0000000000   0.0000000000
+    4   4.0000000000   0.0000000000   0.0000000000
+    5   3.0000000000   0.0000000000   0.0000000000
+    6   2.0000000000   0.0000000000   0.0000000000
+    7   1.0000000000   0.0000000000   0.0000000000
+    8   0.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements SphericParticle3D// GUI group identifier: Parts Auto1
+        1          1     1 
+        2          1     2 
+        3          1     3 
+        4          1     4 
+        5          1     5 
+        6          1     6 
+        7          1     7 
+        8          1     8 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Parts Auto1
+          1 0       0.25
+          2 0       0.25
+          3 0       0.25
+          4 0       0.25
+          5 0       0.25
+          6 0       0.25
+          7 0       0.25
+          8 0       0.25
+End NodalData
+
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Ball1
+    Begin SubModelPartNodes
+            1            
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Ball2
+    Begin SubModelPartNodes
+            2            
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Ball3
+    Begin SubModelPartNodes
+            3            
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            3
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Ball4
+    Begin SubModelPartNodes
+            4            
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            4
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

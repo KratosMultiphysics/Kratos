@@ -82,7 +82,7 @@ public:
      */
     explicit EntitiesEraseProcess(
         ModelPart& rModelPart,
-        Flags Options = NOT_REMOVE_FROM_ALL_LEVELS | NOT_ERASE_ALL_ENTITIES
+        Flags Options = REMOVE_FROM_ALL_LEVELS.AsFalse() | ERASE_ALL_ENTITIES.AsFalse()
         );
 
     /**
@@ -274,5 +274,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_ENTITY_ERASE_PROCESS_INCLUDED  defined
-
-

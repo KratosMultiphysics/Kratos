@@ -10,7 +10,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
-from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
 # Other imports
 from collections import OrderedDict
@@ -84,9 +83,18 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             coupling_operation.Finalize()
 
     def AdvanceInTime(self, current_time):
+        # not all solvers provide time (e.g. external solvers or steady solvers)
+        # hence we have to check first if they return time (i.e. time != 0.0)
+        # and then if the times are matching, since currently no interpolation in time is possible
+
         self.time = 0.0
         for solver in self.solver_wrappers.values():
-            self.time = max(self.time, solver.AdvanceInTime(current_time))
+            solver_time = solver.AdvanceInTime(current_time)
+            if solver_time != 0.0: # solver provides time
+                if self.time == 0.0: # first time a solver returns a time different from 0.0
+                    self.time = solver_time
+                elif abs(self.time - solver_time) > 1e-12:
+                        raise Exception("Solver time mismatch")
 
         return self.time
 
@@ -208,8 +216,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
             self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
 
-            self.__ApplyScaling(to_solver_data, i_data)
-
             # Exporting data to external solvers
             to_solver_data_config = {
                 "type" : "coupling_interface_data",
@@ -298,20 +304,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         return solver_cosim_details
 
-    def __ApplyScaling(self, interface_data, data_configuration):
-        # perform scaling of data if specified
-        if data_configuration["scaling_factor"].IsString():
-            scaling_function_string = data_configuration["scaling_factor"].GetString()
-            scope_vars = {'t' : self.time} # make time useable in function
-            scaling_factor = GenericCallFunction(scaling_function_string, scope_vars) # evaluating function string
-        else:
-            scaling_factor = data_configuration["scaling_factor"].GetDouble()
-
-        if abs(scaling_factor-1.0) > 1E-15:
-            if self.echo_level > 2:
-                cs_tools.cs_print_info("  Scaling-Factor", scaling_factor)
-            interface_data.SetData(scaling_factor*interface_data.GetData()) # setting the scaled data
-
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
@@ -334,8 +326,7 @@ def GetInputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [0.0, 1e30],
-        "scaling_factor"                  : 1.0
+        "interval"                        : [0.0, 1e30]
     }""")
 
 def GetOutputDataDefaults():
@@ -347,6 +338,5 @@ def GetOutputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [0.0, 1e30],
-        "scaling_factor"                  : 1.0
+        "interval"                        : [0.0, 1e30]
     }""")

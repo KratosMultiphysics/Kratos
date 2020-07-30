@@ -14,9 +14,15 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         super(EulerianPrimitiveVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
-        self.element_name = "EulerPrimVarElement"
-        self.condition_name = "Condition"
+        self.element_name = "ReducedSWE"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
+
+    def AddVariables(self):
+        super(EulerianPrimitiveVarSolver, self).AddVariables()
+        # Auxiliary variables
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
@@ -24,3 +30,8 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
 
         KM.Logger.PrintInfo("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
+
+    def InitializeSolutionStep(self):
+        KM.VariableUtils().CopyScalarVar(SW.HEIGHT, SW.PROJECTED_SCALAR1, self.main_model_part.Nodes)
+        KM.VariableUtils().CopyVectorVar(KM.VELOCITY, SW.PROJECTED_VECTOR1, self.main_model_part.Nodes)
+        super(EulerianPrimitiveVarSolver, self).InitializeSolutionStep()

@@ -17,11 +17,11 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Beam_structure"
+            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure"
         },
 
         "material_import_settings" :{
-            "materials_filename": "materials_beam.json"
+            "materials_filename": "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/materials_beam.json"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
@@ -31,11 +31,6 @@
         "residual_relative_tolerance"        : 1e-12,
         "residual_absolute_tolerance"        : 1e-12,
         "max_iteration"                      : 100,
-        "linear_solver_settings"             : {
-            "solver_type" : "ExternalSolversApplication.super_lu"
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_Beam"],
-        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_support", "ROTATION_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
 
     },

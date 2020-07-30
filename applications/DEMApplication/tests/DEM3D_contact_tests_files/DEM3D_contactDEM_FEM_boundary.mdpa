@@ -1,0 +1,102 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+  FRICTION 0.5773502691896257
+  WALL_COHESION 0.0
+  COMPUTE_WEAR 0
+  SEVERITY_OF_WEAR 0.001
+  IMPACT_WEAR_SEVERITY 0.001
+  BRINELL_HARDNESS 200.0
+  YOUNG_MODULUS 1e+20
+  POISSON_RATIO 0.25
+End Properties
+
+Begin Nodes
+    4  -3.0000000000  -3.0000000000   0.0000000000
+    7  -1.0000000000  -3.0000000000   0.0000000000
+    8  -3.0000000000  -1.0000000000   0.0000000000
+    9  -1.0000000000  -1.0000000000   0.0000000000
+   12   1.0000000000  -3.0000000000   0.0000000000
+   13  -3.0000000000   1.0000000000   0.0000000000
+   16   1.0000000000  -1.0000000000   0.0000000000
+   17  -1.0000000000   1.0000000000   0.0000000000
+   24  -3.0000000000   3.0000000000   0.0000000000
+   25   3.0000000000  -3.0000000000   0.0000000000
+   26   1.0000000000   1.0000000000   0.0000000000
+   27   3.0000000000  -1.0000000000   0.0000000000
+   28  -1.0000000000   3.0000000000   0.0000000000
+   29   1.0000000000   3.0000000000   0.0000000000
+   32   3.0000000000   1.0000000000   0.0000000000
+   37   3.0000000000   3.0000000000   0.0000000000
+End Nodes
+
+
+Begin Conditions RigidFace3D3N// GUI group identifier: Floor
+   19          2     7     9     4 
+   20          2     9     8     4 
+   21          2    12    16     7 
+   22          2    16     9     7 
+   23          2    25    27    12 
+   24          2    27    16    12 
+   29          2     9    17     8 
+   30          2    17    13     8 
+   31          2    16    26     9 
+   32          2    26    17     9 
+   33          2    27    32    16 
+   34          2    32    26    16 
+   39          2    17    28    13 
+   40          2    28    24    13 
+   41          2    26    29    17 
+   42          2    29    28    17 
+   43          2    32    37    26 
+   44          2    37    29    26 
+End Conditions
+
+Begin SubModelPart 1 // DEM-FEM-Wall - group identifier: Floor
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: Floor
+    IS_GHOST false
+    IDENTIFIER Floor
+  End SubModelPartData
+  Begin SubModelPartNodes
+         4
+         7
+         8
+         9
+        12
+        13
+        16
+        17
+        24
+        25
+        26
+        27
+        28
+        29
+        32
+        37
+  End SubModelPartNodes
+Begin SubModelPartConditions
+        19
+        20
+        21
+        22
+        23
+        24
+        29
+        30
+        31
+        32
+        33
+        34
+        39
+        40
+        41
+        42
+        43
+        44
+End SubModelPartConditions
+
+End SubModelPart
+

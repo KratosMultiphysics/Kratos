@@ -28,10 +28,6 @@ class ApplySlipProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
 
-        # Compute the normal on the nodes of interest -
-        # Note that the model part employed here is supposed to only have slip "conditions"
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
         # Mark the nodes and conditions with the appropriate slip flag
         for condition in self.model_part.Conditions:
             condition.Set(KratosMultiphysics.SLIP, True)
@@ -51,6 +47,11 @@ class ApplySlipProcess(KratosMultiphysics.Process):
                 KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
                 1.0e8,
                 self.model_part.Nodes)
+
+    def ExecuteInitialize(self):
+        # Compute the normal on the nodes of interest -
+        # Note that the model part employed here is supposed to only have slip "conditions"
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
     def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed

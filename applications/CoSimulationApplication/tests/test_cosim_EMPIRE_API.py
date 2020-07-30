@@ -10,14 +10,31 @@ from KratosMultiphysics import kratos_utilities as kratos_utils
 import os
 from shutil import copyfile
 
-conv_signal_file_name = "EMPIRE_convergence_signal.dat" # this is hardcoded in C++
-
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+communication_folder = ".EmpireIO" # hardcoded in C++
+conv_signal_file_name = os.path.join(communication_folder, "EMPIRE_convergence_signal_default.dat")
+
 class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        # to silence prints
+        KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(0)
+        KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(False)
+
+    def setUp(self):
+        # delete and recreate communication folder to avoid leftover files
+        kratos_utils.DeleteDirectoryIfExisting(communication_folder)
+        os.mkdir(communication_folder)
+
+    def tearDown(self):
+        kratos_utils.DeleteDirectoryIfExisting(communication_folder)
+
+
     def test_unused_fcts(self):
+        # to make sure theses fcts still exist in case a solver still calls them
         KratosCoSim.EMPIRE_API.EMPIRE_API_Connect("dummy.xml")
         KratosCoSim.EMPIRE_API.EMPIRE_API_Disconnect()
         KratosCoSim.EMPIRE_API.EMPIRE_API_getUserDefinedText("dummy_element")
@@ -83,7 +100,7 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
             "output_file_name"    : ""
         }""")
         params["reference_file_name"].SetString(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"))
-        params["output_file_name"].SetString("EMPIRE_mesh_For_Sending.vtk")
+        params["output_file_name"].SetString(os.path.join(communication_folder, "EMPIRE_mesh_For_Sending.vtk"))
 
         CompareTwoFilesCheckProcess(params).Execute()
 
@@ -310,13 +327,13 @@ def FillModelPart(model_part):
         node.SetSolutionStepValue(KM.ROTATION, GetROTATIONValue(node_id))
 
 def GetSignalFileName(signal_name):
-    return "EMPIRE_signal_" + signal_name + ".dat" # this is hardcoded in C++
+    return os.path.join(communication_folder, "EMPIRE_signal_" + signal_name + ".dat") # this is hardcoded in C++
 
 def GetDataFieldFileName(data_field_name):
-    return "EMPIRE_datafield_" + data_field_name + ".dat" # this is hardcoded in C++
+    return os.path.join(communication_folder, "EMPIRE_datafield_" + data_field_name + ".dat") # this is hardcoded in C++
 
 def GetMeshFileName(mesh_name):
-    return "EMPIRE_mesh_" + mesh_name + ".vtk" # this is hardcoded in C++
+    return os.path.join(communication_folder, "EMPIRE_mesh_" + mesh_name + ".vtk") # this is hardcoded in C++
 
 
 if __name__ == '__main__':

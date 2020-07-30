@@ -31,22 +31,56 @@
 #include "utilities/quaternion.h"
 #include "includes/master_slave_constraint.h"
 #include "includes/linear_master_slave_constraint.h"
+#include "includes/geometrical_object.h"
+
+/* Geometries definition */
+#include "geometries/register_kratos_components_for_geometry.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/line_3d_2.h"
+#include "geometries/line_3d_3.h"
+#include "geometries/point.h"
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
+#include "geometries/sphere_3d_1.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/prism_3d_6.h"
+#include "geometries/prism_3d_15.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
 
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
-
-/// This class defines the interface with kernel for all applications in Kratos.
-/** The application class defines the interface necessary for providing the information
-    needed by Kernel in order to configure the whole sistem correctly.
-
-*/
-
+ 
+/** 
+ * @class KratosApplication
+ * @brief This class defines the interface with kernel for all applications in Kratos.
+ * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ * @author Riccardo Rossi
+ */
 class KRATOS_API(KRATOS_CORE) KratosApplication {
    public:
     ///@name Type Definitions
     ///@{
 
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+       
     /// Pointer definition of KratosApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosApplication);
 
@@ -75,6 +109,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpArray1D4VariableComponents(rOther.mpArray1D4VariableComponents),
           mpArray1D6VariableComponents(rOther.mpArray1D6VariableComponents),
           mpArray1D9VariableComponents(rOther.mpArray1D9VariableComponents),
+          mpGeometries(rOther.mpGeometries),
           mpElements(rOther.mpElements),
           mpConditions(rOther.mpConditions),
           mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
@@ -95,7 +130,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
-    void RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
+    void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
     void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
@@ -111,12 +146,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@}
     ///@name Access
     ///@{
-
-    //	template<class TComponentType>
-    //		typename KratosComponents<TComponentType>::ComponentsContainerType& GetComponents(TComponentType const& rComponentType)
-    //	{
-    //		return KratosComponents<TComponentType>::GetComponents();
-    //	}
 
     // I have to see why the above version is not working for multi thread ...
     // Anyway its working with these functions.Pooyan.
@@ -194,6 +223,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpVariableData;
     }
 
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
+        return *mpGeometries;
+    }
+    
     KratosComponents<Element>::ComponentsContainerType& GetElements() {
         return *mpElements;
     }
@@ -211,49 +244,23 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
             VariableDataComponents)
 
     {
-        for (KratosComponents<VariableData>::ComponentsContainerType::iterator
-                 i = mpVariableData->begin();
-
-             i != mpVariableData->end(); i++)
-
-        {
-            std::string const& variable_name = i->second->Name();
-            KratosComponents<VariableData>::ComponentsContainerType::
-                const_iterator i_variable =
-                    VariableDataComponents.find(variable_name);
-
-            if (i_variable == VariableDataComponents.end())
-
-                KRATOS_THROW_ERROR(std::logic_error,
-                    "This variable is not registered in Kernel : ",
-                    *(i_variable->second));
-
-            unsigned int variable_key = i_variable->second->Key();
-
-            if (variable_key == 0)
-
-                KRATOS_THROW_ERROR(std::logic_error,
-                    "This variable is not initialized in Kernel : ",
-                    *(i_variable->second));
-
-            //			KRATOS_WATCH(i_variable->second.get());
-
-            //			KRATOS_WATCH(i->second.get().Key());
-
-            //			KRATOS_WATCH(variable_key);
-
-            i->second->SetKey(variable_key);
+        for (auto it = mpVariableData->begin(); it != mpVariableData->end(); it++) {
+            std::string const& r_variable_name = it->second->Name();
+            auto it_variable = VariableDataComponents.find(r_variable_name);
+            KRATOS_ERROR_IF(it_variable == VariableDataComponents.end()) << "This variable is not registered in Kernel : " << *(it_variable->second) << std::endl;
         }
-
-        //			KRATOS_WATCH("!!!!!!!!!!!!!!!!!!!!! END SETTING COMPONENETS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     }
 
+    void SetComponents(KratosComponents<Geometry<Node<3>>>::ComponentsContainerType const& GeometryComponents)
+    {
+        mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
+    }
+    
     void SetComponents(KratosComponents<Element>::ComponentsContainerType const&
             ElementComponents)
 
     {
         // It's better to make a loop over new components and add them if they are NOT already exist in application. Or make an ERROR for incompatibility between applications.
-
         mpElements->insert(ElementComponents.begin(), ElementComponents.end());
     }
 
@@ -320,6 +327,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
         rOStream << std::endl;
 
+        rOStream << "Geometries:" << std::endl;
+
+        KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+        
         rOStream << "Elements:" << std::endl;
 
         KratosComponents<Element>().PrintData(rOStream);
@@ -338,24 +349,54 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     ///@}
-
     ///@name Friends
-
     ///@{
 
     ///@}
-
    protected:
     ///@name Protected static Member Variables
-
     ///@{
 
     ///@}
-
     ///@name Protected member Variables
-
     ///@{
+       
     std::string mApplicationName;
+
+    // General geometries must be defined
+    //Points:
+    const Point mPointPrototype;
+    const Point2D<NodeType> mPoint2DPrototype = Point2D<NodeType>(GeometryType::PointsArrayType(1));
+    const Point3D<NodeType> mPoint3DPrototype = Point3D<NodeType>(GeometryType::PointsArrayType(1));
+    //Sphere
+    const Sphere3D1<NodeType> mSphere3D1Prototype = Sphere3D1<NodeType>(GeometryType::PointsArrayType(1));
+    //Lines:
+    const Line2D2<NodeType> mLine2D2Prototype = Line2D2<NodeType>(GeometryType::PointsArrayType(2));
+    const Line2D3<NodeType> mLine2D3Prototype = Line2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Line3D2<NodeType> mLine3D2Prototype = Line3D2<NodeType>(GeometryType::PointsArrayType(2));
+    const Line3D3<NodeType> mLine3D3Prototype = Line3D3<NodeType>(GeometryType::PointsArrayType(3));
+    //Triangles:
+    const Triangle2D3<NodeType> mTriangle2D3Prototype = Triangle2D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Triangle2D6<NodeType> mTriangle2D6Prototype = Triangle2D6<NodeType>(GeometryType::PointsArrayType(6));
+    const Triangle3D3<NodeType> mTriangle3D3Prototype = Triangle3D3<NodeType>(GeometryType::PointsArrayType(3));
+    const Triangle3D6<NodeType> mTriangle3D6Prototype = Triangle3D6<NodeType>( GeometryType::PointsArrayType(6));
+    //Quadrilaterals:
+    const Quadrilateral2D4<NodeType> mQuadrilateral2D4Prototype = Quadrilateral2D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Quadrilateral2D8<NodeType> mQuadrilateral2D8Prototype = Quadrilateral2D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Quadrilateral2D9<NodeType> mQuadrilateral2D9Prototype = Quadrilateral2D9<NodeType>( GeometryType::PointsArrayType(9));
+    const Quadrilateral3D4<NodeType> mQuadrilateral3D4Prototype = Quadrilateral3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Quadrilateral3D8<NodeType> mQuadrilateral3D8Prototype = Quadrilateral3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Quadrilateral3D9<NodeType> mQuadrilateral3D9Prototype = Quadrilateral3D9<NodeType>( GeometryType::PointsArrayType(9));
+    //Tetrahedra:
+    const Tetrahedra3D4<NodeType> mTetrahedra3D4Prototype = Tetrahedra3D4<NodeType>( GeometryType::PointsArrayType(4));
+    const Tetrahedra3D10<NodeType> mTetrahedra3D10Prototype = Tetrahedra3D10<NodeType>( GeometryType::PointsArrayType(10));
+    //Prisms:
+    const Prism3D6<NodeType> mPrism3D6Prototype = Prism3D6<NodeType>( GeometryType::PointsArrayType(6));
+    const Prism3D15<NodeType> mPrism3D15Prototype = Prism3D15<NodeType>( GeometryType::PointsArrayType(15));
+    //Hexahedra:
+    const Hexahedra3D8<NodeType> mHexahedra3D8Prototype = Hexahedra3D8<NodeType>( GeometryType::PointsArrayType(8));
+    const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
+    const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
 
     // General conditions must be defined
 
@@ -378,20 +419,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
 
-    // BEGIN Deprecated conditions
-    const MeshCondition mCondition;
-    const MeshCondition mCondition2D;
-    const MeshCondition mCondition2D2N;
-    const MeshCondition mCondition2D3N;
-    const MeshCondition mCondition3D;
-    const MeshCondition mCondition3D2N;
-    const MeshCondition mCondition3D3N;
-    const MeshCondition mCondition3D6N;
-    const MeshCondition mCondition3D4N;
-    const MeshCondition mCondition3D8N;
-    const MeshCondition mCondition3D9N;
-    // END Deprecated conditions
-
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
     const PeriodicCondition mPeriodicConditionEdge;
@@ -401,7 +428,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement;
     const MeshElement mElement2D2N;
     const MeshElement mElement2D3N;
+    const MeshElement mElement2D6N;
     const MeshElement mElement2D4N;
+    const MeshElement mElement2D8N;
+    const MeshElement mElement2D9N;
 
     const MeshElement mElement3D2N;
     const MeshElement mElement3D3N;
@@ -409,6 +439,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D6N;
     const MeshElement mElement3D8N;
     const MeshElement mElement3D10N;
+    const MeshElement mElement3D15N;
+    const MeshElement mElement3D20N;
+    const MeshElement mElement3D27N;
 
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
@@ -450,6 +483,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::ComponentsContainerType* mpArray1D9VariableComponents;
 
+    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
+    
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;

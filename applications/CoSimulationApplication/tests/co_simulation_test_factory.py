@@ -26,6 +26,7 @@ def GetFilePath(fileName):
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
     '''
+
     def test_MokFSI_mvqn(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
@@ -143,6 +144,19 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
+            self._runTest()
+
+    def test_sdof_fsi(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
+        if not have_fsi_dependencies:
+            self.skipTest("FSI dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_sdof", "cosim_sdof_fsi")
+            # self.__AddVtkOutputToCFD() # uncomment to get output
             self._runTest()
 
     @classmethod

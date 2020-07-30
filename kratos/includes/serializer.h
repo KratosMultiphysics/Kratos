@@ -172,11 +172,13 @@ public:
         delete mpBuffer;
     }
 
-
     ///@}
     ///@name Operators
     ///@{
 
+    /// Sets the Serializer in a state ready to be loaded
+    /// Note: If the same object is loaded twice before deleting it from memory all its pointers will be duplicated.
+    void SetLoadState();
 
     ///@}
     ///@name Operations
@@ -302,7 +304,6 @@ public:
         }
     }
 
-
     template<class TDataType>
     void load(std::string const & rTag, Kratos::unique_ptr<TDataType>& pValue)
     {
@@ -333,21 +334,20 @@ public:
                         << object_name << std::endl;
 
                     if(!pValue) {
-                        pValue = Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+                        pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
                     }
                 }
                     
                 // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=&pValue;
+                mLoadedPointers[p_pointer]=pValue.get();
                 load(rTag, *pValue);
             }
             else
             {
-                pValue = *static_cast<Kratos::unique_ptr<TDataType>*>((i_pointer->second));
+                pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second))));
             }
         }
     }
-
 
     template<class TDataType>
     void load(std::string const & rTag, TDataType*& pValue)
@@ -625,7 +625,7 @@ public:
 
 
     template<class TDataType>
-    void save(std::string const & rTag, Kratos::unique_ptr<TDataType> pValue)
+    void save(std::string const & rTag, Kratos::unique_ptr<TDataType> const& pValue)
     {
         save(rTag, pValue.get());
     }
@@ -1396,6 +1396,12 @@ private:
         const SizeType block_size = sizeof(BlockType);
         return static_cast<SizeType>(((block_size - 1) + rSize) / block_size);
     }
+
+    /// Sets the pointer of the stream buffer at the begnining
+    void SeekBegin();
+
+    /// Sets the pointer of the stream buffer at tht end 
+    void SeekEnd();
 
     ///@}
     ///@name Private  Access

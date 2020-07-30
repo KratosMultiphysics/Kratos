@@ -246,7 +246,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         if (rRightHandSideVector.size() != mat_size) {
             rRightHandSideVector.resize(mat_size, false);
         }
-        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
     }
 
     // Reading integration points and local gradients

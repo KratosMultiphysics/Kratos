@@ -1,21 +1,21 @@
 {
     "monte_carlo" : {
-        "run_monte_carlo"       : "True",
-        "tolerance"             : 0.1,
-        "confidence"            : 0.9,
-        "batch_size"            : 20,
-        "convergence_criteria"  : "MC_sample_variance_sequential_stopping_rule"
+        "run_monte_carlo"           : true,
+        "tolerance"                 : 0.1,
+        "confidence"                : 0.9,
+        "batch_size"                : 20,
+        "initial_number_batches"    : 2,
+        "maximum_number_iterations" : 5,
+        "convergence_criteria"      : "MC_sample_variance_sequential_stopping_rule"
     },
     "multilevel_monte_carlo" : {
-        "run_multilevel_monte_carlo"    : "True",
-        "initial_tolerance"             : 0.2,
-        "tolerance"                     : 0.1,
-        "confidence"                    : 0.8,
-        "number_samples_screening"      : 10,
-        "levels_screening"              : 2,
-        "maximum_number_levels"         : 4,
-        "initial_mesh_size"             : 0.1,
-        "recursive_maximal_size"        : "True",
-        "mesh_refinement_coefficient"   : 3
+        "run_multilevel_monte_carlo" : true,
+        "initial_tolerance"          : 0.2,
+        "tolerance"                  : 0.1,
+        "confidence"                 : 0.8,
+        "initial_batch_size"         : [5,5,5],
+        "initial_number_batches"     : 2,
+        "maximum_number_levels"      : 2,
+        "maximum_number_iterations"  : 3
     }
 }

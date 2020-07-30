@@ -9,14 +9,31 @@
 //
 //  Main authors:    Inigo Lopez
 
+#if !defined(KRATOS_POTENTIAL_FLOW_UTILITIES_H_INCLUDED )
+#define  KRATOS_POTENTIAL_FLOW_UTILITIES_H_INCLUDED
+
+
 // Project includes
-#include "custom_elements/incompressible_potential_flow_element.h"
-#include "compressible_potential_flow_application_variables.h"
+#include "containers/array_1d.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
+    class Element; // forward-declaring to not having to include it here
+    class ProcessInfo; // forward-declaring to not having to include it here
+    class ModelPart; // forward-declaring to not having to include it here
+
 namespace PotentialFlowUtilities
 {
+template <unsigned int TNumNodes, unsigned int TDim>
+struct ElementalData{
+    array_1d<double, TNumNodes> potentials, distances;
+    double vol;
+
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+    array_1d<double, TNumNodes> N;
+};
+
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
 
@@ -51,7 +68,38 @@ template <int Dim, int NumNodes>
 double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
+double ComputePerturbationIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputePerturbationCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
+
+bool CheckIfElementIsTrailingEdge(const Element& rElement);
+
+template <int Dim>
+void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
+bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 } // namespace PotentialFlow
 } // namespace Kratos
+
+#endif // KRATOS_POTENTIAL_FLOW_UTILITIES_H_INCLUDED  defined

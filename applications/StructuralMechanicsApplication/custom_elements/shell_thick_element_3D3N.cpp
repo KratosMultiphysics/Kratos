@@ -477,7 +477,7 @@ void ShellThickElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix&
 
         // Compute the local coordinate system.
         ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-        Output = localCoordinateSystem.Orientation();
+        Output = trans(localCoordinateSystem.Orientation());
     }
 }
 

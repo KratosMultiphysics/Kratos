@@ -23,7 +23,7 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
     const std::size_t dimension = r_process_info[DOMAIN_SIZE];
-	mPressureName = (dimension == 2) ? "Normal_Load" : "Pressure_Load";
+    mPressureName = (dimension == 2) ? "Normal_Load" : "Pressure_Load";
 }
 
 /***********************************************************************************/
@@ -46,8 +46,8 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
     const int Id1,
     const int Id2,
     const int Id3,
-	ModelPart::ElementsContainerType::ptr_iterator itElem,
-	ModelPart& rSubModelPart,
+    ModelPart::ElementsContainerType::ptr_iterator itElem,
+    ModelPart& rSubModelPart,
     ModelPart::PropertiesType::Pointer pProperties,
     int& rMaximumConditionId
     )
@@ -60,7 +60,7 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
     rMaximumConditionId++;
 
     // Adding the nodes to the SubModelPart
-	rSubModelPart.AddNodes(condition_nodes_id);
+    rSubModelPart.AddNodes(condition_nodes_id);
 
     // We create the Line Load Condition
     const auto p_pressure_condition = rSubModelPart.CreateNewCondition(
@@ -79,8 +79,8 @@ template <>
 void ExtendPressureConditionProcess<2>::CreateLineLoads(
     const int Id1,
     const int Id2,
-	ModelPart::ElementsContainerType::ptr_iterator itElem,
-	ModelPart& rSubModelPart,
+    ModelPart::ElementsContainerType::ptr_iterator itElem,
+    ModelPart& rSubModelPart,
     ModelPart::PropertiesType::Pointer pProperties,
     int& rMaximumConditionId
     )
@@ -112,9 +112,9 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     auto& r_geom = (*itElem)->GetGeometry();
 
     // We check some things...
@@ -137,9 +137,9 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
 
     // We get the neighbour elements
     GlobalPointersVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
@@ -178,9 +178,9 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads4WetNodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     const int id = (*itElem)->Id();
 
     // We only create pressure loads when the surface is skin
@@ -210,9 +210,9 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::PropertiesType::Pointer p_properties = r_sub_model_part.pGetProperties(1);
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     auto& r_geom = (*itElem)->GetGeometry();
 
     const IndexType id_1 = (NonWetLocalIdNode == 0) ? 0 : (NonWetLocalIdNode == 1) ? 1 : (NonWetLocalIdNode == 2) ? 2 : 3;
@@ -242,12 +242,13 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
         if (!(*it_elem)->GetValue(SMOOTHING)) {
             // We count how many nodes are wet
             auto& r_geometry = (*it_elem)->GetGeometry();
-            int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
+            int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id = 0;
 
             for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
-                if (r_geometry[local_id].GetValue(PRESSURE_ID) != 0) {
+                const int nodal_pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
+                if (nodal_pressure_id != 0) {
                     wet_nodes_counter++;
-                    pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
+                    pressure_id = (nodal_pressure_id > pressure_id) ? nodal_pressure_id : pressure_id;
                 } else {
                     non_wet_local_id_node = local_id;
                 }
@@ -315,6 +316,8 @@ void ExtendPressureConditionProcess<TDim>::Execute()
 
     // Remove previous line loads-> Only the 1st iteration
     if (r_process_info[INTERNAL_PRESSURE_ITERATION] == 1) {
+        // We fill the properties vectors to be reassigned afterwards
+        this->SavePreviousProperties();
         this->RemovePreviousLineLoads();
         this->ResetFlagOnElements();
     }
@@ -322,6 +325,32 @@ void ExtendPressureConditionProcess<TDim>::Execute()
     this->CreateNewConditions();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::SavePreviousProperties()
+{
+    const std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
+    int number_pressure_conditions = 0;
+    for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
+        if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8))
+            number_pressure_conditions++;
+    }
+    mpPropertiesVector.resize(number_pressure_conditions);
+
+    for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
+        if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
+            auto& r_sub_model_part = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
+            const int pressure_id = this->GetPressureIdSubModel(submodel_parts_names[i]);
+            const auto& it_cond = r_sub_model_part.ConditionsBegin();
+
+            ModelPart::PropertiesType::Pointer p_properties;
+            if (r_sub_model_part.Conditions().size() > 0)
+                p_properties = it_cond->pGetProperties();
+            mpPropertiesVector[pressure_id - 1] = p_properties;
+        }
+    }
+}
 /***********************************************************************************/
 /***********************************************************************************/
 template <SizeType TDim>
@@ -365,11 +394,12 @@ void ExtendPressureConditionProcess<TDim>::GetPressureId(
     int& rPressureId
     )
 {
+    rPressureId = 0;
     auto& r_geometry = (*itElem)->GetGeometry();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-        if (r_geometry[i].GetValue(PRESSURE_ID) != 0) {
-            rPressureId = r_geometry[i].GetValue(PRESSURE_ID);
-            break;
+        const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
+        if (pressure_id != 0) {
+            rPressureId = (pressure_id > rPressureId) ? pressure_id : rPressureId;
         }
     }
 }
@@ -398,6 +428,28 @@ void ExtendPressureConditionProcess<TDim>::CalculateNumberOfElementsOnNodes()
                 number_of_elems++;
             }
         }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+int ExtendPressureConditionProcess<TDim>::GetPressureIdSubModel(
+    const std::string& rSubModelName 
+)
+{
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    const std::size_t dimension = r_process_info[DOMAIN_SIZE];
+    const IndexType ref_string_size = (dimension == 2) ? 18 : 20;
+    const IndexType string_size = rSubModelName.size();
+
+    if (rSubModelName.size() == ref_string_size) { // from 1 to 9
+        return std::stoi(rSubModelName.substr(string_size - 1, string_size));
+    } else if (rSubModelName.size() == ref_string_size + 1) { // from 10 to 99
+        return std::stoi(rSubModelName.substr(string_size - 2, string_size));
+    } else { // from 100 to 999
+        return std::stoi(rSubModelName.substr(string_size - 3, string_size));
     }
 }
 

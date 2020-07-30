@@ -4,7 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from gid_output_process import GiDOutputProcess
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics import compare_two_files_check_process
 
 import os
 
@@ -55,12 +56,11 @@ class TestGidIO(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
         return model_part
 
     def __Check(self,output_file,reference_file):
-        import compare_two_files_check_process
 
         ## Settings string in json format
         params = KratosMultiphysics.Parameters("""
@@ -90,7 +90,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"all_active_out")
 
-        self.__Check("all_active_out_0.post.msh","auxiliar_files_for_python_unnitest/reference_files/all_active_ref.ref")
+        self.__Check("all_active_out_0.post.msh","auxiliar_files_for_python_unittest/reference_files/all_active_ref.ref")
 
     def test_gid_io_deactivation(self):
         current_model = KratosMultiphysics.Model()
@@ -105,7 +105,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"deactivated_out")
 
-        self.__Check("deactivated_out_0.post.msh","auxiliar_files_for_python_unnitest/reference_files/deactivated_ref.ref")
+        self.__Check("deactivated_out_0.post.msh","auxiliar_files_for_python_unittest/reference_files/deactivated_ref.ref")
 
     def test_gid_io_results(self):
         current_model = KratosMultiphysics.Model()
@@ -163,7 +163,7 @@ class TestGidIO(KratosUnittest.TestCase):
 
         self.__WriteOutput(model_part,"results_out")
 
-        self.__Check("results_out_0.post.res","auxiliar_files_for_python_unnitest/reference_files/results_out_ref.ref")
+        self.__Check("results_out_0.post.res","auxiliar_files_for_python_unittest/reference_files/results_out_ref.ref")
 
     def test_DoubleFreeError(self):
         current_model = KratosMultiphysics.Model()

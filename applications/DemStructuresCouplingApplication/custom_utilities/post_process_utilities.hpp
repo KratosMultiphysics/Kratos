@@ -32,7 +32,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) PostProcessUtilities {
+class PostProcessUtilities {
 
 public:
 
@@ -40,15 +40,11 @@ KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
 
 /// Default constructor.
 
-PostProcessUtilities(ModelPart& rModelPart) : mrModelPart(rModelPart) {
-    KRATOS_TRY
-
-    KRATOS_CATCH("")
-}
+PostProcessUtilities(ModelPart& rModelPart);
 
 /// Destructor.
 
-virtual ~PostProcessUtilities(){}
+virtual ~PostProcessUtilities();
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -73,22 +69,14 @@ void GetCurrentContinuumBonds(pybind11::list& current_continuum_bonds_list);
 
 /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-virtual std::string Info() const
-{
-    return "";
-}
+virtual std::string Info() const;
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const
-{
-}
-
+virtual void PrintInfo(std::ostream& rOStream) const;
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const
-{
-}
+virtual void PrintData(std::ostream& rOStream) const;
 
 
 ///@}
@@ -168,7 +156,7 @@ void Clear(pybind11::list& my_list);
 ///@{
 
 /// Assignment operator.
-PostProcessUtilities & operator=(PostProcessUtilities const& rOther);
+PostProcessUtilities & operator=(PostProcessUtilities const& rOther){};
 
 
 ///@}

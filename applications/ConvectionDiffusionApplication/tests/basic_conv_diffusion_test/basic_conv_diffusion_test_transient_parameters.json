@@ -54,7 +54,7 @@
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "TEMPERATURE_Temperature_Auto1",
+                "model_part_name" : "Thermic.TEMPERATURE_Temperature_Auto1",
                 "variable_name"   : "TEMPERATURE",
                 "constrained"     : true,
                 "value"           : 1.0,
@@ -69,7 +69,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "process_name"          : "CheckValueProcess",
             "Parameters"            : {
-                    "model_part_name" : "Check_Part",
+                    "model_part_name" : "Thermic.Check_Part",
                     "variable_name"   : "TEMPERATURE",
                     "interval"        : [0.99, "End"],
                     "value"           : 1.0,

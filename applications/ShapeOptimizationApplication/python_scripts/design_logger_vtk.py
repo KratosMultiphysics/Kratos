@@ -13,10 +13,10 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 # Additional imports
-from design_logger_base import DesignLogger
+from .design_logger_base import DesignLogger
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 # ==============================================================================
@@ -25,7 +25,7 @@ class DesignLoggerVTK( DesignLogger ):
     # --------------------------------------------------------------------------
     def __init__( self, model_part_controller, optimization_settings ):
         self.output_settings = optimization_settings["output"]
-        minimal_vtk_settings = KratosMultiphysics.Parameters("""
+        minimal_vtk_settings = KM.Parameters("""
         {
             "name"       : "vtk",
             "vtk_parameters" : {
@@ -40,9 +40,9 @@ class DesignLoggerVTK( DesignLogger ):
             output_format.AddValue("vtk_parameters", minimal_vtk_settings["vtk_parameters"])
         else:
             if output_format["vtk_parameters"].Has("model_part_name"):
-                print("WARNING:: vtk output parameter `model_part_name` will be overwritten!")
+                KM.Logger.PrintWarning("ShapeOpt::DesignLoggerVTK", "vtk output parameter `model_part_name` will be overwritten!")
             if output_format["vtk_parameters"].Has("folder_name"):
-                print("WARNING:: vtk output parameter `folder_name` will be overwritten!")
+                KM.Logger.PrintWarning("ShapeOpt::DesignLoggerVTK", "vtk output parameter `folder_name` will be overwritten!")
 
         output_format["vtk_parameters"].ValidateAndAssignDefaults(minimal_vtk_settings["vtk_parameters"])
 
@@ -62,9 +62,9 @@ class DesignLoggerVTK( DesignLogger ):
         vtk_parameters.AddValue("nodal_solution_step_data_variables", nodal_results)
 
         if output_mode == "WriteDesignSurface":
-            vtk_parameters["model_part_name"].SetString(self.design_surface.Name)
+            vtk_parameters["model_part_name"].SetString(self.design_surface.FullName())
         elif output_mode == "WriteOptimizationModelPart":
-            vtk_parameters["model_part_name"].SetString(self.optimization_model_part.Name)
+            vtk_parameters["model_part_name"].SetString(self.optimization_model_part.FullName())
         else:
             raise NameError("The following design output mode is not defined within a VTK output (name may be misspelled): " + output_mode)
 
@@ -79,15 +79,15 @@ class DesignLoggerVTK( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
-        OriginalTime = self.optimization_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        self.optimization_model_part.ProcessInfo[KratosMultiphysics.TIME] = optimizationIteration
+        OriginalTime = self.optimization_model_part.ProcessInfo[KM.TIME]
+        self.optimization_model_part.ProcessInfo[KM.TIME] = optimizationIteration
 
         self.vtk_io.ExecuteInitializeSolutionStep()
         if(self.vtk_io.IsOutputStep()):
             self.vtk_io.PrintOutput()
         self.vtk_io.ExecuteFinalizeSolutionStep()
 
-        self.optimization_model_part.ProcessInfo[KratosMultiphysics.TIME] = OriginalTime
+        self.optimization_model_part.ProcessInfo[KM.TIME] = OriginalTime
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):

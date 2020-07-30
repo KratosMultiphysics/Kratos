@@ -30,6 +30,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "time_integration_method"    : "explicit",
             "scheme_type"                : "central_differences",
             "time_step_prediction_level" : 0,
             "delta_time_refresh"         : 1000,

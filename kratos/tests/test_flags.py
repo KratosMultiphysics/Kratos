@@ -9,8 +9,19 @@ class TestFlags(KratosUnittest.TestCase):
         self.model_part = self.model.CreateModelPart("TestModelPart")
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
-    def tearDown(self):
-        pass
+    def test_CopyConstructor(self):
+        flag1 = ACTIVE | STRUCTURE | MPI_BOUNDARY
+        flag2 = Flags(flag1)
+
+        flag1 |= VISITED | RIGID # modify the original flags, this should not affect the copy-constructed flags
+        self.assertTrue(flag1.Is(VISITED))
+        self.assertTrue(flag1.Is(RIGID))
+
+        self.assertTrue(flag2.Is(ACTIVE))
+        self.assertTrue(flag2.Is(STRUCTURE))
+        self.assertTrue(flag2.Is(MPI_BOUNDARY))
+        self.assertFalse(flag2.Is(VISITED))
+        self.assertFalse(flag2.Is(RIGID))
 
     def testFlagSetReset(self):
         node = self.model_part.GetNode(1)
@@ -89,8 +100,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagAndEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC
-        flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
+        flag1 = ACTIVE    | (RIGID).AsFalse()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).AsFalse()
+        flag2 = ACTIVE    | (RIGID).AsFalse()  | (STRUCTURE).AsFalse() |                              INLET       | (OUTLET).AsFalse()
 
         flag1 &= flag2
         # true (defined) & true (defined) = true (defined)
@@ -120,8 +131,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagOrEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC
-        flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
+        flag1 = ACTIVE    | (RIGID).AsFalse()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).AsFalse()
+        flag2 = ACTIVE    | (RIGID).AsFalse()  | (STRUCTURE).AsFalse() |                              INLET       | (OUTLET).AsFalse()
 
         flag1 |= flag2
         # true (defined) | true (defined) = true (defined)

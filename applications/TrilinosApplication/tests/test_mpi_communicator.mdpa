@@ -33,7 +33,7 @@ Begin Elements Element2D3N
 8        1        5        9        6
 End Elements
 
-Begin Conditions Condition2D2N
+Begin Conditions LineCondition2D2N
 1        1        1        2
 2        1        2        3
 3        1        3        6

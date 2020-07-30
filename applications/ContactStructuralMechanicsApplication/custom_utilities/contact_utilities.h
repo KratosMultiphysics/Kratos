@@ -345,14 +345,17 @@ public:
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
             auto it_cond = it_cond_begin + i;
             GeometryType& r_geometry = it_cond->GetGeometry();
-            is_active = false;
-            for ( IndexType i_node = 0; i_node < r_geometry.size(); ++i_node ) {
-                if (r_geometry[i_node].Is(ACTIVE)) {
-                    is_active = true;
-                    break;
+            if (r_geometry.NumberOfGeometryParts() > 0) {
+                GeometryType& r_parent_geometry = r_geometry.GetGeometryPart(0);
+                is_active = false;
+                for ( IndexType i_node = 0; i_node < r_parent_geometry.size(); ++i_node ) {
+                    if (r_parent_geometry[i_node].Is(ACTIVE)) {
+                        is_active = true;
+                        break;
+                    }
                 }
+                it_cond->Set(ACTIVE, is_active);
             }
-            it_cond->Set(ACTIVE, is_active);
         }
     }
 

@@ -249,7 +249,8 @@ namespace Kratos
 
             BoundedMatrix<double, 3, 3> inv33;
             MathUtils<double>::InvertMatrix(mat33, inv33, det);
-            const BoundedMatrix<double, 3, 3> I33 = prod(inv33, mat33);
+            BoundedMatrix<double, 3, 3> I33 = ZeroMatrix(3, 3);
+            noalias(I33) = prod(inv33, mat33);
 
             for (unsigned int i = 0; i < 3; i++) {
                 for (unsigned int j = 0; j < 3; j++) {
@@ -281,7 +282,8 @@ namespace Kratos
 
             BoundedMatrix<double, 4, 4> inv44;
             MathUtils<double>::InvertMatrix(mat44, inv44, det);
-            const BoundedMatrix<double, 4, 4> I44 = prod(inv44, mat44);
+            BoundedMatrix<double, 4, 4> I44 = ZeroMatrix(4, 4);
+            noalias(I44) = prod(inv44, mat44);
 
             for (unsigned int i = 0; i < 4; i++) {
                 for (unsigned int j = 0; j < 4; j++) {
@@ -620,6 +622,28 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(converged, true);
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMatrixSquareRoot, KratosCoreFastSuite)
+        {
+            // Input matrix
+            Matrix mat66(6,6);
+            mat66(0,0) = 6.77; mat66(0,1) = 2.52; mat66(0,2) = 1.98; mat66(0,3) = 0; mat66(0,4) = 0; mat66(0,5) = 4.44;
+            mat66(1,0) = 2.52; mat66(1,1) = 3.92; mat66(1,2) = 1.96; mat66(1,3) = 0; mat66(1,4) = 0; mat66(1,5) =-3.00;
+            mat66(2,0) = 1.98; mat66(2,1) = 1.96; mat66(2,2) = 5.10; mat66(2,3) = 0; mat66(2,4) = 0; mat66(2,5) = 9.90;
+            mat66(3,0) = 0; mat66(3,1) = 0; mat66(3,2) = 0; mat66(3,3) = 1.98; mat66(3,4) = 9.78; mat66(3,5) = 0;
+            mat66(4,0) = 0; mat66(4,1) = 0; mat66(4,2) = 0; mat66(4,3) = 9.78; mat66(4,4) = 2.17; mat66(4,5) = 0;
+            mat66(5,0) = 4.44; mat66(5,1) = -3.00; mat66(5,2) = 9.90; mat66(5,3) = 0; mat66(5,4) = 0; mat66(5,5) = 2.57;
+
+            // Calculate the input matrix square root
+            Matrix mat66sqroot;
+            const double tolerance = 1.0e-12;
+            MathUtils<double>::MatrixSquareRoot(mat66, mat66sqroot, tolerance);
+
+            // Check solution
+            const double test_tolerance = 1.0e-10;
+            const Matrix solution = prod(mat66sqroot, mat66sqroot);
+            KRATOS_CHECK_MATRIX_NEAR(solution, mat66, test_tolerance);
+        }
+
         /** Checks if it calculates the dot product
          * Checks if it calculates the dot product
          */
@@ -836,4 +860,3 @@ namespace Kratos
 
     } // namespace Testing
 }  // namespace Kratos.
-

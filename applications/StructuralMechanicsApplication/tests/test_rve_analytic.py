@@ -42,7 +42,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
                 "process_name"  : "GiDOutputProcess",
                 "help"          : "This process writes postprocessing files for GiD",
                 "Parameters"    : {
-                    "model_part_name"        : "Structure.computing_domain",
+                    "model_part_name"        : "Structure",
                     "output_name"            : "rve_test/smallest_rve_test",
                     "postprocess_parameters" : {
                         "result_file_configuration" : {
@@ -71,7 +71,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
         simulation = RVEAnalysis(model, parameters)
         simulation.Run()
 
-        model_part = model["Structure.computing_domain"]
+        model_part = model["Structure"]
 
         # Compare C
         Cestimated = model_part.GetValue(StructuralMechanicsApplication.ELASTICITY_TENSOR)

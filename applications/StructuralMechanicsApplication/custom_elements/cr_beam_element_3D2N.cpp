@@ -1188,6 +1188,31 @@ CrBeamElement3D2N::GetCurrentNodalPosition() const
     return current_nodal_position;
 }
 
+void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
+        if(rOutput.size1() != msDimension || rOutput.size2() != msDimension) {
+            rOutput.resize(msDimension, msDimension, false);
+        }
+
+        Matrix  transformation_matrix = GetTransformationMatrixGlobal();
+
+        Vector base_1 = ZeroVector(3);
+        Vector base_2 = ZeroVector(3);
+        Vector base_3 = ZeroVector(3);
+
+        for (SizeType i=0;i<msDimension;++i){
+            base_1[i] = transformation_matrix(i,0);
+            base_2[i] = transformation_matrix(i,1);
+            base_3[i] = transformation_matrix(i,2);
+        }
+
+        column(rOutput,0) = base_1;
+        column(rOutput,1) = base_2;
+        column(rOutput,2) = base_3;
+    }
+}
+
 void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,

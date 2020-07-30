@@ -33,9 +33,7 @@
             "linear_solver_settings":{
                 "solver_type": "skyline_lu_complex"
             }
-	},
-        "problem_domain_sub_model_part_list" : ["Parts_plate"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support", "Structure"],
+        },
         "rotation_dofs"                      : true
     },
     "processes" : {
@@ -46,7 +44,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_support",
+            "model_part_name" : "Structure.DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0]
         }
@@ -57,7 +55,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "ROTATION_support",
+            "model_part_name" : "Structure.ROTATION_support",
             "variable_name"   : "ROTATION",
             "constrained"     : [false,false,false],
             "value"           : [0.0,0.0,0.0]

@@ -65,17 +65,17 @@ public:
         Vector UnknownValues;         // Previous iteration unknown values
         Vector FaceHeatFluxValues;    // Nodal face heat flux values
 
-        const double inline GaussPointUnknown() const
+        double inline GaussPointUnknown() const
         {
             return InterpolateInGaussPoint(UnknownValues);
         }
 
-        const double inline GaussPointFaceHeatFlux() const
+        double inline GaussPointFaceHeatFlux() const
         {
             return InterpolateInGaussPoint(FaceHeatFluxValues);
         }
 
-        const double inline InterpolateInGaussPoint(const Vector &rNodalValues) const
+        double inline InterpolateInGaussPoint(const Vector &rNodalValues) const
         {
             double gauss_pt_val = 0.0;
             for (unsigned int i = 0; i < N.size(); ++i) {
@@ -87,6 +87,9 @@ public:
 
     typedef Condition::MatrixType MatrixType;
     typedef Condition::VectorType VectorType;
+
+    /// Stefan Boltzmann constant for radiation in SI units: [W / (m^2 K^4)].
+    constexpr static double StefanBoltzmann = 5.67e-8;
 
     ///@}
     ///@name Life Cycle

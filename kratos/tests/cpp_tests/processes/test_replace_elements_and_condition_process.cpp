@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSu
     Parameters settings( R"(
     {
         "element_name":"Element2D3N",
-        "condition_name": "Condition2D2N"
+        "condition_name": "LineCondition2D2N"
     }  )" );
 
     ReplaceElementsAndConditionsProcess process(this_model_part, settings);
@@ -407,7 +407,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
     Parameters settings( R"(
     {
         "element_name":"Element2D3N",
-        "condition_name": "Condition2D2N"
+        "condition_name": "LineCondition2D2N"
     }  )" );
 
     ReplaceElementsAndConditionsProcess process(this_model_part, settings);

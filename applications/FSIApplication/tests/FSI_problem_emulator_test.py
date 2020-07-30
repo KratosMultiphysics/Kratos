@@ -99,8 +99,6 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 "residual_relative_tolerance"        : 1e-8,
                 "residual_absolute_tolerance"        : 1e-10,
                 "max_iteration"                      : 20,
-                "problem_domain_sub_model_part_list" : ["Parts_Solid"],
-                "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_BC","PointLoad2D_Point_load","StructureInterface2D_Solid_interface"],
                 "rotation_dofs"                      : false,
                 "linear_solver_settings"             : {
                     "solver_type" : "SuperLUSolver",

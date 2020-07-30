@@ -38,6 +38,12 @@ void WriteMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
     dummy.WriteMesh( rThisMesh );
 }
 
+void BoolPrintOnGaussPoints( GidIOType& dummy, const Variable<bool>& rVariable,
+                               ModelPart& r_model_part, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+}
+
 void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
                                ModelPart& r_model_part, double SolutionTag )
 {
@@ -112,6 +118,7 @@ void  AddCustomIOToPython(pybind11::module& pymodule)
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_matrix_print_on_gauss_points)
+    .def("PrintOnGaussPoints", BoolPrintOnGaussPoints)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)

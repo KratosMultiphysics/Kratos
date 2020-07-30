@@ -577,7 +577,7 @@ protected:
 
             if( KratosComponents< Variable<double> >::Has( VariableName ) )
             {
-                Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
+                const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
 
                 #pragma omp parallel
                 {

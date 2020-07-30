@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/checks.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
@@ -35,7 +36,7 @@ class PoromechanicsNewtonRaphsonStrategy : public ResidualBasedNewtonRaphsonStra
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsNewtonRaphsonStrategy);
-    
+
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
@@ -81,12 +82,12 @@ public:
                     "loads_sub_model_part_list": [],
                     "loads_variable_list" : []
                 }  )" );
-            
+
             // Validate agains defaults -- this also ensures no type mismatch
             rParameters.ValidateAndAssignDefaults(default_parameters);
-            
+
             mpParameters = &rParameters;
-            
+
             // Set Load SubModelParts and Variable names
             if(rParameters["loads_sub_model_part_list"].size() > 0)
             {
@@ -118,7 +119,7 @@ public:
         if (mInitializeWasPerformed == false)
 		{
             MotherType::Initialize();
-            
+
             //Initialize ProcessInfo variables
             BaseType::GetModelPart().GetProcessInfo()[IS_CONVERGED] = true;
         }
@@ -131,28 +132,28 @@ public:
     bool IsConverged() override
     {
         KRATOS_TRY
-        
+
         bool IsConverged = true;
-        
+
         // Set the loads to 0.0
         this->SetLoadsToZero();
-        
+
         // Note: Initialize() needs to be called beforehand
-        
+
 		this->InitializeSolutionStep();
-        
+
 		this->Predict();
-        
+
         // Solve the problem with load = 0.0
         IsConverged = this->CheckConvergence();
-        
+
 		this->FinalizeSolutionStep();
-        
+
         // Set the loads to its original value
         this->RestoreLoadsValue();
-        
+
         return IsConverged;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -164,16 +165,16 @@ protected:
     Parameters* mpParameters;
     std::vector<ModelPart*> mSubModelPartList; /// List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames; /// Name of the nodal variable associated to every SubModelPart
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     int Check() override
     {
         KRATOS_TRY
-        
+
         int ierr = MotherType::Check();
         if(ierr != 0) return ierr;
-        
+
         KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
 
         return ierr;
@@ -186,67 +187,67 @@ protected:
     virtual bool CheckConvergence()
     {
         // ********** Prediction phase **********
-        
+
         // Initialize variables
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
-        
+
         mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-                
+
         TSparseSpace::SetToZero(mA);
         TSparseSpace::SetToZero(mb);
         TSparseSpace::SetToZero(mDx);
-        
+
         mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         //move the mesh if needed
         if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-        
+
         mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        
+
         unsigned int iteration_number = 0;
         bool is_converged = false;
         double dofs_ratio = 1000.0;
         double ReferenceDofsNorm;
         double NormDx;
-        
+
         // ********** Correction phase (iteration cicle) **********
-        
+
         while (is_converged == false && iteration_number < mMaxIterationNumber)
         {
             //setting the number of iteration
             iteration_number += 1;
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-            
+
             mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mb);
             TSparseSpace::SetToZero(mDx);
-            
+
             mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
-            
+
             mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
             //move the mesh if needed
             if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-            
+
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-            
+
             NormDx = TSparseSpace::TwoNorm(mDx);
             ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
             dofs_ratio = NormDx/ReferenceDofsNorm;
             KRATOS_INFO("Newton Raphson Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
             KRATOS_INFO("Newton Raphson Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
-            
+
             if(dofs_ratio <= 1.0e-3)
                 is_converged = true;
         }
-        
+
         return is_converged;
     }
 
@@ -266,9 +267,9 @@ protected:
 
             typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
             typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-            
+
             for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
-            {                    
+            {
                 if (itDof->IsFree())
                 {
                     const double& temp = itDof->GetSolutionStepValue();
@@ -276,7 +277,7 @@ protected:
                 }
             }
         }
-                
+
         return sqrt(ReferenceDofsNorm);
     }
 
@@ -290,17 +291,17 @@ private:
         {
             ModelPart& rSubModelPart = *(mSubModelPartList[i]);
             const std::string& VariableName = mVariableNames[i];
-            
+
             if( KratosComponents< Variable<double> >::Has( VariableName ) )
             {
-                Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
-                
+                const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
+
                 #pragma omp parallel
                 {
                     ModelPart::NodeIterator NodesBegin;
                     ModelPart::NodeIterator NodesEnd;
                     OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
-                    
+
                     for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
                     {
                         double& rvalue = itNode->FastGetSolutionStepValue(var);
@@ -315,13 +316,13 @@ private:
                 component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
                 component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
                 component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
-                
+
                 #pragma omp parallel
                 {
                     ModelPart::NodeIterator NodesBegin;
                     ModelPart::NodeIterator NodesEnd;
                     OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
-                    
+
                     for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
                     {
                         double& rvaluex = itNode->FastGetSolutionStepValue(varx);
@@ -331,7 +332,7 @@ private:
                         double& rvaluey = itNode->FastGetSolutionStepValue(vary);
                         itNode->FastGetSolutionStepValue(vary,1) = rvaluey;
                         rvaluey = 0.0;
-                        
+
                         double& rvaluez = itNode->FastGetSolutionStepValue(varz);
                         itNode->FastGetSolutionStepValue(varz,1) = rvaluez;
                         rvaluez = 0.0;
@@ -353,17 +354,17 @@ private:
         {
             ModelPart& rSubModelPart = *(mSubModelPartList[i]);
             const std::string& VariableName = mVariableNames[i];
-            
+
             if( KratosComponents< Variable<double> >::Has( VariableName ) )
             {
-                Variable<double> var = KratosComponents< Variable<double> >::Get( VariableName );
-                
+                const Variable<double>& var = KratosComponents< Variable<double> >::Get( VariableName );
+
                 #pragma omp parallel
                 {
                     ModelPart::NodeIterator NodesBegin;
                     ModelPart::NodeIterator NodesEnd;
                     OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
-                    
+
                     for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
                     {
                         itNode->FastGetSolutionStepValue(var) = itNode->FastGetSolutionStepValue(var,1);
@@ -376,19 +377,19 @@ private:
                 component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
                 component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
                 component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
-                
+
                 #pragma omp parallel
                 {
                     ModelPart::NodeIterator NodesBegin;
                     ModelPart::NodeIterator NodesEnd;
                     OpenMPUtils::PartitionedIterators(rSubModelPart.Nodes(),NodesBegin,NodesEnd);
-                    
+
                     for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
                     {
                         itNode->FastGetSolutionStepValue(varx) = itNode->FastGetSolutionStepValue(varx,1);
-                        
+
                         itNode->FastGetSolutionStepValue(vary) = itNode->FastGetSolutionStepValue(vary,1);
-                        
+
                         itNode->FastGetSolutionStepValue(varz) = itNode->FastGetSolutionStepValue(varz,1);
                     }
                 }

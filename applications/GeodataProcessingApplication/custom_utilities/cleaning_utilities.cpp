@@ -266,11 +266,11 @@ namespace Kratos
     }
 
 
-    ModelPart& CleaningUtilities::HardCopyAfterSurfaceDiscretization( ModelPart& OriginalModelPart, ModelPart& NewModelPart ){
+    ModelPart& CleaningUtilities::HardCopyAfterSurfaceDiscretization( ModelPart& rOriginalModelPart, ModelPart& rNewModelPart ){
 
-        auto& r_sub_model_part_bound = NewModelPart.GetSubModelPart("Complete_Boundary");
-        auto& r_sub_model_part_fluid = NewModelPart.GetSubModelPart("Parts_Fluid");
-        Properties::Pointer p_prop = NewModelPart.pGetProperties(0);
+        auto& r_sub_model_part_bound = rNewModelPart.GetSubModelPart("Complete_Boundary");
+        auto& r_sub_model_part_fluid = rNewModelPart.GetSubModelPart("Parts_Fluid");
+        Properties::Pointer p_prop = rNewModelPart.pGetProperties(0);
 
         std::vector<std::size_t> index_node;
         std::vector<std::size_t> index_element;
@@ -278,10 +278,10 @@ namespace Kratos
 
         // copying every node to the auxiliary model part
         // #pragma omp parallel for
-        for( int i_node = 0; i_node < static_cast<int>( OriginalModelPart.NumberOfNodes() ); ++i_node ){
+        for( int i_node = 0; i_node < static_cast<int>( rOriginalModelPart.NumberOfNodes() ); ++i_node ){
 
-            auto p_node = OriginalModelPart.NodesBegin() + i_node;
-            auto node = NewModelPart.CreateNewNode( p_node->Id(),
+            auto p_node = rOriginalModelPart.NodesBegin() + i_node;
+            auto node = rNewModelPart.CreateNewNode( p_node->Id(),
                                                     p_node->Coordinates()[0],
                                                     p_node->Coordinates()[1],
                                                     p_node->Coordinates()[2] );
@@ -292,13 +292,13 @@ namespace Kratos
 
         // copying all the elements into the auxiliary part
         // #pragma omp parallel for
-        for( int i_elem = 0; i_elem < static_cast<int>( OriginalModelPart.NumberOfElements() ); ++i_elem ){
+        for( int i_elem = 0; i_elem < static_cast<int>( rOriginalModelPart.NumberOfElements() ); ++i_elem ){
 
-            auto p_elem= OriginalModelPart.ElementsBegin() + i_elem;
+            auto p_elem= rOriginalModelPart.ElementsBegin() + i_elem;
             auto& r_geom = p_elem->GetGeometry();
 
             std::vector<ModelPart::IndexType> elem_nodes{ r_geom[0].Id() , r_geom[1].Id(), r_geom[2].Id(), r_geom[3].Id() };
-            auto elem = NewModelPart.CreateNewElement(   "Element3D4N",
+            auto elem = rNewModelPart.CreateNewElement(   "Element3D4N",
                                                             p_elem->Id(),
                                                             elem_nodes,
                                                             p_prop );
@@ -312,12 +312,12 @@ namespace Kratos
 
         // copying all conditions
         // #pragma omp parallel for
-        for( int i_cond = 0; i_cond < static_cast<int>( OriginalModelPart.NumberOfConditions() ); ++i_cond ){
-            auto p_cond = OriginalModelPart.ConditionsBegin() + i_cond;
+        for( int i_cond = 0; i_cond < static_cast<int>( rOriginalModelPart.NumberOfConditions() ); ++i_cond ){
+            auto p_cond = rOriginalModelPart.ConditionsBegin() + i_cond;
             auto& r_geom = p_cond->GetGeometry();
 
             std::vector<ModelPart::IndexType> cond_nodes{ r_geom[0].Id() , r_geom[1].Id(), r_geom[2].Id() };
-            auto cond = NewModelPart.CreateNewCondition(  "SurfaceCondition3D3N" /*"Condition3D3N"*/,
+            auto cond = rNewModelPart.CreateNewCondition(  "SurfaceCondition3D3N" /*"Condition3D3N"*/,
                                                             p_cond->Id(),
                                                             cond_nodes,
                                                             p_prop );
@@ -331,7 +331,7 @@ namespace Kratos
         r_sub_model_part_bound.AddNodes( index_node );
         r_sub_model_part_bound.AddConditions( index_condition );
 
-        return NewModelPart;
+        return rNewModelPart;
     }
 
 

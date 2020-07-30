@@ -1,13 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import Logger, Parameters
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import math
-import swimming_DEM_procedures as SDP
-import parameters_tools as PT
-import CFD_DEM_coupling
-import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
+import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
+import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -18,7 +18,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         default_processes_settings = Parameters("""{
                 "python_module" : "calculate_nodal_area_process",
-                "kratos_module" : "KratosMultiphysics",
+                "kratos_module" : "KratosMultiphysics.SwimmingDEMApplication",
                 "process_name"  : "CalculateNodalAreaProcess",
                 "Parameters"    : {
                     "model_part_name" : "FluidModelPart",
@@ -46,6 +46,7 @@ class SwimmingDEMSolver(PythonSolver):
         nodal_area_process_parameters = non_optional_solver_processes[non_optional_solver_processes.size() -1]["Parameters"]
         nodal_area_process_parameters["model_part_name"].SetString(self.fluid_solver.main_model_part.Name)
         nodal_area_process_parameters["domain_size"].SetInt(self.fluid_domain_dimension)
+        the_mesh_moves = False
         if self.fluid_solver.settings.Has('move_mesh_flag'):
             the_mesh_moves = self.fluid_solver.settings["move_mesh_flag"].GetBool()
             nodal_area_process_parameters["fixed_mesh"].SetBool(not the_mesh_moves)
@@ -55,7 +56,7 @@ class SwimmingDEMSolver(PythonSolver):
         elif self.fluid_solver.settings["solvers"][0]["Parameters"]["time_integration_settings"].Has('move_mesh_flag'):
             the_mesh_moves = self.fluid_solver.settings["solvers"][0]["Parameters"]["time_integration_settings"]["move_mesh_flag"].GetBool()
             nodal_area_process_parameters["fixed_mesh"].SetBool(not the_mesh_moves)
-        self.move_mesh_flag = self.GetTimeIntegrationMoveMeshFlag()
+        self.move_mesh_flag = the_mesh_moves
         return project_parameters
 
     def __init__(self, model, project_parameters, field_utility, fluid_solver, dem_solver, variables_manager):
@@ -212,6 +213,7 @@ class SwimmingDEMSolver(PythonSolver):
     def Predict(self):
         if self.CannotIgnoreFluidNow():
             self.fluid_solver.Predict()
+        self.dem_solver.Predict()
 
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetProjectionModule().ApplyForwardCoupling(alpha)
@@ -237,6 +239,11 @@ class SwimmingDEMSolver(PythonSolver):
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
+        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
+            self.project_parameters,
+            self.fluid_solver.computing_model_part,
+            SDP.FunctionsCalculator(self.fluid_domain_dimension))
+
         self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
@@ -245,6 +252,8 @@ class SwimmingDEMSolver(PythonSolver):
         # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
+
+        return True
 
     def SolveFluidSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
@@ -302,9 +311,3 @@ class SwimmingDEMSolver(PythonSolver):
 
     def GetComputingModelPart(self):
         return self.dem_solver.spheres_model_part
-
-    def GetTimeIntegrationMoveMeshFlag(self):
-        move_mesh_flag = False
-        if self.fluid_solver.settings.Has('time_integration_settings'):
-            move_mesh_flag = self.fluid_solver.settings["time_integration_settings"]["move_mesh_flag"].GetBool()
-        return move_mesh_flag

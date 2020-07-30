@@ -30,6 +30,7 @@
 #include "custom_elements/wave_equation_element.hpp"
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 #include "custom_elements/small_displacement_interface_element.hpp"
+#include "custom_elements/small_displacement_element.hpp"
 
 //Constitutive Laws
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
@@ -127,6 +128,21 @@ const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicEle
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D8N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D20N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D27N;
+
+//small displacement
+const SmallDisplacementElement mSmallDisplacementElement2D3N;
+const SmallDisplacementElement mSmallDisplacementElement2D4N;
+const SmallDisplacementElement mSmallDisplacementElement2D6N;
+const SmallDisplacementElement mSmallDisplacementElement2D8N;
+const SmallDisplacementElement mSmallDisplacementElement2D9N;
+
+const SmallDisplacementElement mSmallDisplacementElement3D4N;
+const SmallDisplacementElement mSmallDisplacementElement3D6N;
+const SmallDisplacementElement mSmallDisplacementElement3D8N;
+const SmallDisplacementElement mSmallDisplacementElement3D10N;
+const SmallDisplacementElement mSmallDisplacementElement3D15N;
+const SmallDisplacementElement mSmallDisplacementElement3D20N;
+const SmallDisplacementElement mSmallDisplacementElement3D27N;
 
 const FreeSurfaceCondition<2,2> mFreeSurfaceCondition2D2N;
 const FreeSurfaceCondition<3,3> mFreeSurfaceCondition3D3N;

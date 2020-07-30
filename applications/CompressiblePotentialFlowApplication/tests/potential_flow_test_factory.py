@@ -16,6 +16,12 @@ import os
 
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
+meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
+try:
+    import stl
+    numpy_stl_is_available = True
+except:
+    numpy_stl_is_available = False
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -73,13 +79,42 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
     def test_EmbeddedCircleNoWake(self):
+        if not meshing_is_available:
+            self.skipTest("Missing required application: MeshingApplication")
         settings_file_name = "embedded_circle_no_wake_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    def test_EmbeddedCircle(self):
+        if not hdf5_is_available:
+            self.skipTest("Missing required application: HDF5Application")
+        if not meshing_is_available:
+            self.skipTest("Missing required application: MeshingApplication")
+        settings_file_name = "embedded_circle_parameters.json"
+        settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
+        settings_penalty_file_name = "embedded_circle_penalty_parameters.json"
+        work_folder = "embedded_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -0.08769331821378197, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.5405047994795951, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -0.04198874676923284, 0.0, 1e-9)
+            self._runTest(settings_adjoint_file_name)
+            self._runTest(settings_penalty_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.12976919914058177, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.4636936459965071, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.08091879125682809, 0.0, 1e-9)
+
+            for file_name in os.listdir(os.getcwd()):
+                if file_name.endswith(".h5"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def test_WakeProcess3DSmall(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a simple small 3D model
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/15_elements_small_test"
@@ -92,6 +127,8 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
     def test_WakeProcess3DNodesOnWake(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a model with nodes laying on the wake
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
@@ -104,6 +141,8 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
     def test_WakeProcess3DKuttaNodesAboveTheWake(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a model with some kutta nodes above the wake
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
@@ -114,6 +153,20 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
+    def test_Rhombus3DIncompressible(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
+        settings_file_name = "rhombus_3d_parameters.json"
+        work_folder = "rhombus_3d"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7331131286069874, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7228720706323188, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7287060122732945, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008517301562764179, 0.0, 1e-9)
 
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)

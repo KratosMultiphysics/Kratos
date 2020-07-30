@@ -28,6 +28,9 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                     "input_filename": "unknown_name",
                     "reorder": false
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,
             "maximum_pressure_iterations": 3,
@@ -68,6 +71,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
+            "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
@@ -76,7 +80,11 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                 "maximum_delta_time"  : 0.01
             },
             "move_mesh_flag": false,
-            "use_slip_conditions": true
+            "use_slip_conditions": true,
+            "formulation": {
+                "element_type": "FractionalStep",
+                "condition_type": "WallCondition"
+            }
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStep, cls).GetDefaultSettings())
@@ -86,9 +94,13 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
+        if custom_settings["formulation"]["element_type"].GetString() != "FractionalStep":
+            raise Exception("NavierStokesFractionalStepSolver only accepts FractionalStep as the \"element_type\" in \"formulation\"")
+
+        self.element_name = custom_settings["formulation"]["element_type"].GetString()
+        self.condition_name = custom_settings["formulation"]["condition_type"].GetString()
         self.min_buffer_size = 3
+        self.element_has_nodal_properties = True
 
         ## Construct the linear solvers
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
@@ -126,11 +138,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
-
-    def PrepareModelPart(self):
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self._set_physical_properties()
-        super(NavierStokesSolverFractionalStep, self).PrepareModelPart()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
@@ -196,19 +203,3 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             return is_converged
         else:
             return True
-
-
-    def _set_physical_properties(self):
-        # Transfer density and (kinematic) viscostity to the nodes
-        for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            kin_viscosity = dyn_viscosity / rho
-            break
-
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

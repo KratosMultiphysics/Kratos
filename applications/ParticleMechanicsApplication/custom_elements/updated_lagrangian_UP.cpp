@@ -665,7 +665,8 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight)
+void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, 
+    const double& rIntegrationWeight, const ProcessInfo& rCurrentProcessInfo)
 {
     // Contributions of the stiffness matrix calculated on the reference configuration
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
@@ -678,7 +679,10 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem
     CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kg to the rLefsHandSideMatrix
-    CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    if (!rCurrentProcessInfo.Has(IGNORE_GEOMETRIC_STIFFNESS))
+    {
+        CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+    }
 
     // Operation performed: add Kup to the rLefsHandSideMatrix
     CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );

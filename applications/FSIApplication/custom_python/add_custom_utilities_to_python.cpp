@@ -24,7 +24,6 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/FSI_utils.h"
 #include "custom_utilities/partitioned_fsi_utilities.hpp"
-#include "custom_utilities/nodal_update_utilities.h"
 
 namespace Kratos
 {
@@ -37,8 +36,6 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
     namespace py = pybind11;
 
     typedef UblasSpace<double, Matrix, Vector > TSpace;
-    typedef NodalUpdateBaseClass< 2 > NodalUpdateBaseClass2DType;
-    typedef NodalUpdateBaseClass< 3 > NodalUpdateBaseClass3DType;
 
     py::class_<FSIUtils>(m,"FSIUtils")
         .def(py::init<>())
@@ -110,25 +107,6 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CreateCouplingElementBasedSkin", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::CreateCouplingElementBasedSkin)
         .def("EmbeddedPressureToPositiveFacePressureInterpolator", &PartitionedFSIUtilities<TSpace,array_1d<double,3>,3>::EmbeddedPressureToPositiveFacePressureInterpolator);
 
-    py::class_<NodalUpdateBaseClass<2>>(m,"BaseNodalUpdate2D")
-        .def(py::init<>())
-        .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<2>::UpdateMeshTimeDerivatives)
-        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<2>::SetMeshTimeDerivativesOnInterface);
-
-    py::class_<NodalUpdateBaseClass<3>>(m,"BaseNodalUpdate3D")
-        .def(py::init<>())
-        .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<3>::UpdateMeshTimeDerivatives)
-        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<3>::SetMeshTimeDerivativesOnInterface);
-
-    py::class_<NodalUpdateNewmark<2>, NodalUpdateBaseClass2DType>(m,"NodalUpdateNewmark2D")
-        .def(py::init<const double>())
-        .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<2>::UpdateMeshTimeDerivatives)
-        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<2>::SetMeshTimeDerivativesOnInterface);
-
-    py::class_<NodalUpdateNewmark<3>, NodalUpdateBaseClass3DType>(m,"NodalUpdateNewmark3D")
-        .def(py::init<const double>())
-        .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<3>::UpdateMeshTimeDerivatives)
-        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<3>::SetMeshTimeDerivativesOnInterface);
 }
 
 }  // namespace Python.

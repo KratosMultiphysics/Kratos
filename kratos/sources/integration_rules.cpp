@@ -213,7 +213,65 @@ LineGaussLobattoIntegrationPoints6::IntegrationPointsArrayType LineGaussLobattoI
     }
 };
 
-// Collocation 
+LineGaussLobattoIntegrationPoints7::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints7::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00, 1.00 / 21.00),
+        IntegrationPointType(-std::sqrt((5.00/11.00) + (2.00/11.00)*std::sqrt(5.00/3.00)), (124.00 - 7.00*std::sqrt(15.00)) / 350.00),
+        IntegrationPointType(-std::sqrt((5.00/11.00) - (2.00/11.00)*std::sqrt(5.00/3.00)), (124.00 + 7.00*std::sqrt(15.00)) / 350.00),
+        IntegrationPointType(0.00, 256.00/525.00),
+        IntegrationPointType(std::sqrt((5.00/11.00) - (2.00/11.00)*std::sqrt(5.00/3.00)), (124.00 + 7.00*std::sqrt(15.00)) / 350.00),
+        IntegrationPointType(std::sqrt((5.00/11.00) + (2.00/11.00)*std::sqrt(5.00/3.00)), (124.00 - 7.00*std::sqrt(15.00)) / 350.00),
+        IntegrationPointType(-1.00, 1.00 / 21.00)
+    }
+};
+
+LineGaussLobattoIntegrationPoints8::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints8::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00             , 0.035714285714286),
+        IntegrationPointType(-0.871740148509607, 0.210704227143506),
+        IntegrationPointType(-0.591700181433142, 0.341122692483504),
+        IntegrationPointType(-0.209299217902479, 0.412458794658704),
+        IntegrationPointType( 0.209299217902479, 0.412458794658704),
+        IntegrationPointType( 0.591700181433142, 0.341122692483504),
+        IntegrationPointType( 0.871740148509607, 0.210704227143506),
+        IntegrationPointType( 1.00             , 0.035714285714286)
+    }
+};
+
+LineGaussLobattoIntegrationPoints9::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints9::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00             , 0.027777777777778),
+        IntegrationPointType(-0.899757995411460, 0.165495361560806),
+        IntegrationPointType(-0.677186279510738, 0.274538712500162),
+        IntegrationPointType(-0.363117463826178, 0.346428510973046),
+        IntegrationPointType( 0.00             , 0.371519274376417),
+        IntegrationPointType( 0.363117463826178, 0.346428510973046),
+        IntegrationPointType( 0.677186279510738, 0.274538712500162),
+        IntegrationPointType( 0.899757995411460, 0.165495361560806),
+        IntegrationPointType( 1.00             , 0.027777777777778)
+    }
+};
+
+LineGaussLobattoIntegrationPoints10::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints10::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00             , 0.022222222222222),
+        IntegrationPointType(-0.919533908166459, 0.133305990851070),
+        IntegrationPointType(-0.738773865105505, 0.224889342063126),
+        IntegrationPointType(-0.477924949810444, 0.292042683679684),
+        IntegrationPointType(-0.165278957666387, 0.327539761183897),
+        IntegrationPointType( 0.165278957666387, 0.327539761183897),
+        IntegrationPointType( 0.477924949810444, 0.292042683679684),
+        IntegrationPointType( 0.738773865105505, 0.224889342063126),
+        IntegrationPointType( 0.919533908166459, 0.133305990851070),
+        IntegrationPointType( 1.00             , 0.022222222222222)
+    }
+};
+
+// Collocation
 LineCollocationIntegrationPoints1::IntegrationPointsArrayType LineCollocationIntegrationPoints1::msIntegrationPoints =
 {
     {

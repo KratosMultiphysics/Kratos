@@ -159,6 +159,11 @@ namespace Kratos
                                                    array_1d<double, 3>& rContactForce,
                                                    double& RollingResistance) override final;
 
+        virtual void ComputeRollingResistance(double& RollingResistance,
+                                              const double& NormalLocalContactForce,
+                                              const double& equiv_rolling_friction_coeff,
+                                              const unsigned int i) override;
+
         virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,
                                                     const double radius_sum,

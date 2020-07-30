@@ -27,6 +27,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/mpm_residual_based_newton_raphson_strategy.hpp"
 
+
 //---convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
@@ -81,7 +82,6 @@ namespace Python{
             .def("SetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
             .def("GetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
             ;
-
     }
 
 }  // namespace Python.
