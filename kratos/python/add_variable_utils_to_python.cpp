@@ -153,6 +153,28 @@ void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination(
 {
     rVariableUtils.CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue, BuffStep);
 }
+template< class TVarType >
+void ApplyFixity(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes)
+{
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes);
+}
+
+template< class TVarType >
+void ApplyFlaggedFixity(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes,
+    const Flags& rFlag,
+    const bool CheckValue)
+{
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes, rFlag, CheckValue);
+}
+
 
 /**
  * @brief Auxiliary set variable export function
@@ -478,7 +500,8 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyVariable", &VariableUtils::CopyVariable<array_1d<double, 9>>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Vector>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Matrix>)
-        .def("ApplyFixity", &VariableUtils::ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)

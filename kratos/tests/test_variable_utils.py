@@ -620,6 +620,47 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertTrue(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
             self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
 
+    def test_apply_flagged_fixity(self):
+        current_model = KratosMultiphysics.Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+
+        for node in model_part.Nodes:
+            if (node.Id % 3 == 0):
+                node.Set(KratosMultiphysics.INLET)
+            elif (node.Id % 3 == 1):
+                node.Set(KratosMultiphysics.OUTLET)
+            elif (node.Id % 3 == 2):
+                node.Set(KratosMultiphysics.SLIP)
+
+        ##apply the fixity
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VISCOSITY, True, model_part.Nodes, KratosMultiphysics.INLET, True)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, model_part.Nodes, KratosMultiphysics.OUTLET, False)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, False, model_part.Nodes, KratosMultiphysics.SLIP, True)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, model_part.Nodes, KratosMultiphysics.SLIP, False)
+
+        ##verify the result
+        for node in model_part.Nodes:
+            node_type = node.Id % 3
+            if (node_type == 0):
+                self.assertTrue(node.IsFixed(KratosMultiphysics.VISCOSITY))
+            if (node_type != 1):
+                self.assertTrue(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+            if (node_type == 2):
+                self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+            if (node_type != 2):
+                self.assertTrue(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
+
     def test_apply_vector(self):
         current_model = KratosMultiphysics.Model()
 
