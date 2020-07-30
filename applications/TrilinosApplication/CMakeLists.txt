@@ -4,6 +4,8 @@ message("**** configuring KratosTrilinosApplication ****")
 
 include(pybind11Tools)
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MetisApplication)
+
 
 if(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
     add_definitions(-DTRILINOS_EXCLUDE_ML_SOLVER)
