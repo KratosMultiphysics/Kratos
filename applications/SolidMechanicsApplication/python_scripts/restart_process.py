@@ -3,6 +3,7 @@ import os
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -24,13 +25,17 @@ class RestartProcess(KratosMultiphysics.Process):
             "restart_file_name"   : "problem_name",
             "restart_file_label"  : "step",
             "output_control_type" : "step",
-            "output_frequency"    : 1.0,
+            "output_interval"     : 1.0,
             "json_output"         : false
         }
         """)
 
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
+
+        # Warning: we may be changing the parameters object here:
+        self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.save_restart = self.settings["save_restart"].GetBool()
@@ -39,7 +44,7 @@ class RestartProcess(KratosMultiphysics.Process):
         self.model = Model
 
         # set up output frequency and format
-        self.output_frequency  = self.settings["output_frequency"].GetDouble()
+        self.output_frequency  = self.settings["output_interval"].GetDouble()
 
         self.output_label_is_time = False
         output_file_label = self.settings["restart_file_label"].GetString()
@@ -67,7 +72,18 @@ class RestartProcess(KratosMultiphysics.Process):
         self.echo_level  = 1
         if( self.echo_level > 0 ):
             print(self._class_prefix()+" Ready")
-    #
+
+    # This function can be extended with new deprecated variables as they are generated
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
+        context_string = type(self).__name__
+
+        old_name = 'output_frequency'
+        new_name = 'output_interval'
+
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
+
     def ExecuteInitialize(self):
 
         self.model_part = self.model[self.settings["model_part_name"].GetString()]

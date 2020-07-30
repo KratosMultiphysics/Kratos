@@ -108,12 +108,11 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
     namespace py = pybind11;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,int);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarType)(ModelPart&,int,Variable<double>&);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithIntVarType)(ModelPart&,int,Variable<int>&);
-//            typedef  void (NormalCalculationUtils::*CalcOnSimplexWithArrayVarType)(ModelPart&,int,Variable< array_1d<double,3> >&,const array_1d<double,3>&);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarAlphaType)(ModelPart&,int,Variable<double>&,const double,const double);
+    typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,const std::size_t);
+    typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,const std::size_t);
+    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarType)(ModelPart&,const std::size_t,Variable<double>&);
+    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithIntVarType)(ModelPart&,const std::size_t,Variable<int>&);
+    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarAlphaType)(ModelPart&,const std::size_t,Variable<double>&,const double,const double);
 
     CalcOnSimplexCondType CalcOnSimplex_Cond = &NormalCalculationUtils::CalculateOnSimplex;
     CalcOnSimplexMPType CalcOnSimplex_ModelPart = &NormalCalculationUtils::CalculateOnSimplex;

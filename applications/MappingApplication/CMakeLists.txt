@@ -5,7 +5,7 @@ message("**** configuring KratosMappingApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Mapping Core sources
 file( GLOB KRATOS_MAPPING_APPLICATION_CORE

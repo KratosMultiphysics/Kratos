@@ -20,6 +20,7 @@
 // Project includes
 #include "vtk_output.h"
 #include "containers/model.h"
+#include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
 namespace Kratos
@@ -155,18 +156,11 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
 
 std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
-    // Putting everything together
     std::string output_file_name = "";
-    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        output_file_name = mOutputSettings["folder_name"].GetString() + "/";
-    }
 
-    if (rOutputFilename != "")
-    {
-        output_file_name += rOutputFilename + ".vtk";
-    }
-    else
-    {
+    if (rOutputFilename != "") { // user specified file name externally
+        output_file_name = rOutputFilename;
+    } else {
         const int rank = rModelPart.GetCommunicator().MyPID();
         std::string model_part_name;
 
@@ -193,10 +187,22 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
                 << "are: \"step\", \"time\"" << std::endl;
         }
 
-
         const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
         const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
+        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label;
+    }
+
+    output_file_name += ".vtk";
+
+    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
+        const std::string folder_name = mOutputSettings["folder_name"].GetString();
+
+        // create folder if it doesn't exist before
+        if (!Kratos::filesystem::is_directory(folder_name)) {
+            Kratos::filesystem::create_directories(folder_name);
+        }
+
+        output_file_name = Kratos::FilesystemExtensions::JoinPaths({folder_name, output_file_name});
     }
 
     return output_file_name;
@@ -1061,7 +1067,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "file_format"                                 : "ascii",
         "output_precision"                            : 7,
         "output_control_type"                         : "step",
-        "output_frequency"                            : 1.0,
+        "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
         "folder_name"                                 : "VTK_Output",
         "custom_name_prefix"                          : "",
