@@ -13,8 +13,15 @@ class GeoMesher( GeoProcessor ):
     def __init__( self ):
         super(GeoMesher, self).__init__()
 
-        self.HasModelPart = False
+        # self.HasModelPart = False     # [NG] reduntant!!! we define it in the GeoProcessor class
         self.HasExtrusionHeight = False
+
+        # useful variables for volumetric mesh and for division into sectors
+        self.x_center = float()
+        self.y_center = float()
+        self.r_boundary = float()
+        self.r_ground = float()
+        self.r_buildings = float()
 
     """ TEST FUNCTIONS """
     def Mesh_2D(self):
@@ -466,7 +473,7 @@ class GeoMesher( GeoProcessor ):
                 Z_beta = (-(dist-r_ground) / (r_boundary-r_ground))+1       # we calculate beta
                 self.ModelPart.GetNode(node.Id).Z = (node.Z - z_min) * Z_beta + z_min
         
-        # [CHECKPOINT] IN QUESTO PUNTO NEL MODEL PART CI SONO SOLO I NODI DEL BOTTOM DEL DOMINIO CILINDRICO
+        # [CHECKPOINT] AT THIS POINT IN THE MODEL PART THERE ARE ONLY THE NODES OF THE CYLINDRICAL DOMAIN (IN THE BOTTOM)
 
         # a list with 360 degree (from 0 to 360)
         # theta = self._custom_range(0.0, 2*math.pi, math.pi/90)
@@ -497,7 +504,7 @@ class GeoMesher( GeoProcessor ):
         vertices = dict(vertices = coord_2D)
         triangle_dict_bottom = triangle.triangulate(vertices)     # triangle_dict_bottom {vertices: [...], triangles: [...], vertex_markers: [...]}
         
-        # [CHECKPOINT] QUI HO LA MESH 2D DEL BOTTOM
+        # [CHECKPOINT] HERE WE HAVE THE 2D MESH OF THE BOTTOM
 
         # TODO: CHECK IF WE CAN USE THE ELEMENTS IN MODEL PART INSTEAD OF THIS LIST
         all_facets = []		# list with all node ids of faces
@@ -714,7 +721,9 @@ class GeoMesher( GeoProcessor ):
 
 
 #########################################################################################################################################################################
-    def MeshCircleWithTerrainPoints_old( self, h_value=0.0, circ_division=60, extract_center=False ):
+    def MeshCircleWithTerrainPoints_old(self, h_value=0.0, circ_division=60, num_sector=12, extract_center=False):
+        "A function that creates a cylindrical volumetric mesh"
+        # TODO: check the differences with "MeshCircleWithTerrainPoints"
 
         ### reading points from model part
         X = []; Y = []; Z = []      # lists are generated to use predefined operations
@@ -733,20 +742,19 @@ class GeoMesher( GeoProcessor ):
         # z_min = min(Z);    z_max = max(Z)     # EDIT 02 SEPTEMBER 2019
 
         # the centre of the circle
-        x_center = (x_min + x_max)/2
-        y_center = (y_min + y_max)/2
+        self.x_center = (x_min + x_max)/2
+        self.y_center = (y_min + y_max)/2
 
         # radius calculation, considering the smaller side of the rectangle
-        r_boundary = min((x_max-x_min), (y_max-y_min))/2    # radius of the domain
-        r_ground = r_boundary * 2.0 / 3.0                   # 2/3 of the radius of the domain
-        r_buildings = r_boundary / 3.0                      # 1/3 of the radius of the domain
+        self.r_boundary = min((x_max-x_min), (y_max-y_min))/2       # radius of the domain
+        self.r_ground = self.r_boundary * 2.0 / 3.0                 # 2/3 of the radius of the domain (this value can be different)
+        self.r_buildings = self.r_boundary / 3.0                    # 1/3 of the radius of the domain (this value can be different)
 
         # buffering zone
-        # delta = r_boundary/1000         # evaluate this value!!!
-        delta = r_boundary/20         # evaluate this value!!!
+        delta = self.r_boundary/20         # evaluate this value!!!
         print("*** delta: ", delta)
 
-        """ SMOOTHING PROCEDURE """
+        """ we delete nodes outside the circumference """
         del_id = []             # list where there are the ids to be deleted because are outside of r_boundary
         Z = []
         # for index in idx_to_smooth:
@@ -754,9 +762,9 @@ class GeoMesher( GeoProcessor ):
             x_curr = node.X             # current X coordinate
             y_curr = node.Y             # current Y coordinate
 
-            dist = math.sqrt(((x_center-x_curr)**2)+((y_center-y_curr)**2))     # calculate the distance between current node and center of circle
+            dist = math.sqrt(((self.x_center-x_curr)**2)+((self.y_center-y_curr)**2))     # calculate the distance between current node and center of circle
 
-            if (dist > r_boundary-delta):
+            if (dist > self.r_boundary-delta):
                 del_id.append(node.Id)
                 continue
             else:
@@ -779,23 +787,25 @@ class GeoMesher( GeoProcessor ):
         else:
             z_min = 0
 
+        """ SMOOTHING PROCEDURE """
         for node in self.ModelPart.Nodes:
             x_curr = node.X
             y_curr = node.Y
-            dist = math.sqrt(((x_center-x_curr)**2)+((y_center-y_curr)**2))
-            if dist > r_ground:
-                Z_beta = (-(dist-r_ground) / (r_boundary-r_ground))+1       # we calculate beta
+            dist = math.sqrt(((self.x_center-x_curr)**2)+((self.y_center-y_curr)**2))
+            if dist > self.r_ground:
+                Z_beta = (-(dist-self.r_ground) / (self.r_boundary-self.r_ground))+1       # we calculate beta
                 self.ModelPart.GetNode(node.Id).Z = (node.Z - z_min) * Z_beta + z_min
 
-        # a list with 360 degree (from 0 to 360)
-        # theta = self._custom_range(0.0, 2*math.pi, math.pi/90)
+        # this step is useful to the n sectors
+        circ_division = num_sector * round(circ_division / num_sector)
+        # a list with the division points of the circumference
         theta = self._custom_range(0.0, 2*math.pi, 2*math.pi/circ_division)  # circ_division is the number of division of the 2*pi
 
         # lists with nodes on circle boundary
         x_circle = []; y_circle = []
         for th in theta:
-            x_circle.append(r_boundary * math.cos(th) + x_center)   # we move the node along X to consider that the circle have not the centre in (0.0, 0.0)
-            y_circle.append(r_boundary * math.sin(th) + y_center)   # we move the node along Y to consider that the circle have not the centre in (0.0, 0.0)
+            x_circle.append(self.r_boundary * math.cos(th) + self.x_center)   # we move the node along X to consider that the circle have not the centre in (0.0, 0.0)
+            y_circle.append(self.r_boundary * math.sin(th) + self.y_center)   # we move the node along Y to consider that the circle have not the centre in (0.0, 0.0)
 
         """ TRIANGLE """
         coord_2D = []       # vertically list with X and Y coordinates (TO AVOID NUMPY VSTACK)
@@ -823,8 +833,8 @@ class GeoMesher( GeoProcessor ):
         all_markers = []	# list of integers [1 = bottom, 2 = topper and 3 = lateral]
 
         # we fill the list for "bottom"
-        for f in triangle_dict["triangles"]:
-            all_facets.append([f[0], f[1], f[2]])
+        for face in triangle_dict["triangles"]:
+            all_facets.append([face[0], face[1], face[2]])
             all_markers.append(1)
 
         number_node_terrain = len(all_points)		# number of points up to now
@@ -842,8 +852,8 @@ class GeoMesher( GeoProcessor ):
             list_id_circle_top.append(i + inner_id_top)
 
         # we fill all_facets list with "top" faces
-        for f in triangle_dict["triangles"]:
-            all_facets.append([f[0]+number_node_terrain, f[1]+number_node_terrain, f[2]+number_node_terrain])		# list of lists. "...+number_node_terrain" is UGLY! improve it
+        for face in triangle_dict["triangles"]:
+            all_facets.append([face[0]+number_node_terrain, face[1]+number_node_terrain, face[2]+number_node_terrain])		# list of lists. "...+number_node_terrain" is UGLY! improve it
             all_markers.append(2)
         
         # we fill all_facets list with "lateral" faces
@@ -888,15 +898,15 @@ class GeoMesher( GeoProcessor ):
         for j in range(len(mesh.faces)):
             points = mesh.faces[j]
             marker = mesh.face_markers[j]
+            self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
             if (marker == 1):
-                self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
                 bottom_cond.append(j+1)
             elif (marker == 2):
-                self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
                 top_cond.append(j+1)
-            elif ( marker == 3 ):
-                self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
+            elif (marker == 3):
                 lateral_cond.append(j+1)
+            else:
+                KratosMultiphysics.Logger.PrintWarning("GeoMesher", "Marker {} not valid. 1 = bottom, 2 = topper and 3 = lateral".format(marker))
 
         bottom_model_part.AddConditions(bottom_cond)
         top_model_part.AddConditions(top_cond)
@@ -923,26 +933,74 @@ class GeoMesher( GeoProcessor ):
 
 
         """ OPTIONAL VALUES """
-        # [NG] new code under construction
+        # [NG] code under construction
         # we create a sub model part (if extract_center = True) and fill it with conditions that are inside r_buildings
         if extract_center:
             # we extract the center of the geometry and we add them in a sub model part
             center_cond = self.ModelPart.CreateSubModelPart("CenterCondition")
 
             for cond in self.ModelPart.GetSubModelPart("BottomModelPart").Conditions:
-                list_nodes = []     # node ids of the condition
+                list_nodes = []     # node ids of the condition\
                 for node in cond.GetNodes():
                     list_nodes.append(node.Id)
-                    dist = math.sqrt(((x_center-node.X)**2) + ((y_center-node.Y)**2))
+                    dist = math.sqrt(((self.x_center-node.X)**2) + ((self.y_center-node.Y)**2))
                     
                     # if (dist > r_ground):       # Only for a test. The value correcr is r_buildings
-                    if (dist > r_buildings):
+                    if (dist > self.r_buildings):
                         break   # if at least one node is external to r_buildings, we reject the entire condition
                         
                 else:
                     # we get here if all nodes of the condition are inside the r_buildings
                     center_cond.AddNodes(list_nodes)
                     center_cond.AddCondition(cond, 0)
+
+
+    def MeshSectors(self, n_sectors=12):
+        "this function divide the LateralModelPart into n sub model parts"
+
+        if not (self.ModelPart.HasSubModelPart("LateralModelPart")):
+            KratosMultiphysics.Logger.PrintWarning("GeoMesher", "LateralModelPart not found!")
+            return
+        
+        # creation of the n sub model parts
+        for n in range(1, n_sectors+1):
+            if not (self.ModelPart.HasSubModelPart("LateralSector_{}".format(n))):
+                self.ModelPart.CreateSubModelPart("LateralSector_{}".format(n))
+        
+        center_domain = (self.x_center, self.y_center)
+
+        # sector with all intervals
+        list_sector = self._frange(0.0, 360.0, 360.0/n_sectors)
+        sects = list_sector + [360]     # this is necessary for the last sector. for example in 12 secotrs, the last one will be 330.0, 360.0
+        
+        # we populate a dictionary with all sectors. key: sector id; value: range of angles (first:included; second: not included)
+        sect_id = 1
+        dict_sects = {}
+        for i in range(len(list_sector)):
+            dict_sects[sect_id] = (sects[i], sects[i+1])
+            sect_id += 1
+
+        for cond in self.ModelPart.GetSubModelPart("LateralModelPart").Conditions:
+            coords = cond.GetGeometry().Center()    # center of the n-th condition
+            center_coords = (coords.X, coords.Y)
+            Comp_x, Comp_y = self._vector_components(center_coords, center_domain)
+            angle = self._angle_vectors(Comp_x, Comp_y)
+
+            for n_sect, angles in dict_sects.items():
+                if angles[0] <= angle < angles[1]:
+                    # we add the current Condition in the specific sub model part
+                    sub_model_part_sect = self.ModelPart.GetSubModelPart("LateralSector_{}".format(n_sect))
+                    # sub_model_part_sect.AddCondition(cond.Id)
+                    sub_model_part_sect.AddCondition(cond)
+
+                    # we add nodes in the specific sub model part
+                    points = []
+                    for node in cond.GetNodes():
+                        points.append(node.Id)
+                    sub_model_part_sect.AddNodes(points)
+
+                    break
+ 
 #########################################################################################################################################################################
 
 
@@ -952,7 +1010,7 @@ class GeoMesher( GeoProcessor ):
 ############################ --- Auxiliary functions --- ###########################################
 
     def _set_variational_distance_process_serial(self, complete_model, aux_name):
-        # Construct the variational distance calculation process
+        "Construct the variational distance calculation process"
 
         serial_settings = KratosMultiphysics.Parameters("""
             {
@@ -983,8 +1041,51 @@ class GeoMesher( GeoProcessor ):
 
 
     def _custom_range(self, start, stop, step=1.0):
-        # function to replace the numpy range function
+        "function to replace the numpy range function"
         list_floats = [float(start)]
         while (list_floats[-1]+step) < stop:
             list_floats.append(list_floats[-1]+step)
         return list_floats
+
+
+    def _vector_components(self, P1, P2):
+        "function to compute the vector components. return a tuble"
+        if len(P1) == 2:
+            return (P1[0]-P2[0], P1[1]-P2[1])                  # 2D case
+        else:
+            return (P1[0]-P2[0], P1[1]-P2[1], P1[2]-P2[2])     # 3D case
+
+
+    def _angle_vectors(self, Px, Py):
+        "angle between two vectors. return an angle in degree"
+        angle = math.degrees(math.atan2(Py, Px))
+        return angle + 360 if angle < 0 else angle
+
+
+    def _frange(self, start, stop=None, step=None):
+        "floating range. Like 'range' function but with float. return a list"
+
+        start = round(start, 5)      # we make sure we have only 5 decimal digits
+        if stop == None:
+            stop = start
+            start = 0.0
+        else:
+            stop = round(stop, 5)    # we make sure we have only 5 decimal digits
+        
+        if step == None:
+            step = 1.0
+        else:
+            step = round(step, 5)    # we make sure we have only 5 decimal digits
+
+        list_range = [start]
+        last = start
+        
+        while True:
+            last = round(last+step, 5)   # we make sure we have only 5 decimal digits
+            if last >= stop:
+                break
+            list_range.append(last)
+        
+        print(list_range)
+        
+        return list_range
