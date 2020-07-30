@@ -21,6 +21,42 @@
                 "rel_tolerance" : 1e-5
             }
         ],
+        "coupling_operations" : {
+            "coupling_output_A" : {
+                "type" : "coupling_output",
+                "solver"           : "domainA",
+                "execution_point"  : "finalize_coupling_iteration",
+                "output_format"    : "vtk",
+                "output_parameters" : {
+                    "model_part_name"                    : "Structure",
+                    "output_control_type"                : "step",
+                    "output_frequency"                   : 1,
+                    "file_format"                        : "binary",
+                    "output_precision"                   : 7,
+                    "output_sub_model_parts"             : false,
+                    "folder_name"                        : "coupling_output",
+                    "save_output_files_in_folder"        : true,
+                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","POINT_LOAD"]
+                }
+            },
+            "coupling_output_B" : {
+                "type" : "coupling_output",
+                "solver"           : "domainB",
+                "execution_point"  : "finalize_coupling_iteration",
+                "output_format"    : "vtk",
+                "output_parameters" : {
+                    "model_part_name"                    : "Structure",
+                    "output_control_type"                : "step",
+                    "output_frequency"                   : 1,
+                    "file_format"                        : "binary",
+                    "output_precision"                   : 7,
+                    "output_sub_model_parts"             : false,
+                    "folder_name"                        : "coupling_output",
+                    "save_output_files_in_folder"        : true,
+                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","POINT_LOAD"]
+                }
+            }
+        },
         "data_transfer_operators" : {
             "mapper" : {
                 "type" : "kratos_mapping",
