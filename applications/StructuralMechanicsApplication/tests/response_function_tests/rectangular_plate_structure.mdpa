@@ -97,7 +97,7 @@ Begin SubModelPart  test_model_part
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart response_mp // Group Beam // Subtree Parts
+Begin SubModelPart response_mp
     Begin SubModelPartNodes
         5
     End SubModelPartNodes
