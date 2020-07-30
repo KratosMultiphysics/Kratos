@@ -29,8 +29,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Parts_domainA"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet","PointLoad2D_domainAinterface"],
         "rotation_dofs"                      : false
     },
     "processes"        : {
@@ -65,7 +63,7 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "Structure.computing_domain",
+                "model_part_name"        : "Structure",
                 "output_name"            : "domainA",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
