@@ -18,8 +18,6 @@ KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
     , mShell3pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mIgaTrussElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mTrussElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -42,7 +40,6 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("TrussElement", mTrussElement)
-    KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
