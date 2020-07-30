@@ -314,7 +314,6 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
-    ProcessInfo process_info = rCurrentProcessInfo;
 
     Vector RHS;
     this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
@@ -341,7 +340,6 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     KRATOS_TRY;
 
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
-    ProcessInfo process_info = rCurrentProcessInfo;
 
     const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
     const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
