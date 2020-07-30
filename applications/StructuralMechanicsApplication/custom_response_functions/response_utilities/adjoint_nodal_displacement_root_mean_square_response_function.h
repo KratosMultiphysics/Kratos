@@ -192,8 +192,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mStartTime;
-    double mEndTime;
+    double mTimeDomain;
     std::string mTracedDofLabel;
     PointTypePointer  mpTracedNode;
     Element::Pointer mpNeighboringElement;

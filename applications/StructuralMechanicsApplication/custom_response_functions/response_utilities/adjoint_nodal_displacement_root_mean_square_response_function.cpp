@@ -24,9 +24,8 @@ namespace Kratos
         // Get id of node where a displacement should be traced
         const int id_traced_node = ResponseSettings["traced_node_id"].GetInt();
 
-        // Get start and end time 
-        mStartTime = 0.0;
-        mEndTime = 10.0;
+        // Get time domain 
+        mTimeDomain = ResponseSettings["time_domain"].GetDouble();
 
         // Get the corresponding dof to the displacement which should be traced
         // by this response function e.g. DISPLACEMENT_X, ROTATION_X,...
@@ -74,6 +73,9 @@ namespace Kratos
             DofsVectorType dofs_of_element;
             mpNeighboringElement->GetDofList(dofs_of_element, rProcessInfo);
 
+            const DoubleVariableType& r_traced_dof =
+                KratosComponents<DoubleVariableType>::Get(mTracedDofLabel);
+
             const DoubleVariableType& r_traced_adjoint_dof =
                 KratosComponents<DoubleVariableType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
 
@@ -81,8 +83,8 @@ namespace Kratos
             {
                 if (dofs_of_element[i]->Id() == mpTracedNode->Id() &&
                     dofs_of_element[i]->GetVariable() == r_traced_adjoint_dof)
-                {
-                    rResponseGradient[i] = 2 / (mEndTime - mStartTime) * rAdjointElement.GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
+                {   
+                    rResponseGradient[i] = 2 / mTimeDomain * mrModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_dof, 0);
                 }
             }
         }
@@ -183,7 +185,7 @@ namespace Kratos
         KRATOS_TRY;
 
         const double& x = mrModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(DISPLACEMENT_Z, 0);
-        return  x * x / (mEndTime - mStartTime);
+        return  x * x / mTimeDomain;
         
         KRATOS_CATCH("");
     }

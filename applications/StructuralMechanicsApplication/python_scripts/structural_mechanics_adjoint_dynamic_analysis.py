@@ -44,7 +44,15 @@ class StructuralMechanicsAdjointDynamicAnalysis(AnalysisStage):
             project_parameters["problem_data"]["start_time"].SetDouble( \
                             project_parameters["problem_data"]["start_step"].GetDouble() \
                             )
+
         self.number_of_steps = project_parameters["problem_data"]["nsteps"].GetInt()
+
+        if not solver_settings["response_function_settings"].Has("time_domain"):
+            solver_settings["response_function_settings"].AddEmptyValue("time_domain")
+            solver_settings["response_function_settings"]["time_domain"].SetDouble( \
+                            project_parameters["problem_data"]["start_time"].GetDouble() - \
+                            project_parameters["problem_data"]["end_time"].GetDouble()
+                            )
     
         # Detect is a contact problem
         # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
