@@ -11,14 +11,14 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 from .sdof_static_solver import SDoFStaticSolver
 from .sdof_solver_wrapper import SdofSolverWrapper
 
-def Create(settings, solver_name):
-    return SdofStaticSolverWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return SdofStaticSolverWrapper(settings, model, solver_name)
 
 class SdofStaticSolverWrapper(SdofSolverWrapper):
     """ This class implements a wrapper for an SDof solver to be used in CoSimulation
     """
-    def __init__(self, settings, solver_name):
-        CoSimulationSolverWrapper.__init__(self,settings, solver_name)
+    def __init__(self, settings, model, solver_name):
+        super().__init__(settings, model, solver_name)
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
 
