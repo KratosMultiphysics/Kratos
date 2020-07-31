@@ -785,7 +785,6 @@ namespace MPMSearchElementUtility
 
             // Transfer local data to containers
             if (trial_subpoint.Weight() > pqmpm_min_fraction) {
-                bool is_fixed = false;
                 ips[active_subpoint_index] = trial_subpoint;
                 DN_De_vector[active_subpoint_index] = DN_De;
                 for (size_t j = 0; j < N.size(); ++j) {
