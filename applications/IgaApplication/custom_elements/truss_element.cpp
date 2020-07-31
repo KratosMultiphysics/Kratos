@@ -226,12 +226,10 @@ int TrussElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         << "The truss element works only in 3D and with 2 noded elements" << std::endl;
 
     // verify that the variables are correctly initialized
-    KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) << "DISPLACEMENT has Key zero! (check if the application is "
-        "correctly registered"
-        << "" << std::endl;
-    KRATOS_ERROR_IF(CROSS_AREA.Key() == 0) << "CROSS_AREA has Key zero! (check if the application is "
-        "correctly registered"
-        << "" << std::endl;
+    KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) << "DISPLACEMENT has Key zero! Check if the application is "
+        "registered properly." << std::endl;
+    KRATOS_ERROR_IF(CROSS_AREA.Key() == 0) << "CROSS_AREA has Key zero! Check if the application is "
+        "registered properly." << std::endl;
 
     // verify that the dofs exist
     for (IndexType i = 0; i < GetGeometry().size(); ++i) {
