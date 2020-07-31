@@ -15,12 +15,54 @@
 
 namespace Kratos {
 
+
+void TrussElement::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_control_points = r_geometry.size();
+
+    if (rResult.size() != 3 * number_of_control_points)
+        rResult.resize(3 * number_of_control_points, false);
+
+    const IndexType pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        const IndexType index = i * 3;
+        rResult[index]     = r_geometry[i].GetDof(DISPLACEMENT_X, pos).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
+        rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+    }
+};
+
+void TrussElement::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_control_points = r_geometry.size();
+
+    rElementalDofList.resize(3 * number_of_control_points);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        const IndexType index = i * 3;
+        rElementalDofList[index]     = r_geometry[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[index + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
+    }
+};
+
+
 void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     mReferenceBaseVector = GetActualBaseVector(0);
 }
 
-array_1d<double, 3> TrussElement::GetActualBaseVector(IndexType IntegrationPointIndex) const
+array_1d<double, 3> TrussElement::GetActualBaseVector(
+    IndexType IntegrationPointIndex) const
 {
     const auto& r_geometry = GetGeometry();
     const Matrix& DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
@@ -134,13 +176,13 @@ Vector TrussElement::ComputeTangentModulus(
     Vector green_lagrange_strains = ZeroVector(num_integration_points);
     CalculateGreenLagrangeStrain(green_lagrange_strains);
     for (IndexType i = 0; i < num_integration_points; ++i) {
-        Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-        strain_vector[0] = green_lagrange_strains[i];
+        //Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+        //strain_vector[0] = green_lagrange_strains[i];
 
-        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-        Values.SetStrainVector(strain_vector);
+        //ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        //Values.SetStrainVector(strain_vector);
 
-        mpConstitutiveLaw->CalculateValue(Values, TANGENT_MODULUS, tangent_moduli[i]);
+        //mpConstitutiveLaw->CalculateValue(Values, TANGENT_MODULUS, tangent_moduli[i]);
     }
     return tangent_moduli;
 }
