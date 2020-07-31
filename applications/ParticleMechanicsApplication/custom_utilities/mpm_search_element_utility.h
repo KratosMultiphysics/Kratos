@@ -140,6 +140,7 @@ namespace MPMSearchElementUtility
             }
 
         }
+        #pragma omp critical
         rGeom.SetValue(GEOMETRY_NEIGHBOURS, geometry_neighbours);
     }
 
