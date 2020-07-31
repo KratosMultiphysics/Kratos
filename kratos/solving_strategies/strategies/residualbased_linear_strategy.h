@@ -245,7 +245,7 @@ public:
 
         // We check if the linear solver considered for the builder and solver is consistent
         auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
-        KRATOS_WARNING_IF("ResidualBasedLinearStrategy", p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
+        KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -259,8 +259,11 @@ public:
         // If the linear solver has not been deallocated, clean it before
         // deallocating mpA. This prevents a memory error with the the ML
         // solver (which holds a reference to it).
-        auto p_linear_solver = GetBuilderAndSolver()->GetLinearSystemSolver();
-        if (p_linear_solver != nullptr) p_linear_solver->Clear();
+        // NOTE: The linear solver is hold by the B&S
+        auto p_builder_and_solver = this->GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            p_builder_and_solver->Clear();
+        }
 
         // Deallocating system vectors to avoid errors in MPI. Clear calls
         // TrilinosSpace::Clear for the vectors, which preserves the Map of
@@ -273,7 +276,7 @@ public:
         mpDx.reset();
         mpb.reset();
 
-      this->Clear();
+        this->Clear();
     }
 
     /**
@@ -489,24 +492,29 @@ public:
     {
         KRATOS_TRY;
 
-        // If the preconditioner is saved between solves, it
-        // should be cleared here.
-        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
+        // Setting to zero the internal flag to ensure that the dof sets are recalculated. Also clear the linear solver stored in the B&S
+        auto p_builder_and_solver = GetBuilderAndSolver();
+        if (p_builder_and_solver != nullptr) {
+            p_builder_and_solver->SetDofSetIsInitializedFlag(false);
+            p_builder_and_solver->Clear();
+        }
 
-        if (mpA != NULL)
+        // Clearing the system of equations
+        if (mpA != nullptr)
             SparseSpaceType::Clear(mpA);
-        if (mpDx != NULL)
+        if (mpDx != nullptr)
             SparseSpaceType::Clear(mpDx);
-        if (mpb != NULL)
+        if (mpb != nullptr)
             SparseSpaceType::Clear(mpb);
 
-        // Setting to zero the internal flag to ensure that the dof sets are recalculated
-        GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-        GetBuilderAndSolver()->Clear();
-        GetScheme()->Clear();
+        // Clearing scheme
+        auto p_scheme = GetScheme();
+        if (p_scheme != nullptr) {
+            GetScheme()->Clear();
+        }
 
         mInitializeWasPerformed = false;
-	mSolutionStepIsInitialized = false;
+        mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("");
     }
@@ -842,9 +850,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    typename TSchemeType::Pointer mpScheme; /// The pointer to the time scheme employed
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver; /// The pointer to the builder and solver employed
+    
+    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the linear solver considered
+    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
 
     TSystemVectorPointerType mpDx; /// The incremement in the solution
     TSystemVectorPointerType mpb; /// The RHS vector of the system of equations

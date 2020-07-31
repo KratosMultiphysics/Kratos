@@ -45,11 +45,11 @@ if __name__ == "__main__":
     # MonoCriterion
     criteriaArray = []
     criteriaInputs = []
-    for monoCriterion in (parameters["monoCriteriaInpuctDict"]):
+    for monoCriterion in (parameters["monoCriteriaInpuctDictionary"]):
         criteriaArray.append(xmc.monoCriterion.MonoCriterion(\
-            parameters["monoCriteriaInpuctDict"][monoCriterion]["criteria"],\
-            parameters["monoCriteriaInpuctDict"][monoCriterion]["tolerance"]))
-        criteriaInputs.append([parameters["monoCriteriaInpuctDict"][monoCriterion]["input"]])
+            parameters["monoCriteriaInpuctDictionary"][monoCriterion]["criteria"],\
+            parameters["monoCriteriaInpuctDictionary"][monoCriterion]["tolerance"]))
+        criteriaInputs.append([parameters["monoCriteriaInpuctDictionary"][monoCriterion]["input"]])
 
     # MultiCriterion
     multiCriterionInputDictionary=parameters["multiCriterionInputDictionary"]
