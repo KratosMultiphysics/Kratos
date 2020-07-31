@@ -40,27 +40,21 @@ namespace Kratos
 namespace MPMSearchElementUtility
 {
 
+    // Standard types
     typedef std::size_t IndexType;
-
     typedef std::size_t SizeType;
-
+    typedef Node<3> NodeType;
     typedef typename ModelPart::GeometryType GeometryType;
 
+    // Boost Polygon
     typedef boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian> Boost2DPointType;
-
     typedef boost::geometry::model::polygon<Boost2DPointType> Boost2DPolygonType;
 
+    // Container types
     typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayType;
-
-    typedef Node<3> NodeType;
-
     typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType IntegrationPointsContainerType;
-
-    typedef  typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
-
-        typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
-
-
+    typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    typedef typename GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
 
     inline double CrossProductDet2D(array_1d<double, 3> VectorA, array_1d<double, 3> VectorB)
