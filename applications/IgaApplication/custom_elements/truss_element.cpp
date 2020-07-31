@@ -14,7 +14,8 @@
 #include "iga_application_variables.h"
 
 namespace Kratos {
-
+///@name Degrees of freedom
+///@{
 
 void TrussElement::EquationIdVector(
     EquationIdVectorType& rResult,
@@ -55,6 +56,9 @@ void TrussElement::GetDofList(
     }
 };
 
+///@}
+///@name Analysis stages
+///@{
 
 void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -165,6 +169,10 @@ void TrussElement::CalculateAll(
     KRATOS_CATCH("")
 }
 
+///@}
+///@name Internal functions
+///@{
+
 /// Computes tengent E
 Vector TrussElement::ComputeTangentModulus(
     const ProcessInfo& rCurrentProcessInfo)
@@ -204,4 +212,5 @@ void TrussElement::CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) co
     }
 }
 
+///@}
 } // namespace Kratos
