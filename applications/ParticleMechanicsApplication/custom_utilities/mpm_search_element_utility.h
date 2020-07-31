@@ -657,7 +657,6 @@ namespace MPMSearchElementUtility
     }
 
 
-
     inline void PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         const array_1d<double, 3>& rLocalCoords,
@@ -771,10 +770,15 @@ namespace MPMSearchElementUtility
                     else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
                     else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
                     if (is_fixed) {
-                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                            pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                            rParentGeom);
-                        return;
+                        const double dist_fixed_node_to_mp = norm_2(node_it->Coordinates() - rCoordinates);
+                        const double bounding_rad = (working_dim == 2) ? 1.415 * side_half_length : 2.0 * side_half_length;
+                        if (dist_fixed_node_to_mp <= bounding_rad)
+                        {
+                            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                                rParentGeom);
+                            return;
+                        }
                     }
 
                     active_node_index += 1;
