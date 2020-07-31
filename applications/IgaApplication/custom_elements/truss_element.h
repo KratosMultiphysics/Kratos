@@ -60,7 +60,7 @@ public:
     {};
 
     /// Destructor.
-    virtual ~TrussElement() = default;
+    ~TrussElement() override = default;
 
     ///@}
     ///@name Life Cycle
