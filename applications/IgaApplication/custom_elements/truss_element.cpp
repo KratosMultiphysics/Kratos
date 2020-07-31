@@ -156,8 +156,8 @@ void TrussElement::CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) co
     Vector determinants_of_jacobian;
     r_geometry.DeterminantOfJacobian(determinants_of_jacobian);
     for (IndexType i = 0; i < num_integration_points; ++i) {
-        const double l = r_integration_points[i] * determinants_of_jacobian[i];
-        const double L = r_integration_points[i];
+        const double l = r_integration_points[i].Weight() * determinants_of_jacobian[i];
+        const double L = r_integration_points[i].Weight();
         rGreenLagrangeVector[i] = ((l * l - L * L) / (2.00 * L * L));
     }
 }
