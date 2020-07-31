@@ -52,7 +52,7 @@ void TrussElement::GetDofList(
         const IndexType index = i * 3;
         rElementalDofList[index]     = r_geometry[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[index + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[index + 1] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
+        rElementalDofList[index + 2] = r_geometry[i].pGetDof(DISPLACEMENT_Z);
     }
 };
 
@@ -165,6 +165,7 @@ void TrussElement::CalculateAll(
     if (ComputeRightHandSide) {
         rRightHandSideVector *= reference_a * integration_weight;
     }
+    KRATOS_WATCH("here something? CalculateAll end")
 
     KRATOS_CATCH("")
 }
