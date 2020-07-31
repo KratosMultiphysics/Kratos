@@ -175,6 +175,15 @@ public:
         const bool ComputeRightHandSide);
 
     ///@}
+    ///@name Output functions
+    ///@{
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
     ///@name Info
     ///@{
 

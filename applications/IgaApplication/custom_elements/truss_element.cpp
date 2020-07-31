@@ -237,6 +237,35 @@ void TrussElement::CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) co
 }
 
 ///@}
+///@name Output functions
+///@{
+
+void TrussElement::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& integration_points = GetGeometry().IntegrationPoints();
+
+    if (rOutput.size() != integration_points.size()) {
+        rOutput.resize(integration_points.size());
+    }
+    if (rVariable == TRUSS_GREEN_LAGRANGE_STRAIN) {
+        Vector strain_vector(integration_points.size());
+        CalculateGreenLagrangeStrain(strain_vector);
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            rOutput[point_number] = strain_vector[point_number];
+        }
+    }
+    else if (rVariable == TANGENT_MODULUS) {
+        Vector E_vector = ComputeTangentModulus(rCurrentProcessInfo);
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            rOutput[point_number] = E_vector[point_number];
+        }
+    }
+}
+
+///@}
 ///@name Info
 ///@{
 
