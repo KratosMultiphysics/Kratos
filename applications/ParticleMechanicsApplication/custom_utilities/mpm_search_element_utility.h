@@ -842,15 +842,14 @@ namespace MPMSearchElementUtility
             ips_container, shape_function_container, shape_function_derivatives_container);
 
         for (size_t i = 0; i < nodes_list_active.size(); ++i) nodes_list_active[i].Set(ACTIVE);
-
-        if (pQuadraturePointGeometry->IntegrationPointsNumber() != 1) {
+        if (pQuadraturePointGeometry->IntegrationPointsNumber() == 1) {
             pQuadraturePointGeometry = CreateCustomQuadraturePoint(working_dim, pQuadraturePointGeometry->LocalSpaceDimension(),
                 data_container, nodes_list_active, &rParentGeom);
+            rMasterMaterialPoint.SetGeometry(pQuadraturePointGeometry);
         }
-        else {
-            pQuadraturePointGeometry->Points() = nodes_list_active;
-            pQuadraturePointGeometry->SetGeometryShapeFunctionContainer(data_container);
-        }
+
+        pQuadraturePointGeometry->SetGeometryShapeFunctionContainer(data_container);
+        pQuadraturePointGeometry->Points() = nodes_list_active;
 
         KRATOS_CATCH("");
     }
