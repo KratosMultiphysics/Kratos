@@ -65,7 +65,7 @@
                 "check_variables"  : ["MP_SUB_POINTS","MP_DISPLACEMENT"],
                 "input_file_name"  : "pqmpm_tests/pqmpm_explicit_hex_test_results.json",
                 "model_part_name"  : "MPM_Material",
-                "time_frequency"   : 0.04
+                "time_frequency"   : 0.01
             }
         }],
         "gravity"                  : [{
@@ -80,16 +80,16 @@
             }
         }]
     },
-		"print_output_process" : [{
-			"python_module"   : "particle_json_output_process",
-			"kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
-			"help"                  : "",
-			"process_name"          : "ParticleJsonOutputProcess",
-			"Parameters"            : {
-				"gauss_points_output_variables" : ["MP_SUB_POINTS","MP_DISPLACEMENT"],
-				"output_file_name"              : "pqmpm_tests/pqmpm_explicit_hex_test_results.json",
-				"model_part_name"               : "MPM_Material",
-				"time_frequency"                : 0.04
-			}
-		}]
+    "print_output_process" : [{
+        "python_module"   : "particle_json_output_process",
+        "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ParticleJsonOutputProcess",
+        "Parameters"            : {
+            "gauss_points_output_variables" : ["MP_SUB_POINTS","MP_DISPLACEMENT"],
+            "output_file_name"              : "pqmpm_tests/pqmpm_explicit_hex_test_results.json",
+            "model_part_name"               : "MPM_Material",
+            "time_frequency"                : 0.01
+        }
+    }]
 }
