@@ -93,11 +93,11 @@ void TrussElement::CalculateAll(
     KRATOS_TRY;
 
     const auto& r_geometry = GetGeometry();
-
+    const IndexType num_dofs = r_geometry.size() * 3;
     // get integration data
     auto& r_integration_points = r_geometry.IntegrationPoints();
     const double& integration_weight = r_integration_points[0].Weight();
-    const Matrix& shape_derivatives = r_geometry.ShapeFunctionDerivatives(1, 0);
+    const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, 0);
 
     // get properties
     const auto& properties = GetProperties();
@@ -124,29 +124,29 @@ void TrussElement::CalculateAll(
     const double s11_membrane = prestress * A + e11_membrane * A * E /
         reference_aa;
 
-    for (IndexType r = 0; r < 3; r++) {
+    for (IndexType r = 0; r < num_dofs; r++) {
         const IndexType dof_type_r = r % 3;
         const IndexType shape_index_r = r / 3;
 
         const double epsilon_var_r = actual_base_vector[dof_type_r] *
-            shape_derivatives(0, shape_index_r) / reference_aa;
+            r_DN_De(0, shape_index_r) / reference_aa;
 
         if (ComputeLeftHandSide) {
-            for (IndexType s = 0; s < 3; s++) {
+            for (IndexType s = 0; s < num_dofs; s++) {
                 const IndexType dof_type_s = s % 3;
                 const IndexType shape_index_s = s / 3;
 
                 const double epsilon_var_s =
                     actual_base_vector[dof_type_s] *
-                    shape_derivatives(0, shape_index_s) / reference_aa;
+                    r_DN_De(0, shape_index_s) / reference_aa;
 
                 rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r *
                     epsilon_var_s;
 
                 if (dof_type_r == dof_type_s) {
                     const double epsilon_var_rs =
-                        shape_derivatives(0, shape_index_r) *
-                        shape_derivatives(0, shape_index_s) / reference_aa;
+                        r_DN_De(0, shape_index_r) *
+                        r_DN_De(0, shape_index_s) / reference_aa;
 
                     rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
                 }
@@ -165,7 +165,6 @@ void TrussElement::CalculateAll(
     if (ComputeRightHandSide) {
         rRightHandSideVector *= reference_a * integration_weight;
     }
-    KRATOS_WATCH("here something? CalculateAll end")
 
     KRATOS_CATCH("")
 }
