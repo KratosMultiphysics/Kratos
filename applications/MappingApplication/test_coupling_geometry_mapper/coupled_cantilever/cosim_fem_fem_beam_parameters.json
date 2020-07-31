@@ -30,13 +30,13 @@
                 "output_parameters" : {
                     "model_part_name"                    : "Structure",
                     "output_control_type"                : "step",
-                    "output_frequency"                   : 1,
+                    "output_interval"                   : 0.1,
                     "file_format"                        : "binary",
                     "output_precision"                   : 7,
                     "output_sub_model_parts"             : false,
                     "folder_name"                        : "coupling_output",
                     "save_output_files_in_folder"        : true,
-                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","POINT_LOAD"]
+                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","POINT_LOAD"]
                 }
             },
             "coupling_output_B" : {
@@ -47,13 +47,13 @@
                 "output_parameters" : {
                     "model_part_name"                    : "Structure",
                     "output_control_type"                : "step",
-                    "output_frequency"                   : 1,
+                    "output_interval"                   : 0.1,
                     "file_format"                        : "binary",
                     "output_precision"                   : 7,
                     "output_sub_model_parts"             : false,
                     "folder_name"                        : "coupling_output",
                     "save_output_files_in_folder"        : true,
-                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","POINT_LOAD"]
+                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","POINT_LOAD"]
                 }
             }
         },
