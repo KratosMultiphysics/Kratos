@@ -657,6 +657,41 @@ namespace MPMSearchElementUtility
     }
 
 
+    inline bool CheckFixedNodesWithinBoundingBox(const PointerVector<Node<3>>& rNodesList,
+        const Point& rPointHigh, const Point& rPointLow, const SizeType WorkingDim)
+    {
+        for (auto& node_it : rNodesList)
+        {
+            bool is_fixed = false;
+
+            if (node_it.IsFixed(DISPLACEMENT_X)) is_fixed = true;
+            else if (node_it.IsFixed(DISPLACEMENT_Y)) is_fixed = true;
+            else if (node_it.HasDofFor(DISPLACEMENT_Z))  if (node_it.IsFixed(DISPLACEMENT_Z)) is_fixed = true;
+
+            if (is_fixed)
+            {
+                bool is_inside = true;
+                for (size_t i = 0; i < WorkingDim; i++)
+                {
+                    if (rPointLow.Coordinates()[i] <= node_it.Coordinates()[i] &&
+                        node_it.Coordinates()[i] <= rPointHigh.Coordinates()[i])
+                    {
+                        // we are inside for this dimension
+                    }
+                    else
+                    {
+                        is_inside = false;
+                        break;
+                    }
+                }
+                if (is_inside) return true;
+            }
+        }
+
+        return false;
+    }
+
+
     inline void PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
         const array_1d<double, 3>& rLocalCoords,
@@ -763,30 +798,21 @@ namespace MPMSearchElementUtility
                     N_matrix(active_subpoint_index, active_node_index) = N[j];
                     nodes_list(active_node_index) = intersected_geometries[i]->pGetPoint(j);
 
-                    // Prevent splitting particles over fixed nodes
-                    auto node_it = intersected_geometries[i]->pGetPoint(j);
-                    is_fixed = false;
-                    if (node_it->IsFixed(DISPLACEMENT_X)) is_fixed = true;
-                    else if (node_it->IsFixed(DISPLACEMENT_Y)) is_fixed = true;
-                    else if (node_it->HasDofFor(DISPLACEMENT_Z))  if (node_it->IsFixed(DISPLACEMENT_Z)) is_fixed = true;
-                    if (is_fixed) {
-                        const double dist_fixed_node_to_mp = norm_2(node_it->Coordinates() - rCoordinates);
-                        const double bounding_rad = (working_dim == 2) ? 1.415 * side_half_length : 2.0 * side_half_length;
-                        if (dist_fixed_node_to_mp <= bounding_rad)
-                        {
-                            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                                rParentGeom);
-                            return;
-                        }
-                    }
-
                     active_node_index += 1;
                 }
                 active_subpoint_index += 1;
             }
         }
         if (active_subpoint_index == 1) {
+            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                rParentGeom);
+            return;
+        }
+
+        // check if there are any fixed nodes within the bounding box
+        if (CheckFixedNodesWithinBoundingBox(nodes_list, point_high, point_low, working_dim))
+        {
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
                 pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                 rParentGeom);
