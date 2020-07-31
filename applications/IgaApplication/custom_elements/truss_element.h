@@ -178,6 +178,7 @@ public:
     ///@name Info
     ///@{
 
+    /// Check provided parameters
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void PrintInfo(std::ostream& rOStream) const override {
@@ -193,12 +194,18 @@ private:
 
     array_1d<double, 3> mReferenceBaseVector;
 
+    /// The vector containing the constitutive laws for all integration points.
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
     ///@}
     ///@name Private operations
     ///@{
 
     /// Computes the base vector at a integration point position.
     array_1d<double, 3> GetActualBaseVector(IndexType IntegrationPointIndex) const;
+
+    /// Initializes constitutive law vector and materials.
+    void InitializeMaterial();
 
     /// Computes Green Lagrange Strain for all integration points
     void CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) const;

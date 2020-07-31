@@ -63,6 +63,8 @@ void TrussElement::GetDofList(
 void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     mReferenceBaseVector = GetActualBaseVector(0);
+
+    InitializeMaterial();
 }
 
 array_1d<double, 3> TrussElement::GetActualBaseVector(
@@ -81,6 +83,25 @@ array_1d<double, 3> TrussElement::GetActualBaseVector(
     }
 
     return actual_base_vector;
+}
+
+void TrussElement::InitializeMaterial()
+{
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& r_N = r_geometry.ShapeFunctionsValues();
+
+    const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+
+    //Constitutive Law initialisation
+    if (mConstitutiveLawVector.size() != r_number_of_integration_points)
+        mConstitutiveLawVector.resize(r_number_of_integration_points);
+
+
+    for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+        mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
+    }
 }
 
 void TrussElement::CalculateAll(
