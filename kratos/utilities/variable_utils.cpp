@@ -488,6 +488,13 @@ void VariableUtils::AuxiliaryAtomicAdd(
 }
 
 template <>
+ModelPart::NodesContainerType& VariableUtils::GetContainer<ModelPart::NodesContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+
+template <>
 ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
@@ -495,6 +502,24 @@ ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::Element
 
 template <>
 ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+template <>
+const ModelPart::NodesContainerType& VariableUtils::GetContainer<ModelPart::NodesContainerType>(const ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+template <>
+const ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(const ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template <>
+const ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(const ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
