@@ -178,6 +178,8 @@ public:
     ///@name Info
     ///@{
 
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
     void PrintInfo(std::ostream& rOStream) const override {
         rOStream << "\"TrussElement\" #" << Id()
             << " with geometry #" << this->GetGeometry().Id() << " with center in: "

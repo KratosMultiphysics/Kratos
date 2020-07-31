@@ -213,4 +213,63 @@ void TrussElement::CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) co
 }
 
 ///@}
+///@name Info
+///@{
+
+/// Check provided parameters
+int TrussElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+    KRATOS_ERROR_IF((GetGeometry().WorkingSpaceDimension() != 3) || (GetGeometry().size() != 2))
+        << "The truss element works only in 3D and with 2 noded elements" << std::endl;
+
+    // verify that the variables are correctly initialized
+    KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) << "DISPLACEMENT has Key zero! (check if the application is "
+        "correctly registered"
+        << "" << std::endl;
+    KRATOS_ERROR_IF(CROSS_AREA.Key() == 0) << "CROSS_AREA has Key zero! (check if the application is "
+        "correctly registered"
+        << "" << std::endl;
+
+    // verify that the dofs exist
+    for (IndexType i = 0; i < GetGeometry().size(); ++i) {
+        if (GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false) {
+            KRATOS_ERROR << "missing variable DISPLACEMENT on node "
+                << GetGeometry()[i].Id() << std::endl;
+        }
+        if (GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
+            GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false ||
+            GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false) {
+            KRATOS_ERROR
+                << "missing one of the dofs for the variable DISPLACEMENT on node "
+                << GetGeometry()[i].Id() << std::endl;
+        }
+    }
+
+    KRATOS_ERROR_IF(!GetProperties().Has(CROSS_AREA) ||
+        GetProperties()[CROSS_AREA] <= numerical_limit)
+        << "Please provide a reasonable value for \"CROSS_AREA\" for element #"
+        << Id() << std::endl;
+
+    KRATOS_ERROR_IF(!GetProperties().Has(YOUNG_MODULUS) ||
+        GetProperties()[YOUNG_MODULUS] <= numerical_limit)
+        << "Please provide a reasonable value for \"YOUNG_MODULUS\" for element #"
+        << Id() << std::endl;
+
+    KRATOS_ERROR_IF(!GetProperties().Has(DENSITY) ||
+        GetProperties()[DENSITY] <= numerical_limit)
+        << "Please provide a reasonable value for \"DENSITY\" for element #"
+        << Id() << ". Provided density: " << GetProperties()[DENSITY] << std::endl;
+
+    KRATOS_ERROR_IF(!GetProperties().Has(POISSON_RATIO))
+        << "\"POISSON_RATIO\" not provided for element #" << Id() << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
+///@}
 } // namespace Kratos
