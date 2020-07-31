@@ -33,7 +33,7 @@ public:
     MpiDebugUtilities() {}
 
     // This will work with #5091 or when we move to C++17
-    // static void CheckNodalHistoricalDatabaseConsistency(ModelPart & rModelPart) { 
+    // static void CheckNodalHistoricalDatabase(ModelPart & rModelPart) { 
     //     // Build the list of indices and the pointer communicator
     //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     //     std::vector<int> indices;
@@ -52,14 +52,14 @@ public:
     //     // Note: I think this can be change for an access function with std::tuple of the variables instead of a loop, but not in C++11/14
     //     for(auto & variableData: rModelPart.GetNodalSolutionStepVariablesList()) {
     //         auto & variable = KratosComponents<VariableComponentType>::Get(variableData.Name());
-    //         CheckNodalHistoricalVariableConsistency(rModelPart, variable, pointer_comm, gp_map);
+    //         CheckNodalHistoricalVariable(rModelPart, variable, pointer_comm, gp_map);
     //     }
     // }
 
     // Non historical Variables
 
     template<class TVarType>
-    static void CheckNonHistoricalNodeVariableConsistency(
+    static void CheckNonHistoricalNodeVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable) 
     {
@@ -78,11 +78,11 @@ public:
 
         GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNonHistoricalVariableConsistency(rModelPart, container, rVariable, pointer_comm, gp_map);
+        CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
     }
 
     template<class TVarType>
-    static void CheckNonHistoricalElementVariableConsistency(
+    static void CheckNonHistoricalElementVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable) 
     {
@@ -101,11 +101,11 @@ public:
 
         GlobalPointerCommunicator<Element> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNonHistoricalVariableConsistency(rModelPart, container, rVariable, pointer_comm, gp_map);
+        CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
     }
 
     template<class TVarType>
-    static void CheckNonHistoricalConditionVariableConsistency(
+    static void CheckNonHistoricalConditionVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable) 
     {
@@ -124,11 +124,11 @@ public:
 
         GlobalPointerCommunicator<Condition> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNonHistoricalVariableConsistency(rModelPart, container, rVariable, pointer_comm, gp_map);
+        CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
     }
 
     template<class TContainerType, class TVarType>
-    static void CheckNonHistoricalVariableConsistency(
+    static void CheckNonHistoricalVariable(
         ModelPart & rModelPart,
         const TContainerType & rContainer,
         const TVarType & rVariable,
@@ -173,7 +173,7 @@ public:
     // Historical Variables
 
     template<class TVarType>
-    static void CheckNodalHistoricalVariableConsistency(
+    static void CheckNodalHistoricalVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable) 
     {
@@ -192,11 +192,11 @@ public:
 
         GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNodalHistoricalVariableConsistency(rModelPart, rVariable, pointer_comm, gp_map);
+        CheckNodalHistoricalVariable(rModelPart, rVariable, pointer_comm, gp_map);
     }
 
     template<class TVarType>
-    static void CheckNodalHistoricalVariableConsistency(
+    static void CheckNodalHistoricalVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable,
         GlobalPointerCommunicator<Node<3>> & rPointerCommunicator, 

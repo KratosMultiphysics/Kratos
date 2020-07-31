@@ -51,8 +51,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValue, Kratos
     // Build the communicator
     ParallelFillCommunicator(model_part).Execute();
 
-    MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE);
-    MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, TEMPERATURE);
+    MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE);
+    MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, TEMPERATURE);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixity, KratosMPICoreFastSuite)
@@ -82,7 +82,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixity, Krato
     // Build the communicator
     ParallelFillCommunicator(model_part).Execute();
 
-    MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE);
+    MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValueError, KratosMPICoreFastSuite)
@@ -113,7 +113,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValueError, K
     error_message << "Value error(s) found" << std::endl;
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
+        MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
 }
@@ -149,7 +149,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixityError, 
     error_message << "Fixity error(s) found" << std::endl;
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
+        MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
 }
@@ -186,7 +186,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableCombinedError
     error_message << "Fixity error(s) found" << std::endl;
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        MpiDebugUtilities::CheckNodalHistoricalVariableConsistency(model_part, PRESSURE),
+        MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
 }
@@ -217,7 +217,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableCombinedError
 //     // Build the communicator
 //     ParallelFillCommunicator(model_part).Execute();
 
-//     MpiDebugUtilities::CheckNodalHistoricalDatabaseConsistency(model_part);
+//     MpiDebugUtilities::CheckNodalHistoricalDatabase(model_part);
 // }
 
 }
