@@ -660,7 +660,7 @@ namespace MPMSearchElementUtility
 
             if (node_it.IsFixed(DISPLACEMENT_X)) is_fixed = true;
             else if (node_it.IsFixed(DISPLACEMENT_Y)) is_fixed = true;
-            else if (node_it.HasDofFor(DISPLACEMENT_Z))  if (node_it.IsFixed(DISPLACEMENT_Z)) is_fixed = true;
+            else if (WorkingDim == 3) if (node_it.IsFixed(DISPLACEMENT_Z)) is_fixed = true;
 
             if (is_fixed)
             {
@@ -804,15 +804,6 @@ namespace MPMSearchElementUtility
             return;
         }
 
-        // check if there are any fixed nodes within the bounding box
-        if (CheckFixedNodesWithinBoundingBox(nodes_list, point_high, point_low, working_dim))
-        {
-            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
-                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
-                rParentGeom);
-            return;
-        }
-
         IntegrationPointsArrayType ips_active(active_subpoint_index);
         PointerVector<Node<3>> nodes_list_active(active_node_index);
         if (ips_active.size() == ips.size()) {
@@ -824,6 +815,15 @@ namespace MPMSearchElementUtility
             DN_De_vector.resize(active_subpoint_index, true);
             for (size_t i = 0; i < active_subpoint_index; ++i) ips_active[i] = ips[i];
             for (size_t i = 0; i < active_node_index; ++i) nodes_list_active(i) = nodes_list(i);
+        }
+
+        // check if there are any fixed nodes within the bounding box
+        if (CheckFixedNodesWithinBoundingBox(nodes_list_active, point_high, point_low, working_dim))
+        {
+            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                rParentGeom);
+            return;
         }
 
         // Check volume fractions sum to unity
