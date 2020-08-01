@@ -436,7 +436,7 @@ def AssembleTestSuites():
             # Rayleigh process test
             nightSuite.addTest(TRayleighProcessTest('test_execution'))
         else:
-            print("FEAST not available in EigenSolversApplication")
+            print("FEAST not available in LinearSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
 

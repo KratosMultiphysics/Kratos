@@ -25,6 +25,7 @@ class LineOutputProcess(KratosMultiphysics.Process):
             "help"              : "This process writes output for several points along a line to a file. Internally it holds an object of type MultiplePointsOutputProcess",
             "model_part_name"   : "",
             "entity_type"       : "element",
+            "interval"          : [0.0, 1e30],
             "start_point"       : [],
             "end_point"         : [],
             "sampling_points"   : 3,

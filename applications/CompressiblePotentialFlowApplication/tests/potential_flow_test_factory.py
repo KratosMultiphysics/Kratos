@@ -36,7 +36,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    @UnitTest.skipIfApplicationsNotAvailable("ExternalSolversApplication", "HDF5Application")
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication", "HDF5Application")
     def test_Naca0012SmallAdjoint(self):
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
@@ -58,7 +58,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
-    @UnitTest.skipIfApplicationsNotAvailable("ExternalSolversApplication", "LinearSolversApplication")
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_Naca0012SmallCompressible(self):
         file_name = "naca0012_small_compressible"
         settings_file_name = file_name + "_parameters.json"
@@ -83,10 +83,10 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.9068468588561012, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.3804473187215503, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8890010565994741, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.9085576033568474, 0.0, 1e-8)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
