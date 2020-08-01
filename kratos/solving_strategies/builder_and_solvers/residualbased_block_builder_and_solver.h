@@ -91,6 +91,9 @@ public:
     /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// The definition of the current class
+    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     // The size_t types
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
@@ -123,6 +126,13 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedBlockBuilderAndSolver() : BaseType()
+    {
+    }
 
     /**
      * @brief Default constructor. (with parameters)
@@ -181,6 +191,19 @@ public:
      */
     ~ResidualBasedBlockBuilderAndSolver() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -1222,6 +1245,15 @@ public:
 
         return 0;
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "block_builder_and_solver";
     }
 
     ///@}

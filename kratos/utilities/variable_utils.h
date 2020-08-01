@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -61,6 +62,9 @@ class KRATOS_API(KRATOS_CORE) VariableUtils
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The node type
+    typedef ModelPart::NodeType NodeType;
 
     /// We create the Pointer related to VariableUtils
     KRATOS_CLASS_POINTER_DEFINITION(VariableUtils);
@@ -505,6 +509,31 @@ public:
     }
 
     /**
+     * @brief Distributes variable values in TContainerType container to nodes
+     *
+     * This method distributes variables values stored in TContainerType data value container in rModelPart
+     * to nodes. Constant weighting is used for each node based on rWeightVariable value. The result
+     * is stored in nodal non-historical data value container under the same rVariable. If IsInverseWeightProvided
+     * is true, then the weights provided by rWeightVariable is inverted to get nodal weight. Otherwise, the value
+     * given by rWeightVariable is used as weight.
+     *
+     *
+     * @tparam TDataType               Data type
+     * @tparam TContainerType          ContainerType of model part
+     * @tparam TWeightDataType         Data type of weight variable (this should be either int or double)
+     * @param rModelPart               Model part
+     * @param rVariable                Variable to be distributed
+     * @param rWeightVariable          Variable which holds weight to distribute entity values to nodes
+     * @param IsInverseWeightProvided  Whether the weight is provided as inverse or not.
+     */
+    template <class TDataType, class TContainerType, class TWeightDataType>
+    void WeightedAccumulateVariableOnNodes(
+        ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const Variable<TWeightDataType>& rWeightVariable,
+        const bool IsInverseWeightProvided = false);
+
+    /**
      * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
      * @param rFlagValue flag value to be set
@@ -829,6 +858,69 @@ public:
 
         KRATOS_CATCH("")
     }
+
+    /**
+     * @brief Fixes/Frees dofs based on a flag
+     *
+     * This method fixes/frees given rVariable, if rFlag matches CheckValue provided for that
+     * specific node.
+     *
+     * @tparam TVarType         Variable type
+     * @param rVariable         Variable to be fixed or freed
+     * @param IsFixed           True to fix variable, false to free variable
+     * @param rNodes            Nodes container
+     * @param rFlag             Flag to be checked to fix or free
+     * @param CheckValue        Flag value which is checked against
+     */
+    template< class TVarType >
+    void ApplyFixity(
+        const TVarType& rVariable,
+        const bool IsFixed,
+        NodesContainerType& rNodes,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        if (rNodes.size() != 0) {
+            // checking the first node to avoid error being thrown in parallel region
+            KRATOS_ERROR_IF_NOT(rNodes.begin()->HasDofFor(rVariable))
+                << "Trying to fix/free dof of variable " << rVariable.Name()
+                << " but this dof does not exist in node #"
+                << rNodes.begin()->Id() << "!" << std::endl;
+
+#ifdef KRATOS_DEBUG
+            for (const auto& r_node : rNodes) {
+                KRATOS_ERROR_IF_NOT(r_node.HasDofFor(rVariable))
+                    << "Trying to fix/free dof of variable " << rVariable.Name()
+                    << " but this dof does not exist in node #" << r_node.Id()
+                    << "!" << std::endl;
+            }
+#endif
+
+            CheckVariableExists(rVariable, rNodes);
+
+            if (IsFixed) {
+                BlockPartition<NodesContainerType>(rNodes).for_each(
+                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                        if (rNode.Is(rFlag) == CheckValue) {
+                            rNode.pGetDof(rVariable)->FixDof();
+                        }
+                    });
+            }
+            else {
+                BlockPartition<NodesContainerType>(rNodes).for_each(
+                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                        if (rNode.Is(rFlag) == CheckValue) {
+                            rNode.pGetDof(rVariable)->FreeDof();
+                        }
+                    });
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
 
     /**
      * @brief Loops along a vector data to set its values to the nodes contained in a node set.
@@ -1243,6 +1335,9 @@ private:
         return true;
         KRATOS_CATCH("")
     }
+
+    template <class TContainerType>
+    TContainerType& GetContainer(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Acces

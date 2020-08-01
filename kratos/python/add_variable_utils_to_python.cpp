@@ -100,6 +100,29 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
 
+template< class TVarType >
+void ApplyFixity(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes)
+{
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes);
+}
+
+template< class TVarType >
+void ApplyFlaggedFixity(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes,
+    const Flags& rFlag,
+    const bool CheckValue)
+{
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes, rFlag, CheckValue);
+}
+
+
 /**
  * @brief Auxiliary set variable export function
  * This function is required to export the SetVariable overloaded method with a unique name
@@ -325,6 +348,14 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::NodesContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ConditionsContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ElementsContainerType>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, int>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, int>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, int>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, double>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, double>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, double>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::NodesContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ConditionsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
@@ -384,7 +415,8 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyVariable", &VariableUtils::CopyVariable<array_1d<double, 9>>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Vector>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Matrix>)
-        .def("ApplyFixity", &VariableUtils::ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)
