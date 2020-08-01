@@ -95,7 +95,7 @@ public:
 
     void Execute() override;
 
-    void Clear();
+    void Clear() override;
 
     ///@}
     ///@name Operations
