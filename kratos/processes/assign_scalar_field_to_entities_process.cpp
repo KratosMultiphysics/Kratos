@@ -69,7 +69,7 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 /***********************************************************************************/
 
 template<class TEntity>
-void AssignScalarFieldToEntitiesProcess<TEntity>::Clear()
+void AssignScalarFieldToEntitiesProcess<TEntity>::ClearValueAssign()
 {
     KRATOS_TRY;
 
@@ -86,7 +86,7 @@ void AssignScalarFieldToEntitiesProcess<TEntity>::Clear()
 
 /***********************************************************************************/
 /***********************************************************************************/
-  
+
 template<class TEntity>
 const Parameters AssignScalarFieldToEntitiesProcess<TEntity>::GetDefaultParameters() const
 {

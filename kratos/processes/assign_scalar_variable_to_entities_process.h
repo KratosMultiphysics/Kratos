@@ -103,8 +103,8 @@ public:
     /**
      * @brief This method clears the assignation of the conditions
      */
-    void Clear() override;
-    
+    void ClearValueAssign();
+
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
@@ -156,8 +156,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
-    /// Copy constructor.
     ///@}
     ///@name Protected Operations
     ///@{
@@ -235,7 +233,7 @@ private:
             }
         }
     }
-    
+
     /**
      * @brief This method clears the value (with OMP)
      * @param rVar The variable to be assigned
@@ -278,7 +276,7 @@ private:
             }
         }
     }
-    
+
     /**
      * @brief This method returns the current entity container
      * @return The current entity container

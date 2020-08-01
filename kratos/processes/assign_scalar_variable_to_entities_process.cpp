@@ -77,7 +77,7 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
 /***********************************************************************************/
 
 template<class TEntity>
-void AssignScalarVariableToEntitiesProcess<TEntity>::Clear()
+void AssignScalarVariableToEntitiesProcess<TEntity>::ClearValueAssign()
 {
     KRATOS_TRY;
 

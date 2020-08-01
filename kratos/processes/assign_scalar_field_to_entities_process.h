@@ -115,12 +115,12 @@ public:
     {
         Execute();
     }
-    
+
     /**
      * @brief This method clears the assignation of the conditions
      */
-    void Clear() override;
-    
+    void ClearValueAssign();
+
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -270,7 +270,7 @@ private:
         Vector& rValue,
         const double Value
         );
-    
+
     /**
      * @brief This is the methods that set the values globally (tries all the possible options)
      * @param rVar The variable to set
@@ -364,7 +364,7 @@ private:
             }
         }
     }
-    
+
     /**
      * @brief This is the methods that clears the values globally
      * @param rVar The variable to clear
