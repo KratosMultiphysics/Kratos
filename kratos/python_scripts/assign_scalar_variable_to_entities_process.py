@@ -97,7 +97,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
 
         # Construct a variable_utils object to speedup fixing
         self.step_is_active = False
-        
+
         # Reset flag of the model part
         self.model_part.Set(KratosMultiphysics.MARKER, False)
 
@@ -109,7 +109,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         """
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        # Check interval 
+        # Check interval
         if self.interval.IsInInterval(current_time):
             self.step_is_active = True
             for process in self.aux_processes:
@@ -117,7 +117,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
                 self.model_part.Set(KratosMultiphysics.MARKER, True) # Me mark the model part, so in case any other process is outside the interval it will not clear the conditions
         elif self.model_part.IsNot(KratosMultiphysics.MARKER):
             for process in self.aux_processes:
-                process.Clear()
+                process.ClearValueAssign()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -126,6 +126,6 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.step_is_active = False
-        
+
         # Reset flag of the model part
         self.model_part.Set(KratosMultiphysics.MARKER, False)
