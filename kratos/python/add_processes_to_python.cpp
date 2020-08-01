@@ -401,18 +401,22 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<AssignScalarVariableToEntitiesProcess<NodeType>, AssignScalarVariableToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("ClearValueAssign", &AssignScalarVariableToEntitiesProcess<NodeType>::ClearValueAssign)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("ClearValueAssign", &AssignScalarVariableToEntitiesProcess<Condition>::ClearValueAssign)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Element>, AssignScalarVariableToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarVariableToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("ClearValueAssign", &AssignScalarVariableToEntitiesProcess<Element>::ClearValueAssign)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("ClearValueAssign", &AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::ClearValueAssign)
     ;
 
     py::class_<AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarInputToEntitiesProcess<NodeType, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarInputToNodesProcess")
@@ -433,14 +437,17 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<AssignScalarFieldToEntitiesProcess<NodeType>, AssignScalarFieldToEntitiesProcess<NodeType>::Pointer, Process>(m,"AssignScalarFieldToNodesProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("ClearValueAssign", &AssignScalarFieldToEntitiesProcess<NodeType>::ClearValueAssign)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Condition>, AssignScalarFieldToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("ClearValueAssign", &AssignScalarFieldToEntitiesProcess<Condition>::ClearValueAssign)
     ;
 
     py::class_<AssignScalarFieldToEntitiesProcess<Element>, AssignScalarFieldToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarFieldToElementsProcess")
     .def(py::init<ModelPart&, Parameters >())
+    .def("ClearValueAssign", &AssignScalarFieldToEntitiesProcess<Element>::ClearValueAssign)
     ;
 
     /* Simple Mortar mapper */
