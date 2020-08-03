@@ -490,21 +490,23 @@ private:
 
     /**
      * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
+     * @param rCondition Reference to the target condition
      * @param rAn Area normal
      */
     static void CalculateNormal2D(
-        ConditionsArrayType::iterator itCond,
+        Condition& rCondition,
         array_1d<double,3>& rAn
         );
 
     /**
      * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
+     * @param rCondition Reference to the target condition
      * @param rAn Area normal
      * @param rv1 First tangent vector
      * @param rv2 Second tangent vector
      */
     static void CalculateNormal3D(
-        ConditionsArrayType::iterator itCond,
+        Condition& rCondition,
         array_1d<double,3>& rAn,
         array_1d<double,3>& rv1,
         array_1d<double,3>& rv2

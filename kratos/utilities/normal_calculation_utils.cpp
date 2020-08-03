@@ -293,14 +293,14 @@ void NormalCalculationUtils::CalculateOnSimplex(
     if(Dimension == 2)  {
         for(ConditionsArrayType::iterator it =  rConditions.begin(); it !=rConditions.end(); it++) {
             if (it->GetGeometry().PointsNumber() == 2)
-                CalculateNormal2D(it,An);
+                CalculateNormal2D(*it,An);
         }
     } else if(Dimension == 3) {
         array_1d<double,3> v1, v2;
         for(ConditionsArrayType::iterator it =  rConditions.begin(); it !=rConditions.end(); it++) {
             // Calculate the normal on the given condition
             if (it->GetGeometry().PointsNumber() == 3)
-                CalculateNormal3D(it,An,v1,v2);
+                CalculateNormal3D(*it,An,v1,v2);
         }
     }
 
@@ -388,30 +388,30 @@ void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(ModelPart& rModel
 /***********************************************************************************/
 
 void NormalCalculationUtils::CalculateNormal2D(
-    ConditionsArrayType::iterator itCond,
+    Condition& rCondition,
     array_1d<double,3>& rAn
     )
 {
-    const GeometryType& r_geometry = itCond->GetGeometry();
+    const GeometryType& r_geometry = rCondition.GetGeometry();
 
     rAn[0] =    r_geometry[1].Y() - r_geometry[0].Y();
     rAn[1] = - (r_geometry[1].X() - r_geometry[0].X());
     rAn[2] =    0.00;
 
-    itCond->SetValue(NORMAL, rAn);
+    rCondition.SetValue(NORMAL, rAn);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void NormalCalculationUtils::CalculateNormal3D(
-    ConditionsArrayType::iterator itCond,
+    Condition& rCondition,
     array_1d<double,3>& rAn,
     array_1d<double,3>& rv1,
     array_1d<double,3>& rv2
     )
 {
-    const GeometryType& r_geometry = itCond->GetGeometry();
+    const GeometryType& r_geometry = rCondition.GetGeometry();
 
     rv1[0] = r_geometry[1].X() - r_geometry[0].X();
     rv1[1] = r_geometry[1].Y() - r_geometry[0].Y();
@@ -424,7 +424,7 @@ void NormalCalculationUtils::CalculateNormal3D(
     MathUtils<double>::CrossProduct(rAn,rv1,rv2);
     rAn *= 0.5;
 
-    itCond->SetValue(NORMAL, rAn);
+    rCondition.SetValue(NORMAL, rAn);
 }
 
 /***********************************************************************************/
