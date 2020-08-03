@@ -100,6 +100,36 @@ class TestNormalUtilsMPI(KratosUnittest.TestCase):
             residual = math.sqrt((solution_normal[0]-normal[0])**2+(solution_normal[1]-normal[1])**2+(solution_normal[2]-normal[2])**2)
             self.assertLess(residual, 0.15)
 
+    @KratosUnittest.skipUnless(dependencies_are_available, "MetisApplication is not available")
+    def test_ComputeUnitNormalQuadModelPartMPI(self):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        domain_size = 3
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = domain_size
+
+        testing_utilities.ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quad_sphere"), model_part)
+
+        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(model_part)
+
+        ## DEBUG
+        #self._post_process(model_part, comm.Rank())
+
+        for node in model_part.Nodes:
+            normal = []
+            norm = math.sqrt(node.X**2+node.Y**2+node.Z**2)
+            normal.append(node.X/norm)
+            normal.append(node.Y/norm)
+            normal.append(node.Z/norm)
+
+            solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+
+            residual = math.sqrt((solution_normal[0]-normal[0])**2+(solution_normal[1]-normal[1])**2+(solution_normal[2]-normal[2])**2)
+            self.assertLess(residual, 0.15)
+
     def _generate_mdpa_skin(self, current_model, fileName):
         model_part = current_model.CreateModelPart("AuxMain")
         model_part_io = KratosMultiphysics.ModelPartIO(fileName)
