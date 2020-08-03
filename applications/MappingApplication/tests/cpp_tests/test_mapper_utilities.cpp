@@ -15,6 +15,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "includes/stream_serializer.h"
+#include "utilities/cpp_tests_utilities.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "mapping_application_variables.h"
@@ -32,6 +33,8 @@ typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointer
 typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
 typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
 
+namespace {
+
 void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
 {
     const int rank = rModelPart.GetCommunicator().MyPID();
@@ -45,6 +48,8 @@ void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
                                              i*0.2+rank*3.48*size,
                                              i*0.3*rank*6.13*size);
 }
+
+} //empty namespace
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMappingApplicationSerialTestSuite)
 {
@@ -557,24 +562,11 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, KratosMappingApplicationSerialTestSuite)
 {
-    Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-    Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-    Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-    Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
-
-    Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
-
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("Generated");
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
 
-    Parameters mesher_parameters(R"(
-    {
-        "number_of_divisions" : 3,
-        "element_name"        : "Element2D3N",
-        "create_skin_sub_model_part": false
-    }  )");
-
-    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
 
     std::vector<Kratos::unique_ptr<MapperLocalSystem>> mapper_local_systems;
 
@@ -587,24 +579,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, Kra
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_EraseNodalVariable, KratosMappingApplicationSerialTestSuite)
 {
-    Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-    Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-    Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-    Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
-
-    Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
-
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("Generated");
-
-    Parameters mesher_parameters(R"(
-    {
-        "number_of_divisions" : 3,
-        "element_name"        : "Element2D3N",
-        "create_skin_sub_model_part": false
-    }  )");
-
-    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
 
     KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
 
