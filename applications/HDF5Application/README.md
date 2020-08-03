@@ -28,7 +28,7 @@ The HDF5 C libraries are used with the *HDF5Application*. If Kratos is configure
 2. Configure Kratos to build the *HDF5Application*
 
     ```
-    -DHDF5_APPLICATION=ON \
+    add_app ${KRATOS_APP_DIR}/HDF5Application
     ```
 
 3. Build Kratos
