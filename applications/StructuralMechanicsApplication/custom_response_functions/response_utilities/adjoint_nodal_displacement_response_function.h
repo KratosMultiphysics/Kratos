@@ -195,7 +195,7 @@ private:
     std::string mTracedDofLabel;
     std::string mResponsePartName;
     array_1d<double,3> mResponseDirection;
-    std::map<IndexType, std::vector<IndexType>> mElementNodeMap;
+    std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
     ///@}
     ///@name Private Operators
