@@ -10,6 +10,7 @@
 //  Main authors:    Riccardo Rossi
 
 #include <utility>
+#include <numeric>
 #include <iostream>
 #include "testing/testing.h"
 #include "utilities/parallel_utilities.h"
@@ -83,34 +84,61 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
 {
-    class ClassBasedTLS
+    constexpr std::size_t vec_size = 6;
+
+    class RHSElement
     {
-        public:
-        std::vector<double> TLS_Vector;
+      public:
+        RHSElement(const double Val) : mRHSVal(Val) {}
+        void CalculateRHS(std::vector<double>& rVector)
+        {
+            if (rVector.size() != vec_size) { rVector.resize(vec_size); }
+            std::fill(rVector.begin(), rVector.end(), mRHSVal);
+        }
+        double GetAccumRHSValue() {return mAccumRHSValue;}
+        void SetAccumRHSValue(double Value) {mAccumRHSValue = Value;}
+
+      private:
+        double mRHSVal;
+        double mAccumRHSValue = 0.0;
     };
 
-    int nsize = 1e3;
-    std::vector<double> data_vector(nsize);
-    for(auto& it : data_vector)
-        it = 5.0;
+    std::vector<double> rhs_vals {1.1, 2.2, 3.3, 5.7};
 
-    //here we raise every entry of a vector to the power 0.1
+    std::vector<RHSElement> elements;
+    for (std::size_t i=0; i<rhs_vals.size(); ++i) {
+        elements.push_back(RHSElement(rhs_vals[i]));
+    }
+    double exp_sum = (std::accumulate(rhs_vals.begin(), rhs_vals.end(), 0.0)) * vec_size;
+
     // here the TLS is constructed on the fly. This is the "private" approach of OpenMP
-    BlockPartition<std::vector<double>>(data_vector).for_each(ClassBasedTLS(),
-                                         [](double& item, ClassBasedTLS& rTLS)
+    // the result is checked with a "manual reduction"
+    BlockPartition<std::vector<RHSElement>>(elements).for_each(std::vector<double>(),
+                                         [](RHSElement& rElem, std::vector<double>& rTLS)
     {
-        item = std::pow(item, 0.1);
+        rElem.CalculateRHS(rTLS);
+        double rhs_sum = std::accumulate(rTLS.begin(), rTLS.end(), 0.0);
+        rElem.SetAccumRHSValue(rhs_sum);
     });
 
-    ClassBasedTLS tls_prototype;
-    tls_prototype.TLS_Vector.resize(15);
-    //here we raise every entry of a vector to the power 0.1
-    // here the TLS is constructed beforehand. This is the "firstprivate" approach of OpenMP
-    BlockPartition<std::vector<double>>(data_vector).for_each(tls_prototype,
-                                         [](double& item, ClassBasedTLS& rTLS)
-    {
-        item = std::pow(item, 0.1);
+    double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElement& rElem){
+        return acc + rElem.GetAccumRHSValue();
     });
+
+    KRATOS_CHECK_NEAR(sum_elem_rhs_vals, exp_sum, 1E-12);
+
+
+    // here the TLS is constructed on the fly. This is the "firstprivate" approach of OpenMP
+    // checking the results using reduction
+    std::vector<double> tls(6);
+    double final_sum = BlockPartition<std::vector<RHSElement>>(elements).for_each<SumReduction<double>>(tls,
+                                         [](RHSElement& rElem, std::vector<double>& rTLS)
+    {
+        rElem.CalculateRHS(rTLS);
+        return std::accumulate(rTLS.begin(), rTLS.end(), 0.0);
+    });
+
+    KRATOS_CHECK_NEAR(final_sum, exp_sum, 1E-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
