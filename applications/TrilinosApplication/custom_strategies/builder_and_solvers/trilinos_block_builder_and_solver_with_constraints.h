@@ -580,6 +580,9 @@ protected:
         mpT->GlobalAssemble();
         mpTt->GlobalAssemble();
 
+        TSparseSpace::WriteMatrixMarketMatrix("TMatrix.mm", *mpT, false);
+        TSparseSpace::WriteMatrixMarketMatrix("TtMatrix.mm", *mpTt, false);
+
         KRATOS_CATCH("")
     }
 
