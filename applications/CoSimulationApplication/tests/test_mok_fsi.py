@@ -14,7 +14,7 @@ try:
 except ImportError:
     numpy_available = False
 
-have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "EigenSolversApplication")
+have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 
 using_pykratos = UsingPyKratos()
 

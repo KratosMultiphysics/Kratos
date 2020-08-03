@@ -154,7 +154,7 @@ void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void MembraneElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod());
@@ -165,7 +165,7 @@ void MembraneElement::CalculateLeftHandSide(
 
 void MembraneElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     const SizeType number_of_nodes = GetGeometry().size();
@@ -186,7 +186,7 @@ void MembraneElement::CalculateRightHandSide(
 void MembraneElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -970,7 +970,8 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     }
 }
 
-void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
@@ -1063,7 +1064,7 @@ void MembraneElement::AddExplicitContribution(
 }
 
 void MembraneElement::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
