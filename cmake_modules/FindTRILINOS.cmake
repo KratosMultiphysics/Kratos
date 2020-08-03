@@ -7,12 +7,12 @@
 # - Epetra, Teuchos
 #
 
-# You can specify your own version of the library 
-# by specifying the variables TRILINOS_LIB_SEARCH_PATH and 
+# You can specify your own version of the library
+# by specifying the variables TRILINOS_LIB_SEARCH_PATH and
 # TRILINOS_INCLUDE_SEARCH_PATH.
 IF (NOT TRILINOS_LIBRARY_DIR OR NOT TRILINOS_INCLUDE_DIR)
     IF (TRILINOS_ROOT)
-        # Alternatively, you may simply specify TRILINOS_ROOT in CMake.vars. This is 
+        # Alternatively, you may simply specify TRILINOS_ROOT in CMake.vars. This is
         # the traditional way used also in the spkg files from the hpfem/solvers
         # repository and in the Hermes spkg.
         SET(TRILINOS_LIB_SEARCH_PATH ${TRILINOS_ROOT}/lib)
@@ -35,6 +35,12 @@ ELSE (NOT TRILINOS_LIBRARY_DIR OR NOT TRILINOS_INCLUDE_DIR)
     SET(TRILINOS_INCLUDE_SEARCH_PATH ${TRILINOS_INCLUDE_DIR})
 ENDIF (NOT TRILINOS_LIBRARY_DIR OR NOT TRILINOS_INCLUDE_DIR)
 
+IF(TRILINOS_LIBRARY_PREFIX)
+    MESSAGE(STATUS "The trilinos library prefix defined, will be: ${TRILINOS_LIBRARY_PREFIX}")
+ELSE(TRILINOS_LIBRARY_PREFIX)
+    SET(TRILINOS_LIBRARY_PREFIX "trilinos_")
+    MESSAGE(STATUS "The trilinos library prefix not defined, will be assumed as: ${TRILINOS_LIBRARY_PREFIX}")
+ENDIF(TRILINOS_LIBRARY_PREFIX)
 
 FIND_PATH(AMESOS_INCLUDE_PATH       Amesos.h             ${TRILINOS_INCLUDE_SEARCH_PATH}  NO_DEFAULT_PATH)
 FIND_PATH(AZTECOO_INCLUDE_PATH      AztecOO.h            ${TRILINOS_INCLUDE_SEARCH_PATH}  NO_DEFAULT_PATH)
