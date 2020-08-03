@@ -163,7 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     // here the TLS is constructed beforehand. This is the "firstprivate" approach of OpenMP
     // checking the results using reduction
     std::vector<double> tls_short(6);
-    const double final_sum_short = block_for_each<SumReduction<double>>(elements, tls_short, tls_lambda_manual_reduction);
+    const double final_sum_short = block_for_each<SumReduction<double>>(elements, tls_short, tls_lambda_reduction);
 
     KRATOS_CHECK_NEAR(final_sum_short, exp_sum, 1E-12);
 }
