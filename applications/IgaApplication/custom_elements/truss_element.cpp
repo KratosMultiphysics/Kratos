@@ -62,12 +62,18 @@ void TrussElement::GetDofList(
 
 void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    mReferenceBaseVector = GetActualBaseVector(0);
+    const double num_integration_points = GetGeometry().IntegrationPointsNumber();
+    if (mReferenceBaseVector.size() != num_integration_points) {
+        mReferenceBaseVector.resize(num_integration_points);
+    }
+    for (IndexType point_number = 0; point_number < GetGeometry().IntegrationPointsNumber(); ++point_number) {
+        mReferenceBaseVector[point_number] = CalculateActualBaseVector(point_number);
+    }
 
     InitializeMaterial();
 }
 
-array_1d<double, 3> TrussElement::GetActualBaseVector(
+array_1d<double, 3> TrussElement::CalculateActualBaseVector(
     IndexType IntegrationPointIndex) const
 {
     const auto& r_geometry = GetGeometry();
@@ -97,8 +103,7 @@ void TrussElement::InitializeMaterial()
     if (mConstitutiveLawVector.size() != r_number_of_integration_points)
         mConstitutiveLawVector.resize(r_number_of_integration_points);
 
-
-    for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number) {
         mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
     }
@@ -119,23 +124,22 @@ void TrussElement::CalculateAll(
     // get properties
     const auto& properties = GetProperties();
     const double A = properties[CROSS_AREA];
-    const double prestress = (GetProperties().Has(PRESTRESS_CAUCHY))
-        ? properties[PRESTRESS_CAUCHY]
-        : 0.0;
-    Vector E_vector = ComputeTangentModulus(rCurrentProcessInfo);
+    const double prestress = CalculatePrestress();
+    std::vector<double> E_vector(r_geometry.size());
+    CalculateTangentModulus(E_vector, rCurrentProcessInfo);
 
     // get integration data
     auto& r_integration_points = r_geometry.IntegrationPoints();
-    for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         const double EA = E_vector[point_number] * A;
 
         const double& integration_weight = r_integration_points[point_number].Weight();
         const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, point_number);
 
         // compute base vectors
-        const array_1d<double, 3> actual_base_vector = GetActualBaseVector(0);
+        const array_1d<double, 3> actual_base_vector = CalculateActualBaseVector(point_number);
 
-        const double reference_a = norm_2(mReferenceBaseVector);
+        const double reference_a = norm_2(mReferenceBaseVector[point_number]);
         const double actual_a = norm_2(actual_base_vector);
 
         const double actual_aa = actual_a * actual_a;
@@ -197,29 +201,32 @@ void TrussElement::CalculateAll(
 ///@name Internal functions
 ///@{
 
-/// Computes tengent E
-Vector TrussElement::ComputeTangentModulus(
+/// Computes tangent E
+void TrussElement::CalculateTangentModulus(
+    std::vector<double>& rTangentModulusVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
     auto& r_integration_points = r_geometry.IntegrationPoints();
     SizeType num_integration_points = r_integration_points.size();
-    Vector tangent_moduli = ZeroVector(num_integration_points);
-    Vector green_lagrange_strains = ZeroVector(num_integration_points);
+    if (rTangentModulusVector.size() != num_integration_points) {
+        rTangentModulusVector.resize(num_integration_points);
+    }
+    std::vector<double> green_lagrange_strains(num_integration_points);
     CalculateGreenLagrangeStrain(green_lagrange_strains);
-    for (IndexType i = 0; i < num_integration_points; ++i) {
-        Vector strain_vector = ZeroVector(mConstitutiveLawVector[i]->GetStrainSize());
-        strain_vector[0] = green_lagrange_strains[i];
+    for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+        Vector strain_vector = ZeroVector(mConstitutiveLawVector[point_number]->GetStrainSize());
+        strain_vector[0] = green_lagrange_strains[point_number];
 
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
         Values.SetStrainVector(strain_vector);
 
-        mConstitutiveLawVector[i]->CalculateValue(Values, TANGENT_MODULUS, tangent_moduli[i]);
+        mConstitutiveLawVector[point_number]->CalculateValue(Values, TANGENT_MODULUS, rTangentModulusVector[point_number]);
     }
-    return tangent_moduli;
 }
 
-void TrussElement::CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) const
+void TrussElement::CalculateGreenLagrangeStrain(
+    std::vector<double>& rGreenLagrangeVector) const
 {
     const auto& r_geometry = GetGeometry();
     auto& r_integration_points = r_geometry.IntegrationPoints();
@@ -229,10 +236,87 @@ void TrussElement::CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) co
     }
     Vector determinants_of_jacobian;
     r_geometry.DeterminantOfJacobian(determinants_of_jacobian);
-    for (IndexType i = 0; i < num_integration_points; ++i) {
-        const double l = r_integration_points[i].Weight() * determinants_of_jacobian[i];
-        const double L = r_integration_points[i].Weight();
-        rGreenLagrangeVector[i] = ((l * l - L * L) / (2.00 * L * L));
+    for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+        const double l = r_integration_points[point_number].Weight() * determinants_of_jacobian[point_number];
+        const double L = r_integration_points[point_number].Weight();
+        rGreenLagrangeVector[point_number] = ((l * l - L * L) / (2.00 * L * L));
+    }
+}
+
+/// Returns prestress
+double TrussElement::CalculatePrestress() const
+{
+    return (GetProperties().Has(TRUSS_PRESTRESS_CAUCHY))
+        ? GetProperties()[TRUSS_PRESTRESS_CAUCHY]
+        : 0.0;
+}
+
+/// Returns PK2 stress
+void TrussElement::CalculateStressPK2(
+    std::vector<double>& rStressVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const auto& r_geometry = GetGeometry();
+    std::vector<double> green_lagrang_strains(GetGeometry().size());
+    CalculateGreenLagrangeStrain(green_lagrang_strains);
+    const double prestress = CalculatePrestress();
+
+    Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
+
+    const double num_integration_points = r_geometry.IntegrationPointsNumber();
+    if (rStressVector.size() != num_integration_points) {
+        rStressVector.resize(num_integration_points);
+    }
+
+    for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        temp_strain[0] = green_lagrang_strains[point_number];
+        Values.SetStrainVector(temp_strain);
+        Values.SetStressVector(temp_stress);
+        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+
+        temp_stress[0] += prestress;
+        rStressVector[point_number] = temp_stress[0];
+    }
+}
+
+/// Returns cauchy stress
+void TrussElement::CalculateStressCauchy(
+    std::vector<double>& rStressVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    const auto& r_geometry = GetGeometry();
+    std::vector<double> green_lagrang_strains(GetGeometry().size());
+    CalculateGreenLagrangeStrain(green_lagrang_strains);
+    const double prestress = CalculatePrestress();
+
+    Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
+
+    auto& r_integration_points = r_geometry.IntegrationPoints();
+    const double num_integration_points = r_integration_points.size();
+    if (rStressVector.size() != num_integration_points) {
+        rStressVector.resize(num_integration_points);
+    }
+    Vector determinants_of_jacobian(num_integration_points);
+    r_geometry.DeterminantOfJacobian(determinants_of_jacobian);
+
+    for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        temp_strain[0] = green_lagrang_strains[point_number];
+        Values.SetStrainVector(temp_strain);
+        Values.SetStressVector(temp_stress);
+        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+
+        temp_stress[0] += prestress;
+
+        const double l = r_integration_points[point_number].Weight() * determinants_of_jacobian[point_number];
+        const double L = r_integration_points[point_number].Weight();
+
+        temp_stress[0] *= l / L;
+
+        rStressVector[point_number] = temp_stress[0];
     }
 }
 
@@ -251,17 +335,16 @@ void TrussElement::CalculateOnIntegrationPoints(
         rOutput.resize(integration_points.size());
     }
     if (rVariable == TRUSS_GREEN_LAGRANGE_STRAIN) {
-        Vector strain_vector(integration_points.size());
-        CalculateGreenLagrangeStrain(strain_vector);
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-            rOutput[point_number] = strain_vector[point_number];
-        }
+        CalculateGreenLagrangeStrain(rOutput);
     }
     else if (rVariable == TANGENT_MODULUS) {
-        Vector E_vector = ComputeTangentModulus(rCurrentProcessInfo);
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-            rOutput[point_number] = E_vector[point_number];
-        }
+        CalculateTangentModulus(rOutput, rCurrentProcessInfo);
+    }
+    else if (rVariable == TRUSS_STRESS_PK2) {
+        CalculateStressPK2(rOutput, rCurrentProcessInfo);
+    }
+    else if (rVariable == TRUSS_STRESS_CAUCHY) {
+        CalculateStressCauchy(rOutput, rCurrentProcessInfo);
     }
 }
 

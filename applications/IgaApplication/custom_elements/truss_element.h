@@ -201,7 +201,7 @@ private:
     ///@name Private member
     ///@{
 
-    array_1d<double, 3> mReferenceBaseVector;
+    std::vector<array_1d<double, 3>> mReferenceBaseVector;
 
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
@@ -210,20 +210,32 @@ private:
     ///@name Private operations
     ///@{
 
-    /// Computes the base vector at a integration point position.
-    array_1d<double, 3> GetActualBaseVector(IndexType IntegrationPointIndex) const;
-
     /// Initializes constitutive law vector and materials.
     void InitializeMaterial();
 
-    /// Computes Green Lagrange Strain for all integration points
-    void CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) const;
+    /// Computes the base vector at a integration point position.
+    array_1d<double, 3> CalculateActualBaseVector(IndexType IntegrationPointIndex) const;
 
-    void CalculateTangentModulus(Vector& rTangentModulusVector,
+    /// Computes Green Lagrange Strain for all integration points
+    void CalculateGreenLagrangeStrain(
+        std::vector<double>& rGreenLagrangeVector) const;
+
+    void CalculateTangentModulus(
+        std::vector<double>& rTangentModulusVector,
         const ProcessInfo& rCurrentProcessInfo);
 
     /// Computes prestress
     double CalculatePrestress() const;
+
+    /// Computes PK2 stress
+    void CalculateStressPK2(
+        std::vector<double>& rStressVector,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /// Computes cauchy stress
+    void CalculateStressCauchy(
+        std::vector<double>& rStressVector,
+        const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Serialization
