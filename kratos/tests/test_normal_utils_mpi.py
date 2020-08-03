@@ -15,7 +15,7 @@ if dependencies_are_available:
 import KratosMultiphysics.testing.utilities as testing_utilities
 
 # DEBUG
-#from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -23,7 +23,7 @@ def GetFilePath(fileName):
 class TestNormalUtilsMPI(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(dependencies_are_available, "MetisApplication is not available")
-    def test_ComputeUnitNormalModelPartMPI(self):
+    def test_ComputeSimplexNormalModelPartMPI(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         current_model = KratosMultiphysics.Model()
 
@@ -36,10 +36,10 @@ class TestNormalUtilsMPI(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(model_part)
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(model_part.Conditions, 3)
 
         ## DEBUG
-        #self._post_process(model_part)
+        self._post_process(model_part)
 
         for node in model_part.GetSubModelPart("Skin_Part").Nodes:
             normal = []
@@ -49,6 +49,8 @@ class TestNormalUtilsMPI(KratosUnittest.TestCase):
             normal.append(node.Z/norm)
 
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            solution_normal_norm = math.sqrt(solution_normal[0]**2+solution_normal[1]**2+solution_normal[2]**2)
+            solution_normal /= solution_normal_norm
 
             residual = math.sqrt((solution_normal[0]-normal[0])**2+(solution_normal[1]-normal[1])**2+(solution_normal[2]-normal[2])**2)
             self.assertLess(residual, 0.15)
