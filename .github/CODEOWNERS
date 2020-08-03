@@ -22,3 +22,4 @@
 /applications/ShapeOptimizationApplication/            @KratosMultiphysics/optimization
 /applications/CompressiblePotentialFlowApplication/    @KratosMultiphysics/potential-flow-team
 /applications/ChimeraApplication/                      @KratosMultiphysics/chimera
+/applications/IgaApplication/                          @KratosMultiphysics/nurbs-breps
