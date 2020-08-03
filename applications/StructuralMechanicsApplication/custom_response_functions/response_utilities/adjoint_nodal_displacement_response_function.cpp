@@ -80,7 +80,6 @@ namespace Kratos
                     }
                 }
             }
-            KRATOS_WATCH(rResponseGradient)
         }
 
         KRATOS_CATCH("");
