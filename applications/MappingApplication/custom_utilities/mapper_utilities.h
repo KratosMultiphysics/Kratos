@@ -278,8 +278,8 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const array_1d<double, 3>& rCoords);
 
-void SaveCurrentConfiguration(ModelPart& rModelPart);
-void RestoreCurrentConfiguration(ModelPart& rModelPart);
+void KRATOS_API(MAPPING_APPLICATION) SaveCurrentConfiguration(ModelPart& rModelPart);
+void KRATOS_API(MAPPING_APPLICATION) RestoreCurrentConfiguration(ModelPart& rModelPart);
 
 template<class TDataType>
 void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
