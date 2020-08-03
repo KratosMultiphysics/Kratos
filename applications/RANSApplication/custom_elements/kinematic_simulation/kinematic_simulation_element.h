@@ -284,6 +284,8 @@ public:
                                       ProcessInfo& rCurrentProcessInfo) override
     {
 
+        // Calculate components of turbulent kinetic energy
+
         // Calculate RHS
         this->CalculateRightHandSideContribution(rRightHandSideVector);
         KRATOS_WATCH(rRightHandSideVector)

@@ -73,7 +73,6 @@ class RANSKinematicFormulation(Formulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.EFFECTIVE_WAVE_NUMBER)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.LAGRANGE_DISPLACEMENT)
 
-
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step variables.")
 
     def AddDofs(self):
@@ -94,11 +93,7 @@ class RANSKinematicFormulation(Formulation):
         default_settings = KratosMultiphysics.Parameters('''
             {
                 "model_part_name"      : "{0:s}",
-                "constants":
-                {
-                "total_wavenumber_discretization" : 100
-                }
-                "time_step" : 0.1,
+                "total_time_step" : 100,
                 "ABL_friction_velocity" : 0.375,
                 "seed_for_random_samples_generation": 2020,
                 "lamda_unsteadiness_parameter" : 1.0
@@ -108,6 +103,17 @@ class RANSKinematicFormulation(Formulation):
         velocity_fluctuations_process = GenerateVelocityFluctuationProcess(
                                             model, default_settings)
         self.AddProcess(velocity_fluctuations_process)
+
+        # calculate components of turbulent kinetic energy
+        boundary_layer_height = velocity_fluctuations_process.ABL_friction_velocity*10000/6
+        for node in model_part.Nodes:
+            beta_v = 1 - 0.22 * pow(math.cos(math.pi*node.Z/(2*boundary_layer_height)),4)
+            beta_w = 1 - 0.45 * pow(math.cos(math.pi*node.Z/(2*boundary_layer_height)),4)
+            denom = 1+beta_v**2+beta_w**2
+            K = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY, 0)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_U, 0, K/denom)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_V, 0, K*(beta_v**2)/denom)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_V, 0, K*(beta_w**2)/denom)
 
         factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
         self.auxiliar_process_list = factory.ConstructListOfProcesses(

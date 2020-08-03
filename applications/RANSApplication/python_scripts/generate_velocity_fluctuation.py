@@ -28,11 +28,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "model_part_name"      : "",
-                "constants":
-                {
-                "total_wavenumber_discretization" : 100
-                }
-                "time_step" : 0.1,
+                "total_time_steps" : 100,
                 "ABL_friction_velocity" : 0.375,
                 "seed_for_random_samples_generation": 2020,
                 "lamda_unsteadiness_parameter" : 1.0
@@ -50,8 +46,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         else:
             self.model_part = model[self.model_part_name]
 
-        self.total_wavenumber_discretization = params["total_wavenumber_discretization"].GetInt()
-        self.time_step = params["time_step"].GetDouble()
+        self.total_time_steps = params["total_time_steps"].GetInt()
         self.ABL_friction_velocity = params["ABL_friction_velocity"].GetDouble()
         self.rand_seed = params["seed_for_random_samples_generation"].GetInt()
         self.lambda_unsteadiness = param["lamda_unsteadiness_parameter"].GetDouble()
@@ -75,6 +70,26 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         self.fluid_model_part.HasSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
         self.fluid_model_part.HasSolutionStepVariable(KratosRANS.KINEMATIC_VISCOSITY)
 
+    def _CalculateFourierVariables(self):
+        k_n = list()
+        energy_spectrum = list()
+        a_n = list()
+        b_n = list()
+        omega_n = list()
+        end_time = 0.0
+        for node in self.model_part.Nodes:
+            k_n.append(self._DiscretiseWaveNumber(node)) # k_n: list[node][total_wavenumber_discretization]
+            energy_spectrum.append(self._CalculateEnergySpectrum(node, k_n)) # energy_spectrum: list[node][total_wavenumber_discretization][3]
+            a_n.append(self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed)) # a_n: list[node][total_wavenumber_discretization][3]
+            b_n.append(self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed+1)) # b_n: list[node][total_wavenumber_discretization][3]
+            # a_n and b_n have same PDF but chage the seed so they have different values
+            omega_n.append(self._CalculateAngularFrequency(energy_spectrum, k_n)) # omega_n: list[node][total_wavenumber]
+            end_time_pre = 2*math.pi/min(omega_n[i])
+            if end_time_pre > end_time:
+                end_time = end_time_pre
+        
+        return [k_n, energy_spectrum, a_n, b_n, omega_n, end_time]
+
     def ExecuteFinalizeSolutionStep(self):
 
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -84,23 +99,21 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         phi_n = self._GeneratePhi() # phi_n: list[total_wavenumber_discretization]
         k_n_unitvector = self._CalculateWaveNumberUnitvector(theta_n, phi_n) # k_n_unitvector: list[total_wavenumber_discretization][3]
 
-        for node in self.model_part.Nodes:
-
-            k_n = self._DiscretiseWaveNumber(node) # k_n: list[total_wavenumber_discretization]
-            energy_spectrum = self._CalculateEnergySpectrum(node, k_n) # energy_spectrum: list[total_wavenumber_discretization][3]
-            a_n = self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed) # a_n: list[total_wavenumber_discretization][3]
-            b_n = self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed+1) # b_n: list[total_wavenumber_discretization][3]
-            # a_n and b_n have same PDF but chage the seed so they have different values
-            omega_n = self._CalculateAngularFrequency(energy_spectrum, k_n) # omega_n: list[total_wavenumber]
-            u_fluc = self._FouerierSummation(node, k_n, k_n_unitvector, a_n, b_n, omega_n, current_time)
-            # U should be the last step if results of URANS are used!
-            u_x = node.GetSolutionStepValue(VELOCITY_X, 0) + u_fluc[0]
-            u_y = node.GetSolutionStepValue(VELOCITY_Y, 0) + u_fluc[1]
-            u_z = node.GetSolutionStepValue(VELOCITY_Z, 0) + u_fluc[2]
-            node.SetSolutionStepValue(LAGRANGE_DISPLACEMENT_X, 0, u_x)
-            node.SetSolutionStepValue(LAGRANGE_DISPLACEMENT_Y, 0, u_y)
-            node.SetSolutionStepValue(LAGRANGE_DISPLACEMENT_Z, 0, u_z)
-
+        [k_n, energy_spectrum, a_n, b_n, omega_n, end_time] = self._CalculateFourierVariables()
+        
+        while current_time < end_time:
+            i = 0
+            for node in self.model_part.Nodes:
+                u_fluc = self._FouerierSummation(node, k_n[i], k_n_unitvector, a_n[i], b_n[i], omega_n[i], current_time)
+                # U should be the last step if results of URANS are used!
+                u_x = node.GetSolutionStepValue(VELOCITY_X, 0) + u_fluc[0]
+                u_y = node.GetSolutionStepValue(VELOCITY_Y, 0) + u_fluc[1]
+                u_z = node.GetSolutionStepValue(VELOCITY_Z, 0) + u_fluc[2]
+                node.SetSolutionStepValue(LAGRANGE_DISPLACEMENT_X, 0, u_x)
+                node.SetSolutionStepValue(LAGRANGE_DISPLACEMENT_Y, 0, u_y)
+                node.SetSolutionStepValue(LAGRANGE_DISPLACEMENT_Z, 0, u_z)
+                i += 1
+        
     def ExecuteFinalize(self):
         if (self.model_part.GetCommunicator().MyPID() == 0):
             self.output_file.close()
@@ -149,26 +162,15 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
 
         return k_node_i
 
-    # K: turbulent kinetic energy at the node
-    def _CalculateComponentsTurbulentKineticEnergy(self, node, K):
-
-        boundary_layer_height = self.ABL_friction_velocity*10000/6
-        beta_v = 1 - 0.22 * pow(math.cos(math.pi*node.Z/(2*boundary_layer_height)),4)
-        beta_w = 1 - 0.45 * pow(math.cos(math.pi*node.Z/(2*boundary_layer_height)),4)
-        denom = 1+beta_v**2+beta_w**2
-        Ku = K/denom
-        Kv = K*(beta_v**2)/denom
-        Kw = K*(beta_w**2)/denom
-
-        return [Ku, Kv, Kw]
-
     def _CalculateEnergySpectrum(self, node, k_n):
 
         Au = node.GetSolutionStepValue(KratosRANS.SPECTRAL_CONSTANT_U)
         Av = node.GetSolutionStepValue(KratosRANS.SPECTRAL_CONSTANT_V)
         Aw = node.GetSolutionStepValue(KratosRANS.SPECTRAL_CONSTANT_W)
         ke = node.GetSolutionStepValue(KratosRANS.EFFECTIVE_WAVE_NUMBER)
-        [Ku, Kv, Kw] = self._CalculateComponentsTurbulentKineticEnergy(nodes, node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY))
+        Ku = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_U)
+        Kv = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_V)
+        Kw = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_W)
         k_kol = k_n[-1]
         E = list()
 
