@@ -13,7 +13,7 @@ class NearestElementBasicTestsLine(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "line_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsLine, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
 
 class NearestElementBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -24,7 +24,7 @@ class NearestElementBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTe
             "interface_submodel_part_destination": "line_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsLineSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
+        super().setUpMapper(mapper_params, switch_sides=True)
 
 class NearestElementBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -35,7 +35,7 @@ class NearestElementBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "surface_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsSurface, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
 
 class NearestElementBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -46,7 +46,7 @@ class NearestElementBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMappe
             "interface_submodel_part_destination": "surface_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsSurfaceSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
+        super().setUpMapper(mapper_params, switch_sides=True)
 
 class NearestElementBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -57,7 +57,7 @@ class NearestElementBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
             "interface_submodel_part_destination": "volume_quad",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsVolume, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
 
 class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
@@ -68,7 +68,7 @@ class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapper
             "interface_submodel_part_destination": "volume_tri",
             "echo_level" : 0
         }""")
-        super(NearestElementBasicTestsVolumeSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
+        super().setUpMapper(mapper_params, switch_sides=True)
 
 class NearestElementBladeMapping(blade_mapping_test.BladeMappingTests):
     @classmethod
@@ -77,7 +77,7 @@ class NearestElementBladeMapping(blade_mapping_test.BladeMappingTests):
             "mapper_type": "nearest_element",
             "echo_level" : 0
         }""")
-        super(NearestElementBladeMapping, cls).setUpMapper(mapper_params)
+        super().setUpMapper(mapper_params)
         cls.print_output = False
 
 if __name__ == '__main__':
