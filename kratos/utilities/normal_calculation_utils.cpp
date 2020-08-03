@@ -381,7 +381,7 @@ void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(ModelPart& rModel
     }
 
     // For MPI: correct values on partition boundaries
-    rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+    rModelPart.GetCommunicator().SynchronizeVariable(NORMAL);
 }
 
 /***********************************************************************************/
