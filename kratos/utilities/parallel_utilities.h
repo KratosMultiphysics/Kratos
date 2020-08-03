@@ -148,14 +148,23 @@ public:
     template <class TReducer, class TThreadLocalStorage, class TFunction>
     inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
     {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
         TReducer global_reducer;
-        #pragma omp parallel for
-        for (int i=0; i<mNchunks; ++i) {
-            TReducer local_reducer;
-            for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
-                local_reducer.LocalReduce(f(*it));
+
+        #pragma omp parallel
+        {
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                TReducer local_reducer;
+                for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
+                    local_reducer.LocalReduce(f(*it, thread_local_storage));
+                }
+                global_reducer.ThreadSafeReduce(local_reducer);
             }
-            global_reducer.ThreadSafeReduce(local_reducer);
         }
         return global_reducer.GetValue();
     }
@@ -184,6 +193,29 @@ typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &
 {
     return BlockPartition<typename std::decay<TContainerType>::type>
         (std::forward<TContainerType>(v)).template for_each<TReducer>(std::forward<TFunctionType>(func));
+}
+
+/** @brief simplified version of the basic loop with thread local storage to enable template type deduction
+ * @param v - containers to be looped upon
+ * @param tls - thread local storage
+ * @param func - must be a unary function accepting as input TContainerType::value_type&
+ */
+template <class TContainerType, class TThreadLocalStorage, class TFunctionType>
+void block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
+{
+    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(tls, func));
+}
+
+/** @brief simplified version of the basic loop with reduction and thread local storage to enable template type deduction
+ * @param v - containers to be looped upon
+ * @param tls - thread local storage
+ * @param func - must be a unary function accepting as input TContainerType::value_type&
+ */
+template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
+typename TReducer::value_type block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
+{
+    return BlockPartition<typename std::decay<TContainerType>::type>
+        (std::forward<TContainerType>(v)).template for_each<TReducer>(std::forward<TThreadLocalStorage, TFunctionType>(tls, func));
 }
 
 //***********************************************************************************
