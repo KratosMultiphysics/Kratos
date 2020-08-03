@@ -16,6 +16,7 @@
 #include "includes/model_part.h"
 #include "includes/stream_serializer.h"
 #include "utilities/cpp_tests_utilities.h"
+#include "utilities/variable_utils.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "mapping_application_variables.h"
@@ -595,6 +596,67 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_EraseNodalVariable, KratosMappingAppli
 
     for (auto& r_node : model_part.Nodes()) {
         KRATOS_CHECK_IS_FALSE(r_node.Has(DISPLACEMENT_X));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SaveCurrentConfiguration, KratosMappingApplicationSerialTestSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
+
+    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+    }
+
+    MapperUtilities::SaveCurrentConfiguration(model_part);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), r_node[CURRENT_COORDINATES][0]);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), r_node[CURRENT_COORDINATES][1]);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), r_node[CURRENT_COORDINATES][2]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_RestoreCurrentConfiguration, KratosMappingApplicationSerialTestSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+    CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
+
+    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::RestoreCurrentConfiguration(model_part), "Nodes do not have CURRENT_COORDINATES for restoring the current configuration!");
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+        r_node.X() += 0.1;
+        r_node.Y() -= 0.125;
+        r_node.Z() += 0.33;
+    }
+
+    MapperUtilities::SaveCurrentConfiguration(model_part);
+
+    // X = X0
+    VariableUtils().UpdateCurrentToInitialConfiguration(model_part.Nodes());
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), r_node.X0());
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), r_node.Y0());
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), r_node.Z0());
+    }
+
+    MapperUtilities::RestoreCurrentConfiguration(model_part);
+
+    for (auto& r_node : model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), (r_node.X0()+0.1));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), (r_node.Y0()-0.125));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), (r_node.Z0()+0.33));
     }
 }
 
