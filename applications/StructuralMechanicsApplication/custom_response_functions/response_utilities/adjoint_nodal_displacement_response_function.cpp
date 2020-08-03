@@ -47,7 +47,7 @@ namespace Kratos
                 << "AdjointNodalDisplacementResponseFunction: Specified DOF is not available at traced node." << std::endl;
         }
 
-        this->ComputeNeighboringNodeElementMap();
+        this->ComputeNeighboringElementNodeMap();
     }
 
     AdjointNodalDisplacementResponseFunction::~AdjointNodalDisplacementResponseFunction(){}
@@ -66,13 +66,10 @@ namespace Kratos
         const Variable<double>* adjoint_solution_variable = &KratosComponents<Variable<double>>::Get("ADJOINT_" + mTracedDofLabel + "_X");
         DofsVectorType dofs_of_element;
 
-        for (auto it = mNodeElementMap.begin(); it != mNodeElementMap.end(); ++it) {
-            const auto node_id = it->first;
-            const auto element_id = it->second;
-
-            if( rAdjointElement.Id() == element_id ) {
-                rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
-
+        auto it_map = mElementNodeMap.find(rAdjointElement.Id());
+        if (it_map != mElementNodeMap.end()) {
+            rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
+            for(auto const& node_id: it_map->second) {
                 for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
                     if (dofs_of_element[i]->Id() == node_id &&
                         dofs_of_element[i]->GetVariable() == *adjoint_solution_variable) {
@@ -197,7 +194,7 @@ namespace Kratos
     }
 
     /// Find one element which is bounded by one of the traced nodes. The elements are needed for assembling the adjoint load.
-    void AdjointNodalDisplacementResponseFunction::ComputeNeighboringNodeElementMap()
+    void AdjointNodalDisplacementResponseFunction::ComputeNeighboringElementNodeMap()
     {
         KRATOS_TRY;
 
@@ -205,15 +202,17 @@ namespace Kratos
         FindElementalNeighboursProcess neighbour_elements_finder(mrModelPart, 10, 10);
         neighbour_elements_finder.Execute();
 
-        for(auto& node_i : response_part.Nodes()){
+        for(auto& node_i : response_part.Nodes()) {
             auto const& r_neighbours = node_i.GetValue(NEIGHBOUR_ELEMENTS);
             KRATOS_ERROR_IF(r_neighbours.size() == 0) << "AdjointNodalDisplacementResponseFunction: Node " << node_i.Id() << " has no neighbouring element" << std::endl;
             // take the first element since only one neighbour element is required
-            const SizeType number_of_nodes = r_neighbours[0].GetGeometry().PointsNumber();
-            for(IndexType i = 0; i < number_of_nodes; ++i) {
-                if(r_neighbours[0].GetGeometry()[i].Id() == node_i.Id()) {
-                    mNodeElementMap[node_i.Id()] = r_neighbours[0].Id();
-                }
+            auto it_map = mElementNodeMap.find(r_neighbours[0].Id());
+            if (it_map == mElementNodeMap.end()) {
+                std::vector<IndexType> node_ids = {node_i.Id()};
+                mElementNodeMap[r_neighbours[0].Id()] = node_ids;
+            }
+            else {
+                (it_map->second).push_back(node_i.Id());
             }
         }
 
