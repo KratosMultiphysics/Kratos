@@ -18,7 +18,7 @@ def Create(settings):
 
 class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def __init__(self, settings):
-        super(RelativeNormPreviousResidualConvergenceCriteria, self).__init__(settings)
+        super().__init__(settings)
 
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
@@ -67,6 +67,6 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
             "rel_tolerance" : 1e-5,
             "label"         : ""
         }""")
-        this_defaults.AddMissingParameters(super(RelativeNormPreviousResidualConvergenceCriteria, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
         return this_defaults
 

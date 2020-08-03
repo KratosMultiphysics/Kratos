@@ -15,7 +15,7 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
     """ This class implements a wrapper for an SDof solver to be used in CoSimulation
     """
     def __init__(self, settings, solver_name):
-        super(SdofSolverWrapper, self).__init__(settings, solver_name)
+        super().__init__(settings, solver_name)
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
 

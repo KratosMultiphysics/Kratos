@@ -26,7 +26,7 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param p factor for switch between constant relaxation and alternating anderson Gauß-Seidel/Jacobian method
     # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation
     def __init__( self, settings, solvers, cosim_solver_details ):
-        super(AndersonConvergenceAccelerator, self).__init__(settings, solvers, cosim_solver_details)
+        super().__init__(settings, solvers, cosim_solver_details)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:

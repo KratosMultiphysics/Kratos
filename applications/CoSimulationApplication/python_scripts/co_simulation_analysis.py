@@ -89,7 +89,7 @@ class CoSimulationAnalysis(AnalysisStage):
             CoSimulationAnalysis.Flush()
 
     def _GetSolver(self, solver_name=""):
-        solver = super(CoSimulationAnalysis, self)._GetSolver()
+        solver = super()._GetSolver()
         if solver_name == "":
             return solver
         else:

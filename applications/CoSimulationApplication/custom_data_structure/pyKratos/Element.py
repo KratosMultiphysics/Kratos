@@ -4,7 +4,7 @@ from .data_value_container import DataValueContainer
 class Element(DataValueContainer):
 
     def __init__(self, elem_id, nodes):
-        super(Element, self).__init__()
+        super().__init__()
         self.Id = elem_id
         self.__nodes = nodes
         self.__variables = {}

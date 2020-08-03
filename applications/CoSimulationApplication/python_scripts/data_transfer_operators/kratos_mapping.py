@@ -26,7 +26,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     def __init__(self, settings):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
-        super(KratosMappingDataTransferOperator, self).__init__(settings)
+        super().__init__(settings)
         self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
@@ -83,7 +83,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
                 "mapper_type" : "UNSPECIFIED"
             }
         }""")
-        this_defaults.AddMissingParameters(super(KratosMappingDataTransferOperator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
         return this_defaults
 
     @classmethod

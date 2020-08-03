@@ -4,7 +4,7 @@ from .Element import Element
 class QuadrilateralElement(Element):
 
     def __init__(self, elem_id, nodes):
-        super(QuadrilateralElement, self).__init__(elem_id, nodes)
+        super().__init__(elem_id, nodes)
 
         if(len(self.GetNodes()) != 4):
             raise Exception("wrong number of nodes! should be 4!")

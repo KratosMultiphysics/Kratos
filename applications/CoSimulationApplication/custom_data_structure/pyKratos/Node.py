@@ -8,7 +8,7 @@ from copy import deepcopy
 class Node(DataValueContainer):
 
     def __init__(self, node_id, x, y, z, hist_variables, buffer_size):
-        super(Node, self).__init__()
+        super().__init__()
         self.Id = node_id
 
         # current position

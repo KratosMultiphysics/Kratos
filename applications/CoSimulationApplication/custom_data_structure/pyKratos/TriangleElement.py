@@ -7,7 +7,7 @@ import numpy as np
 class TriangleElement(Element):
 
     def __init__(self, elem_id, nodes):
-        super(TriangleElement, self).__init__(elem_id, nodes)
+        super().__init__(elem_id, nodes)
 
         if(len(self.GetNodes()) != 3):
             raise Exception("wrong number of nodes! should be 3!")

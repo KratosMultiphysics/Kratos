@@ -25,7 +25,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def Initialize(self):
 
-        super(PotentialFlowWrapper, self).Initialize()
+        super().Initialize()
 
         sub_project_parameters = self.project_parameters["processes"]["boundary_conditions_process_list"]
 
@@ -48,7 +48,7 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
         self._analysis_stage._GetSolver().Clear()
         self._analysis_stage._GetSolver().InitializeSolutionStep()
 
-        super(PotentialFlowWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
 
         self.lift_process.ExecuteFinalizeSolutionStep()
         self.conversion_process.ExecuteFinalizeSolutionStep()

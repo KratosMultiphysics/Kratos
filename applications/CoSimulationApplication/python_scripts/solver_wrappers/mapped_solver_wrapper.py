@@ -15,7 +15,7 @@ class MappedSolverWrapper(CoSimulationSolverWrapper):
     """This class wraps another solver-wrapper and  in addition takes care of the mapping
     """
     def __init__(self, settings, solver_name):
-        super(MappedSolverWrapper, self).__init__(settings, solver_name)
+        super().__init__(settings, solver_name)
 
         self.wrapped_solver = solvers_wrapper_factory.CreateSolverWrapper(self.settings["solver_wrapper_settings"]["wrapped_solver_settings"], solver_name)
         self.input_mapper = None
@@ -23,7 +23,7 @@ class MappedSolverWrapper(CoSimulationSolverWrapper):
 
 
     def Initialize(self):
-        super(MappedSolverWrapper, self).Initialize()
+        super().Initialize()
 
     def Finalize(self):
         pass

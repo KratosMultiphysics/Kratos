@@ -49,7 +49,7 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             if norm_normal > 1.e-10:
                 model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_NORMAL, [normal], model_part.ProcessInfo)
 
-        super(ParticleMechanicsWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
 
         ### Get contact force from mp to coupling_mp
         for mpc in model_part.Conditions:

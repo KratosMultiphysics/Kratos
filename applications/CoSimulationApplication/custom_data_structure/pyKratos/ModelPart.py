@@ -22,7 +22,7 @@ class ModelPart(DataValueContainer):
         if not internal_construction:
             raise Exception("Creation of standalone ModelParts is not possible, please use Model.CreateModelPart()!")
 
-        super(ModelPart, self).__init__()
+        super().__init__()
 
         self.__parent_model_part = None
         self.__sub_model_parts = ModelPart.PointerVectorSet()

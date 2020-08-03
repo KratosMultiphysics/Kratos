@@ -16,7 +16,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     It uses the AnalysisStage as black-box interface to Kratos
     """
     def __init__(self, settings, solver_name):
-        super(KratosBaseWrapper, self).__init__(settings, solver_name)
+        super().__init__(settings, solver_name)
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
@@ -30,10 +30,10 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def Initialize(self):
         self._analysis_stage.Initialize() # this reades the Meshes
-        super(KratosBaseWrapper, self).Initialize()
+        super().Initialize()
 
     def Finalize(self):
-        super(KratosBaseWrapper, self).Finalize()
+        super().Finalize()
         self._analysis_stage.Finalize()
 
     def AdvanceInTime(self, current_time):
@@ -49,7 +49,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def SolveSolutionStep(self):
         self._analysis_stage._GetSolver().SolveSolutionStep()
-        super(KratosBaseWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self._analysis_stage.FinalizeSolutionStep()

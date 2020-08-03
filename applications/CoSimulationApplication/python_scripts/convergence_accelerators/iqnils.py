@@ -29,7 +29,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
     def __init__( self, settings, solver_wrapper):
-        super(IQNILSConvergenceAccelerator, self).__init__(settings, solver_wrapper)
+        super().__init__(settings, solver_wrapper)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:

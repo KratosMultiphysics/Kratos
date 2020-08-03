@@ -30,7 +30,7 @@ class Variable(object):
 
 class VariableComponent(Variable):
     def __init__(self, var_name, source_variable, component_index):
-        super(VariableComponent, self).__init__(var_name, "Component", 0.0)
+        super().__init__(var_name, "Component", 0.0)
         self.__source_variable = source_variable
         self.__component_index = component_index
 

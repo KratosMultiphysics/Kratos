@@ -17,7 +17,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     Note that this is only an example, other configurations are of course also possible
     """
     def __init__(self, settings, solver_name):
-        super(DummySolverWrapper, self).__init__(settings, solver_name)
+        super().__init__(settings, solver_name)
 
         self.time_step = self.settings["solver_wrapper_settings"]["time_step"].GetDouble()
         self.model_part = self.model.CreateModelPart(self.settings["solver_wrapper_settings"]["main_model_part_name"].GetString())
@@ -33,7 +33,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         model_part_io.ReadModelPart(self.model_part)
         KM.Logger.GetDefaultOutput().SetSeverity(severity)
 
-        super(DummySolverWrapper, self).Initialize()
+        super().Initialize()
 
     def AdvanceInTime(self, current_time):
         return current_time + self.time_step
