@@ -153,6 +153,21 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorageAndReduction, KratosCoreFastSuite)
+{
+    constexpr int nsize = 1e3;
+    std::vector<double> data_vector(nsize);
+    for(auto& it : data_vector)
+        it = -1.0;
+
+    double final_sum = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<int>(), [&](unsigned int i, std::vector<int>& rVec){
+            return 2.0*data_vector[i];
+            }
+        );
+
+    KRATOS_CHECK_DOUBLE_EQUAL(final_sum, (nsize*(-2.0)));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
 {
     constexpr std::size_t vec_size = 6;
