@@ -35,14 +35,15 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         if norm_new_data < 1e-15:
             norm_new_data = 1.0 # to avoid division by zero
 
-        abs_norm = res_norm / np.sqrt(residual.size)
+        abs_norm = res_norm
+        if isinstance(residual,float) == False:
+            abs_norm /= np.sqrt(residual.size) #@phil, not sure what this is doing?
         rel_norm = res_norm / norm_new_data
 
-        is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
-
-        if self.iteration == 1:
-            print("\n\n !!!!!!!!!!!! HARDCODED FAILING ON FIRST ITERATION UNTIL ENERGY CONVERGENCE CRITERIA IS IMPLEMENTED !!!!!!!!!\n\n")
+        if self.ignore_first_convergence and self.iteration == 1:
             is_converged = False
+        else:
+            is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
 
         self.iteration += 1
 
@@ -64,10 +65,6 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
 
         if info_msg != "":
             cs_tools.cs_print_info(self._ClassName(), info_msg)
-
-        if self.iteration == 3:
-            print("\n\n !!!!!!!!!!!! HARDCODED PASS ON SECOND ITERATION UNTIL ENERGY CONVERGENCE CRITERIA IS IMPLEMENTED !!!!!!!!!\n\n")
-            is_converged = True
 
         return is_converged
 

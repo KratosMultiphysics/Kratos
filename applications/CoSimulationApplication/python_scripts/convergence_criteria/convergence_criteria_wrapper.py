@@ -15,20 +15,23 @@ class ConvergenceCriteriaWrapper(object):
     """
     def __init__(self, settings, solver_wrapper):
         self.criteria_composition = settings["criteria_composition"].GetString()
+        self.interface_data = [None]*len(solver_wrapper)
+        for solver_index in range(0,len(solver_wrapper)):
+            self.interface_data[solver_index] = [solver_wrapper[solver_index].GetInterfaceData(settings["data_name"].GetString())]
+            if self.criteria_composition == "energy_conjugate":
+                self.interface_data[solver_index].append(solver_wrapper[solver_index].GetInterfaceData(settings["conjugate_data_name"].GetString()))
 
-
-        #self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
-        self.interface_data = [solver_wrapper.GetInterfaceData(settings["data_name"].GetString())]
-        if self.criteria_composition == "energy_conjugate":
-            self.interface_data.append(solver_wrapper.GetInterfaceData(settings["additional_data_name"].GetString()))
-            print("\n\n\nconjugate\n\n\n")
-
+        if "swap_sign" in settings["criteria_options"].GetStringArray():
+            self.interface_sign = -1.0
+        else:
+            self.interface_sign = 1.0
 
         settings.RemoveValue("data_name")
         settings.RemoveValue("solver")
 
         if not settings.Has("label"):
-            settings.AddEmptyValue("label").SetString(colors.bold('{}.{}'.format(self.interface_data[0].solver_name, self.interface_data[0].name)))
+            settings.AddEmptyValue("label").SetString(colors.bold('{}.{}'.format(self.interface_data[0][0].solver_name,
+                                                                                 self.interface_data[0][0].name)))
 
         self.conv_crit = CreateConvergenceCriterion(settings)
 
@@ -41,10 +44,12 @@ class ConvergenceCriteriaWrapper(object):
     def InitializeSolutionStep(self):
         self.conv_crit.InitializeSolutionStep()
 
+        #TODO not sure how to treat this with potentially multiple solvers
+
         # MPI related - TODO might be better to do one in Initialize, but the InterfaceData is not yet initialized there yet (might be possible in the future)
-        self.executing_rank = (self.interface_data[0].GetModelPart().GetCommunicator().MyPID() == 0)
-        if self.interface_data[0].IsDistributed():
-            self.data_comm = self.interface_data[0].GetModelPart().GetCommunicator().GetDataCommunicator()
+        self.executing_rank = (self.interface_data[0][0].GetModelPart().GetCommunicator().MyPID() == 0)
+        if self.interface_data[0][0].IsDistributed():
+            self.data_comm = self.interface_data[0][0].GetModelPart().GetCommunicator().GetDataCommunicator()
 
     def FinalizeSolutionStep(self):
         self.conv_crit.FinalizeSolutionStep()
@@ -53,7 +58,7 @@ class ConvergenceCriteriaWrapper(object):
         # Saving the previous data for the computation of the residual
         # and the computation of the solution update
 
-        self.input_data = self.GetData()
+        self.input_data = self.GetInterfaceData()
         #self.input_data = self.interface_data[0].GetData()
 
         self.conv_crit.InitializeNonLinearIteration()
@@ -62,11 +67,11 @@ class ConvergenceCriteriaWrapper(object):
         self.conv_crit.FinalizeNonLinearIteration()
 
     def IsConverged(self):
-        current_data = self.GetData()
-        #current_data = self.interface_data.GetData()
+        current_data = self.GetInterfaceData()
         residual = current_data - self.input_data
 
-        if self.interface_data[0].IsDistributed():
+        #TODO not sure how this handles different solvers
+        if self.interface_data[0][0].IsDistributed():
             residual = np.array(np.concatenate(self.data_comm.GathervDoubles(residual, 0)))
             current_data = np.array(np.concatenate(self.data_comm.GathervDoubles(current_data, 0)))
 
@@ -74,7 +79,8 @@ class ConvergenceCriteriaWrapper(object):
         if self.executing_rank:
             is_converged = self.conv_crit.IsConverged(residual, current_data)
 
-        if self.interface_data[0].IsDistributed():
+        #TODO not sure how this handles different solvers
+        if self.interface_data[0][0].IsDistributed():
             is_converged = self.data_comm.Broadcast(is_converged, 0)
 
         return is_converged
@@ -85,19 +91,25 @@ class ConvergenceCriteriaWrapper(object):
     def Check(self):
         self.conv_crit.Check()
 
-    def GetData(self):
-        if self.criteria_composition == "primal":
-            return self.interface_data[0].GetData()
-        elif self.criteria_composition == "energy_conjugate":
-            #check length of data vectors are the same
-            data_1 = self.interface_data[0].GetData()
-            data_2 = self.interface_data[1].GetData()
-            if len(data_1) != len(data_2):
-                self.__RaiseException('Data vector lengths for conjugate criteria composition must be identical but they are different!')
+    def GetInterfaceData(self):
+        result = 0.0
+        for solver_index in range(0,len(self.interface_data)):
+            if self.criteria_composition == "primal":
+                if solver_index == 0:
+                    result = self.interface_data[solver_index][0].GetData()
+                else:
+                    result -= self.interface_sign*self.interface_data[solver_index][0].GetData() #assumes domain_difference
+            elif self.criteria_composition == "energy_conjugate":
+                #check length of data vectors are the same
+                interface_energy = 0.0;
+                data_1 = self.interface_data[solver_index][0].GetData()
+                data_2 = self.interface_data[solver_index][1].GetData()
+                if len(data_1) != len(data_2):
+                    self.__RaiseException('Data vector lengths for conjugate criteria composition must be identical, but they are different!')
+                else:
+                    for i in range(0,len(data_1)):
+                        interface_energy += data_1[i]*data_2[i]
+                result -= self.interface_sign*interface_energy #assumes domain_difference
             else:
-                scalar_data = 0.0
-                for i in range(0,len(data_1)):
-                    scalar_data += data_1[i]*data_2[i]
-                return scalar_data
-        else:
-            self.__RaiseException('Invalid criteria_composition specified in cosim parameters json')
+                self.__RaiseException('Invalid criteria_composition specified in cosim parameters json')
+        return result
