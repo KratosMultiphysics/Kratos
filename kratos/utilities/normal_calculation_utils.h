@@ -187,7 +187,7 @@ public:
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal2D(itCond,An);
+                    CalculateNormal2D(*itCond,An);
             }
         } else if ( Dimension == 3 ) {
             array_1d<double,3> v1(3,0.0);
@@ -195,7 +195,7 @@ public:
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal3D(itCond,An,v1,v2);
+                    CalculateNormal3D(*itCond,An,v1,v2);
             }
         }
 
