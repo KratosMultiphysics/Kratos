@@ -704,16 +704,30 @@ const ModelPart::SubModelPartIterator GetSubModelPartEnd(ModelPart& rModelPart)
     return rModelPart.SubModelPartsEnd();
 }
 
+/** Retrieve the variable names of the entities in the given container.
+ * 
+ * Retrieve the variable names of the entities in `rContainer`. If the
+ * `doFullSearch` is enabled, it will iterate and check all the entities 
+ * in the container. If not enabled it will be assumed that first entity of
+ * the container is representative of the list of variables in every intenty
+ */
 template<class TContainerType>
 const std::unordered_set<std::string> GetNonHistoricalVariables(ModelPart& rModelPart, TContainerType& rContainer, bool doFullSearch=false) {
 
     std::unordered_set<std::string> variable_names;
 
     if(doFullSearch) {
-        for(auto & variable: rContainer.begin()->Data()) {
-            variable_names.insert(variable.first->Name());
+        if(rContainer.size() == 0) {
+            KRATOS_WARNING("DEBUG") << "Checking and empty container" << std::endl;
+        } else {
+            for(auto & variable: rContainer.begin()->Data()) {
+                variable_names.insert(variable.first->Name());
+            }
         }
     } else {
+        if(rContainer.size() == 0) {
+            KRATOS_WARNING("DEBUG") << "Checking and empty container" << std::endl;
+        }
         for(auto & entity : rContainer) {
             for(auto & variable: entity.Data()) {
                 variable_names.insert(variable.first->Name());
