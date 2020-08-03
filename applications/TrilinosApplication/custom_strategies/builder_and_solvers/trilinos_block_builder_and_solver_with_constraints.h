@@ -400,7 +400,7 @@ public:
         BaseType::ResizeAndInitializeVectors(pScheme, rpA, rpDx, rpb, rModelPart);
 
         ConstructMasterSlaveConstraintsStructure(rModelPart);
-        ConstructMasterSlaveConstraintsStructureTranspose(rModelPart);
+        // ConstructMasterSlaveConstraintsStructureTranspose(rModelPart);
         KRATOS_CATCH("")
     }
 
@@ -486,8 +486,8 @@ protected:
             // First we do aux = T'A
             auto start_mod_a_time = std::chrono::steady_clock::now();
             { // To delete aux_mat
-                TSystemMatrixType aux_mat(Copy, mpTt->RowMap(), 0);
-                err = EpetraExt::MatrixMatrix::Multiply(*mpTt, false, rA, false, aux_mat, false);
+                TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
+                err = EpetraExt::MatrixMatrix::Multiply(*mpT, false, rA, false, aux_mat, false);
                 KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(T'*A) not successful !"<<std::endl;
                 aux_mat.FillComplete();
                 { // To delete mod_a
@@ -523,7 +523,7 @@ protected:
         KRATOS_TRY
 
         TSparseSpace::SetToZero(*mpT);
-        TSparseSpace::SetToZero(*mpTt);
+        // TSparseSpace::SetToZero(*mpTt);
         // TSparseSpace::SetToZero(mConstantVector);
 
         // The current process info
@@ -556,7 +556,7 @@ protected:
                 slave_eq_ids_set.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 // Assemble transformation matrix
                 AssembleTMatrixContribution(*mpT, transformation_matrix, slave_equation_ids, master_equation_ids);
-                AssembleTMatrixContribution(*mpTt, transformation_matrix, master_equation_ids, slave_equation_ids);
+                // AssembleTMatrixContribution(*mpTt, transformation_matrix, master_equation_ids, slave_equation_ids);
                 // Assemble the constant vector
                 TSparseSpace::AssembleRHS(*mpConstantVector, constant_vector, slave_equation_ids);
             } else { // Taking into account inactive constraints
@@ -573,15 +573,15 @@ protected:
             if(my_rank == dof.GetSolutionStepValue(PARTITION_INDEX))
                 if(slave_eq_ids_set.count(eq_id)==0){ // Its a master
                     mpT->ReplaceGlobalValues(1, &eq_id, 1, &eq_id, &value);
-                    mpTt->ReplaceGlobalValues(1, &eq_id, 1, &eq_id, &value);
+                    // mpTt->ReplaceGlobalValues(1, &eq_id, 1, &eq_id, &value);
                 }
         }
 
         mpT->GlobalAssemble();
-        mpTt->GlobalAssemble();
+        // mpTt->GlobalAssemble();
 
         TSparseSpace::WriteMatrixMarketMatrix("TMatrix.mm", *mpT, false);
-        TSparseSpace::WriteMatrixMarketMatrix("TtMatrix.mm", *mpTt, false);
+        // TSparseSpace::WriteMatrixMarketMatrix("TtMatrix.mm", *mpTt, false);
 
         KRATOS_CATCH("")
     }
@@ -726,7 +726,7 @@ protected:
                 if(constraint_is_active) {
                     it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
-                    // Slave DoFs
+                    // Master DoFs
                     for (auto &id_i : master_ids) {
                         indices[id_i].insert(slave_ids.begin(), slave_ids.end());
                     }
@@ -757,7 +757,7 @@ protected:
                 std::vector<int> slave_eq_ids(slave_masters_pair.second.begin(), slave_masters_pair.second.end());
 
                 int ierr = t_graph.InsertGlobalIndices(1, &master_eq_id, slave_eq_ids.size(), slave_eq_ids.data());
-                KRATOS_ERROR_IF(ierr < 0)
+                KRATOS_ERROR_IF(ierr != 0)
                     << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
                     << std::endl;
 
@@ -771,14 +771,14 @@ protected:
                 if(indices.count(eq_id) == 0)
                 {
                     int ierr = t_graph.InsertGlobalIndices(1, &eq_id, 1, &eq_id);
-                    KRATOS_ERROR_IF(ierr < 0)
+                    KRATOS_ERROR_IF(ierr != 0)
                         << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
                         << std::endl;
                 }
             }
 
             int ierr = t_graph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0)
+            KRATOS_ERROR_IF(ierr != 0)
                 << ": Epetra failure in Graph.GlobalAssemble. Error code: " << ierr
                 << std::endl;
 
