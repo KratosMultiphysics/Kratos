@@ -104,25 +104,25 @@ public:
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes
      * @param rModelPart The model part to compute
-     * @param EnforceGenericAlgorithm If enforce the generic algorithm
+     * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
      * @tparam TEntity The entity type considered
      */
     template<class TEntity>
     void CalculateNormals(
         ModelPart& rModelPart,
-        const bool EnforceGenericAlgorithm = false
+        const bool EnforceGenericGeometryAlgorithm = false
         );
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes (unit normal version)
      * @param rModelPart The model part to compute
-     * @param EnforceGenericAlgorithm If enforce the generic algorithm
+     * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
      * @tparam TEntity The entity type considered
      */
     template<class TEntity>
     void CalculateUnitNormals(
         ModelPart& rModelPart,
-        const bool EnforceGenericAlgorithm = false
+        const bool EnforceGenericGeometryAlgorithm = false
         );
 
     /**
