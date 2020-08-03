@@ -16,11 +16,7 @@
             {
                 "type"          : "relative_norm_previous_residual",
                 "solver"        : "domainA",
-                "criteria_composition" : "energy_conjugate",
-                "criteria_options" : ["domain_difference"],
                 "data_name"     : "disp",
-                "additional_data_name" : "load",
-                "additional_solver" : "domainB",
                 "abs_tolerance" : 1e-5,
                 "rel_tolerance" : 1e-5
             }
@@ -68,7 +64,7 @@
 					"mapper_type": "coupling_geometry",
 					"echo_level" : 5,
 					"dual_mortar": true,
-					"consistency_scaling" : false,
+					"consistency_scaling" : true,
 					"modeler_name" : "MappingGeometriesModeler",
 					"modeler_parameters":{
 						"debug_define_coupling_conditions_in_python" : false,

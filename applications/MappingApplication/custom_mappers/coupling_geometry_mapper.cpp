@@ -223,11 +223,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
 {
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    std::cout << "\n================ Map ===================="
-        << "\n\tBEFORE MAPPING"
-        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-        << "\n";
+    //std::cout << "\n================ Map ===================="
+    //    << "\n\tBEFORE MAPPING"
+    //    << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+    //    << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+    //    << "\n";
 
     TSparseSpace::Mult(
         *mpMappingMatrix,
@@ -238,10 +238,10 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
 
     mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 
-    std::cout << "\n\tAFTER MAPPING"
-        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-        << "\n";
+    //std::cout << "\n\tAFTER MAPPING"
+    //    << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+    //    << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+    //    << "\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -252,11 +252,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 {
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
-    std::cout << "\n================ Inverse Map ===================="
-        << "\n\tBEFORE MAPPING"
-        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-        << "\n";
+    //std::cout << "\n================ Inverse Map ===================="
+    //    << "\n\tBEFORE MAPPING"
+    //    << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+    //    << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+    //    << "\n";
 
     TSparseSpace::TransposeMult(
         *mpMappingMatrix,
@@ -267,10 +267,10 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 
-    std::cout << "\n\tAFTER MAPPING"
-        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-        << "\n";
+    //std::cout << "\n\tAFTER MAPPING"
+    //    << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
+    //    << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
+    //    << "\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -300,18 +300,18 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
         MapInternalTranspose(var_origin, var_destination, MappingOptions);
     }
 
-    std::cout << "\n Printing conditions in coupling MP -> origin interface directly after inverse map\n";
-    for (auto& cond : mpCouplingInterfaceOrigin->Conditions())
-    {
-        std::cout << cond.Info() << "\n";
-        for (auto& nodes:cond.GetGeometry())
-        {
-            std::cout << "\tnode " << nodes.Id()
-                << "\n\t\tX = " << nodes.X()
-                << "\n\t\tY = " << nodes.Y()
-                << "\n\t\tPoint load = " << nodes.GetSolutionStepValue(rOriginVariable) << std::endl;
-        }
-    }
+    //std::cout << "\n Printing conditions in coupling MP -> origin interface directly after inverse map\n";
+    //for (auto& cond : mpCouplingInterfaceOrigin->Conditions())
+    //{
+    //    std::cout << cond.Info() << "\n";
+    //    for (auto& nodes:cond.GetGeometry())
+    //    {
+    //        std::cout << "\tnode " << nodes.Id()
+    //            << "\n\t\tX = " << nodes.X()
+    //            << "\n\t\tY = " << nodes.Y()
+    //            << "\n\t\tPoint load = " << nodes.GetSolutionStepValue(rOriginVariable) << std::endl;
+    //    }
+    //}
 }
 
 template<class TSparseSpace, class TDenseSpace>

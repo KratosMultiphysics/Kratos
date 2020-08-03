@@ -15,6 +15,10 @@ class CoSimulationConvergenceCriteria(object):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
 
+        #TODO add checks:
+        # if energy_conjugate, then 'additional_data_name' != UNSPECIFIED
+        # if domain_difference, then additional_solver != UNSPECIFIED
+
         self.echo_level = self.settings["echo_level"].GetInt()
 
 
@@ -55,5 +59,9 @@ class CoSimulationConvergenceCriteria(object):
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",
             "data_name"  : "UNSPECIFIED",
+            "criteria_composition" : "primal",
+            "criteria_options" : [],
+            "additional_data_name" : "UNSPECIFIED",
+            "additional_solver" : "UNSPECIFIED",
             "echo_level" : 0
         }""")

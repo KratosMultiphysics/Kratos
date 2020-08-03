@@ -337,7 +337,7 @@ private:
         for (size_t row = 0; row < mpMappingMatrix->size1(); ++row) {
             double row_sum = 0.0;
             for (size_t col = 0; col < mpMappingMatrix->size2(); ++col) row_sum += (*mpMappingMatrix)(row, col);
-            if (std::abs(row_sum - 1.0) > 1e-6) {
+            if (std::abs(row_sum - 1.0) > 1e-12) {
                 KRATOS_WATCH(*mpMappingMatrix)
                 KRATOS_WATCH(row_sum)
                 KRATOS_ERROR << "mapping matrix is not consistent\n";
