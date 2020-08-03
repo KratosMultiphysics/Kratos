@@ -466,8 +466,8 @@ protected:
             {// To be able to clear res_b automatically.
                 TSystemVectorType res_b(rb.Map());
                 const double zero = 0.0;
-                // TSparseSpace::TransposeMult(*mpT, rb, res_b);
-                TSparseSpace::Mult(*mpTt, rb, res_b);
+                TSparseSpace::TransposeMult(*mpT, rb, res_b);
+                // TSparseSpace::Mult(*mpTt, rb, res_b);
                 res_b.GlobalAssemble();
                 // Apply diagonal values on slaves
                 for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
@@ -579,7 +579,7 @@ protected:
 
         mpT->GlobalAssemble();
         mpTt->GlobalAssemble();
- 
+
         KRATOS_CATCH("")
     }
 
