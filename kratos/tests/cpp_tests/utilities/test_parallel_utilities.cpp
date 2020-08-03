@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Philipp Bucher
 
 #include <utility>
 #include <numeric>
@@ -82,14 +83,86 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
         KRATOS_CHECK_EQUAL(output[i], -2.0 );
 }
 
+KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuite)
+{
+    // In this example we use a non thread safe search structure
+    //In order to use in a parallel context we need to create a search structure
+    //for each thread. This is done with the use of TLS
+    struct LocalSearch
+    {
+      public:
+        explicit LocalSearch(const std::vector<double>& rPoints) : mPoints(rPoints) {}
+
+        // the TLS is created using the copy constructor
+        // hence we implement the initialization of the
+        // search structure in the copy constructor
+        LocalSearch(const LocalSearch& rSearchPrototype) : mPoints(rSearchPrototype.mPoints)
+        {
+            // here we initalize the search structure
+            // this is a potentially expensive operation!
+            // e.g.
+            // mBins = BinsDynamicSearch(...)
+            // as this is a very basic example we don't do anything
+        }
+
+        double GetIndexOfClosestPoint(const double Coord)
+        {
+            // alternatively the initialization of the search structure
+            // could be done the first time this function is called
+
+            std::size_t closest_index = 0;
+            double closest_distance = std::abs(mPoints[0] - Coord);
+
+            for (std::size_t i=1; i<mPoints.size(); ++i) {
+                double cur_dist = std::abs(mPoints[i] - Coord);
+                if (std::abs(mPoints[i] - Coord) < closest_distance) {
+                    closest_index = i;
+                    closest_distance = cur_dist;
+                }
+            }
+            return closest_index;
+        }
+
+      private:
+        std::vector<double> mPoints;
+    };
+
+    std::vector<double> point_coords {0.0, 1.0, 2.0, 3.0, 4.0, 5.0};
+
+    constexpr std::size_t n_seach_points = 10e2;
+
+    std::vector<double> search_point_coords (n_seach_points);
+    std::vector<std::size_t> exp_results (n_seach_points);
+
+    for (std::size_t i=0; i<n_seach_points; ++i) {
+        search_point_coords[i] = i%6 + 0.2;
+        exp_results[i] = i%6;
+    }
+
+    std::vector<std::size_t> results(search_point_coords.size());
+
+    IndexPartition<unsigned int>(search_point_coords.size()).for_each(LocalSearch(point_coords),
+        [&search_point_coords, &results](unsigned int i, LocalSearch& rLocalSearch){
+            results[i] = rLocalSearch.GetIndexOfClosestPoint(search_point_coords[i]);
+        }
+    );
+
+    KRATOS_CHECK_EQUAL(results.size(), exp_results.size());
+    for (std::size_t i=0; i<results.size(); ++i) {
+        KRATOS_CHECK_EQUAL(results[i], exp_results[i]);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
 {
     constexpr std::size_t vec_size = 6;
+    constexpr std::size_t n_elems = 10e2;
+    constexpr double tol = 1e-8;
 
     class RHSElement
     {
       public:
-        RHSElement(const double Val) : mRHSVal(Val) {}
+        explicit RHSElement(const double Val) : mRHSVal(Val) {}
         void CalculateRHS(std::vector<double>& rVector)
         {
             if (rVector.size() != vec_size) { rVector.resize(vec_size); }
@@ -103,7 +176,10 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
         double mAccumRHSValue = 0.0;
     };
 
-    std::vector<double> rhs_vals {1.1, 2.2, 3.3, 5.7};
+    std::vector<double> rhs_vals(n_elems);
+    for (std::size_t i=0; i<n_elems; ++i) {
+        rhs_vals[i] = (i%12) * 1.889;
+    }
 
     std::vector<RHSElement> elements;
     for (std::size_t i=0; i<rhs_vals.size(); ++i) {
@@ -135,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
         return acc + rElem.GetAccumRHSValue();
     });
 
-    KRATOS_CHECK_NEAR(sum_elem_rhs_vals, exp_sum, 1E-12);
+    KRATOS_CHECK_NEAR(sum_elem_rhs_vals, exp_sum, tol);
 
 
     // Manual Reduction, short form
@@ -147,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
         return acc + rElem.GetAccumRHSValue();
     });
 
-    KRATOS_CHECK_NEAR(sum_elem_rhs_vals_short, exp_sum, 1E-12);
+    KRATOS_CHECK_NEAR(sum_elem_rhs_vals_short, exp_sum, tol);
 
 
     // Reduction, long form
@@ -156,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     std::vector<double> tls(6);
     const double final_sum = BlockPartition<std::vector<RHSElement>>(elements).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
 
-    KRATOS_CHECK_NEAR(final_sum, exp_sum, 1E-12);
+    KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 
 
     // Reduction, short form
@@ -165,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     std::vector<double> tls_short(6);
     const double final_sum_short = block_for_each<SumReduction<double>>(elements, tls_short, tls_lambda_reduction);
 
-    KRATOS_CHECK_NEAR(final_sum_short, exp_sum, 1E-12);
+    KRATOS_CHECK_NEAR(final_sum_short, exp_sum, tol);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
