@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 
 import os
 import math
+import time
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -14,13 +15,18 @@ if dependencies_are_available:
 # Importing testing utilities
 import KratosMultiphysics.testing.utilities as testing_utilities
 
-# DEBUG
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
+## DEBUG
+#from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestNormalUtilsMPI(KratosUnittest.TestCase):
+
+    def tearDown(self):
+        # Clean up temporary files
+        KratosUtils.DeleteFileIfExisting(GetFilePath("aux_model_part_with_skin.out.mdpa"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("aux_model_part_with_skin.out.time"))
 
     @KratosUnittest.skipUnless(dependencies_are_available, "MetisApplication is not available")
     def test_ComputeSimplexNormalModelPartMPI(self):
@@ -29,17 +35,21 @@ class TestNormalUtilsMPI(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        domain_size = 3
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = domain_size
 
-        testing_utilities.ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"), model_part)
+        comm = KratosMultiphysics.DataCommunicator.GetDefault()
+        if comm.Rank() == 0:
+            self._generate_mdpa_skin(current_model, GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
+        while not os.path.exists(GetFilePath("aux_model_part_with_skin.out.mdpa")):
+            time.sleep(0.1)
+        testing_utilities.ReadModelPart(GetFilePath("aux_model_part_with_skin.out"), model_part)
 
-        detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
-        detect_skin.Execute()
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(model_part, domain_size)
 
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(model_part.Conditions, 3)
-
-        ## DEBUG
-        self._post_process(model_part)
+        #### DEBUG
+        ##self._post_process(model_part, comm.Rank())
 
         for node in model_part.GetSubModelPart("Skin_Part").Nodes:
             normal = []
@@ -55,9 +65,18 @@ class TestNormalUtilsMPI(KratosUnittest.TestCase):
             residual = math.sqrt((solution_normal[0]-normal[0])**2+(solution_normal[1]-normal[1])**2+(solution_normal[2]-normal[2])**2)
             self.assertLess(residual, 0.15)
 
-    def _post_process(self, model_part):
+    def _generate_mdpa_skin(self, current_model, fileName):
+        model_part = current_model.CreateModelPart("AuxMain")
+        model_part_io = KratosMultiphysics.ModelPartIO(fileName)
+        model_part_io.ReadModelPart(model_part)
+        detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
+        detect_skin.Execute()
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("aux_model_part_with_skin.out"), KratosMultiphysics.IO.WRITE)
+        model_part_io.WriteModelPart(model_part)
+
+    def _post_process(self, model_part, rank = 0):
         gid_output = GiDOutputProcess(model_part,
-                                    "gid_output",
+                                    "gid_output_" + str(rank),
                                     KratosMultiphysics.Parameters("""
                                         {
                                             "result_file_configuration" : {
@@ -67,7 +86,7 @@ class TestNormalUtilsMPI(KratosUnittest.TestCase):
                                                     "WriteConditionsFlag": "WriteConditions",
                                                     "MultiFileFlag": "SingleFile"
                                                 },
-                                                "nodal_results" : ["NORMAL"]
+                                                "nodal_results" : ["NORMAL","PARTITION_INDEX"]
                                             }
                                         }
                                         """)
