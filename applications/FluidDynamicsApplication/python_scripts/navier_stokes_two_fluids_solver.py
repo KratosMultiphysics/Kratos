@@ -219,13 +219,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Start re-distancing")
         self.parallel_distance_process = self._set_parallel_distance_process()
-        layers = int(2000/100000*self.main_model_part.NumberOfElements())
+        layers = int(1000/100000*self.main_model_part.NumberOfElements())
         (self.parallel_distance_process).CalculateDistances(
                     self.main_model_part, 
                     KratosMultiphysics.DISTANCE, 
                     KratosCFD.AREA_VARIABLE_AUX, 
                     layers, 
-                    0.01,
+                    1.0e-1,
                     (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Re-distancing is finished")
 
@@ -255,7 +255,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, non_eikonal_distance", it_number)
         
         self.surface_smoothing_process = self._set_surface_smoothing_process()
-        #(self.distance_gradient_process).Execute()
+        #(self.distance_gradient_process).Execute() See above
 
         print("Smoothing")
         print(time.time())
@@ -354,27 +354,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if (TimeStep % 50 == 0):
                 print("Redistancing")
                 print(time.time())
-                layers = int(100/100000*self.main_model_part.NumberOfElements())
+                layers = int(500/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part, 
                     KratosMultiphysics.DISTANCE, 
                     KratosCFD.AREA_VARIABLE_AUX, 
                     layers, 
-                    0.01)#,
+                    1.0e-3)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
                 print(time.time())
 
-            # Smoothing the surface to filter oscillatory surface
-            (self.distance_gradient_process).Execute()
-            print("Smoothing")
-            print(time.time())
-            (self.surface_smoothing_process).Execute()
-            print(time.time())
-            for node in self.main_model_part.Nodes:
-                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
-            #it_number=self.linear_solver.GetIterationsNumber()
-            #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
+            #################
+            ##
+            ## Previous smoothing potision
+            ##
+            #################
 
             print("Level-set")
             print(time.time())
@@ -392,7 +386,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
                     node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, 
                         velocity )
-                        #velocityOld )
+                #        #velocityOld )
                     node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 
                         velocity )
                         #0.5 * (velocity + velocityOld) )
@@ -449,11 +443,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #    it_number=self.linear_solver.GetIterationsNumber()
             #    KratosMultiphysics.Logger.PrintInfo("number of ls iterations, non_eikonal_distance", it_number)
 
-            #################
-            ##
-            ## Previous smoothing potision
-            ##
-            #################
+            # Smoothing the surface to filter oscillatory surface
+            (self.distance_gradient_process).Execute()
+            print("Smoothing")
+            print(time.time())
+            (self.surface_smoothing_process).Execute()
+            print(time.time())
+            for node in self.main_model_part.Nodes:
+                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            #it_number=self.linear_solver.GetIterationsNumber()
+            #KratosMultiphysics.Logger.PrintInfo("number of ls iterations, surface_smoothing_process", it_number)
 
             #Slightly modify distance to prevent small-cut difficulties
             #(self.distance_modification_process).Execute()
@@ -488,14 +488,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            XPlusMin = 0.005
+            XPlusMin = 2.0e-3
             XMinusMin = 0.0
             DistPlusMin = 1.0e5
             DistMinusMin = -1.0e5
             XZeroMin = (XPlusMin + XMinusMin) / 2.0
 
-            XPlusMax = 0.01
-            XMinusMax = 0.005
+            XPlusMax = 4.0e-3
+            XMinusMax = 2.0e-3
             DistPlusMax = 1.0e5
             DistMinusMax = -1.0e5
             XZeroMax = (XPlusMax + XMinusMax) / 2.0
@@ -503,22 +503,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             for node in self.main_model_part.Nodes:
                 NodeY = node.Y
                 NodeZ = node.Z
-                if (abs(NodeY - 0.005) < 1.0e-6 and abs(NodeZ - 0.0) < 1.0e-6):
+                if (abs(NodeY - 2.0e-3) < 1.0e-6 and abs(NodeZ - 0.0) < 1.0e-6):
                     NodeX = node.X
-                    if (NodeX < 0.005):
+                    if (NodeX <= 2.0e-3):
                         Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (Dist >= 0.0 and Dist < DistPlusMin):
+                        if (Dist >= 0.0 and Dist <= DistPlusMin):
                             DistPlusMin = Dist
                             XPlusMin = NodeX
-                        if (Dist <= 0.0 and Dist > DistMinusMin):
+                        if (Dist <= 0.0 and Dist >= DistMinusMin):
                             DistMinusMin = Dist
                             XMinusMin = NodeX
-                    else: #if (NodeX > 0.005):
+                    if (NodeX >= 2.0e-3):
                         Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (Dist >= 0.0 and Dist < DistPlusMax):
+                        if (Dist >= 0.0 and Dist <= DistPlusMax):
                             DistPlusMax = Dist
                             XPlusMax = NodeX
-                        if (Dist <= 0.0 and Dist > DistMinusMax):
+                        if (Dist <= 0.0 and Dist >= DistMinusMax):
                             DistMinusMax = Dist
                             XMinusMax = NodeX
 
