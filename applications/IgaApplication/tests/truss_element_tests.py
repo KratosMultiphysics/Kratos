@@ -23,7 +23,7 @@ class TrussElementTests(KratosUnittest.TestCase):
         # create property for truss elements
         truss_properties = model_part.GetProperties()[1]
         truss_properties.SetValue(IGA.CROSS_AREA      , 0.01  )
-        truss_properties.SetValue(IGA.PRESTRESS_CAUCHY, 0     )
+        truss_properties.SetValue(IGA.TRUSS_PRESTRESS_CAUCHY, 0     )
         truss_properties.SetValue(KM.YOUNG_MODULUS   , 210000)
         truss_properties.SetValue(KM.POISSON_RATIO   , 0     )
         truss_properties.SetValue(KM.DENSITY         , 7856  )
