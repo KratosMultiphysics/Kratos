@@ -15,6 +15,26 @@ class NearestNeighborBasicTestsLine(basic_mapper_tests.BasicMapperTests):
         }""")
         super().setUpMapper(mapper_params)
 
+class NearestNeighborBasicTestsLineInitialConfig(basic_mapper_tests.BasicMapperTests):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "interface_submodel_part_origin": "line_tri",
+            "interface_submodel_part_destination": "line_quad",
+            "use_initial_configuration" : true,
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        for node in cls.model_part_origin.Nodes:
+            node.X = node.X + 111.1
+            node.Y = node.Y - 693.1
+            node.Z = node.Z + 15698
+
+    def _GetFileName(self, file_appendix):
+        file_name = super()._GetFileName(file_appendix)
+        return file_name.replace("InitialConfig", "")
+
 class NearestNeighborBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
