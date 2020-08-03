@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
