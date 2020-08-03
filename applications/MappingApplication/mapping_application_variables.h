@@ -24,8 +24,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "includes/kratos_application.h"
-// #include "custom_utilities/mapper_interface_info.h"
 
 namespace Kratos
 {
@@ -34,4 +32,4 @@ namespace Kratos
     KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( MAPPING_APPLICATION, CURRENT_COORDINATES )
 }
 
-#endif	/* KRATOS_MAPPING_APPLICATION_VARIABLES_H_INCLUDED */
+#endif //KRATOS_MAPPING_APPLICATION_VARIABLES_H_INCLUDED
