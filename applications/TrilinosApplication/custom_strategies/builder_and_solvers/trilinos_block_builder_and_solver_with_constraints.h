@@ -486,7 +486,7 @@ protected:
             // First we do aux = T'A
             auto start_mod_a_time = std::chrono::steady_clock::now();
             { // To delete aux_mat
-                TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
+                TSystemMatrixType aux_mat(Copy, mpTt->RowMap(), 0);
                 err = EpetraExt::MatrixMatrix::Multiply(*mpTt, false, rA, false, aux_mat, false);
                 KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(T'*A) not successful !"<<std::endl;
                 aux_mat.FillComplete();
