@@ -243,12 +243,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement);
         rSerializer.save("ReferenceBaseVector", mReferenceBaseVector);
     }
-    void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement);
         rSerializer.load("ReferenceBaseVector", mReferenceBaseVector);
