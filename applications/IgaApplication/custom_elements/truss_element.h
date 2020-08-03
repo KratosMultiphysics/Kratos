@@ -219,7 +219,11 @@ private:
     /// Computes Green Lagrange Strain for all integration points
     void CalculateGreenLagrangeStrain(Vector& rGreenLagrangeVector) const;
 
-    Vector ComputeTangentModulus(const ProcessInfo& rCurrentProcessInfo);
+    void CalculateTangentModulus(Vector& rTangentModulusVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    /// Computes prestress
+    double CalculatePrestress() const;
 
     ///@}
     ///@name Serialization
