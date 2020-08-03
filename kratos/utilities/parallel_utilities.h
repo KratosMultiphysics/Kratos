@@ -116,9 +116,10 @@ public:
         return global_reducer.GetValue();
     }
 
-    /** @brief loop with thread local storage. f called on every entry in rData
+    /** @brief loop with thread local storage (TLS). f called on every entry in rData
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
+     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TThreadLocalStorage, class TFunction>
     inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
@@ -139,11 +140,12 @@ public:
         }
     }
 
-    /** @brief loop with thread local storage allowing reductions. f called on every entry in rData
+    /** @brief loop with thread local storage (TLS) allowing reductions. f called on every entry in rData
      * the function f needs to return the values to be used by the reducer
      * @param TReducer template parameter specifying the reduction operation to be done
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
+     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
     inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
@@ -195,10 +197,11 @@ typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &
         (std::forward<TContainerType>(v)).template for_each<TReducer>(std::forward<TFunctionType>(func));
 }
 
-/** @brief simplified version of the basic loop with thread local storage to enable template type deduction
+/** @brief simplified version of the basic loop with thread local storage (TLS) to enable template type deduction
  * @param v - containers to be looped upon
  * @param tls - thread local storage
  * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ * Note: TLS is passed by value to make construction on the fly possible
  */
 template <class TContainerType, class TThreadLocalStorage, class TFunctionType>
 void block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
@@ -206,10 +209,11 @@ void block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunction
     BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(tls, std::forward<TFunctionType>(func));
 }
 
-/** @brief simplified version of the basic loop with reduction and thread local storage to enable template type deduction
+/** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
  * @param v - containers to be looped upon
  * @param tls - thread local storage
  * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ * Note: TLS is passed by value to make construction on the fly possible
  */
 template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
 typename TReducer::value_type block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
@@ -316,9 +320,10 @@ public:
     }
 
 
-    /** @brief loop with thread local storage. f called on every entry in rData
+    /** @brief loop with thread local storage (TLS). f called on every entry in rData
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input IndexType and the thread local storage
+     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TThreadLocalStorage, class TFunction>
     inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
@@ -339,11 +344,12 @@ public:
         }
     }
 
-    /** version with reduction and thread local storage to be called for each index in the partition
+    /** version with reduction and thread local storage (TLS) to be called for each index in the partition
      * function f is expected to return the values to be reduced
      * @param TReducer - template parameter specifying the type of reducer to be applied
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input IndexType and the thread local storage
+     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
     inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
