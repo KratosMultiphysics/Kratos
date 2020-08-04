@@ -174,6 +174,9 @@ public:
         const bool ComputeLeftHandSide,
         const bool ComputeRightHandSide);
 
+    /// Updates the constitutive law
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Output functions
     ///@{
