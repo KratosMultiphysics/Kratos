@@ -718,7 +718,8 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
     const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
+
+    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
         Vector stress = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
@@ -748,17 +749,28 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
 
-            Matrix material_tangent_modulus = ZeroMatrix(dimension);
-            MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
 
-            if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
-                Vector principal_stresses = ZeroVector(2);
-                PrincipalVector(principal_stresses,stress);
-                rOutput[point_number] = principal_stresses;
-            }  else {
-                rOutput[point_number] = stress;
+            if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+                    Vector strain_vector = ZeroVector(3);
+                    StrainGreenLagrange(strain_vector,covariant_metric_reference,
+                    covariant_metric_current,inplane_transformation_matrix_material);
+                    strain_vector[2] /= 2.0;
+                    rOutput[point_number] = strain_vector;
             }
+            else {
+                Matrix material_tangent_modulus = ZeroMatrix(dimension);
+                MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
+                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+
+                if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
+                    Vector principal_stresses = ZeroVector(2);
+                    PrincipalVector(principal_stresses,stress);
+                    rOutput[point_number] = principal_stresses;
+                }  else {
+                    rOutput[point_number] = stress;
+                }
+            }
+
         }
 
     }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
