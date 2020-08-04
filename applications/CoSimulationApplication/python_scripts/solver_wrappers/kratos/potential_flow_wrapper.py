@@ -13,8 +13,8 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_forces_on_n
 from KratosMultiphysics.CompressiblePotentialFlowApplication.define_wake_process_2d import DefineWakeProcess2D
 from KratosMultiphysics.CompressiblePotentialFlowApplication.compute_lift_process import ComputeLiftProcess
 
-def Create(settings, solver_name):
-    return PotentialFlowWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return PotentialFlowWrapper(settings, model, solver_name)
 
 class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def _CreateAnalysisStage(self):

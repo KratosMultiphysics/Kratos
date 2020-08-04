@@ -1,5 +1,5 @@
 from KratosMultiphysics.CoSimulationApplication.factories import base_factory
 
-def CreateSolverWrapper(settings, solver_name):
+def CreateSolverWrapper(settings, models, solver_name):
     """This function creates and returns the Wrapper for the Solver used for CoSimulation"""
-    return base_factory.Create(settings, [solver_name], "KratosMultiphysics.CoSimulationApplication")
+    return base_factory.Create(settings, [models, solver_name], "KratosMultiphysics.CoSimulationApplication")
