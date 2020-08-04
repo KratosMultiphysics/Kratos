@@ -3,14 +3,14 @@
     {
         "start_time" : 0.0,
         "end_time" : 1.0,
-        "echo_level" : 5,
+        "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_strong",
-        "echo_level" : 5,
+        "echo_level" : 0,
         "num_coupling_iterations" : 20,
         "convergence_criteria" : [
             {
@@ -31,7 +31,7 @@
                 "type" : "kratos_mapping",
 					"mapper_settings" : {
 					"mapper_type": "coupling_geometry",
-					"echo_level" : 5,
+					"echo_level" : 0,
 					"dual_mortar": true,
 					"consistency_scaling" : true,
 					"modeler_name" : "MappingGeometriesModeler",
@@ -79,7 +79,7 @@
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "ProjectParametersB"
+                    "input_file"  : "fem_fem/small_2d_plate/ProjectParametersB"
                 },
                 "data" : {
                     "disp" : {
@@ -98,7 +98,7 @@
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
                 "solver_wrapper_settings" : {
-                    "input_file"  : "ProjectParametersA"
+                    "input_file"  : "fem_fem/small_2d_plate/ProjectParametersA"
                 },
                 "data" : {
                     "disp" : {

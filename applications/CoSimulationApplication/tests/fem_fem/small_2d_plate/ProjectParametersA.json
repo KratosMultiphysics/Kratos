@@ -2,7 +2,7 @@
     "problem_data"     : {
         "problem_name"  : "fem_fem_test_domainA",
         "parallel_type" : "OpenMP",
-        "echo_level"    : 1,
+        "echo_level"    : 0,
         "start_time"    : 0.0,
         "end_time"      : 1.0
     },
@@ -14,10 +14,10 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "fem_fem_test_domainA"
+            "input_filename" : "fem_fem/small_2d_plate/fem_fem_test_domainA"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "fem_fem/small_2d_plate/StructuralMaterials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -61,7 +61,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT","POINT_LOAD","REACTION"],
-                "input_file_name"  : "fem_fem_test_domainA_results.json",
+                "input_file_name"  : "fem_fem/small_2d_plate/fem_fem_test_domainA_results.json",
                 "model_part_name"  : "Structure",
                 "time_frequency"   : 1.0
             }
