@@ -462,8 +462,11 @@ protected:
             // START : Create transpose of T
                 auto transposer = Epetra_RowMatrixTransposer(mpT.get());
                 transposer.CreateTranspose(false, mpTt);
-
             // END : Create transpose of T
+            // Degug write
+            TSparseSpace::WriteMatrixMarketMatrix("TMatrix.mm", *mpT, false);
+            TSparseSpace::WriteMatrixMarketMatrix("TtMatrix.mm", *mpTt, false);
+
             auto end_build_ms_time = std::chrono::steady_clock::now();
             KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
                     <<"Build Master-Slave constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_ms_time - start_build_ms_time).count()/1000.0 <<" s"<<std::endl;
@@ -580,8 +583,6 @@ protected:
         }
 
         mpT->GlobalAssemble();
-
-        TSparseSpace::WriteMatrixMarketMatrix("TMatrix.mm", *mpT, false);
 
         KRATOS_CATCH("")
     }
