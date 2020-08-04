@@ -17,7 +17,7 @@
                 "type"          : "absolute_norm_residual",
                 "solver"        : "fem_fem_test_domainA",
                 "criteria_composition" : "energy_conjugate",
-                "criteria_options" : ["domain_difference","swap_sign"],
+                "criteria_options" : ["domain_difference","swap_second_domain_data_sign"],
                 "data_name"     : "disp",
                 "conjugate_data_name" : "load",
                 "solver_domain_two" : "fem_fem_test_domainB",
