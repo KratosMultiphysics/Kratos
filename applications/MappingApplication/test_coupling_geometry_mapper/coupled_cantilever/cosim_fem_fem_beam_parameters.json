@@ -72,7 +72,6 @@
 					"consistency_scaling" : false,
 					"modeler_name" : "MappingGeometriesModeler",
 					"modeler_parameters":{
-						"debug_define_coupling_conditions_in_python" : false,
 						"origin_model_part_name" : "origin",
 						"destination_model_part_name" : "destination",
 						"is_interface_sub_model_parts_specified" : true,

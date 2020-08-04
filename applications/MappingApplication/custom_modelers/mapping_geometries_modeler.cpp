@@ -22,16 +22,6 @@ namespace Kratos
     {
         CheckParameters();
 
-        //const std::string origin_model_part_name = mParameters["origin_model_part_name"].GetString();
-        //ModelPart& origin_model_part = (mpModels[0]->HasModelPart(origin_model_part_name))
-        //    ? mpModels[0]->GetModelPart(origin_model_part_name)
-        //    : mpModels[0]->CreateModelPart(origin_model_part_name);
-        //
-        //const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
-        //ModelPart& destination_model_part = (mpModels.back()->HasModelPart(destination_model_part_name))
-        //    ? mpModels.back()->GetModelPart(destination_model_part_name)
-        //    : mpModels.back()->CreateModelPart(destination_model_part_name);
-
         ModelPart& coupling_model_part = (mpModels[0]->HasModelPart("coupling"))
             ? mpModels[0]->GetModelPart("coupling")
             : mpModels[0]->CreateModelPart("coupling");
@@ -54,39 +44,17 @@ namespace Kratos
         }
 
 
-        if (!mParameters["debug_define_coupling_conditions_in_python"].GetBool())
+
+        // create coupling conditions on interface depending on the dimension
+        const IndexType dim = 2;
+        if (dim == 2)
         {
-            std::cout << "\n\n================== MAPPING GEOMS MODELER - HARD CODING CONDITIONS FOR TESTING\n" << std::endl;
-            KRATOS_ERROR_IF_NOT(mpModels[0]->HasModelPart(origin_interface_sub_model_part_name)) << "ModelPart not present in Model\n";
-            ModelPart& origin_interface_hard_code = mpModels[0]->GetModelPart(origin_interface_sub_model_part_name);
-            origin_interface_hard_code.CreateSubModelPart("coupling_conditions");
-            ModelPart& origin_coupling_conditions = origin_interface_hard_code.GetSubModelPart("coupling_conditions");
-            int nodeOffset = 327;
-            for (size_t i = 1; i < 6; i++) {
-                Geometry<GeometricalObject::NodeType>::PointsArrayType points;
-                points.push_back(origin_interface_hard_code.pGetNode(nodeOffset + i));
-                points.push_back(origin_interface_hard_code.pGetNode(nodeOffset + i + 1));
-                origin_coupling_conditions.CreateNewCondition("LineCondition2D2N", i + 1000, points, origin_interface_hard_code.pGetProperties(0));
-            }
-
-            ModelPart& dest_interface_hard_code = mpModels[1]->GetModelPart(destination_interface_sub_model_part_name);
-            dest_interface_hard_code.CreateSubModelPart("coupling_conditions");
-            ModelPart& dest_coupling_conditions = dest_interface_hard_code.GetSubModelPart("coupling_conditions");
-            Geometry<GeometricalObject::NodeType>::PointsArrayType points;
-            points.push_back(dest_interface_hard_code.pGetNode(1));
-            points.push_back(dest_interface_hard_code.pGetNode(3));
-            dest_coupling_conditions.CreateNewCondition("LineCondition2D2N", 2001, points, dest_interface_hard_code.pGetProperties(0));
-            points.clear();
-
-            points.push_back(dest_interface_hard_code.pGetNode(3));
-            points.push_back(dest_interface_hard_code.pGetNode(6));
-            dest_coupling_conditions.CreateNewCondition("LineCondition2D2N", 2002, points, dest_interface_hard_code.pGetProperties(0));
-            points.clear();
-
-            points.push_back(dest_interface_hard_code.pGetNode(6));
-            points.push_back(dest_interface_hard_code.pGetNode(10));
-            dest_coupling_conditions.CreateNewCondition("LineCondition2D2N", 2003, points, dest_interface_hard_code.pGetProperties(0));
-            points.clear();
+            CreateInterfaceLineCouplingConditions(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
+            CreateInterfaceLineCouplingConditions(mpModels.back()->GetModelPart(destination_interface_sub_model_part_name));
+        }
+        else
+        {
+            KRATOS_ERROR << "Not implemented yet" << std::endl;
         }
 
 
@@ -146,6 +114,71 @@ namespace Kratos
 
             KRATOS_ERROR_IF_NOT(mParameters.Has("destination_interface_sub_model_part_name"))
                 << "Missing \"destination_interface_sub_model_part_name\" in MappingGeometriesModeler Parameters." << std::endl;
+        }
+    }
+
+    void MappingGeometriesModeler::CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart)
+    {
+        rInterfaceModelPart.CreateSubModelPart("coupling_conditions");
+        ModelPart& coupling_conditions = rInterfaceModelPart.GetSubModelPart("coupling_conditions");
+        const ModelPart& root_mp = rInterfaceModelPart.GetRootModelPart();
+
+        IndexType interface_node_id;
+        IndexType trial_interface_node_id;
+        IndexType trial_geom_node_id;
+
+        // Determine next condition number
+        IndexType condition_id = (root_mp.NumberOfConditions() == 0)
+            ? 1 : (root_mp.ConditionsEnd() - 1)->Id() + 1;
+
+        for (size_t node_index = 0; node_index < rInterfaceModelPart.NumberOfNodes() - 1; ++node_index)
+        {
+            interface_node_id = (rInterfaceModelPart.NodesBegin() + node_index)->Id();
+            IndexType ele_id;
+            std::vector< GeometryPointerType> p_geom_vec;
+            for (auto& ele_it: root_mp.Elements())
+            {
+                auto p_geom = ele_it.pGetGeometry();
+                for (size_t i = 0; i < p_geom->size(); i++)
+                {
+                    if ((*p_geom)[i].Id() == interface_node_id)
+                    {
+                        p_geom_vec.push_back(p_geom);
+                        ele_id = ele_it.Id();
+                    }
+                }
+            }
+
+            if (p_geom_vec.size() == 0) KRATOS_ERROR << "Interface node not found in modelpart geom\n";
+
+            // Loop over all geometries that have nodes on the interface
+            for (size_t interface_geom_index = 0; interface_geom_index < p_geom_vec.size(); interface_geom_index++)
+            {
+                GeometryType& r_interface_geom = *(p_geom_vec[interface_geom_index]);
+
+                // Loop over remaining interface nodes, see if any of them are nodes in the interface geom
+                for (size_t geom_node_index = 0; geom_node_index < r_interface_geom.size(); geom_node_index++)
+                {
+                    trial_geom_node_id = r_interface_geom[geom_node_index].Id();
+
+                    for (size_t trial_index = node_index + 1; trial_index < rInterfaceModelPart.NumberOfNodes(); ++trial_index)
+                    {
+                        trial_interface_node_id = (rInterfaceModelPart.NodesBegin() + trial_index)->Id();
+                        if (trial_geom_node_id == trial_interface_node_id)
+                        {
+                            // Another interface node was found in the same geom, make line condition between them
+                            Geometry<GeometricalObject::NodeType>::PointsArrayType line_condition_points;
+                            line_condition_points.push_back(rInterfaceModelPart.pGetNode(interface_node_id));
+                            line_condition_points.push_back(rInterfaceModelPart.pGetNode(trial_interface_node_id));
+                            coupling_conditions.CreateNewCondition("LineCondition2D2N", condition_id,
+                                line_condition_points, rInterfaceModelPart.pGetProperties(0));
+                            condition_id += 1;
+                        }
+                    }
+                }
+            }
+
+
         }
     }
     ///@}

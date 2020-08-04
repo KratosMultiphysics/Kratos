@@ -45,6 +45,9 @@ public:
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef typename GeometryType::Pointer GeometryPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -129,6 +132,8 @@ private:
         ModelPart& coupling_conditions = rReferenceMP.GetSubModelPart("coupling_conditions");
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
     }
+
+    void CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart);
 
     void CheckParameters();
 
