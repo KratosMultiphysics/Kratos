@@ -147,7 +147,7 @@ void TrussElement::CalculateAll(
         const double e11_membrane = 0.5 * (actual_aa - reference_aa);
 
         // calculate prestress
-        const double prestress = CalculatePrestress(reference_a, actual_a);
+        const double prestress = CalculatePrestressPK2(reference_a, actual_a);
 
         // normal force
         const double s11_membrane = prestress * A + e11_membrane * EA /
@@ -258,7 +258,7 @@ void TrussElement::CalculateGreenLagrangeStrain(
 }
 
 /// Returns prestress
-double TrussElement::CalculatePrestress(double reference_a, double actual_a) const
+double TrussElement::CalculatePrestressPK2(double reference_a, double actual_a) const
 {
     // pk2 = cauchy * (L / l);
     // No integration weight needs to be considered as this would cut off.
@@ -297,7 +297,7 @@ void TrussElement::CalculateStressPK2(
         Values.SetStressVector(temp_stress);
         mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
-        const double prestress = CalculatePrestress(
+        const double prestress = CalculatePrestressPK2(
             norm_2(mReferenceBaseVector[point_number]), norm_2(CalculateActualBaseVector(point_number)));
         temp_stress[0] += prestress;
         rStressVector[point_number] = temp_stress[0];
@@ -330,7 +330,7 @@ void TrussElement::CalculateStressCauchy(
 
         const double reference_a = norm_2(mReferenceBaseVector[point_number]);
         const double actual_a = norm_2(CalculateActualBaseVector(point_number));
-        const double prestress = CalculatePrestress(reference_a, actual_a);
+        const double prestress = CalculatePrestressPK2(reference_a, actual_a);
 
         temp_stress[0] += prestress;
 

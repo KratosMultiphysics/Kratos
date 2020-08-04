@@ -228,7 +228,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo);
 
     /// Computes prestress
-    double CalculatePrestress(double reference_a, double actual_a) const;
+    double CalculatePrestressPK2(double reference_a, double actual_a) const;
 
     /// Computes PK2 stress
     void CalculateStressPK2(
