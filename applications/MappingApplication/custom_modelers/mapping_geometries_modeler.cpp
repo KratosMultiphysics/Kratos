@@ -43,8 +43,6 @@ namespace Kratos
             //destination_interface_sub_model_part_name = ???
         }
 
-
-
         // create coupling conditions on interface depending on the dimension
         const IndexType dim = 2;
         if (dim == 2)
@@ -93,7 +91,6 @@ namespace Kratos
                 << " working space dimension = " << working_dim << " and local space dimension = "
                 << local_dim << std::endl;
         }
-
     }
 
     void MappingGeometriesModeler::CheckParameters()
@@ -181,5 +178,4 @@ namespace Kratos
 
         }
     }
-    ///@}
 }

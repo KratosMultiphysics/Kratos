@@ -120,11 +120,7 @@ public:
     ///@}
 
 private:
-    ///@name Iga functionalities
-    ///@{
-
     std::vector<Model*> mpModels;
-
 
     void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
     {
