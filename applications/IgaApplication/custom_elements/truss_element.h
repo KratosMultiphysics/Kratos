@@ -250,11 +250,13 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement);
         rSerializer.save("ReferenceBaseVector", mReferenceBaseVector);
+        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
     }
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement);
         rSerializer.load("ReferenceBaseVector", mReferenceBaseVector);
+        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
     }
 
     ///@}
