@@ -43,6 +43,19 @@ class MechanicalSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
+        old_unused_settings = [
+            "use_computing_model_part",
+            "computing_model_part_name",
+            "problem_domain_sub_model_part_list",
+            "processes_sub_model_part_list"
+        ]
+        
+        for old_setting in old_unused_settings:
+            if custom_settings.Has(old_setting):
+                KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
+                custom_settings.RemoveValue(old_setting)
+
+
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
 
