@@ -14,12 +14,15 @@ class ConvergenceCriteriaWrapper(object):
     In case of distributed data, the data is gathered on one rank, the convergence checked and the result broadcasted to the other ranks
     """
     def __init__(self, settings, solver_wrapper):
-        self.criteria_composition = settings["criteria_composition"].GetString()
         self.interface_data = [None]*len(solver_wrapper)
         for solver_index in range(0,len(solver_wrapper)):
             self.interface_data[solver_index] = [solver_wrapper[solver_index].GetInterfaceData(settings["data_name"].GetString())]
-            if self.criteria_composition == "energy_conjugate":
-                self.interface_data[solver_index].append(solver_wrapper[solver_index].GetInterfaceData(settings["conjugate_data_name"].GetString()))
+            if settings.Has("criteria_composition"):
+                self.criteria_composition =settings["criteria_composition"].GetString()
+                if self.criteria_composition == "energy_conjugate":
+                    self.interface_data[solver_index].append(solver_wrapper[solver_index].GetInterfaceData(settings["conjugate_data_name"].GetString()))
+            else:
+                self.criteria_composition = "primal" # default composition is just a single data source
 
         if "swap_sign" in settings["criteria_options"].GetStringArray():
             self.interface_sign = -1.0
