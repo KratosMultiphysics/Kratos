@@ -429,7 +429,6 @@ protected:
     ///@{
 
     TSystemMatrixPointerType mpT;  /// The transformation matrix.
-    Epetra_CrsMatrix* mpTt; /// Transpose of T
     TSystemVectorPointerType mpConstantVector; /// This is vector containing the rigid movement of the constraint
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
@@ -459,14 +458,6 @@ protected:
             // We make T and L matrices and C vector
             auto start_build_ms_time = std::chrono::steady_clock::now();
             BuildMasterSlaveConstraints(rModelPart);
-            // START : Create transpose of T
-                auto transposer = Epetra_RowMatrixTransposer(mpT.get());
-                transposer.CreateTranspose(false, mpTt);
-            // END : Create transpose of T
-            // Degug write
-            TSparseSpace::WriteMatrixMarketMatrix("TMatrix.mm", *mpT, false);
-            TSparseSpace::WriteMatrixMarketMatrix("TtMatrix.mm", *mpTt, false);
-
             auto end_build_ms_time = std::chrono::steady_clock::now();
             KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
                     <<"Build Master-Slave constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_ms_time - start_build_ms_time).count()/1000.0 <<" s"<<std::endl;
@@ -475,7 +466,6 @@ protected:
                 TSystemVectorType res_b(rb.Map());
                 const double zero = 0.0;
                 TSparseSpace::TransposeMult(*mpT, rb, res_b);
-                // TSparseSpace::Mult(*mpTt, rb, res_b);
                 res_b.GlobalAssemble();
                 // Apply diagonal values on slaves
                 for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
@@ -494,10 +484,17 @@ protected:
             // First we do aux = T'A
             auto start_mod_a_time = std::chrono::steady_clock::now();
             { // To delete aux_mat
+                // Create transpose of T
+                // As matrix matrix mult with transpose=true flag is somehow taking
+                // insanely long time. More notably with large cases.
+                Epetra_CrsMatrix* pTt; /// Transpose of T
+                auto transposer = Epetra_RowMatrixTransposer(mpT.get());
+                transposer.CreateTranspose(false, pTt);
                 TSystemMatrixType aux_mat(Copy, mpT->RowMap(), 0);
-                err = EpetraExt::MatrixMatrix::Multiply(*mpTt, false, rA, false, aux_mat, false);
+                err = EpetraExt::MatrixMatrix::Multiply(*pTt, false, rA, false, aux_mat, false);
                 KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(T'*A) not successful !"<<std::endl;
                 aux_mat.FillComplete();
+                delete pTt;
                 { // To delete mod_a
                     TSystemMatrixType mod_a(Copy, aux_mat.RowMap(), 0);
                     // Now we do A = aux*T
