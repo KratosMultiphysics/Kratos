@@ -371,7 +371,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    def _test_truss3D2N_linear(self):
+    def test_truss3D2N_linear(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -414,7 +414,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._solve_linear(mp)
         self._check_results_linear(mp)
 
-    def _test_truss3D2N_nonlinear(self):
+    def test_truss3D2N_nonlinear(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -465,7 +465,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_nonlinear(mp,time_step,Force_i)
             time_step += 1
 
-    def _test_truss3D2N_nonlinear_material(self):
+    def test_truss3D2N_nonlinear_material(self):
 
         all_claws = ["st_venant","henky","neo_hookean","ogden1","ogden2"]
 
@@ -531,7 +531,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                 self._check_results_non_linear_material(mp,time_step,youngs_modulus,claw_i)
                 time_step += 1
 
-    def _test_truss3D2N_prestress_nonlinear_fix(self):
+    def test_truss3D2N_prestress_nonlinear_fix(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -563,7 +563,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._solve_nonlinear(mp)
         self._check_pre_stress_output(mp,10000.0)
 
-    def _test_truss3D2N_prestress_nonlinear_free(self):
+    def test_truss3D2N_prestress_nonlinear_free(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -595,7 +595,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._solve_nonlinear(mp)
         self._check_pre_stress_output(mp,0.0,6)
 
-    def _test_truss3D2N_prestress_linear_fix(self):
+    def test_truss3D2N_prestress_linear_fix(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -627,7 +627,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._solve_linear(mp)
         self._check_pre_stress_output(mp,10000.0)
 
-    def _test_truss3D2N_prestress_linear_free(self):
+    def test_truss3D2N_prestress_linear_free(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -659,7 +659,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._solve_linear(mp)
         self._check_pre_stress_output(mp,0.0)
 
-    def _test_truss3D2N_dynamic(self):
+    def test_truss3D2N_dynamic(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -711,7 +711,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic(mp,time_i)
             time_step += 1
 
-    def _test_truss3D2N_cable(self):
+    def test_truss3D2N_cable(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -749,7 +749,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._solve_nonlinear(mp)
         self._check_results_cable(mp,Force_X)
 
-    def _test_truss3D2N_dynamic_explicit_nonlinear(self):
+    def test_truss3D2N_dynamic_explicit_nonlinear(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -800,7 +800,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic_explicit(mp,time_i,time_step,False)
             time_step += 1
 
-    def _test_truss3D2N_dynamic_explicit_multi_stage_nonlinear(self):
+    def test_truss3D2N_dynamic_explicit_multi_stage_nonlinear(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -851,7 +851,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic_explicit(mp,time_i,time_step,False,'multi_stage')
             time_step += 1
 
-    def _test_truss3D2N_dynamic_explicit_linear(self):
+    def test_truss3D2N_dynamic_explicit_linear(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -902,7 +902,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic_explicit(mp,time_i,time_step,True)
             time_step += 1
 
-    def _test_truss3D2N_linear_plasticity(self):
+    def test_truss3D2N_linear_plasticity(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -955,7 +955,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         plastic_disp = (0.1+((Force_Y/1.5)-100)/((1000*200)/(1000+200)))*1.2
         self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp)
 
-    def _test_truss3D2N_nonlinear_plasticity(self):
+    def test_truss3D2N_nonlinear_plasticity(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
@@ -1008,7 +1008,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         plastic_disp = 0.17094823447089938
         self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp,4)
 
-    def _test_truss3D2N_nonlinear_plasticity_prestress(self):
+    def test_truss3D2N_nonlinear_plasticity_prestress(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
