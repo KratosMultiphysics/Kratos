@@ -92,7 +92,7 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseSolidElement::InitializeSolutionStep(rCurrentProcessInfo);
 
@@ -102,7 +102,7 @@ void UpdatedLagrangian::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     // Create and initialize element variables:
     const SizeType number_of_nodes = GetGeometry().size();
