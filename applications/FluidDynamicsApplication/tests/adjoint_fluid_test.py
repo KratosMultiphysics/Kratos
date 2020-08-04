@@ -80,7 +80,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                                 },
                                 "file_label"          : "time",
                                 "output_control_type" : "step",
-                                "output_frequency"    : 1,
+                                "output_interval"     : 1,
                                 "body_output"         : true,
                                 "node_output"         : false,
                                 "skin_output"         : false,

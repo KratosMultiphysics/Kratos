@@ -75,6 +75,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_elemental_neighbours_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/time_averaging_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/from_json_check_result_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_input_to_entities_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -220,8 +221,8 @@ target_compile_definitions(KratosCore PRIVATE
 
 if (${AMGCL_GPGPU} MATCHES ON)
     add_subdirectory(
-        ${CMAKE_SOURCE_DIR}/external_libraries/vexcl
-        ${CMAKE_BINARY_DIR}/external_libraries/vexcl)
+        ${KRATOS_SOURCE_DIR}/external_libraries/vexcl
+        ${KRATOS_BINARY_DIR}/external_libraries/vexcl)
 
     if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
         target_link_libraries(KratosCore PUBLIC VexCL::OpenCL)
