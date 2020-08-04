@@ -81,10 +81,6 @@ array_1d<double, 3> TrussElement::CalculateActualBaseVector(
 
     array_1d<double, 3> actual_base_vector = ZeroVector(3);
 
-    KRATOS_WATCH(r_DN_De.size1())
-        KRATOS_WATCH(r_DN_De.size2())
-        KRATOS_WATCH(r_DN_De)
-
     for (IndexType i = 0; i < r_geometry.size(); i++)
     {
         actual_base_vector[0] += r_DN_De(i, 0) * r_geometry[i].X();
@@ -120,10 +116,8 @@ void TrussElement::CalculateAll(
     const bool ComputeLeftHandSide,
     const bool ComputeRightHandSide)
 {
-    KRATOS_TRY;
-
     const auto& r_geometry = GetGeometry();
-    const IndexType num_dofs = r_geometry.size() * 3;
+    const IndexType nb_dofs = r_geometry.size() * 3;
 
     // get properties
     const auto& properties = GetProperties();
@@ -157,7 +151,7 @@ void TrussElement::CalculateAll(
         const double s11_membrane = prestress * A + e11_membrane * EA /
             reference_aa;
 
-        for (IndexType r = 0; r < num_dofs; r++) {
+        for (IndexType r = 0; r < nb_dofs; r++) {
             const IndexType dof_type_r = r % 3;
             const IndexType shape_index_r = r / 3;
 
@@ -165,7 +159,7 @@ void TrussElement::CalculateAll(
                 r_DN_De(shape_index_r, 0) / reference_aa;
 
             if (ComputeLeftHandSide) {
-                for (IndexType s = 0; s < num_dofs; s++) {
+                for (IndexType s = 0; s < nb_dofs; s++) {
                     const IndexType dof_type_s = s % 3;
                     const IndexType shape_index_s = s / 3;
 
@@ -173,8 +167,7 @@ void TrussElement::CalculateAll(
                         actual_base_vector[dof_type_s] *
                         r_DN_De(shape_index_s, 0) / reference_aa;
 
-                    rLeftHandSideMatrix(r, s) = EA * epsilon_var_r *
-                        epsilon_var_s;
+                    rLeftHandSideMatrix(r, s) = EA * epsilon_var_r * epsilon_var_s;
 
                     if (dof_type_r == dof_type_s) {
                         const double epsilon_var_rs =
@@ -199,7 +192,6 @@ void TrussElement::CalculateAll(
             rRightHandSideVector *= reference_a * integration_weight;
         }
     }
-    KRATOS_CATCH("")
 }
 
 ///@}

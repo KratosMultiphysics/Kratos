@@ -115,12 +115,12 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType nb_nodes = GetGeometry().size();
+        const SizeType nb_dofs = nb_nodes * 3;
 
-        if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
-        noalias(rRightHandSideVector) = ZeroVector(mat_size);
+        if (rRightHandSideVector.size() != nb_dofs)
+            rRightHandSideVector.resize(nb_dofs);
+        noalias(rRightHandSideVector) = ZeroVector(nb_dofs);
 
         MatrixType left_hand_side_matrix;
 
@@ -133,14 +133,14 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType nb_nodes = GetGeometry().size();
+        const SizeType nb_dofs = nb_nodes * 3;
 
         VectorType right_hand_side_vector;
 
-        if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+        if (rLeftHandSideMatrix.size1() != nb_dofs && rLeftHandSideMatrix.size2() != nb_dofs)
+            rLeftHandSideMatrix.resize(nb_dofs, nb_dofs);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(nb_dofs, nb_dofs);
 
         CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
             rCurrentProcessInfo, true, false);
@@ -152,16 +152,16 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType nb_nodes = GetGeometry().size();
+        const SizeType nb_dofs = nb_nodes * 3;
 
-        if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
-        noalias(rRightHandSideVector) = ZeroVector(mat_size);
+        if (rRightHandSideVector.size() != nb_dofs)
+            rRightHandSideVector.resize(nb_dofs);
+        noalias(rRightHandSideVector) = ZeroVector(nb_dofs);
 
-        if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+        if (rLeftHandSideMatrix.size1() != nb_dofs && rLeftHandSideMatrix.size2() != nb_dofs)
+            rLeftHandSideMatrix.resize(nb_dofs, nb_dofs);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(nb_dofs, nb_dofs);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
             rCurrentProcessInfo, true, true);
