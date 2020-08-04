@@ -328,15 +328,15 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
         row_sum_slave = 0.0;
         row_sum_projector = 0.0;
 
-        for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j) {
+        for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j)
             row_sum_slave += rInterfaceMatrixSlave(i, j);
+
+        for (IndexType j = 0; j < rInterfaceMatrixProjected.size2(); ++j)
             row_sum_projector += rInterfaceMatrixProjected(i, j);
-        }
 
         const double alpha = (row_sum_slave / row_sum_projector < scalingLimit)
-            ? row_sum_slave / row_sum_projector
-            : scalingLimit;
-        for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j)
+            ? row_sum_slave / row_sum_projector : scalingLimit;
+        for (IndexType j = 0; j < rInterfaceMatrixProjected.size2(); ++j)
                 rInterfaceMatrixProjected(i, j) *= alpha;
     }
 }

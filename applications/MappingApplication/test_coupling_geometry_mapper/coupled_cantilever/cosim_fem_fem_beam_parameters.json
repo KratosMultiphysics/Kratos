@@ -68,8 +68,8 @@
 					"mapper_settings" : {
 					"mapper_type": "coupling_geometry",
 					"echo_level" : 5,
-					"dual_mortar": false,
-					"consistency_scaling" : false,
+					"dual_mortar": true,
+					"consistency_scaling" : true,
 					"modeler_name" : "MappingGeometriesModeler",
 					"modeler_parameters":{
 						"origin_model_part_name" : "origin",
