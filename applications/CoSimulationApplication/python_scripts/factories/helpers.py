@@ -38,12 +38,23 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
     for conv_crit_settings in convergence_criterion_settings_list:
         solver = [solvers[conv_crit_settings["solver"].GetString()]]
 
-        #not sure how this is done, conv_crit_settings is Kratos Parameters
-        #if "domain_difference" in solvers[conv_crit_settings["criteria_options"].GetStringArray()]:
-        #    if solvers[conv_crit_settings["solver_domain_two"].GetString()] != "UNSPECIFIED":
-        solver.append(solvers[conv_crit_settings["solver_domain_two"].GetString()])
-        #    else:
-        #        self.__RaiseException('Domain difference requires "solver_domain_two" to be set to the second domain.')
+        is_dual_domain = False
+        for criteria_option in conv_crit_settings["criteria_options"]:
+            if criteria_option.GetString() == "domain_difference":
+                is_dual_domain = True
+                break
+        if is_dual_domain:
+            is_error = False
+            if conv_crit_settings.Has("solver_domain_two"):
+                solver_domain_two = conv_crit_settings["solver_domain_two"].GetString()
+                if solver_domain_two == "UNSPECIFIED":
+                    is_error = True
+                else:
+                    solver.append(solvers[solver_domain_two])
+            else:
+                is_error = True
+            if is_error:
+                self.__RaiseException('Domain difference requires "solver_domain_two" to be set to the second domain.')
 
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
         convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
