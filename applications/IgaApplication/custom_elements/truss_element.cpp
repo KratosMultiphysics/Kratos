@@ -122,7 +122,6 @@ void TrussElement::CalculateAll(
     // get properties
     const auto& properties = GetProperties();
     const double A = properties[CROSS_AREA];
-    const double prestress = CalculatePrestress();
 
     // get integration data
     auto& r_integration_points = r_geometry.IntegrationPoints();
@@ -146,6 +145,9 @@ void TrussElement::CalculateAll(
 
         // green-lagrange strain
         const double e11_membrane = 0.5 * (actual_aa - reference_aa);
+
+        // calculate prestress
+        const double prestress = CalculatePrestress(reference_a, actual_a);
 
         // normal force
         const double s11_membrane = prestress * A + e11_membrane * EA /
@@ -256,11 +258,19 @@ void TrussElement::CalculateGreenLagrangeStrain(
 }
 
 /// Returns prestress
-double TrussElement::CalculatePrestress() const
+double TrussElement::CalculatePrestress(double reference_a, double actual_a) const
 {
-    return (GetProperties().Has(TRUSS_PRESTRESS_CAUCHY))
-        ? GetProperties()[TRUSS_PRESTRESS_CAUCHY]
-        : 0.0;
+    // pk2 = cauchy * (L / l);
+    // No integration weight needs to be considered as this would cut off.
+    if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+        return GetProperties()[TRUSS_PRESTRESS_PK2];
+    }
+    else if (GetProperties().Has(TRUSS_PRESTRESS_CAUCHY)) {
+        return GetProperties()[TRUSS_PRESTRESS_CAUCHY] * (reference_a / actual_a);
+    }
+    else {
+        return 0.0;
+    }
 }
 
 /// Returns PK2 stress
@@ -271,7 +281,6 @@ void TrussElement::CalculateStressPK2(
     const auto& r_geometry = GetGeometry();
     std::vector<double> green_lagrang_strains(GetGeometry().size());
     CalculateGreenLagrangeStrain(green_lagrang_strains);
-    const double prestress = CalculatePrestress();
 
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
@@ -288,6 +297,8 @@ void TrussElement::CalculateStressPK2(
         Values.SetStressVector(temp_stress);
         mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
+        const double prestress = CalculatePrestress(
+            norm_2(mReferenceBaseVector[point_number]), norm_2(CalculateActualBaseVector(point_number)));
         temp_stress[0] += prestress;
         rStressVector[point_number] = temp_stress[0];
     }
@@ -301,7 +312,6 @@ void TrussElement::CalculateStressCauchy(
     const auto& r_geometry = GetGeometry();
     std::vector<double> green_lagrang_strains(GetGeometry().size());
     CalculateGreenLagrangeStrain(green_lagrang_strains);
-    const double prestress = CalculatePrestress();
 
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
@@ -318,10 +328,15 @@ void TrussElement::CalculateStressCauchy(
         Values.SetStressVector(temp_stress);
         mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
+        const double reference_a = norm_2(mReferenceBaseVector[point_number]);
+        const double actual_a = norm_2(CalculateActualBaseVector(point_number));
+        const double prestress = CalculatePrestress(reference_a, actual_a);
+
         temp_stress[0] += prestress;
 
-        const double l = r_integration_points[point_number].Weight() * norm_2(CalculateActualBaseVector(point_number));
-        const double L = r_integration_points[point_number].Weight() * norm_2(mReferenceBaseVector[point_number]);
+        // No integration weight needs to be considered as this would cut off.
+        const double l = actual_a;
+        const double L = reference_a;
 
         temp_stress[0] *= l / L;
 
@@ -343,6 +358,7 @@ void TrussElement::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
+
     if (rVariable == TRUSS_GREEN_LAGRANGE_STRAIN) {
         CalculateGreenLagrangeStrain(rOutput);
     }
@@ -354,6 +370,13 @@ void TrussElement::CalculateOnIntegrationPoints(
     }
     else if (rVariable == TRUSS_STRESS_CAUCHY) {
         CalculateStressCauchy(rOutput, rCurrentProcessInfo);
+    }
+    else if (rVariable == TRUSS_FORCE) {
+        CalculateStressCauchy(rOutput, rCurrentProcessInfo);
+        const double A = GetProperties()[CROSS_AREA];
+        for (IndexType i = 0; i < rOutput.size(); ++i) {
+            rOutput[i] *= A;
+        }
     }
 }
 
