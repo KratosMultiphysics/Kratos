@@ -204,9 +204,11 @@ class PfemFluidSolver(PythonSolver):
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
 
         # Pfem Extra Vars
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
