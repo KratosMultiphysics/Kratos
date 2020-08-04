@@ -138,6 +138,7 @@
 #include "custom_advanced_constitutive/generic_small_strain_orthotropic_damage.h"
 #include "custom_advanced_constitutive/serial_parallel_rule_of_mixtures_law.h"
 #include "custom_advanced_constitutive/generic_anisotropic_3d_law.h"
+#include "custom_advanced_constitutive/multi_linear_elastic_1d_law.h"
 
 // Integrators
 #include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -518,6 +519,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
+    const MultiLinearElastic1DLaw mMultiLinearElastic1DLaw;
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity laws
@@ -923,7 +925,7 @@ private:
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
-    
+
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
 #endif // STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
 
