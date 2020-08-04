@@ -77,15 +77,19 @@ array_1d<double, 3> TrussElement::CalculateActualBaseVector(
     IndexType IntegrationPointIndex) const
 {
     const auto& r_geometry = GetGeometry();
-    const Matrix& DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
+    const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
 
     array_1d<double, 3> actual_base_vector = ZeroVector(3);
 
+    KRATOS_WATCH(r_DN_De.size1())
+        KRATOS_WATCH(r_DN_De.size2())
+        KRATOS_WATCH(r_DN_De)
+
     for (IndexType i = 0; i < r_geometry.size(); i++)
     {
-        actual_base_vector[0] += DN_De(0, i) * r_geometry[i].X();
-        actual_base_vector[1] += DN_De(0, i) * r_geometry[i].Y();
-        actual_base_vector[2] += DN_De(0, i) * r_geometry[i].Z();
+        actual_base_vector[0] += r_DN_De(i, 0) * r_geometry[i].X();
+        actual_base_vector[1] += r_DN_De(i, 0) * r_geometry[i].Y();
+        actual_base_vector[2] += r_DN_De(i, 0) * r_geometry[i].Z();
     }
 
     return actual_base_vector;
@@ -125,11 +129,12 @@ void TrussElement::CalculateAll(
     const auto& properties = GetProperties();
     const double A = properties[CROSS_AREA];
     const double prestress = CalculatePrestress();
-    std::vector<double> E_vector(r_geometry.size());
-    CalculateTangentModulus(E_vector, rCurrentProcessInfo);
 
     // get integration data
     auto& r_integration_points = r_geometry.IntegrationPoints();
+
+    std::vector<double> E_vector(r_integration_points.size());
+    CalculateTangentModulus(E_vector, rCurrentProcessInfo);
     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         const double EA = E_vector[point_number] * A;
 
@@ -157,7 +162,7 @@ void TrussElement::CalculateAll(
             const IndexType shape_index_r = r / 3;
 
             const double epsilon_var_r = actual_base_vector[dof_type_r] *
-                r_DN_De(0, shape_index_r) / reference_aa;
+                r_DN_De(shape_index_r, 0) / reference_aa;
 
             if (ComputeLeftHandSide) {
                 for (IndexType s = 0; s < num_dofs; s++) {
@@ -166,15 +171,15 @@ void TrussElement::CalculateAll(
 
                     const double epsilon_var_s =
                         actual_base_vector[dof_type_s] *
-                        r_DN_De(0, shape_index_s) / reference_aa;
+                        r_DN_De(shape_index_s, 0) / reference_aa;
 
                     rLeftHandSideMatrix(r, s) = EA * epsilon_var_r *
                         epsilon_var_s;
 
                     if (dof_type_r == dof_type_s) {
                         const double epsilon_var_rs =
-                            r_DN_De(0, shape_index_r) *
-                            r_DN_De(0, shape_index_s) / reference_aa;
+                            r_DN_De(shape_index_r, 0) *
+                            r_DN_De(shape_index_s, 0) / reference_aa;
 
                         rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
                     }
