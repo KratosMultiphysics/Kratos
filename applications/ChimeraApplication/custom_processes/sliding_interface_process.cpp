@@ -122,7 +122,8 @@ ModelPart& SlidingInterfaceProcess::GetSearchModelpart()
     ModelPart &gathered_master = r_comm.IsDistributed() ? current_model.CreateModelPart("gathered_master") : mrMasterModelPart;
 
     #ifdef KRATOS_USING_MPI
-        GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
+        if (r_comm.IsDistributed())
+            GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
     #endif
 
     return gathered_master;
