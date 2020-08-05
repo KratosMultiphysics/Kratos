@@ -1055,7 +1055,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(displacement_node2_x, -0.09407182775540882,4)
 
     def test_truss3D2N_multi_linear_elasticity(self):
-        dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
@@ -1104,7 +1103,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         time_delta = 1.0
         time_i = time_start
 
-        t,a = [],[]
         time_step = 0
 
         strain_test = [0.0, 0.5394377058439297, 0.9223043541525537, 1.6897858441878664,
