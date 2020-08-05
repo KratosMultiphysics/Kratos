@@ -22,7 +22,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
 
-
     def _add_constitutive_law(self,mp,elastic_flag):
         cl = StructuralMechanicsApplication.TrussPlasticityConstitutiveLaw()
         if elastic_flag:
@@ -74,7 +73,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.HARDENING_MODULUS_1D,H)
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
-
 
     def _apply_BCs(self,mp,which_dof):
         if (which_dof == 'xyz'):
@@ -174,7 +172,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
 
-
     def _check_results_linear(self,mp):
         #1.) check displacement result
         displacement_nodes = [mp.Nodes[1].GetSolutionStepValue(
@@ -271,7 +268,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(sigma_ele, sigma[timestep])
         self.assertAlmostEqual(F_ele, stretch[timestep])
-
 
     def _check_results_dynamic(self,mp,time_i):
 
@@ -469,7 +465,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_nonlinear(mp,time_step,Force_i)
             time_step += 1
 
-
     def test_truss3D2N_nonlinear_material(self):
 
         all_claws = ["st_venant","henky","neo_hookean","ogden1","ogden2"]
@@ -535,7 +530,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                 self._solve_nonlinear(mp)
                 self._check_results_non_linear_material(mp,time_step,youngs_modulus,claw_i)
                 time_step += 1
-
 
     def test_truss3D2N_prestress_nonlinear_fix(self):
         dim = 3
@@ -806,7 +800,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._check_results_dynamic_explicit(mp,time_i,time_step,False)
             time_step += 1
 
-
     def test_truss3D2N_dynamic_explicit_multi_stage_nonlinear(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
@@ -908,7 +901,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             strategy_expl.Solve()
             self._check_results_dynamic_explicit(mp,time_i,time_step,True)
             time_step += 1
-
 
     def test_truss3D2N_linear_plasticity(self):
         dim = 3
@@ -1016,9 +1008,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         plastic_disp = 0.17094823447089938
         self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp,4)
 
-
-
-
     def test_truss3D2N_nonlinear_plasticity_prestress(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
@@ -1065,7 +1054,81 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         displacement_node2_x = mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
         self.assertAlmostEqual(displacement_node2_x, -0.09407182775540882,4)
 
+    def test_truss3D2N_multi_linear_elasticity(self):
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
 
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850.0)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,1.0)
+        g = [0,0,0]
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.MULTI_LINEAR_ELASTICITY_MODULI,[2.0,1.0/3.0,1.0])
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.MULTI_LINEAR_ELASTICITY_STRAINS,[0.0,1.0,4.0])
+
+        cl = StructuralMechanicsApplication.MultiLinearElastic1DLaw()
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+        bcs_yz.AddNodes([2])
+
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+
+        #create Element
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'yz')
+
+        #incrementally increase load -> nonlinear case
+        nr_steps = 10
+        force = 14.0/(nr_steps-1)
+        time_start = 0.00
+        time_end = nr_steps
+        time_delta = 1.0
+        time_i = time_start
+
+        time_step = 0
+
+        strain_test = [0.0, 0.5394377058439297, 0.9223043541525537, 1.6897858441878664,
+            2.5535355965600406, 3.378162557729854, 4.082858306729372, 4.457942841548205,
+            4.816385796035347, 5.160781025490863]
+        stress_test = [0.0, 1.0788754116878594, 1.8446087083051075, 2.229928614729289,
+            2.5178451988533466, 2.792720852576618, 3.0828583067293724, 3.4579428415482054,
+            3.8163857960353473, 4.160781025490863]
+
+
+
+        while (time_i < time_end):
+            #apply non-constant boundary conditions
+            Force_i = force*time_i
+            self._apply_Neumann_BCs(bcs_neumann,'x',Force_i)
+            #solve + compare
+            self._solve_nonlinear(mp)
+
+            stress = mp.Elements[1].CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            strain = mp.Elements[1].CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR,mp.ProcessInfo)
+
+            self.assertAlmostEqual(stress[0][0], stress_test[time_step],2)
+            self.assertAlmostEqual(strain[0][0], strain_test[time_step],2)
+
+            time_i += time_delta
+            time_step += 1
 
 
 

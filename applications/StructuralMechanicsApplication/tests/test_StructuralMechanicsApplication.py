@@ -138,6 +138,8 @@ from structural_mechanics_test_factory import MembraneOrthotropicDiagonalTests a
 from structural_mechanics_test_factory import MembraneOrthotropicHorizontalTests as TMembraneOrthotropicHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressHorizontalTests as TMembranePreStressHorizontalTests
 from structural_mechanics_test_factory import MembranePreStressDiagonalTests as TMembranePreStressDiagonalTests
+from structural_mechanics_test_factory import MembraneMultiLinearIsotropicPlaneStressTests as TMembraneMultiLinearIsotropicPlaneStressTests
+
 # 2Node Element tests
 from structural_mechanics_test_factory import Simple3D2NTrussTest as T3D2NTrussTest
 from structural_mechanics_test_factory import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
@@ -390,6 +392,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressDiagonalTests('test_execution'))
+    nightSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution'))
     # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
