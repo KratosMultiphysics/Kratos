@@ -11,7 +11,6 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics import auxiliary_solver_utilities
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Other imports
 from importlib import import_module
@@ -328,7 +327,7 @@ class MechanicalSolver(PythonSolver):
     #### Private functions ####
 
     def _execute_after_reading(self):
-        """Import constitutive laws. """
+        """Import constitutive laws."""
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
