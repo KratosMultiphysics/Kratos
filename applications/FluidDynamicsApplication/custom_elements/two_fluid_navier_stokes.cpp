@@ -3821,15 +3821,28 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal_gp, rTangential[i_cl]);
 
             const double contact_angle_macro_gp = std::acos(inner_prod(wall_tangent,contact_vector_macro));
+            double contact_angle_micro_gp = contact_angle_macro_gp;
+            const double contact_angle_equilibrium = std::acos( coefficientS/coefficient );
+
             const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
 
-            const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
-            const double capilary_number = effective_viscosity*contact_velocity_gp/coefficient;
+            if ( std::abs(contact_angle_macro - contact_angle_equilibrium) < 5.0e-1 ){
+                const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
+                const double capilary_number = effective_viscosity*contact_velocity_gp/coefficient;
 
-            const double contact_angle_micro_gp = std::pow(
+                KRATOS_INFO("two fluids NS") << "capilary_number= " << capilary_number << std::endl;
+                KRATOS_INFO("two fluids NS") << "reynolds_number= " << reynolds_number << std::endl;
+
+                contact_angle_micro_gp = std::pow(
                     std::pow(contact_angle_macro_gp, 3.0)
                     - 9*capilary_number*std::log(element_size/micro_length_scale),
                     1.0/3.0); // This relation is valid for contact_angle < 3PI/4 and vanishing Reynolds number
+            }
+
+            KRATOS_INFO("two fluids NS") << "element_size= " << element_size << std::endl;
+            KRATOS_INFO("two fluids NS") << "contact_angle_macro_gp= " << contact_angle_macro_gp << std::endl;
+            KRATOS_INFO("two fluids NS") << "contact_angle_micro_gp= " << contact_angle_micro_gp << std::endl;
+
 
             contact_vector_micro = std::cos(contact_angle_micro_gp)*wall_tangent +
                     std::sin(contact_angle_micro_gp)*wall_normal_gp;
