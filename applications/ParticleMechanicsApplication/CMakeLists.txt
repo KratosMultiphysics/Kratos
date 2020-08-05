@@ -39,7 +39,7 @@ set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .pyd)
+    set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so (OS X)
@@ -73,5 +73,5 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
+install(TARGETS KratosParticleMechanicsCore DESTINATION libs )
 install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
