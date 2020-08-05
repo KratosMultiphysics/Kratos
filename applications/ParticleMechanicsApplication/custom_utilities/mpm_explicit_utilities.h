@@ -30,7 +30,7 @@ namespace Kratos
      * @brief This namespace includes several utilities necessaries for the computation of the explicit integration
      * @author Peter Wilson
      */
-    namespace MPMExplicitUtilities
+    namespace KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMExplicitUtilities
     {
         /// The size type definition
         typedef std::size_t SizeType;
