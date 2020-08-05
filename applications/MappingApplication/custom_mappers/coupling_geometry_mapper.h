@@ -132,8 +132,8 @@ public:
         // adds destination model part
         mpModeler->GenerateNodes(rModelPartDestination);
 
-        mModeler.SetupGeometryModel();
-        mModeler.PrepareGeometryModel();
+        mpModeler->SetupGeometryModel();
+        mpModeler->PrepareGeometryModel();
 
         // here use whatever ModelPart(s) was created by the Modeler
         mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
@@ -159,7 +159,7 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        mModeler.PrepareGeometryModel();
+        mpModeler->PrepareGeometryModel();
 
         AssignInterfaceEquationIds();
 
@@ -277,8 +277,7 @@ private:
 
     ///@name Private Operations
     ///@{
-    //typename Modeler::Pointer mpModeler = nullptr;
-    MappingGeometriesModeler mModeler;
+    typename Modeler::Pointer mpModeler = nullptr;
 
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
