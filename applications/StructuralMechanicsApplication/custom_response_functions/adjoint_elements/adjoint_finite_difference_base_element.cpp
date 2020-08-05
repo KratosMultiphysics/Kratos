@@ -346,36 +346,81 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType local_size = number_of_nodes * num_dofs_per_node;
 
-    if( rDesignVariable == SHAPE_SENSITIVITY )
-    {
+    if( rDesignVariable == SHAPE_SENSITIVITY ) {
         const std::vector<const FiniteDifferenceUtility::array_1d_component_type*> coord_directions = {&SHAPE_SENSITIVITY_X, &SHAPE_SENSITIVITY_Y, &SHAPE_SENSITIVITY_Z};
         Vector derived_RHS;
 
-        if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
+        if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) ) {
             rOutput.resize(dimension * number_of_nodes, local_size, false);
+        }
 
         IndexType index = 0;
 
         Vector RHS;
         pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
-        for(auto& node_i : mpPrimalElement->GetGeometry())
-        {
-            for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
-            {
+        for(auto& node_i : mpPrimalElement->GetGeometry()) {
+            for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i) {
                 // Get pseudo-load contribution from utility
                 FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, *coord_directions[coord_dir_i],
                                                                             node_i, delta, derived_RHS, rCurrentProcessInfo);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 
-                for(IndexType i = 0; i < derived_RHS.size(); ++i)
+                for(IndexType i = 0; i < derived_RHS.size(); ++i) {
                     rOutput( (coord_dir_i + index*dimension), i) = derived_RHS[i];
+                }
             }
             index++;
         }
+    } else if ( rDesignVariable == PRESCRIBED_DISPLACEMENT_SENSITIVITY) {
+        if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) ) {
+            rOutput.resize(dimension * number_of_nodes, local_size, false);
+        }
+        rOutput.clear();
+        // Build vector of variables containing the displacement DOF-variables of the primal/adjoint problem
+        std::vector<Variable<double>*> primal_solution_variable_list = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
+        std::vector<Variable<double>*> adjoint_solution_variable_list = {&ADJOINT_DISPLACEMENT_X, &ADJOINT_DISPLACEMENT_Y, &ADJOINT_DISPLACEMENT_Z};
+
+        const double numeric_limit = std::numeric_limits<double>::epsilon();
+        Vector RHS;
+        Vector RHS_perturbed;
+        pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+        #pragma omp critical
+        {
+            for (IndexType node_index = 0; node_index < number_of_nodes; ++node_index) {
+                // a nonhomogeneous or homogeneous dirichlet bc in the primal problem has to be an homogeneous one in the adjoint problem
+                for(IndexType disp_dir_i = 0; disp_dir_i < dimension; ++disp_dir_i) {
+                    if( mpPrimalElement->GetGeometry()[node_index].GetDof(*adjoint_solution_variable_list[disp_dir_i]).IsFixed() )
+                    {
+                        // find suitable disturbance measure
+                        double displacement = mpPrimalElement->GetGeometry()[node_index].FastGetSolutionStepValue(*primal_solution_variable_list[disp_dir_i]);
+                        if (std::abs(displacement) < numeric_limit) {
+                            displacement = 1e-7;
+                        }
+                        double disturbance = delta * std::abs(displacement);
+                        while (std::abs(disturbance) < 1e-7) {
+                            disturbance *= 10.0;
+                        }
+
+                        // disturb displacement value
+                        mpPrimalElement->GetGeometry()[node_index].FastGetSolutionStepValue(*primal_solution_variable_list[disp_dir_i]) += disturbance;
+
+                        pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+                        // Compute derivative of RHS w.r.t. design variable with finite differences
+                        row(rOutput, (disp_dir_i + node_index*dimension)) = (RHS_perturbed - RHS) / disturbance;
+
+                        // undisturb displacement value
+                        mpPrimalElement->GetGeometry()[node_index].FastGetSolutionStepValue(*primal_solution_variable_list[disp_dir_i]) -= disturbance;
+                    }
+                }
+            }
+        }
     }
-    else
+    else {
         rOutput = ZeroMatrix(0, local_size);
+    }
 
     KRATOS_CATCH("")
 }
