@@ -124,11 +124,14 @@ public:
                           mrModelPartDestination(rModelPartDestination),
                           mMapperSettings(JsonParameters)
     {
+        mpModeler = (ModelerFactory::Create(
+            mMapperSettings["modeler_name"].GetString(),
+            rModelPartOrigin.GetModel(),
+            mMapperSettings["modeler_parameters"]));
 
-        // Enable when mappers in the core take std::vector<Model&> as constructor
-        //mpModeler = (ModelerFactory::Create(mMapperSettings["modeler_name"].GetString(), models_vector, mMapperSettings["modeler_parameters"]));
+        // adds destination model part
+        mpModeler->GenerateNodes(rModelPartDestination);
 
-        mModeler = MappingGeometriesModeler(rModelPartOrigin, rModelPartDestination, mMapperSettings["modeler_parameters"]);
         mModeler.SetupGeometryModel();
         mModeler.PrepareGeometryModel();
 
