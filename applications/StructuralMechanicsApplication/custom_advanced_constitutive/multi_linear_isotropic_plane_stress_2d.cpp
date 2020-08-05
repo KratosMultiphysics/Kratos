@@ -76,13 +76,13 @@ void MultiLinearIsotropicPlaneStress2D::CalculateElasticMatrix(Matrix& C, Consti
     const Vector moduli_list(rValues.GetMaterialProperties()[MULTI_LINEAR_ELASTICITY_MODULI]);
     double equivalent_tangent_modulus(0.0);
 
-    if (equivalent_strain>0.0){
+    if (equivalent_strain>std::numeric_limits<double>::epsilon()){
 
         const Vector strain_list(rValues.GetMaterialProperties()[MULTI_LINEAR_ELASTICITY_STRAINS]);
         const SizeType len_strain_list(strain_list.size());
 
         SizeType counter(0);
-        for (SizeType i=0;i<len_strain_list;i++){
+        for (SizeType i=0;i<len_strain_list;++i){
             if (equivalent_strain>=strain_list[len_strain_list-(i+1)]){
                 counter = len_strain_list-(i+1);
                 break;
@@ -121,6 +121,7 @@ void MultiLinearIsotropicPlaneStress2D::CalculatePK2Stress(
     ConstitutiveLaw::Parameters& rValues
 )
 {
+
     Matrix c_mat = ZeroMatrix(this->VoigtSize);
     CalculateElasticMatrix(c_mat, rValues);
 

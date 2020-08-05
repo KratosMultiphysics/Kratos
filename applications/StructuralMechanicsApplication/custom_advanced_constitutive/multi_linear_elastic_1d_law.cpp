@@ -72,13 +72,13 @@ double& MultiLinearElastic1DLaw::CalculateValue(
         const double equivalent_strain = std::abs(current_strain[0]);
         const Vector moduli_list(rParameterValues.GetMaterialProperties()[MULTI_LINEAR_ELASTICITY_MODULI]);
 
-        if (equivalent_strain>0.0){
+        if (equivalent_strain>std::numeric_limits<double>::epsilon()){
 
             const Vector strain_list(rParameterValues.GetMaterialProperties()[MULTI_LINEAR_ELASTICITY_STRAINS]);
             const SizeType len_strain_list(strain_list.size());
 
             SizeType counter(0);
-            for (SizeType i=0;i<len_strain_list;i++){
+            for (SizeType i=0;i<len_strain_list;++i){
                 if (equivalent_strain>=strain_list[len_strain_list-(i+1)]){
                     counter = len_strain_list-(i+1);
                     break;

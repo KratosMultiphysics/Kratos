@@ -755,7 +755,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                     StrainGreenLagrange(strain_vector,covariant_metric_reference,
                     covariant_metric_current,inplane_transformation_matrix_material);
                     strain_vector[2] /= 2.0;
-                    rOutput[point_number] = strain_vector;
+                    noalias(rOutput[point_number]) = strain_vector;
             }
             else {
                 Matrix material_tangent_modulus = ZeroMatrix(dimension);
@@ -765,9 +765,9 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                 if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
                     Vector principal_stresses = ZeroVector(2);
                     PrincipalVector(principal_stresses,stress);
-                    rOutput[point_number] = principal_stresses;
+                    noalias(rOutput[point_number]) = principal_stresses;
                 }  else {
-                    rOutput[point_number] = stress;
+                    noalias(rOutput[point_number]) = stress;
                 }
             }
 
