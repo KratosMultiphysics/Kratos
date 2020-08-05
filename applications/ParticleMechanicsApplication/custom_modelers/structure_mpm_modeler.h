@@ -24,6 +24,7 @@
 #include "geometries/geometry_data.h"
 #include "geometries/coupling_geometry.h"
 #include "utilities/quadrature_points_utility.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 
 namespace Kratos
@@ -110,9 +111,9 @@ public:
     {
         for (auto line : rInputLineGeometries)
         {
-            auto qudrature_point_geometries = QuadraturePointsUtility<Node<3>>::Create(line, ThisIntegrationMethod);
-            for (auto quad : qudrature_point_geometries) {
-                rOuputQuadraturePointGeometries.push_back(quad);
+            std::vector<GeometryPointerType> qudrature_point_geometries = QuadraturePointsUtility<Node<3>>::Create(line, ThisIntegrationMethod);
+            for (IndexType i = 0; i < qudrature_point_geometries.size(); ++i) {
+                rOuputQuadraturePointGeometries.push_back(qudrature_point_geometries[i]);
             }
         }
     }
@@ -153,7 +154,7 @@ public:
     }
 
     template<SizeType TDimension,
-        class TConditionsList, class TQuadraturePointGeometriesList>
+        class TConditionsList>
     void UpdateMpmQuadraturePointGeometries(
         const TConditionsList& rInputConditions,
         ModelPart& rBackgroundGridModelPart) {
@@ -180,7 +181,7 @@ public:
                 CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
                     rInputConditions[i]->GetGeometry().pGetGeometryPart(1),
                     local_coordinates,
-                    rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight(),
+                    rInputConditions[i]->pGetGeometry()->IntegrationPoints()[0].Weight(),
                     p_elem->GetGeometry());
             }
         }
