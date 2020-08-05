@@ -175,7 +175,7 @@ public:
         const bool ComputeRightHandSide);
 
     /// Updates the constitutive law
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Output functions
