@@ -521,11 +521,15 @@ void BaseSolidElement::CalculateLocalSystem(
     ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY;
+
     //calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
     const bool CalculateResidualVectorFlag = true;
 
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -535,8 +539,14 @@ void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                              ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Calculation flags
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag = false;
     VectorType RHS;
-    CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+
+    CalculateAll( rLeftHandSideMatrix, RHS, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+
     KRATOS_CATCH("");
 }
 
@@ -548,12 +558,16 @@ void BaseSolidElement::CalculateRightHandSide(
     ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_TRY;
+
     // Calculation flags
     const bool CalculateStiffnessMatrixFlag = false;
     const bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/

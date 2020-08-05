@@ -27,7 +27,7 @@
         "indexValue": null,
         "qoiEstimator": ["xmc.momentEstimator.MomentEstimator"],
         "sampler": "xmc.sampleGenerator.SampleGenerator",
-        "estimatorBatchSize": 5
+        "eventGroupSize": 5
     },
     "monteCarloSamplerInputDictionary": {
         "assemblersForError": [[1,2]],
