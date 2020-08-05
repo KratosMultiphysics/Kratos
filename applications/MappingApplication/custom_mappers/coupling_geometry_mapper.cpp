@@ -22,7 +22,6 @@
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
-#include "modeler/modeler_factory.h"
 
 namespace Kratos {
 namespace Internals {
