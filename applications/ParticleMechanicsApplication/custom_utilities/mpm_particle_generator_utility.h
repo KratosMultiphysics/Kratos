@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-namespace KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMParticleGeneratorUtility
+namespace MPMParticleGeneratorUtility
 {
 
     typedef std::size_t IndexType;

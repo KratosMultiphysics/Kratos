@@ -52,7 +52,7 @@ namespace Kratos {
 /* A utility to rotate the local contributions of certain nodes to the system matrix,
 which is required to apply slip conditions (roller-type support) in arbitrary directions to the boundary nodes.*/
 template<class TLocalMatrixType, class TLocalVectorType>
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMBoundaryRotationUtility: public CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double> {
+class MPMBoundaryRotationUtility: public CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double> {
 public:
 	///@name Type Definitions
 	///@{
