@@ -12,33 +12,13 @@
 #if !defined (KRATOS_MULTI_LINEAR_ISOTROPIC_PLANE_STRESS_2D_LAW_H_INCLUDED)
 #define  KRATOS_MULTI_LINEAR_ISOTROPIC_PLANE_STRESS_2D_LAW_H_INCLUDED
 
-// System includes
-
-// External includes
 
 // Project includes
 #include "custom_constitutive/linear_plane_stress.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
     /**
      * @namespace MultiLinearIsotropicPlaneStress2D
      *
@@ -49,6 +29,7 @@ namespace Kratos
      * MULTI_LINEAR_ELASTICITY_STRAINS
      *
      * Johannes Linhard - Numerisch-mechanische Betrachtung des Entwurfsprozesses von Membrantragwerken
+     * https://mediatum.ub.tum.de/doc/682189/document.pdf
      *
      * @author Klaus B Sautter
      */
@@ -56,14 +37,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MultiLinearIsotropicPlaneStre
     : public LinearPlaneStress
 {
 public:
-    ///@name Type Definitions
-    ///@{
 
     /// Counted pointer of MultiLinearIsotropicPlaneStress2D
     KRATOS_CLASS_POINTER_DEFINITION( MultiLinearIsotropicPlaneStress2D );
 
-    ///@name Life Cycle
-    ///@{
 
     /**
      * Default constructor.
@@ -98,48 +75,9 @@ public:
             const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    ///@}
-    ///@name Operators
-    ///@{
 
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
 protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
     /**
     * It calculates the constitutive matrix C
@@ -160,34 +98,9 @@ protected:
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
-    ///@}
 
 private:
 
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

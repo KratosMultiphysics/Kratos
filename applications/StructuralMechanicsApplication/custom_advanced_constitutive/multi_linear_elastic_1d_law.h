@@ -12,10 +12,6 @@
 #if !defined (KRATOS_MULTI_LINEAR_ELASTIC_1D_LAW_H_INCLUDED)
 #define  KRATOS_MULTI_LINEAR_ELASTIC_1D_LAW_H_INCLUDED
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "custom_constitutive/truss_constitutive_law.h"
 
@@ -32,6 +28,7 @@ namespace Kratos
      * MULTI_LINEAR_ELASTICITY_STRAINS
      *
      * Johannes Linhard - Numerisch-mechanische Betrachtung des Entwurfsprozesses von Membrantragwerken
+     * https://mediatum.ub.tum.de/doc/682189/document.pdf
      *
      * @author Klaus B Sautter
      */
@@ -42,10 +39,6 @@ namespace Kratos
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION( MultiLinearElastic1DLaw );
-
-        /**
-         * Life Cycle
-         */
 
         /**
          * Default constructor.
@@ -83,50 +76,8 @@ namespace Kratos
         double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
             const Variable<double>& rThisVariable,double& rValue) override;
 
-    protected:
-
-        ///@name Protected static Member Variables
-        ///@{
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-        ///@}
-
     private:
 
-        ///@name Static Member Variables
-        ///@{
-
-        ///@}
-        ///@name Member Variables
-        ///@{
-        ///@}
-        ///@name Private Operators
-        ///@{
-
-        ///@}
-        ///@name Private Operations
-        ///@{
-        ///@}
-
-
-        ///@}
-        ///@name Private  Access
-        ///@{
-        ///@}
-
-        ///@}
-        ///@name Serialization
-        ///@{
         friend class Serializer;
 
         void save(Serializer& rSerializer) const override
