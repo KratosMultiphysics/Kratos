@@ -90,7 +90,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 0.01;
+        const double zeta = 1.0;
         const double surface_tension_coefficient = 0.0311; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
         const double contact_line_coefficient = 0.77933796493*surface_tension_coefficient;
         const double micro_length_scale = 1.0e-9;
@@ -3826,22 +3826,22 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
             const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
 
-            if ( std::abs(contact_angle_macro - contact_angle_equilibrium) < 5.0e-1 ){
-                const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
-                const double capilary_number = effective_viscosity*contact_velocity_gp/coefficient;
+            const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
+            const double capilary_number = effective_viscosity*contact_velocity_gp/coefficient;
+            //KRATOS_INFO("two fluids NS") << "capilary_number= " << capilary_number << std::endl;
+            //KRATOS_INFO("two fluids NS") << "reynolds_number= " << reynolds_number << std::endl;
 
-                KRATOS_INFO("two fluids NS") << "capilary_number= " << capilary_number << std::endl;
-                KRATOS_INFO("two fluids NS") << "reynolds_number= " << reynolds_number << std::endl;
-
+            if ( std::abs(contact_angle_macro - contact_angle_equilibrium) < 10.0e-1 &&
+                    capilary_number < 1.0e-1){
                 contact_angle_micro_gp = std::pow(
                     std::pow(contact_angle_macro_gp, 3.0)
                     - 9*capilary_number*std::log(element_size/micro_length_scale),
                     1.0/3.0); // This relation is valid for contact_angle < 3PI/4 and vanishing Reynolds number
             }
 
-            KRATOS_INFO("two fluids NS") << "element_size= " << element_size << std::endl;
-            KRATOS_INFO("two fluids NS") << "contact_angle_macro_gp= " << contact_angle_macro_gp << std::endl;
-            KRATOS_INFO("two fluids NS") << "contact_angle_micro_gp= " << contact_angle_micro_gp << std::endl;
+            //KRATOS_INFO("two fluids NS") << "element_size= " << element_size << std::endl;
+            //KRATOS_INFO("two fluids NS") << "contact_angle_macro_gp= " << contact_angle_macro_gp << std::endl;
+            //KRATOS_INFO("two fluids NS") << "contact_angle_micro_gp= " << contact_angle_micro_gp << std::endl;
 
 
             contact_vector_micro = std::cos(contact_angle_micro_gp)*wall_tangent +
