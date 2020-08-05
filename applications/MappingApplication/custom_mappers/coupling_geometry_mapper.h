@@ -26,7 +26,7 @@
 
 #include "custom_utilities/mapping_intersection_utilities.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
-//#include "modeler/modeler_factory.h"
+#include "modeler/modeler_factory.h"
 
 namespace Kratos
 {
