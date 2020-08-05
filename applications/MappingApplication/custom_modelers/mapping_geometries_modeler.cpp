@@ -131,7 +131,6 @@ namespace Kratos
         for (size_t node_index = 0; node_index < rInterfaceModelPart.NumberOfNodes() - 1; ++node_index)
         {
             interface_node_id = (rInterfaceModelPart.NodesBegin() + node_index)->Id();
-            IndexType ele_id;
             std::vector< GeometryPointerType> p_geom_vec;
             for (auto& ele_it: root_mp.Elements())
             {
@@ -141,7 +140,6 @@ namespace Kratos
                     if ((*p_geom)[i].Id() == interface_node_id)
                     {
                         p_geom_vec.push_back(p_geom);
-                        ele_id = ele_it.Id();
                     }
                 }
             }
