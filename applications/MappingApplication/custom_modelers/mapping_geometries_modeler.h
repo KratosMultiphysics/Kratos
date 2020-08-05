@@ -20,7 +20,6 @@
 
 // Project includes
 #include "modeler/modeler.h"
-#include "input_output/cad_json_input.h"
 #include "custom_utilities/mapping_intersection_utilities.h"
 
 
