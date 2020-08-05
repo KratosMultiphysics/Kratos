@@ -68,17 +68,6 @@ public:
         mpModels[0] = &rModel;
     }
 
-    MappingGeometriesModeler(
-        ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination,
-        Parameters ModelerParameters = Parameters())
-        : Modeler(rModelPartOrigin.GetModel(), ModelerParameters)
-    {
-        mpModels.resize(2);
-        mpModels[0] = &(rModelPartOrigin.GetModel());
-        mpModels[1] = &(rModelPartDestination.GetModel());
-    }
-
     /// Destructor.
     virtual ~MappingGeometriesModeler() = default;
 
@@ -87,6 +76,12 @@ public:
         Model& rModel, const Parameters ModelParameters) const override
     {
         return Kratos::make_shared<MappingGeometriesModeler>(rModel, ModelParameters);
+    }
+
+    /// Adds the second model part to the modeler.
+    void GenerateNodes(ModelPart& ThisModelPart) override
+    {
+        mpModels.push_back(&ThisModelPart.GetModel());
     }
 
     ///@}
