@@ -1,6 +1,5 @@
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Other imports
 from importlib import import_module
