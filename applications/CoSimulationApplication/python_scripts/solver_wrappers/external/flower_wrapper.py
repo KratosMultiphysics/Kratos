@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -16,7 +14,7 @@ class FLOWerWrapper(CoSimulationSolverWrapper):
     """This class serves as wrapper for the CFD solver FLOWer
     """
     def __init__(self, settings, model, solver_name):
-        super(FLOWerWrapper, self).__init__(settings, model, solver_name)
+        super().__init__(settings, model, solver_name)
 
         settings_defaults = KM.Parameters("""{
             "model_parts_read" : { },
@@ -30,7 +28,7 @@ class FLOWerWrapper(CoSimulationSolverWrapper):
         cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
     def Initialize(self):
-        super(FLOWerWrapper, self).Initialize()
+        super().Initialize()
 
         for main_model_part_name, mdpa_file_name in self.settings["solver_wrapper_settings"]["model_parts_read"].items():
             KM.ModelPartIO(mdpa_file_name.GetString()).ReadModelPart(self.model[main_model_part_name])

@@ -222,8 +222,8 @@ target_compile_definitions(KratosCore PRIVATE
 
 if (${AMGCL_GPGPU} MATCHES ON)
     add_subdirectory(
-        ${CMAKE_SOURCE_DIR}/external_libraries/vexcl
-        ${CMAKE_BINARY_DIR}/external_libraries/vexcl)
+        ${KRATOS_SOURCE_DIR}/external_libraries/vexcl
+        ${KRATOS_BINARY_DIR}/external_libraries/vexcl)
 
     if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
         target_link_libraries(KratosCore PUBLIC VexCL::OpenCL)
