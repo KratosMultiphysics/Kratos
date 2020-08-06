@@ -36,7 +36,7 @@ namespace Kratos
 /// Finds realtion between structure FEM and MPM to make Mortar Mapping.
 /* Detail class definition.
 */
-class KRATOS_API(MAPPING_APPLICATION) StructureMpmModeler
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) StructureMpmModeler
     : public Modeler
 {
 public:
