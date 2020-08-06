@@ -121,7 +121,7 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestCoSimulationCases,cls).tearDownClass()
+        super().tearDownClass()
 
         # delete superfluous dem files
         kratos_utils.DeleteFileIfExisting(GetFilePath("dem_fem_cable_net/cableNet.post.lst"))

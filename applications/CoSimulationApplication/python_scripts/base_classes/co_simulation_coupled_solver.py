@@ -97,7 +97,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         for solver in self.solver_wrappers.values():
             solver.Initialize()
 
-        super(CoSimulationCoupledSolver, self).Initialize()
+        super().Initialize()
 
         for predictor in self.predictors_list:
             predictor.Initialize()
@@ -106,13 +106,13 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             coupling_operation.Initialize()
 
     def InitializeCouplingInterfaceData(self):
-        super(CoSimulationCoupledSolver, self).InitializeCouplingInterfaceData()
+        super().InitializeCouplingInterfaceData()
 
         for solver in self.solver_wrappers.values():
             solver.InitializeCouplingInterfaceData()
 
     def Finalize(self):
-        super(CoSimulationCoupledSolver, self).Finalize()
+        super().Finalize()
 
         for solver in self.solver_wrappers.values():
             solver.Finalize()
@@ -277,7 +277,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):
-        super(CoSimulationCoupledSolver, self).PrintInfo()
+        super().PrintInfo()
 
         cs_tools.cs_print_info(self._ClassName(), "Has the following components:")
         for solver in self.solver_wrappers.values():
@@ -292,7 +292,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     def Check(self):
         # TODO check that there is no self-communication with the same data!
         # self-communication is allowed within a solver, but not on the same data
-        super(CoSimulationCoupledSolver, self).Check()
+        super().Check()
 
         for solver in self.solver_wrappers.values():
             solver.Check()
@@ -373,7 +373,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             "coupling_operations"      : {},
             "data_transfer_operators"  : {}
         }""")
-        this_defaults.AddMissingParameters(super(CoSimulationCoupledSolver, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
 
         return this_defaults
 
