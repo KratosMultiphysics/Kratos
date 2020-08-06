@@ -785,8 +785,8 @@ class GeoBuilding( GeoProcessor ):
                 }
             }
         """)
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
+        import python_linear_solver_factory
+        linear_solver = python_linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
         maximum_iterations = 2
         if complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
