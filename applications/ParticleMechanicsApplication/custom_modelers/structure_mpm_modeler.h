@@ -153,7 +153,7 @@ public:
 
                 array_1d<double, 3> local_coordinates;
                 auto& r_geometry = p_elem->GetGeometry();
-                r_geometry.PointLocalCoordinates(local_coordinates, rCoordinates);
+                r_geometry.PointLocalCoordinates(local_coordinates, coordinates);
 
                 IntegrationPoint<3> int_p(local_coordinates, integration_weight);
                 Vector N;
