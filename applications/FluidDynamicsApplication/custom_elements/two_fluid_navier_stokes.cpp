@@ -90,10 +90,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 0.1;
+        const double zeta = 0.5;
         const double surface_tension_coefficient = 0.0311; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
         const double contact_line_coefficient = 0.77933796493*surface_tension_coefficient;
-        const double micro_length_scale = 1.0e-9;
+        const double micro_length_scale = 1.0e-7;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
         this->SetValue(CONTACT_VELOCITY, 0.0); // Initialize the contact line velocity
@@ -3831,17 +3831,20 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             //KRATOS_INFO("two fluids NS") << "capilary_number= " << capilary_number << std::endl;
             //KRATOS_INFO("two fluids NS") << "reynolds_number= " << reynolds_number << std::endl;
 
-            if ( std::abs(contact_angle_macro - contact_angle_equilibrium) < 5.0e-1 &&
+            if ( std::abs(contact_angle_macro - contact_angle_equilibrium) < 9.0e-1 &&
                     capilary_number < 1.0e-1){
                 const double cubic_contact_angle_micro_gp = std::pow(contact_angle_macro_gp, 3.0)
                     - 9*capilary_number*std::log(element_size/micro_length_scale);
 
                 KRATOS_WARNING_IF("TwoFluidsNS", cubic_contact_angle_micro_gp < 0.0)
-                            << "Hydrodynamics theory failed to estimate micro contact-angle." 
+                            << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
                             << std::endl;
 
                 if (cubic_contact_angle_micro_gp > 0.0)
-                    contact_angle_micro_gp = std::pow(cubic_contact_angle_micro_gp, 1.0/3.0); 
+                    contact_angle_micro_gp = std::pow(cubic_contact_angle_micro_gp, 1.0/3.0);
+                else
+                    contact_angle_micro_gp = 0.0;
+
                 // This relation is valid for contact_angle < 3PI/4 and vanishing Reynolds & Capillary numbers
             }
 

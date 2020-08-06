@@ -634,7 +634,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-        if (TimeStep % 10 == 0):
+        if (TimeStep % 1 == 0):
             mean_Cangle = 0.0
             mean_Cangle_micro = 0.0
             mean_Cvel = 0.0
