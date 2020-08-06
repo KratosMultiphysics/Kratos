@@ -149,10 +149,49 @@ public:
             bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin);
 
             if (is_found) {
-                rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateFromCoordinates(
-                    p_elem->pGetGeometry(),
-                    coordinates,
-                    rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
+                const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
+
+                array_1d<double, 3> local_coordinates;
+                p_elem->pGetGeometry()->PointLocalCoordinates(local_coordinates, rCoordinates);
+
+                IntegrationPoint<3> int_p(local_coordinates, integration_weight);
+                Vector N;
+                rGeometry.ShapeFunctionsValues(N, rLocalCoordinates);
+
+                Matrix DN_De;
+                rGeometry.ShapeFunctionsLocalGradients(DN_De, rLocalCoordinates);
+                Matrix DN_De_non_zero(DN_De.size1(), DN_De.size2());
+
+                typename GeometryType::PointsArrayType points;
+
+                Matrix N_matrix(1, N.size());
+                SizeType non_zero_counter = 0;
+                for (IndexType i_N = 0; i_N < N.size(); ++i_N) {
+                    if (N[i_N] > 1e-10) {
+                        N_matrix(0, non_zero_counter) = N[i_N];
+                        for (IndexType j = 0; j < DN_De.size2(); j++) {
+                            DN_De_non_zero(non_zero_counter, j) = DN_De(i_N, j);
+                        }
+                        points.push_back(rGeometry(i_N));
+                        non_zero_counter++;
+                    }
+                }
+
+                N_matrix.resize(1, non_zero_counter, true);
+                DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
+
+                GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                    rGeometry.GetDefaultIntegrationMethod(),
+                    int_p,
+                    N_matrix,
+                    DN_De_non_zero);
+
+                rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
+                    rGeometry.WorkingSpaceDimension(),
+                    rGeometry.LocalSpaceDimension(),
+                    data_container,
+                    points,
+                    &rGeometry);
             }
         }
     }
