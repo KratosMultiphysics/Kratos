@@ -61,6 +61,8 @@ public:
     StructureMpmModeler()
         : Modeler()
     {
+        mpModelStructure = nullptr;
+        mpModelMpm = nullptr;
     }
 
     /// Constructor.
@@ -70,6 +72,7 @@ public:
         : Modeler(rModel, ModelerParameters)
     {
         mpModelStructure = &rModel;
+        mpModelMpm = nullptr;
     }
 
     /// Destructor.
@@ -111,7 +114,7 @@ public:
     {
         for (auto line : rInputLineGeometries)
         {
-            std::vector<GeometryPointerType> qudrature_point_geometries = QuadraturePointsUtility<Node<3>>::Create(line, ThisIntegrationMethod);
+            std::vector<GeometryPointerType> qudrature_point_geometries = CreateQuadraturePointsUtility<Node<3>>::Create(line, ThisIntegrationMethod, 2);
             for (IndexType i = 0; i < qudrature_point_geometries.size(); ++i) {
                 rOuputQuadraturePointGeometries.push_back(qudrature_point_geometries[i]);
             }
