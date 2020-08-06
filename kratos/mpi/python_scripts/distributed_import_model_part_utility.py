@@ -31,7 +31,8 @@ class DistributedImportModelPartUtility(object):
                 "skip_timer"                                 : true,
                 "ignore_variables_not_in_solution_step_data" : false,
                 "perform_partitioning"                       : true,
-                "partition_in_memory"                        : false
+                "partition_in_memory"                        : false,
+                "partition_sub_model_parts_list"             : false
             }""")
 
             # cannot validate as this might contain other settings too
@@ -68,7 +69,10 @@ class DistributedImportModelPartUtility(object):
                 if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
                     if self.comm.Rank() == 0:
-                        partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                        if model_part_import_settings["partition_sub_model_parts_list"].GetBool():
+                            partitioner = KratosMetis.MetisDivideSubModelPartsHeterogeneousInputProcess(model_part_io, model_part_import_settings, number_of_partitions , domain_size, verbosity, sync_conditions)
+                        else:
+                            partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                         partitioner.Execute()
 
                         KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished.")
