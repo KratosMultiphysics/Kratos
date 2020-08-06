@@ -198,7 +198,7 @@ protected:
      * Get the number of variables to be checked
      * @return const int Number of variables to check
      */
-    int GetVariableSize()
+    int GetVariableSize() const
     {
         return mVariableSize;
     }
