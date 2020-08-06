@@ -152,14 +152,15 @@ public:
                 const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
 
                 array_1d<double, 3> local_coordinates;
-                p_elem->pGetGeometry()->PointLocalCoordinates(local_coordinates, rCoordinates);
+                auto& r_geometry = p_elem->GetGeometry();
+                r_geometry.PointLocalCoordinates(local_coordinates, rCoordinates);
 
                 IntegrationPoint<3> int_p(local_coordinates, integration_weight);
                 Vector N;
-                rGeometry.ShapeFunctionsValues(N, rLocalCoordinates);
+                r_geometry.ShapeFunctionsValues(N, local_coordinates);
 
                 Matrix DN_De;
-                rGeometry.ShapeFunctionsLocalGradients(DN_De, rLocalCoordinates);
+                r_geometry.ShapeFunctionsLocalGradients(DN_De, local_coordinates);
                 Matrix DN_De_non_zero(DN_De.size1(), DN_De.size2());
 
                 typename GeometryType::PointsArrayType points;
@@ -172,7 +173,7 @@ public:
                         for (IndexType j = 0; j < DN_De.size2(); j++) {
                             DN_De_non_zero(non_zero_counter, j) = DN_De(i_N, j);
                         }
-                        points.push_back(rGeometry(i_N));
+                        points.push_back(r_geometry(i_N));
                         non_zero_counter++;
                     }
                 }
@@ -181,17 +182,17 @@ public:
                 DN_De_non_zero.resize(non_zero_counter, DN_De.size2(), true);
 
                 GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                    rGeometry.GetDefaultIntegrationMethod(),
+                    r_geometry.GetDefaultIntegrationMethod(),
                     int_p,
                     N_matrix,
                     DN_De_non_zero);
 
                 rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                    rGeometry.WorkingSpaceDimension(),
-                    rGeometry.LocalSpaceDimension(),
+                    r_geometry.WorkingSpaceDimension(),
+                    r_geometry.LocalSpaceDimension(),
                     data_container,
                     points,
-                    &rGeometry);
+                    &r_geometry);
             }
         }
     }
