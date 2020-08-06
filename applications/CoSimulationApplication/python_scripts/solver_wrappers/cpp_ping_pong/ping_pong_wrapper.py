@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import subprocess
 # Importing the Kratos Library
 import KratosMultiphysics as KM
@@ -17,7 +15,7 @@ class PingPongWrapper(CoSimulationSolverWrapper):
     """This class serves as wrapper for the cpp ping and pong solvers
     """
     def __init__(self, settings, model, solver_name):
-        super(PingPongWrapper, self).__init__(settings, model, solver_name)
+        super().__init__(settings, model, solver_name)
 
         settings_defaults = KM.Parameters("""{
             "main_model_part_name" : "",
@@ -33,10 +31,10 @@ class PingPongWrapper(CoSimulationSolverWrapper):
         self.mp.CreateNewNode(1,0,0,0)
 
     def Initialize(self):
-        super(PingPongWrapper, self).Initialize()
+        super().Initialize()
 
     def Finalize(self):
-        super(PingPongWrapper, self).Finalize()
+        super().Finalize()
         with self.rv.stdout, open(self.name +'.log', 'w') as file:
             for line in self.rv.stdout:
                 file.write(line.decode("utf-8"))
@@ -45,7 +43,7 @@ class PingPongWrapper(CoSimulationSolverWrapper):
         return 1.0
 
     def SolveSolutionStep(self):
-        super(PingPongWrapper, self).SolveSolutionStep()
+        super().SolveSolutionStep()
         self.__RunExecutable()
 
     def PrintInfo(self):
