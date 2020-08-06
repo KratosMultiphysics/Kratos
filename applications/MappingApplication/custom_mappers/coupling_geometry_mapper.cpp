@@ -101,7 +101,8 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
                     * det_jacobian[integration_point_itr];
                 KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                    << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
+                    << "SHAPE FUNCTIONS LESS THAN ZERO\n\t"
+                    << sf_values_master(integration_point_itr, i) << std::endl;
             }
         }
     }
@@ -113,10 +114,10 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                         * sf_values_master(integration_point_itr, j)
                         * det_jacobian[integration_point_itr];
 
-                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0)
-                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
+                        << "MASTER SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
+                        << "SLAVE SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
                 }
             }
         }

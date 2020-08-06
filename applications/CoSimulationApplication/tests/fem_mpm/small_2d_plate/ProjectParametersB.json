@@ -52,7 +52,7 @@
             "kratos_module" : "KratosMultiphysics",
             "check"         : "DirectorVectorNonZero direction",
             "Parameters"    : {
-                "model_part_name" : "PointLoad2D_right_edge",
+                "model_part_name" : "Background_Grid.PointLoad2D_right_edge",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 0.5,
                 "direction"       : [1.0,0.0,0.0],

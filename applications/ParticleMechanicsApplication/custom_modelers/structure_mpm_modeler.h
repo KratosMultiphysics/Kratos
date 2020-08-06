@@ -23,6 +23,7 @@
 
 #include "geometries/geometry_data.h"
 #include "geometries/coupling_geometry.h"
+#include "geometries/line_2d_2.h"
 #include "utilities/quadrature_points_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
 
@@ -112,9 +113,9 @@ public:
         GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4
         )
     {
-        for (auto line : rInputLineGeometries)
+        for (IndexType i = 0; i < rInputLineGeometries.size(); ++i)
         {
-            std::vector<GeometryPointerType> qudrature_point_geometries = CreateQuadraturePointsUtility<Node<3>>::Create(line, ThisIntegrationMethod, 2);
+            std::vector<GeometryPointerType> qudrature_point_geometries = CreateQuadraturePointsUtility<Node<3>>::Create(rInputLineGeometries[i], ThisIntegrationMethod);
             for (IndexType i = 0; i < qudrature_point_geometries.size(); ++i) {
                 rOuputQuadraturePointGeometries.push_back(qudrature_point_geometries[i]);
             }
@@ -135,7 +136,7 @@ public:
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
         // Loop over the submodelpart of rInitialModelPart
-        for (IndexType i; i < rInputQuadraturePointGeometries.size(); ++i)
+        for (IndexType i = 0; i < rInputQuadraturePointGeometries.size(); ++i)
         {
             typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
@@ -148,10 +149,10 @@ public:
             bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin);
 
             if (is_found) {
-                rOuputQuadraturePointGeometries.push_back(CreateQuadraturePointsUtility<NodeType>::CreateFromCoordinates(
+                rOuputQuadraturePointGeometries[i] = CreateQuadraturePointsUtility<NodeType>::CreateFromCoordinates(
                     p_elem->pGetGeometry(),
                     coordinates,
-                    rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight()));
+                    rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight());
             }
         }
     }
@@ -159,18 +160,18 @@ public:
     template<SizeType TDimension,
         class TConditionsList>
     void UpdateMpmQuadraturePointGeometries(
-        const TConditionsList& rInputConditions,
+        TConditionsList& rInputConditions,
         ModelPart& rBackgroundGridModelPart) {
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
         // Loop over the submodelpart of rInitialModelPart
-        for (IndexType i; i < rInputConditions.size(); ++i)
+        for (IndexType i = 0; i < rInputConditions.size(); ++i)
         {
             typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-            array_1d<double, 3> coordinates = rInputConditions[i]->GetGeometry().pGetGeometryPart(0)->Center();
+            array_1d<double, 3> coordinates = rInputConditions(i)->GetGeometry().pGetGeometryPart(0)->Center();
 
             Element::Pointer p_elem;
             Vector N;
@@ -182,9 +183,9 @@ public:
 
             if (is_found) {
                 CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
-                    rInputConditions[i]->GetGeometry().pGetGeometryPart(1),
+                    rInputConditions(i)->GetGeometry().pGetGeometryPart(1),
                     local_coordinates,
-                    rInputConditions[i]->pGetGeometry()->IntegrationPoints()[0].Weight(),
+                    rInputConditions(i)->pGetGeometry()->IntegrationPoints()[0].Weight(),
                     p_elem->GetGeometry());
             }
         }
@@ -225,7 +226,8 @@ private:
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
     }
 
-    void CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart);
+    void CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart,
+        std::vector<GeometryPointerType>& rGeometries);
 
     void CheckParameters();
 

@@ -69,7 +69,7 @@
 					"echo_level" : 5,
 					"dual_mortar": true,
 					"consistency_scaling" : true,
-					"modeler_name" : "MappingGeometriesModeler",
+					"modeler_name" : "StructureMpmModeler",
 					"modeler_parameters":{
 						"origin_model_part_name" : "origin",
 						"destination_model_part_name" : "destination",
