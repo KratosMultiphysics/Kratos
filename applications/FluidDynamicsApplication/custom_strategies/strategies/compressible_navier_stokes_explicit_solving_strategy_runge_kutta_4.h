@@ -167,6 +167,9 @@ public:
             // r_node.SetValue(SHOCK_CAPTURING_CONDUCTIVITY, 0.0);
             // r_node.SetValue(VELOCITY, VELOCITY.Zero());
             // r_node.SetValue(CHARACTERISTIC_VELOCITY, CHARACTERISTIC_VELOCITY.Zero());
+            r_node.SetValue(SMOOTHED_DENSITY, 0.0);
+            r_node.SetValue(SMOOTHED_TOTAL_ENERGY, 0.0);
+            r_node.SetValue(SMOOTHED_MOMENTUM, SMOOTHED_MOMENTUM.Zero());
         }
 
         // If required, initialize the OSS projection variables
@@ -256,6 +259,9 @@ public:
 
         // // Calculate the magnitudes time derivatives with the obtained solution
         // UpdateUnknownsTimeDerivatives(1.0);
+
+        // Do the values smoothing
+        CalculateValuesSmoothing();
     }
 
     /// Turn back information as a string.
@@ -698,7 +704,7 @@ private:
             mom_grad_proj_norm = std::sqrt(mom_grad_proj_norm);
 
             // Calculate the shock capturing magnitudes
-            const double c_a = 0.8;
+            const double c_a = 0.0001;
             const double v_norm = norm_2(midpoint_v);
             const double aux = 0.5 * c_a * v_norm * avg_h_function(r_geom);
             // it_elem->GetValue(SHOCK_CAPTURING_VISCOSITY) = mom_grad_norm > zero_tol ? aux * mom_grad_proj_norm / mom_grad_norm : 0.0;
@@ -715,6 +721,160 @@ private:
                 it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = sc_cond_ratio < sc_cond_max_ratio ? aux * sc_cond_ratio : aux * sc_cond_max_ratio;
             } else {
                 it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = 0.0;
+            }
+        }
+    }
+
+    void CalculateValuesSmoothing()
+    {
+        // Calculate the model part data
+        auto &r_model_part = BaseType::GetModelPart();
+        const int n_nodes = r_model_part.NumberOfNodes();
+        const int n_elems = r_model_part.NumberOfElements();
+        const int dim = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
+        const unsigned int block_size = dim + 2;
+
+        // Get the required data from the explicit builder and solver
+        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
+        auto &r_dof_set = p_explicit_bs->GetDofSet();
+        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
+        const auto &r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+
+        // Set the functor to calculate the element size
+        // Note that this assumes a unique geometry in the computational mesh
+        std::function<double(Geometry<Node<3>>& rGeometry)> avg_h_function;
+        const GeometryData::KratosGeometryType geometry_type = (r_model_part.ElementsBegin()->GetGeometry()).GetGeometryType();
+        switch (geometry_type) {
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                avg_h_function = [&](Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
+                break;
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                avg_h_function = [&](Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
+                break;
+            default:
+                KRATOS_ERROR << "Asking for a non-implemented geometry.";
+        }
+
+        // Initialize smoothed values
+#pragma omp parallel for
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
+            it_node->GetValue(SMOOTHED_DENSITY) = 0.0;
+            it_node->GetValue(SMOOTHED_TOTAL_ENERGY) = 0.0;
+            it_node->GetValue(SMOOTHED_MOMENTUM) = ZeroVector(3);
+        }
+
+        const double dt = BaseType::GetDeltaTime();
+        const double c_e = 1.0; // User specified constant between 0.0 and 2.0
+
+        // Assemble the corrections contributions
+        Vector p_grad;
+        Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+#pragma omp parallel for private(p_grad, dNdX_container)
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+            auto it_elem = r_model_part.ElementsBegin() + i_elem;
+            auto& r_geom = it_elem->GetGeometry();
+            const unsigned int n_nodes = r_geom.PointsNumber();
+            const double geom_domain_size = r_geom.DomainSize();
+
+            // Calculate the gradients in the element midpoint
+            // Note that it is assumed that simplicial elements are used
+            dNdX_container = r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::GI_GAUSS_1);
+            const auto &r_dNdX = dNdX_container[0];
+
+            // Calculate the required average values
+            double p_avg = 0.0;
+            double c_avg = 0.0;
+            double v_norm_avg = 0.0;
+            p_grad = ZeroVector(dim);
+            const double gamma = (it_elem->GetProperties()).GetValue(HEAT_CAPACITY_RATIO);
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto &r_node = r_geom[i_node];
+                const auto node_dNdX = row(r_dNdX, i_node);
+                const auto &r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+                const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+                const double &r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+                const double v_norm = norm_2(r_mom / r_rho);
+                const double p = (gamma - 1.0) * (r_tot_ener - 0.5 * std::pow(v_norm, 2) * r_rho);
+                const double c = std::sqrt(gamma * p / r_rho);
+                p_avg += p;
+                c_avg += c;
+                v_norm_avg += v_norm;
+                for (int d1 = 0; d1 < dim; ++d1) {
+                    p_grad(d1) += node_dNdX(d1) * p;
+                }
+            }
+            p_avg /= n_nodes;
+            c_avg /= n_nodes;
+            v_norm_avg /= n_nodes;
+            const double p_grad_norm = norm_2(p_grad);
+
+            // Calculate the multiplying constant
+            const double avg_h = avg_h_function(r_geom);
+            const double constant = dt * c_e * std::pow(avg_h, 2) * (v_norm_avg + c_avg) * p_grad_norm / p_avg;
+            // const double constant = dt * c_e * std::pow(avg_h, 2) * p_grad_norm / p_avg;
+
+            // Elemental diffusive assembly
+            for (unsigned int d = 0; d < dim; ++d) {
+                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                    // Get smoothed values
+                    auto &r_node_i = r_geom[i_node];
+                    auto &r_smooth_mom = r_node_i.GetValue(SMOOTHED_MOMENTUM);
+                    double &r_smooth_rho = r_node_i.GetValue(SMOOTHED_DENSITY);
+                    double &r_smooth_tot_ener = r_node_i.GetValue(SMOOTHED_TOTAL_ENERGY);
+                    // Calculate characteristic velocity
+                    const auto& r_rho = r_node_i.FastGetSolutionStepValue(DENSITY);
+                    const auto& r_tot_ener = r_node_i.FastGetSolutionStepValue(TOTAL_ENERGY);
+                    // const double v_norm = norm_2(r_node_i.FastGetSolutionStepValue(MOMENTUM) / r_rho);
+                    // const double p = (gamma - 1.0) * (r_tot_ener - 0.5 * std::pow(v_norm, 2) * r_rho);
+                    // const double c = std::sqrt(gamma * p / r_rho);
+                    // const double char_vel = v_norm + c;
+                    // Calculate the diffusive elemental contribution
+                    const double aux_i = r_dNdX(i_node, d);
+                    for (unsigned int j_node = 0; j_node < n_nodes; ++j_node) {
+                        const auto& r_node_j = r_geom[j_node];
+                        const auto &r_mom = r_node_j.FastGetSolutionStepValue(MOMENTUM, 1);
+                        const double &r_rho = r_node_j.FastGetSolutionStepValue(DENSITY, 1);
+                        const double &r_tot_ener = r_node_j.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
+                        r_smooth_rho += aux_i * r_dNdX(j_node, d) * r_rho;
+                        r_smooth_mom += aux_i * r_dNdX(j_node, d) * r_mom;
+                        r_smooth_tot_ener += aux_i * r_dNdX(j_node, d) * r_tot_ener;
+                    }
+                    r_smooth_rho *= constant * geom_domain_size;
+                    r_smooth_mom *= constant * geom_domain_size;
+                    r_smooth_tot_ener *= constant * geom_domain_size;
+                    // r_smooth_rho *= constant * char_vel * geom_domain_size;
+                    // r_smooth_mom *= constant * char_vel * geom_domain_size;
+                    // r_smooth_tot_ener *= constant * char_vel * geom_domain_size;
+                }
+            }
+        }
+
+            // Divide the smoothing contribution by the mass and add to the current solution
+#pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
+            const double mass = r_lumped_mass_vector(i_node * block_size);
+            auto& r_smooth_mom = it_node->GetValue(SMOOTHED_MOMENTUM);
+            double& r_smooth_rho = it_node->GetValue(SMOOTHED_DENSITY);
+            double& r_smooth_tot_ener = it_node->GetValue(SMOOTHED_TOTAL_ENERGY);
+            r_smooth_rho /= mass;
+            r_smooth_mom /= mass;
+            r_smooth_tot_ener /= mass;
+            if (!it_node->IsFixed(DENSITY)) {
+                it_node->FastGetSolutionStepValue(DENSITY) += r_smooth_rho;
+            }
+            if (!it_node->IsFixed(MOMENTUM_X)) {
+                it_node->FastGetSolutionStepValue(MOMENTUM_X) += r_smooth_mom(0);
+            }
+            if (!it_node->IsFixed(MOMENTUM_Y)) {
+                it_node->FastGetSolutionStepValue(MOMENTUM_Y) += r_smooth_mom(1);
+            }
+            if (!it_node->IsFixed(MOMENTUM_Z)) {
+                it_node->FastGetSolutionStepValue(MOMENTUM_Z) += r_smooth_mom(2);
+            }
+            if (!it_node->IsFixed(TOTAL_ENERGY)) {
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY) += r_smooth_tot_ener;
             }
         }
     }
