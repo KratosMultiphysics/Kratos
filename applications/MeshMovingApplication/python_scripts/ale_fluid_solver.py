@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -11,7 +9,7 @@ class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(AleFluidSolver, self).__init__(model, solver_settings)
+        super().__init__(model, solver_settings)
 
         self.start_fluid_solution_time = self.settings["start_fluid_solution_time"].GetDouble()
 
@@ -78,7 +76,7 @@ class AleFluidSolver(PythonSolver):
             "fluid_solver_settings"       : { },
             "mesh_motion_solver_settings" : { }
         }""")
-        this_defaults.AddMissingParameters(super(AleFluidSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):

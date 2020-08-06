@@ -39,7 +39,7 @@ namespace Kratos
 
 
 
-class HenckyBorjaCamClayPlasticPlaneStrain2DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyBorjaCamClayPlasticPlaneStrain2DLaw
     : public HenckyElasticPlasticPlaneStrain2DLaw
 
 {
