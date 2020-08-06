@@ -99,7 +99,7 @@ class MechanicalSolver(PythonSolver):
                 "input_filename": "unknown_name"
             },
             "computing_model_part_name" : "computing_domain",
-            "use_computing_model_part" : true,
+            "use_computing_model_part" : false,
             "material_import_settings" :{
                 "materials_filename": ""
             },
