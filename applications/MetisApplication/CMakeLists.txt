@@ -30,7 +30,8 @@ endif(${USE_METIS_5} MATCHES ON)
 set( KRATOS_METIS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_metis_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_metis_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metis_divide_submodelparts_heterogeneous_input_process.cpp
 )
 
 # ###############################################################

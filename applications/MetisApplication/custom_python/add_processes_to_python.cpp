@@ -21,6 +21,7 @@
 #include "custom_python/add_processes_to_python.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
+#include "custom_processes/metis_divide_submodelparts_heterogeneous_input_process.h"
 #include "custom_processes/metis_divide_heterogeneous_input_in_memory_process.h"
 #include "custom_processes/morton_divide_input_to_partitions_process.h"
 
@@ -63,6 +64,14 @@ void AddProcessesToPython(pybind11::module& m)
         m,"MetisDivideNodalInputToPartitionsProcess")
         .def(py::init<IO&, std::size_t, int>())
         .def(py::init<IO&, std::size_t>())
+        ;
+
+    py::class_<MetisDivideSubModelPartsHeterogeneousInputProcess, MetisDivideSubModelPartsHeterogeneousInputProcess::Pointer, Process>(
+        m,"MetisDivideSubModelPartsHeterogeneousInputProcess")
+        .def(py::init<IO&, Parameters, unsigned int>())
+        .def(py::init<IO&, Parameters, unsigned int, int>())
+        .def(py::init<IO&, Parameters, unsigned int, int, int>())
+        .def(py::init<IO&, Parameters, unsigned int, int, int, bool>())
         ;
 
 }

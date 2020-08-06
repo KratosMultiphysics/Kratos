@@ -117,30 +117,9 @@ public:
      */
     void Execute() override
     {
-        // Read nodal graph from input
-
-        IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
-
-        SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
-
-        SizeType NumNodesInMesh = BaseType::mrIO.ReadNodesNumber();
-        if (NumNodes != NumNodesInMesh)
-            KRATOS_ERROR << "Invalid mesh: number of connected nodes = " << NumNodes
-                         << ", number of mesh nodes = " << NumNodesInMesh << "."
-                         << std::endl;
-
-        // Write connectivity data in CSR format
-        idxtype* NodeIndices = 0;
-        idxtype* NodeConnectivities = 0;
-
-        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
-
+        SizeType NumNodes;
         std::vector<idxtype> NodePartition;
-        PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
-
-        // Free some memory we no longer need
-        delete [] NodeIndices;
-        delete [] NodeConnectivities;
+        GetNodesPartitions(NodePartition, NumNodes);
 
         // Partition elements
         IO::ConnectivitiesContainerType ElementConnectivities;
@@ -237,6 +216,33 @@ public:
         mrIO.DivideInputToPartitions(mNumberOfPartitions, ColoredDomainGraph,
                                      io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
                                      nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
+    }
+
+
+    virtual void GetNodesPartitions(std::vector<idxtype> &rNodePartition, SizeType &rNumNodes)
+    {
+        // Read nodal graph from input
+        IO::ConnectivitiesContainerType kratos_format_node_connectivities;
+
+        rNumNodes = BaseType::mrIO.ReadNodalGraph(kratos_format_node_connectivities);
+
+        SizeType num_nodes_in_mesh = BaseType::mrIO.ReadNodesNumber();
+        if (rNumNodes != num_nodes_in_mesh)
+            KRATOS_ERROR << "Invalid mesh: number of connected nodes = " << rNumNodes
+                         << ", number of mesh nodes = " << num_nodes_in_mesh << "."
+                         << std::endl;
+
+        // Write connectivity data in CSR format
+        idxtype* node_indices = 0;
+        idxtype* node_connectivities = 0;
+
+        ConvertKratosToCSRFormat(kratos_format_node_connectivities, &node_indices, &node_connectivities);
+
+        PartitionNodes(rNumNodes, node_indices, node_connectivities, rNodePartition);
+
+        // Free some memory we no longer need
+        delete [] node_indices;
+        delete [] node_connectivities;
     }
 
     ///@}
@@ -643,7 +649,7 @@ protected:
           // Advance to next condition in connectivities array
           itCond++;
       }
-      
+
       // Now distribute boundary conditions
       itCond = rCondConnectivities.begin();
       //int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
