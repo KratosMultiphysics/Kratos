@@ -45,7 +45,10 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     /**
      * @brief Constructor of the process to apply periodic boundary condition
      * @param rMasterModelPart The master model part for the constraints. Constraints are added on here.
-     * @param rSlaveModelPart The slave model part for the constraints.
+     *                          This modelpart is assumed to be the stationary one. In MPI this is gathered
+     *                          once in the beginning and is used subsequently for searching.
+     * @param rSlaveModelPart The slave model part for the constraints. This is the rotatting/moving side of
+     *                          the interface.
      * @param Settings parameters for the periodic condition to be applied
      */
     SlidingInterfaceProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
@@ -60,6 +63,11 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
      * @brief Function initializes the process
      */
     void ExecuteInitialize() override;
+
+    /**
+     * @brief Function finalizes the process
+     */
+    void ExecuteFinalize() override;
 
     /**
      * @brief Function initializes the solution step
@@ -92,6 +100,7 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     Parameters mParameters;          // parameters
     double mSearchTolerance;
     IndexType mSearchMaxResults;
+    std::string mGatheredMpName;
 
     /**
      * @brief   The function to figure out how the master and slave model parts relate together and add master-slave constraints
@@ -111,10 +120,15 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     void ConstraintSlaveNodeWithConditionForVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
 
     /**
-     * @brief   The function checks if this is a MPI run, in case it is, it gathers the master modelpart on all the ranks
-     * and returns the reference to that.
+     * @brief   The function checks if this is a MPI run, in case it is, it returns a reference to gathered_modelpart  else
+     *          a reference to the mrMasterModelPart
      */
     ModelPart& GetSearchModelpart();
+
+    /**
+     * @brief   The function checks if this is a MPI run, in case it is, it gathers the master modelpart on all the ranks
+     */
+    void CreateSearchModelpart();
 }; // Class
 
 

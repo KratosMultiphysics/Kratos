@@ -21,9 +21,7 @@
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/variable_utils.h"
 #include "containers/model.h"
-#ifdef KRATOS_USING_MPI
-    #include "custom_utilities/gather_modelpart_on_all_ranks.h"
-#endif
+#include "custom_utilities/gather_modelpart_on_all_ranks.h"
 
 namespace Kratos
 {
@@ -38,6 +36,8 @@ SlidingInterfaceProcess::SlidingInterfaceProcess(ModelPart &rMasterModelPart, Mo
 
     mSearchMaxResults = mParameters["search_settings"]["max_results"].GetInt();
     mSearchTolerance = mParameters["search_settings"]["tolerance"].GetDouble();
+
+    mGatheredMpName = "gathered_master";
 }
 
 SlidingInterfaceProcess::~SlidingInterfaceProcess()
@@ -50,7 +50,19 @@ SlidingInterfaceProcess::~SlidingInterfaceProcess()
     */
 void SlidingInterfaceProcess::ExecuteInitialize()
 {
+    CreateSearchModelpart();
 }
+
+
+void SlidingInterfaceProcess::ExecuteFinalize()
+{
+    Model& current_model = mrMasterModelPart.GetModel();
+    const DataCommunicator &r_comm =
+        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
+    if (r_comm.IsDistributed())
+        current_model.DeleteModelPart(mGatheredMpName);
+}
+
 
 /**
     * @brief Function initializes the solution step
@@ -81,11 +93,6 @@ void SlidingInterfaceProcess::ExecuteInitializeSolutionStep()
 void SlidingInterfaceProcess::ExecuteFinalizeSolutionStep()
 {
     mrMasterModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
-    Model& current_model = mrMasterModelPart.GetModel();
-    const DataCommunicator &r_comm =
-        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
-    if (r_comm.IsDistributed())
-        current_model.DeleteModelPart("gathered_master");
 }
 
 
@@ -113,21 +120,31 @@ void SlidingInterfaceProcess::PrintInfo(std::ostream& rOStream) const
 }
 
 
-ModelPart& SlidingInterfaceProcess::GetSearchModelpart()
+void SlidingInterfaceProcess::CreateSearchModelpart()
 {
-
     const DataCommunicator &r_comm =
         mrMasterModelPart.GetCommunicator().GetDataCommunicator();
     Model& current_model = mrMasterModelPart.GetModel();
-    ModelPart &gathered_master = r_comm.IsDistributed() ? current_model.CreateModelPart("gathered_master") : mrMasterModelPart;
 
-    #ifdef KRATOS_USING_MPI
-        if (r_comm.IsDistributed())
-            GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
-    #endif
-
-    return gathered_master;
+    if (r_comm.IsDistributed())
+    {
+        ModelPart &gathered_master = current_model.CreateModelPart(mGatheredMpName);
+        GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
+    }
 }
+
+
+ModelPart& SlidingInterfaceProcess::GetSearchModelpart()
+{
+    const DataCommunicator &r_comm =
+        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
+    Model& current_model = mrMasterModelPart.GetModel();
+    if (r_comm.IsDistributed())
+        return current_model.GetModelPart(mGatheredMpName);
+    else
+        return mrMasterModelPart;
+}
+
 
 template <int TDim>
 void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
@@ -143,10 +160,6 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
     const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.GetCommunicator().LocalMesh().NodesBegin();
     IndexType num_slaves_found = 0;
 
-    auto& r_comm = mrMasterModelPart.GetCommunicator();
-    const int current_rank = r_comm.MyPID();
-
-
     #pragma omp parallel for schedule(guided, 512) reduction( + : num_slaves_found )
     for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
     {
@@ -154,9 +167,6 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
         VectorType shape_function_values;
         NodeIteratorType it_slave_node = it_slave_node_begin+i_node;
         const auto& slave_node_coords = it_slave_node->Coordinates();
-        // if(r_comm.IsDistributed())
-        //     if(it_slave_node->GetSolutionStepValue(PARTITION_INDEX) != current_rank)
-        //         continue;
 
         // Finding the host element for this node
         const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(slave_node_coords, shape_function_values, p_host_cond, mSearchMaxResults, mSearchTolerance);
