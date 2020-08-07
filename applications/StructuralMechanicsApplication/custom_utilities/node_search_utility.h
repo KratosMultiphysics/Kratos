@@ -93,7 +93,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodeSearchUtility
        * @param rResults Results container.
        **/
       void SearchNodesInRadius(
-          NodeType& rNode,
+          NodeType::Pointer pNode,
           double const Radius,
           ResultNodesContainerType& rResults );
 

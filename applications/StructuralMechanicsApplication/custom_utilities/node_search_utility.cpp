@@ -19,7 +19,7 @@
 namespace Kratos {
 
 void NodeSearchUtility::SearchNodesInRadius(
-        NodeType& rNode,
+        NodeType::Pointer pNode,
         double const Radius,
         ResultNodesContainerType& rResults ) {
 
@@ -29,9 +29,8 @@ void NodeSearchUtility::SearchNodesInRadius(
     std::size_t num_of_results = 0;
 
     ResultNodesContainerType::iterator results_iterator = local_results.begin();
-    NodeType::Pointer p_node = &rNode;
 
-    num_of_results = mpBins->SearchObjectsInRadius(p_node, Radius, results_iterator, mMaxNumberOfNodes);
+    num_of_results = mpBins->SearchObjectsInRadius(pNode, Radius, results_iterator, mMaxNumberOfNodes);
 
     rResults.insert(rResults.begin(), local_results.begin(), local_results.begin() + num_of_results);
 

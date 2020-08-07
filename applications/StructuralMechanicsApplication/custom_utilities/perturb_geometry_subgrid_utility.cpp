@@ -52,9 +52,9 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
         auto it_node = it_node_begin + i;
         if(!it_node->Is(VISITED)) {
             it_node->Set(VISITED,true);
-            reduced_space_nodes.push_back(&(*it_node));
+            reduced_space_nodes.push_back(&*it_node);
             results = {};
-            searcher.SearchNodesInRadius(*it_node, radius, results);
+            searcher.SearchNodesInRadius(&*it_node, radius, results);
             for(std::size_t j = 0; j < results.size(); ++j){
                 results[j]->Set(VISITED,true);
             }
