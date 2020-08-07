@@ -156,9 +156,9 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(r_search_modelpart);
     bin_based_point_locator.UpdateSearchDatabase();
 
-    const IndexType num_slave_nodes = mrSlaveModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    const int num_slave_nodes = mrSlaveModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.GetCommunicator().LocalMesh().NodesBegin();
-    IndexType num_slaves_found = 0;
+    int num_slaves_found = 0;
 
     #pragma omp parallel for schedule(guided, 512) reduction( + : num_slaves_found )
     for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
