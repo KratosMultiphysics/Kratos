@@ -60,7 +60,6 @@ int PerturbGeometrySubgridUtility::CreateRandomFieldVectors(){
             }
         }
     }
-    reduced_space_nodes.shrink_to_fit();
     const int num_nodes_reduced_space = reduced_space_nodes.size();
 
     KRATOS_INFO_IF("PerturbGeometrySubgridUtility: Find Reduced Space Time", mEchoLevel > 0)
