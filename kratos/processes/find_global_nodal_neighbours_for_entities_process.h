@@ -37,7 +37,7 @@ namespace Kratos
 /** Detail class definition.
  */
 template <class TContainerType>
-class FindNodalNeighboursForEntitiesProcess : public Process
+class KRATOS_API(KRATOS_CORE) FindNodalNeighboursForEntitiesProcess : public Process
 {
 public:
     ///@name Type Definitions
