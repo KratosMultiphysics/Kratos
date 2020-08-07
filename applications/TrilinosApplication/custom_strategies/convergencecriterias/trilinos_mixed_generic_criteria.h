@@ -111,20 +111,8 @@ public:
             InitializeEpetraImport(rDofSet, Dx);
         }
 
-        // Check if we are solving for something
-        if (TSparseSpace::Size(Dx) != 0) {
-            // Calculate the convergence ratio and absolute norms
-            const auto convergence_norms = BaseType::CalculateConvergenceNorms(rModelPart, rDofSet, Dx);
-
-            // Output convergence status
-            BaseType::OutputConvergenceStatus(convergence_norms);
-
-            // Check convergence
-            return BaseType::CheckConvergence(convergence_norms);
-        } else {
-            // Case in which all the DOFs are constrained!
-            return true;
-        }
+        // Serial base implementation convergence check call
+        return BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
     }
 
     ///@}
