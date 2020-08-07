@@ -96,11 +96,11 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
 
         for (auto& r_entity : this->GetContainer()) {
             const auto& r_geometry = r_entity.GetGeometry();
-            for (unsigned int i = 0; i < r_geometry.size(); i++) {
+            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
                 const int i_owner_rank =
                     r_geometry[i].FastGetSolutionStepValue(PARTITION_INDEX);
                 auto& container = neighbours_ids[i_owner_rank][r_geometry[i].Id()];
-                for (unsigned int j = 0; j < r_geometry.size(); j++) {
+                for (unsigned int j = 0; j < r_geometry.size(); ++j) {
                     if (j != i) {
                         AddUnique(container, r_geometry[j].Id());
                     }
@@ -108,27 +108,43 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
             }
         }
 
+        // there are some isolated nodes when metis partitioner performs partitioning
+        // specially in the case where TContainerType = ModelPart::ConditionsContainerType
+        // therefore we add those ids to neighbours_ids so that proper communication scheduling
+        // can be computed.
+        BlockPartition<NodesContainerType>(r_nodes).for_each([&](const NodeType& rNode) {
+            const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
+            const int node_id = rNode.Id();
+            if (neighbours_ids[i_owner_rank].find(node_id) ==
+                neighbours_ids[i_owner_rank].end()) {
+                #pragma omp critical
+                {
+                    neighbours_ids[i_owner_rank][node_id];
+                }
+            }
+        });
+
         // here communicate non local data
         // compute communication plan
         std::vector<int> send_list;
         send_list.reserve(neighbours_ids.size());
-        for (auto& it : neighbours_ids) {
+        for (const auto& it : neighbours_ids) {
             if (it.first != current_rank) {
                 send_list.push_back(it.first);
             }
         }
 
         std::sort(send_list.begin(), send_list.end());
-        auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(
+        const auto colors = MPIColoringUtilities::ComputeCommunicationScheduling(
             send_list, this->mrDataCommunicator);
 
         // finalize computation of neighbour ids on owner nodes
         std::unordered_map<int, std::vector<int>> non_local_node_ids; // this will contain the id of the nodes that will need communicaiton
-        for (int color : colors) {
+        for (const int color : colors) {
             if (color >= 0) {
                 auto tmp = this->mrDataCommunicator.SendRecv(
                     neighbours_ids[color], color, color);
-                for (auto& item : tmp) {
+                for (const auto& item : tmp) {
                     auto& ids = neighbours_ids[current_rank][item.first];
                     for (int neighbour_id : item.second)
                         AddUnique(ids, neighbour_id);
@@ -178,9 +194,9 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
         }
 
         // finalize computation by obtaining the neighbours for non-local nodes
-        for (int color : colors) {
+        for (const int color : colors) {
             if (color >= 0) {
-                std::unordered_map<int, GlobalPointersVector<Node<3>>> neighbours_to_send;
+                std::unordered_map<int, GlobalPointersVector<NodeType>> neighbours_to_send;
 
                 for (auto id : non_local_node_ids[color]) {
                     neighbours_to_send[id] =
