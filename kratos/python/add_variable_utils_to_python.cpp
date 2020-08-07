@@ -24,33 +24,34 @@
 // Variable utilities
 #include "utilities/variable_utils.h"
 
-#ifndef ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS
-#define ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(method, ...)                                                                            \
-    .def(#method, (void (VariableUtils::*)(const Variable<bool>&, const Variable<bool>&, __VA_ARGS__))(&VariableUtils::method))                                 \
-    .def(#method, (void (VariableUtils::*)(const Variable<double>&, const Variable<double>&, __VA_ARGS__))(&VariableUtils::method))                             \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&, __VA_ARGS__))(&VariableUtils::method))   \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&, __VA_ARGS__))(&VariableUtils::method))   \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&, __VA_ARGS__))(&VariableUtils::method))   \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&, __VA_ARGS__))(&VariableUtils::method))   \
-    .def(#method, (void (VariableUtils::*)(const Variable<Vector>&, const Variable<Vector>&, __VA_ARGS__))(&VariableUtils::method))                             \
-    .def(#method, (void (VariableUtils::*)(const Variable<Matrix>&, const Variable<Matrix>&, __VA_ARGS__))(&VariableUtils::method))
-#endif
-
-#ifndef ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS
-#define ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(method, ...)                                          \
-    .def(#method, (void (VariableUtils::*)(const Variable<bool>&, __VA_ARGS__))(&VariableUtils::method))                \
-    .def(#method, (void (VariableUtils::*)(const Variable<double>&, __VA_ARGS__))(&VariableUtils::method))              \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 3>>&, __VA_ARGS__))(&VariableUtils::method)) \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 4>>&, __VA_ARGS__))(&VariableUtils::method)) \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 6>>&, __VA_ARGS__))(&VariableUtils::method)) \
-    .def(#method, (void (VariableUtils::*)(const Variable<array_1d<double, 9>>&, __VA_ARGS__))(&VariableUtils::method)) \
-    .def(#method, (void (VariableUtils::*)(const Variable<Vector>&, __VA_ARGS__))(&VariableUtils::method))              \
-    .def(#method, (void (VariableUtils::*)(const Variable<Matrix>&, __VA_ARGS__))(&VariableUtils::method))
-#endif
-
-
 namespace Kratos {
 namespace Python {
+
+template<class TDataType>
+void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVariableUtils)
+{
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+}
 
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
@@ -219,7 +220,7 @@ void AddVariableUtilsToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    py::class_<VariableUtils>(m, "VariableUtils")
+    auto python_variable_utils = py::class_<VariableUtils>(m, "VariableUtils")
         .def(py::init<>())
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<bool>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<double>>)
@@ -257,26 +258,6 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartNodalVarToNonHistoricalVar", CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<Quaternion<double>>>)
         .def("CopyModelPartNodalVarToNonHistoricalVar", CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<Vector>>)
         .def("CopyModelPartNodalVarToNonHistoricalVar", CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<Matrix>>)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar, ModelPart&, const Flags&, const bool, const unsigned int)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar, const ModelPart&, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedElementVar, const ModelPart&, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedElementVar, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedElementVar, const ModelPart&, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedConditionVar, const ModelPart&, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_DIFFERENT_VARIABLES_DATA_COPY_METHODS(CopyModelPartFlaggedConditionVar, ModelPart&, const Flags&, const bool)
-        ADD_KRATOS_FLAGGED_ENTITY_SAME_VARIABLE_DATA_COPY_METHODS(CopyModelPartFlaggedConditionVar, const ModelPart&, ModelPart&, const Flags&, const bool)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<bool>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<double>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<array_1d<double, 3>>>)
@@ -480,6 +461,15 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
+
+    AddCopyModelPartFlaggedInterface<bool>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<double>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 3>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 4>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 6>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 9>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<Vector>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<Matrix>(python_variable_utils);
 }
 
 } // namespace Python.
