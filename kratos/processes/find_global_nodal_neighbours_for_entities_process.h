@@ -137,6 +137,8 @@ private:
 
     TContainerType& GetContainer();
 
+    void AddHangingNodeIds(std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds);
+
     void AddUnique(
         std::vector<int>& rContainer,
         const int Item);

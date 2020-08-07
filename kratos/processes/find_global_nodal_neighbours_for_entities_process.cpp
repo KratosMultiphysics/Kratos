@@ -46,6 +46,30 @@ ModelPart::ConditionsContainerType& FindNodalNeighboursForEntitiesProcess<ModelP
     return this->mrModelPart.Conditions();
 }
 
+template <>
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::AddHangingNodeIds(
+    std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds)
+{
+    // do nothing in here since mettis partitioner is based on elements, there cannot be any hanging nodes.
+}
+
+template <>
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::AddHangingNodeIds(
+    std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds)
+{
+    BlockPartition<NodesContainerType>(mrModelPart.Nodes()).for_each([&](const NodeType& rNode) {
+        const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
+        const int node_id = rNode.Id();
+        if (rNeighbourIds[i_owner_rank].find(node_id) ==
+            rNeighbourIds[i_owner_rank].end()) {
+#pragma omp critical
+            {
+                rNeighbourIds[i_owner_rank][node_id];
+            }
+        }
+    });
+}
+
 template <class TContainerType>
 void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
 {
@@ -112,17 +136,7 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
         // specially in the case where TContainerType = ModelPart::ConditionsContainerType
         // therefore we add those ids to neighbours_ids so that proper communication scheduling
         // can be computed.
-        BlockPartition<NodesContainerType>(r_nodes).for_each([&](const NodeType& rNode) {
-            const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
-            const int node_id = rNode.Id();
-            if (neighbours_ids[i_owner_rank].find(node_id) ==
-                neighbours_ids[i_owner_rank].end()) {
-                #pragma omp critical
-                {
-                    neighbours_ids[i_owner_rank][node_id];
-                }
-            }
-        });
+        AddHangingNodeIds(neighbours_ids);
 
         // here communicate non local data
         // compute communication plan
