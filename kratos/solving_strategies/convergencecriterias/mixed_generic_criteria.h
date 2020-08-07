@@ -107,7 +107,12 @@ public:
             std::unordered_map<KeyType, KeyType> aux_map;
             for (const auto &r_tup : rList) {
                 const auto *p_var_data = std::get<0>(r_tup);
-                aux_map[p_var_data->Key()] = local_key++;
+                if (aux_map.find(p_var_data->Key()) != aux_map.end()) {
+                    KRATOS_ERROR << "Convergence variable " << p_var_data->Name() << " is repeated. Check the input convergence variable list." << std::endl;
+                } else {
+                    KRATOS_ERROR_IF(p_var_data->IsComponent()) << "Trying to check convergence with the " << p_var_data->Name() << " component variable. Use the corresponding vector one." << std::endl;
+                    aux_map[p_var_data->Key()] = local_key++;
+                }
             }
             return aux_map;
         } (rConvergenceVariablesList))
