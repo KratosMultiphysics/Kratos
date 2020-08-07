@@ -193,8 +193,8 @@ namespace Kratos
         IndexType active_node_counter = 0;
         auto node_begin = r_sub_domain_1_active.NodesBegin();
 
-        auto velocity_variable = (mGamma[0] == 0.5) ? VELOCITY : NODAL_MOMENTUM;
-        auto acceleration_variable = (mGamma[0] == 0.5) ? ACCELERATION : FORCE_RESIDUAL;
+        const auto& velocity_variable = (mGamma[0] == 0.5) ? VELOCITY : NODAL_MOMENTUM;
+        const auto& acceleration_variable = (mGamma[0] == 0.5) ? ACCELERATION : FORCE_RESIDUAL;
 
         for (size_t i = 0; i < domain_nodes; ++i)
         {
