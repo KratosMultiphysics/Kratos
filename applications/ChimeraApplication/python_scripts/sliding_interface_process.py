@@ -89,3 +89,9 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if (self.interval.IsInInterval(current_time)):
             self.sliding_interface_proc.ExecuteFinalizeSolutionStep()
+
+    def ExecuteInitialize(self):
+        self.sliding_interface_proc.ExecuteInitialize()
+
+    def ExecuteFinalize(self):
+        self.sliding_interface_proc.ExecuteFinalize()
