@@ -16,7 +16,6 @@
 // Project includes
 #include "custom_utilities/perturb_geometry_base_utility.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/mortar_utilities.h"
 

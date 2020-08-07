@@ -17,7 +17,6 @@
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
 #include "custom_utilities/node_search_utility.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
