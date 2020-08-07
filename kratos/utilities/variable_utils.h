@@ -208,14 +208,14 @@ public:
         const Flags& rFlag,
         const bool CheckValue = true,
         const unsigned int ReadBufferStep = 0,
-        const unsigned int WritBufferStep = 0)
+        const unsigned int WriteBufferStep = 0)
     {
         KRATOS_TRY
 
         KRATOS_ERROR_IF(
             rOriginModelPart.FullName() == rDestinationModelPart.FullName() &&
             rOriginVariable == rDestinationVariable &&
-            ReadBufferStep == WritBufferStep)
+            ReadBufferStep == WriteBufferStep)
             << "Trying to copy flagged nodal solution step values with the same origin and destination model parts/variables/buffer steps. This is not permitted ( Origin model part: "
             << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
             << ", variable: " << rOriginVariable.Name() << ", buffer step: " << ReadBufferStep << " ) !";
@@ -233,16 +233,16 @@ public:
             << " ) buffer size is smaller or equal than read buffer size [ "
             << rOriginModelPart.GetBufferSize() << " <= " << ReadBufferStep << " ].";
 
-        KRATOS_ERROR_IF(WritBufferStep >= rDestinationModelPart.GetBufferSize())
+        KRATOS_ERROR_IF(WriteBufferStep >= rDestinationModelPart.GetBufferSize())
             << "Destination model part ( " << rDestinationModelPart.Name()
             << " ) buffer size is smaller or equal than read buffer size [ "
-            << rDestinationModelPart.GetBufferSize() << " <= " << WritBufferStep << " ].";
+            << rDestinationModelPart.GetBufferSize() << " <= " << WriteBufferStep << " ].";
 
         CopyModelPartFlaggedVariable<NodesContainerType>(
             rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
             [&](NodeType& rDestNode, const TDataType& rValue) {
                 rDestNode.FastGetSolutionStepValue(
-                    rDestinationVariable, WritBufferStep) = rValue;
+                    rDestinationVariable, WriteBufferStep) = rValue;
             },
             [&](const NodeType& rOriginNode) -> const TDataType& {
                 return rOriginNode.FastGetSolutionStepValue(rOriginVariable, ReadBufferStep);
@@ -261,13 +261,13 @@ public:
         const Flags& rFlag,
         const bool CheckValue = true,
         const unsigned int ReadBufferStep = 0,
-        const unsigned int WritBufferStep = 0)
+        const unsigned int WriteBufferStep = 0)
     {
         KRATOS_TRY
 
         CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
             rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
-            rFlag, CheckValue, ReadBufferStep, WritBufferStep);
+            rFlag, CheckValue, ReadBufferStep, WriteBufferStep);
 
         KRATOS_CATCH("");
     }
@@ -280,13 +280,13 @@ public:
         const Flags& rFlag,
         const bool CheckValue = true,
         const unsigned int ReadBufferStep = 0,
-        const unsigned int WritBufferStep = 0)
+        const unsigned int WriteBufferStep = 0)
     {
         KRATOS_TRY
 
         CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
             rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
-            rFlag, CheckValue, ReadBufferStep, WritBufferStep);
+            rFlag, CheckValue, ReadBufferStep, WriteBufferStep);
 
         KRATOS_CATCH("");
     }
@@ -376,7 +376,7 @@ public:
         ModelPart& rDestinationModelPart,
         const Flags& rFlag,
         const bool CheckValue = true,
-        const unsigned int WritBufferStep = 0)
+        const unsigned int WriteBufferStep = 0)
     {
         KRATOS_TRY
 
@@ -384,16 +384,16 @@ public:
             << rDestinationVariable.Name() << " is not found in nodal solution step variables list in destination model part ( "
             << rDestinationModelPart.Name() << " ).";
 
-        KRATOS_ERROR_IF(WritBufferStep >= rDestinationModelPart.GetBufferSize())
+        KRATOS_ERROR_IF(WriteBufferStep >= rDestinationModelPart.GetBufferSize())
             << "Destination model part ( " << rDestinationModelPart.Name()
             << " ) buffer size is smaller or equal than read buffer size [ "
-            << rDestinationModelPart.GetBufferSize() << " <= " << WritBufferStep << " ].";
+            << rDestinationModelPart.GetBufferSize() << " <= " << WriteBufferStep << " ].";
 
         CopyModelPartFlaggedVariable<NodesContainerType>(
             rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
             [&](NodeType& rDestNode, const TDataType& rValue) {
                 rDestNode.FastGetSolutionStepValue(
-                    rDestinationVariable, WritBufferStep) = rValue;
+                    rDestinationVariable, WriteBufferStep) = rValue;
             },
             [&](const NodeType& rOriginNode) -> const TDataType& {
                 return rOriginNode.GetValue(rOriginVariable);
@@ -411,11 +411,11 @@ public:
         ModelPart& rModelPart,
         const Flags& rFlag,
         const bool CheckValue = true,
-        const unsigned int WritBufferStep = 0)
+        const unsigned int WriteBufferStep = 0)
     {
         CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
             rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
-            rFlag, CheckValue, WritBufferStep);
+            rFlag, CheckValue, WriteBufferStep);
     }
 
     template <class TDataType>
@@ -425,11 +425,11 @@ public:
         ModelPart& rDestinationModelPart,
         const Flags& rFlag,
         const bool CheckValue = true,
-        const unsigned int WritBufferStep = 0)
+        const unsigned int WriteBufferStep = 0)
     {
         CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
             rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
-            rFlag, CheckValue, WritBufferStep);
+            rFlag, CheckValue, WriteBufferStep);
     }
 
     template <class TDataType>
@@ -438,11 +438,11 @@ public:
         ModelPart& rModelPart,
         const Flags& rFlag,
         const bool CheckValue = true,
-        const unsigned int WritBufferStep = 0)
+        const unsigned int WriteBufferStep = 0)
     {
         CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
             rVariable, rVariable, rModelPart, rModelPart,
-            rFlag, CheckValue, WritBufferStep);
+            rFlag, CheckValue, WriteBufferStep);
     }
 
     template <class TDataType>
