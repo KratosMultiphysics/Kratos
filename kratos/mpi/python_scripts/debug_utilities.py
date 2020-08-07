@@ -15,7 +15,6 @@ def GetVariableAndType(varName, splitByCommponents):
         yield {"name": varName, "value": KratosGlobals.Kernel.GetDoubleVariable(varName)}
     elif KratosGlobals.Kernel.HasArrayVariable(varName):
         if splitByCommponents:
-            # Todo: Check if it is a symetric 2D tensor
             for component in ["X","Y","Z","XX","YY","XY"]:
                 if KratosGlobals.Kernel.HasDoubleVariable(varName+"_"+component):
                     yield {"name": varName+"_"+component, "value": KratosGlobals.Kernel.GetDoubleVariable(varName+"_"+component)}
@@ -64,7 +63,7 @@ def GetHistoricalVariableList(model_part, container, full_search=False):
     Get all variables in the historical database ( GetSolutionStepValues ).
     If not specified the function will asume that all nodes in `model_part`
     have the same variables. 
-    
+
     If `skip_full_check` is set to false a full
     check over all nodes will be done. This option can be slow.
 
