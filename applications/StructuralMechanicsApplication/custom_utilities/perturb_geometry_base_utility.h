@@ -17,10 +17,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-#include "utilities/mortar_utilities.h"
 
 
 namespace Kratos {
@@ -60,18 +58,7 @@ public:
     ///@{
 
     /// Constructor.
-    PerturbGeometryBaseUtility( ModelPart& rInitialModelPart, Parameters Settings) :
-        mrInitialModelPart(rInitialModelPart),
-        mCorrelationLength(Settings["correlation_length"].GetDouble()),
-        mTruncationError(Settings["truncation_error"].GetDouble()),
-        mEchoLevel(Settings["echo_level"].GetInt()),
-        mMaximalDisplacement(Settings["max_displacement"].GetDouble())
-    {
-        KRATOS_TRY
-        MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
-        mpPerturbationMatrix = TDenseSpaceType::CreateEmptyMatrixPointer();
-        KRATOS_CATCH("")
-    }
+    PerturbGeometryBaseUtility( ModelPart& rInitialModelPart, Parameters Settings);
 
     /// Destructor.
     virtual ~PerturbGeometryBaseUtility() {}

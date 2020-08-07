@@ -18,9 +18,23 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/mortar_utilities.h"
 
 namespace Kratos
 {
+
+PerturbGeometryBaseUtility::PerturbGeometryBaseUtility( ModelPart& rInitialModelPart, Parameters Settings) :
+        mrInitialModelPart(rInitialModelPart),
+        mCorrelationLength(Settings["correlation_length"].GetDouble()),
+        mTruncationError(Settings["truncation_error"].GetDouble()),
+        mEchoLevel(Settings["echo_level"].GetInt()),
+        mMaximalDisplacement(Settings["max_displacement"].GetDouble())
+    {
+        KRATOS_TRY
+        MortarUtilities::ComputeNodesMeanNormalModelPart( mrInitialModelPart, false );
+        mpPerturbationMatrix = TDenseSpaceType::CreateEmptyMatrixPointer();
+        KRATOS_CATCH("")
+    }
 
 void PerturbGeometryBaseUtility::ApplyRandomFieldVectorsToGeometry( ModelPart& rThisModelPart, const std::vector<double>& variables )
 {
