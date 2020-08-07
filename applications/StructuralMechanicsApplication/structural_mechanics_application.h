@@ -520,8 +520,6 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
-    const MultiLinearElastic1DLaw mMultiLinearElastic1DLaw;
-    const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
 
 #ifndef STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS
     // Damage and plasticity laws
@@ -542,6 +540,8 @@ private:
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
     const WrinklingLinear2DLaw mWrinklingLinear2DLaw;
+    const MultiLinearElastic1DLaw mMultiLinearElastic1DLaw;
+    const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
