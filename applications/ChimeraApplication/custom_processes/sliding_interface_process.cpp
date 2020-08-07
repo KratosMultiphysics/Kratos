@@ -156,7 +156,7 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
     BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(r_search_modelpart);
     bin_based_point_locator.UpdateSearchDatabase();
 
-    const int num_slave_nodes = mrSlaveModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    const IndexType num_slave_nodes = mrSlaveModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.GetCommunicator().LocalMesh().NodesBegin();
     IndexType num_slaves_found = 0;
 
