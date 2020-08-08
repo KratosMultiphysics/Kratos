@@ -111,7 +111,7 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
 
             # Check obtained solution
             expected_velocity_errors = [0.01708951546622635, 0.005366727106714455, 0.0013142808355902074, 0.00032206907919625683, 8.037719698951708e-05]
-            expected_pressure_errors = [44.03061907965929, 4.8775536490608316, 0.8950814197625788, 0.2200468445178847, 0.0666813658821848]
+            expected_pressure_errors = [44.03057148238107, 4.877682806608581, 0.895308792115978, 0.220426937935676, 0.0666813658821848]
 
             for i in range(len(self.meshes_list)):
                 self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])
