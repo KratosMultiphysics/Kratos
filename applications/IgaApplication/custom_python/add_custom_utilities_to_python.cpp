@@ -28,6 +28,8 @@ namespace Python {
 void AddCustomUtilitiesToPython(
     pybind11::module& m)
 {
+    namespace py = pybind11;
+
     py::class_<OutputQuadratureDomainProcess, OutputQuadratureDomainProcess::Pointer, Process>(m, "OutputQuadratureDomainProcess")
         .def(py::init<Model&, Parameters >())
         ;
