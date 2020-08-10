@@ -17,6 +17,8 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
+#include "custom_processes/output_quadrature_domain_process.h"
+
 #include "iga_application_variables.h"
 
 
@@ -26,7 +28,9 @@ namespace Python {
 void AddCustomUtilitiesToPython(
     pybind11::module& m)
 {
-
+    py::class_<OutputQuadratureDomainProcess, OutputQuadratureDomainProcess::Pointer, Process>(m, "OutputQuadratureDomainProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
 }
 
 } // namespace Python
