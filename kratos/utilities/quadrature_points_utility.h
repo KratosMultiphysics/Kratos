@@ -279,6 +279,51 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
+        static void Create(
+            GeometryType& rGeometry,
+            typename GeometryType::GeometriesArrayType& rResultGeometries,
+            typename GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+            SizeType NumberOfShapeFunctionDerivatives)
+        {
+            KRATOS_ERROR_IF(NumberOfShapeFunctionDerivatives > 1)
+                << "Create can only compute shape functions up to an derivative order of 1. "
+                << "Demanded derivative order: " << NumberOfShapeFunctionDerivatives << std::endl;
+
+            // Resize containers.
+            if (rResultGeometries.size() != rIntegrationPoints.size())
+                rResultGeometries.resize(rIntegrationPoints.size());
+
+            auto default_method = rGeometry.GetDefaultIntegrationMethod();
+
+            Vector N;
+            Matrix DN_De;
+            for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
+            {
+                rGeometry.ShapeFunctionsValues(N, rIntegrationPoints[i]);
+
+                Matrix N_matrix = ZeroMatrix(1, N.size());
+                if (NumberOfShapeFunctionDerivatives >= 0) {
+                    for (IndexType j = 0; j < N.size(); ++j)
+                    {
+                        N_matrix(0, j) = N[j];
+                    }
+                }
+
+                /// Get Shape Function Derivatives DN_De, ...
+                if (NumberOfShapeFunctionDerivatives > 0) {
+                    rGeometry.ShapeFunctionsLocalGradients(DN_De, rIntegrationPoints[i]);
+                }
+
+                GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                    default_method, rIntegrationPoints[i],
+                    N_matrix, DN_De);
+
+                rResultGeometries(i) = CreateQuadraturePointsUtility<TPointType>::CreateQuadraturePoint(
+                    rGeometry.WorkingSpaceDimension(), rGeometry.LocalSpaceDimension(),
+                    data_container, rGeometry);
+            }
+        }
+
         ///@}
         ///@name Update functions
         ///@{
