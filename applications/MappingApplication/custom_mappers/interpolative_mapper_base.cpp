@@ -18,13 +18,15 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
+#include "input_output/vtk_output.h"
+#include "utilities/variable_utils.h"
+
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
-#include "input_output/vtk_output.h"
-#include "utilities/variable_utils.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "custom_searching/mpi/interface_communicator_mpi.h"
 #endif
@@ -202,22 +204,27 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
         }
     }
 
-    if (EchoLevel > 1) {
+    if (mMapperSettings["print_pairing_status_to_file"].GetBool()) {
         // print a debug ModelPart to check the pairing
 
-        std::string prefix = Info() + "_PairingStatus_";
+        const std::string pairing_status_file_path = mMapperSettings["pairing_status_file_path"].GetString();
+
+        filesystem::create_directories(pairing_status_file_path);
+
+        const std::string file_name = FilesystemExtensions::JoinPaths({
+            pairing_status_file_path,
+            std::string(Info() + "_PairingStatus_O_" + mrModelPartOrigin.FullName() + "_D_" + mrModelPartDestination.FullName())
+        });
+
+        KRATOS_INFO("Mapper") << "Printing file with PAIRING_STATUS: " << file_name << ".vtk" << std::endl;
 
         Parameters vtk_params( R"({
             "file_format"                        : "binary",
-            "output_precision"                   : 7,
-            "output_control_type"                : "step",
-            "custom_name_prefix"                 : "",
             "save_output_files_in_folder"        : false,
             "nodal_data_value_variables"         : ["PAIRING_STATUS"]
         })");
 
-        vtk_params["custom_name_prefix"].SetString(prefix);
-        VtkOutput(mrModelPartDestination, vtk_params).PrintOutput();
+        VtkOutput(mrModelPartDestination, vtk_params).PrintOutput(file_name);
     }
 }
 
