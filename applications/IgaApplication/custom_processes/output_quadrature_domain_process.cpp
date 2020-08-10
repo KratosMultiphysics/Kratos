@@ -47,7 +47,7 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
 
     for (auto element : r_model_part.Elements()) {
         auto integration_point = element.GetGeometry().IntegrationPoints()[0];
-        file << "[" << element.Id << "," << element.GetGeometry().GetGeometryParent(0).Id() << ",[" << integration_point[0] << "," << integration_point[0] << "]],";
+        file << "[" << element.Id << "," << element.GetGeometry().GetGeometryParent(0).Id() << ",[" << integration_point[0] << "," << integration_point[1] << "]],";
     }
     /// cut off last ","
     file << -1;
