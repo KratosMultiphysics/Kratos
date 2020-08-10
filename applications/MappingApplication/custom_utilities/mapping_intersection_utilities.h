@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/model_part.h"
 
-#include "geometries/line_2d_2.h"
 #include "geometries/coupling_geometry.h"
 
 #include "integration/integration_point_utilities.h"
@@ -41,8 +40,6 @@ namespace MappingIntersectionUtilities
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-
-    const bool mPrintDebugForPeter = false; // TODO delete
 
     void KRATOS_API(MAPPING_APPLICATION) FindIntersection1DGeometries2D(
         ModelPart& rModelPartDomainA,
