@@ -16,6 +16,8 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
+
 #include "processes/process.h"
 
 namespace Kratos

@@ -15,8 +15,7 @@
 // External includes
 
 // Project includes
-#include "containers/model.h"
-#include "processes/output_quadrature_domain_process.h"
+#include "output_quadrature_domain_process.h"
 
 namespace Kratos
 {
