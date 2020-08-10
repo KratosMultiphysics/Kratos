@@ -22,9 +22,10 @@ namespace Kratos
 
 OutputQuadratureDomainProcess::OutputQuadratureDomainProcess(
     Model& rModel,
-    Parameters ThisParameters
-    ) : mrModel(rModel)
-      , mThisParameters(ThisParameters)
+    Parameters ThisParameters)
+    : Process()
+    , mrModel(rModel)
+    , mThisParameters(ThisParameters)
 {
     mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }

@@ -56,20 +56,10 @@ public:
     /// Constructor
     OutputQuadratureDomainProcess(
         Model& rModel,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
+        Parameters ThisParameters = Parameters(R"({})"));
 
     /// Destructor.
     virtual ~OutputQuadratureDomainProcess() {}
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    void operator()()
-    {
-        Execute();
-    }
 
     ///@}
     ///@name Operations
