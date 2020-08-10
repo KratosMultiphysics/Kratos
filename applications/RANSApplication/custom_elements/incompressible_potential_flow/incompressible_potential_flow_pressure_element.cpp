@@ -40,8 +40,8 @@ void IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>::CalculateLocal
     // Calculate LHS
     this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-    VectorType values;
-    this->GetValuesVector(values, 0);
+    BoundedVector<double, TNumNodes> values;
+    this->GetValuesArray(values);
 
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
 }
@@ -58,8 +58,8 @@ void IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>::CalculateRight
     Matrix lhs;
     this->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
 
-    Vector values;
-    this->GetValuesVector(values, 0);
+    BoundedVector<double, TNumNodes> values;
+    this->GetValuesArray(values);
 
     noalias(rRightHandSideVector) -= prod(lhs, values);
 

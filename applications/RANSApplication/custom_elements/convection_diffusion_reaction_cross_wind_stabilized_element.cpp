@@ -131,8 +131,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
 
     // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
-    VectorType U;
-    this->GetValuesVector(U);
+    BoundedVector<double, TNumNodes> U;
+    this->GetValuesArray(U);
     noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
 }
 

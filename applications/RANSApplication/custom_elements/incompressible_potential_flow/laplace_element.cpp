@@ -170,10 +170,10 @@ void LaplaceElement<TDim, TNumNodes>::CalculateRightHandSide(
     Matrix lhs;
     this->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
 
-    Vector values;
-    this->GetValuesVector(values, 0);
+    BoundedVector<double, TNumNodes> values;
+    this->GetValuesArray(values);
 
-    noalias(rRightHandSideVector) = prod(lhs, values) * -1.0;
+    noalias(rRightHandSideVector) = prod(lhs, values) * (-1.0);
 
     KRATOS_CATCH("");
 }

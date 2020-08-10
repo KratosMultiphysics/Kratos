@@ -78,14 +78,10 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetFirstDerivativesVector(
-    Vector& rValues,
-    int Step) const
+void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetValuesArray(
+    BoundedVector<double, TNumNodes>& rValues,
+    const int Step) const
 {
-    if (rValues.size() != TNumNodes) {
-        rValues.resize(TNumNodes, false);
-    }
-
     const auto& r_geometry = this->GetGeometry();
     const Variable<double>& r_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
@@ -95,6 +91,22 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
         rValues[LocalIndex++] =
             r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
     }
+}
+
+
+template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
+void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetFirstDerivativesVector(
+    Vector& rValues,
+    int Step) const
+{
+    if (rValues.size() != TNumNodes) {
+        rValues.resize(TNumNodes, false);
+    }
+
+    BoundedVector<double, TNumNodes> values;
+    this->GetValuesArray(values, Step);
+
+    noalias(rValues) = values;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>

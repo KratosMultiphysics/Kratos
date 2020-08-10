@@ -324,6 +324,15 @@ public:
 
 protected:
     /**
+     * @brief Get the Values Array
+     *
+     * @param rValues       Return values array
+     * @param Step          Step
+     */
+    void GetValuesArray(
+        BoundedVector<double, TNumNodes>& rValues,
+        const int Step = 0) const;
+    /**
      * @brief Calculates scalar value for given gauss point
      *
      * @param rVariable      Scalar variable
