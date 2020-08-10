@@ -35,16 +35,16 @@
 #include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_element.h"
 
 // k-epsilon turbulence model element data
-#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/epsilon_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/k_element_data.h"
+#include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
+#include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 
 // k-omega turbulence model element data
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega/k_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega/omega_element_data.h"
+#include "custom_elements/data_containers/k_omega/k_element_data.h"
+#include "custom_elements/data_containers/k_omega/omega_element_data.h"
 
 // k-omega-sst turbulence model element data
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/k_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/omega_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
 
 namespace Kratos
 {

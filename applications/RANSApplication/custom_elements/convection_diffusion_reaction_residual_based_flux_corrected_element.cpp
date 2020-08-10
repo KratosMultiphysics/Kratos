@@ -25,12 +25,12 @@
 
 // Application includes
 #include "convection_diffusion_reaction_stabilization_utilities.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/epsilon_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/k_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega/k_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega/omega_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/k_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/omega_element_data.h"
+#include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
+#include "custom_elements/data_containers/k_epsilon/k_element_data.h"
+#include "custom_elements/data_containers/k_omega/k_element_data.h"
+#include "custom_elements/data_containers/k_omega/omega_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
