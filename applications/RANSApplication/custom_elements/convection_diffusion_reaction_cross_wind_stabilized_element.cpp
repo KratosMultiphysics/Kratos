@@ -43,7 +43,8 @@ namespace Kratos
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -123,7 +124,9 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateLocalVelocityContribution(
-    MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
 
@@ -135,7 +138,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateMassMatrix(
-    MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -208,7 +212,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -310,25 +315,29 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         const Matrix& dNa_dNb = prod(r_shape_derivatives, trans(r_shape_derivatives));
 
-        // this->AddDampingMatrixGaussPointContributions(
-        //     rDampingMatrix, reaction, effective_kinematic_viscosity,
-        //     velocity_convective_terms, weight, gauss_shape_functions, dNa_dNb);
+        this->AddDampingMatrixGaussPointContributions(
+            rDampingMatrix, reaction, effective_kinematic_viscosity,
+            velocity_convective_terms, weight, gauss_shape_functions, dNa_dNb);
+
+        ConvectionDiffusionReactionStabilizationUtilities::AddDampingMatrixSUPGStabilizationGaussPointContributions(
+            rDampingMatrix, reaction, tau, velocity_convective_terms, weight,
+            gauss_shape_functions);
 
         for (IndexType a = 0; a < TNumNodes; ++a) {
             for (IndexType b = 0; b < TNumNodes; ++b) {
                 double value = 0.0;
 
-                value += gauss_shape_functions[a] * velocity_convective_terms[b];
-                value += gauss_shape_functions[a] * reaction * gauss_shape_functions[b];
-                value += effective_kinematic_viscosity * dNa_dNb(a, b);
+                // value += gauss_shape_functions[a] * velocity_convective_terms[b];
+                // value += gauss_shape_functions[a] * reaction * gauss_shape_functions[b];
+                // value += effective_kinematic_viscosity * dNa_dNb(a, b);
 
-                // Adding SUPG stabilization terms
-                value += tau *
-                         (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
-                         velocity_convective_terms[b];
-                value += tau *
-                         (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
-                         reaction * gauss_shape_functions[b];
+                // // Adding SUPG stabilization terms
+                // value += tau *
+                //          (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
+                //          velocity_convective_terms[b];
+                // value += tau *
+                //          (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
+                //          reaction * gauss_shape_functions[b];
 
                 // Adding cross wind dissipation
                 value += positivity_preserving_coefficient * k2 * dNa_dNb(a, b) * velocity_magnitude_square;
@@ -376,7 +385,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateContravariantMetricTensor(
-    BoundedMatrix<double, TDim, TDim>& rOutput, const Matrix& rParameterDerivatives) const
+    BoundedMatrix<double, TDim, TDim>& rOutput,
+    const Matrix& rParameterDerivatives) const
 {
     noalias(rOutput) = prod(trans(rParameterDerivatives), rParameterDerivatives);
 }
@@ -390,7 +400,8 @@ double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TC
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableGradientNorm(
-    const Matrix& rShapeFunctionDerivatives, const int Step) const
+    const Matrix& rShapeFunctionDerivatives,
+    const int Step) const
 {
     KRATOS_TRY;
 
@@ -405,7 +416,8 @@ double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TC
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableRelaxedAcceleration(
-    const Vector& rShapeFunctions, const int Step) const
+    const Vector& rShapeFunctions,
+    const int Step) const
 {
     KRATOS_TRY;
 

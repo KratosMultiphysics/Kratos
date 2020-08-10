@@ -41,7 +41,9 @@ namespace Kratos
 {
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     // Check sizes and initialize matrix
     if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
@@ -56,7 +58,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -126,7 +129,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateLocalVelocityContribution(
-    MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
 
@@ -138,7 +143,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateMassMatrix(
-    MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -200,7 +206,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const double scalar_multiplier =
         this->CalculatePrimalDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
@@ -239,7 +246,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::CalculatePrimalDampingMatrix(
-    Matrix& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    Matrix& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -340,7 +348,8 @@ GeometryData::IntegrationMethod ConvectionDiffusionReactionResidualBasedFluxCorr
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableGradientNorm(
-    const Matrix& rShapeFunctionDerivatives, const int Step) const
+    const Matrix& rShapeFunctionDerivatives,
+    const int Step) const
 {
     KRATOS_TRY;
 
@@ -355,7 +364,8 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableRelaxedAcceleration(
-    const Vector& rShapeFunctions, const int Step) const
+    const Vector& rShapeFunctions,
+    const int Step) const
 {
     KRATOS_TRY;
 
