@@ -58,9 +58,13 @@ public:
 
     // Non historical Variables
 
-    template<class TVarType>
-    static void CheckNonHistoricalNodeVariable(
+    template<class TVariableType>
+    static bool InteralCmpEq(const TVariableType& rVar1, const TVariableType& rVar2);
+
+    template<class TVarType, class TContainerType>
+    static void CheckNonHistoricalVariable(
         ModelPart & rModelPart,
+        const TContainerType & rContainer,
         const TVarType & rVariable) 
     {
         // Build the list of indices and the pointer communicator
@@ -81,51 +85,51 @@ public:
         CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
     }
 
-    template<class TVarType>
-    static void CheckNonHistoricalElementVariable(
-        ModelPart & rModelPart,
-        const TVarType & rVariable) 
-    {
-        // Build the list of indices and the pointer communicator
-        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-        std::vector<int> indices;
+    // template<class TVarType>
+    // static void CheckNonHistoricalElementVariable(
+    //     ModelPart & rModelPart,
+    //     const TVarType & rVariable) 
+    // {
+    //     // Build the list of indices and the pointer communicator
+    //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    //     std::vector<int> indices;
 
-        auto container = rModelPart.Elements();
+    //     auto container = rModelPart.Elements();
 
-        for(auto& element : container) {
-            indices.push_back(element.Id());
-        }
+    //     for(auto& element : container) {
+    //         indices.push_back(element.Id());
+    //     }
 
-        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
-        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
+    //     auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
+    //     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
 
-        GlobalPointerCommunicator<Element> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+    //     GlobalPointerCommunicator<Element> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
-    }
+    //     CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
+    // }
 
-    template<class TVarType>
-    static void CheckNonHistoricalConditionVariable(
-        ModelPart & rModelPart,
-        const TVarType & rVariable) 
-    {
-        // Build the list of indices and the pointer communicator
-        DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-        std::vector<int> indices;
+    // template<class TVarType>
+    // static void CheckNonHistoricalConditionVariable(
+    //     ModelPart & rModelPart,
+    //     const TVarType & rVariable) 
+    // {
+    //     // Build the list of indices and the pointer communicator
+    //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    //     std::vector<int> indices;
 
-        auto container = rModelPart.Conditions();
+    //     auto container = rModelPart.Conditions();
 
-        for(auto& condition : container) {
-            indices.push_back(condition.Id());
-        }
+    //     for(auto& condition : container) {
+    //         indices.push_back(condition.Id());
+    //     }
 
-        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
-        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
+    //     auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
+    //     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
 
-        GlobalPointerCommunicator<Condition> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+    //     GlobalPointerCommunicator<Condition> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
-    }
+    //     CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
+    // }
 
     template<class TContainerType, class TVarType>
     static void CheckNonHistoricalVariable(
@@ -154,8 +158,13 @@ public:
             auto& gp = gp_map[entity.Id()];
 
             // Check Variable
-            if(data_proxy.Get(gp).first != entity.GetValue(rVariable)) {
-                std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << entity.Id() << " Expected: " << entity.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
+            // if(data_proxy.Get(gp) != entity.GetValue(rVariable)) {
+            //     std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << entity.Id() << " Expected: " << entity.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp) << std::endl;
+            //     val_error_detected = true;
+            // }
+
+            if(InteralCmpEq(data_proxy.Get(gp),entity.GetValue(rVariable))) {
+                std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << entity.Id() << " Expected: " << entity.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp) << std::endl;
                 val_error_detected = true;
             }
         }

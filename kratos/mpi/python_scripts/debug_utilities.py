@@ -88,13 +88,13 @@ def CheckAllHistoricalVariables(model_part):
 
 def CheckAllNonHistoricalVariables(model_part):
     for variable in GetHistoricalVariableList(model_part, model_part.Nodes):
-        debug_utilities.CheckHistoricalVariable(model_part, model_part.Nodes, variable)
+        debug_utilities.ChecknonHistoricalVariable(model_part, model_part.Nodes, variable)
 
     for variable in GetHistoricalVariableList(model_part, model_part.Elements):
-        debug_utilities.CheckHistoricalVariable(model_part, variable)
+        debug_utilities.ChecknonHistoricalVariable(model_part, model_part.Elements, variable)
 
     for variable in GetHistoricalVariableList(model_part, model_part.Conditions):
-        debug_utilities.CheckHistoricalVariable(model_part, variable)
+        debug_utilities.ChecknonHistoricalVariable(model_part, model_part.Conditions, variable)
 
 def CheckAllVariablesStatistics(model_part):
     for variable in GetNonHistoricalVariableList(model_part):
