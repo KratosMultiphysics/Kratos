@@ -39,6 +39,8 @@ SlidingInterfaceProcess::SlidingInterfaceProcess(ModelPart &rMasterModelPart, Mo
 
     mSearchMaxResults = mParameters["search_settings"]["max_results"].GetInt();
     mSearchTolerance = mParameters["search_settings"]["tolerance"].GetDouble();
+
+    mGatheredMpName = "gathered_master";
 }
 
 SlidingInterfaceProcess::~SlidingInterfaceProcess()
@@ -52,6 +54,17 @@ void SlidingInterfaceProcess::ExecuteInitialize()
 {
     MakeSearchModelpart();
 }
+
+
+void SlidingInterfaceProcess::ExecuteFinalize()
+{
+    Model& current_model = mrMasterModelPart.GetModel();
+    const DataCommunicator &r_comm =
+        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
+    if (r_comm.IsDistributed())
+        current_model.DeleteModelPart(mGatheredMpName);
+}
+
 
 /**
     * @brief Function initializes the solution step
@@ -140,6 +153,7 @@ void SlidingInterfaceProcess::MakeSearchModelpart()
        current_model.DeleteModelPart("gathered_master");
     #endif
 }
+
 
 template <int TDim>
 void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()

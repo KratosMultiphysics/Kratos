@@ -64,6 +64,11 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     void ExecuteInitialize() override;
 
     /**
+     * @brief Function finalizes the process
+     */
+    void ExecuteFinalize() override;
+
+    /**
      * @brief Function initializes the solution step
      */
     void ExecuteInitializeSolutionStep() override;
@@ -114,8 +119,8 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     void ConstraintSlaveNodeWithConditionForVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
 
     /**
-     * @brief   The function checks if this is a MPI run, in case it is, it gathers the master modelpart on all the ranks
-     * and returns the reference to that.
+     * @brief   The function checks if this is a MPI run, in case it is, it returns a reference to gathered_modelpart  else
+     *          a reference to the mrMasterModelPart
      */
     void MakeSearchModelpart();
 

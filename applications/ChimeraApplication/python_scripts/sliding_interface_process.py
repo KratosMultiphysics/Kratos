@@ -26,8 +26,8 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                        : "This process uses LinearMasterSlaveConstraint in order to impose a sliding interface condition on the given submodelparts. The process takes the first provided submodelpart as master and the second as slave.",
-            "first_model_part_name"       : "please_specify_model_part_name",
-            "second_model_part_name"      : "please_specify_model_part_name",
+            "first_model_part_name"       : "master_non_moving_mp",
+            "second_model_part_name"      : "slave_moving_mp",
             "model_part_name"             : "FluidModelPart",
             "computing_model_part_name"   : "fluid_computational_model_part",
             "interval"                    : [0.0, 1e30],
@@ -60,8 +60,8 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
-        master_model_part_name = main_model_part_name+"."+settings["first_model_part_name"].GetString()
-        slave_model_part_name = main_model_part_name+"."+settings["second_model_part_name"].GetString()
+        master_model_part_name = settings["first_model_part_name"].GetString()
+        slave_model_part_name = settings["second_model_part_name"].GetString()
         self.master_model_part = Model[master_model_part_name]
         self.slave_model_part = Model[slave_model_part_name]
 
@@ -92,3 +92,6 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         self.sliding_interface_proc.ExecuteInitialize()
+
+    def ExecuteFinalize(self):
+        self.sliding_interface_proc.ExecuteFinalize()
