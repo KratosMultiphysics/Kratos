@@ -43,14 +43,14 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
     std::ofstream file;
     file.open(output_file_name);
 
-    file << "{ \"geometry_integration_points\":["
+    file << "{ \"geometry_integration_points\":[";
 
     for (auto element : r_model_part.Elements()) {
-        auto integration_point = element.GetGeometry().IntegtrationPoints()[0];
-        file << "[" << element.Id << "," << element.GetGeometryParent(0).Id() << ",[" << integration_point[0] << "," << integration_point[0] << "]],"
+        auto integration_point = element.GetGeometry().IntegrationPoints()[0];
+        file << "[" << element.Id << "," << element.GetGeometry().GetGeometryParent(0).Id() << ",[" << integration_point[0] << "," << integration_point[0] << "]],";
     }
     /// cut off last ","
-    file.pop_back();
+    file << -1;
     file << "}";
     file.close();
 }
