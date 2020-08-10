@@ -311,8 +311,6 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
                 residual * chi / (variable_gradient_norm * velocity_magnitude_square);
         }
 
-        const double s = std::abs(reaction);
-
         const Matrix& dNa_dNb = prod(r_shape_derivatives, trans(r_shape_derivatives));
 
         this->AddDampingMatrixGaussPointContributions(
@@ -326,18 +324,6 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
         for (IndexType a = 0; a < TNumNodes; ++a) {
             for (IndexType b = 0; b < TNumNodes; ++b) {
                 double value = 0.0;
-
-                // value += gauss_shape_functions[a] * velocity_convective_terms[b];
-                // value += gauss_shape_functions[a] * reaction * gauss_shape_functions[b];
-                // value += effective_kinematic_viscosity * dNa_dNb(a, b);
-
-                // // Adding SUPG stabilization terms
-                // value += tau *
-                //          (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
-                //          velocity_convective_terms[b];
-                // value += tau *
-                //          (velocity_convective_terms[a] + s * gauss_shape_functions[a]) *
-                //          reaction * gauss_shape_functions[b];
 
                 // Adding cross wind dissipation
                 value += positivity_preserving_coefficient * k2 * dNa_dNb(a, b) * velocity_magnitude_square;
