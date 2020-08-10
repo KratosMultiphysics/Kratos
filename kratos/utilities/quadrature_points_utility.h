@@ -279,6 +279,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
+        /// creates a quadrature point geometry on a provided location.
         static void Create(
             GeometryType& rGeometry,
             typename GeometryType::GeometriesArrayType& rResultGeometries,
