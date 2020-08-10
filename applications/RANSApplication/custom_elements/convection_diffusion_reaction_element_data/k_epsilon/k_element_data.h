@@ -48,8 +48,6 @@ public:
         const GeometryType& rGeometry,
         const ProcessInfo& rCurrentProcessInfo);
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
-
     static const std::string GetName()
     {
         return "KEpsilonKElementData";

@@ -70,11 +70,6 @@ void EpsilonElementData<TDim>::Check(
 
     KRATOS_CATCH("");
 }
-template <unsigned int TDim>
-GeometryData::IntegrationMethod EpsilonElementData<TDim>::GetIntegrationMethod()
-{
-    return GeometryData::GI_GAUSS_2;
-}
 
 template <unsigned int TDim>
 void EpsilonElementData<TDim>::CalculateConstants(

@@ -74,11 +74,6 @@ void KElementData<TDim>::Check(
 
     KRATOS_CATCH("");
 }
-template <unsigned int TDim>
-GeometryData::IntegrationMethod KElementData<TDim>::GetIntegrationMethod()
-{
-    return GeometryData::GI_GAUSS_2;
-}
 
 template <unsigned int TDim>
 void KElementData<TDim>::CalculateConstants(

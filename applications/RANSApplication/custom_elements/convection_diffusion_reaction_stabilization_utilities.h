@@ -183,6 +183,76 @@ inline double CalculatePositivityPreservingMatrix(
     }
     return coefficient;
 }
+
+inline void AddMassMatrixSUPGStabilizationGaussPointContributions(
+    Matrix& rMassMatrix,
+    const double AbsoluteReactionTerm,
+    const double Tau,
+    const Vector& rVelocityConvectiveTerms,
+    const double GaussWeight,
+    const Vector& rGaussShapeFunctions)
+{
+    const IndexType n = rMassMatrix.size1();
+
+    for (IndexType i = 0; i < n; ++i) {
+        for (IndexType j = 0; j < n; ++j) {
+            rMassMatrix(i, j) += GaussWeight * Tau *
+                                 (rVelocityConvectiveTerms[i] +
+                                  AbsoluteReactionTerm * rGaussShapeFunctions[i]) *
+                                 rGaussShapeFunctions[j];
+        }
+    }
+}
+
+inline void AddDampingMatrixSUPGStabilizationGaussPointContributions(
+    Matrix& rDampingMatrix,
+    const double ReactionTerm,
+    const double Tau,
+    const Vector& rVelocityConvectiveTerms,
+    const double GaussWeight,
+    const Vector& rGaussShapeFunctions)
+{
+    const IndexType n = rDampingMatrix.size1();
+    const double s = std::abs(ReactionTerm);
+
+    for (IndexType a = 0; a < n; ++a) {
+        for (IndexType b = 0; b < n; ++b) {
+            double value = 0.0;
+
+            // Adding SUPG stabilization terms
+            value += Tau * (rVelocityConvectiveTerms[a] + s * rGaussShapeFunctions[a]) *
+                     rVelocityConvectiveTerms[b];
+            value += Tau * (rVelocityConvectiveTerms[a] + s * rGaussShapeFunctions[a]) *
+                     ReactionTerm * rGaussShapeFunctions[b];
+
+            rDampingMatrix(a, b) += value * GaussWeight;
+        }
+    }
+}
+
+inline void AddSourceTermWithSUPGStabilizationGaussPointContributions(
+    Vector& rRightHandSideVector,
+    const double SourceTerm,
+    const double AbsoluteReactionTerm,
+    const double Tau,
+    const Vector& rVelocityConvectiveTerms,
+    const double GaussWeight,
+    const Vector& rGaussShapeFunctions)
+{
+    for (IndexType a = 0; a < rRightHandSideVector.size(); ++a) {
+        double value = 0.0;
+
+        value += rGaussShapeFunctions[a] * SourceTerm;
+
+        // Add supg stabilization terms
+        value += (rVelocityConvectiveTerms[a] +
+                  AbsoluteReactionTerm * rGaussShapeFunctions[a]) *
+                 Tau * SourceTerm;
+
+        rRightHandSideVector[a] += GaussWeight * value;
+    }
+}
+
 } // namespace ConvectionDiffusionReactionStabilizationUtilities
 
 ///@}

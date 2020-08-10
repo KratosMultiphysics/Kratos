@@ -167,28 +167,30 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
     element_data.CalculateConstants(rCurrentProcessInfo);
 
+    BoundedVector<double, TNumNodes> velocity_convective_terms;
+
     for (IndexType g = 0; g < num_gauss_points; ++g) {
+        const double weight = gauss_weights[g];
         const Matrix& r_shape_derivatives = shape_derivatives[g];
-        const Vector& gauss_shape_functions = row(shape_functions, g);
+        const Vector& r_shape_functions = row(shape_functions, g);
 
         this->CalculateContravariantMetricTensor(contravariant_metric_tensor,
                                                  r_parameter_derivatives[g]);
 
-        const double mass = gauss_weights[g] * (1.0 / TNumNodes);
+        const double mass = weight * (1.0 / TNumNodes);
         this->AddLumpedMassMatrix(rMassMatrix, mass);
 
-        element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
+        element_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
         const array_1d<double, 3>& velocity = element_data.CalculateEffectiveVelocity(
-            gauss_shape_functions, r_shape_derivatives);
-        BoundedVector<double, TNumNodes> velocity_convective_terms;
+            r_shape_functions, r_shape_derivatives);
         this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
         const double effective_kinematic_viscosity =
             element_data.CalculateEffectiveKinematicViscosity(
-                gauss_shape_functions, r_shape_derivatives);
+                r_shape_functions, r_shape_derivatives);
 
-        const double reaction = element_data.CalculateReactionTerm(
-            gauss_shape_functions, r_shape_derivatives);
+        const double reaction =
+            element_data.CalculateReactionTerm(r_shape_functions, r_shape_derivatives);
 
         double tau, element_length;
         ConvectionDiffusionReactionStabilizationUtilities::CalculateStabilizationTau(
@@ -196,17 +198,9 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
             reaction, effective_kinematic_viscosity, bossak_alpha, bossak_gamma,
             delta_time, dynamic_tau);
 
-        const double s = std::abs(reaction);
-
-        // Add mass stabilization terms
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            for (IndexType j = 0; j < TNumNodes; ++j) {
-                rMassMatrix(i, j) +=
-                    gauss_weights[g] * tau *
-                    (velocity_convective_terms[i] + s * gauss_shape_functions[i]) *
-                    gauss_shape_functions[j];
-            }
-        }
+        ConvectionDiffusionReactionStabilizationUtilities::AddMassMatrixSUPGStabilizationGaussPointContributions(
+            rMassMatrix, std::abs(reaction), tau, velocity_convective_terms,
+            weight, r_shape_functions);
     }
 
     KRATOS_CATCH("");
@@ -252,8 +246,9 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
+        const double weight = gauss_weights[g];
         const Matrix& r_shape_derivatives = shape_derivatives[g];
-        const Vector gauss_shape_functions = row(shape_functions, g);
+        const Vector& gauss_shape_functions = row(shape_functions, g);
 
         this->CalculateContravariantMetricTensor(contravariant_metric_tensor,
                                                  r_parameter_derivatives[g]);
@@ -313,17 +308,19 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         const double s = std::abs(reaction);
 
+        const Matrix& dNa_dNb = prod(r_shape_derivatives, trans(r_shape_derivatives));
+
+        // this->AddDampingMatrixGaussPointContributions(
+        //     rDampingMatrix, reaction, effective_kinematic_viscosity,
+        //     velocity_convective_terms, weight, gauss_shape_functions, dNa_dNb);
+
         for (IndexType a = 0; a < TNumNodes; ++a) {
             for (IndexType b = 0; b < TNumNodes; ++b) {
-                double dNa_dNb = 0.0;
-                for (IndexType i = 0; i < TDim; ++i)
-                    dNa_dNb += r_shape_derivatives(a, i) * r_shape_derivatives(b, i);
-
                 double value = 0.0;
 
                 value += gauss_shape_functions[a] * velocity_convective_terms[b];
                 value += gauss_shape_functions[a] * reaction * gauss_shape_functions[b];
-                value += effective_kinematic_viscosity * dNa_dNb;
+                value += effective_kinematic_viscosity * dNa_dNb(a, b);
 
                 // Adding SUPG stabilization terms
                 value += tau *
@@ -334,7 +331,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
                          reaction * gauss_shape_functions[b];
 
                 // Adding cross wind dissipation
-                value += positivity_preserving_coefficient * k2 * dNa_dNb * velocity_magnitude_square;
+                value += positivity_preserving_coefficient * k2 * dNa_dNb(a, b) * velocity_magnitude_square;
                 value -= positivity_preserving_coefficient * k2 *
                          velocity_convective_terms[a] * velocity_convective_terms[b];
 
