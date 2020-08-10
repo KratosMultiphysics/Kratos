@@ -364,7 +364,7 @@ public:
             else //if it does exist verify it is the same node
             {
                 if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+                    KRATOS_WARNING("ModelPart ") << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
             }
@@ -1200,8 +1200,8 @@ public:
             else //if it does exist verify it is the same node
             {
                 if(&(*it_found) != &(*it))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
-                else
+                //     KRATOS_WARNING("ModelPart ") << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
+                // else
                     aux.push_back( *(it.base()) );
             }
         }
