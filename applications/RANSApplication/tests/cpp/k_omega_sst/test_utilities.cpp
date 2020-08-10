@@ -32,7 +32,7 @@ namespace Kratos
 {
 namespace KOmegaSSTTestUtilities
 {
-ModelPart& RansKOmegaSSTK2D3N_SetUp(
+ModelPart& RansKOmegaSSTK2D3NSetUp(
     Model& rModel,
     const std::string& rElementName)
 {
@@ -74,7 +74,7 @@ ModelPart& RansKOmegaSSTK2D3N_SetUp(
     return r_model_part;
 }
 
-ModelPart& RansKOmegaSSTOmega2D3N_SetUp(
+ModelPart& RansKOmegaSSTOmega2D3NSetUp(
     Model& rModel,
     const std::string& rElementName)
 {

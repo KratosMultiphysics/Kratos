@@ -32,7 +32,7 @@ namespace Kratos
 {
 namespace KEpsilonTestUtilities
 {
-ModelPart& RansKEpsilonK2D3N_SetUp(
+ModelPart& RansKEpsilonK2D3NSetUp(
     Model& rModel,
     const std::string& rElementName)
 {
@@ -67,7 +67,7 @@ ModelPart& RansKEpsilonK2D3N_SetUp(
     return r_model_part;
 }
 
-ModelPart& RansKEpsilonEpsilon2D3N_SetUp(
+ModelPart& RansKEpsilonEpsilon2D3NSetUp(
     Model& rModel,
     const std::string& rElementName)
 {

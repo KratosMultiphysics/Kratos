@@ -30,10 +30,10 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansKEpsilonKCWD2D3N_SetUp(
+ModelPart& RansKEpsilonKCWD2D3NSetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3N_SetUp(
+    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonK2D3NSetUp(
         rModel, "RansKEpsilonKCWD2D3N");
 
     StabilizationMethodTestUtilities::InitializeCrossWindStabilizationConstants(
@@ -42,10 +42,10 @@ ModelPart& RansKEpsilonKCWD2D3N_SetUp(
     return r_model_part;
 }
 
-ModelPart& RansKEpsilonEpsilonCWD2D3N_SetUp(
+ModelPart& RansKEpsilonEpsilonCWD2D3NSetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3N_SetUp(
+    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D3NSetUp(
         rModel, "RansKEpsilonEpsilonCWD2D3N");
 
     StabilizationMethodTestUtilities::InitializeCrossWindStabilizationConstants(
@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_EquationIdVector, KratosRansFastS
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonKCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
@@ -70,7 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_GetDofList, KratosRansFastSuite)
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonKCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateLocalSystem, KratosRansF
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonKCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS;
@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateRightHandSide, KratosRan
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonKCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
     Vector RHS, ref_RHS(3);
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateLocalVelocityContributio
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonKCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS(3, 3);
@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateMassMatrix, KratosRansFa
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonKCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
     Matrix M, ref_M(3, 3);
@@ -182,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateDampingMatrix, KratosRan
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonKCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonKCWD2D3NSetUp(model);
 
     // Test:
     Matrix D, ref_D(3, 3);
@@ -208,7 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_EquationIdVector, KratosRan
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
@@ -218,7 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_GetDofList, KratosRansFastS
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
@@ -229,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateLocalSystem, Krato
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS;
@@ -252,7 +252,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateRightHandSide, Kra
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
     Vector RHS, ref_RHS(3);
@@ -273,7 +273,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateLocalVelocityContr
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS(3, 3);
@@ -305,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateMassMatrix, Kratos
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
     Matrix M, ref_M(3, 3);
@@ -331,7 +331,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateDampingMatrix, Kra
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonCWD2D3N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonCWD2D3NSetUp(model);
 
     // Test:
     Matrix D, ref_D(3, 3);

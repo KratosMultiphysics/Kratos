@@ -29,11 +29,11 @@ namespace Kratos
 {
 namespace KEpsilonTestUtilities
 {
-ModelPart& RansKEpsilonK2D3N_SetUp(
+ModelPart& RansKEpsilonK2D3NSetUp(
     Model& rModel,
     const std::string& rElementName);
 
-ModelPart& RansKEpsilonEpsilon2D3N_SetUp(
+ModelPart& RansKEpsilonEpsilon2D3NSetUp(
     Model& rModel,
     const std::string& rElementName);
 } // namespace KEpsilonTestUtilities
