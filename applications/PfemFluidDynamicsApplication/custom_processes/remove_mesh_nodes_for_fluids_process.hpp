@@ -1138,12 +1138,10 @@ namespace Kratos
 			double elementVolume = eElement.Volume();
 			double criticalVolume = 0.1 * mrRemesh.Refine->MeanVolume;
 
-			std::vector<array_1d<double, 3>> rigidNodesCoordinates;
-			std::vector<array_1d<double, 3>> rigidNodesNormals;
-			array_1d<double, 3> notRigidNodeCoordinates;
+			std::vector<array_1d<double, 3>> rigidNodesCoordinates = {ZeroVector(3)};
+			std::vector<array_1d<double, 3>> rigidNodesNormals = {ZeroVector(3)};
+			array_1d<double, 3> notRigidNodeCoordinates(3,0.0);
 			unsigned int notRigidNodeId = 0;
-			rigidNodesCoordinates.resize(3);
-			rigidNodesNormals.resize(3);
 
 			if (mrRemesh.UseRefiningBox == true)
 			{
@@ -1242,7 +1240,7 @@ namespace Kratos
 				if ((fabs(cosAngle12) > 0.995 || fabs(cosAngle13) > 0.995 || fabs(cosAngle14) > 0.995) && (cosAngleBetweenNormals01 > 0.99 && cosAngleBetweenNormals02 > 0.99 && cosAngleBetweenNormals12 > 0.99))
 				{
 					eElement[notRigidNodeId].Set(TO_ERASE);
-					std::cout << eElement[notRigidNodeId].Id() << " nodeId is erased because it may pass through the solid contour. Coordinates are: " << notRigidNodeCoordinates << std::endl;
+					//std::cout << eElement[notRigidNodeId].Id() << " nodeId is erased because it may pass through the solid contour. Coordinates are: " << notRigidNodeCoordinates << std::endl;
 					erased_nodes += 1;
 					inside_nodes_removed++;
 				}
