@@ -78,7 +78,7 @@ public:
     /// Called only once befor the solution loop
     void ExecuteBeforeSolutionLoop() override;
 
-    const Parameters GetDefaultParameters() const override
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
