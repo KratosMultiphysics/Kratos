@@ -34,8 +34,6 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
 {
     bool OutputGeometryElements = mThisParameters["output_geometry_elements"].GetBool();
     bool OutputGeometryConditions = mThisParameters["output_geometry_conditions"].GetBool();
-    bool OutputBrepElements = mThisParameters["output_brep_elements"].GetBool();
-    bool OutputBrepConditions = mThisParameters["output_brep_conditions"].GetBool();
 
     std::string model_part_name = mThisParameters["model_part_name"].GetString();
     ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
@@ -71,9 +69,7 @@ const Parameters OutputQuadratureDomainProcess::GetDefaultParameters() const
         "output_file_name"           : "",
         "model_part_name"            : "",
         "output_geometry_elements"   : true,
-        "output_geometry_conditions" : false,
-        "output_brep_elements"       : false,
-        "output_brep_conditions"     : false
+        "output_geometry_conditions" : false
     })" );
     return default_parameters;
 }
