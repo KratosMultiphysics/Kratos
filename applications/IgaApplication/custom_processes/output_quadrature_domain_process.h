@@ -33,7 +33,7 @@ namespace Kratos
  * @details This stores the dababase in a class denominated ResultDatabase which considers Table to store the information, therefore being able to interpolate results
  * @author Vicente Mataix Ferrandiz
 */
-class KRATOS_API(KRATOS_CORE) OutputQuadratureDomainProcess
+class KRATOS_API(IGA_APPLICATION) OutputQuadratureDomainProcess
     : public Process
 {
 public:
@@ -46,9 +46,6 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
-    /// The node type definiton
-    typedef Node<3> NodeType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -56,7 +53,7 @@ public:
     /// Constructor
     OutputQuadratureDomainProcess(
         Model& rModel,
-        Parameters ThisParameters = Parameters(R"({})"));
+        Parameters ThisParameters);
 
     /// Destructor.
     virtual ~OutputQuadratureDomainProcess() {}
