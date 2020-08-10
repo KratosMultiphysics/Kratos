@@ -39,8 +39,6 @@ SlidingInterfaceProcess::SlidingInterfaceProcess(ModelPart &rMasterModelPart, Mo
 
     mSearchMaxResults = mParameters["search_settings"]["max_results"].GetInt();
     mSearchTolerance = mParameters["search_settings"]["tolerance"].GetDouble();
-
-    mGatheredMpName = "gathered_master";
 }
 
 SlidingInterfaceProcess::~SlidingInterfaceProcess()
@@ -58,11 +56,6 @@ void SlidingInterfaceProcess::ExecuteInitialize()
 
 void SlidingInterfaceProcess::ExecuteFinalize()
 {
-    Model& current_model = mrMasterModelPart.GetModel();
-    const DataCommunicator &r_comm =
-        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
-    if (r_comm.IsDistributed())
-        current_model.DeleteModelPart(mGatheredMpName);
 }
 
 
