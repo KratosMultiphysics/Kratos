@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.IgaApplication as KratosIga
+import KratosMultiphysics.IgaApplication as IGA
 
 
 def Factory(settings, model):
@@ -13,7 +13,7 @@ class IgaOutputIntegrationDomainProcess(KratosMultiphysics.Process):
 
     def __init__(self, model, params):
         KratosMultiphysics.Process.__init__(self)
-        self.process = KratosMultiphysics.OutputQuadratureDomainProcess(model, params)
+        self.process = IGA.OutputQuadratureDomainProcess(model, params)
 
     def ExecuteBeforeSolutionLoop(self):
         self.process.ExecuteBeforeSolutionLoop()
