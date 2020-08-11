@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "rans_application_variables.h"
@@ -66,12 +67,11 @@ void RansKTurbulentIntensityInletProcess::ExecuteInitialize()
 {
     if (mIsConstrained) {
         auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
-        const int number_of_nodes = r_nodes.size();
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            auto& r_node = *(r_nodes.begin() + i_node);
-            r_node.Fix(TURBULENT_KINETIC_ENERGY);
-        }
+
+        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
+            [&](ModelPart::NodeType& rNode) {
+                rNode.Fix(TURBULENT_KINETIC_ENERGY);
+            });
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
             << "Fixed TURBULENT_KINETIC_ENERGY dofs in " << mModelPartName << ".\n";
@@ -88,13 +88,14 @@ void RansKTurbulentIntensityInletProcess::Execute()
     KRATOS_TRY
 
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
-    const int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        auto& r_node = *(r_nodes.begin() + i_node);
-        CalculateTurbulentValues(r_node);
-    }
+    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+        const array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+        const double velocity_magnitude = norm_2(r_velocity);
+
+        rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = std::max(
+            1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2), mMinValue);
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Applied k values to " << mModelPartName << ".\n";
@@ -133,15 +134,6 @@ void RansKTurbulentIntensityInletProcess::PrintInfo(std::ostream& rOStream) cons
 
 void RansKTurbulentIntensityInletProcess::PrintData(std::ostream& rOStream) const
 {
-}
-
-void RansKTurbulentIntensityInletProcess::CalculateTurbulentValues(NodeType& rNode)
-{
-    const array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
-    double velocity_magnitude = norm_2(r_velocity);
-
-    rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = std::max(
-        1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2), mMinValue);
 }
 
 } // namespace Kratos.

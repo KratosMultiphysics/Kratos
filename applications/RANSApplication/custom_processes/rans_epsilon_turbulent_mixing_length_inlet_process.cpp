@@ -18,12 +18,13 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "rans_application_variables.h"
 
 // Include base h
-#include "rans_epsilon_turbulent_mixing_inlet_process.h"
+#include "rans_epsilon_turbulent_mixing_length_inlet_process.h"
 
 namespace Kratos
 {
@@ -69,12 +70,10 @@ void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitialize()
     if (mIsConstrained) {
         auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        const int number_of_nodes = r_model_part.NumberOfNodes();
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            auto& r_node = *(r_model_part.NodesBegin() + i_node);
-            r_node.Fix(TURBULENT_ENERGY_DISSIPATION_RATE);
-        }
+        BlockPartition<ModelPart::NodesContainerType>(r_model_part.Nodes())
+            .for_each([&](ModelPart::NodeType& rNode) {
+                rNode.Fix(TURBULENT_ENERGY_DISSIPATION_RATE);
+            });
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
             << "Fixed TURBULENT_ENERGY_DISSIPATION_RATE dofs in "
@@ -92,13 +91,12 @@ void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
     KRATOS_TRY
 
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
-    const int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        auto& r_node = *(r_nodes.begin() + i_node);
-        CalculateTurbulentValues(r_node);
-    }
+    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+        const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+        rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
+            mCmu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Applied epsilon values to " << mModelPartName << ".\n";
@@ -133,13 +131,6 @@ void RansEpsilonTurbulentMixingLengthInletProcess::PrintInfo(std::ostream& rOStr
 
 void RansEpsilonTurbulentMixingLengthInletProcess::PrintData(std::ostream& rOStream) const
 {
-}
-
-void RansEpsilonTurbulentMixingLengthInletProcess::CalculateTurbulentValues(NodeType& rNode)
-{
-    const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-    rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
-        mCmu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
 }
 
 } // namespace Kratos.

@@ -27,10 +27,7 @@ namespace Kratos
 
 namespace RansVariableUtilities
 {
-void  KRATOS_API(RANS_APPLICATION) ClipScalarVariable(
-    unsigned int& rNumberOfNodesBelowMinimum,
-    unsigned int& rNumberOfNodesAboveMaximum,
-    unsigned int& rNumberOfSelectedNodes,
+std::tuple<unsigned int, unsigned int> KRATOS_API(RANS_APPLICATION) ClipScalarVariable(
     const double MinimumValue,
     const double MaximumValue,
     const Variable<double>& rVariable,

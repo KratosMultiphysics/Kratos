@@ -19,7 +19,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Include base h
 #include "rans_check_vector_bounds_process.h"
@@ -83,7 +83,7 @@ int RansCheckVectorBoundsProcess::Check()
 void RansCheckVectorBoundsProcess::Execute()
 {
     KRATOS_TRY
-    const Variable<array_1d<double, 3>>& vector_variable =
+    const Variable<array_1d<double, 3>>& r_vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
@@ -114,50 +114,56 @@ void RansCheckVectorBoundsProcess::Execute()
         break;
     }
 
-    double min_value = std::numeric_limits<double>::max();
-    double max_value = std::numeric_limits<double>::lowest();
+    class MinMaxReducer{
+        public:
+            typedef std::tuple<double,double> value_type;
+            double min_value = std::numeric_limits<double>::max();
+            double max_value = std::numeric_limits<double>::lowest();
+
+            value_type GetValue()
+            {
+                value_type values;
+                std::get<0>(values) = min_value;
+                std::get<1>(values) = max_value;
+                return values;
+            }
+
+            void LocalReduce(const double Value){
+                min_value = std::min(min_value, Value);
+                max_value = std::max(max_value, Value);
+            }
+            void ThreadSafeReduce(MinMaxReducer& rOther){
+                #pragma omp critical
+                {
+                    min_value = std::min(min_value, rOther.min_value);
+                    max_value = std::max(max_value, rOther.max_value);
+                }
+            }
+    };
 
     const int number_of_nodes = r_nodes.size();
-    const int number_of_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector node_partition;
-    OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
 
-    Vector max_values(number_of_threads, max_value);
-    Vector min_values(number_of_threads, min_value);
-
-#pragma omp parallel
-    {
-        const int k = OpenMPUtils::ThisThread();
-
-        auto nodes_begin = r_nodes.begin() + node_partition[k];
-        auto nodes_end = r_nodes.begin() + node_partition[k + 1];
-
-        for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode) {
-            const array_1d<double, 3>& vector_value =
-                itNode->FastGetSolutionStepValue(vector_variable);
+    double min_value, max_value;
+    std::tie(min_value, max_value) =
+        IndexPartition<int>(number_of_nodes).for_each<MinMaxReducer>([&](const int i_node) -> double {
+            const array_1d<double, 3>& r_vector_value =
+                (r_nodes.begin() + i_node)->FastGetSolutionStepValue(r_vector_variable);
 
             double value = 0.0;
             for (int dim = 0; dim < 3; ++dim) {
-                value += std::pow(vector_value[dim] * vector_weights[dim], 2);
+                value += std::pow(r_vector_value[dim] * vector_weights[dim], 2);
             }
             value = std::pow(value, 0.5);
 
-            min_values[k] = std::min(min_values[k], value);
-            max_values[k] = std::max(max_values[k], value);
-        }
-    }
-
-    for (int i = 0; i < number_of_threads; ++i) {
-        min_value = std::min(min_value, min_values[i]);
-        max_value = std::max(max_value, max_values[i]);
-    }
+            return value;
+        });
 
     const auto& r_communicator = r_model_part.GetCommunicator();
     min_value = r_communicator.GetDataCommunicator().MinAll(min_value);
     max_value = r_communicator.GetDataCommunicator().MaxAll(max_value);
 
     KRATOS_INFO(this->Info())
-        << vector_variable.Name() << " is bounded between [ " << min_value
+        << r_vector_variable.Name() << " is bounded between [ " << min_value
         << ", " << max_value << " ] in " << mModelPartName << ".\n";
 
     KRATOS_CATCH("");

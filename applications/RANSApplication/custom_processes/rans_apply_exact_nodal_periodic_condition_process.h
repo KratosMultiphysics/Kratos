@@ -38,9 +38,6 @@ namespace Kratos
  * conditions between the master and slave model parts, to be used in ResidualBasedBlockBuilderAndSolverPeriodic.
  *
  * This process requires two boundaries to have maching meshes.
- * Make sure to avoid calling "ReplaceElementsAndConditions" method call, and directly impose element
- * and condition name in the "*.mdpa" file in order to correctly use this process alongside with
- * ResidualBasedBlockBuilderAndSolverPeriodic
  *
  * @see class ResidualBasedBlockBuilderAndSolverPeriodic
  */

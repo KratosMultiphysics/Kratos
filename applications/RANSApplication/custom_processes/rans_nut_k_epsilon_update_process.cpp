@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/cfd_variables.h"
 #include "includes/define.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "rans_application_variables.h"
@@ -107,28 +108,24 @@ void RansNutKEpsilonUpdateProcess::Execute()
     KRATOS_TRY
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
     auto& r_nodes = r_model_part.Nodes();
-    const int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        auto& r_node = *(r_nodes.begin() + i_node);
+    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
         const double epsilon =
-            r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
+            rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
 
-        double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        double& nu_t = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
 
         if (epsilon > 0.0) {
-            const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+            const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
             nu_t = mCmu * std::pow(tke, 2) / epsilon;
         } else {
             nu_t = mMinValue;
         }
 
-        r_node.FastGetSolutionStepValue(VISCOSITY) =
-            r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
-    }
+        rNode.FastGetSolutionStepValue(VISCOSITY) =
+            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nu_t;
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated nu_t for nodes in " << mModelPartName << ".\n";

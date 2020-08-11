@@ -21,6 +21,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "custom_elements/data_containers/k_omega_sst/element_data_utilities.h"
@@ -114,24 +115,8 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
 
 void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
 {
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_ELEMENTS,
-                                                   r_model_part.Nodes());
-
-    const int number_of_elements = r_model_part.NumberOfElements();
-#pragma omp parallel for
-    for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
-        auto& r_element = *(r_model_part.ElementsBegin() + i_elem);
-        auto& r_geometry = r_element.GetGeometry();
-        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
-            auto& r_node = r_geometry[i_node];
-            r_node.SetLock();
-            r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1;
-            r_node.UnSetLock();
-        }
-    }
-
-    r_model_part.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+    RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ElementsContainerType>(
+        mrModel.GetModelPart(mModelPartName), NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Calculated number of neighbour elements in " << mModelPartName << ".\n";
@@ -147,7 +132,6 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
     VariableUtils().SetHistoricalVariableToZero(TURBULENT_VISCOSITY, r_nodes);
 
     auto& r_elements = r_model_part.Elements();
-    const int number_of_elements = r_elements.size();
 
     std::function<double(const Element&)> nut_calculation_method;
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
@@ -163,33 +147,28 @@ void RansNutKOmegaSSTUpdateProcess::Execute()
         KRATOS_ERROR << "Unsupported domain size.";
     }
 
-#pragma omp parallel for
-    for (int i_elem = 0; i_elem < number_of_elements; ++i_elem) {
-        auto& r_element = *(r_elements.begin() + i_elem);
-        const double nut = nut_calculation_method(r_element);
-
-        auto& r_geometry = r_element.GetGeometry();
+    BlockPartition<ModelPart::ElementsContainerType>(r_elements).for_each([&](ModelPart::ElementType& rElement) {
+        const double nut = nut_calculation_method(rElement);
+        auto& r_geometry = rElement.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];
             r_node.SetLock();
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) += nut;
             r_node.UnSetLock();
         }
-    }
+    });
 
     r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_VISCOSITY);
 
-    const int number_of_nodes = r_nodes.size();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        auto& r_node = *(r_nodes.begin() + i_node);
-        const double number_of_neighbour_elements =
-            r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-        double& nut = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-        nut = std::max(nut / number_of_neighbour_elements, mMinValue);
-        double& nu = r_node.FastGetSolutionStepValue(VISCOSITY);
-        nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nut;
-    }
+    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
+        [&](ModelPart::NodeType& rNode) {
+            const double number_of_neighbour_elements =
+                rNode.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+            double& nut = rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+            nut = std::max(nut / number_of_neighbour_elements, mMinValue);
+            double& nu = rNode.FastGetSolutionStepValue(VISCOSITY);
+            nu = rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY) + nut;
+        });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Calculated nu_t for nodes in " << mModelPartName << ".\n";

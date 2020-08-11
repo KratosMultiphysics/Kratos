@@ -74,20 +74,20 @@ void RansClipScalarVariableProcess::Execute()
 {
     KRATOS_TRY
 
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+
     const Variable<double>& r_scalar_variable =
         KratosComponents<Variable<double>>::Get(mVariableName);
 
-    unsigned int nodes_below, nodes_above, total_nodes;
-
-    RansVariableUtilities::ClipScalarVariable(
-        nodes_below, nodes_above, total_nodes, mMinValue, mMaxValue,
-        r_scalar_variable, mrModel.GetModelPart(mModelPartName));
+    unsigned int nodes_below, nodes_above;
+    std::tie(nodes_below, nodes_above) = RansVariableUtilities::ClipScalarVariable(
+        mMinValue, mMaxValue, r_scalar_variable, r_model_part);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0 && (nodes_below > 0 || nodes_above > 0))
         << mVariableName << " is clipped between [ " << mMinValue << ", "
         << mMaxValue << " ]. [ " << nodes_below << " nodes < " << mMinValue
         << " and " << nodes_above << " nodes > " << mMaxValue << " out of "
-        << total_nodes << " total nodes in " << mModelPartName << " ].\n";
+        << r_model_part.GetCommunicator().GlobalNumberOfNodes() << " total nodes in " << mModelPartName << " ].\n";
 
     KRATOS_CATCH("");
 }

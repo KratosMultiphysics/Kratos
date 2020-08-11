@@ -123,12 +123,6 @@ private:
     int mEchoLevel;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    void CalculateTurbulentValues(NodeType& rNode);
-
-    ///@}
 
 }; // Class RansOmegaTurbulentMixingLengthInletProcess
 

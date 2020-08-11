@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "utilities/parallel_utilities.h"
 
 // Include base h
 #include "rans_apply_flag_process.h"
@@ -94,15 +95,13 @@ void RansApplyFlagProcess::ApplyNodeFlags()
 {
     KRATOS_TRY
 
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const int number_of_nodes = r_model_part.NumberOfNodes();
-
+    auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
     const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
 
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        (r_model_part.NodesBegin() + i_node)->Set(r_flag, mFlagVariableValue);
-    }
+    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
+        [&](ModelPart::NodeType& rNode) {
+            rNode.Set(r_flag, mFlagVariableValue);
+        });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << mFlagVariableName << " is set to nodes " << mFlagVariableValue
@@ -115,25 +114,23 @@ void RansApplyFlagProcess::ApplyConditionFlags(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    const int number_of_conditions = rModelPart.NumberOfConditions();
-
+    auto& r_conditions = rModelPart.Conditions();
     const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
 
-#pragma omp parallel for
-    for (int i_condition = 0; i_condition < number_of_conditions; ++i_condition) {
-        auto& r_condition = *(rModelPart.ConditionsBegin() + i_condition);
-        auto& r_condition_geometry = r_condition.GetGeometry();
-        const int number_of_nodes = r_condition_geometry.PointsNumber();
+    BlockPartition<ModelPart::ConditionsContainerType>(r_conditions)
+        .for_each([&](ModelPart::ConditionType& rCondition) {
+            auto& r_condition_geometry = rCondition.GetGeometry();
+            const int number_of_nodes = r_condition_geometry.PointsNumber();
 
-        bool condition_flag = true;
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            if (!r_condition_geometry[i_node].Is(r_flag)) {
-                condition_flag = false;
-                break;
+            bool condition_flag = mFlagVariableValue;
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+                if (r_condition_geometry[i_node].Is(r_flag) != mFlagVariableValue) {
+                    condition_flag = !condition_flag;
+                    break;
+                }
             }
-        }
-        r_condition.Set(r_flag, condition_flag);
-    }
+            rCondition.Set(r_flag, condition_flag);
+        });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << mFlagVariableName << " flags set for conditions in "
