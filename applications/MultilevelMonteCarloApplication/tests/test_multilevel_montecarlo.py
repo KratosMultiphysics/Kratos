@@ -1,18 +1,12 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.MultilevelMonteCarloApplication import *
 
-try:
-    import KratosMultiphysics.ConvectionDiffusionApplication
-    have_convection_diffusion_application = True
-except ImportError:
-    have_convection_diffusion_application = False
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
-@KratosUnittest.skipUnless(have_convection_diffusion_application,"Missing required application: ConvectionDiffusionApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
 
     def MonteCarloTest(self):

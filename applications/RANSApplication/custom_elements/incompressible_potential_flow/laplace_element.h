@@ -18,12 +18,10 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/element.h"
 
 // Application includes
-#include "custom_utilities/rans_calculation_utilities.h"
 
 namespace Kratos
 {
@@ -79,7 +77,7 @@ public:
      */
     explicit LaplaceElement(
         IndexType NewId = 0)
-    : Element(NewId)
+        : Element(NewId)
     {
     }
 
@@ -117,7 +115,8 @@ public:
     /**
      * Copy Constructor
      */
-    LaplaceElement(LaplaceElement const& rOther)
+    LaplaceElement(
+        LaplaceElement const& rOther)
     : Element(rOther)
     {
     }
@@ -211,18 +210,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& CurrentProcessInfo) const override
-    {
-        if (rResult.size() != TNumNodes) {
-            rResult.resize(TNumNodes, false);
-        }
-
-        const Variable<double>& r_variable = this->GetVariable();
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[i] = Element::GetGeometry()[i].GetDof(r_variable).EquationId();
-        }
-    }
+        const ProcessInfo& CurrentProcessInfo) const override;
 
     /**
      * determines the elemental list of DOFs
@@ -231,41 +219,17 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        const ProcessInfo& CurrentProcessInfo) const override
-    {
-        if (rElementalDofList.size() != TNumNodes) {
-            rElementalDofList.resize(TNumNodes);
-        }
-
-        const Variable<double>& r_variable = this->GetVariable();
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[i] = Element::GetGeometry()[i].pGetDof(r_variable);
-        }
-    }
+        const ProcessInfo& CurrentProcessInfo) const override;
 
     void GetValuesVector(
         VectorType& rValues,
-        int Step) const override
-    {
-        if (rValues.size() != TNumNodes) {
-            rValues.resize(TNumNodes, false);
-        }
+        int Step = 0) const override;
 
-        const Variable<double>& r_variable = this->GetVariable();
+    void GetValuesArray(
+        BoundedVector<double, TNumNodes>& rValues,
+        int Step = 0) const;
 
-        const auto& r_geometry = this->GetGeometry();
-        IndexType LocalIndex = 0;
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            rValues[LocalIndex++] =
-                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
-        }
-    }
-
-    GeometryData::IntegrationMethod GetIntegrationMethod() const override
-    {
-        return GeometryData::GI_GAUSS_2;
-    }
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * ELEMENTS inherited from this class have to implement next
@@ -285,23 +249,7 @@ public:
     virtual void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        // Calculate RHS
-        if (rRightHandSideVector.size() != TNumNodes) {
-            rRightHandSideVector.resize(TNumNodes, false);
-        }
-
-        noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
-
-        // Calculate LHS
-        this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-        VectorType values;
-        this->GetValuesVector(values, 0);
-
-        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -311,42 +259,7 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rLeftHandSideMatrix.size1() != TNumNodes ||
-            rLeftHandSideMatrix.size2() != TNumNodes) {
-            rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-        }
-
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
-
-        // Get Shape function data
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_derivatives;
-        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-        const IndexType num_gauss_points = gauss_weights.size();
-
-        for (IndexType g = 0; g < num_gauss_points; ++g) {
-            const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector gauss_shape_functions = row(shape_functions, g);
-
-            for (IndexType a = 0; a < TNumNodes; ++a) {
-                for (IndexType b = 0; b < TNumNodes; ++b) {
-                    double dNa_dNb = 0.0;
-                    for (IndexType i = 0; i < TDim; ++i) {
-                        dNa_dNb += r_shape_derivatives(a, i) * r_shape_derivatives(b, i);
-                    }
-
-                    rLeftHandSideMatrix(a, b) += gauss_weights[g] * dNa_dNb;
-                }
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -356,24 +269,7 @@ public:
      */
     virtual void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rRightHandSideVector.size() != TNumNodes) {
-            rRightHandSideVector.resize(TNumNodes, false);
-        }
-
-        Matrix lhs;
-        this->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
-
-        Vector values;
-        this->GetValuesVector(values, 0);
-
-        noalias(rRightHandSideVector) = prod(lhs, values) * -1.0;
-
-        KRATOS_CATCH("");
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -384,24 +280,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        int check = BaseType::Check(rCurrentProcessInfo);
-
-        const Variable<double>& r_variable = this->GetVariable();
-
-        for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node) {
-            const auto& r_node = this->GetGeometry()[i_node];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node);
-        }
-
-        return check;
-
-        KRATOS_CATCH("");
-    }
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -435,13 +314,7 @@ protected:
     virtual void CalculateGeometryData(
         Vector& rGaussWeights,
         Matrix& rNContainer,
-        ShapeFunctionDerivativesArrayType& rDN_DX) const
-    {
-        const auto& r_geometry = this->GetGeometry();
-
-        RansCalculationUtilities::CalculateGeometryData(
-            r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);
-    }
+        ShapeFunctionDerivativesArrayType& rDN_DX) const;
 
     ///@}
 
@@ -477,15 +350,13 @@ private:
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(
-    std::istream& rIStream,
-    LaplaceElement<TDim, TNumNodes>& rThis);
+inline std::istream& operator>>(std::istream& rIStream,
+                                LaplaceElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::ostream& operator<<(
-    std::ostream& rOStream,
-    const LaplaceElement<TDim, TNumNodes>& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream,
+                                const LaplaceElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

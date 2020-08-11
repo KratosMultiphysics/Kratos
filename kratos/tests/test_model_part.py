@@ -418,6 +418,27 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(inlets_model_part.NumberOfElements(), 5)
         self.assertEqual(model_part.NumberOfElements(), 7)
 
+        nodes = KratosMultiphysics.NodesVector()
+        nodes.append(model_part.CreateNewNode(10, 0.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(11, 2.5, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(12, 5.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(13, 0.0, 0.5, 0))
+
+        #Create the knots vector
+        knots_u = KratosMultiphysics.Vector(2)
+        knots_u[0] = 0.0
+        knots_u[1] = 1.0
+
+        surface = KratosMultiphysics.NurbsSurfaceGeometry3D(nodes, 1, 1, knots_u, knots_u)
+
+        model_part.CreateNewElement('Element3D3N', 9, surface, model_part.GetProperties()[1])
+
+        self.assertEqual(model_part.NumberOfElements(), 8)
+        self.assertEqual(model_part.GetElement(9).Id, 9)
+        self.assertEqual(model_part.GetElement(9,0).Id, 9)
+        self.assertEqual(model_part.Elements[9].Id, 9)
+        self.assertEqual(len(model_part.Elements), 8)
+
     def test_model_part_conditions(self):
         current_model = KratosMultiphysics.Model()
 
@@ -511,6 +532,24 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 2)
         self.assertEqual(inlets_model_part.NumberOfConditions(), 5)
         self.assertEqual(model_part.NumberOfConditions(), 7)
+
+        nodes = KratosMultiphysics.NodesVector()
+        nodes.append(model_part.CreateNewNode(10, 0.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(11, 2.5, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(12, 5.0, 0.0, 0))
+        nodes.append(model_part.CreateNewNode(13, 0.0, 0.5, 0))
+
+        #Create the knots vector
+        knots_u = KratosMultiphysics.Vector(2)
+        knots_u[0] = 0.0
+        knots_u[1] = 1.0
+
+        surface = KratosMultiphysics.NurbsSurfaceGeometry3D(nodes, 1, 1, knots_u, knots_u)
+        model_part.CreateNewCondition('SurfaceCondition3D3N', 9, surface, model_part.GetProperties()[1])
+
+        self.assertEqual(model_part.NumberOfConditions(), 8)
+        self.assertEqual(model_part.GetCondition(9).Id, 9)
+        self.assertEqual(len(model_part.Conditions), 8)
 
     def test_modelpart_variables_list(self):
         current_model = KratosMultiphysics.Model()
@@ -794,6 +833,7 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_create_non_existing_element(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
         props = model_part.CreateNewProperties(0)
 
@@ -803,6 +843,7 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_create_non_existing_condition(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
         props = model_part.CreateNewProperties(0)
 
@@ -818,6 +859,24 @@ class TestModelPart(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'Error: The Constraint "SomeCertainlyNonExistingConstraint" is not registered!\nMaybe you need to import the application where it is defined\?\nThe following Constraints are registered:\n'):
             model_part.CreateNewMasterSlaveConstraint("SomeCertainlyNonExistingConstraint", 1, n1, KratosMultiphysics.PRESSURE, n2, KratosMultiphysics.PRESSURE, 0.5, 0.0)
 
+    def test_remove_nodes(self):
+        current_model = KratosMultiphysics.Model()
+        model_part= current_model.CreateModelPart("Main")
+
+        for i in range(0, 8):
+            model_part.CreateNewNode(i+1, i+1, i+1, i+1)
+
+        self.assertEqual(model_part.NumberOfNodes(), 8)
+        self.assertEqual(model_part.NumberOfNodes(0), 8)
+
+        for node in model_part.Nodes:
+            if node.Id % 2:
+                node.Set(KratosMultiphysics.TO_ERASE)
+
+        model_part.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+        self.assertEqual(model_part.NumberOfNodes(), 4)
+        self.assertEqual(model_part.NumberOfNodes(0), 4)
 
 if __name__ == '__main__':
     KratosUnittest.main()

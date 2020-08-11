@@ -93,9 +93,11 @@ public:
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
         : mrBaseModelPart(rBaseModelPart),
+          mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
           mMaxAllowedCFL(max_cfl),
-          mMaxSubsteps(max_substeps)
+          mMaxSubsteps(max_substeps),
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         KRATOS_TRY
 
@@ -165,7 +167,7 @@ public:
     /// Destructor.
     ~LevelSetConvectionProcess() override
     {
-        mrBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
+        mrModel.DeleteModelPart(mAuxModelPartName);
     }
 
     ///@}
@@ -255,7 +257,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear(){
+    void Clear() override{
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();
         mpDistanceModelPart->Elements().clear();
@@ -310,6 +312,8 @@ protected:
 
     ModelPart& mrBaseModelPart;
 
+    Model& mrModel;
+
     ModelPart* mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
@@ -324,6 +328,8 @@ protected:
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
+
+    std::string mAuxModelPartName;
 
     ///@}
     ///@name Protected Operators
@@ -340,9 +346,11 @@ protected:
         const double MaxCFL = 1.0,
         const unsigned int MaxSubSteps = 0)
         : mrBaseModelPart(rBaseModelPart),
+          mrModel(rBaseModelPart.GetModel()),
           mrLevelSetVar(rLevelSetVar),
           mMaxAllowedCFL(MaxCFL),
-          mMaxSubsteps(MaxSubSteps)
+          mMaxSubsteps(MaxSubSteps),
+          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
     {
         mDistancePartIsInitialized = false;
     }
@@ -351,12 +359,11 @@ protected:
 
         KRATOS_TRY
 
-        Model& current_model = rBaseModelPart.GetModel();
+        if (mrModel.HasModelPart(mAuxModelPartName)) {
+            mrModel.DeleteModelPart(mAuxModelPartName);
+        }
 
-        if(current_model.HasModelPart("DistanceConvectionPart"))
-            current_model.DeleteModelPart("DistanceConvectionPart");
-
-        mpDistanceModelPart= &(current_model.CreateModelPart("DistanceConvectionPart"));
+        mpDistanceModelPart= &(mrModel.CreateModelPart(mAuxModelPartName));
 
 
         // Check buffer size
@@ -566,5 +573,4 @@ inline std::ostream& operator << (
 }  // namespace Kratos.
 
 #endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
-
 

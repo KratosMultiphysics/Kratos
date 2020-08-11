@@ -18,12 +18,10 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/condition.h"
 #include "includes/define.h"
 
 // Application includes
-#include "custom_utilities/rans_calculation_utilities.h"
 
 namespace Kratos
 {
@@ -191,19 +189,7 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& CurrentProcessInfo) const override
-    {
-        if (rResult.size() != TNumNodes) {
-            rResult.resize(TNumNodes, false);
-        }
-
-        const Variable<double>& r_variable =
-            TScalarWallFluxConditionData::GetScalarVariable();
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[i] = Condition::GetGeometry()[i].GetDof(r_variable).EquationId();
-        }
-    }
+        const ProcessInfo& CurrentProcessInfo) const override;
 
     /**
      * determines the elemental list of DOFs
@@ -212,64 +198,19 @@ public:
      */
     void GetDofList(
         DofsVectorType& rConditionalDofList,
-        const ProcessInfo& CurrentProcessInfo) const override
-    {
-        if (rConditionalDofList.size() != TNumNodes) {
-            rConditionalDofList.resize(TNumNodes);
-        }
-
-        const Variable<double>& r_variable =
-            TScalarWallFluxConditionData::GetScalarVariable();
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rConditionalDofList[i] = Condition::GetGeometry()[i].pGetDof(r_variable);
-        }
-    }
+        const ProcessInfo& CurrentProcessInfo) const override;
 
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0) const override
-    {
-        this->GetFirstDerivativesVector(rValues, Step);
-    }
+        int Step = 0) const override;
 
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0) const override
-    {
-        if (rValues.size() != TNumNodes) {
-            rValues.resize(TNumNodes, false);
-        }
-
-        const auto& r_geometry = this->GetGeometry();
-        const Variable<double>& r_variable =
-            TScalarWallFluxConditionData::GetScalarVariable();
-
-        IndexType local_index = 0;
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            rValues[local_index++] =
-                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
-        }
-    }
+        int Step = 0) const override;
 
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0) const override
-    {
-        if (rValues.size() != TNumNodes) {
-            rValues.resize(TNumNodes, false);
-        }
-
-        const auto& r_geometry = this->GetGeometry();
-        const Variable<double>& r_variable =
-            TScalarWallFluxConditionData::GetScalarRateVariable();
-
-        IndexType local_index = 0;
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            rValues[local_index++] =
-                r_geometry[i_node].FastGetSolutionStepValue(r_variable, Step);
-        }
-    }
+        int Step = 0) const override;
 
     /**
      * ELEMENTS inherited from this class have to implement next
@@ -289,18 +230,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        // Check sizes and initialize matrix
-        if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
-            rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-        }
-
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
-
-        // Calculate RHS
-        this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -310,45 +240,7 @@ public:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rRightHandSideVector.size() != TNumNodes) {
-            rRightHandSideVector.resize(TNumNodes, false);
-        }
-
-        noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
-
-        if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            const auto& r_geometry = this->GetGeometry();
-            // Get Shape function data
-            Vector gauss_weights;
-            Matrix shape_functions;
-            RansCalculationUtilities::CalculateConditionGeometryData(
-                r_geometry, TScalarWallFluxConditionData::GetIntegrationMethod(),
-                gauss_weights, shape_functions);
-            const IndexType num_gauss_points = gauss_weights.size();
-
-            TScalarWallFluxConditionData r_current_data(r_geometry);
-
-            r_current_data.CalculateConstants(rCurrentProcessInfo);
-
-            if (r_current_data.IsWallFluxComputable()) {
-                for (IndexType g = 0; g < num_gauss_points; ++g) {
-                    const Vector& gauss_shape_functions = row(shape_functions, g);
-
-                    const double flux =
-                        r_current_data.CalculateWallFlux(gauss_shape_functions);
-
-                    noalias(rRightHandSideVector) +=
-                        gauss_shape_functions * (gauss_weights[g] * flux);
-                }
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -359,17 +251,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        int check = BaseType::Check(rCurrentProcessInfo);
-        TScalarWallFluxConditionData::Check(this->GetGeometry(), rCurrentProcessInfo);
-
-        return check;
-
-        KRATOS_CATCH("");
-    }
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
