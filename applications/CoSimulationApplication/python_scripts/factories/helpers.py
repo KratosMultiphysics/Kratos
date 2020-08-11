@@ -38,7 +38,7 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
     convergence_criteria = []
     for conv_crit_settings in convergence_criterion_settings_list:
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        if conv_crit_settings.Has("use_wrapper") and conv_crit_settings["use_wrapper"].GetBool():
+        if conv_crit_settings.Has("use_wrapper") and conv_crit_settings["use_wrapper"].GetBool() == False:
             convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solvers))
         else:
             solver = solvers[conv_crit_settings["solver"].GetString()]
