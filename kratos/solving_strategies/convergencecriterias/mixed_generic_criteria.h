@@ -306,7 +306,8 @@ protected:
             is_converged += var_ratio[key_map] <= mRatioToleranceVector[key_map] || var_abs[key_map] <= mAbsToleranceVector[key_map];
         }
 
-        if (is_converged) {
+        // Note that this check ensures that all the convergence variables fulfil either the relative or the absolute criterion
+        if (is_converged == mVariableSize) {
             KRATOS_INFO_IF("", this->GetEchoLevel() > 0) << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
             return true;
         } else {
