@@ -60,12 +60,12 @@
 #include "custom_conditions/scalar_wall_flux_condition.h"
 
 // k-epsilon turbulence model condition data
-#include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_k_based_wall_condition_data.h"
-#include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_u_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 
 // k-omega turbulence model condition data
-#include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_k_based_wall_condition_data.h"
-#include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_u_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
 namespace Kratos
 {
