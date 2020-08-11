@@ -8,6 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 
@@ -29,6 +30,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest
         ]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ScordelisRoofShell3pTest]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestModelers]))
 
