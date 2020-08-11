@@ -26,10 +26,11 @@ void MappingIntersectionUtilities::FindIntersection1DGeometries2D(
     ModelPart& rModelPartResult,
     double Tolerance)
 {
-    // Only perform the test for 1D lines in 2D space. Maybe this is too strict...
     KRATOS_ERROR_IF(rModelPartDomainA.ConditionsBegin()->GetGeometry().LocalSpaceDimension() != 1 &&
         rModelPartDomainA.ConditionsBegin()->GetGeometry().Dimension() != 2)
         << "Can compare only line segments with other line segments." << std::endl;
+
+    std::vector<array_1d<double, 3>> dummy;
 
     for (auto condition_a_itr = rModelPartDomainA.ConditionsBegin();
         condition_a_itr != rModelPartDomainA.ConditionsEnd();
@@ -39,18 +40,10 @@ void MappingIntersectionUtilities::FindIntersection1DGeometries2D(
             condition_b_itr != rModelPartDomainB.ConditionsEnd();
             ++condition_b_itr)
         {
-            if (condition_a_itr->GetGeometry().HasIntersection(condition_b_itr->GetGeometry()))
+            if (FindOverlapExtents1DGeometries2D(condition_a_itr->GetGeometry(), condition_b_itr->GetGeometry(), dummy))
             {
                 rModelPartResult.AddGeometry(Kratos::make_shared<CouplingGeometry<NodeType>>(
                     condition_a_itr->pGetGeometry(), condition_b_itr->pGetGeometry()));
-
-                // TODO remove
-                if (mPrintDebugForPeter) std::cout << "\nIntersection found!"
-                                        << "\nSeg A = " << condition_a_itr->GetGeometry().Points()[0].Coordinates()
-                                        << " to " << condition_a_itr->GetGeometry().Points()[1].Coordinates()
-                                        << "\nSeg B = " << condition_b_itr->GetGeometry().Points()[0].Coordinates()
-                                        << " to " << condition_b_itr->GetGeometry().Points()[1].Coordinates()
-                                        << std::endl;
             }
         }
     }
@@ -62,7 +55,6 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
 {
     const ModelPart& rParentModelPart = *(rModelPartCoupling.GetParentModelPart());
 
-    // Only perform the test for 1D lines in 2D space. Maybe this is too strict...
     KRATOS_ERROR_IF(rModelPartCoupling.GeometriesBegin()->LocalSpaceDimension() != 1 &&
         rModelPartCoupling.GeometriesBegin()->Dimension() != 2)
         << "Can compare only line segments with other line segments." << std::endl;
@@ -83,14 +75,6 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
         r_geom_master.PointLocalCoordinates(local_parameter_1, overlap_extents[0]); // min of overlap
         r_geom_master.PointLocalCoordinates(local_parameter_2, overlap_extents[1]); // max of overlap
 
-        // TODO remove
-        if (mPrintDebugForPeter) std::cout << "\nOverlap found!"
-            << "\nSeg A = " << r_geom_master.Points()[0].Coordinates()
-            << " to " << r_geom_master.Points()[1].Coordinates()
-            << "\nSeg B = " << r_geom_slave.Points()[0].Coordinates()
-            << " to " << r_geom_slave.Points()[1].Coordinates()
-            << "\nOverlap limits = " << overlap_extents[0] << " to " << overlap_extents[1]
-            << std::endl;
 
         const SizeType IntegrationPointsPerSpan = 2; // TODO this should depend on the basis order
 

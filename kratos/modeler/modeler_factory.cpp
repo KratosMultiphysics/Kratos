@@ -17,10 +17,10 @@
 
 namespace Kratos
 {
-///@name Kratos Classes
-///@{
+    ///@name Kratos Classes
+    ///@{
 
-    /// Checks if the modeler is registered
+        /// Checks if the modeler is registered
     bool ModelerFactory::Has(const std::string& ModelerName)
     {
         return KratosComponents< Modeler >::Has(ModelerName);
@@ -41,3 +41,4 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
+

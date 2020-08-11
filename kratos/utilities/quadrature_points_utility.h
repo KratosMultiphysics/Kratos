@@ -323,7 +323,6 @@ namespace Kratos
                     data_container, rGeometry);
             }
         }
-
         ///@}
         ///@name Update functions
         ///@{

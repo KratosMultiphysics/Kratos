@@ -6,6 +6,8 @@ from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_fac
 from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterionWithoutWrapper
 from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
 
 
@@ -36,28 +38,12 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
 def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, parent_echo_level):
     convergence_criteria = []
     for conv_crit_settings in convergence_criterion_settings_list:
-        solver = [solvers[conv_crit_settings["solver"].GetString()]]
-
-        is_dual_domain = False
-        for criteria_option in conv_crit_settings["criteria_options"]:
-            if criteria_option.GetString() == "domain_difference":
-                is_dual_domain = True
-                break
-        if is_dual_domain:
-            is_error = False
-            if conv_crit_settings.Has("solver_domain_two"):
-                solver_domain_two = conv_crit_settings["solver_domain_two"].GetString()
-                if solver_domain_two == "UNSPECIFIED":
-                    is_error = True
-                else:
-                    solver.append(solvers[solver_domain_two])
-            else:
-                is_error = True
-            if is_error:
-                self.__RaiseException('Domain difference requires "solver_domain_two" to be set to the second domain.')
-
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
+        if conv_crit_settings.Has("use_wrapper") and conv_crit_settings["use_wrapper"].GetBool() == False:
+            convergence_criteria.append(CreateConvergenceCriterionWithoutWrapper(conv_crit_settings, solvers))
+        else:
+            solver = solvers[conv_crit_settings["solver"].GetString()]
+            convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
 
     return convergence_criteria
 
