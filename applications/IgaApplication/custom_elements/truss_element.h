@@ -175,13 +175,42 @@ public:
         const bool ComputeRightHandSide);
 
     /// Updates the constitutive law
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Load functions
+    ///@{
+
+    void CalculateBodyForces(Vector& rBodyForces);
+
+    bool HasSelfWeight() const;
+
+    ///@}
+    ///@name Explicit dynamic functions
+    ///@{
+
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void AddExplicitContribution(
+        const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Dynamic functions
     ///@{
 
-    /// Calculates LumpedMassVector
+    /// Calculates the mass matrix with use of the lumped mass vector
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Calculates lumped mass vector
     void CalculateLumpedMassVector(
         VectorType& rMassVector);
 

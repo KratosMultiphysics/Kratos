@@ -192,6 +192,13 @@ void TrussElement::CalculateAll(
 
         if (ComputeRightHandSide) {
             rRightHandSideVector *= reference_a * integration_weight;
+
+            // add bodyforces
+            if (HasSelfWeight()) {
+                Vector body_forces;
+                CalculateBodyForces(body_forces);
+                noalias(rRightHandSideVector) += body_forces;
+            }
         }
     }
 }
@@ -348,12 +355,166 @@ void TrussElement::CalculateStressCauchy(
 ///@name Load functions
 ///@{
 
+void TrussElement::CalculateBodyForces(Vector& rBodyForces)
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType nb_nodes = r_geometry.size();
+    // getting shapefunctionvalues
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    auto& r_integration_points = r_geometry.IntegrationPoints();
+    SizeType num_integration_points = r_integration_points.size();
+
+    // creating necessary values
+    const double A = GetProperties()[CROSS_AREA];
+    const double rho = GetProperties()[DENSITY];
+
+    array_1d<double, 3> body_forces_node;
+    rBodyForces = ZeroVector(nb_nodes * 3);
+
+    for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+        const double L = norm_2(CalculateActualBaseVector(point_number))
+            * r_integration_points[point_number].Weight();
+        double total_mass = A * L * rho;
+
+        // assemble global Vector
+        for (IndexType i = 0; i < nb_nodes; ++i) {
+            body_forces_node =
+                  total_mass
+                * r_geometry[i].FastGetSolutionStepValue(VOLUME_ACCELERATION)
+                * r_N(0, i);
+
+            for (IndexType j = 0; j < 3; ++j) {
+                rBodyForces[(i * 3) + j] = body_forces_node[j];
+            }
+        }
+    }
+}
+
+/// Checks if volume acceleration is bigger than 0
+bool TrussElement::HasSelfWeight() const
+{
+    array_1d<double, 3> volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    const double self_weight = inner_prod(volume_acceleration, volume_acceleration);
+    KRATOS_WATCH(volume_acceleration)
+    if (self_weight <= std::numeric_limits<double>::epsilon()) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+///@}
+///@name Explicit dynamic functions
+///@{
+
+void TrussElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    const Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    auto& r_geometry = GetGeometry();
+    const IndexType nb_nodes = r_geometry.size();
+    const IndexType nb_dofs = r_geometry.size() * 3;
+
+    if (rDestinationVariable == NODAL_MASS) {
+        VectorType element_mass_vector(nb_dofs);
+        CalculateLumpedMassVector(element_mass_vector);
+
+        for (SizeType i = 0; i < nb_nodes; ++i) {
+            double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
+            int index = i * 3;
+
+            #pragma omp atomic
+            r_nodal_mass += element_mass_vector(index);
+
+        }
+    }
+}
+
+void TrussElement::AddExplicitContribution(
+    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    auto& r_geometry = GetGeometry();
+    const IndexType nb_nodes = r_geometry.size();
+    const IndexType nb_dofs = nb_nodes * 3;
+
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+
+        Vector damping_residual_contribution = ZeroVector(nb_dofs);
+        Vector current_nodal_velocities = ZeroVector(nb_dofs);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix;
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+        for (size_t i = 0; i < nb_nodes; ++i) {
+            size_t index = 3 * i;
+            array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < 3; ++j) {
+            #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    }
+    else if (rDestinationVariable == NODAL_INERTIA) {
+
+        // Getting the vector mass
+        VectorType mass_vector(nb_dofs);
+        CalculateLumpedMassVector(mass_vector);
+
+        for (int i = 0; i < nb_nodes; ++i) {
+            double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
+            array_1d<double, 3>& r_nodal_inertia = r_geometry[i].GetValue(NODAL_INERTIA);
+            int index = i * 3;
+
+            #pragma omp atomic
+            r_nodal_mass += mass_vector[index];
+
+            for (int k = 0; k < 3; ++k) {
+                #pragma omp atomic
+                r_nodal_inertia[k] += 0.0;
+            }
+        }
+    }
+}
 
 ///@}
 ///@name Dynamic functions
 ///@{
 
-void TrussElement::CalculateLumpedMassVector(VectorType& rMassVector)
+void TrussElement::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType nb_dofs = r_geometry.size() * 3;
+
+    // Compute lumped mass vector
+    Vector lumped_mass_vector(nb_dofs);
+    CalculateLumpedMassVector(lumped_mass_vector);
+
+    // Clear matrix
+    if (rMassMatrix.size1() != nb_dofs || rMassMatrix.size2() != nb_dofs) {
+        rMassMatrix.resize(nb_dofs, nb_dofs, false);
+    }
+    rMassMatrix = ZeroMatrix(nb_dofs, nb_dofs);
+
+    // Fill the matrix
+    for (IndexType i = 0; i < nb_dofs; ++i) {
+        rMassMatrix(i, i) = lumped_mass_vector[i];
+    }
+}
+
+void TrussElement::CalculateLumpedMassVector(Vector& rMassVector)
 {
     const auto& r_geometry = GetGeometry();
     const IndexType nb_nodes = r_geometry.size();
