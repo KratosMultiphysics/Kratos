@@ -24,8 +24,6 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
         self.label = self.settings["label"].GetString()
 
-        self.iteration = 1
-
     def IsConverged(self, residual, current_data):
         res_norm = la.norm(residual)
         norm_new_data = la.norm(current_data)
@@ -33,17 +31,10 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         if norm_new_data < 1e-15:
             norm_new_data = 1.0 # to avoid division by zero
 
-        abs_norm = res_norm
-        if isinstance(residual,float) == False:
-            abs_norm /= np.sqrt(residual.size) #@phil, not sure what this is doing?
+        abs_norm = res_norm / np.sqrt(residual.size)
         rel_norm = res_norm / norm_new_data
 
-        if self.ignore_first_convergence and self.iteration == 1:
-            is_converged = False
-        else:
-            is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
-
-        self.iteration += 1
+        is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
 
         info_msg = ""
 

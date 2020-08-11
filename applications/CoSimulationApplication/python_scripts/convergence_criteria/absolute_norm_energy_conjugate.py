@@ -20,8 +20,6 @@ def Create(settings):
 
 class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def __init__(self, settings):
-        print('\n\n\n\n\n ============== CREATING AbsoluteNormResidualConvergenceCriteria ================= \n\n\n\n')
-        print(settings)
         super(AbsoluteNormResidualConvergenceCriteria, self).__init__(settings)
 
         if self.settings["criteria_composition"].GetString() != "energy_conjugate":
@@ -29,6 +27,8 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
 
         self.iteration = 1
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
+        self.ignore_first_convergence = self.settings["ignore_first_convergence"].GetBool()
+
 
     def SetSolvers(self, settings, solvers):
         # Determine if we are looking at the energy difference between two domains (solvers), or just one
@@ -129,6 +129,7 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
             "abs_tolerance" : 1e-5,
             "criteria_composition" : "UNSPECIFIED",
             "use_wrapper" : false,
+            "ignore_first_convergence" : false,
             "label"         : ""
         }""")
         this_defaults.AddMissingParameters(super(AbsoluteNormResidualConvergenceCriteria, cls)._GetDefaultSettings())
