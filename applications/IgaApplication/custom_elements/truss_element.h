@@ -181,6 +181,10 @@ public:
     ///@name Dynamic functions
     ///@{
 
+    /// Calculates LumpedMassVector
+    void CalculateLumpedMassVector(
+        VectorType& rMassVector);
+
     /// Get Displacemnts
     void GetValuesVector(
         Vector& rValues,

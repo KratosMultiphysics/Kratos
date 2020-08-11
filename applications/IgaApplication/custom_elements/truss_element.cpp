@@ -344,6 +344,44 @@ void TrussElement::CalculateStressCauchy(
     }
 }
 
+///@}
+///@name Load functions
+///@{
+
+
+///@}
+///@name Dynamic functions
+///@{
+
+void TrussElement::CalculateLumpedMassVector(VectorType& rMassVector)
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType nb_nodes = r_geometry.size();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    auto& r_integration_points = r_geometry.IntegrationPoints();
+    const double num_integration_points = r_integration_points.size();
+    // Clear matrix
+    if (rMassVector.size() != nb_nodes * 3) {
+        rMassVector.resize(nb_nodes * 3, false);
+    }
+
+    const double A = GetProperties()[CROSS_AREA];
+    const double rho = GetProperties()[DENSITY];
+
+    for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+        const double L = norm_2(CalculateActualBaseVector(point_number))
+                         * r_integration_points[point_number].Weight();
+        const double total_mass = A * L * rho;
+
+        for (IndexType i = 0; i < nb_nodes; ++i) {
+            for (IndexType j = 0; j < 3; ++j) {
+                IndexType index = i * 3 + j;
+
+                rMassVector[index] = total_mass * r_N(point_number, i);
+            }
+        }
+    }
+}
 
 void TrussElement::GetValuesVector(Vector& rValues, int Step) const
 {
