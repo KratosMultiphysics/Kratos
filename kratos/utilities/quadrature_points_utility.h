@@ -148,6 +148,12 @@ namespace Kratos
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
+            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
+                return Kratos::make_shared<
+                    QuadraturePointGeometry<TPointType, 3, 1>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        pGeometryParent);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
                 return Kratos::make_shared<
                     QuadraturePointGeometry<TPointType, 2>>(
