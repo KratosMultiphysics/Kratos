@@ -527,6 +527,14 @@ public:
         return this->size();
     }
 
+    /// Returns number of points per direction.
+    virtual SizeType PointsNumberInDirection(IndexType DirectionIndex) const
+    {
+        return (DirectionIndex == 0)
+            ? mPoints.size()
+            : 1;
+    }
+
     virtual SizeType max_size() const
     {
         return mPoints.max_size();

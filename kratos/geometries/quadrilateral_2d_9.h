@@ -349,6 +349,15 @@ public:
      * Informations
      */
 
+     /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        if ((DirectionIndex == 0) || (DirectionIndex == 1)) {
+            return 3;
+        }
+        return 1;
+    }
+
     /**
      * :TODO: the charactereistic sizes have to be reviewed
      * by the one who is willing to use them!

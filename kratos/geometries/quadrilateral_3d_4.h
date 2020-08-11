@@ -357,6 +357,15 @@ public:
     //     return p_clone;
     // }
 
+     /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        if ((DirectionIndex == 0) || (DirectionIndex == 1)) {
+            return 2;
+        }
+        return 1;
+    }
+
     /**
      * returns the local coordinates of all nodes of the current geometry
      * @param rResult a Matrix object that will be overwritten by the result
