@@ -59,6 +59,10 @@ def Factory(settings, Model):
         [
             "WallDistanceCalculationProcess",
             wall_distance_calculation_process
+        ],
+        [
+            "ComputeReactionsProcess",
+            KratosRANS.RansComputeReactionsProcess
         ]
     ]
 
