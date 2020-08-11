@@ -488,108 +488,109 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            XPlusMin = 2.0e-3
-            XMinusMin = 0.0
-            DistPlusMin = 1.0e5
-            DistMinusMin = -1.0e5
-            XZeroMin = (XPlusMin + XMinusMin) / 2.0
+            if (TimeStep % 20 == 0):
+                XPlusMin = 2.0e-3
+                XMinusMin = 0.0
+                DistPlusMin = 1.0e5
+                DistMinusMin = -1.0e5
+                XZeroMin = (XPlusMin + XMinusMin) / 2.0
 
-            XPlusMax = 4.0e-3
-            XMinusMax = 2.0e-3
-            DistPlusMax = 1.0e5
-            DistMinusMax = -1.0e5
-            XZeroMax = (XPlusMax + XMinusMax) / 2.0
+                XPlusMax = 4.0e-3
+                XMinusMax = 2.0e-3
+                DistPlusMax = 1.0e5
+                DistMinusMax = -1.0e5
+                XZeroMax = (XPlusMax + XMinusMax) / 2.0
 
-            for node in self.main_model_part.Nodes:
-                NodeY = node.Y
-                NodeZ = node.Z
-                if (abs(NodeY - 2.0e-3) < 1.0e-6 and abs(NodeZ - 0.0) < 1.0e-6):
-                    NodeX = node.X
-                    if (NodeX <= 2.0e-3):
-                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (Dist >= 0.0 and Dist <= DistPlusMin):
-                            DistPlusMin = Dist
-                            XPlusMin = NodeX
-                        if (Dist <= 0.0 and Dist >= DistMinusMin):
-                            DistMinusMin = Dist
-                            XMinusMin = NodeX
-                    if (NodeX >= 2.0e-3):
-                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (Dist >= 0.0 and Dist <= DistPlusMax):
-                            DistPlusMax = Dist
-                            XPlusMax = NodeX
-                        if (Dist <= 0.0 and Dist >= DistMinusMax):
-                            DistMinusMax = Dist
-                            XMinusMax = NodeX
+                for node in self.main_model_part.Nodes:
+                    NodeY = node.Y
+                    NodeZ = node.Z
+                    if (abs(NodeY - 2.0e-3) < 1.0e-6 and abs(NodeZ - 0.0) < 1.0e-6):
+                        NodeX = node.X
+                        if (NodeX <= 2.0e-3):
+                            Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                            if (Dist >= 0.0 and Dist <= DistPlusMin):
+                                DistPlusMin = Dist
+                                XPlusMin = NodeX
+                            if (Dist <= 0.0 and Dist >= DistMinusMin):
+                                DistMinusMin = Dist
+                                XMinusMin = NodeX
+                        if (NodeX >= 2.0e-3):
+                            Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                            if (Dist >= 0.0 and Dist <= DistPlusMax):
+                                DistPlusMax = Dist
+                                XPlusMax = NodeX
+                            if (Dist <= 0.0 and Dist >= DistMinusMax):
+                                DistMinusMax = Dist
+                                XMinusMax = NodeX
 
-            if (abs(DistPlusMin - DistMinusMin) > 1.0e-15):
-                XZeroMin = XMinusMin + (-DistMinusMin)/(DistPlusMin - DistMinusMin)*(XPlusMin - XMinusMin)
-            else:
-                XZeroMin = XMinusMin
+                if (abs(DistPlusMin - DistMinusMin) > 1.0e-15):
+                    XZeroMin = XMinusMin + (-DistMinusMin)/(DistPlusMin - DistMinusMin)*(XPlusMin - XMinusMin)
+                else:
+                    XZeroMin = XMinusMin
 
-            if (abs(DistPlusMax - DistMinusMax) > 1.0e-15):
-                XZeroMax = XMinusMax + (-DistMinusMax)/(DistPlusMax - DistMinusMax)*(XPlusMax - XMinusMax)
-            else:
-                XZeroMax = XMinusMax
+                if (abs(DistPlusMax - DistMinusMax) > 1.0e-15):
+                    XZeroMax = XMinusMax + (-DistMinusMax)/(DistPlusMax - DistMinusMax)*(XPlusMax - XMinusMax)
+                else:
+                    XZeroMax = XMinusMax
 
-            with open("ZeroDistance.log", "a") as distLogFile:
-                distLogFile.write( str(TimeStep*DT) + "\t" + str(XZeroMin) + "\t" + str(XZeroMax) + "\n" )
+                with open("ZeroDistance.log", "a") as distLogFile:
+                    distLogFile.write( str(TimeStep*DT) + "\t" + str(XZeroMin) + "\t" + str(XZeroMax) + "\n" )
 
-            #ZPlus = 0.0
-            #ZMinus = 0.0
-            #DistPlus = 10.0
-            #DistMinus = -10.0
-            #ZZero = 0.0
+                #ZPlus = 0.0
+                #ZMinus = 0.0
+                #DistPlus = 10.0
+                #DistMinus = -10.0
+                #ZZero = 0.0
 
-            #for node in self.main_model_part.Nodes:
-            #    NodeX = node.X
-            #    NodeY = node.Y
-            #    Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            #    if (abs(NodeX - 0.027) < 1.0e-6 and abs(NodeY - 0.027) < 1.0e-6):
-            #        NodeZ = node.Z
-            #        if (Dist >= 0.0 and Dist < DistPlus):
-            #            DistPlus = Dist
-            #            ZPlus = NodeZ
-            #        if (Dist <= 0.0 and Dist > DistMinus):
-            #            DistMinus = Dist
-            #            ZMinus = NodeZ
+                #for node in self.main_model_part.Nodes:
+                #    NodeX = node.X
+                #    NodeY = node.Y
+                #    Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                #    if (abs(NodeX - 0.027) < 1.0e-6 and abs(NodeY - 0.027) < 1.0e-6):
+                #        NodeZ = node.Z
+                #        if (Dist >= 0.0 and Dist < DistPlus):
+                #            DistPlus = Dist
+                #            ZPlus = NodeZ
+                #        if (Dist <= 0.0 and Dist > DistMinus):
+                #            DistMinus = Dist
+                #            ZMinus = NodeZ
 
-            #for node in self.main_model_part.Nodes:
-            #    NodeX = node.X
-            #    NodeY = node.Y
-            #    Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            #    if (abs(NodeX - 0.027) < 1.0e-6 and abs(NodeY - 0.027) < 1.0e-6):
-            #        NodeZ = node.Z
-            #        if (NodeZ > ZPlus):
-            #            if (Dist >= 0.0 and Dist < DistPlus + 1.0e-2):
-            #                DistPlus = Dist
-            #                ZPlus = NodeZ
-            #        if (NodeZ > ZMinus):
-            #            if (Dist <= 0.0 and Dist > DistMinus - 1.0e-2):
-            #                DistMinus = Dist
-            #                ZMinus = NodeZ
+                #for node in self.main_model_part.Nodes:
+                #    NodeX = node.X
+                #    NodeY = node.Y
+                #    Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                #    if (abs(NodeX - 0.027) < 1.0e-6 and abs(NodeY - 0.027) < 1.0e-6):
+                #        NodeZ = node.Z
+                #        if (NodeZ > ZPlus):
+                #            if (Dist >= 0.0 and Dist < DistPlus + 1.0e-2):
+                #                DistPlus = Dist
+                #                ZPlus = NodeZ
+                #        if (NodeZ > ZMinus):
+                #            if (Dist <= 0.0 and Dist > DistMinus - 1.0e-2):
+                #                DistMinus = Dist
+                #                ZMinus = NodeZ
 
-            #if (abs(DistPlus - DistMinus) > 1.0e-15):
-            #    ZZero = ZMinus + (-DistMinus)/(DistPlus - DistMinus)*(ZPlus - ZMinus)
-            #else:
-            #    ZZero = ZMinus
+                #if (abs(DistPlus - DistMinus) > 1.0e-15):
+                #    ZZero = ZMinus + (-DistMinus)/(DistPlus - DistMinus)*(ZPlus - ZMinus)
+                #else:
+                #    ZZero = ZMinus
 
-            #with open("ZeroDistance.log", "a") as distLogFile:
-            #    distLogFile.write( str(TimeStep*DT) + "\t" + str(ZZero) + "\n" )
+                #with open("ZeroDistance.log", "a") as distLogFile:
+                #    distLogFile.write( str(TimeStep*DT) + "\t" + str(ZZero) + "\n" )
 
-            VMax = 0.0
+                VMax = 0.0
 
-            for node in self.main_model_part.Nodes:
-                VX = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                VY = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-                VZ = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-                normv = math.sqrt(VX**2 + VY**2 + VZ**2)
+                for node in self.main_model_part.Nodes:
+                    VX = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+                    VY = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+                    VZ = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+                    normv = math.sqrt(VX**2 + VY**2 + VZ**2)
 
-                if (normv > VMax):
-                    VMax = normv
+                    if (normv > VMax):
+                        VMax = normv
 
-            with open("MaxVelocity.log", "a") as velLogFile:
-                velLogFile.write( str(TimeStep*DT) + "\t" + str(VMax) + "\n" )
+                with open("MaxVelocity.log", "a") as velLogFile:
+                    velLogFile.write( str(TimeStep*DT) + "\t" + str(VMax) + "\n" )
 
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "ended InitializeSolutionStep")
 
@@ -634,7 +635,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-        if (TimeStep % 1 == 0):
+        if (TimeStep % 20 == 0):
             mean_Cangle = 0.0
             mean_Cangle_micro = 0.0
             mean_Cvel = 0.0
