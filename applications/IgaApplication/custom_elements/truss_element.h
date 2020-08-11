@@ -178,6 +178,25 @@ public:
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
+    ///@name Dynamic functions
+    ///@{
+
+    /// Get Displacemnts
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    /// Get Velocities
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    /// Get Accelerations
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    ///@}
     ///@name Output functions
     ///@{
 

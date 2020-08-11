@@ -344,6 +344,64 @@ void TrussElement::CalculateStressCauchy(
     }
 }
 
+
+void TrussElement::GetValuesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType nb_nodes = r_geometry.size();
+    if (rValues.size() != nb_nodes * 3) {
+        rValues.resize(nb_nodes * 3, false);
+    }
+
+    for (int i = 0; i < nb_nodes; ++i) {
+        int index = i * 3;
+        const auto& disp =
+            r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+
+        rValues[index] = disp[0];
+        rValues[index + 1] = disp[1];
+        rValues[index + 2] = disp[2];
+    }
+}
+
+void TrussElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType nb_nodes = r_geometry.size();
+    if (rValues.size() != nb_nodes * 3) {
+        rValues.resize(nb_nodes * 3, false);
+    }
+
+    for (int i = 0; i < nb_nodes; ++i) {
+        int index = i * 3;
+        const auto& vel =
+            r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+
+        rValues[index] = vel[0];
+        rValues[index + 1] = vel[1];
+        rValues[index + 2] = vel[2];
+    }
+}
+
+void TrussElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType nb_nodes = r_geometry.size();
+    if (rValues.size() != nb_nodes * 3) {
+        rValues.resize(nb_nodes * 3, false);
+    }
+
+    for (int i = 0; i < nb_nodes; ++i) {
+        int index = i * 3;
+        const auto& acc =
+            r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+
+        rValues[index] = acc[0];
+        rValues[index + 1] = acc[1];
+        rValues[index + 2] = acc[2];
+    }
+}
+
 ///@}
 ///@name Output functions
 ///@{
