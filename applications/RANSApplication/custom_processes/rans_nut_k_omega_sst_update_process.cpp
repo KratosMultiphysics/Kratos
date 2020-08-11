@@ -23,9 +23,8 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/element_data_utilities.h"
+#include "custom_elements/data_containers/k_omega_sst/element_data_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_check_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -82,14 +81,19 @@ int RansNutKOmegaSSTUpdateProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(
-        r_model_part, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_VISCOSITY);
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY))
+        << "TURBULENT_KINETIC_ENERGY is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
+
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE))
+        << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
+
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_VISCOSITY))
+        << "TURBULENT_VISCOSITY is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
     return 0;
 

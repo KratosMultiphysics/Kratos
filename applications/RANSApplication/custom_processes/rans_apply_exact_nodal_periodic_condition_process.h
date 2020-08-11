@@ -77,8 +77,6 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override;
-
     void ExecuteInitialize() override;
 
     ///@}
@@ -108,7 +106,6 @@ private:
     std::string mMasterModelPartName;
     std::string mSlaveModelPartName;
 
-    std::vector<std::string> mVariablesList;
     double mTolerance;
 
     // translation settings

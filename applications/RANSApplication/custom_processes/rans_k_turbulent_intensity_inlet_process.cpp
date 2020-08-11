@@ -18,9 +18,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "rans_application_variables.h"
 
-#include "custom_utilities/rans_check_utilities.h"
+// Application includes
+#include "rans_application_variables.h"
 
 // Include base h
 #include "rans_k_turbulent_intensity_inlet_process.h"
@@ -106,12 +106,15 @@ int RansKTurbulentIntensityInletProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY))
+        << "TURBULENT_KINETIC_ENERGY is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VELOCITY))
+        << "VELOCITY is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
     return 0;
 

@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/define.h"
 
-#include "custom_utilities/rans_check_utilities.h"
+// Application includes
 #include "custom_utilities/rans_variable_utilities.h"
 
 // Include base h
@@ -59,9 +59,11 @@ int RansClipScalarVariableProcess::Check()
     const Variable<double>& r_scalar_variable =
         KratosComponents<Variable<double>>::Get(mVariableName);
 
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(
-        mrModel.GetModelPart(mModelPartName), r_scalar_variable);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_scalar_variable))
+        << mVariableName << " is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
     return 0;
 

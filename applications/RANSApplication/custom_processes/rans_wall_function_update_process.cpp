@@ -21,7 +21,6 @@
 
 // Application includes
 #include "custom_utilities/rans_calculation_utilities.h"
-#include "custom_utilities/rans_check_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -74,12 +73,15 @@ int RansWallFunctionUpdateProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, KINEMATIC_VISCOSITY);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, VELOCITY);
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(KINEMATIC_VISCOSITY))
+        << "KINEMATIC_VISCOSITY is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
+
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VELOCITY))
+        << "VELOCITY is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
     return 0;
 

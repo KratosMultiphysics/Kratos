@@ -70,8 +70,6 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() override;
-
     void ExecuteInitialize() override;
 
     ///@}

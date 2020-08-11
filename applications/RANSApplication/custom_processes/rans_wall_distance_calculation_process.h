@@ -31,7 +31,6 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "custom_utilities/rans_check_utilities.h"
 
 namespace Kratos
 {
@@ -121,11 +120,11 @@ public:
     {
         KRATOS_TRY
 
-        RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-
         const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, DISTANCE);
+        KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(DISTANCE))
+            << "DISTANCE is not found in nodal solution step variables list of "
+            << mModelPartName << ".";
 
         return 0.0;
 

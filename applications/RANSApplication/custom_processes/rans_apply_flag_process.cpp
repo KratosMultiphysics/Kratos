@@ -22,8 +22,6 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-#include "custom_utilities/rans_check_utilities.h"
-
 // Include base h
 #include "rans_apply_flag_process.h"
 
@@ -53,17 +51,6 @@ RansApplyFlagProcess::RansApplyFlagProcess(
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartsForConditionFlags =
         mrParameters["apply_to_model_part_conditions"].GetStringArray();
-
-    KRATOS_CATCH("");
-}
-
-int RansApplyFlagProcess::Check()
-{
-    KRATOS_TRY
-
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-
-    return 0;
 
     KRATOS_CATCH("");
 }

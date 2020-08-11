@@ -19,7 +19,6 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_utilities/rans_check_utilities.h"
 #include "utilities/openmp_utils.h"
 
 // Include base h
@@ -70,9 +69,11 @@ int RansCheckVectorBoundsProcess::Check()
     const Variable<array_1d<double, 3>>& vector_variable =
         KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(
-        mrModel.GetModelPart(mModelPartName), vector_variable);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(vector_variable))
+        << mVariableName << " is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
     return 0;
 

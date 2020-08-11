@@ -20,7 +20,6 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_utilities/rans_check_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -109,13 +108,15 @@ void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
 
 int RansEpsilonTurbulentMixingLengthInletProcess::Check()
 {
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY))
+        << "TURBULENT_KINETIC_ENERGY is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, TURBULENT_KINETIC_ENERGY);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(
-        r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE);
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE))
+        << "TURBULENT_ENERGY_DISSIPATION_RATE is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
     return 0;
 }
