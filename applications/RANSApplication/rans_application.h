@@ -35,16 +35,16 @@
 #include "custom_elements/convection_diffusion_reaction_residual_based_flux_corrected_element.h"
 
 // k-epsilon turbulence model element data
-#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/epsilon_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_epsilon/k_element_data.h"
+#include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
+#include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 
 // k-omega turbulence model element data
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega/k_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega/omega_element_data.h"
+#include "custom_elements/data_containers/k_omega/k_element_data.h"
+#include "custom_elements/data_containers/k_omega/omega_element_data.h"
 
 // k-omega-sst turbulence model element data
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/k_element_data.h"
-#include "custom_elements/convection_diffusion_reaction_element_data/k_omega_sst/omega_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
+#include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
 
 // vms monolithic wall conditions
 #include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
@@ -60,12 +60,12 @@
 #include "custom_conditions/scalar_wall_flux_condition.h"
 
 // k-epsilon turbulence model condition data
-#include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_k_based_wall_condition_data.h"
-#include "custom_conditions/scalar_wall_flux_condition_data/k_epsilon/epsilon_u_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
 
 // k-omega turbulence model condition data
-#include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_k_based_wall_condition_data.h"
-#include "custom_conditions/scalar_wall_flux_condition_data/k_omega/omega_u_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
 namespace Kratos
 {

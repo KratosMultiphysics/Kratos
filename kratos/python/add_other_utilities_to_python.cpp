@@ -466,11 +466,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
         .def(py::init<>())
         .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
-    //     .staticmethod("SetNumThreads")
         .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
-    //     .staticmethod("GetNumThreads")
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
-    //     .staticmethod("PrintOMPInfo")
+        .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
         ;
 
 
