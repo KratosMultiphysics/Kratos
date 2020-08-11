@@ -85,14 +85,18 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
             else:
                 for i in range(0,len(data_1)):
                     interface_energy += data_1[i]*data_2[i]
+            print(interface_energy)
             if solver_index == 0:
                 current_data = interface_energy
             else:
                 current_data -= self.second_domain_data_sign*interface_energy #assumes domain_difference
 
         abs_norm = la.norm(current_data)
+        print(current_data)
+        print(abs_norm)
 
         if self.ignore_first_convergence and self.iteration == 1:
+            print("Preventing convergence")
             is_converged = False
         else:
             is_converged = abs_norm < self.abs_tolerance
