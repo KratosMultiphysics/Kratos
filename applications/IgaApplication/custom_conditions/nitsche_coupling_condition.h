@@ -232,8 +232,16 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override
     {
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-            rCurrentProcessInfo, true, true);
+        if (rCurrentProcessInfo[BUILD_LEVEL] == 3)
+        {
+            CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                rCurrentProcessInfo, true, true);
+        }
+        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2)
+        {
+            CalculateQMatrix(rLeftHandSideMatrix, rRightHandSideVector,
+                rCurrentProcessInfo);
+        }
     }
 
     /**
@@ -270,6 +278,12 @@ public:
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
+    );
+
+    void CalculateQMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo
     );
 
     ///@}
