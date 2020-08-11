@@ -6,6 +6,8 @@ import KratosMultiphysics
 # Importing the base class
 from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
 
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+
 def CreateSolver(model, custom_settings):
     return MPMStaticSolver(model, custom_settings)
 
@@ -15,6 +17,18 @@ class MPMStaticSolver(MPMSolver):
         # Construct the base solver.
         super(MPMStaticSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[MPMStaticSolver]:: ", "Construction is finished.")
+
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""
+        {
+            "linear_solver_settings"             : {
+            }
+        }""")
+        this_defaults.AddMissingParameters(super(MPMStaticSolver, cls).GetDefaultSettings())
+        return this_defaults
+
 
     def _CreateSolutionScheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
