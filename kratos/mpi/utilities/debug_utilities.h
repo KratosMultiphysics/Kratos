@@ -142,7 +142,6 @@ public:
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
         
         bool val_error_detected = false;
-        bool fix_error_detected = false;
 
         std::stringstream error_stream;
 
