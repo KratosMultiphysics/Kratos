@@ -31,7 +31,9 @@
 
 namespace Kratos
 {
-RansComputeReactionsProcess::RansComputeReactionsProcess(Model& rModel, Parameters rParameters)
+RansComputeReactionsProcess::RansComputeReactionsProcess(
+    Model& rModel,
+    Parameters rParameters)
     : mrModel(rModel), mrParameters(rParameters)
 {
     KRATOS_TRY
@@ -65,25 +67,20 @@ void RansComputeReactionsProcess::ExecuteInitialize()
 }
 
 void RansComputeReactionsProcess::CorrectPeriodicNodes(
-    ModelPart& rModelPart, const Variable<array_1d<double, 3>>& rVariable)
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& rVariable)
 {
     KRATOS_TRY
 
-    ModelPart::NodesContainerType& r_nodes = rModelPart.Nodes();
-    const int number_of_nodes = r_nodes.size();
+    auto& r_nodes = rModelPart.Nodes();
 
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(r_nodes.begin() + i_node);
-        if (r_node.Is(PERIODIC))
-        {
-            const int slave_id = r_node.FastGetSolutionStepValue(PATCH_INDEX);
-            const int master_id = r_node.Id();
-            if (master_id < slave_id)
-            {
+    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+        if (rNode.Is(PERIODIC)) {
+            const int slave_id = rNode.FastGetSolutionStepValue(PATCH_INDEX);
+            const int master_id = rNode.Id();
+            if (master_id < slave_id) {
                 array_1d<double, 3>& master_value =
-                    r_node.FastGetSolutionStepValue(rVariable);
+                    rNode.FastGetSolutionStepValue(rVariable);
 
                 NodeType& slave_node = rModelPart.GetNode(slave_id);
                 array_1d<double, 3>& slave_value =
@@ -93,18 +90,16 @@ void RansComputeReactionsProcess::CorrectPeriodicNodes(
                 const double slave_value_norm = norm_2(slave_value);
                 const double value_norm = master_value_norm + slave_value_norm;
 
-                if (master_value_norm > 0.0)
-                {
+                if (master_value_norm > 0.0) {
                     noalias(master_value) = master_value * (value_norm / master_value_norm);
                 }
 
-                if (slave_value_norm > 0.0)
-                {
+                if (slave_value_norm > 0.0) {
                     noalias(slave_value) = slave_value * (value_norm / slave_value_norm);
                 }
             }
         }
-    }
+    });
 
     rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
 
@@ -115,34 +110,27 @@ void RansComputeReactionsProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_nodes = r_model_part.Nodes();
     VariableUtils().SetHistoricalVariableToZero(REACTION, r_nodes);
 
-    ModelPart::ConditionsContainerType& r_conditions = r_model_part.Conditions();
-    const int number_of_conditions = r_conditions.size();
+    auto& r_conditions = r_model_part.Conditions();
 
-#pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
-        ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
-        CalculateReactionValues(r_condition);
-    }
+    BlockPartition<ModelPart::ConditionsContainerType>(r_conditions)
+        .for_each([&](ModelPart::ConditionType& rCondition) {
+            CalculateReactionValues(rCondition);
+        });
 
     r_model_part.GetCommunicator().AssembleCurrentData(REACTION);
     this->CorrectPeriodicNodes(r_model_part, REACTION);
 
-    int number_of_nodes = r_nodes.size();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(r_nodes.begin() + i_node);
-        const array_1d<double, 3>& pressure_force =
-            r_node.FastGetSolutionStepValue(NORMAL) *
-            (-1.0 * r_node.FastGetSolutionStepValue(PRESSURE));
-        r_node.FastGetSolutionStepValue(REACTION) += pressure_force;
-    }
+    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
+        [&](ModelPart::NodeType& rNode) {
+            const array_1d<double, 3>& pressure_force =
+                rNode.FastGetSolutionStepValue(NORMAL) *
+                (-1.0 * rNode.FastGetSolutionStepValue(PRESSURE));
+            rNode.FastGetSolutionStepValue(REACTION) += pressure_force;
+        });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Computed Reaction terms for " << mModelPartName << " for slip condition.\n";
@@ -191,19 +179,18 @@ void RansComputeReactionsProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-void RansComputeReactionsProcess::CalculateReactionValues(ModelPart::ConditionType& rCondition)
+void RansComputeReactionsProcess::CalculateReactionValues(
+    ModelPart::ConditionType& rCondition)
 {
-    // if (RansCalculationUtilities::IsWall(rCondition))
-    //{
     const array_1d<double, 3>& r_friction_velocity = rCondition.GetValue(FRICTION_VELOCITY);
     const double u_tau = norm_2(r_friction_velocity);
-    ModelPart::ConditionType::GeometryType& r_geometry = rCondition.GetGeometry();
+    auto& r_geometry = rCondition.GetGeometry();
 
     const IndexType number_of_nodes = r_geometry.PointsNumber();
 
     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        NodeType& r_node = r_geometry[i_node];
+        auto& r_node = r_geometry[i_node];
         const double rho = r_node.FastGetSolutionStepValue(DENSITY);
 
         if (u_tau > 0.0)
@@ -217,7 +204,6 @@ void RansComputeReactionsProcess::CalculateReactionValues(ModelPart::ConditionTy
             r_node.UnSetLock();
         }
     }
-    //}
 }
 
 } // namespace Kratos.

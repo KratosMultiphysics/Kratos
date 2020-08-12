@@ -115,9 +115,12 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateReactionValues(ModelPart::ConditionType& rCondition);
+    void CalculateReactionValues(
+        ModelPart::ConditionType& rCondition);
 
-    void CorrectPeriodicNodes(ModelPart& rModelPart, const Variable<array_1d<double, 3>>& rVariable);
+    void CorrectPeriodicNodes(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double, 3>>& rVariable);
 
     ///@}
 
