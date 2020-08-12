@@ -62,7 +62,7 @@ public:
     ///@name Operations
     ///@{
 
-    /// Called only once befor the solution loop
+    /// Called once before the solution loop and is writing the quadrature domain.
     void ExecuteBeforeSolutionLoop() override;
 
     const Parameters GetDefaultParameters() const override;
