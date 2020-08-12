@@ -62,8 +62,8 @@ public:
     StructureMpmModeler()
         : Modeler()
     {
-        mpModelStructure = nullptr;
-        mpModelMpm = nullptr;
+        mpModelOrigin = nullptr;
+        mpModelDest = nullptr;
     }
 
     /// Constructor.
@@ -72,8 +72,11 @@ public:
         Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
     {
-        mpModelStructure = &rModel;
-        mpModelMpm = nullptr;
+        mpModelOrigin = &rModel;
+        if (mpModelOrigin->HasModelPart("Background_Grid")) mIsOriginMpm = true;
+        else mIsOriginMpm = false;
+
+        mpModelDest = nullptr;
     }
 
     /// Destructor.
@@ -89,7 +92,7 @@ public:
     /// Adds the second model part to the modeler.
     void GenerateNodes(ModelPart& ThisModelPart) override
     {
-        mpModelMpm = &ThisModelPart.GetModel();
+        mpModelDest = &ThisModelPart.GetModel();
     }
 
     ///@}
@@ -255,9 +258,11 @@ public:
     ///@}
 
 private:
-    Model* mpModelStructure;
+    Model* mpModelOrigin;
 
-    Model* mpModelMpm;
+    Model* mpModelDest;
+
+    bool mIsOriginMpm;
 
     void CopySubModelPart(ModelPart& rDestinationMP, ModelPart& rReferenceMP)
     {

@@ -22,9 +22,12 @@ namespace Kratos
     {
         CheckParameters();
 
-        ModelPart& coupling_model_part = (mpModelStructure->HasModelPart("coupling"))
-            ? mpModelStructure->GetModelPart("coupling")
-            : mpModelStructure->CreateModelPart("coupling");
+        Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
+        Model* p_model_fem = (mIsOriginMpm) ? mpModelDest : mpModelOrigin;
+
+        ModelPart& coupling_model_part = (mpModelOrigin->HasModelPart("coupling"))
+            ? mpModelOrigin->GetModelPart("coupling")
+            : mpModelOrigin->CreateModelPart("coupling");
 
         std::string origin_interface_sub_model_part_name;
         std::string destination_interface_sub_model_part_name;
@@ -43,18 +46,21 @@ namespace Kratos
             //destination_interface_sub_model_part_name = ???
         }
 
-        ModelPart& brackground_grid_model_part = (mpModelMpm->HasModelPart("Background_Grid"))
-            ? mpModelMpm->GetModelPart("Background_Grid")
-            : mpModelMpm->CreateModelPart("Background_Grid");
+        ModelPart& background_grid_model_part = (p_model_mpm->HasModelPart("Background_Grid"))
+            ? p_model_mpm->GetModelPart("Background_Grid")
+            : p_model_mpm->CreateModelPart("Background_Grid");
 
-        KRATOS_ERROR_IF(brackground_grid_model_part.NumberOfElements() == 0) << "Background_Grid model part has zero elements!\n";
+        KRATOS_ERROR_IF(background_grid_model_part.NumberOfElements() == 0) << "Background_Grid model part has zero elements!\n";
 
         // create coupling conditions on interface depending on the dimension
+        ModelPart& r_fem_interface = (mIsOriginMpm)
+            ? p_model_fem->GetModelPart(destination_interface_sub_model_part_name)
+            : p_model_fem->GetModelPart(origin_interface_sub_model_part_name);
         std::vector<GeometryPointerType> interface_geoms;
         const IndexType dim = 2;
         if (dim == 2)
         {
-            CreateInterfaceLineCouplingConditions(mpModelStructure->GetModelPart(origin_interface_sub_model_part_name), interface_geoms);
+            CreateInterfaceLineCouplingConditions(r_fem_interface, interface_geoms);
             //CreateInterfaceLineCouplingConditions(mpModelMpm->GetModelPart(destination_interface_sub_model_part_name));
         }
         else
@@ -68,7 +74,7 @@ namespace Kratos
                 interface_geoms, quads_structure);
         std::vector<GeometryPointerType> quads_mpm(quads_structure.size());
         CreateMpmQuadraturePointGeometries<2, std::vector<GeometryPointerType>>(
-            quads_structure, quads_mpm, brackground_grid_model_part);
+            quads_structure, quads_mpm, background_grid_model_part);
 
         // Transfer everything into the coupling modelpart
         ModelPart& coupling_interface_origin = (coupling_model_part.HasSubModelPart("interface_origin"))
@@ -79,33 +85,39 @@ namespace Kratos
             ? coupling_model_part.GetSubModelPart("interface_destination")
             : coupling_model_part.CreateSubModelPart("interface_destination");
 
-        for (IndexType i = 0; i < quads_structure.size(); ++i) {
-            for (IndexType j = 0; j < quads_structure[i]->size(); ++j) {
-                coupling_interface_origin.AddNode(quads_structure[i]->pGetPoint(j));
+
+        std::vector<GeometryPointerType>& p_quads_origin = (mIsOriginMpm) ? quads_mpm : quads_structure;
+        std::vector<GeometryPointerType>& p_quads_dest = (mIsOriginMpm) ? quads_structure : quads_mpm;
+
+        for (IndexType i = 0; i < p_quads_origin.size(); ++i) {
+            for (IndexType j = 0; j < p_quads_origin[i]->size(); ++j) {
+                coupling_interface_origin.AddNode(p_quads_origin[i]->pGetPoint(j));
             }
         }
-        for (IndexType i = 0; i < quads_mpm.size(); ++i) {
-            for (IndexType j = 0; j < quads_mpm[i]->size(); ++j) {
-                coupling_interface_destination.AddNode(quads_mpm[i]->pGetPoint(j));
+        for (IndexType i = 0; i < p_quads_dest.size(); ++i) {
+            for (IndexType j = 0; j < p_quads_dest[i]->size(); ++j) {
+                coupling_interface_destination.AddNode(p_quads_dest[i]->pGetPoint(j));
             }
         }
 
         // Determine next condition number
-        IndexType condition_id = 1;
-        //IndexType condition_id = (coupling_model_part.GetRootModelPart().NumberOfConditions() == 0)
-        //    ? 1 : (coupling_model_part.GetRootModelPart().ConditionsEnd() - 1)->Id() + 1;
+        IndexType condition_id = (coupling_model_part.GetRootModelPart().NumberOfConditions() == 0)
+            ? 1 : (coupling_model_part.GetRootModelPart().ConditionsEnd() - 1)->Id() + 1;
 
-        for (IndexType i = 0; i < quads_structure.size(); ++i) {
+        for (IndexType i = 0; i < p_quads_origin.size(); ++i) {
             coupling_model_part.AddCondition(Kratos::make_intrusive<Condition>(
-                condition_id + i, Kratos::make_shared<CouplingGeometry<Node<3>>>(quads_structure[i], quads_mpm[i])));
+                condition_id + i, Kratos::make_shared<CouplingGeometry<Node<3>>>(p_quads_origin[i], p_quads_dest[i])));
         }
     }
 
     void StructureMpmModeler::UpdateGeometryModel()
     {
-        ModelPart& fem_origin_model_part = (mpModelStructure->HasModelPart("origin"))
-            ? mpModelStructure->GetModelPart("origin")
-            : mpModelStructure->CreateModelPart("origin");
+        Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
+        Model* p_model_fem = (mIsOriginMpm) ? mpModelDest : mpModelOrigin;
+
+        ModelPart& coupling_model_part = (mpModelOrigin->HasModelPart("coupling"))
+            ? mpModelOrigin->GetModelPart("coupling")
+            : mpModelOrigin->CreateModelPart("coupling");
 
         std::string origin_interface_sub_model_part_name;
         std::string destination_interface_sub_model_part_name;
@@ -124,16 +136,14 @@ namespace Kratos
             //destination_interface_sub_model_part_name = ???
         }
 
-        ModelPart& mpm_background_grid_model_part = (mpModelMpm->HasModelPart("BackgroundGrid"))
-            ? mpModelMpm->GetModelPart("BackgroundGrid")
-            : mpModelMpm->CreateModelPart("BackgroundGrid");
-
-
+        ModelPart& mpm_background_grid_model_part = (p_model_mpm->HasModelPart("Background_Grid"))
+            ? p_model_mpm->GetModelPart("BackgroundGrid")
+            : p_model_mpm->CreateModelPart("BackgroundGrid");
 
         std::vector<GeometryPointerType> quads_structure;
         UpdateMpmQuadraturePointGeometries<3,
             typename ModelPart::ConditionsContainerType>(
-                fem_origin_model_part.Conditions(), mpm_background_grid_model_part);
+                coupling_model_part.Conditions(), mpm_background_grid_model_part);
     }
 
     void StructureMpmModeler::CheckParameters()
@@ -210,8 +220,6 @@ namespace Kratos
                     }
                 }
             }
-
-
         }
 	}
 }

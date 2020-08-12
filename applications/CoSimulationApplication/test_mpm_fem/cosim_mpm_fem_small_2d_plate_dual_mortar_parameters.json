@@ -70,7 +70,7 @@
 					"echo_level" : 5,
 					"dual_mortar": true,
 					"consistency_scaling" : false,
-					"modeler_name" : "MappingGeometriesModeler",
+					"modeler_name" : "StructureMpmModeler",
 					"modeler_parameters":{
 						"origin_model_part_name" : "mpm",
 						"destination_model_part_name" : "fem",
