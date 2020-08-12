@@ -11,8 +11,14 @@
 //
 
 // System includes
-#include "rans_application_variables.h"
 #include <cmath>
+
+// Project includes
+#include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
+
+// Application includes
+#include "rans_application_variables.h"
 
 // Include base h
 #include "rans_calculation_utilities.h"
@@ -445,6 +451,53 @@ bool IsInlet(
     return rCondition.GetValue(RANS_IS_INLET);
 }
 
+template <>
+ModelPart::NodesContainerType& GetContainer(
+    ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+template <>
+ModelPart::ConditionsContainerType& GetContainer(
+    ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+template <>
+ModelPart::ElementsContainerType& GetContainer(
+    ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template<class TContainerType>
+void CalculateNumberOfNeighbourEntities(
+    ModelPart& rModelPart,
+    const Variable<double>& rOutputVariable)
+{
+    KRATOS_TRY
+
+    VariableUtils().SetNonHistoricalVariableToZero(rOutputVariable, rModelPart.Nodes());
+
+    auto& r_container = GetContainer<TContainerType>(rModelPart);
+
+    BlockPartition<TContainerType>(r_container).for_each([&](typename TContainerType::value_type& rEntity) {
+        auto& r_geometry = rEntity.GetGeometry();
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+            auto& r_node = r_geometry[i_node];
+            r_node.SetLock();
+            r_node.GetValue(rOutputVariable) += 1;
+            r_node.UnSetLock();
+        }
+    });
+
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputVariable);
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 
 template double CalculateMatrixTrace<2>(
@@ -503,6 +556,14 @@ template array_1d<double, 3> EvaluateInParentCenter(
     const Variable<array_1d<double, 3>>&,
     const ConditionType&,
     const int);
+
+template void CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
+    ModelPart&,
+    const Variable<double>&);
+
+template void CalculateNumberOfNeighbourEntities<ModelPart::ElementsContainerType>(
+    ModelPart&,
+    const Variable<double>&);
 
 } // namespace RansCalculationUtilities
 ///@}

@@ -18,13 +18,10 @@
 // External includes
 
 // Project includes
-#include "custom_elements/incompressible_potential_flow/laplace_element.h"
-#include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/variables.h"
 
 // Application includes
-#include "rans_application_variables.h"
+#include "custom_elements/incompressible_potential_flow/laplace_element.h"
 
 namespace Kratos
 {
@@ -180,46 +177,12 @@ public:
         KRATOS_CATCH("");
     }
 
-    const Variable<double>& GetVariable() const override
-    {
-        return VELOCITY_POTENTIAL;
-    }
+    const Variable<double>& GetVariable() const override;
 
     void GetValueOnIntegrationPoints(
         const Variable<array_1d<double, 3>>& rVariable,
         std::vector<array_1d<double, 3>>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rVariable == VELOCITY) {
-            Vector gauss_weights;
-            Matrix shape_functions;
-            ShapeFunctionDerivativesArrayType shape_derivatives;
-            this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-            const IndexType num_gauss_points = gauss_weights.size();
-
-            if (rValues.size() != num_gauss_points) {
-                rValues.resize(num_gauss_points);
-            }
-
-            const auto& r_geometry = this->GetGeometry();
-
-            for (IndexType g = 0; g < num_gauss_points; ++g) {
-                const Matrix& r_shape_derivatives = shape_derivatives[g];
-
-                array_1d<double, 3> velocity;
-                RansCalculationUtilities::CalculateGradient(
-                    velocity, r_geometry, VELOCITY_POTENTIAL, r_shape_derivatives);
-                rValues[g] = velocity;
-            }
-        } else {
-            KRATOS_ERROR << "GetValueOnIntegrationPoints for variable "
-                         << rVariable.Name() << " not defined for " << this->Info();
-        }
-
-        KRATOS_CATCH("");
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output

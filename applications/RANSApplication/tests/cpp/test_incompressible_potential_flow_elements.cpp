@@ -29,7 +29,7 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansIncompressiblePotentialFlowVelocity2D3N_SetUp(
+ModelPart& RansIncompressiblePotentialFlowVelocity2D3NSetUp(
     Model& rModel)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
@@ -48,7 +48,7 @@ ModelPart& RansIncompressiblePotentialFlowVelocity2D3N_SetUp(
     return r_model_part;
 }
 
-ModelPart& RansIncompressiblePotentialFlowPressure2D3N_SetUp(
+ModelPart& RansIncompressiblePotentialFlowPressure2D3NSetUp(
     Model& rModel)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_EquationId
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_GetDofList
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
@@ -99,7 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS(3, 3, 0.0);
@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS(3, 3, 0.0);
@@ -154,7 +154,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateR
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
     Vector RHS, ref_RHS(3);
@@ -174,7 +174,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_EquationId
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_GetDofList
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
@@ -196,7 +196,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_CalculateL
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS(3, 3, 0.0);
@@ -226,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_CalculateL
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS(3, 3, 0.0);
@@ -251,7 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowPressure2D3N_CalculateR
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3N_SetUp(model);
+    auto& r_model_part = RansIncompressiblePotentialFlowPressure2D3NSetUp(model);
 
     // Test:
     Vector RHS, ref_RHS(3);
