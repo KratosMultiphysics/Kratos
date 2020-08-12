@@ -160,6 +160,14 @@ bool IsWallFunctionActive(
 bool IsInlet(
     const ConditionType& rCondition);
 
+template <class TContainerType>
+TContainerType& GetContainer(ModelPart& rModelPart);
+
+template<class TContainerType>
+void CalculateNumberOfNeighbourEntities(
+    ModelPart& rModelPart,
+    const Variable<double>& rOutputVariable);
+
 } // namespace RansCalculationUtilities
 
 ///@}
