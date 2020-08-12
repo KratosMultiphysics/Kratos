@@ -16,6 +16,8 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
@@ -36,6 +38,7 @@ class CustomProcessTest(UnitTest.TestCase):
         # reinitialize variables for each test
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DENSITY, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 100.0, 0)
+        KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.KINEMATIC_VISCOSITY, 0.0, 100.0, 0)
@@ -361,6 +364,31 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["TURBULENT_VISCOSITY", "VISCOSITY"]
         test_model_part_name = "test.AutomaticInlet2D_inlet"
         test_file_name = "nut_y_plus_wall_function_test_output"
+        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+    def testComputeReactionsProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "ComputeReactionsProcess",
+                "Parameters" : {
+                    "model_part_name"     : "test"
+                }
+            }
+        ]''')
+
+        KratosRANS.RansTestUtilities.RandomFillConditionVariable(self.model.GetModelPart("test"), KratosRANS.FRICTION_VELOCITY, 10.0, 100.0)
+
+        test_variables = ["REACTION"]
+        test_model_part_name = "test.Slip2D.Slip2D_walls"
+        test_file_name = "compute_reactions_test_output"
         CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
         # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 
