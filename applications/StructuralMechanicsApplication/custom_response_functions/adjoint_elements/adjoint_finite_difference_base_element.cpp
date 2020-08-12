@@ -372,7 +372,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
             }
             index++;
         }
-    } else if ( rDesignVariable == PRESCRIBED_DISPLACEMENT_SENSITIVITY) {
+    } else if ( rDesignVariable == PRESCRIBED_DISPLACEMENT_SENSITIVITY ) {
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) ) {
             rOutput.resize(dimension * number_of_nodes, local_size, false);
         }
@@ -391,8 +391,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
             for (IndexType node_index = 0; node_index < number_of_nodes; ++node_index) {
                 // a nonhomogeneous or homogeneous dirichlet bc in the primal problem has to be an homogeneous one in the adjoint problem
                 for(IndexType disp_dir_i = 0; disp_dir_i < dimension; ++disp_dir_i) {
-                    if( mpPrimalElement->GetGeometry()[node_index].GetDof(*adjoint_solution_variable_list[disp_dir_i]).IsFixed() )
-                    {
+                    if( mpPrimalElement->GetGeometry()[node_index].GetDof(*adjoint_solution_variable_list[disp_dir_i]).IsFixed() ) {
                         // find suitable disturbance measure
                         double displacement = mpPrimalElement->GetGeometry()[node_index].FastGetSolutionStepValue(*primal_solution_variable_list[disp_dir_i]);
                         if (std::abs(displacement) < numeric_limit) {
