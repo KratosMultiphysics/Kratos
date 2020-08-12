@@ -121,12 +121,6 @@ private:
     bool mIsConstrained;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    void CalculateTurbulentValues(NodeType& rNode);
-
-    ///@}
 
 }; // Class RansKTurbulentIntensityInletProcess
 

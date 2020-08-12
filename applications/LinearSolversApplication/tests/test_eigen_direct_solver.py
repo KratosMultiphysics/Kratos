@@ -3,19 +3,19 @@ from __future__ import print_function, absolute_import, division
 import os
 import KratosMultiphysics
 
-import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
+import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
 class TestEigenDirectSolver(KratosUnittest.TestCase):
     def _execute_eigen_direct_solver_test(self, class_name, solver_type):
         # check if solver is available
-        if (not hasattr(EigenSolversApplication, class_name)):
-            self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
+        if (not hasattr(LinearSolversApplication, class_name)):
+            self.skipTest(class_name + " is not included in the compilation of the LinearSolversApplication")
 
         space = KratosMultiphysics.UblasSparseSpace()
 
-        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
+        settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
 
         solver = ConstructSolver(settings)
 
@@ -49,12 +49,12 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
     def _execute_eigen_direct_complex_solver_test(self, class_name, solver_type):
         # check if solver is available
-        if (not hasattr(EigenSolversApplication, class_name)):
-            self.skipTest(class_name + " is not included in the compilation of the EigenSolversApplication")
+        if (not hasattr(LinearSolversApplication, class_name)):
+            self.skipTest(class_name + " is not included in the compilation of the LinearSolversApplication")
 
         space = KratosMultiphysics.UblasComplexSparseSpace()
 
-        settings = KratosMultiphysics.Parameters('{ "solver_type" : "EigenSolversApplication.' + solver_type + '" }')
+        settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
 
         solver = ConstructSolver(settings)
 

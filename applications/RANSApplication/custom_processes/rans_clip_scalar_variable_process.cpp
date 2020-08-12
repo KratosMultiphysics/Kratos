@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/define.h"
 
-#include "custom_utilities/rans_check_utilities.h"
+// Application includes
 #include "custom_utilities/rans_variable_utilities.h"
 
 // Include base h
@@ -59,9 +59,11 @@ int RansClipScalarVariableProcess::Check()
     const Variable<double>& r_scalar_variable =
         KratosComponents<Variable<double>>::Get(mVariableName);
 
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-    RansCheckUtilities::CheckIfVariableExistsInModelPart(
-        mrModel.GetModelPart(mModelPartName), r_scalar_variable);
+    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+
+    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_scalar_variable))
+        << mVariableName << " is not found in nodal solution step variables list of "
+        << mModelPartName << ".";
 
     return 0;
 
@@ -72,20 +74,20 @@ void RansClipScalarVariableProcess::Execute()
 {
     KRATOS_TRY
 
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+
     const Variable<double>& r_scalar_variable =
         KratosComponents<Variable<double>>::Get(mVariableName);
 
-    unsigned int nodes_below, nodes_above, total_nodes;
-
-    RansVariableUtilities::ClipScalarVariable(
-        nodes_below, nodes_above, total_nodes, mMinValue, mMaxValue,
-        r_scalar_variable, mrModel.GetModelPart(mModelPartName));
+    unsigned int nodes_below, nodes_above;
+    std::tie(nodes_below, nodes_above) = RansVariableUtilities::ClipScalarVariable(
+        mMinValue, mMaxValue, r_scalar_variable, r_model_part);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0 && (nodes_below > 0 || nodes_above > 0))
         << mVariableName << " is clipped between [ " << mMinValue << ", "
         << mMaxValue << " ]. [ " << nodes_below << " nodes < " << mMinValue
         << " and " << nodes_above << " nodes > " << mMaxValue << " out of "
-        << total_nodes << " total nodes in " << mModelPartName << " ].\n";
+        << r_model_part.GetCommunicator().GlobalNumberOfNodes() << " total nodes in " << mModelPartName << " ].\n";
 
     KRATOS_CATCH("");
 }

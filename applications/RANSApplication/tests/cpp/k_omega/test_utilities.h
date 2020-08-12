@@ -29,11 +29,11 @@ namespace Kratos
 {
 namespace KOmegaTestUtilities
 {
-ModelPart& RansKOmegaK2D3N_SetUp(
+ModelPart& RansKOmegaK2D3NSetUp(
     Model& rModel,
     const std::string& rElementName);
 
-ModelPart& RansKOmegaOmega2D3N_SetUp(
+ModelPart& RansKOmegaOmega2D3NSetUp(
     Model& rModel,
     const std::string& rElementName);
 

@@ -22,7 +22,6 @@
 #include "processes/reorder_and_optimize_modelpart_process.h"
 
 // Application includes
-#include "custom_utilities/rans_check_utilities.h"
 
 // Include base h
 #include "rans_apply_exact_nodal_periodic_condition_process.h"
@@ -41,7 +40,6 @@ RansApplyExactNodalPeriodicConditionProcess::RansApplyExactNodalPeriodicConditio
             "base_model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "master_model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "slave_model_part_name"          : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "variable_names_list"            : [],
             "tolerance"                      : 1e-9,
             "translation_settings" :
             {
@@ -63,17 +61,11 @@ RansApplyExactNodalPeriodicConditionProcess::RansApplyExactNodalPeriodicConditio
     mBaseModelPartName = mrParameters["base_model_part_name"].GetString();
     mMasterModelPartName = mrParameters["master_model_part_name"].GetString();
     mSlaveModelPartName = mrParameters["slave_model_part_name"].GetString();
-    mVariablesList = mrParameters["variable_names_list"].GetStringArray();
     mReorder = mrParameters["reorder"].GetBool();
     mTolerance = mrParameters["tolerance"].GetDouble();
     mEchoLevel = mrParameters["echo_level"].GetInt();
 
     const double eps = std::numeric_limits<double>::epsilon();
-
-    KRATOS_ERROR_IF(mVariablesList.size() == 0)
-        << "No variables are provided. Please specify at least one "
-           "variable in \"variable_names_list\" to use periodic "
-           "conditions.\n";
 
     // translation settings
     noalias(mTranslationDirection) =
@@ -111,39 +103,6 @@ RansApplyExactNodalPeriodicConditionProcess::RansApplyExactNodalPeriodicConditio
     KRATOS_CATCH("");
 }
 
-int RansApplyExactNodalPeriodicConditionProcess::Check()
-{
-    KRATOS_TRY
-
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mBaseModelPartName);
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mMasterModelPartName);
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mSlaveModelPartName);
-
-    const auto& r_base_model_part_nodes = mrModel.GetModelPart(mBaseModelPartName);
-
-    for (std::string variable_name : mVariablesList) {
-        if (KratosComponents<Variable<double>>::Has(variable_name)) {
-            const Variable<double>& variable =
-                KratosComponents<Variable<double>>::Get(variable_name);
-            RansCheckUtilities::CheckIfVariableExistsInModelPart(
-                r_base_model_part_nodes, variable);
-        } else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
-                       variable_name)) {
-            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& variable =
-                KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                    variable_name);
-            RansCheckUtilities::CheckIfVariableExistsInModelPart(
-                r_base_model_part_nodes, variable.GetSourceVariable());
-        } else {
-            KRATOS_ERROR << "Variable " << variable_name << " not found.\n";
-        }
-    }
-
-    return 0;
-
-    KRATOS_CATCH("");
-}
-
 void RansApplyExactNodalPeriodicConditionProcess::ExecuteInitialize()
 {
     CreatePeriodicConditions();
@@ -177,22 +136,6 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
     int condition_id = r_base_model_part.NumberOfConditions();
     Properties::Pointer p_properties = r_base_model_part.CreateNewProperties(
         r_base_model_part.NumberOfProperties() + 1);
-
-    for (std::string variable_name : mVariablesList) {
-        if (KratosComponents<Variable<double>>::Has(variable_name)) {
-            const Variable<double>& variable =
-                KratosComponents<Variable<double>>::Get(variable_name);
-            p_properties->GetValue(PERIODIC_VARIABLES).Add(variable);
-        } else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
-                       variable_name)) {
-            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& variable =
-                KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                    variable_name);
-            p_properties->GetValue(PERIODIC_VARIABLES).Add(variable);
-        } else {
-            KRATOS_ERROR << "Variable " << variable_name << " not found.\n";
-        }
-    }
 
     auto& r_master_model_part_nodes = mrModel.GetModelPart(mMasterModelPartName).Nodes();
     auto& r_slave_model_part_nodes = mrModel.GetModelPart(mSlaveModelPartName).Nodes();
