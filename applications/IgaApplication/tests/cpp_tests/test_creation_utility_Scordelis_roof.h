@@ -8,8 +8,8 @@
 //           Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_IGA_TEST_CREATION_UTILITY )
-#define  KRATOS_IGA_TEST_CREATION_UTILITY
+#if !defined(KRATOS_IGA_TEST_CREATION_UTILITY_SCORDELIS_ROOF )
+#define  KRATOS_IGA_TEST_CREATION_UTILITY_SCORDELIS_ROOF
 
 #include "geometries/geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
