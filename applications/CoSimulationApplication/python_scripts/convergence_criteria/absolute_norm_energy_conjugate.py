@@ -53,7 +53,7 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
 
     def SetInterfaceData(self, settings, solvers):
         # Setup interface data matrix (general form)
-        self.interface_data = [None]*len(solvers)
+        self.interface_data = [None]*len(self.solver_vec)
         for solver_index in range(0,len(self.interface_data)):
             self.interface_data[solver_index] = [self.solver_vec[solver_index].GetInterfaceData(settings["data_name"].GetString())]
             self.interface_data[solver_index].append(self.solver_vec[solver_index].GetInterfaceData(settings["conjugate_data_name"].GetString()))
