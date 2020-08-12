@@ -241,7 +241,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
             self.project_parameters,
-            self.fluid_solver.computing_model_part,
+            self.fluid_solver.main_model_part,
             SDP.FunctionsCalculator(self.fluid_domain_dimension))
 
         self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)

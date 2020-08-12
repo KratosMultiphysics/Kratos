@@ -188,7 +188,8 @@ namespace Kratos
         Vector element_stress;
 
         Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
+        const ProcessInfo &r_process_info = rModelPart.GetProcessInfo();
+        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, r_process_info);
 
         const SizeType stress_vec_size = element_stress.size();
 
@@ -205,7 +206,8 @@ namespace Kratos
         Vector element_stress;
 
         Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
+        const ProcessInfo &r_process_info = rModelPart.GetProcessInfo();
+        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, r_process_info);
 
         const SizeType stress_vec_size = element_stress.size();
 
@@ -221,7 +223,8 @@ namespace Kratos
         Vector element_stress;
 
         Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnNode(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
+        const ProcessInfo &r_process_info = rModelPart.GetProcessInfo();
+        StressCalculation::CalculateStressOnNode(r_element, mTracedStressType, element_stress, r_process_info);
 
         const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
 
@@ -356,7 +359,8 @@ namespace Kratos
             // transform particular solution into global coordinates
             Matrix transformation_matrix = ZeroMatrix(particular_solution.size());
             Matrix local_element_orientation = ZeroMatrix(3);
-            mpTracedElement->Calculate(LOCAL_ELEMENT_ORIENTATION, local_element_orientation, mrModelPart.GetProcessInfo());
+            const ProcessInfo &r_process_info = mrModelPart.GetProcessInfo();
+            mpTracedElement->Calculate(LOCAL_ELEMENT_ORIENTATION, local_element_orientation, r_process_info);
 
             const SizeType dimension(3);
             KRATOS_ERROR_IF_NOT((particular_solution.size()%dimension)==0) << "Size of particular solution does not fit!" << std::endl;
@@ -383,7 +387,8 @@ namespace Kratos
         KRATOS_TRY;
 
         DofsVectorType dofs_of_element;
-        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
+        const ProcessInfo &r_process_info = mrModelPart.GetProcessInfo();
+        mpTracedElement->GetDofList(dofs_of_element, r_process_info);
         rResult = ZeroVector(dofs_of_element.size());
 
         Array1DComponentsPointerType p_traced_dof;

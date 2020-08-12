@@ -1,6 +1,6 @@
-# EigenSolversApplication
+# LinearSolversApplication
 
-The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra library](http://eigen.tuxfamily.org/index.php?title=Main_Page).
+The *LinearSolversApplication* is a thin wrapper for the [Eigen linear algebra library](http://eigen.tuxfamily.org/index.php?title=Main_Page).
 
 ## Direct sparse solvers
 
@@ -88,13 +88,13 @@ If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~p
     **Windows:** in `configure.bat`
 
     ```batch
-    set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
+    set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\LinearSolversApplication;
     ```
 
     **Linux:** in `configure.sh`
 
     ```bash
-    add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+    add_app ${KRATOS_APP_DIR}/LinearSolversApplication
     ```
 
 2. Build Kratos
@@ -103,7 +103,7 @@ If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~p
 
     ```json
     "linear_solver_settings": {
-        "solver_type" : "EigenSolversApplication.sparse_lu"
+        "solver_type" : "LinearSolversApplication.sparse_lu"
     }
     ```
 

@@ -59,6 +59,26 @@ def Factory(settings, Model):
         [
             "WallDistanceCalculationProcess",
             wall_distance_calculation_process
+        ],
+        [
+            "NutKEpsilonUpdateProcess",
+            KratosRANS.RansNutKEpsilonUpdateProcess
+        ],
+        [
+            "NutKOmegaUpdateProcess",
+            KratosRANS.RansNutKOmegaUpdateProcess
+        ],
+        [
+            "NutKOmegaSSTUpdateProcess",
+            KratosRANS.RansNutKOmegaSSTUpdateProcess
+        ],
+        [
+            "NutYPlusWallFunctionUpdateProcess",
+            KratosRANS.RansNutYPlusWallFunctionUpdateProcess
+        ],
+        [
+            "WallFunctionUpdateProcess",
+            KratosRANS.RansWallFunctionUpdateProcess
         ]
     ]
 

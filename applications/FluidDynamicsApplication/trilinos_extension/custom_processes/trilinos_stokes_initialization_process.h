@@ -78,8 +78,8 @@ public:
         KRATOS_TRY;
 
         ModelPart& rReferenceModelPart = BaseType::mrReferenceModelPart;
-        typename TLinearSolver::Pointer& pLinearSolver = BaseType::mpLinearSolver;
-        unsigned int DomainSize = BaseType::mDomainSize;
+        typename TLinearSolver::Pointer& pBaseLinearSolver = BaseType::mpLinearSolver;
+        unsigned int BaseDomainSize = BaseType::mDomainSize;
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
@@ -110,7 +110,7 @@ public:
 
         // Retrieve Stokes element model
         std::string ElementName;
-        if (DomainSize == 2)
+        if (BaseDomainSize == 2)
             ElementName = std::string("StationaryStokes2D");
         else
             ElementName = std::string("StationaryStokes3D");
@@ -130,25 +130,34 @@ public:
 
         // Builder and solver
         int guess_row_size;
-        if(DomainSize == 2) guess_row_size = 15;
-        else guess_row_size = 40;
+        if(BaseDomainSize == 2) 
+            guess_row_size = 15;
+        else 
+            guess_row_size = 40;
 
-        auto pBuildAndSolver = Kratos::make_shared<TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> >(mrComm,guess_row_size,pLinearSolver,mrPeriodicVar);
+        auto pBuildAndSolver = Kratos::make_shared<TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> >(
+            mrComm,
+            guess_row_size,
+            pBaseLinearSolver,
+            mrPeriodicVar
+        );
 
         // Strategy
         bool ReactionFlag = false;
         bool ReformDofSetFlag = false;
         bool CalculateNormDxFlag = false;
         bool MoveMeshFlag = false;
-        pSolutionStrategy = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(rStokesModelPart,
-                                                                                                                         pScheme,
-                                                                                                                         pLinearSolver,
-                                                                                                                         pBuildAndSolver,
-                                                                                                                         ReactionFlag,
-                                                                                                                         ReformDofSetFlag,
-                                                                                                                         CalculateNormDxFlag,
-                                                                                                                         MoveMeshFlag);
 
+        pSolutionStrategy = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+            rStokesModelPart,
+            pScheme,
+            pBaseLinearSolver,
+            pBuildAndSolver,
+            ReactionFlag,
+            ReformDofSetFlag,
+            CalculateNormDxFlag,
+            MoveMeshFlag
+        );
 
         pSolutionStrategy->SetEchoLevel(0);
         pSolutionStrategy->Check();

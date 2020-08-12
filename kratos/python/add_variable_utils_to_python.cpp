@@ -27,6 +27,32 @@
 namespace Kratos {
 namespace Python {
 
+template<class TDataType>
+void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVariableUtils)
+{
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+}
+
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes
@@ -100,59 +126,28 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
 
-template<class TVarType>
-void CopyModelPartFlaggedNodalVarToNonHistoricalVar(
+template< class TVarType >
+void ApplyFixity(
     VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const Flags& rFlag,
-    const bool CheckValue = true,
-    const unsigned int BuffStep = 0)
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes)
 {
-    rVariableUtils.CopyModelPartFlaggedNodalVarToNonHistoricalVar(rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue, BuffStep);
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes);
 }
 
-template<class TVarType>
-void CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination(
+template< class TVarType >
+void ApplyFlaggedFixity(
     VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TVarType &rDestinationVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes,
     const Flags& rFlag,
-    const bool CheckValue = true,
-    const unsigned int BuffStep = 0)
+    const bool CheckValue)
 {
-    rVariableUtils.CopyModelPartFlaggedNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue, BuffStep);
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes, rFlag, CheckValue);
 }
 
-template<class TVarType>
-void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const Flags& rFlag,
-    const bool CheckValue = true,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue, BuffStep);
-}
-
-template<class TVarType>
-void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination(
-    VariableUtils &rVariableUtils,
-    const TVarType &rVariable,
-    const TVarType &rDestinationVariable,
-    const ModelPart &rOriginModelPart,
-    ModelPart &rDestinationModelPart,
-    const Flags& rFlag,
-    const bool CheckValue = true,
-    const unsigned int BuffStep = 0)
-{
-    rVariableUtils.CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue, BuffStep);
-}
 
 /**
  * @brief Auxiliary set variable export function
@@ -225,7 +220,7 @@ void AddVariableUtilsToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    py::class_<VariableUtils>(m, "VariableUtils")
+    auto python_variable_utils = py::class_<VariableUtils>(m, "VariableUtils")
         .def(py::init<>())
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<bool>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<double>>)
@@ -263,42 +258,6 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartNodalVarToNonHistoricalVar", CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<Quaternion<double>>>)
         .def("CopyModelPartNodalVarToNonHistoricalVar", CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<Vector>>)
         .def("CopyModelPartNodalVarToNonHistoricalVar", CopyModelPartNodalVarToNonHistoricalVarWithDestination<Variable<Matrix>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<bool>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<double>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<array_1d<double, 3>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<array_1d<double, 4>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<array_1d<double, 6>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<array_1d<double, 9>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<Quaternion<double>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<Vector>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVar<Variable<Matrix>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<bool>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<double>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<array_1d<double, 3>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<array_1d<double, 4>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<array_1d<double, 6>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<array_1d<double, 9>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<Quaternion<double>>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<Vector>>)
-        .def("CopyModelPartFlaggedNodalVarToNonHistoricalVar", CopyModelPartFlaggedNodalVarToNonHistoricalVarWithDestination<Variable<Matrix>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<bool>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<double>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<array_1d<double, 3>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<array_1d<double, 4>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<array_1d<double, 6>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<array_1d<double, 9>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<Quaternion<double>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<Vector>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar<Variable<Matrix>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<bool>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<double>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<array_1d<double, 3>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<array_1d<double, 4>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<array_1d<double, 6>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<array_1d<double, 9>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<Quaternion<double>>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<Vector>>)
-        .def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVarWithDestination<Variable<Matrix>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<bool>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<double>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<array_1d<double, 3>>>)
@@ -482,7 +441,8 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyVariable", &VariableUtils::CopyVariable<array_1d<double, 9>>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Vector>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Matrix>)
-        .def("ApplyFixity", &VariableUtils::ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)
@@ -501,6 +461,15 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
+
+    AddCopyModelPartFlaggedInterface<bool>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<double>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 3>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 4>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 6>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 9>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<Vector>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<Matrix>(python_variable_utils);
 }
 
 } // namespace Python.
