@@ -12,6 +12,7 @@
         "domain_size"                        : 2,
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
+        "compute_reactions"                  : true,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "mpm_Body"
@@ -38,17 +39,27 @@
     },
     "processes"        : {
         "constraints_process_list" : [{
-            "python_module" : "assign_vector_variable_process",
+			"python_module" : "fix_vector_variable_process",
+			"kratos_module" : "KratosMultiphysics",
+			"help" : "This process fixes the selected components of a given vector variable",
+			"Parameters" : {
+				"model_part_name" : "Background_Grid.DISPLACEMENT_left_edge",
+				"variable_name" : "DISPLACEMENT",
+				"constrained" : [true, true, true]
+				}
+		}],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
             "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
             "Parameters"    : {
-                "model_part_name" : "Background_Grid.DISPLACEMENT_left_edge",
-                "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [true,true,true],
-                "value"           : [0.0,0.0,0.0],
+                "model_part_name" : "Background_Grid.PointLoad2D_right_edge",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 0.5,
+                "direction"       : [1.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
             }
         }],
-        "loads_process_list"       : [],
         "list_other_processes"     : [],
         "gravity"                  : []
     },
@@ -105,7 +116,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT","REACTION","POINT_LOAD"]
+                        "nodal_results"       : ["DISPLACEMENT","REACTION"]
                     },
                     "point_data_configuration"  : []
                 }

@@ -20,7 +20,7 @@
                 "criteria_options" : ["swap_second_domain_data_sign"],
                 "data_name"     : "disp",
                 "conjugate_data_name" : "load",
-                "solver_domain_two" : "fem",
+                "solver_domain_two" : "mpm",
                 "use_wrapper" : false,
                 "abs_tolerance" : 1e-5,
                 "rel_tolerance" : 1e-5,
@@ -30,11 +30,11 @@
         "coupling_operations" : {
             "coupling_output_A" : {
                 "type" : "coupling_output",
-                "solver"           : "mpm",
+                "solver"           : "fem",
                 "execution_point"  : "finalize_coupling_iteration",
                 "output_format"    : "vtk",
                 "output_parameters" : {
-                    "model_part_name"                    : "Background_Grid",
+                    "model_part_name"                    : "Structure",
                     "output_control_type"                : "step",
                     "output_interval"                   : 0.1,
                     "file_format"                        : "binary",
@@ -47,11 +47,11 @@
             },
             "coupling_output_B" : {
                 "type" : "coupling_output",
-                "solver"           : "fem",
+                "solver"           : "mpm",
                 "execution_point"  : "finalize_coupling_iteration",
                 "output_format"    : "vtk",
                 "output_parameters" : {
-                    "model_part_name"                    : "Structure",
+                    "model_part_name"                    : "Background_Grid",
                     "output_control_type"                : "step",
                     "output_interval"                   : 0.1,
                     "file_format"                        : "binary",
@@ -69,15 +69,15 @@
 					"mapper_settings" : {
 					"mapper_type": "coupling_geometry",
 					"echo_level" : 5,
-					"dual_mortar": true,
+					"dual_mortar": false,
 					"consistency_scaling" : false,
 					"modeler_name" : "StructureMpmModeler",
 					"modeler_parameters":{
-						"origin_model_part_name" : "mpm",
-						"destination_model_part_name" : "fem",
+						"origin_model_part_name" : "fem",
+						"destination_model_part_name" : "mpm",
 						"is_interface_sub_model_parts_specified" : true,
-						"origin_interface_sub_model_part_name" : "Background_Grid.PointLoad2D_right_edge",
-						"destination_interface_sub_model_part_name" : "Structure.DISPLACEMENT_left_edge"
+						"origin_interface_sub_model_part_name" : "Structure.LineLoad2D_right_edge",
+						"destination_interface_sub_model_part_name" : "Background_Grid.DISPLACEMENT_left_edge"
 					}
 				}
             }
@@ -85,16 +85,16 @@
         "coupling_sequence":
         [
             {
-                "name": "mpm",
+                "name": "fem",
                 "input_data_list"  : [],
                 "output_data_list" : []
             },
             {
-                "name": "fem",
+                "name": "mpm",
                 "input_data_list": [
                     {
                         "data"           : "disp",
-                        "from_solver"      : "mpm",
+                        "from_solver"      : "fem",
                         "from_solver_data" : "disp",
                         "data_transfer_operator" : "mapper"
                     }
@@ -102,7 +102,7 @@
                 "output_data_list": [
                     {
                         "data"           : "load",
-                        "to_solver"      : "mpm",
+                        "to_solver"      : "fem",
                         "to_solver_data" : "load",
                         "data_transfer_operator" : "mapper",
                         "data_transfer_operator_options"  : ["swap_sign","use_transpose"]
@@ -120,14 +120,14 @@
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "Structure.DISPLACEMENT_left_edge",
+                        "model_part_name"   : "Structure.LineLoad2D_right_edge",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "Structure.DISPLACEMENT_left_edge",
+                        "model_part_name"   : "Structure.LineLoad2D_right_edge",
                         "dimension" : 2,
-                        "variable_name" : "REACTION"
+                        "variable_name" : "POINT_LOAD"
                     }
                 }
             },
@@ -139,14 +139,14 @@
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "Background_Grid.PointLoad2D_right_edge",
+                        "model_part_name"   : "Background_Grid.DISPLACEMENT_left_edge",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "Background_Grid.PointLoad2D_right_edge",
+                        "model_part_name"   : "Background_Grid.DISPLACEMENT_left_edge",
                         "dimension" : 2,
-                        "variable_name" : "POINT_LOAD"
+                        "variable_name" : "REACTION"
                     }
                 }
             }
