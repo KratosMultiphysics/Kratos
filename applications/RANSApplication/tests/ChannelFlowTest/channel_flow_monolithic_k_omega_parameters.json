@@ -181,11 +181,6 @@
                     "base_model_part_name": "FluidModelPart",
                     "master_model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "slave_model_part_name": "FluidModelPart.Outlet2D_outlet",
-                    "variable_names_list": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE"
-                    ],
                     "tolerance": 5e-4,
                     "translation_settings": {
                         "direction": [
