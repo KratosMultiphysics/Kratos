@@ -11,7 +11,7 @@
     {
         "type" : "coupled_solvers.gauss_seidel_strong",
         "echo_level" : 5,
-        "num_coupling_iterations" : 3,
+        "num_coupling_iterations" : 20,
         "convergence_criteria" : [
             {
                 "type"          : "absolute_norm_energy_conjugate",
