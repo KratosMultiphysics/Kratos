@@ -18,11 +18,9 @@
 // External includes
 
 // Project includes
-#include "containers/array_1d.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
 
 // Application includes
 

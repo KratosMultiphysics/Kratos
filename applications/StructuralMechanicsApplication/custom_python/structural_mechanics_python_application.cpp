@@ -296,6 +296,8 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HARDENING_MODULI_VECTOR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OGDEN_BETA_1)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OGDEN_BETA_2)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MULTI_LINEAR_ELASTICITY_MODULI)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MULTI_LINEAR_ELASTICITY_STRAINS)
 
 
     // D+D- Damage Constitutive laws variables, additional Masonry 2D & 3D
@@ -350,7 +352,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IMPOSED_Z_STRAIN_VALUE)
 
     // The ratios between the yield strength in the isotropic space and the anisotropic space
-    // at each direction in local coordinates ratio_x = ft / ft,x 
+    // at each direction in local coordinates ratio_x = ft / ft,x
     KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, ISOTROPIC_ANISOTROPIC_YIELD_RATIO );
     KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, ORTHOTROPIC_ELASTIC_CONSTANTS );
 }

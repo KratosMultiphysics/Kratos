@@ -1,4 +1,4 @@
-from KratosMultiphysics import Model, Parameters, Logger
+from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import os
 file_path = os.path.abspath(__file__)
@@ -33,9 +33,6 @@ if __name__ == "__main__":
 
     # Create Model
     model = Model()
-
-    # To avoid too many prints
-    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 
     test = InterpolationTestAnalysis(model, parameters)
     test.Run()

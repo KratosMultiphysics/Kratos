@@ -93,7 +93,7 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         return True
 
     def ExecuteAfterCouplingSolveStep(self):
-        Kratos.VariableUtils().CopyModelPartFlaggedNodalVarToNonHistoricalVar(
+        Kratos.VariableUtils().CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
             Kratos.VELOCITY, self.velocity_model_part, self.velocity_model_part, Kratos.INLET, True, 0)
 
         # extrapolate gauss point velocities to nodal velocities
