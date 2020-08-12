@@ -270,27 +270,8 @@ public:
                        TSystemVectorType& rb) override
     {
         KRATOS_TRY
-        {
-            // This is done as there are no pointers of A, b and dx available here.
-            TSystemVectorPointerType p_Dx; /// The increment in the solution
-            TSystemVectorPointerType p_b; /// The RHS vector of the system of equations
-            TSystemMatrixPointerType p_A; /// The LHS matrix of the system of equations
 
-            TSystemMatrixType dummy_a(Copy, rA.RowMap(), 0);
-            dummy_a.GlobalAssemble();
-            TSystemVectorType dummy_b(rA.Map());
-            dummy_b.GlobalAssemble();
-            TSparseSpace::Copy(dummy_a, rA); // Already kills all data in rA.
-            TSparseSpace::Copy(dummy_b, rb); // Already kills all data in rb.
-            TSparseSpace::Copy(dummy_b, rDx); // Already kills all data in rDx.
-
-            BaseType::ResizeAndInitializeVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
-            TSparseSpace::Copy(*p_A, rA);
-            TSparseSpace::Copy(*p_Dx, rDx);
-            TSparseSpace::Copy(*p_b, rb);
-        }
-
-
+        const Epetra_CrsGraph a_graph = rA.Graph();
 
         auto start_build_time = std::chrono::steady_clock::now();
         Build(pScheme, rModelPart, rA, rb);
@@ -326,6 +307,11 @@ public:
             << "\nAfter the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
+
+
+        TSystemMatrixType new_a(Copy, a_graph);
+        TSparseSpace::SetToZero(rA);
+        TSparseSpace::Copy(new_a, rA);
         KRATOS_CATCH("")
     }
 
@@ -443,6 +429,10 @@ protected:
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::set<int> mInactiveSlaveEqIDs; /// The set containing the inactive slave dofs
+
+    TSystemVectorPointerType mpDx = nullptr; /// The increment in the solution
+    TSystemVectorPointerType mpb = nullptr; /// The RHS vector of the system of equations
+    TSystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations
 
     ///@}
     ///@name Protected member Variables
