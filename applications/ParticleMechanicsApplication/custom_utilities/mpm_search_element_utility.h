@@ -81,7 +81,7 @@ namespace MPMSearchElementUtility
             }
             for (size_t i = 1; i < cross_products.size(); ++i)
             {
-                if (cross_products[i] * cross_products[0] < 0.0)
+                if (cross_products[i] * cross_products[0] < -std::abs(Tolerance))
                 {
                     is_inside = false;
                     break;
@@ -900,6 +900,7 @@ namespace MPMSearchElementUtility
         const array_1d<double, 3>& xg,
         array_1d<double, 3>& rLocalCoords,
         const ProcessInfo& rProcessInfo,
+        bool IsOnGrid,
         bool& IsFound)
     {
         IsFound = false;
@@ -910,7 +911,7 @@ namespace MPMSearchElementUtility
         }
         else
         {
-            if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS))
+            if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS) && !IsOnGrid)
                 ConstructNeighbourRelations(rParentGeom, rBackgroundGridModelPart);
 
             auto& geometry_neighbours = rParentGeom.GetValue(GEOMETRY_NEIGHBOURS);
@@ -951,10 +952,11 @@ namespace MPMSearchElementUtility
             bool is_found = false;
             std::vector<array_1d<double, 3>> xg;
             element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rBackgroundGridModelPart.GetProcessInfo());
+            bool is_on_grid = false;
 
             GeometryType& r_found_geom = FindGridGeom(element_itr->GetGeometry().GetGeometryParent(0),
                 rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
-                rMPMModelPart.GetProcessInfo(), is_found);
+                rMPMModelPart.GetProcessInfo(), is_on_grid, is_found);
 
             if (is_found)
             {
@@ -1003,7 +1005,7 @@ namespace MPMSearchElementUtility
 
             std::vector<array_1d<double, 3>> xg;
             condition_itr->CalculateOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
-
+            bool is_on_grid = condition_itr->Is(CONTACT);
             if (xg.size() > 0)
             {
                 array_1d<double, 3> local_coordinates;
@@ -1011,7 +1013,7 @@ namespace MPMSearchElementUtility
 
                 GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry(),
                     rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
-                    rMPMModelPart.GetProcessInfo(), is_found);
+                    rMPMModelPart.GetProcessInfo(), is_on_grid, is_found);
 
                 if (is_found)
                 {
