@@ -56,7 +56,7 @@ public:
         Parameters ThisParameters);
 
     /// Destructor.
-    virtual ~OutputQuadratureDomainProcess() {}
+    ~OutputQuadratureDomainProcess() = default;
 
     ///@}
     ///@name Operations
