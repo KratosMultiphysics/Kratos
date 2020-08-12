@@ -111,17 +111,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
         BoundedVector<double, TNumNodes> velocity_convective_terms;
         this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
-        for (IndexType a = 0; a < TNumNodes; ++a) {
-            double value = 0.0;
-
-            value += gauss_shape_functions[a] * source;
-
-            // Add supg stabilization terms
-            value += (velocity_convective_terms[a] + reaction * gauss_shape_functions[a]) *
-                     tau * source;
-
-            rRightHandSideVector[a] += gauss_weights[g] * value;
-        }
+        ConvectionDiffusionReactionStabilizationUtilities::AddSourceTermWithSUPGStabilizationGaussPointContributions(
+            rRightHandSideVector, source, std::abs(reaction), tau,
+            velocity_convective_terms, gauss_weights[g], gauss_shape_functions);
     }
 
     KRATOS_CATCH("");
