@@ -5,224 +5,155 @@ import KratosMultiphysics.FluidDynamicsApplication as cfd
 
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
+# Import base class file
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
+
+class StabilizedStokesFormulation(object):
+    """Helper class to define stabilization-dependent parameters."""
+    def __init__(self,settings):
+        self.element_name = None
+        self.condition_name = "NavierStokesWallCondition"
+        self.element_integrates_in_time = False
+        self.element_has_nodal_properties = False
+        self.process_data = {}
+
+        if settings.Has("element_type"):
+            formulation = settings["element_type"].GetString()
+            if formulation == "symbolic_stokes":
+                self._SetUpSymbolicStokes(settings)
+        else:
+            print(settings)
+            raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
+
+    def _SetUpSymbolicStokes(self,settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "symbolic_stokes",
+            "dynamic_tau": 1.0
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "SymbolicStokes"
+        self.element_integrates_in_time = True
+
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
+
 def CreateSolver(main_model_part, custom_settings):
-    return StokesSolver(main_model_part, custom_settings)
+    return StokesSolverMonolithic(main_model_part, custom_settings)
 
-class StokesSolver:
+class StokesSolverMonolithic(NavierStokesSolverMonolithic):
 
-    ##constructor. the constructor shall only take care of storing the settings
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings):
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    @classmethod
+    def GetDefaultSettings(cls):
         ##settings string in json format
-        default_settings = kratoscore.Parameters("""
+        default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "stokes_solver_monolithic",
-            "force_steady_state": false,
-            "velocity_tolerance": 1e-3,
-            "pressure_tolerance": 1e-2,
-            "absolute_velocity_tolerance": 1e-3,
-            "absolute_pressure_tolerance": 1e-2,
-            "maximum_iterations": 3,
-            "echo_level": 1,
+            "model_part_name": "FluidModelPart",
+            "domain_size": -1,
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name",
+                "reorder": false
+            },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
+            "formulation": {
+                "element_type": "symbolic_stokes"
+            },
+            "echo_level": 0,
             "consider_periodic_conditions": false,
-            "time_order": 2,
-            "dynamic_tau": 0.001,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts":[""],
-            "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name"
+            "relative_velocity_tolerance": 1e-3,
+            "absolute_velocity_tolerance": 1e-5,
+            "relative_pressure_tolerance": 1e-3,
+            "absolute_pressure_tolerance": 1e-5,
+            "linear_solver_settings"        : {
+                "solver_type" : "amgcl"
             },
-            "linear_solver_settings": {
-                    "solver_type": "Super LU",
-                    "max_iteration": 500,
-                    "tolerance": 1e-9,
-                    "scaling": false,
-                    "verbosity": 1
-            }
+            "volume_model_part_name" : "volume_model_part",
+            "skin_parts": [""],
+            "assign_neighbour_elements_to_conditions": true,
+            "no_skin_parts":[""],
+            "time_stepping"                : {
+                "automatic_time_step" : false,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01,
+                "time_step"           : 0.0
+            },
+            "time_scheme": "bdf2",
+            "force_steady_state": false,
+            "move_mesh_flag": false
         }""")
 
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super(StokesSolverMonolithic, cls).GetDefaultSettings())
+        return default_settings
 
-        #construct the linear solvers
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+    def __init__(self, main_model_part, custom_settings):
+        self._validate_settings_in_baseclass = True # To be removed eventually
+        super(StokesSolverMonolithic,self).__init__(model, custom_settings)
 
+        self.formulation = StabilizedStokesFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
+        self.element_integrates_in_time = self.formulation.element_integrates_in_time
+        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
 
-        print("Construction of NavierStokesSolver_FractionalStep finished")
+        scheme_type = self.settings["time_scheme"].GetString()
+        if scheme_type == "bdf2":
+            self.min_buffer_size = 3
+        else:
+            msg  = "Unknown time_scheme option found in project parameters:\n"
+            msg += "\"" + scheme_type + "\"\n"
+            msg += "Accepted value is \"bdf2\".\n"
+            raise Exception(msg)
 
-    def GetMinimumBufferSize(self):
-        return 3;
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of StokesSolverMonolithic finished.")
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(kratoscore.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(kratoscore.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.BODY_FORCE) #TODO: decide if it is needed. if constant it could be passed in properties
+        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION_WATER_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(kratoscore.EXTERNAL_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.NORMAL) #TODO: this variable is not strictly needed by the solver - may be needed by other utilities
 
-        if(self.settings["compute_reactions"].GetBool()):
-            self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION)
-            self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION_WATER_PRESSURE)
+        # Adding variables required for the nodal material properties
+        if self.element_has_nodal_properties:
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
 
-        print("variables for the  monolithic stokes solver added correctly")
-
-
-    def AddDofs(self):
-        kratoscore.VariableUtils().AddDof(kratoscore.VELOCITY_X, kratoscore.REACTION_X,self.main_model_part)
-        kratoscore.VariableUtils().AddDof(kratoscore.VELOCITY_Y, kratoscore.REACTION_Y,self.main_model_part)
-        kratoscore.VariableUtils().AddDof(kratoscore.VELOCITY_Z, kratoscore.REACTION_Z,self.main_model_part)
-        kratoscore.VariableUtils().AddDof(kratoscore.PRESSURE, kratoscore.REACTION_WATER_PRESSURE,self.main_model_part)
-
-
-    def ImportModelPart(self):
-
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            #here it would be the place to import restart data if required
-            kratoscore.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-
-            self.settings.AddEmptyValue("element_replace_settings")
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"StokesTwoFluid3D4N",
-                    "condition_name": "StokesWallCondition3D"
-                    }
-                    """)
-            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-                raise Exception("sorry 2D case not implemented")
-            else:
-                raise Exception("domain size is not 2 or 3")
-
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-
-
-            ##here we shall check that the input read has the shape we like
-            aux_params = kratoscore.Parameters("{}")
-            aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-            aux_params.AddValue("skin_parts",self.settings["skin_parts"])
-
-            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
-
-
-            ##here we must construct correctly the constitutive law
-            print("don't forget constructing the constitutive law!!!!!!!!!!!!!!")
-
-
-            #if needed here we shall generate the constitutive laws
-            #import constitutive_law_python_utility as constitutive_law_utils
-            #constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(main_model_part, self.settings["DomainSize"]);
-            #constitutive_law.Initialize();
-        else:
-            raise Exception("other input options are not yet implemented")
-
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-
-        print ("model reading finished")
-
-    def Initialize(self):
-        compute_model_part = self.GetComputingModelPart()
-
-        # Set the time discretization utility to compute the BDF coefficients
-        time_order = self.settings["time_order"].GetInt()
-        if time_order == 2:
-            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
-        else:
-            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
-
-        time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme()
-
-        convergence_criteria = KratosMultiphysics.FluidDynamicsApplication.VelPrCriteria(self.settings["velocity_tolerance"].GetDouble(),
-                                                                    self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                                    self.settings["pressure_tolerance"].GetDouble(),
-                                                                    self.settings["absolute_pressure_tolerance"].GetDouble()
-                                                                    )
-
-        (convergence_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        builder_and_solver = kratoscore.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-
-        move_mesh_flag = False #user should NOT configure this
-        self.fluid_solver = kratoscore.ResidualBasedNewtonRaphsonStrategy(
-                                                                          compute_model_part,
-                                                                          time_scheme,
-                                                                          self.linear_solver,
-                                                                          convergence_criteria,
-                                                                          builder_and_solver,
-                                                                          self.settings["maximum_iterations"].GetInt(),
-                                                                          self.settings["compute_reactions"].GetBool(),
-                                                                          self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                          move_mesh_flag
-                                                                          )
-
-        (self.fluid_solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        print("Construction stokes solver finished")
-
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
-
-    def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
-        pass
-
-    def SaveRestart(self):
-        pass #one should write the restart file here
-
-    def Solve(self):
-        # Compute the BDF coefficients
-        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-
-        if(self.settings["force_steady_state"].GetBool()):
-            bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
-            for i in range(len(bdf_vec)):
-                bdf_vec[i] = 0.0
-            self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
-
-        self.fluid_solver.Solve()
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def InitializeSolutionStep(self):
-        # Compute the BDF coefficients
-        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        # Computes BDF coefficients and strategy InitializeSolutionStep
+        super(StokesSolverMonolithic,self).__init__(model, custom_settings)
 
+        # Force the steady regime by setting the BDF coefficients to zero
         if(self.settings["force_steady_state"].GetBool()):
             bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
             for i in range(len(bdf_vec)):
                 bdf_vec[i] = 0.0
             self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
 
-        self.fluid_solver.InitializeSolutionStep()
+    #TODO: This only works with Newtonian constitutive laws
+    #TODO: Add the NR option in case non-linear models are used
+    def _CreateSolutionStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
+        calculate_norm_dx = False
+        return KratosMultiphysics.ResidualBasedLinearStrategy(
+            computing_model_part,
+            time_scheme,
+            linear_solver
+            builder_and_solver,
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            calculate_norm_dx,
+            self.settings["move_mesh_flag"].GetBool())
 
-    def Predict(self):
-        self.fluid_solver.Predict()
-
-    def SolveSolutionStep(self):
-        self.fluid_solver.SolveSolutionStep()
-
-    def FinalizeSolutionStep(self):
-        self.fluid_solver.FinalizeSolutionStep()
-
-    def SetEchoLevel(self, level):
-        self.fluid_solver.SetEchoLevel(level)
-
-    def Clear(self):
-        self.fluid_solver.Clear()
-
-    def Check(self):
-        self.fluid_solver.Check()
