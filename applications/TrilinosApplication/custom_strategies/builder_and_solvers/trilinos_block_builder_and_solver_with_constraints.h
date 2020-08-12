@@ -271,17 +271,17 @@ public:
     {
         KRATOS_TRY
 
-        TSystemVectorPointerType p_Dx; /// The increment in the solution
-        TSystemVectorPointerType p_b; /// The RHS vector of the system of equations
-        TSystemMatrixPointerType p_A; /// The LHS matrix of the system of equations
+        TSystemVectorPointerType p_Dx(&rDx); /// The increment in the solution
+        TSystemVectorPointerType p_b(&rb); /// The RHS vector of the system of equations
+        TSystemMatrixPointerType p_A(&rA); /// The LHS matrix of the system of equations
 
         BaseType::ResizeAndInitializeVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
-        TSparseSpace::Copy(*p_A, rA);
-        TSparseSpace::Copy(*p_Dx, rDx);
-        TSparseSpace::Copy(*p_b, rb);
-        TSparseSpace::Clear(p_Dx);
-        TSparseSpace::Clear(p_b);
-        TSparseSpace::Clear(p_A);
+        // TSparseSpace::Copy(*p_A, rA);
+        // TSparseSpace::Copy(*p_Dx, rDx);
+        // TSparseSpace::Copy(*p_b, rb);
+        // TSparseSpace::Clear(p_Dx);
+        // TSparseSpace::Clear(p_b);
+        // TSparseSpace::Clear(p_A);
         auto start_build_time = std::chrono::steady_clock::now();
         Build(pScheme, rModelPart, rA, rb);
         auto end_build_time = std::chrono::steady_clock::now();
