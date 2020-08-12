@@ -43,11 +43,10 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     typedef Geometry<NodeType>                              GeometryType;
 
     /**
-     * @brief Constructor of the process to apply periodic boundary condition
+     * @brief Constructor of the process to apply periodic boundary condition.
      * @param rMasterModelPart The master model part for the constraints. Constraints are added on here.
-     *                          This modelpart is assumed to be the stationary one. In MPI this is gathered
-     *                          once in the beginning and is used subsequently for searching.
-     * @param rSlaveModelPart The slave model part for the constraints. This is the rotatting/moving side of
+     *                          This is assumed to be the stationary modelpart on the interface.
+     * @param rSlaveModelPart The slave model part for the constraints. This is the moving modelpart of
      *                          the interface.
      * @param Settings parameters for the periodic condition to be applied
      */
@@ -100,7 +99,7 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     Parameters mParameters;          // parameters
     double mSearchTolerance;
     IndexType mSearchMaxResults;
-    std::string mGatheredMpName;
+    std::string mSearchModelPartName;
 
     /**
      * @brief   The function to figure out how the master and slave model parts relate together and add master-slave constraints
@@ -123,12 +122,8 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
      * @brief   The function checks if this is a MPI run, in case it is, it returns a reference to gathered_modelpart  else
      *          a reference to the mrMasterModelPart
      */
-    ModelPart& GetSearchModelpart();
+    void MakeSearchModelpart();
 
-    /**
-     * @brief   The function checks if this is a MPI run, in case it is, it gathers the master modelpart on all the ranks
-     */
-    void CreateSearchModelpart();
 }; // Class
 
 
