@@ -270,7 +270,9 @@ protected:
      * This method prints the convergence status to the screen for each one of the checked variables
      * @param rConvergenceNorms Tuple containing the absolute and relative convergence values
      */
-    void OutputConvergenceStatus(const std::tuple<std::vector<TDataType>, std::vector<TDataType>>& rConvergenceNorms)
+    virtual void OutputConvergenceStatus(
+        const std::tuple<std::vector<TDataType>,
+        std::vector<TDataType>>& rConvergenceNorms)
     {
         const auto& var_ratio = std::get<0>(rConvergenceNorms);
         const auto& var_abs = std::get<1>(rConvergenceNorms);
@@ -294,7 +296,9 @@ protected:
      * @return true Convergence is satisfied
      * @return false Convergence is not satisfied
      */
-    bool CheckConvergence(const std::tuple<std::vector<TDataType>, std::vector<TDataType>>& rConvergenceNorms)
+    bool CheckConvergence(
+        const std::tuple<std::vector<TDataType>,
+        std::vector<TDataType>>& rConvergenceNorms)
     {
         int is_converged = 0;
         const auto& var_ratio = std::get<0>(rConvergenceNorms);
