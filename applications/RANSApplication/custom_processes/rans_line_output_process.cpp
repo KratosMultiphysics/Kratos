@@ -22,7 +22,6 @@
 #include "utilities/brute_force_point_locator.h"
 
 // Application includes
-#include "custom_utilities/rans_check_utilities.h"
 
 // Include base h
 #include "rans_line_output_process.h"
@@ -97,8 +96,6 @@ int RansLineOutputProcess::Check()
 {
     KRATOS_TRY
 
-    RansCheckUtilities::CheckIfModelPartExists(mrModel, mModelPartName);
-
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     if (mIsHistoricalValue) {
@@ -106,11 +103,15 @@ int RansLineOutputProcess::Check()
             if (KratosComponents<Variable<double>>::Has(variable_name)) {
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(variable_name);
-                RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, r_variable);
+                KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_variable))
+                    << variable_name << " is not found in nodal solution step variables list of "
+                    << mModelPartName << ".";
             } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
-                RansCheckUtilities::CheckIfVariableExistsInModelPart(r_model_part, r_variable);
+                KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_variable))
+                    << variable_name << " is not found in nodal solution step variables list of "
+                    << mModelPartName << ".";
             } else {
                 KRATOS_ERROR
                     << "Variable name = " << variable_name

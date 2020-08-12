@@ -18,13 +18,10 @@
 // External includes
 
 // Project includes
-#include "custom_elements/incompressible_potential_flow/laplace_element.h"
-#include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/variables.h"
 
 // Application includes
-#include "rans_application_variables.h"
+#include "custom_elements/incompressible_potential_flow/laplace_element.h"
 
 namespace Kratos
 {
@@ -184,10 +181,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    const Variable<double>& GetVariable() const override
-    {
-        return PRESSURE_POTENTIAL;
-    }
+    const Variable<double>& GetVariable() const override;
 
     /**
      * ELEMENTS inherited from this class have to implement next
@@ -207,19 +201,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        // Calculate RHS
-        this->CalculateRightHandSideVelocityContribution(rRightHandSideVector);
-
-        // Calculate LHS
-        this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-        VectorType values;
-        this->GetValuesVector(values, 0);
-
-        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -229,39 +211,9 @@ public:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-        this->CalculateRightHandSideVelocityContribution(rRightHandSideVector);
-
-        Matrix lhs;
-        this->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
-
-        Vector values;
-        this->GetValuesVector(values, 0);
-
-        noalias(rRightHandSideVector) -= prod(lhs, values);
-
-        KRATOS_CATCH("");
-    }
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        int check = BaseType::Check(rCurrentProcessInfo);
-
-        for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node) {
-            const auto& r_node = this->GetGeometry()[i_node];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
-        }
-
-        return check;
-
-        KRATOS_CATCH("");
-    }
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -286,46 +238,8 @@ protected:
     ///@name Private Operations
     ///@{
 
-    void CalculateRightHandSideVelocityContribution(Vector& rRHS) const
-    {
-        if (rRHS.size() != TNumNodes) {
-            rRHS.resize(TNumNodes, false);
-        }
-        noalias(rRHS) = ZeroVector(TNumNodes);
-
-        // Get Shape function data
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_derivatives;
-        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-        const IndexType num_gauss_points = gauss_weights.size();
-
-        const auto& r_geometry = this->GetGeometry();
-
-        for (IndexType g = 0; g < num_gauss_points; ++g) {
-            const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector gauss_shape_functions = row(shape_functions, g);
-
-            const double density = RansCalculationUtilities::EvaluateInPoint(
-                r_geometry, DENSITY, gauss_shape_functions);
-
-            array_1d<double, 3> kinetic_energy_gradient;
-            // VELOCITY_POTENTIAL contains velocity magnitude square
-            RansCalculationUtilities::CalculateGradient(
-                kinetic_energy_gradient, r_geometry, VELOCITY_POTENTIAL, r_shape_derivatives);
-            noalias(kinetic_energy_gradient) =
-                kinetic_energy_gradient * (gauss_weights[g] * 0.5 * density);
-
-            for (IndexType a = 0; a < TNumNodes; ++a) {
-                double value = 0.0;
-                for (IndexType d = 0; d < TDim; ++d) {
-                    value += r_shape_derivatives(a, d) * kinetic_energy_gradient[d];
-                }
-
-                rRHS[a] -= value;
-            }
-        }
-    }
+    void CalculateRightHandSideVelocityContribution(
+        Vector& rRHS) const;
 
     ///@}
     ///@name Serialization

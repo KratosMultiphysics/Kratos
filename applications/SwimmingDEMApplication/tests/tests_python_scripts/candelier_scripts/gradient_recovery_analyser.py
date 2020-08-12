@@ -1,6 +1,4 @@
-import math 
-import cmath
-import mpmath
+import math
 import matplotlib.pyplot as plt
 
 class sinus_field():
@@ -14,7 +12,7 @@ class sinus_field():
         self.fxx = -math.sin(x + y + z)
         self.fyy = -math.sin(x + y + z)
         self.fzz = -math.sin(x + y + z)
-        
+
 class sinus_vector_field():
     def __init__(self):
         pass
@@ -32,7 +30,7 @@ class sinus_vector_field():
         self.fxx = [0, - z ** 2 * math.sin(x*z), - y ** 2 * math.sin(x*y)]
         self.fyy = [- z ** 2 * math.sin(y*z), 0, - x ** 2 * math.sin(x*y)]
         self.fzz = [- y ** 2 * math.sin(y*z), - x ** 2 * math.sin(x*z), 0]
-        
+
 class polynomial_vector_field():
     def __init__(self):
         pass
@@ -55,7 +53,7 @@ class GradientRecoveryAnalyser:
     def __init__(self, scalar_field, vector_field):
         self.f = scalar_field
         self.v = vector_field
-    
+
     def CalculateDerivatives(self, x, y, z):
         f = self.f
         v = self.v
@@ -66,9 +64,9 @@ class GradientRecoveryAnalyser:
         self.gy = f.fy
         self.gz = f.fz
         self.v0 = v.f[0]
-        self.v1 = v.f[1] 
-        self.v2 = v.f[2] 
-        self.lx = v.fxx[0] + v.fxy[0] + v.fxz[0] 
-        self.ly = v.fyy[1] + v.fyx[1] + v.fyz[1] 
-        self.lz = v.fzz[2] + v.fzx[2] + v.fzy[2] 
-        
+        self.v1 = v.f[1]
+        self.v2 = v.f[2]
+        self.lx = v.fxx[0] + v.fxy[0] + v.fxz[0]
+        self.ly = v.fyy[1] + v.fyx[1] + v.fyz[1]
+        self.lz = v.fzz[2] + v.fzx[2] + v.fzy[2]
+
