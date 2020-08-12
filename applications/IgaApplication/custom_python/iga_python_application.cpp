@@ -46,7 +46,6 @@ PYBIND11_MODULE(KratosIgaApplication, m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_FACTOR)
 
-    AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
 }
 
