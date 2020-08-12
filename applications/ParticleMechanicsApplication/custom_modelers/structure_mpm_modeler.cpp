@@ -85,20 +85,40 @@ namespace Kratos
             ? coupling_model_part.GetSubModelPart("interface_destination")
             : coupling_model_part.CreateSubModelPart("interface_destination");
 
+        // Temporarily store coupling nodes in modelparts. Then we can setNodes instead of addNodes to avoid duplicates!
+        ModelPart& mpm_coupling_nodes = (p_model_mpm->HasModelPart("coupling_nodes"))
+            ? p_model_mpm->GetModelPart("coupling_nodes")
+            : p_model_mpm->CreateModelPart("coupling_nodes");
+        for (IndexType i = 0; i < quads_mpm.size(); ++i) {
+            for (IndexType j = 0; j < quads_mpm[i]->size(); ++j) {
+                mpm_coupling_nodes.AddNode(quads_mpm[i]->pGetPoint(j));
+            }
+        }
+        ModelPart& fem_coupling_nodes = (p_model_fem->HasModelPart("coupling_nodes"))
+            ? p_model_fem->GetModelPart("coupling_nodes")
+            : p_model_fem->CreateModelPart("coupling_nodes");
+        for (IndexType i = 0; i < quads_structure.size(); ++i) {
+            for (IndexType j = 0; j < quads_structure[i]->size(); ++j) {
+                fem_coupling_nodes.AddNode(quads_structure[i]->pGetPoint(j));
+            }
+        }
+
+        KRATOS_WATCH(mpm_coupling_nodes)
+        KRATOS_WATCH(fem_coupling_nodes)
+
+        if (mIsOriginMpm)
+        {
+            coupling_interface_origin.SetNodes(mpm_coupling_nodes.pNodes());
+            coupling_interface_destination.SetNodes(fem_coupling_nodes.pNodes());
+        }
+        else
+        {
+            coupling_interface_origin.SetNodes(fem_coupling_nodes.pNodes());
+            coupling_interface_destination.SetNodes(mpm_coupling_nodes.pNodes());
+        }
 
         std::vector<GeometryPointerType>& p_quads_origin = (mIsOriginMpm) ? quads_mpm : quads_structure;
         std::vector<GeometryPointerType>& p_quads_dest = (mIsOriginMpm) ? quads_structure : quads_mpm;
-
-        for (IndexType i = 0; i < p_quads_origin.size(); ++i) {
-            for (IndexType j = 0; j < p_quads_origin[i]->size(); ++j) {
-                coupling_interface_origin.AddNode(p_quads_origin[i]->pGetPoint(j));
-            }
-        }
-        for (IndexType i = 0; i < p_quads_dest.size(); ++i) {
-            for (IndexType j = 0; j < p_quads_dest[i]->size(); ++j) {
-                coupling_interface_destination.AddNode(p_quads_dest[i]->pGetPoint(j));
-            }
-        }
 
         // Determine next condition number
         IndexType condition_id = (coupling_model_part.GetRootModelPart().NumberOfConditions() == 0)
