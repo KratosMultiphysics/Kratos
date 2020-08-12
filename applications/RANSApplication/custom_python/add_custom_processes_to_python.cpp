@@ -38,6 +38,7 @@
 #include "custom_processes/rans_check_vector_bounds_process.h"
 #include "custom_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/rans_line_output_process.h"
+#include "custom_processes/rans_compute_reactions_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -121,6 +122,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     using RansLineOutputProcessType = RansLineOutputProcess;
     py::class_<RansLineOutputProcessType, RansLineOutputProcessType::Pointer, Process>(m, "RansLineOutputProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    using RansComputeReactionsProcessType = RansComputeReactionsProcess;
+    py::class_<RansComputeReactionsProcessType, RansComputeReactionsProcessType::Pointer, Process>(m, "RansComputeReactionsProcess")
         .def(py::init<Model&, Parameters&>());
 }
 } // namespace Python
