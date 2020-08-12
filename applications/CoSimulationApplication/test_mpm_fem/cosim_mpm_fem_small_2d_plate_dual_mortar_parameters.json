@@ -69,11 +69,11 @@
 					"mapper_type": "coupling_geometry",
 					"echo_level" : 5,
 					"dual_mortar": true,
-					"consistency_scaling" : true,
+					"consistency_scaling" : false,
 					"modeler_name" : "MappingGeometriesModeler",
 					"modeler_parameters":{
-						"origin_model_part_name" : "origin",
-						"destination_model_part_name" : "destination",
+						"origin_model_part_name" : "mpm",
+						"destination_model_part_name" : "fem",
 						"is_interface_sub_model_parts_specified" : true,
 						"origin_interface_sub_model_part_name" : "Background_Grid.PointLoad2D_right_edge",
 						"destination_interface_sub_model_part_name" : "Structure.DISPLACEMENT_left_edge"
