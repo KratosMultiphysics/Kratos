@@ -270,18 +270,28 @@ public:
                        TSystemVectorType& rb) override
     {
         KRATOS_TRY
+        {
+            // This is done as there are no pointers of A, b and dx available here.
+            TSystemVectorPointerType p_Dx; /// The increment in the solution
+            TSystemVectorPointerType p_b; /// The RHS vector of the system of equations
+            TSystemMatrixPointerType p_A; /// The LHS matrix of the system of equations
 
-        TSystemVectorPointerType p_Dx(&rDx); /// The increment in the solution
-        TSystemVectorPointerType p_b(&rb); /// The RHS vector of the system of equations
-        TSystemMatrixPointerType p_A(&rA); /// The LHS matrix of the system of equations
+            TSystemMatrixType dummy_a(Copy, rA.RowMap(), 0);
+            dummy_a.GlobalAssemble();
+            TSystemVectorType dummy_b(rA.Map());
+            dummy_b.GlobalAssemble();
+            TSparseSpace::Copy(dummy_a, rA); // Already kills all data in rA.
+            TSparseSpace::Copy(dummy_b, rb); // Already kills all data in rb.
+            TSparseSpace::Copy(dummy_b, rDx); // Already kills all data in rDx.
 
-        BaseType::ResizeAndInitializeVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
-        // TSparseSpace::Copy(*p_A, rA);
-        // TSparseSpace::Copy(*p_Dx, rDx);
-        // TSparseSpace::Copy(*p_b, rb);
-        // TSparseSpace::Clear(p_Dx);
-        // TSparseSpace::Clear(p_b);
-        // TSparseSpace::Clear(p_A);
+            BaseType::ResizeAndInitializeVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
+            TSparseSpace::Copy(*p_A, rA);
+            TSparseSpace::Copy(*p_Dx, rDx);
+            TSparseSpace::Copy(*p_b, rb);
+        }
+
+
+
         auto start_build_time = std::chrono::steady_clock::now();
         Build(pScheme, rModelPart, rA, rb);
         auto end_build_time = std::chrono::steady_clock::now();
@@ -494,14 +504,18 @@ protected:
                 err = EpetraExt::MatrixMatrix::Multiply(*pTt, false, rA, false, aux_mat, false);
                 KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(T'*A) not successful !"<<std::endl;
                 aux_mat.FillComplete();
+                const double inf_norm_a = rA.NormInf();
                 delete pTt;
                 { // To delete mod_a
+                    // Make dummy matrix to delete rA
+                    TSystemMatrixType dummy_a(Copy, mpT->RowMap(), 0);
+                    dummy_a.GlobalAssemble();
+                    TSparseSpace::Copy(dummy_a, rA); // Already kills all data in rA.
+
                     TSystemMatrixType mod_a(Copy, aux_mat.RowMap(), 0);
                     // Now we do A = aux*T
-                    // TSparseSpace::SetToZero(rA);
                     err = EpetraExt::MatrixMatrix::Multiply(aux_mat, false, *mpT, false, mod_a, false);
                     KRATOS_ERROR_IF(err != 0)<<"EpetraExt MatrixMatrix multiplication(aux*A) not successful !"<<std::endl;
-                    const double inf_norm_a = rA.NormInf();
                     // Apply diagonal values on slaves
                     for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
                         const int slave_equation_id = mSlaveIds[i];
