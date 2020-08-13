@@ -300,18 +300,18 @@ protected:
         const std::tuple<std::vector<TDataType>,
         std::vector<TDataType>>& rConvergenceNorms)
     {
-        int is_converged = 0;
+        bool is_converged = true;
         const auto& var_ratio = std::get<0>(rConvergenceNorms);
         const auto& var_abs = std::get<1>(rConvergenceNorms);
 
         for (int i = 0; i < mVariableSize; i++) {
             const auto r_var_data = mVariableDataVector[i];
             const int key_map = mLocalKeyMap[r_var_data->Key()];
-            is_converged += var_ratio[key_map] <= mRatioToleranceVector[key_map] || var_abs[key_map] <= mAbsToleranceVector[key_map];
+            is_converged &= var_ratio[key_map] <= mRatioToleranceVector[key_map] || var_abs[key_map] <= mAbsToleranceVector[key_map];
         }
 
         // Note that this check ensures that all the convergence variables fulfil either the relative or the absolute criterion
-        if (is_converged == mVariableSize) {
+        if (is_converged) {
             KRATOS_INFO_IF("", this->GetEchoLevel() > 0) << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
             return true;
         } else {
