@@ -445,6 +445,7 @@ private:
 
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N> mAdjointFiniteDifferencingShellThinElement3D3N;
+    const AdjointFiniteDifferencingShellElement<ShellThickElement3D4N> mAdjointFiniteDifferencingShellThickElement3D4N;
     const AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N> mAdjointFiniteDifferenceCrBeamElementLinear3D2N;
     const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
     const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;

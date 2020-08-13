@@ -19,6 +19,7 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
+#include "custom_elements/shell_thick_element_3D4N.hpp"
 
 
 namespace Kratos
@@ -101,21 +102,37 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckProperties(cons
     if(this->pGetProperties() == nullptr)
         KRATOS_ERROR << "Properties not provided for element " << this->Id() << std::endl;
 
-    const PropertiesType & props = this->GetProperties();
+    const PropertiesType & r_props = this->GetProperties();
 
     const GeometryType& geom = this->GetGeometry(); // TODO check if this can be const
 
-    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
+    if(r_props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
     {
-        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
+        const ShellCrossSection::Pointer & section = r_props[SHELL_CROSS_SECTION];
         if(section == nullptr)
             KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
 
-        section->Check(props, geom, rCurrentProcessInfo);
+        section->Check(r_props, geom, rCurrentProcessInfo);
     }
-    else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
+    else if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS))
     {
         this->CheckSpecificProperties();
+
+        KRATOS_ERROR_IF(r_props.Has(THICKNESS)) << "Specifying THICKNESS conflicts with the "
+                                                << "definition of SHELL_ORTHOTROPIC_LAYERS (where the thickness is also specified)"
+                                                << std::endl;
+
+        KRATOS_ERROR_IF(r_props.Has(DENSITY)) << "Specifying DENSITY conflicts with the "
+                                              << "definition of SHELL_ORTHOTROPIC_LAYERS (where the density is also specified)"
+                                              << std::endl;
+
+        KRATOS_ERROR_IF(r_props.Has(YOUNG_MODULUS)) << "Specifying YOUNG_MODULUS conflicts with the "
+                << "definition of SHELL_ORTHOTROPIC_LAYERS (where the youngs-modulus is also specified)"
+                << std::endl;
+
+        KRATOS_ERROR_IF(r_props.Has(POISSON_RATIO)) << "Specifying POISSON_RATIO conflicts with the "
+                << "definition of SHELL_ORTHOTROPIC_LAYERS (where the poisson-ratio is also specified)"
+                << std::endl;
 
         // perform detailed orthotropic check later in shell_cross_section
     }
@@ -123,13 +140,27 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckProperties(cons
     {
         this->CheckSpecificProperties();
 
+        if (!r_props.Has(THICKNESS)) {
+            KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
+        }
+        if (r_props[THICKNESS] <= 0.0) {
+            KRATOS_ERROR << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
+        }
+
+        if (!r_props.Has(DENSITY)) {
+            KRATOS_ERROR << "DENSITY not provided for element " << this->Id() << std::endl;
+        }
+        if (r_props[DENSITY] < 0.0) {
+            KRATOS_ERROR << "wrong DENSITY value provided for element " << this->Id() << std::endl;
+        }
+
         // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
         ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>(ShellCrossSection());
         dummySection->BeginStack();
         dummySection->AddPly(0, 5, this->GetProperties());
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thick);
-        dummySection->Check(props, geom, rCurrentProcessInfo);
+        dummySection->Check(r_props, geom, rCurrentProcessInfo);
     }
 
 }
@@ -137,23 +168,15 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckProperties(cons
 template <class TPrimalElement>
 void AdjointFiniteDifferencingShellElement<TPrimalElement>::CheckSpecificProperties() const
 {
-    const PropertiesType & r_props = this->GetProperties();
+    const auto& r_props = this->GetProperties();
 
-    if (!r_props.Has(CONSTITUTIVE_LAW))
+    if (!r_props.Has(CONSTITUTIVE_LAW)) {
         KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+    }
     const ConstitutiveLaw::Pointer& claw = r_props[CONSTITUTIVE_LAW];
-    if (claw == nullptr)
+    if (claw == nullptr) {
         KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-
-    if(!r_props.Has(THICKNESS))
-        KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
-    if(r_props[THICKNESS] <= 0.0)
-        KRATOS_ERROR << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
-
-    if(!r_props.Has(DENSITY))
-        KRATOS_ERROR << "DENSITY not provided for element " << this->Id() << std::endl;
-    if(r_props[DENSITY] < 0.0)
-        KRATOS_ERROR << "wrong DENSITY value provided for element " << this->Id() << std::endl;
+    }
 
     // TODO for thick shell Stenberg stabilization is not checked
 }
@@ -206,6 +229,7 @@ void AdjointFiniteDifferencingShellElement<TPrimalElement>::load(Serializer& rSe
 }
 
 template class AdjointFiniteDifferencingShellElement<ShellThinElement3D3N>;
+template class AdjointFiniteDifferencingShellElement<ShellThickElement3D4N>;
 
 } // namespace Kratos
 
