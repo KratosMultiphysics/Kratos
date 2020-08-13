@@ -56,7 +56,7 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
 mode = "c"
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
-ASGS_stabilization = True           # Consider ASGS stabilization terms
+ASGS_stabilization = False          # Consider ASGS stabilization terms
 OSS_stabilization = False           # Consider OSS stabilization terms
 formulation = "NavierStokes"        # Element type. Options: "NavierStokes"
 
@@ -151,17 +151,17 @@ for dim in dim_vector:
         div_v = ones(1,1)*sum([DN[i]*v[i] for i in range (0,len(DN))])
         div_w = ones(1,1)*sum([DN[i]*w[i] for i in range (0,len(DN))])
         # TODO: check following is correct
-        grad_sym_v = grad_sym_voigtform(DN,v)      # Symmetric gradient of v in Voigt notation
-        grad_sym_w = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
+        grad_sym_v = grad_sym_voigtform(DN,v) # Symmetric gradient of v in Voigt notation
+        grad_sym_w = grad_sym_voigtform(DN,w) # Symmetric gradient of w in Voigt notation
         # Recall that the grad(w):grad(v) contraction equals grad_sym(w)*grad_sym(v) in Voigt notation since they are symmetric tensors.
 
         # Convective velocity definition
         if convective_term:
             if (linearisation == "Picard"):
-                vconv = DefineMatrix('vconv',n_nodes,dim)    # Convective velocity defined a symbol
+                vconv = DefineMatrix('vconv',n_nodes,dim) # Convective velocity defined a symbol
             elif (linearisation == "FullNR"):
-                vmesh = DefineMatrix('vmesh',n_nodes,dim)    # Mesh velocity
-                vconv = v - vmesh                            # Convective velocity defined as a velocity dependent variable
+                vmesh = DefineMatrix('vmesh',n_nodes,dim) # Mesh velocity
+                vconv = v - vmesh                         # Convective velocity defined as a velocity dependent variable
             else:
                 raise Exception("Wrong linearisation \'" + linearisation + "\' selected. Available options are \'Picard\' and \'FullNR\'.")
             vconv_gauss = vconv.transpose()*N
@@ -191,6 +191,15 @@ for dim in dim_vector:
         if convective_term:
             res_galerkin -= w_gauss.transpose()*convective_term_gauss.transpose()
 
+        # Add the stabilization terms to the original residual terms
+        if (ASGS_stabilization):
+            res = res_galerkin + res_stabilization
+        else:
+            res = res_galerkin
+
+        # Accumulate in the total residual
+        res_tot += res
+
     # Define DOFs and test function vectors
     dofs = Matrix( zeros(n_nodes*(dim+1), 1) )
     testfunc = Matrix( zeros(n_nodes*(dim+1), 1) )
@@ -209,17 +218,24 @@ for dim in dim_vector:
     # Compute LHS and RHS
     print("Computing " + str(dim) + "D RHS Gauss point contribution\n")
     rhs = Compute_RHS(res_tot.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
 
-    print("Computing " + str(dim) + "D LHS Gauss point contribution\n")
-    lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    # print("Computing " + str(dim) + "D LHS Gauss point contribution\n")
+    # lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
+    # lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
     # Replace the computed RHS and LHS in the template outstring
     if(dim == 2):
         outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
     elif(dim == 3):
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
+
+    # Substitute the shape function gradients container accesses
+    for i_node in range(n_nodes):
+        for j_dim in range(dim):
+            to_substitute = 'DN(' + str(i_node) + ',' + str(j_dim) + ')'
+            substituted_value = 'DN_DX_' + str(i_node) + '_' + str(j_dim)
+            outstring = outstring.replace(to_substitute, substituted_value)
 
 # Write the modified template
 print("Writing output file \'" + output_filename + "\'")

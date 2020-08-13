@@ -61,9 +61,14 @@ public:
 
     struct ElementDataStruct
     {
-        array_1d<double, TDim> forcing;
-        array_1d<double, TNumNodes > N;
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > forcing;
+        BoundedMatrix<double, TNumNodes, TDim > velocity_convective;
+        BoundedMatrix<double, TNumNodes, TDim > velocity;
+
+        array_1d<double, TNumNodes > N;
+        array_1d<double,TNumNodes> pressure;
+
         double h;           // Element size
         double volume;      // In 2D: element area. In 3D: element volume
         double mu;          // Dynamic viscosity
@@ -78,16 +83,12 @@ public:
     /// Default constructor
     SymbolicExplicitQSNavierStokes(
         IndexType NewId,
-        GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
-    {}
+        GeometryType::Pointer pGeometry);
 
     SymbolicExplicitQSNavierStokes(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
-    {}
+        PropertiesType::Pointer pProperties);
 
     /// Destructor.
     ~SymbolicExplicitQSNavierStokes() override = default;
@@ -389,7 +390,7 @@ private:
 /// input stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 SymbolicExplicitQSNavierStokes<TElementData>& rThis)
+                                 SymbolicExplicitQSNavierStokes<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -397,7 +398,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1 >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const SymbolicExplicitQSNavierStokes<TElementData>& rThis)
+                                 const SymbolicExplicitQSNavierStokes<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
