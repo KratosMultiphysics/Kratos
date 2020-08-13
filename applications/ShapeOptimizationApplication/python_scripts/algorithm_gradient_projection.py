@@ -30,7 +30,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = KM.Parameters("""
         {
-            "name"                    : "penalized_projection",
+            "name"                    : "gradient_projection",
             "max_correction_share"    : 0.75,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
