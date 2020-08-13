@@ -26,11 +26,13 @@
 #include "spaces/ublas_space.h"
 
 // builder_and_solvers
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fractional_step_strategy.h"
+#include "custom_strategies/strategies/navier_stokes_explicit_solving_strategy_runge_kutta_4.h"
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
@@ -112,6 +114,14 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
+
+    py::class_<
+        NavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
+        typename NavierStokesExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "NavierStokesExplicitSolvingStrategyRungeKutta4")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
     // Convergence criteria
     py::class_<

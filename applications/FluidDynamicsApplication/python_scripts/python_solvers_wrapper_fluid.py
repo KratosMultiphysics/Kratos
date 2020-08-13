@@ -32,6 +32,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "TwoFluids"):
             solver_module_name = "navier_stokes_two_fluids_solver"
 
+        elif (solver_type == "Explicit"):
+            solver_module_name = "navier_stokes_explicit_solver"
+
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
 
