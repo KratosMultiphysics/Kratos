@@ -55,8 +55,8 @@ void IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>::CalculateRight
 
     this->CalculateRightHandSideVelocityContribution(rRightHandSideVector);
 
-    Matrix lhs;
-    this->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
+    BoundedMatrix<double, TNumNodes, TNumNodes> lhs;
+    this->CalculateBoundedLeftHandSide(lhs, rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> values;
     this->GetValuesArray(values);
@@ -105,7 +105,7 @@ void IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>::CalculateRight
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
-        const Vector gauss_shape_functions = row(shape_functions, g);
+        const Vector& gauss_shape_functions = row(shape_functions, g);
 
         const double density = RansCalculationUtilities::EvaluateInPoint(
             r_geometry, DENSITY, gauss_shape_functions);
