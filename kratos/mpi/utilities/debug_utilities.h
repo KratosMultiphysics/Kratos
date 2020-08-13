@@ -23,6 +23,12 @@
 #include "utilities/retrieve_global_pointers_by_index_functor.h"
 #include "utilities/get_value_functor.h"
 
+#define KRATOS_SINGLE_VARIABLE_TYPES bool, int, double, unsigned int
+#define KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES array_1d<double,3>, array_1d<double,4>, array_1d<double,6>, array_1d<double,9>
+#define KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES Vector, Matrix
+#define KRATOS_COMP_ADAPTOR_VARIABLE_TYPES VectorComponentAdaptor<array_1d<double,3>>, VectorComponentAdaptor<array_1d<double,4>>, VectorComponentAdaptor<array_1d<double,6>>, VectorComponentAdaptor<array_1d<double,9>>
+
+
 namespace Kratos {
 
 class MpiDebugUtilities {
@@ -31,6 +37,17 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MpiDebugUtilities);
 
     MpiDebugUtilities() {}
+
+    template <class T, class... Ts>
+    struct is_any : std::bool_constant<(std::is_same_v<T, Ts> || ...)> {};
+
+    template<class TVarType> struct is_kratos_single_variable : is_any<TVarType, KRATOS_SINGLE_VARIABLE_TYPES> {};
+    template<class TVarType> struct is_kratos_bounded_vector_variable : is_any<TVarType, KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES> {};
+    template<class TVarType> struct is_kratos_unbounded_vector_variable : is_any<TVarType, KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES> {};
+
+    template<class TVarType, class TReturnType> using EnalbeIfSingle = typename std::enable_if<is_kratos_single_variable<TVarType>::value, TReturnType>::type;
+    template<class TVarType, class TReturnType> using EnalbeIfBoundedVector = typename std::enable_if<is_kratos_bounded_vector_variable<TVarType>::value, TReturnType>::type;
+    template<class TVarType, class TReturnType> using EnalbeIfUnbounedVector = typename std::enable_if<is_kratos_unbounded_vector_variable<TVarType>::value, TReturnType>::type;
 
     // This will work with #5091 or when we move to C++17
     // static void CheckNodalHistoricalDatabase(ModelPart & rModelPart) { 
@@ -58,8 +75,20 @@ public:
 
     // Non historical Variables
 
-    template<class TVariableType>
-    static bool InteralCmpEq(const TVariableType& rVar1, const TVariableType& rVar2);
+    template<class TVarType>
+    static EnalbeIfSingle<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
+    {
+        return rVar1 == rVar2;
+    }
+
+    template<class TVarType>
+    static EnalbeIfBoundedVector<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
+    {
+        for(typename TVarType::array_type::size_type i = 0; i < std::tuple_size<typename TVarType::array_type>::value; i++) {
+            if(rVar1[i] != rVar2[i]) return false;
+        }
+        return true;
+    }
 
     template<class TVarType, class TContainerType>
     static void CheckNonHistoricalVariable(
@@ -85,52 +114,6 @@ public:
         CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
     }
 
-    // template<class TVarType>
-    // static void CheckNonHistoricalElementVariable(
-    //     ModelPart & rModelPart,
-    //     const TVarType & rVariable) 
-    // {
-    //     // Build the list of indices and the pointer communicator
-    //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-    //     std::vector<int> indices;
-
-    //     auto container = rModelPart.Elements();
-
-    //     for(auto& element : container) {
-    //         indices.push_back(element.Id());
-    //     }
-
-    //     auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
-    //     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
-
-    //     GlobalPointerCommunicator<Element> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
-
-    //     CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
-    // }
-
-    // template<class TVarType>
-    // static void CheckNonHistoricalConditionVariable(
-    //     ModelPart & rModelPart,
-    //     const TVarType & rVariable) 
-    // {
-    //     // Build the list of indices and the pointer communicator
-    //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-    //     std::vector<int> indices;
-
-    //     auto container = rModelPart.Conditions();
-
-    //     for(auto& condition : container) {
-    //         indices.push_back(condition.Id());
-    //     }
-
-    //     auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
-    //     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
-
-    //     GlobalPointerCommunicator<Condition> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
-
-    //     CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
-    // }
-
     template<class TContainerType, class TVarType>
     static void CheckNonHistoricalVariable(
         ModelPart & rModelPart,
@@ -155,12 +138,6 @@ public:
         // Check variable for all entities.
         for(auto& entity : rContainer) {
             auto& gp = gp_map[entity.Id()];
-
-            // Check Variable
-            // if(data_proxy.Get(gp) != entity.GetValue(rVariable)) {
-            //     std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << entity.Id() << " Expected: " << entity.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp) << std::endl;
-            //     val_error_detected = true;
-            // }
 
             if(InteralCmpEq(data_proxy.Get(gp),entity.GetValue(rVariable))) {
                 std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << entity.Id() << " Expected: " << entity.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp) << std::endl;
