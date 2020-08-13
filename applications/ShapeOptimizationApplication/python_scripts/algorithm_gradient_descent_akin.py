@@ -228,13 +228,16 @@ class AlgorithmGradientDescentAkin(OptimizationAlgorithm):
         phi = 0
         nabla_phi = KM.Vector([0.0]*nabla_f.Size())
 
-        # TODO all constraints or only active ones?
+        # TODO all constraints or only active ones? A: All constraints!
         print(g_a)
         for g_i, g_i_variable in zip(g_a, g_a_variables):
             phi += - math.log(-g_i)
             # TODO is it necessary to normalize/scale these values somehow?
-            # TODO what happens if constraints are already close to limit? in my case it violates in the first step already and then fails because log() is not defined
+            #   A: not necessary because the gradient puts it in relation 
+            # TODO what happens if constraints are already close to limit? in my case it violates in the first step already and then fails because log() is not defined 
+            #   A: Try to say g_i = g if g < tol else -1e12 or similar 
             # TODO packaging? transform into "soon" to violate formulation? Maybe even with simple 1/distance as gradient?
+            #   A: ask Ihar, skip for the moment - maybe introduce buffer and indicator for response that shows how far away the constraint is.
 
             nabla_g_i = KM.Vector()
             gp_utilities.AssembleVector(nabla_g_i, g_i_variable)
