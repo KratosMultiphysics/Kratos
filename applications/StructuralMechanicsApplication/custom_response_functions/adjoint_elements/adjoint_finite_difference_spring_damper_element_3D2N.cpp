@@ -83,6 +83,9 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         // give original stiffness parameters back
         this->pGetPrimalElement()->SetValue(rDesignVariable, variable_value);
     }
+    else if (rDesignVariable == PRESCRIBED_DISPLACEMENT_SENSITIVITY) {
+        BaseType::CalculateSensitivityMatrix(rDesignVariable, rOutput, rCurrentProcessInfo);
+    }
     else {
         if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
             rOutput.resize(0, local_size, false);
