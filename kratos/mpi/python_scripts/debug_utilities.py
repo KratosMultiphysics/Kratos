@@ -2,10 +2,11 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi
 
 def GetVariableAndType(varName, splitByCommponents):
-    """Returns the variable with the given name.
+    """Return the variable with the given name.
 
     Keyword arguments:
     varName -- The name of the variable to return
+    splitByCommponents -- If set to True will split the variable into commponents if possible (VAR --> VAR_X, VAR_Y, etc...)
     """
     KratosGlobals = KratosMultiphysics.KratosGlobals
 
@@ -55,23 +56,34 @@ def GetVariableAndType(varName, splitByCommponents):
     else:
         raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is unknown. Maybe you need to import the application where it is defined?\n".format(varName))
 
-def GetHistoricalVariableList(model_part, container, full_search=False):
-    """Get all variables in the historical database (GetSolutionStepValues).
+def GetHistoricalVariableList(model_part, splitByCommponents=False):
+    """Get all variables in the historical database (GetSolutionStepValues)."""
+    return GetVariableAndType(model_part.GetHistoricalVariableNames(), splitByCommponents)
 
-    Get all variables in the historical database (GetSolutionStepValues).
-    If not specified the function will asume that all nodes in `model_part`
+def GetNodalNonHistoricalVariableList(model_part, container, full_search=False, splitByCommponents=False):
+    """Get all variables in the historical database (GetValues) for entities in `container`.
+
+    Get all variables in the historical database (GetSolutionStepValues) for entities in `container`. 
+    If not specified the function will asume that all entities in `container`
     have the same variables. 
 
-    If `skip_full_check` is set to false a full
-    check over all nodes will be done. This option can be slow.
+    If `full_search` is set to True a full check over all entities will be done. This option can be slow.
     """
-    variable = GetAsCommponents(GetVariableAndType(model_part.GetHistoricalVariables(container, full_search)))
+    return GetVariableAndType(model_part.GetNonHistoricalVariables(container, full_search), splitByCommponents)
 
-    return []
+def GetNonHistoricalVariableList(model_part, full_search=False, splitByCommponents=False):
+    """Get all variables in the non historical database (GetValues) for all entities(nodes, elements and conditions).
 
+    Get all variables in the non historical database (GetValues) for all entities (nodes, elements and conditions).
+    If not specified the function will asume that all entities of the same type in `model_part` have the same variables. 
 
-def GetNonHistoricalVariableList(model_part):
-    return model_part.mp.GetNonHistoricalVariables()
+    If `full_search` is set to false a full check over all entitites will be done. This option can be slow.
+    """
+    node_variables = GetNodalNonHistoricalVariableList(model_part.GetNonHistoricalVariables(model_part.Nodes,      full_search, splitByCommponents))
+    elem_variables = GetNodalNonHistoricalVariableList(model_part.GetNonHistoricalVariables(model_part.Elements,   full_search, splitByCommponents))
+    cond_variables = GetNodalNonHistoricalVariableList(model_part.GetNonHistoricalVariables(model_part.Conditions, full_search, splitByCommponents))
+
+    return node_variables + elem_variables + cond_variables
 
 def CheckAll(model_part):
     CheckAllHistoricalVariables(model_part)
