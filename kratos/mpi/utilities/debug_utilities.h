@@ -39,7 +39,7 @@ public:
     MpiDebugUtilities() {}
 
     template <class T, class... Ts>
-    struct is_any : std::bool_constant<(std::is_same_v<T, Ts> || ...)> {};
+    struct is_any : std::bool_constant<(std::is_same<T, Ts>::value || ...)> {};
 
     template<class TVarType> struct is_kratos_single_variable : is_any<TVarType, KRATOS_SINGLE_VARIABLE_TYPES> {};
     template<class TVarType> struct is_kratos_bounded_vector_variable : is_any<TVarType, KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES> {};
