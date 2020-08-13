@@ -2,13 +2,11 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi
 
 def GetVariableAndType(varName, splitByCommponents):
-    """ This method returns the variable with the given name
+    """Returns the variable with the given name.
 
     Keyword arguments:
     varName -- The name of the variable to return
-
     """
-
     KratosGlobals = KratosMultiphysics.KratosGlobals
 
     if KratosGlobals.Kernel.HasDoubleVariable(varName):
@@ -58,24 +56,22 @@ def GetVariableAndType(varName, splitByCommponents):
         raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is unknown. Maybe you need to import the application where it is defined?\n".format(varName))
 
 def GetHistoricalVariableList(model_part, container, full_search=False):
-    """ Get all variables in the historical database ( GetSolutionStepValues )
+    """Get all variables in the historical database (GetSolutionStepValues).
 
-    Get all variables in the historical database ( GetSolutionStepValues ).
+    Get all variables in the historical database (GetSolutionStepValues).
     If not specified the function will asume that all nodes in `model_part`
     have the same variables. 
 
     If `skip_full_check` is set to false a full
     check over all nodes will be done. This option can be slow.
-
     """
-
     variable = GetAsCommponents(GetVariableAndType(model_part.GetHistoricalVariables(container, full_search)))
 
     return []
 
 
 def GetNonHistoricalVariableList(model_part):
-    pass
+    return model_part.mp.GetNonHistoricalVariables()
 
 def CheckAll(model_part):
     CheckAllHistoricalVariables(model_part)
