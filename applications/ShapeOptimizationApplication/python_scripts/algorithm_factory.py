@@ -46,6 +46,12 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                          analyzer,
                                          communicator,
                                          model_part_controller)
+    elif algorithm_name == "gradient_descent_akin":
+        from .algorithm_gradient_descent_akin import AlgorithmGradientDescentAkin
+        return AlgorithmGradientDescentAkin(optimization_settings,
+                                            analyzer,
+                                            communicator,
+                                            model_part_controller)
     else:
         raise NameError("The following optimization algorithm is not supported by the algorithm factory: " + algorithm_name)
 
