@@ -77,7 +77,7 @@
 						"destination_model_part_name" : "mpm",
 						"is_interface_sub_model_parts_specified" : true,
 						"origin_interface_sub_model_part_name" : "Structure.LineLoad2D_right_edge",
-						"destination_interface_sub_model_part_name" : "Background_Grid.DISPLACEMENT_left_edge"
+						"destination_interface_sub_model_part_name" : "Background_Grid"
 					}
 				}
             }
@@ -139,12 +139,12 @@
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name"   : "Background_Grid.DISPLACEMENT_left_edge",
+                        "model_part_name"   : "Background_Grid",
                         "dimension" : 2,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
-                        "model_part_name"   : "Background_Grid.DISPLACEMENT_left_edge",
+                        "model_part_name"   : "Background_Grid",
                         "dimension" : 2,
                         "variable_name" : "REACTION"
                     }

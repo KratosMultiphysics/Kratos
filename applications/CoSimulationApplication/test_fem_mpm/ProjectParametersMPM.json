@@ -33,7 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_left_edge","PointLoad2D_right_edge"],
         "grid_model_import_settings"         : {
             "input_type"     : "mdpa",
-            "input_filename" : "mpm_Grid_nonconforming"
+            "input_filename" : "mpm_Grid"
         },
         "pressure_dofs"                      : false
     },
