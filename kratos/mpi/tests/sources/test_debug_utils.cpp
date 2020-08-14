@@ -27,7 +27,7 @@ namespace Kratos {
 
 namespace Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValue, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValue, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
     const int world_size = r_comm.Size();
@@ -55,7 +55,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValue, Kratos
     MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, TEMPERATURE);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixity, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixity, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
     const int world_size = r_comm.Size();
@@ -85,7 +85,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixity, Krato
     MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValueError, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValueError, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
     const int world_rank = r_comm.Rank();
@@ -118,7 +118,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableValueError, K
     );
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixityError, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixityError, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
     const int world_rank = r_comm.Rank();
@@ -154,7 +154,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableFixityError, 
     );
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleVariableCombinedError, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCombinedError, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
     const int world_rank = r_comm.Rank();
