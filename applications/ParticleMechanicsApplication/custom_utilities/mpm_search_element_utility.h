@@ -909,9 +909,8 @@ namespace MPMSearchElementUtility
             IsFound = true;
             return rParentGeom;
         }
-        else
-        {
-            if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS) && !IsOnGrid)
+        else if(!IsOnGrid) {
+            if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS))
                 ConstructNeighbourRelations(rParentGeom, rBackgroundGridModelPart);
 
             auto& geometry_neighbours = rParentGeom.GetValue(GEOMETRY_NEIGHBOURS);
