@@ -137,7 +137,7 @@ public:
         for(auto& entity : rContainer) {
             auto& gp = gp_map[entity.Id()];
 
-            if(InteralCmpEq(data_proxy.Get(gp),entity.GetValue(rVariable))) {
+            if(!InteralCmpEq(entity.GetValue(rVariable),data_proxy.Get(gp))) {
                 std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << entity.Id() << " Expected: " << entity.GetValue(rVariable) << " Obtained " << data_proxy.Get(gp) << std::endl;
                 val_error_detected = true;
             }
