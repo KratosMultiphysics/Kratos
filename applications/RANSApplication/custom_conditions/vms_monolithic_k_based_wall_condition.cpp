@@ -126,20 +126,17 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         double condition_y_plus{0.0};
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
 
+        double tke, rho, nu;
+        array_1d<double, 3> r_wall_velocity;
+
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
 
-            const array_1d<double, 3>& r_wall_velocity =
-                RansCalculationUtilities::EvaluateInPoint(
-                    r_geometry, VELOCITY, gauss_shape_functions);
-            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
+            RansCalculationUtilities::EvaluateInPoint(
+                std::tie(tke, rho, nu, r_wall_velocity), r_geometry, gauss_shape_functions,
+                TURBULENT_KINETIC_ENERGY, DENSITY, KINEMATIC_VISCOSITY, VELOCITY);
 
-            const double tke = RansCalculationUtilities::EvaluateInPoint(
-                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-            const double rho = RansCalculationUtilities::EvaluateInPoint(
-                r_geometry, DENSITY, gauss_shape_functions);
-            const double nu = RansCalculationUtilities::EvaluateInPoint(
-                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
 
             double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(

@@ -15,6 +15,7 @@
 
 // System includes
 #include <cmath>
+#include <tuple>
 
 // Project includes
 #include "geometries/geometry.h"
@@ -29,6 +30,27 @@ namespace Kratos
 
 namespace RansCalculationUtilities
 {
+// TODO: Remove this after std14 upgrade
+// this is not required once we upgrade to std14 or better :)
+namespace std14
+{
+template <std::size_t...>
+struct index_sequence {
+};
+
+template <std::size_t N, std::size_t... Next>
+struct indexSequenceHelper : public indexSequenceHelper<N - 1U, N - 1U, Next...> {
+};
+
+template <std::size_t... Next>
+struct indexSequenceHelper<0U, Next...> {
+    using type = index_sequence<Next...>;
+};
+
+template <std::size_t N>
+using make_index_sequence = typename indexSequenceHelper<N>::type;
+} // namespace std14
+
 /// Node type
 using NodeType = ModelPart::NodeType;
 using ElementType = ModelPart::ElementType;
@@ -78,6 +100,67 @@ double EvaluateInPoint(
     const Variable<double>& rVariable,
     const Vector& rShapeFunction,
     const int Step = 0);
+
+template<class... TDataTypeArgs, std::size_t... Is>
+void inline InitializePartialGaussPointValues(
+    std::tuple<TDataTypeArgs&...> rValues,
+    const double ShapeFunctionValue,
+    const NodeType& rNode,
+    const int Step,
+    const std14::index_sequence<Is...>&,
+    const Variable<TDataTypeArgs>&... rVariables)
+{
+    int dummy[sizeof...(TDataTypeArgs)] = {(
+        std::get<Is>(rValues) = rNode.FastGetSolutionStepValue(rVariables, Step) * ShapeFunctionValue,
+        0)...};
+    // following line is used to ignore warning of unused_variable
+    *dummy = 0;
+}
+
+template<class... TDataTypeArgs, std::size_t... Is>
+void inline UpdatePartialGaussPointValues(
+    std::tuple<TDataTypeArgs&...> rValues,
+    const double ShapeFunctionValue,
+    const NodeType& rNode,
+    const int Step,
+    const std14::index_sequence<Is...>&,
+    const Variable<TDataTypeArgs>&... rVariables)
+{
+    int dummy[sizeof...(TDataTypeArgs)] = {(
+        std::get<Is>(rValues) += rNode.FastGetSolutionStepValue(rVariables, Step) * ShapeFunctionValue,
+        0)...};
+    // following line is used to ignore warning of unused_variable
+    *dummy = 0;
+}
+
+template <class... TDataTypeArgs>
+void EvaluateInPoint(
+    std::tuple<TDataTypeArgs&...> rValues,
+    const GeometryType& rGeometry,
+    const Vector& rShapeFunction,
+    const int Step,
+    const Variable<TDataTypeArgs>&... rVariables)
+{
+    const int number_of_nodes = rGeometry.PointsNumber();
+    const auto indexed_sequence = std14::make_index_sequence<sizeof...(TDataTypeArgs)>();
+
+    InitializePartialGaussPointValues<TDataTypeArgs...>(
+        rValues, rShapeFunction[0], rGeometry[0], Step, indexed_sequence, rVariables...);
+    for (int c = 1; c < number_of_nodes; ++c) {
+        UpdatePartialGaussPointValues<TDataTypeArgs...>(
+            rValues, rShapeFunction[c], rGeometry[c], Step, indexed_sequence, rVariables...);
+    }
+}
+
+template <class... TDataTypeArgs>
+void EvaluateInPoint(
+    std::tuple<TDataTypeArgs&...> rValues,
+    const GeometryType& rGeometry,
+    const Vector& rShapeFunction,
+    const Variable<TDataTypeArgs>&... rVariables)
+{
+    EvaluateInPoint<TDataTypeArgs...>(rValues, rGeometry, rShapeFunction, 0, rVariables...);
+}
 
 array_1d<double, 3> EvaluateInPoint(
     const GeometryType& rGeometry,
