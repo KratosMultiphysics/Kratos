@@ -100,18 +100,16 @@ public:
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
         std::vector<int> indices;
 
-        auto container = rModelPart.Nodes();
-
-        for(auto& node : container) {
-            indices.push_back(node.Id());
+        for(auto& entity : rContainer) {
+            indices.push_back(entity.Id());
         }
 
-        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(container, indices, r_default_comm );
-        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(container, indices, r_default_comm );
+        auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(rContainer, indices, r_default_comm );
+        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(rContainer, indices, r_default_comm );
 
-        GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+        GlobalPointerCommunicator<typename TContainerType::data_type> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNonHistoricalVariable(rModelPart, container, rVariable, pointer_comm, gp_map);
+        CheckNonHistoricalVariable(rModelPart, rContainer, rVariable, pointer_comm, gp_map);
     }
 
     template<class TContainerType, class TVarType>
@@ -119,8 +117,8 @@ public:
         ModelPart & rModelPart,
         const TContainerType & rContainer,
         const TVarType & rVariable,
-        GlobalPointerCommunicator<Node<3>> & rPointerCommunicator, 
-        std::unordered_map<int, GlobalPointer<Node<3>>> & gp_map) 
+        GlobalPointerCommunicator<typename TContainerType::data_type> & rPointerCommunicator, 
+        std::unordered_map<int, GlobalPointer<typename TContainerType::data_type>> & gp_map) 
     {
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
         
@@ -130,7 +128,7 @@ public:
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
-            [rVariable](GlobalPointer< Node<3> >& gp)-> typename TVarType::Type {
+            [rVariable](GlobalPointer<typename TContainerType::data_type>& gp)-> typename TVarType::Type {
                 return gp->GetValue(rVariable);
             }
         );
@@ -158,7 +156,7 @@ public:
     // Historical Variables
 
     template<class TVarType>
-    static void CheckNodalHistoricalVariable(
+    static void CheckHistoricalVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable) 
     {
@@ -177,11 +175,11 @@ public:
 
         GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
-        CheckNodalHistoricalVariable(rModelPart, rVariable, pointer_comm, gp_map);
+        CheckHistoricalVariable(rModelPart, rVariable, pointer_comm, gp_map);
     }
 
     template<class TVarType>
-    static void CheckNodalHistoricalVariable(
+    static void CheckHistoricalVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable,
         GlobalPointerCommunicator<Node<3>> & rPointerCommunicator, 
