@@ -242,6 +242,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     array_1d<double, 3> variable_gradient;
     const Variable<double>& primal_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
+    const Variable<double>& relaxed_primal_rate_variable =
+        TConvectionDiffusionReactionData::GetScalarRelaxedRateVariable();
 
     const auto& r_geometry = this->GetGeometry();
     TConvectionDiffusionReactionData element_data(r_geometry);
@@ -249,6 +251,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     element_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedMatrix<double, TDim, TDim> contravariant_metric_tensor;
+    double variable_value, relaxed_variable_acceleration;
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const double weight = gauss_weights[g];
@@ -270,8 +273,6 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
                 gauss_shape_functions, r_shape_derivatives);
         const double variable_gradient_norm =
             this->GetScalarVariableGradientNorm(r_shape_derivatives);
-        const double relaxed_variable_acceleration =
-            this->GetScalarVariableRelaxedAcceleration(gauss_shape_functions);
         this->CalculateGradient(variable_gradient, primal_variable, r_shape_derivatives);
 
         const double reaction = element_data.CalculateReactionTerm(
@@ -289,8 +290,12 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         const double velocity_dot_variable_gradient =
             inner_prod(velocity, variable_gradient);
-        const double variable_value =
-            this->EvaluateInPoint(primal_variable, gauss_shape_functions);
+
+        RansCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            RansCalculationUtilities::VariableValuePairTie(variable_value, primal_variable),
+            RansCalculationUtilities::VariableValuePairTie(
+                relaxed_variable_acceleration, relaxed_primal_rate_variable));
 
         if (variable_gradient_norm > eps && velocity_magnitude_square > eps) {
             const double source = element_data.CalculateSourceTerm(
@@ -396,20 +401,6 @@ double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TC
                             TConvectionDiffusionReactionData::GetScalarVariable(),
                             rShapeFunctionDerivatives, Step);
     return norm_2(scalar_variable_gradient);
-
-    KRATOS_CATCH("");
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableRelaxedAcceleration(
-    const Vector& rShapeFunctions,
-    const int Step) const
-{
-    KRATOS_TRY;
-
-    return this->EvaluateInPoint(
-        TConvectionDiffusionReactionData::GetScalarRelaxedRateVariable(),
-        rShapeFunctions, Step);
 
     KRATOS_CATCH("");
 }

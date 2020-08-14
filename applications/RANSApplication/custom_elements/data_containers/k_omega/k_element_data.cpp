@@ -91,19 +91,19 @@ void KElementData<TDim>::CalculateGaussPointData(
 {
     KRATOS_TRY
 
-    mTurbulentKineticEnergy = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions);
-    mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions);
+    using namespace RansCalculationUtilities;
 
-    mVelocityDivergence = RansCalculationUtilities::GetDivergence(
-        this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
+                    VariableValuePairTie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+                    VariableValuePairTie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+                    VariableValuePairTie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+                    VariableValuePairTie(mEffectiveVelocity, VELOCITY));
 
-    RansCalculationUtilities::CalculateGradient<TDim>(
-        this->mVelocityGradient, this->GetGeometry(), VELOCITY,
-        rShapeFunctionDerivatives, Step);
+    mVelocityDivergence =
+        GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+
+    CalculateGradient<TDim>(this->mVelocityGradient, this->GetGeometry(),
+                            VELOCITY, rShapeFunctionDerivatives, Step);
 
     KRATOS_CATCH("");
 }
@@ -113,8 +113,7 @@ array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
-    return RansCalculationUtilities::EvaluateInPoint(this->GetGeometry(),
-                                                     VELOCITY, rShapeFunctions);
+    return mEffectiveVelocity;
 }
 
 template <unsigned int TDim>

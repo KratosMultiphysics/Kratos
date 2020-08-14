@@ -153,17 +153,19 @@ void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Calcula
 {
     KRATOS_TRY
 
+    using namespace RansCalculationUtilities;
+
     if (rRightHandSideVector.size() != TNumNodes) {
         rRightHandSideVector.resize(TNumNodes, false);
     }
 
     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-    if (RansCalculationUtilities::IsInlet(*this)) {
+    if (IsInlet(*this)) {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
-        RansCalculationUtilities::CalculateConditionGeometryData(
+        CalculateConditionGeometryData(
             this->GetGeometry(), this->GetIntegrationMethod(), gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
@@ -174,14 +176,16 @@ void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Calcula
             << this->Id() << ".";
         r_normal /= normal_magnitude;
 
+        array_1d<double, 3> velocity;
+
         for (IndexType g = 0; g < num_gauss_points; ++g) {
             const Vector gauss_shape_functions = row(shape_functions, g);
 
-            const array_1d<double, 3>& r_velocity = RansCalculationUtilities::EvaluateInPoint(
-                this->GetGeometry(), VELOCITY, gauss_shape_functions);
+            EvaluateInPoint(this->GetGeometry(), gauss_shape_functions,
+                            VariableValuePairTie(velocity, VELOCITY));
 
             const double velocity_potential_flux =
-                inner_prod(r_velocity, r_normal) * gauss_weights[g];
+                inner_prod(velocity, r_normal) * gauss_weights[g];
 
             noalias(rRightHandSideVector) += gauss_shape_functions * velocity_potential_flux;
         }

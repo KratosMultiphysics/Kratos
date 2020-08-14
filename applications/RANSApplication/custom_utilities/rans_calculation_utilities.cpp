@@ -82,55 +82,6 @@ void CalculateConditionGeometryData(
     }
 }
 
-double EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Variable<double>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step)
-{
-    const unsigned int number_of_nodes = rGeometry.PointsNumber();
-    double value = 0.0;
-    for (unsigned int c = 0; c < number_of_nodes; ++c) {
-        value += rShapeFunction[c] * rGeometry[c].FastGetSolutionStepValue(rVariable, Step);
-    }
-
-    return value;
-}
-
-array_1d<double, 3> EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step)
-{
-    const unsigned int number_of_nodes = rGeometry.PointsNumber();
-    array_1d<double, 3> value = ZeroVector(3);
-    for (unsigned int c = 0; c < number_of_nodes; ++c) {
-        value += rShapeFunction[c] * rGeometry[c].FastGetSolutionStepValue(rVariable, Step);
-    }
-
-    return value;
-}
-
-template <typename TDataType>
-TDataType EvaluateInParentCenter(
-    const Variable<TDataType>& rVariable,
-    const ConditionType& rCondition,
-    const int Step)
-{
-    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
-
-    Vector parent_gauss_weights;
-    Matrix parent_shape_functions;
-    GeometryData::ShapeFunctionsGradientsType parent_shape_function_derivatives;
-    CalculateGeometryData(r_parent_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1,
-                          parent_gauss_weights, parent_shape_functions,
-                          parent_shape_function_derivatives);
-    return EvaluateInPoint(r_parent_geometry, rVariable,
-                           row(parent_shape_functions, 0), Step);
-}
-
 template <unsigned int TDim>
 double CalculateMatrixTrace(
     const BoundedMatrix<double, TDim, TDim>& rMatrix)
@@ -377,10 +328,11 @@ array_1d<double, 3> CalculateWallVelocity(
                           parent_shape_function_derivatives);
 
     const Vector& gauss_parent_shape_functions = row(parent_shape_functions, 0);
-    const array_1d<double, 3>& parent_center_velocity =
-        EvaluateInPoint(r_parent_geometry, VELOCITY, gauss_parent_shape_functions);
-    const array_1d<double, 3>& parent_center_mesh_velocity = EvaluateInPoint(
-        r_parent_geometry, MESH_VELOCITY, gauss_parent_shape_functions);
+
+    array_1d<double, 3> parent_center_velocity, parent_center_mesh_velocity;
+    EvaluateInPoint(r_parent_geometry, gauss_parent_shape_functions,
+                    VariableValuePairTie(parent_center_velocity, VELOCITY),
+                    VariableValuePairTie(parent_center_mesh_velocity, MESH_VELOCITY));
 
     const array_1d<double, 3>& parent_center_effective_velocity =
         parent_center_velocity - parent_center_mesh_velocity;
@@ -505,16 +457,6 @@ template Vector GetVector<2>(
 
 template Vector GetVector<3>(
     const array_1d<double, 3>&);
-
-template double EvaluateInParentCenter(
-    const Variable<double>&,
-    const ConditionType&,
-    const int);
-
-template array_1d<double, 3> EvaluateInParentCenter(
-    const Variable<array_1d<double, 3>>&,
-    const ConditionType&,
-    const int);
 
 template void UpdateValue<array_1d<double, 3>>(array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput);
 

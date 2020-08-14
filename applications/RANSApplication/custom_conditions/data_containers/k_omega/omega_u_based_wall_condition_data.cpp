@@ -93,13 +93,17 @@ bool OmegaUBasedWallConditionData::IsWallFluxComputable() const
 double OmegaUBasedWallConditionData::CalculateWallFlux(
     const Vector& rShapeFunctions) const
 {
-    const double nu = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions);
-    const double nu_t = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions);
-    const array_1d<double, 3>& r_velocity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), VELOCITY, rShapeFunctions);
-    const double velocity_magnitude = norm_2(r_velocity);
+    using namespace RansCalculationUtilities;
+
+    double nu, nu_t;
+    array_1d<double, 3> velocity;
+
+    EvaluateInPoint(this->GetGeometry(), rShapeFunctions,
+                    VariableValuePairTie(nu, KINEMATIC_VISCOSITY),
+                    VariableValuePairTie(nu_t, TURBULENT_VISCOSITY),
+                    VariableValuePairTie(velocity, VELOCITY));
+
+    const double velocity_magnitude = norm_2(velocity);
 
     const double u_tau = velocity_magnitude / (mInvKappa * std::log(mYPlus) + mBeta);
 

@@ -30,33 +30,15 @@ namespace Kratos
 
 namespace RansCalculationUtilities
 {
-// TODO: Remove this after std14 upgrade
-// this is not required once we upgrade to std14 or better :)
-namespace std14
-{
-template <std::size_t...>
-struct index_sequence {
-};
-
-template <std::size_t N, std::size_t... Next>
-struct indexSequenceHelper : public indexSequenceHelper<N - 1U, N - 1U, Next...> {
-};
-
-template <std::size_t... Next>
-struct indexSequenceHelper<0U, Next...> {
-    using type = index_sequence<Next...>;
-};
-
-template <std::size_t N>
-using make_index_sequence = typename indexSequenceHelper<N>::type;
-} // namespace std14
-
 /// Node type
 using NodeType = ModelPart::NodeType;
 using ElementType = ModelPart::ElementType;
 using ConditionType = ModelPart::ConditionType;
 /// Geometry type (using with given NodeType)
 using GeometryType = Geometry<NodeType>;
+
+template<class TDataType>
+using RefVariablePair = std::tuple<TDataType&, const Variable<TDataType>&>;
 
 inline long double SoftMax(
     const long double value_1,
@@ -95,88 +77,81 @@ void CalculateGeometryParameterDerivativesShapeSensitivity(
     const Matrix& rDnDe,
     const Matrix& rDeDx);
 
-double EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Variable<double>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step = 0);
-
 template<class TDataType>
 void UpdateValue(TDataType& rOutput, const TDataType& rInput);
 
-template<class... TDataTypeArgs, std::size_t... Is>
-void inline InitializePartialGaussPointValues(
-    std::tuple<TDataTypeArgs&...> rValues,
+template<class TDataType>
+constexpr RefVariablePair<TDataType> inline VariableValuePairTie(
+    TDataType& rValue,
+    const Variable<TDataType>& rVariable)
+{
+    // need this to make sure rVariables are ties with const references since
+    // std::tie only support reference variable tieing.
+    return std::tie(rValue, rVariable);
+}
+
+template<class... TDataTypeArgs>
+void inline InitializeVariablePair(
+    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs,
     const double ShapeFunctionValue,
     const NodeType& rNode,
-    const int Step,
-    const std14::index_sequence<Is...>&,
-    const Variable<TDataTypeArgs>&... rVariables)
+    const int Step
+)
 {
     int dummy[sizeof...(TDataTypeArgs)] = {(
-        std::get<Is>(rValues) = rNode.FastGetSolutionStepValue(rVariables, Step) * ShapeFunctionValue,
+        std::get<0>(rValueVariablePairs) =
+            rNode.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * ShapeFunctionValue,
         0)...};
-    // following line is used to ignore warning of unused_variable
+    // following line is used to ignore warning of unused_variable can be removed by using fold expressions in c++17
     *dummy = 0;
 }
 
-template<class... TDataTypeArgs, std::size_t... Is>
-void inline UpdatePartialGaussPointValues(
-    std::tuple<TDataTypeArgs&...> rValues,
+template<class... TDataTypeArgs>
+void inline UpdateVariablePair(
+    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs,
     const double ShapeFunctionValue,
     const NodeType& rNode,
-    const int Step,
-    const std14::index_sequence<Is...>&,
-    const Variable<TDataTypeArgs>&... rVariables)
+    const int Step
+)
 {
     int dummy[sizeof...(TDataTypeArgs)] = {(
-        UpdateValue<TDataTypeArgs>(std::get<Is>(rValues),
-                                   rNode.FastGetSolutionStepValue(rVariables, Step) * ShapeFunctionValue),
+        UpdateValue<TDataTypeArgs>(
+            std::get<0>(rValueVariablePairs),
+            rNode.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * ShapeFunctionValue),
         0)...};
-    // following line is used to ignore warning of unused_variable
+    // following line is used to ignore warning of unused_variable can be removed by using fold expressions in c++17
     *dummy = 0;
 }
 
 template <class... TDataTypeArgs>
 void EvaluateInPoint(
-    std::tuple<TDataTypeArgs&...> rValues,
     const GeometryType& rGeometry,
     const Vector& rShapeFunction,
     const int Step,
-    const Variable<TDataTypeArgs>&... rVariables)
+    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs)
 {
     const int number_of_nodes = rGeometry.PointsNumber();
-    const auto indexed_sequence = std14::make_index_sequence<sizeof...(TDataTypeArgs)>();
 
-    InitializePartialGaussPointValues<TDataTypeArgs...>(
-        rValues, rShapeFunction[0], rGeometry[0], Step, indexed_sequence, rVariables...);
+    InitializeVariablePair<TDataTypeArgs...>(
+        std::forward<RefVariablePair<TDataTypeArgs>>(rValueVariablePairs)...,
+        rShapeFunction[0], rGeometry[0], Step);
     for (int c = 1; c < number_of_nodes; ++c) {
-        UpdatePartialGaussPointValues<TDataTypeArgs...>(
-            rValues, rShapeFunction[c], rGeometry[c], Step, indexed_sequence, rVariables...);
+        UpdateVariablePair<TDataTypeArgs...>(
+            std::forward<RefVariablePair<TDataTypeArgs>>(rValueVariablePairs)...,
+            rShapeFunction[c], rGeometry[c], Step);
     }
 }
 
 template <class... TDataTypeArgs>
 void EvaluateInPoint(
-    std::tuple<TDataTypeArgs&...> rValues,
     const GeometryType& rGeometry,
     const Vector& rShapeFunction,
-    const Variable<TDataTypeArgs>&... rVariables)
+    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs)
 {
-    EvaluateInPoint<TDataTypeArgs...>(rValues, rGeometry, rShapeFunction, 0, rVariables...);
+    EvaluateInPoint<TDataTypeArgs...>(
+        rGeometry, rShapeFunction, 0,
+        std::forward<RefVariablePair<TDataTypeArgs>>(rValueVariablePairs)...);
 }
-
-array_1d<double, 3> EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step = 0);
-
-template <typename TDataType>
-TDataType EvaluateInParentCenter(
-    const Variable<TDataType>& rVariable,
-    const ConditionType& rCondition,
-    const int Step = 0);
 
 template <unsigned int TDim>
 double CalculateMatrixTrace(
