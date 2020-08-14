@@ -712,7 +712,7 @@ const ModelPart::SubModelPartIterator GetSubModelPartEnd(ModelPart& rModelPart)
  * the container is representative of the list of variables in every intenty
  */
 template<class TContainerType>
-const std::unordered_set<std::string> GetNonHistoricalVariableNames(ModelPart& rModelPart, TContainerType& rContainer, bool doFullSearch=false) {
+const std::unordered_set<std::string> GetNonHistoricalVariablesNames(ModelPart& rModelPart, TContainerType& rContainer, bool doFullSearch=false) {
 
     std::unordered_set<std::string> variable_names;
 
@@ -925,21 +925,21 @@ void AddModelPartToPython(pybind11::module& m)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
         .def_property_readonly("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
-        .def("GetHistoricalVariableNames", [](ModelPart& rModelPart) -> std::unordered_set<std::string> {
+        .def("GetHistoricalVariablesNames", [](ModelPart& rModelPart) -> std::unordered_set<std::string> {
             std::unordered_set<std::string> variable_names;
             for(auto & variable: rModelPart.GetNodalSolutionStepVariablesList()) {
                 variable_names.insert(variable.Name());
             }
             return variable_names;
         })
-        .def("GetNonHistoricalVariableNames", [](ModelPart& rModelPart, ModelPart::NodesContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
-            return GetNonHistoricalVariableNames(rModelPart, rContainer, doFullSearch);
+        .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::NodesContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
+            return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
         })
-        .def("GetNonHistoricalVariableNames", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
-            return GetNonHistoricalVariableNames(rModelPart, rContainer, doFullSearch);
+        .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
+            return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
         })
-        .def("GetNonHistoricalVariableNames", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
-            return GetNonHistoricalVariableNames(rModelPart, rContainer, doFullSearch);
+        .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
+            return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
         })
         .def("GetMasterSlaveConstraint", ModelPartGetMasterSlaveConstraint1)
         .def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
