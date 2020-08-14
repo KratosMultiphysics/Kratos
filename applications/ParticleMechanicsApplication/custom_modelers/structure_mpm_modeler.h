@@ -103,6 +103,11 @@ public:
 
     void UpdateGeometryModel();
 
+    void PrepareGeometryModel() override
+    {
+        //this->UpdateGeometryModel();
+    }
+
     ///@}
     ///@name Model Part generation
     ///@{
