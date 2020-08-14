@@ -13,23 +13,24 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesExplicitSolver(FluidSolver):
     def __init__(self, model, custom_settings):
-        # Call base fluid solver constructor
-        self._validate_settings_in_baseclass=True # To be removed eventually
+        self._validate_settings_in_baseclass = True # To be removed eventually
         super(NavierStokesExplicitSolver,self).__init__(model,custom_settings)
 
-        # Define the formulation settings
-        self.element_name = "SymbolicExplicitQSNavierStokes"
-        if custom_settings["domain_size"].GetInt() == 2:
-            self.condition_name = "LineCondition"
-        elif custom_settings["domain_size"].GetInt() == 3:
-            self.condition_name = "SurfaceCondition"
-        else:
-            err_mgs = "Wrong domain size "
-            raise Exception(err_msg)
+        if custom_settings["formulation"]["element_type"].GetString() != "SymbolicExplicitQSNavierStokes":
+            raise Exception("NavierStokesExplicitSolver only accepts SymbolicExplicitQSNavierStokes as the \"element_type\" in \"formulation\"")
+
+        self.element_name = custom_settings["formulation"]["element_type"].GetString()
+        self.condition_name = custom_settings["formulation"]["condition_type"].GetString()
+
         self.min_buffer_size = 2
         self.element_has_nodal_properties = False # TODO: check
+        self.compute_reactions = self.settings["compute_reactions"].GetBool() # TODO: check
 
-        KratosMultiphysics.Logger.PrintInfo("::[NavierStokesExplicitSolver]:: ","Construction of NavierStokesExplicitSolver finished.")
+        if self.settings["use_oss"].GetBool():
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH,1)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesExplicitSolver finished.")
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -48,7 +49,6 @@ class NavierStokesExplicitSolver(FluidSolver):
                 "materials_filename": "FluidMaterials.json"
             },
             "echo_level": 1,
-            "time_order": 2,
             "move_mesh_flag": false,
             "compute_reactions": false,
             "reform_dofs_at_each_step" : false,
@@ -57,14 +57,16 @@ class NavierStokesExplicitSolver(FluidSolver):
             "skin_parts": [""],
             "no_skin_parts":[""],
             "time_stepping"                : {
-                "automatic_time_step" : false,
-                "CFL_number"          : 1.0,
-                "minimum_delta_time"  : 1.0e-8,
-                "maximum_delta_time"  : 1.0e-2
+                "automatic_time_step": false,
+                "CFL_number": 1.0,
+                "minimum_delta_time": 1.0e-8,
+                "maximum_delta_time": 1.0e-2
             },
-            "use_oss" : true,
-            "transient_parameters" : {
-                "dynamic_tau": 1.0
+            "use_oss": true,
+            "dynamic_tau": 1.0,
+            "formulation": {
+                "element_type": "SymbolicExplicitQSNavierStokes",
+                "condition_type": "WallCondition"
             }
         }""")
 
@@ -78,28 +80,14 @@ class NavierStokesExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
 
-        KratosMultiphysics.Logger.PrintInfo("::[NavierStokesExplicitSolver]:: ","Explicit fluid solver variables added correctly")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Explicit fluid solver variables added correctly")
 
     def Initialize(self):
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            raise Exception("ERROR: _GetAutomaticTimeSteppingUtility out of date")
-
-        # Set the time discretization utility to compute the BDF coefficients
-        time_order = self.settings["time_order"].GetInt()
-        if time_order == 2:
-            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
-        else:
-            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
-
-        if self.settings["use_oss"].GetBool():
-            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = 1
-
         self.solver = self._get_solution_strategy()
         self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Initialize()
 
-        KratosMultiphysics.Logger.PrintInfo("::[NavierStokesExplicitSolver]:: ","Explicit fluid solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Explicit fluid solver initialization finished.")
 
     def _get_solution_strategy(self):
         if not hasattr(self, '_solution_strategy'):
