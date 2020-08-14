@@ -112,6 +112,21 @@ namespace Kratos
         {
             coupling_interface_origin.SetNodes(fem_coupling_nodes.pNodes());
             coupling_interface_destination.SetNodes(mpm_coupling_nodes.pNodes());
+
+
+        }
+
+        // We fix the interface nodes so they can receive the prescribed displacements from FEM.
+        // TODO, this will need to be updated every timestep for dynamic simulations
+        const SizeType working_dim = background_grid_model_part.ElementsBegin()->WorkingSpaceDimension();
+        if (!mIsOriginMpm)
+        {
+            for (size_t i = 0; i < mpm_coupling_nodes.NumberOfNodes(); i++)
+            {
+                mpm_coupling_nodes.NodesArray()[i]->Fix(DISPLACEMENT_X);
+                mpm_coupling_nodes.NodesArray()[i]->Fix(DISPLACEMENT_Y);
+                if (working_dim == 3) mpm_coupling_nodes.NodesArray()[i]->Fix(DISPLACEMENT_Z);
+            }
         }
 
         std::vector<GeometryPointerType>& p_quads_origin = (mIsOriginMpm) ? quads_mpm : quads_structure;
