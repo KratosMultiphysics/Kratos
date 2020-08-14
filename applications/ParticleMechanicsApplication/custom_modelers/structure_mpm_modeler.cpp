@@ -103,9 +103,6 @@ namespace Kratos
             }
         }
 
-        KRATOS_WATCH(mpm_coupling_nodes)
-        KRATOS_WATCH(fem_coupling_nodes)
-
         if (mIsOriginMpm)
         {
             coupling_interface_origin.SetNodes(mpm_coupling_nodes.pNodes());
