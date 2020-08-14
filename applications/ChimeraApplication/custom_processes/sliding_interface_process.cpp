@@ -17,7 +17,6 @@
 // Project includes
 #include "utilities/openmp_utils.h"
 #include "custom_processes/sliding_interface_process.h"
-#include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/variable_utils.h"
 #include "containers/model.h"
@@ -29,7 +28,8 @@
 namespace Kratos
 {
 
-SlidingInterfaceProcess::SlidingInterfaceProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
+template<int TDim>
+SlidingInterfaceProcess<TDim>::SlidingInterfaceProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
                                 Parameters Settings) : Process(Flags()), mrMasterModelPart(rMasterModelPart),
                                 mrSlaveModelPart(rSlaveModelPart), mParameters(Settings)
 {
@@ -41,20 +41,25 @@ SlidingInterfaceProcess::SlidingInterfaceProcess(ModelPart &rMasterModelPart, Mo
     mSearchTolerance = mParameters["search_settings"]["tolerance"].GetDouble();
 }
 
-SlidingInterfaceProcess::~SlidingInterfaceProcess()
+template<int TDim>
+SlidingInterfaceProcess<TDim>::~SlidingInterfaceProcess()
 {
 }
 
 /**
     * @brief Function initializes the process
     */
-void SlidingInterfaceProcess::ExecuteInitialize()
+template<int TDim>
+void SlidingInterfaceProcess<TDim>::ExecuteInitialize()
 {
     MakeSearchModelpart();
+
+    mpPointLocator =  Kratos::make_shared< BinBasedFastPointLocatorConditions<TDim> > (mrMasterModelPart);
+    mpPointLocator->UpdateSearchDatabase();
 }
 
-
-void SlidingInterfaceProcess::ExecuteFinalize()
+template<int TDim>
+void SlidingInterfaceProcess<TDim>::ExecuteFinalize()
 {
 }
 
@@ -62,7 +67,8 @@ void SlidingInterfaceProcess::ExecuteFinalize()
 /**
     * @brief Function initializes the solution step
     */
-void SlidingInterfaceProcess::ExecuteInitializeSolutionStep()
+template<int TDim>
+void SlidingInterfaceProcess<TDim>::ExecuteInitializeSolutionStep()
 {
 
     KRATOS_TRY;
@@ -70,29 +76,21 @@ void SlidingInterfaceProcess::ExecuteInitializeSolutionStep()
     VariableUtils().SetHistoricalVariableToZero<double>(MESH_VELOCITY_X, mrMasterModelPart.Nodes());
     VariableUtils().SetHistoricalVariableToZero<double>(MESH_VELOCITY_Y, mrMasterModelPart.Nodes());
     VariableUtils().SetHistoricalVariableToZero<double>(MESH_VELOCITY_Z, mrMasterModelPart.Nodes());
-    const int domain_size = mrMasterModelPart.GetProcessInfo()[DOMAIN_SIZE];
     // Rotate the master so it goes to the slave
-    if (domain_size == 2){
-        ApplyConstraintsForSlidingInterface<2>();
-    }
-    else if (domain_size == 3){
-        ApplyConstraintsForSlidingInterface<3>();
-    } else {
-        KRATOS_ERROR <<"Periodic conditions are designed only for 2 and 3 Dimensional cases ! "<<std::endl;
-    }
+    ApplyConstraintsForSlidingInterface();
 
     KRATOS_CATCH("");
 }
 
-
-void SlidingInterfaceProcess::ExecuteFinalizeSolutionStep()
+template<int TDim>
+void SlidingInterfaceProcess<TDim>::ExecuteFinalizeSolutionStep()
 {
     mrMasterModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
 }
 
 
-
-const Parameters SlidingInterfaceProcess::GetDefaultParameters() const
+template<int TDim>
+const Parameters SlidingInterfaceProcess<TDim>::GetDefaultParameters() const
 {
     const Parameters default_parameters(R"(
     {
@@ -109,13 +107,14 @@ const Parameters SlidingInterfaceProcess::GetDefaultParameters() const
 /**
     * @brief Function to print the information about this current process
     */
-void SlidingInterfaceProcess::PrintInfo(std::ostream& rOStream) const
+template<int TDim>
+void SlidingInterfaceProcess<TDim>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream <<"SlidingInterfaceProcess Process "<<std::endl;
 }
 
-
-void SlidingInterfaceProcess::MakeSearchModelpart()
+template<int TDim>
+void SlidingInterfaceProcess<TDim>::MakeSearchModelpart()
 {
     #ifdef KRATOS_USING_MPI
     const DataCommunicator &r_comm =
@@ -147,16 +146,11 @@ void SlidingInterfaceProcess::MakeSearchModelpart()
     #endif
 }
 
-
-template <int TDim>
-void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
+template<int TDim>
+void SlidingInterfaceProcess<TDim>::ApplyConstraintsForSlidingInterface()
 {
     const double start_apply = OpenMPUtils::GetCurrentTime();
     const int num_vars = mParameters["variable_names"].size();
-
-    ModelPart& r_search_modelpart = mrMasterModelPart;
-    BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(r_search_modelpart);
-    bin_based_point_locator.UpdateSearchDatabase();
 
     IndexType num_slave_nodes = mrSlaveModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.GetCommunicator().LocalMesh().NodesBegin();
@@ -170,14 +164,14 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
         NodeIteratorType it_slave_node = it_slave_node_begin+i_node;
         const auto& slave_node_coords = it_slave_node->Coordinates();
         // Finding the host element for this node
-        const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(slave_node_coords, shape_function_values, p_host_cond, mSearchMaxResults, mSearchTolerance);
+        const bool is_found = mpPointLocator->FindPointOnMeshSimplified(slave_node_coords, shape_function_values, p_host_cond, mSearchMaxResults, mSearchTolerance);
         if(is_found)
         {
             ++num_slaves_found;
             for (int j = 0; j < num_vars; j++)
             {
                 const std::string var_name = mParameters["variable_names"][j].GetString();
-                ConstraintSlaveNodeWithConditionForVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
+                ConstraintSlaveNodeWithConditionForVariable(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
             }
         }
     }
@@ -187,7 +181,7 @@ void SlidingInterfaceProcess::ApplyConstraintsForSlidingInterface()
 }
 
 template <int TDim>
-void SlidingInterfaceProcess::ConstraintSlaveNodeWithConditionForVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,const std::string& rVarName )
+void SlidingInterfaceProcess<TDim>::ConstraintSlaveNodeWithConditionForVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,const std::string& rVarName )
 {
     const VariableType& r_var = KratosComponents<VariableType>::Get(rVarName);
     auto slave_variable_val = rSlaveNode.GetSolutionStepValue(r_var);
@@ -216,6 +210,11 @@ void SlidingInterfaceProcess::ConstraintSlaveNodeWithConditionForVariable(NodeTy
         master_index++;
     }
 }
+
+// Template declarations
+template class SlidingInterfaceProcess<2>;
+template class SlidingInterfaceProcess<3>;
+
 
 
 }
