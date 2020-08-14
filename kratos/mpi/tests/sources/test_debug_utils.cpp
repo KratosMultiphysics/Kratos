@@ -51,8 +51,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
     // Build the communicator
     ParallelFillCommunicator(model_part).Execute();
 
-    MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE);
-    MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, TEMPERATURE);
+    MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE);
+    MpiDebugUtilities::CheckHistoricalVariable(model_part, TEMPERATURE);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFixity, KratosMPICoreFastSuite)
@@ -82,7 +82,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
     // Build the communicator
     ParallelFillCommunicator(model_part).Execute();
 
-    MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE);
+    MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValueError, KratosMPICoreFastSuite)
@@ -113,7 +113,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
     error_message << "Value error(s) found" << std::endl;
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE),
+        MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
 }
@@ -149,7 +149,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
     error_message << "Fixity error(s) found" << std::endl;
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE),
+        MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
 }
@@ -186,7 +186,65 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCom
     error_message << "Fixity error(s) found" << std::endl;
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        MpiDebugUtilities::CheckNodalHistoricalVariable(model_part, PRESSURE),
+        MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE),
+        error_message.str()
+    );
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValue, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const int world_size = r_comm.Size();
+
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
+
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // Put some nodes in every partition
+    for(int i = 0; i < world_size; i++) {
+        auto node = model_part.CreateNewNode(i, 0.0, 0.0, 0.0);
+
+        node->SetValue(PRESSURE, i%world_size);
+        node->SetValue(TEMPERATURE, (i%world_size)*10);
+        node->FastGetSolutionStepValue(PARTITION_INDEX) = i%world_size;
+    }
+
+    // Build the communicator
+    ParallelFillCommunicator(model_part).Execute();
+
+    MpiDebugUtilities::CheckNonHistoricalVariable(model_part, model_part.Nodes(), PRESSURE);
+    MpiDebugUtilities::CheckNonHistoricalVariable(model_part, model_part.Nodes(), TEMPERATURE);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariableValueError, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const int world_rank = r_comm.Rank();
+    const int world_size = r_comm.Size();
+
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
+
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // Put some nodes in every partition
+    for(int i = 0; i < world_size; i++) {
+        auto node = model_part.CreateNewNode(i, 0.0, 0.0, 0.0);
+
+        node->SetValue(PRESSURE, (world_rank == 0));
+        node->FastGetSolutionStepValue(PARTITION_INDEX) = i%world_size;
+    }
+
+    // Build the communicator
+    ParallelFillCommunicator(model_part).Execute();
+
+    std::stringstream error_message;
+
+    error_message << "Value error(s) found" << std::endl;
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        MpiDebugUtilities::CheckNonHistoricalVariable(model_part, model_part.Nodes(), PRESSURE),
         error_message.str()
     );
 }
