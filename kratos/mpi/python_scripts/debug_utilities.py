@@ -56,32 +56,38 @@ def GetVariableAndType(varName, splitByCommponents):
     else:
         raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is unknown. Maybe you need to import the application where it is defined?\n".format(varName))
 
-def GetHistoricalVariableList(model_part, splitByCommponents=False):
+def GetHistoricalVariableList(modelPart, splitByCommponents=False):
     """Get all variables in the historical database (GetSolutionStepValues)."""
     return GetVariableAndType(model_part.GetHistoricalVariableNames(), splitByCommponents)
 
-def GetNodalNonHistoricalVariableList(model_part, container, full_search=False, splitByCommponents=False):
+def GetNodalNonHistoricalVariableList(modelPart, container, fullSearch=False, splitByCommponents=False):
     """Get all variables in the historical database (GetValues) for entities in `container`.
 
     Get all variables in the historical database (GetSolutionStepValues) for entities in `container`. 
-    If not specified the function will asume that all entities in `container`
-    have the same variables. 
+    If not specified the function will asume that all entities in `container` have the same variables. 
 
-    If `full_search` is set to True a full check over all entities will be done. This option can be slow.
+    Keyword arguments:
+    modelPart -- Input Modelpart
+    container -- Specific container of the modelpart to perform the check (Elements, Nodes, etc...)
+    fullSearch -- Default: False. If set to true will individually check all the variables for every single individual entity in the container.
+    splitByCommponents -- If set to True will split the variable into commponents if possible (VAR --> VAR_X, VAR_Y, etc...)
     """
-    return GetVariableAndType(model_part.GetNonHistoricalVariables(container, full_search), splitByCommponents)
+    return GetVariableAndType(modelPart.GetNonHistoricalVariables(container, fullSearch), splitByCommponents)
 
-def GetNonHistoricalVariableList(model_part, full_search=False, splitByCommponents=False):
+def GetNonHistoricalVariableList(modelPart, fullSearch=False, splitByCommponents=False):
     """Get all variables in the non historical database (GetValues) for all entities(nodes, elements and conditions).
 
     Get all variables in the non historical database (GetValues) for all entities (nodes, elements and conditions).
-    If not specified the function will asume that all entities of the same type in `model_part` have the same variables. 
+    If not specified the function will asume that all entities of the same type in `modelPart` have the same variables. 
 
-    If `full_search` is set to false a full check over all entitites will be done. This option can be slow.
+    Keyword arguments:
+    modelPart -- Input Modelpart
+    fullSearch -- Default: False. If set to true will individually check all the variables for every single individual entity in the container.
+    splitByCommponents -- If set to True will split the variable into commponents if possible (VAR --> VAR_X, VAR_Y, etc...)
     """
-    node_variables = GetNodalNonHistoricalVariableList(model_part.GetNonHistoricalVariables(model_part.Nodes,      full_search, splitByCommponents))
-    elem_variables = GetNodalNonHistoricalVariableList(model_part.GetNonHistoricalVariables(model_part.Elements,   full_search, splitByCommponents))
-    cond_variables = GetNodalNonHistoricalVariableList(model_part.GetNonHistoricalVariables(model_part.Conditions, full_search, splitByCommponents))
+    node_variables = GetNodalNonHistoricalVariableList(modelPart.GetNonHistoricalVariables(modelPart.Nodes,      fullSearch, splitByCommponents))
+    elem_variables = GetNodalNonHistoricalVariableList(modelPart.GetNonHistoricalVariables(modelPart.Elements,   fullSearch, splitByCommponents))
+    cond_variables = GetNodalNonHistoricalVariableList(modelPart.GetNonHistoricalVariables(modelPart.Conditions, fullSearch, splitByCommponents))
 
     return node_variables + elem_variables + cond_variables
 
