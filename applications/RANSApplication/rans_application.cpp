@@ -31,8 +31,6 @@ KratosRANSApplication::KratosRANSApplication()
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-      mIncompressiblePotentialFlowPressure2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mIncompressiblePotentialFlowPressure3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // k-epsilon turbulence model elements
       mRansKEpsilonKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -81,8 +79,6 @@ KratosRANSApplication::KratosRANSApplication()
       // incompressible potential flow conditions
       mIncompressiblePotentialFlowVelocityInlet2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mIncompressiblePotentialFlowVelocityInlet3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
-      mIncompressiblePotentialFlowPressureBodyForce2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-      mIncompressiblePotentialFlowPressureBodyForce3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // k-epsilon turbulence model conditions
       mRansKEpsilonEpsilonKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       mRansKEpsilonEpsilonKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
@@ -162,8 +158,6 @@ void KratosRANSApplication::Register()
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
-    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure2D3N", mIncompressiblePotentialFlowPressure2D);
-    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure3D4N", mIncompressiblePotentialFlowPressure3D);
 
     // registering k-epsilon algebraic flux correction based elements
     KRATOS_REGISTER_ELEMENT("RansKEpsilonKAFC2D3N", mRansKEpsilonKAFC2D);
@@ -231,8 +225,6 @@ void KratosRANSApplication::Register()
     // registering incompressible potential flow conditions
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet2D2N", mIncompressiblePotentialFlowVelocityInlet2D2N);
     KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet3D3N", mIncompressiblePotentialFlowVelocityInlet3D3N);
-    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce2D2N", mIncompressiblePotentialFlowPressureBodyForce2D2N);
-    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowPressureBodyForce3D3N", mIncompressiblePotentialFlowPressureBodyForce3D3N);
 
     // registering k-epsilon conditions
     KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonKBasedWall2D2N", mRansKEpsilonEpsilonKBasedWall2D2N);
