@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.RANSApplication as KratosRANS
 
 # other imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
@@ -28,10 +29,12 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "model_part_name"      : "",
-                "total_time_steps" : 100,
                 "ABL_friction_velocity" : 0.375,
                 "seed_for_random_samples_generation": 2020,
-                "lamda_unsteadiness_parameter" : 1.0
+                "lamda_unsteadiness_parameter" : 1.0,
+                "constants":{
+                    "total_wave_number": 100
+                    }
             }
             """)
         #####################################################################################
@@ -46,29 +49,41 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         else:
             self.model_part = model[self.model_part_name]
 
-        self.total_time_steps = params["total_time_steps"].GetInt()
+        #self.total_wave_number = self.model_part.ProcessInfo[KratosRANS.TOTAL_WAVE_NUMBER]
         self.ABL_friction_velocity = params["ABL_friction_velocity"].GetDouble()
         self.rand_seed = params["seed_for_random_samples_generation"].GetInt()
-        self.lambda_unsteadiness = param["lamda_unsteadiness_parameter"].GetDouble()
+        self.lambda_unsteadiness = params["lamda_unsteadiness_parameter"].GetDouble()
 
-    def InitializeModelConstants(self):
+    #def InitializeModelConstants(self):
         # reading constants
-        constants = self.model_settings["constants"]
-        self.fluid_model_part.ProcessInfo[KratosRANS.TOTAL_WAVE_NUMBER] = constants["total_wavenumber_discretization"].GetInt()
+        #constants = self.model_settings["constants"]
+        constants = params["constants"]
+        self.model_part.ProcessInfo[KratosRANS.TOTAL_WAVE_NUMBER] = constants["total_wave_number"].GetInt()
+        self.total_wave_number = self.model_part.ProcessInfo[KratosRANS.TOTAL_WAVE_NUMBER]
 
-        Kratos.Logger.PrintInfo(
+        boundary_layer_height = self.ABL_friction_velocity*10000/6
+        for node in self.model_part.Nodes:
+            beta_v = 1 - 0.22 * pow(math.cos(math.pi*node.Z/(2*boundary_layer_height)),4)
+            beta_w = 1 - 0.45 * pow(math.cos(math.pi*node.Z/(2*boundary_layer_height)),4)
+            denom = 1+beta_v**2+beta_w**2
+            K = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY, 0)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_U, 0, K/denom)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_V, 0, K*(beta_v**2)/denom)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_V, 0, K*(beta_w**2)/denom)
+
+        KratosMultiphysics.Logger.PrintInfo(
             self.__class__.__name__,
             "The kinematic simulation strategy is created.")
 
     def Check(self):
         # check whether used variables exist for debug
-        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_U)
-        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_V)
-        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_W)
-        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.EFFECTIVE_WAVE_NUMBER)
-        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
-        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
-        self.fluid_model_part.HasSolutionStepVariable(KratosRANS.KINEMATIC_VISCOSITY)
+        self.model_part.HasNodalSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_U)
+        self.model_part.HasNodalSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_V)
+        self.model_part.HasNodalSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_W)
+        self.model_part.HasNodalSolutionStepVariable(KratosRANS.EFFECTIVE_WAVE_NUMBER)
+        self.model_part.HasNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
+        self.model_part.HasNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+        self.model_part.HasNodalSolutionStepVariable(KratosMultiphysics.KINEMATIC_VISCOSITY)
 
     def _CalculateFourierVariables(self):
         k_n = list()
@@ -79,7 +94,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         end_time = 0.0
         for node in self.model_part.Nodes:
             k_n.append(self._DiscretiseWaveNumber(node)) # k_n: list[node][total_wavenumber_discretization]
-            energy_spectrum.append(self._CalculateEnergySpectrum(node, k_n)) # energy_spectrum: list[node][total_wavenumber_discretization][3]
+            energy_spectrum.append(self._CalculateEnergySpectrum(node, k_n[-1])) # energy_spectrum: list[node][total_wavenumber_discretization][3]
             a_n.append(self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed)) # a_n: list[node][total_wavenumber_discretization][3]
             b_n.append(self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed+1)) # b_n: list[node][total_wavenumber_discretization][3]
             # a_n and b_n have same PDF but chage the seed so they have different values
@@ -94,7 +109,6 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
 
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         #current_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-
         theta_n = self._GenerateTheta() # theta_n: list[total_wavenumber_discretization]
         phi_n = self._GeneratePhi() # phi_n: list[total_wavenumber_discretization]
         k_n_unitvector = self._CalculateWaveNumberUnitvector(theta_n, phi_n) # k_n_unitvector: list[total_wavenumber_discretization][3]
@@ -121,7 +135,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
     def _GenerateTheta(self):
 
         np.random.seed(seed=self.rand_seed)
-        samples = np.random.uniform(0,1,self.total_wavenumber_discretization)
+        samples = np.random.uniform(0,1,self.total_wave_number)
         samples = np.arccos(1-2*samples)
 
         return samples.tolist()
@@ -129,34 +143,35 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
     def _GeneratePhi(self):
 
         np.random.seed(seed=self.rand_seed)
-        samples = np.random.uniform(0,1,self.total_wavenumber_discretization)
-        samples = 2*math.pi()*samples
+        samples = np.random.uniform(0,1,self.total_wave_number)
+        samples = 2*math.pi*samples
 
         return samples.tolist()
 
     def _CalculateWaveNumberUnitvector(self, theta_n, phi_n):
 
         kn = list()
-        for i in range(self.total_wavenumber_discretization):
+        for i in range(self.total_wave_number):
             k_x = math.sin(theta_n[i]) * math.cos(phi_n[i])
             k_y = math.sin(theta_n[i]) * math.sin(phi_n[i])
             k_z = math.cos(theta_n[i])
-            kn.append([kx, ky, kz])
+            kn.append([k_x, k_y, k_z])
 
         return kn
 
     def _DiscretiseWaveNumber(self, node):
 
-        kinematic_viscosity = self.model_part.GetValue(Kratos.KINEMATIC_VISCOSITY)
+        #kinematic_viscosity = self.model_part.GetValue(KratosMultiphysics.KINEMATIC_VISCOSITY)
+        kinematic_viscosity = node.GetSolutionStepValue(KratosMultiphysics.KINEMATIC_VISCOSITY)
 
         K_node_i = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY)
         epsiron_node_i = node.GetSolutionStepValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
         k_1_i = 2 * math.pi * epsiron_node_i / pow(K_node_i, 1.5)
         k_N_i = pow(epsiron_node_i, 0.25) / pow(kinematic_viscosity, 0.75)
-        dk = (math.log(k_N_i) - math.log(k_1_i)) / (self.total_wavenumber_discretization-1)
+        dk = (math.log(k_N_i) - math.log(k_1_i)) / (self.total_wave_number-1)
         k_node_i = []
         k_i = k_1_i
-        for i in range(total_wavenumber_discretization):
+        for i in range(self.total_wave_number):
             k_node_i.append(k_i)
             k_i = math.exp(math.log(k_1_i) + (i+1)*dk)
 
@@ -173,8 +188,12 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         Kw = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_W)
         k_kol = k_n[-1]
         E = list()
-
-        for i in range(self.total_wavenumber_discretization):
+        print('check')
+        print(Ku)
+        print(k_n[0])
+        print(k_kol)
+        print(ke)
+        for i in range(self.total_wave_number):
             k_i = k_n[i]
             Eu_i = Au * 2 * Ku * math.exp(-2*((k_i/k_kol)**2)) / (ke*pow(1+(k_i/ke)**2, 0.833333333333333))
             Ev_i = Av * 2 * Kv * ((k_i/ke)**2) * math.exp(-2*((k_i/k_kol)**2)) / (ke*pow(1+(k_i/ke)**2, 1.833333333333333))
@@ -187,7 +206,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
 
         np.random.seed(seed=seed) # where should the seed be...?
         samples = list()
-        for i in range(self.total_wavenumber_discretization):
+        for i in range(self.total_wave_number):
             mean_vec = [0.0, 0.0, 0.0]
             cov_matrix = [[sqrt(2*energy_spectrum[i][0]), 0.0, 0.0],
                          [0.0, sqrt(2*energy_spectrum[i][1]), 0.0],
@@ -209,7 +228,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         u_x = 0.0
         u_y = 0.0
         u_z = 0.0
-        for i in range(self.total_wavenumber_discretization):
+        for i in range(self.total_wave_number):
             A = self.__cross(a_n, k_n_unitvector)
             B = self.__cross(b_n, k_n_unitvector)
             C = (k_n_unitvector[0]*node.X + k_n_unitvector[1]*node.Y + k_n_unitvector[2]*node.Z)*k_n[i]

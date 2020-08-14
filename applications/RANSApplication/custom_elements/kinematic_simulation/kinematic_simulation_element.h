@@ -288,14 +288,12 @@ public:
 
         // Calculate RHS
         this->CalculateRightHandSideContribution(rRightHandSideVector);
-        KRATOS_WATCH(rRightHandSideVector)
 
         // Calculate LHS
         this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
         VectorType values;
         this->GetValuesVector(values, 0);
-        KRATOS_WATCH(values)
 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
     }
@@ -357,6 +355,7 @@ public:
             const Vector& gauss_shape_functions = row(shape_functions, g);
             noalias(rRHS) += gauss_shape_functions * gauss_weights[g];
         }
+        KRATOS_WATCH(rRHS)
     }
 
     /**
@@ -423,15 +422,10 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
-        KRATOS_WATCH(shape_functions);
         
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Vector gauss_shape_functions = row(shape_functions, g);
-
-            KRATOS_WATCH(gauss_shape_functions);
-            KRATOS_WATCH(gauss_weights[g]);
-            KRATOS_WATCH(TOTAL_WAVE_NUMBER);
 
             const double turbulent_kinetic_energy = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
             const double turbulent_energy_dissipation_rate = RansCalculationUtilities::EvaluateInPoint(r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
@@ -442,11 +436,6 @@ public:
                                                   0, 0, 0,
                                                   0, 0, 0);
 
-            KRATOS_WATCH(turbulent_kinetic_energy)
-            KRATOS_WATCH(turbulent_energy_dissipation_rate)
-            KRATOS_WATCH(effective_wave_number)
-            KRATOS_WATCH(kinematic_viscosity)
-            KRATOS_WATCH(r_wavenumber_integration)
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {

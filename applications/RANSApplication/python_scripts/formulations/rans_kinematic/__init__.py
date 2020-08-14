@@ -19,6 +19,8 @@ from KratosMultiphysics.RANSApplication.generate_velocity_fluctuation import Gen
 from KratosMultiphysics.RANSApplication import ScalarVariableDifferenceNormCalculationUtility
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 
+import math
+
 class RANSKinematicFormulation(Formulation):
     def __init__(self, model_part, settings):
         super(RANSKinematicFormulation, self).__init__(model_part, settings)
@@ -42,20 +44,19 @@ class RANSKinematicFormulation(Formulation):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.spectral_u_formulation = ConstantEnergySpectralFormulation(model_part, settings["constant_energy_spectral_u_solver_settings"])
-        self.spectral_u_formulation.element_name = "KinematicSimulationSpectralConstantU3D4N"
+        self.spectral_u_formulation.element_name = "KinematicSimulationSpectralConstantU"
         self.AddFormulation(self.spectral_u_formulation)
 
-
         self.spectral_v_formulation = ConstantEnergySpectralFormulation(model_part, settings["constant_energy_spectral_v_solver_settings"])
-        self.spectral_v_formulation.element_name = "KinematicSimulationSpectralConstantV3D4N"
+        self.spectral_v_formulation.element_name = "KinematicSimulationSpectralConstantV"
         self.AddFormulation(self.spectral_v_formulation)
 
         self.spectral_w_formulation = ConstantEnergySpectralFormulation(model_part, settings["constant_energy_spectral_w_solver_settings"])
-        self.spectral_w_formulation.element_name = "KinematicSimulationSpectralConstantW3D4N"
+        self.spectral_w_formulation.element_name = "KinematicSimulationSpectralConstantW"
         self.AddFormulation(self.spectral_w_formulation)
 
         self.effective_wave_number_formulation = ConstantEnergySpectralFormulation(model_part, settings["effective_wave_number_solver_settings"])
-        self.effective_wave_number_formulation.element_name = "KinematicSimulationEffectiveWaveNumber3D4N"
+        self.effective_wave_number_formulation.element_name = "KinematicSimulationEffectiveWaveNumber"
         self.AddFormulation(self.effective_wave_number_formulation)
 
         self.echo_level = self.settings["echo_level"].GetInt()
@@ -70,6 +71,9 @@ class RANSKinematicFormulation(Formulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_U)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_V)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.SPECTRAL_CONSTANT_W)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_U)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_V)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_W)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.EFFECTIVE_WAVE_NUMBER)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.LAGRANGE_DISPLACEMENT)
 
@@ -90,14 +94,13 @@ class RANSKinematicFormulation(Formulation):
         model_part = self.GetBaseModelPart()
         model = model_part.GetModel()
 
-        default_settings = KratosMultiphysics.Parameters('''
-            {
+        default_settings = Kratos.Parameters('''
+            {{
                 "model_part_name"      : "{0:s}",
-                "total_time_step" : 100,
                 "ABL_friction_velocity" : 0.375,
                 "seed_for_random_samples_generation": 2020,
                 "lamda_unsteadiness_parameter" : 1.0
-            }
+            }}
             '''.format(self.GetBaseModelPart().Name))
 
         velocity_fluctuations_process = GenerateVelocityFluctuationProcess(
@@ -125,16 +128,7 @@ class RANSKinematicFormulation(Formulation):
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
-            "total_wave_number": 100,
-            "wall_smoothness_beta"                          : 5.2,
-            "von_karman"                                    : 0.41,
-            "c_mu"                                          : 0.09,
-            "c1"                                            : 1.44,
-            "c2"                                            : 1.92,
-            "sigma_k"                                       : 1.0,
-            "sigma_epsilon"                                 : 1.3,
-            "stabilizing_upwind_operator_coefficient"       : 1.2,
-            "stabilizing_positivity_preserving_coefficient" : 1.2
+            "total_wave_number": 100
         }''')
 
         settings.ValidateAndAssignDefaults(defaults)
@@ -145,19 +139,10 @@ class RANSKinematicFormulation(Formulation):
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
             scheme_type = settings["scheme_type"].GetString()
-            if (scheme_type == "steady"):
-                self.is_steady_simulation = True
-                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, 0.0)
-            elif (scheme_type == "transient"):
+            if (scheme_type == "transient"):
                 self.is_steady_simulation = False
-                default_settings = Kratos.Parameters('''{
-                    "scheme_type": "transient",
-                    "alpha_bossak": -0.3
-                }''')
-                settings.ValidateAndAssignDefaults(default_settings)
-                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, settings["alpha_bossak"].GetDouble())
             else:
-                raise Exception("Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
+                raise Exception("Only \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 

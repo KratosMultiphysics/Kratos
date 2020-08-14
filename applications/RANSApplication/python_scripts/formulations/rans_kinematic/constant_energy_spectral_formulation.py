@@ -43,7 +43,7 @@ class ConstantEnergySpectralFormulation(Formulation):
     def PrepareModelPart(self):
         self.constant_spectral_coefficient_model_part = CreateFormulationModelPart(
             self, self.element_name, GetDefaultConditionName(self.GetBaseModelPart()))
-
+        
         Kratos.Logger.PrintInfo(self.GetName(),
                                 "Created formulation model part.")
 
@@ -103,13 +103,11 @@ class ConstantEnergySpectralFormulation(Formulation):
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
             scheme_type = settings["scheme_type"].GetString()
-            if (scheme_type == "steady"):
-                self.is_steady_simulation = True
-            elif (scheme_type == "transient"):
+            if (scheme_type == "transient"):
                 self.is_steady_simulation = False
             else:
                 raise Exception(
-                    "Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \""
+                    "Only \"transient\" scheme types supported. [ scheme_type = \""
                     + scheme_type + "\" ]")
         else:
             raise Exception(

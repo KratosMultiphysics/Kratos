@@ -335,14 +335,6 @@ public:
                                                   spectral_constant_u, spectral_constant_v, spectral_constant_w,
                                                   turbulent_kinetic_energy_u, turbulent_kinetic_energy_v, turbulent_kinetic_energy_w);
 
-            KRATOS_WATCH(turbulent_kinetic_energy_u)
-            KRATOS_WATCH(turbulent_kinetic_energy_v)
-            KRATOS_WATCH(turbulent_kinetic_energy_w)
-            KRATOS_WATCH(turbulent_energy_dissipation_rate)
-            KRATOS_WATCH(spectral_constant_u)
-            KRATOS_WATCH(spectral_constant_v)
-            KRATOS_WATCH(spectral_constant_w)
-            KRATOS_WATCH(r_wavenumber_integration)
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {

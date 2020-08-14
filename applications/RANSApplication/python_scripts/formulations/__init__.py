@@ -20,6 +20,9 @@ from .fractional_step.fractional_step_k_omega_formulation import FractionalStepK
 from .monolithic_vms.monolithic_k_omega_sst_formulation import MonolithicKOmegaSSTFormulation
 from .fractional_step.fractional_step_k_omega_sst_formulation import FractionalStepKOmegaSSTFormulation
 
+# kinematic formulation
+from .rans_kinematic import RANSKinematicFormulation
+
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
     formulations_list = [
@@ -31,7 +34,9 @@ def Factory(model_part, settings):
         ["fractional_step", FractionalStepVelocityPressureFormulation],
         ["fractional_step_k_epsilon", FractionalStepKEpsilonFormulation],
         ["fractional_step_k_omega", FractionalStepKOmegaFormulation],
-        ["fractional_step_k_omega_sst", FractionalStepKOmegaSSTFormulation]
+        ["fractional_step_k_omega_sst", FractionalStepKOmegaSSTFormulation],
+        ["rans_kinematic", RANSKinematicFormulation]
+
     ]
 
     formulation_names_list = [

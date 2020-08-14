@@ -45,15 +45,12 @@ def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
     # domain_size = origin_modelpart.ProcessInfo[Kratos.DOMAIN_SIZE]
     model = origin_modelpart.GetModel()
     connectivity_preserve_modeler = Kratos.ConnectivityPreserveModeler()
-
     if not model.HasModelPart(destination_modelpart_name):
         model_part = model.CreateModelPart(destination_modelpart_name)
-
         # TODO: Remove this line once the warnings from connectivity preserve modeller is gone, otherwise,
         #       output will be cluttered with lots of missing variable warnings
         RansVariableUtilities.CopyNodalSolutionStepVariablesList(
             origin_modelpart, model_part)
-
         # TODO: [PeriodicCondition]
         #       Currently, all the conditions will be replaced with the given new condition. This is an issue
         #       in the case of periodic cases in mpi, there we have to put PeriodicConditions in the mdpa file,
@@ -64,7 +61,6 @@ def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
         #     origin_modelpart, model_part, element_name, condition_name,
         #     original_condition_name + str(domain_size) + "D" + str(domain_size)
         #     + "N")
-
         connectivity_preserve_modeler.GenerateModelPart(
             origin_modelpart, model_part, element_name, condition_name)
 
@@ -134,12 +130,10 @@ def CalculateNormalsOnConditions(model_part):
 def CreateFormulationModelPart(formulation, element_name, condition_name):
     formulation.domain_size = formulation.GetBaseModelPart().ProcessInfo[
         Kratos.DOMAIN_SIZE]
-
     element_suffix = str(
         formulation.domain_size) + "D" + str(formulation.domain_size + 1) + "N"
     condition_suffix = str(formulation.domain_size) + "D" + str(
         formulation.domain_size) + "N"
-
     element_name = element_name + element_suffix
     condition_name = condition_name + condition_suffix
     return CreateDuplicateModelPart(
