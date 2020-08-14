@@ -65,8 +65,8 @@ def GetNodalNonHistoricalVariableList(modelPart, container, full_search=False, s
     """
     Get all variables in the historical database (GetValues) for entities in `container`.
 
-    Get all variables in the historical database (GetSolutionStepValues) for entities in `container`. 
-    If not specified the function will asume that all entities in `container` have the same variables. 
+    Get all variables in the historical database (GetSolutionStepValues) for entities in `container`.
+    If not specified the function will asume that all entities in `container` have the same variables.
 
     Keyword arguments:
     model_part -- Input Modelpart
@@ -80,7 +80,7 @@ def GetNonHistoricalVariableList(modelPart, full_search=False, split_by_commpone
     """Get all variables in the non historical database (GetValues) for all entities(nodes, elements and conditions).
 
     Get all variables in the non historical database (GetValues) for all entities (nodes, elements and conditions).
-    If not specified the function will asume that all entities of the same type in `modelPart` have the same variables. 
+    If not specified the function will asume that all entities of the same type in `modelPart` have the same variables.
 
     Keyword arguments:
     modelPart -- Input Modelpart
@@ -132,6 +132,7 @@ def CheckAllNonHistoricalVariablesStatistics(model_part):
         CheckVariableStatistics(model_part, model_part.Conditions, variable)
 
 def CheckHistoricalVariableStatistics(model_part, input_variable):
+    """Compute the statistics of the given historical variable."""
     data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
     
     if data_comm.IsDistributed():
