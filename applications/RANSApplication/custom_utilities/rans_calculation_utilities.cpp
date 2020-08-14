@@ -445,6 +445,18 @@ bool IsInlet(
     return rCondition.GetValue(RANS_IS_INLET);
 }
 
+template<>
+void UpdateValue(double& rOutput, const double& rInput)
+{
+    rOutput += rInput;
+}
+
+template<class TDataType>
+void UpdateValue(TDataType& rOutput, const TDataType& rInput)
+{
+    noalias(rOutput) += rInput;
+}
+
 // template instantiations
 
 template double CalculateMatrixTrace<2>(
@@ -503,6 +515,8 @@ template array_1d<double, 3> EvaluateInParentCenter(
     const Variable<array_1d<double, 3>>&,
     const ConditionType&,
     const int);
+
+template void UpdateValue<array_1d<double, 3>>(array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput);
 
 } // namespace RansCalculationUtilities
 ///@}

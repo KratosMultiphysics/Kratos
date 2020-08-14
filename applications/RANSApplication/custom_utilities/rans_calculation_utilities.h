@@ -101,6 +101,9 @@ double EvaluateInPoint(
     const Vector& rShapeFunction,
     const int Step = 0);
 
+template<class TDataType>
+void UpdateValue(TDataType& rOutput, const TDataType& rInput);
+
 template<class... TDataTypeArgs, std::size_t... Is>
 void inline InitializePartialGaussPointValues(
     std::tuple<TDataTypeArgs&...> rValues,
@@ -127,7 +130,8 @@ void inline UpdatePartialGaussPointValues(
     const Variable<TDataTypeArgs>&... rVariables)
 {
     int dummy[sizeof...(TDataTypeArgs)] = {(
-        std::get<Is>(rValues) += rNode.FastGetSolutionStepValue(rVariables, Step) * ShapeFunctionValue,
+        UpdateValue<TDataTypeArgs>(std::get<Is>(rValues),
+                                   rNode.FastGetSolutionStepValue(rVariables, Step) * ShapeFunctionValue),
         0)...};
     // following line is used to ignore warning of unused_variable
     *dummy = 0;
