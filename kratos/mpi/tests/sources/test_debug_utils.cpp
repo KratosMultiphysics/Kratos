@@ -192,7 +192,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCom
 }
 
 // This will work with #5091 or when we move to C++17
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckMultipleVariablesValue, KratosMPICoreFastSuite)
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckMultipleHistoricalVariablesValue, KratosMPICoreFastSuite)
 // {
 //     const DataCommunicator& r_comm = DataCommunicator::GetDefault();
 //     const int world_rank = r_comm.Rank();
