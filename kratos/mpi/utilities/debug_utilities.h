@@ -204,7 +204,7 @@ public:
             auto& gp = gp_map[node.Id()];
 
             // Check Variable
-            if(data_proxy.Get(gp).first != node.FastGetSolutionStepValue(rVariable)) {
+            if(!InteralCmpEq(node.FastGetSolutionStepValue(rVariable),data_proxy.Get(gp).first)) {
                 std::cout << r_default_comm.Rank() << " Inconsistent variable value for Id: " << node.Id() << " Expected: " << node.FastGetSolutionStepValue(rVariable) << " Obtained " << data_proxy.Get(gp).first << std::endl;
                 val_error_detected = true;
             }
@@ -215,7 +215,7 @@ public:
             auto& gp = gp_map[node.Id()];
 
             // Check Fixity
-            if(data_proxy.Get(gp).second != node.IsFixed(rVariable)) {
+            if(node.IsFixed(rVariable) != data_proxy.Get(gp).second) {
                 std::cout << r_default_comm.Rank() << " Inconsistent variable Fix for Id: " << node.Id() << " Expected: " << node.IsFixed(rVariable) << " Obtained " << data_proxy.Get(gp).second << std::endl;
                 fix_error_detected = true;
             }
