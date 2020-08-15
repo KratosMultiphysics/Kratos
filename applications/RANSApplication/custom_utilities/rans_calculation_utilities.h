@@ -94,7 +94,7 @@ constexpr RefVariablePair<TDataType> inline VariableValuePairTie(
 
 template<class... TDataTypeArgs>
 void inline InitializeVariablePair(
-    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs,
+    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs,
     const double ShapeFunctionValue,
     const NodeType& rNode,
     const int Step
@@ -110,7 +110,7 @@ void inline InitializeVariablePair(
 
 template<class... TDataTypeArgs>
 void inline UpdateVariablePair(
-    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs,
+    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs,
     const double ShapeFunctionValue,
     const NodeType& rNode,
     const int Step
@@ -130,29 +130,25 @@ void EvaluateInPoint(
     const GeometryType& rGeometry,
     const Vector& rShapeFunction,
     const int Step,
-    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs)
+    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs)
 {
     const int number_of_nodes = rGeometry.PointsNumber();
 
     InitializeVariablePair<TDataTypeArgs...>(
-        std::forward<RefVariablePair<TDataTypeArgs>>(rValueVariablePairs)...,
-        rShapeFunction[0], rGeometry[0], Step);
+        rValueVariablePairs..., rShapeFunction[0], rGeometry[0], Step);
     for (int c = 1; c < number_of_nodes; ++c) {
         UpdateVariablePair<TDataTypeArgs...>(
-            std::forward<RefVariablePair<TDataTypeArgs>>(rValueVariablePairs)...,
-            rShapeFunction[c], rGeometry[c], Step);
+            rValueVariablePairs..., rShapeFunction[c], rGeometry[c], Step);
     }
 }
 
 template <class... TDataTypeArgs>
-void EvaluateInPoint(
+void inline EvaluateInPoint(
     const GeometryType& rGeometry,
     const Vector& rShapeFunction,
-    RefVariablePair<TDataTypeArgs>&&... rValueVariablePairs)
+    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs)
 {
-    EvaluateInPoint<TDataTypeArgs...>(
-        rGeometry, rShapeFunction, 0,
-        std::forward<RefVariablePair<TDataTypeArgs>>(rValueVariablePairs)...);
+    EvaluateInPoint<TDataTypeArgs...>(rGeometry, rShapeFunction, 0, rValueVariablePairs...);
 }
 
 template <unsigned int TDim>
