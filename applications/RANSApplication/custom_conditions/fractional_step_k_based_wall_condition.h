@@ -550,10 +550,10 @@ protected:
                 const Vector& gauss_shape_functions = row(shape_functions, g);
 
                 EvaluateInPoint(r_geometry, gauss_shape_functions,
-                                VariableValuePairTie(tke, TURBULENT_KINETIC_ENERGY),
-                                VariableValuePairTie(rho, DENSITY),
-                                VariableValuePairTie(nu, KINEMATIC_VISCOSITY),
-                                VariableValuePairTie(wall_velocity, VELOCITY));
+                                std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                                std::tie(rho, DENSITY),
+                                std::tie(nu, KINEMATIC_VISCOSITY),
+                                std::tie(wall_velocity, VELOCITY));
 
                 const double wall_velocity_magnitude = norm_2(wall_velocity);
 

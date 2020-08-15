@@ -73,12 +73,12 @@ void RansFractionalStepElement<TDim>::CalculateLocalFractionalVelocitySystem(
         const Matrix& r_shape_function_derivatives = shape_function_derivatives[g];
 
         EvaluateInPoint(r_geometry, r_shape_functions,
-                        VariableValuePairTie(density, DENSITY),
-                        VariableValuePairTie(mass_projection, DIVPROJ),
-                        VariableValuePairTie(body_force, BODY_FORCE),
-                        VariableValuePairTie(momentum_projection, CONV_PROJ),
-                        VariableValuePairTie(old_pressure, PRESSURE),
-                        VariableValuePairTie(convective_velocity, VELOCITY));
+                        std::tie(density, DENSITY),
+                        std::tie(mass_projection, DIVPROJ),
+                        std::tie(body_force, BODY_FORCE),
+                        std::tie(momentum_projection, CONV_PROJ),
+                        std::tie(old_pressure, PRESSURE),
+                        std::tie(convective_velocity, VELOCITY));
 
         const double viscosity = this->EffectiveViscosity(
             density, r_shape_functions, r_shape_function_derivatives,
@@ -173,10 +173,10 @@ void RansFractionalStepElement<TDim>::CalculateLocalPressureSystem(
 
         // Evaluate required variables at the integration point
         EvaluateInPoint(r_geometry, r_shape_functions,
-                        VariableValuePairTie(density, DENSITY),
-                        VariableValuePairTie(body_force, BODY_FORCE),
-                        VariableValuePairTie(momentum_projection, PRESS_PROJ),
-                        VariableValuePairTie(convective_velocity, VELOCITY));
+                        std::tie(density, DENSITY),
+                        std::tie(body_force, BODY_FORCE),
+                        std::tie(momentum_projection, PRESS_PROJ),
+                        std::tie(convective_velocity, VELOCITY));
 
         this->EvaluateGradientInPoint(old_pressure_gradient, PRESSURE,
                                       r_shape_function_derivatives);

@@ -98,9 +98,9 @@ double EpsilonUBasedWallConditionData::CalculateWallFlux(
     array_1d<double, 3> velocity;
 
     EvaluateInPoint(this->GetGeometry(), rShapeFunctions,
-                    VariableValuePairTie(nu, KINEMATIC_VISCOSITY),
-                    VariableValuePairTie(nu_t, TURBULENT_VISCOSITY),
-                    VariableValuePairTie(velocity, VELOCITY));
+                    std::tie(nu, KINEMATIC_VISCOSITY),
+                    std::tie(nu_t, TURBULENT_VISCOSITY),
+                    std::tie(velocity, VELOCITY));
 
     const double velocity_magnitude = norm_2(velocity);
 

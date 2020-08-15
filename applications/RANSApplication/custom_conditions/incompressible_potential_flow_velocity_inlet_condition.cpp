@@ -182,7 +182,7 @@ void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Calcula
             const Vector gauss_shape_functions = row(shape_functions, g);
 
             EvaluateInPoint(this->GetGeometry(), gauss_shape_functions,
-                            VariableValuePairTie(velocity, VELOCITY));
+                            std::tie(velocity, VELOCITY));
 
             const double velocity_potential_flux =
                 inner_prod(velocity, r_normal) * gauss_weights[g];

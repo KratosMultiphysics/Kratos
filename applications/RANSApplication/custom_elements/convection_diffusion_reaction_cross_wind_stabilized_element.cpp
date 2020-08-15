@@ -293,9 +293,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         RansCalculationUtilities::EvaluateInPoint(
             r_geometry, gauss_shape_functions,
-            RansCalculationUtilities::VariableValuePairTie(variable_value, primal_variable),
-            RansCalculationUtilities::VariableValuePairTie(
-                relaxed_variable_acceleration, relaxed_primal_rate_variable));
+            std::tie(variable_value, primal_variable),
+            std::tie(relaxed_variable_acceleration, relaxed_primal_rate_variable));
 
         if (variable_gradient_norm > eps && velocity_magnitude_square > eps) {
             const double source = element_data.CalculateSourceTerm(

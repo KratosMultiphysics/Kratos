@@ -94,10 +94,10 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(
     double tke;
 
     EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    VariableValuePairTie(tke, TURBULENT_KINETIC_ENERGY),
-                    VariableValuePairTie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    VariableValuePairTie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    VariableValuePairTie(mEffectiveVelocity, VELOCITY));
+                    std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+                    std::tie(mEffectiveVelocity, VELOCITY));
 
     mGamma = KEpsilonElementData::CalculateGamma(mCmu, tke, mTurbulentKinematicViscosity);
 

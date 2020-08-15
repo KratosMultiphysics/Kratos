@@ -310,8 +310,8 @@ array_1d<double, 3> CalculateWallVelocity(
 
     array_1d<double, 3> parent_center_velocity, parent_center_mesh_velocity;
     EvaluateInPoint(r_parent_geometry, gauss_parent_shape_functions,
-                    VariableValuePairTie(parent_center_velocity, VELOCITY),
-                    VariableValuePairTie(parent_center_mesh_velocity, MESH_VELOCITY));
+                    std::tie(parent_center_velocity, VELOCITY),
+                    std::tie(parent_center_mesh_velocity, MESH_VELOCITY));
 
     const auto& parent_center_effective_velocity =
         parent_center_velocity - parent_center_mesh_velocity;

@@ -82,73 +82,52 @@ void CalculateGeometryParameterDerivativesShapeSensitivity(
 template<class TDataType>
 void UpdateValue(TDataType& rOutput, const TDataType& rInput);
 
-template<class TDataType>
-constexpr RefVariablePair<TDataType> inline VariableValuePairTie(
-    TDataType& rValue,
-    const Variable<TDataType>& rVariable)
-{
-    // need this to make sure rVariables are ties with const references since
-    // std::tie only support reference variable tieing.
-    return std::tie(rValue, rVariable);
-}
-
-template<class... TDataTypeArgs>
-void inline InitializeVariablePair(
-    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs,
-    const double ShapeFunctionValue,
-    const NodeType& rNode,
-    const int Step
-)
-{
-    int dummy[sizeof...(TDataTypeArgs)] = {(
-        std::get<0>(rValueVariablePairs) =
-            rNode.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * ShapeFunctionValue,
-        0)...};
-    // following line is used to ignore warning of unused_variable can be removed by using fold expressions in c++17
-    *dummy = 0;
-}
-
-template<class... TDataTypeArgs>
-void inline UpdateVariablePair(
-    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs,
-    const double ShapeFunctionValue,
-    const NodeType& rNode,
-    const int Step
-)
-{
-    int dummy[sizeof...(TDataTypeArgs)] = {(
-        UpdateValue<TDataTypeArgs>(
-            std::get<0>(rValueVariablePairs),
-            rNode.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * ShapeFunctionValue),
-        0)...};
-    // following line is used to ignore warning of unused_variable can be removed by using fold expressions in c++17
-    *dummy = 0;
-}
-
-template <class... TDataTypeArgs>
+template <class... TRefVariableValuePairArgs>
 void EvaluateInPoint(
     const GeometryType& rGeometry,
     const Vector& rShapeFunction,
     const int Step,
-    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs)
+    const TRefVariableValuePairArgs&... rValueVariablePairs)
 {
+    KRATOS_TRY
+
     const int number_of_nodes = rGeometry.PointsNumber();
 
-    InitializeVariablePair<TDataTypeArgs...>(
-        rValueVariablePairs..., rShapeFunction[0], rGeometry[0], Step);
+    const auto& r_node = rGeometry[0];
+    const double shape_function_value = rShapeFunction[0];
+
+    int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
+        std::get<0>(rValueVariablePairs) =
+            r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
+        0)...};
+
+    // this can be removed with fold expressions in c++17
+    *dummy = 0;
+
     for (int c = 1; c < number_of_nodes; ++c) {
-        UpdateVariablePair<TDataTypeArgs...>(
-            rValueVariablePairs..., rShapeFunction[c], rGeometry[c], Step);
+        const auto& r_node = rGeometry[c];
+        const double shape_function_value = rShapeFunction[c];
+
+        int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
+            UpdateValue<typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type>(
+                std::get<0>(rValueVariablePairs),
+                r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value),
+            0)...};
+
+        // this can be removed with fold expressions in c++17
+        *dummy = 0;
     }
+
+    KRATOS_CATCH("");
 }
 
-template <class... TDataTypeArgs>
+template <class... TRefVariableValuePairArgs>
 void inline EvaluateInPoint(
     const GeometryType& rGeometry,
     const Vector& rShapeFunction,
-    const RefVariablePair<TDataTypeArgs>&... rValueVariablePairs)
+    const TRefVariableValuePairArgs&... rValueVariablePairs)
 {
-    EvaluateInPoint<TDataTypeArgs...>(rGeometry, rShapeFunction, 0, rValueVariablePairs...);
+    EvaluateInPoint<TRefVariableValuePairArgs...>(rGeometry, rShapeFunction, 0, rValueVariablePairs...);
 }
 
 template <unsigned int TDim>

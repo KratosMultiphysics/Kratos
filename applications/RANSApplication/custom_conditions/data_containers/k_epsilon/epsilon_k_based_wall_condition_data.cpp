@@ -96,9 +96,9 @@ double EpsilonKBasedWallConditionData::CalculateWallFlux(
     double nu, nu_t, tke;
 
     EvaluateInPoint(this->GetGeometry(), rShapeFunctions,
-                    VariableValuePairTie(nu, KINEMATIC_VISCOSITY),
-                    VariableValuePairTie(nu_t, TURBULENT_VISCOSITY),
-                    VariableValuePairTie(tke, TURBULENT_KINETIC_ENERGY));
+                    std::tie(nu, KINEMATIC_VISCOSITY),
+                    std::tie(nu_t, TURBULENT_VISCOSITY),
+                    std::tie(tke, TURBULENT_KINETIC_ENERGY));
 
     const double u_tau = mCmu25 * std::sqrt(std::max(tke, 0.0));
 

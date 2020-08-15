@@ -99,12 +99,12 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
     const auto& r_geometry = this->GetGeometry();
 
     EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    VariableValuePairTie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-                    VariableValuePairTie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-                    VariableValuePairTie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    VariableValuePairTie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    VariableValuePairTie(mWallDistance, DISTANCE),
-                    VariableValuePairTie(mEffectiveVelocity, VELOCITY));
+                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+                    std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+                    std::tie(mWallDistance, DISTANCE),
+                    std::tie(mEffectiveVelocity, VELOCITY));
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
 

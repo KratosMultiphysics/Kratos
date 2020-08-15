@@ -94,10 +94,10 @@ void KElementData<TDim>::CalculateGaussPointData(
     using namespace RansCalculationUtilities;
 
     EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    VariableValuePairTie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-                    VariableValuePairTie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    VariableValuePairTie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    VariableValuePairTie(mEffectiveVelocity, VELOCITY));
+                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+                    std::tie(mEffectiveVelocity, VELOCITY));
 
     mVelocityDivergence =
         GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);

@@ -306,9 +306,8 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 
         RansCalculationUtilities::EvaluateInPoint(
             r_geometry, gauss_shape_functions,
-            RansCalculationUtilities::VariableValuePairTie(variable_value, primal_variable),
-            RansCalculationUtilities::VariableValuePairTie(
-                relaxed_variable_acceleration, relaxed_primal_rate_variable));
+            std::tie(variable_value, primal_variable),
+            std::tie(relaxed_variable_acceleration, relaxed_primal_rate_variable));
 
         double residual = relaxed_variable_acceleration;
         residual += velocity_dot_variable_gradient;
