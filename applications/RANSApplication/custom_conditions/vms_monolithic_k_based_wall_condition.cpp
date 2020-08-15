@@ -159,9 +159,9 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
                 const double value = rho * std::pow(u_tau, 2) *
                                      gauss_weights[g] / wall_velocity_magnitude;
 
-                for (size_t a = 0; a < r_geometry.PointsNumber(); ++a) {
-                    for (size_t dim = 0; dim < TDim; ++dim) {
-                        for (size_t b = 0; b < r_geometry.PointsNumber(); ++b) {
+                for (IndexType a = 0; a < r_geometry.PointsNumber(); ++a) {
+                    for (IndexType dim = 0; dim < TDim; ++dim) {
+                        for (IndexType b = 0; b < r_geometry.PointsNumber(); ++b) {
                             rLocalMatrix(a * block_size + dim, b * block_size + dim) +=
                                 gauss_shape_functions[a] * gauss_shape_functions[b] * value;
                         }

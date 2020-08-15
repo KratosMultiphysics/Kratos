@@ -41,8 +41,7 @@ void CalculateGeometryData(
     }
     rNContainer = rGeometry.ShapeFunctionsValues(rIntegrationMethod);
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeometry.IntegrationPoints(rIntegrationMethod);
+    const auto& IntegrationPoints = rGeometry.IntegrationPoints(rIntegrationMethod);
 
     if (rGaussWeights.size() != number_of_gauss_points) {
         rGaussWeights.resize(number_of_gauss_points, false);
@@ -98,22 +97,20 @@ GeometryType::ShapeFunctionsGradientsType CalculateGeometryParameterDerivatives(
     const GeometryType& rGeometry,
     const GeometryData::IntegrationMethod& rIntegrationMethod)
 {
-    const GeometryType::ShapeFunctionsGradientsType& DN_De =
-        rGeometry.ShapeFunctionsLocalGradients(rIntegrationMethod);
+    const auto& DN_De = rGeometry.ShapeFunctionsLocalGradients(rIntegrationMethod);
     const std::size_t number_of_nodes = rGeometry.PointsNumber();
     const unsigned int number_of_gauss_points =
         rGeometry.IntegrationPointsNumber(rIntegrationMethod);
     const std::size_t dim = rGeometry.WorkingSpaceDimension();
 
     GeometryType::ShapeFunctionsGradientsType de_dx(number_of_gauss_points);
-
     Matrix geometry_coordinates(dim, number_of_nodes);
 
     for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const array_1d<double, 3>& r_coordinates =
-            rGeometry.Points()[i_node].Coordinates();
-        for (std::size_t d = 0; d < dim; ++d)
+        const auto& r_coordinates = rGeometry.Points()[i_node].Coordinates();
+        for (std::size_t d = 0; d < dim; ++d) {
             geometry_coordinates(d, i_node) = r_coordinates[d];
+        }
     }
 
     for (unsigned int g = 0; g < number_of_gauss_points; ++g) {
@@ -160,8 +157,7 @@ void CalculateGradient(
     std::size_t number_of_nodes = rGeometry.PointsNumber();
 
     for (unsigned int a = 0; a < number_of_nodes; ++a) {
-        const array_1d<double, 3>& r_value =
-            rGeometry[a].FastGetSolutionStepValue(rVariable, Step);
+        const auto& r_value = rGeometry[a].FastGetSolutionStepValue(rVariable, Step);
         for (unsigned int i = 0; i < TDim; ++i) {
             for (unsigned int j = 0; j < TDim; ++j) {
                 rOutput(i, j) += rShapeDerivatives(a, j) * r_value[i];
@@ -200,8 +196,7 @@ double GetDivergence(
     const int dim = rShapeDerivatives.size2();
 
     for (int i = 0; i < number_of_nodes; ++i) {
-        const array_1d<double, 3>& r_value =
-            rGeometry[i].FastGetSolutionStepValue(rVariable, Step);
+        const auto& r_value = rGeometry[i].FastGetSolutionStepValue(rVariable, Step);
         for (int j = 0; j < dim; ++j) {
             value += r_value[j] * rShapeDerivatives(i, j);
         }
@@ -282,29 +277,14 @@ double CalculateWallHeight(
 {
     KRATOS_TRY
 
-    array_1d<double, 3> normal = rNormal / norm_2(rNormal);
+    const auto& normal = rNormal / norm_2(rNormal);
+    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
 
-    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const auto& r_parent_geometry = r_parent_element.GetGeometry();
+    const auto& r_condition_geometry = rCondition.GetGeometry();
 
-    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
-    const GeometryType& r_condition_geometry = rCondition.GetGeometry();
-
-    auto calculate_cell_center = [](const GeometryType& rGeometry) -> array_1d<double, 3> {
-        const int number_of_nodes = rGeometry.PointsNumber();
-        array_1d<double, 3> cell_center = ZeroVector(3);
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            noalias(cell_center) =
-                cell_center + rGeometry[i_node].Coordinates() *
-                                  (1.0 / static_cast<double>(number_of_nodes));
-        }
-
-        return cell_center;
-    };
-
-    const array_1d<double, 3>& parent_center = calculate_cell_center(r_parent_geometry);
-
-    const array_1d<double, 3>& condition_center =
-        calculate_cell_center(r_condition_geometry);
+    const auto& parent_center = r_parent_geometry.Center();
+    const auto& condition_center = r_condition_geometry.Center();
 
     return inner_prod(condition_center - parent_center, normal);
 
@@ -314,11 +294,10 @@ double CalculateWallHeight(
 array_1d<double, 3> CalculateWallVelocity(
     const ConditionType& rCondition)
 {
-    array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
+    auto normal = rCondition.GetValue(NORMAL);
     normal /= norm_2(normal);
-
-    const ElementType& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
-    const GeometryType& r_parent_geometry = r_parent_element.GetGeometry();
+    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
+    const auto& r_parent_geometry = r_parent_element.GetGeometry();
 
     Vector parent_gauss_weights;
     Matrix parent_shape_functions;
@@ -334,7 +313,7 @@ array_1d<double, 3> CalculateWallVelocity(
                     VariableValuePairTie(parent_center_velocity, VELOCITY),
                     VariableValuePairTie(parent_center_mesh_velocity, MESH_VELOCITY));
 
-    const array_1d<double, 3>& parent_center_effective_velocity =
+    const auto& parent_center_effective_velocity =
         parent_center_velocity - parent_center_mesh_velocity;
     return parent_center_effective_velocity -
            normal * inner_prod(parent_center_effective_velocity, normal);
@@ -365,7 +344,7 @@ void CalculateYPlusAndUtau(
         double dx = 1e10;
         double u_plus = inv_kappa * std::log(rYPlus) + Beta;
 
-        while (iter < MaxIterations && std::fabs(dx) > Tolerance * rUTau) {
+        while (iter < MaxIterations && std::abs(dx) > Tolerance * rUTau) {
             // Newton-Raphson iteration
             double f = rUTau * u_plus - WallVelocity;
             double df = u_plus + inv_kappa;

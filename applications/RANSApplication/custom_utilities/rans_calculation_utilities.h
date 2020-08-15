@@ -53,6 +53,7 @@ inline long double SoftPositive(
     return SoftMax(value, 0.0);
 }
 
+// TODO: Move this to core GeometryUtils
 void CalculateGeometryData(
     const GeometryType& rGeometry,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
@@ -60,6 +61,7 @@ void CalculateGeometryData(
     Matrix& rNContainer,
     GeometryType::ShapeFunctionsGradientsType& rDN_DX);
 
+// TODO: Move this to core GeometryUtils
 void CalculateConditionGeometryData(
     const GeometryType& rGeometry,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
