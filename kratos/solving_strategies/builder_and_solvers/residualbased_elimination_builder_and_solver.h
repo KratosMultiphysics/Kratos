@@ -812,7 +812,8 @@ public:
     {
         KRATOS_TRY
 
-        if (pA == NULL) { // If the pointer is not initialized initialize it to an empty matrix
+        if (pA == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
             pA.swap(pNewA);
         }
