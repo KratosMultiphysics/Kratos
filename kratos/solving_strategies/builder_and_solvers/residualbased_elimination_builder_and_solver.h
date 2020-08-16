@@ -826,7 +826,8 @@ public:
             TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
             pb.swap(pNewb);
         }
-        if (BaseType::mpReactionsVector == NULL) { // If the pointer is not initialized initialize it to an empty matrix
+        if (BaseType::mpReactionsVector == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
