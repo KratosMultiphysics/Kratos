@@ -124,6 +124,7 @@ for pythonVersion in "${pythons[@]}"; do
   for application in $(ls ${KRATOS_ROOT}/scripts/wheels/linux/applications); do
     if [[ $application != _* ]];
     then
+      echo - starting build for "$application"
       build_application_wheel "$application"
     fi
 
