@@ -207,75 +207,48 @@ class AlgorithmGradientDescentAkin(OptimizationAlgorithm):
     def __computeControlPointUpdate(self):
         gp_utilities = self.optimization_utilities
 
-        g_a, g_a_variables = self.__getActiveConstraints()
-
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = KM.Vector()
         s = KM.Vector()
         gp_utilities.AssembleVector(nabla_f, KSO.DF1DX_MAPPED)
         self.norm_objective_gradient = nabla_f.norm_2()
 
-        if len(g_a) == 0:
-            KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
-            s = nabla_f * (-1.0)
-            gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
-
-            s *= self.step_size / s.norm_inf()
-            gp_utilities.AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
-            return
-
         KM.Logger.PrintInfo("ShapeOpt", "Calculate constrained search direction.")
         phi = 0
         nabla_phi = KM.Vector([0.0]*nabla_f.Size())
 
-        # TODO all constraints or only active ones? A: All constraints!
-        print(g_a)
-        for g_i, g_i_variable in zip(g_a, g_a_variables):
+        for constraint in self.constraints:
+            identifier = constraint["identifier"].GetString()
+
+            g_i = min(self.communicator.getStandardizedValue(identifier), -1e-8)
+            KM.Logger.PrintWarning("ShapeOpt", f"{identifier} \n\t g_i: {g_i}\t g_s: {self.communicator.getStandardizedValue(identifier)}")
+            g_i_variable = self.constraint_gradient_variables[identifier]["mapped_gradient"]
+
+            # for g_i, g_i_variable in zip(g_a, g_a_variables):
+            # g_i = max(g_i, -1.0) # TODO avoids that a constraint that is far away gets pushed in constraint direction! - A: Not true, because 1/g_i is always pointing in the same direction
             phi += - math.log(-g_i)
             # TODO is it necessary to normalize/scale these values somehow?
-            #   A: not necessary because the gradient puts it in relation 
-            # TODO what happens if constraints are already close to limit? in my case it violates in the first step already and then fails because log() is not defined 
-            #   A: Try to say g_i = g if g < tol else -1e12 or similar 
+            #   A: not necessary because the gradient puts it in relation
+            # TODO what happens if constraints are already close to limit? in my case it violates in the first step already and then fails because log() is not defined
+            #   A: Try to say g_i = g if g < tol else -1e12 or similar
             # TODO packaging? transform into "soon" to violate formulation? Maybe even with simple 1/distance as gradient?
             #   A: ask Ihar, skip for the moment - maybe introduce buffer and indicator for response that shows how far away the constraint is.
 
             nabla_g_i = KM.Vector()
             gp_utilities.AssembleVector(nabla_g_i, g_i_variable)
 
-            nabla_phi += 1/g_i * nabla_g_i
+            nabla_phi -= 1/g_i * nabla_g_i # TODO why is the - necessary? according to long it is +
 
-        s = - nabla_f/nabla_f.norm_2() - self.zeta * nabla_phi/nabla_phi.norm_2()
+        if phi > 0:
+            s = (-1.0) * nabla_f/nabla_f.norm_2() - self.zeta * nabla_phi/nabla_phi.norm_2()
+        else:
+            KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
+            s = nabla_f * (-1.0)
 
         gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
 
         s *= self.step_size / s.norm_inf()
         gp_utilities.AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
-
-    # --------------------------------------------------------------------------
-    def __getActiveConstraints(self):
-        active_constraint_values = []
-        active_constraint_variables = []
-
-        for constraint in self.constraints:
-            if self.__isConstraintActive(constraint):
-                identifier = constraint["identifier"].GetString()
-                constraint_value = self.communicator.getStandardizedValue(identifier)
-                active_constraint_values.append(constraint_value)
-                active_constraint_variables.append(
-                    self.constraint_gradient_variables[identifier]["mapped_gradient"])
-
-        return active_constraint_values, active_constraint_variables
-
-    # --------------------------------------------------------------------------
-    def __isConstraintActive(self, constraint):
-        identifier = constraint["identifier"].GetString()
-        constraint_value = self.communicator.getStandardizedValue(identifier)
-        if constraint["type"].GetString() == "=":
-            return True
-        elif constraint_value > 0:
-            return True
-        else:
-            return False
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
