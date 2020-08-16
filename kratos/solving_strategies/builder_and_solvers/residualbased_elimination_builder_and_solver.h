@@ -822,7 +822,8 @@ public:
             TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
             pDx.swap(pNewDx);
         }
-        if (pb == NULL) { // If the pointer is not initialized initialize it to an empty matrix
+        if (pb == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
             pb.swap(pNewb);
         }
