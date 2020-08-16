@@ -1044,7 +1044,7 @@ protected:
             if (i_global < BaseType::mEquationSystemSize) {
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&rLockArray[i_global]);
-                rb[i_global] += RHS_Contribution(i_local);
+                rb[i_global] += rRHSContribution(i_local);
 #else
                 double& r_a = rb[i_global];
                 const double& v_a = rRHSContribution(i_local);
