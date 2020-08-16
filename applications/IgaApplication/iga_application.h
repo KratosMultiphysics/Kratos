@@ -17,14 +17,15 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+//elements
 #include "custom_elements/shell_3p_element.h"
-#include "custom_elements/iga_truss_element.h"
-#include "custom_elements/shell_kl_discrete_element.h"
 
 //conditions
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/penalty_coupling_condition.h"
 
+//modelers
+#include "custom_modelers/iga_modeler.h"
 
 namespace Kratos {
 
@@ -34,8 +35,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosIgaApplication
-    : public KratosApplication {
+class KRATOS_API(IGA_APPLICATION) KratosIgaApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{
@@ -100,12 +100,13 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
-    const IgaTrussElement mIgaTrussElement;
-    const ShellKLDiscreteElement mShellKLDiscreteElement;
 
     //Conditions
     const LoadCondition mLoadCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
+
+    // Modelers
+    const IgaModeler mIgaModeler;
 
     ///@}
     ///@name Private methods

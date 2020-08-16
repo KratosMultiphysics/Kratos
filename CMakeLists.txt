@@ -19,9 +19,9 @@ if(POLICY CMP0074)
 endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 7)
-set (KratosMultiphysics_MINOR_VERSION 1)
-set (KratosMultiphysics_PATCH_VERSION 0)
+set (KratosMultiphysics_MAJOR_VERSION 9)
+set (KratosMultiphysics_MINOR_VERSION 0)
+set (KratosMultiphysics_PATCH_VERSION "Dev")
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -46,6 +46,9 @@ if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
+
+# Setting the libs folder for the shared objects built in kratos
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
@@ -281,25 +284,40 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
 
-##*****************************
-#find and include OpenMP if possible
+# Select shared memory parallelization
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message("**********************************************************")
-	message("OpenMP calculation was excluced artificially. Remove the var")
-	message("KRATOS_EXCLUDE_OPENMP from the configuration script or set it to off to include it")
-    message("**********************************************************")
-    if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
-    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message(STATUS "OpenMP included")
+	message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
+endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+
+# default to OpenMP
+if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
+  message("\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
+  SET(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP")
+endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
+
+if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
+  message("Using OpenMP for shared memory parallelization")
+  add_definitions( -DKRATOS_SMP_OPENMP )
+
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 	endif (OPENMP_FOUND)
-endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
+  message("Using C++11 for shared memory parallelization")
+  add_definitions( -DKRATOS_SMP_CXX11 )
+  message("WARNING: Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
+  add_definitions( -DKRATOS_SMP_NONE )
+  message("Shared memory parallelization is disabled!")
+
+else()
+  message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
+endif ()
 
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
@@ -358,20 +376,28 @@ if(${USE_MPI} MATCHES ON )
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif(${USE_MPI} MATCHES ON )
 
-# Find zlib (for gidpost)
-find_package(ZLIB)
+# If we do not locally compile ZLIB we will find ZLIB in the system, if we cannot find it we will enforce the local compilation
+OPTION ( FORCE_LOCAL_ZLIB_COMPILATION "Force local compilation of zlib" OFF )
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
+    # Find zlib (for gidpost)
+    find_package(ZLIB)
+    if( ZLIB_FOUND )
+        include_directories( ${ZLIB_INCLUDE_DIRS} )
+    else( ZLIB_FOUND )
+        set( FORCE_LOCAL_ZLIB_COMPILATION ON )
+    endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
-if( ZLIB_FOUND )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
-else( ZLIB_FOUND )
+# We local compilate ZLIB
+if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
   # Compile our own
-  add_subdirectory(external_libraries/zlib)
-  # we have to add this for zconf
+  add_subdirectory( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
+  # We have to add this for zconf
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
-endif( ZLIB_FOUND )
+endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
 # including the AMatrix
 if( AMATRIX_DIR )
@@ -467,8 +493,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

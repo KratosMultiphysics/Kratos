@@ -1,10 +1,18 @@
 # XMC imports
 from xmc.tools import dynamicImport
-from xmc.tools import getUnionAndMap
 from xmc.tools import splitOneListIntoTwo
 from xmc.tools import mergeTwoListsIntoOne
-from xmc.tools import unpackedList
-import xmc.methodDefs_monteCarloSampler.asynchronousUpdate as mcsua
+import xmc.methodDefs_monteCarloSampler.asynchronousUpdateGlobalEstimators as mda
+
+# External libraries
+from collections import defaultdict
+from itertools import chain
+import warnings
+
+# Import PyCOMPSs
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 class MonteCarloSampler():
     """
@@ -32,8 +40,6 @@ class MonteCarloSampler():
         # asynchronous framework settings
         self.numberBatches = keywordArgs.get('initialNumberBatches',None)
         self.batchIndices = None
-
-
         # Method Objects
         # TODO Define these below
         self.indexSet = None
@@ -63,31 +69,42 @@ class MonteCarloSampler():
             assemblerCoordinates = range(len(self.assemblers))
 
         # Extract current hierarchy from list of indices
-        extracted_hierarchy = self.hierarchy()
+        hierarchy = self.hierarchy()
 
-        # Construct union of estimators required, as well as corresponding map
-        estimator_union, estimator_union_map = getUnionAndMap([self.estimatorsForAssembler[x] for x in assemblerCoordinates])
+        ## Get list of estimations for assemblers without duplicate calls
 
-        # Retrieve all index estimations corresponding to each entry of estimator_union
-        index_estimation_union = []
-        for coordinate_and_args in estimator_union:
-            qoi_estimator_coordinate = coordinate_and_args[0]
-            qoi_estimator_value_arguements = coordinate_and_args[1]
-
-            # Assemble this quantity across indices
-            index_estimation_for_assembler = self.indexEstimation(qoi_estimator_coordinate,qoi_estimator_value_arguements)
-            index_estimation_union.append(index_estimation_for_assembler)
-
-        # Remap this union back onto original estimatorsForAssembler list
-        index_estimation_lists = []
-        for map_list in estimator_union_map:
-            index_estimation_lists.append([index_estimation_union[x] for x in map_list])
+        # List of which assembler needs what estimations
+        args = [self.estimatorsForAssembler[c] for c in assemblerCoordinates]
+        # Convert nested list to nested tuple
+        mapArg = [( (i,j), (v[0], tuple(v[1])) )
+                   for i,a in enumerate(args) for j,v in enumerate(a)]
+        # Create dictionary of {argument: [coord1, ...], ...}
+        # such that args[coord1[0]][coord1[1]] = argument
+        argMap = defaultdict(list)
+        for t in mapArg:
+            argMap[t[1]].append(t[0])
+        # Initialise and fill list of estimations for assemblers
+        estimations = [[[] for _ in a] for a in args]
+        for estArgs,coords in argMap.items():
+            # Compute this unique estimation
+            est = self.indexEstimation(*estArgs)
+            # Distribute it wherever is appeared in args
+            for c in coords:
+                estimations[c[0]][c[1]] = est
 
         # Run the corresponding estimation methods on this
-        estimations = []
-        for i in range(len(assemblerCoordinates)):
-            estimations.append(self.assemblers[assemblerCoordinates[i]].assembleEstimation( extracted_hierarchy,*unpackedList(index_estimation_lists[i])))
-        return estimations
+        globalEstimations = []
+        # Iterate over couples (coord,estimation)
+        for c,e in zip(assemblerCoordinates,estimations):
+            ge = self.assemblers[c].assembleEstimation(hierarchy,e)
+            globalEstimations.append(ge)
+
+        # Delete COMPSs objects
+        # Flatten list of depth 2 then unpack 
+        delete_object(*chain.from_iterable(hierarchy),
+                      *chain.from_iterable(chain.from_iterable(estimations)))
+
+        return globalEstimations
 
     def errorEstimation(self, errorEstimatorCoordinates=None):
         """
@@ -99,23 +116,31 @@ class MonteCarloSampler():
         if errorEstimatorCoordinates is None:
             errorEstimatorCoordinates = range(len(self.errorEstimators))
 
-        # Construct union of assemblers required, as well as corresponding assembler map
-        assembler_union, assembler_union_map = getUnionAndMap([self.assemblersForError[x] for x in errorEstimatorCoordinates])
+        # Get list of estimations for assemblers without duplicate calls
 
-        # Obtain estimations corresponding to assembler_union
-        assembled_estimations_before_map = self.estimation(assembler_union)
-
-        # Remap assembled_estimations_before_map onto original assembler data structure
-        assembled_estimation_lists = []
-        for map_list in assembler_union_map:
-            assembled_estimation_lists.append([assembled_estimations_before_map[x] for x in map_list])
+        # List of which error estimator needs what estimations
+        args = [self.assemblersForError[x] for x in errorEstimatorCoordinates]
+        # Convert nested list to nested tuple
+        mapArg = [( (i,j), v )
+                   for i,a in enumerate(args) for j,v in enumerate(a)]
+        # Create dictionary of {argument: [coord1, ...], ...}
+        # such that args[coord1[0]][coord1[1]] = argument
+        argMap = defaultdict(list)
+        for t in mapArg:
+            argMap[t[1]].append(t[0])
+        # Initialise and fill list of global estimations for error estimation
+        globalEst = [[[] for _ in a] for a in args]
+        # Compute this unique estimation
+        uniqueEstimations = self.estimation(list(argMap.keys()))
+        # Distribute it wherever is appeard in args
+        for i,coords in enumerate(argMap.values()):
+            for c in coords:
+                globalEst[c[0]][c[1]] = uniqueEstimations[i]
 
         # Compute errors
-        errors = []
-        for i in range(len(errorEstimatorCoordinates)):
-            coord = errorEstimatorCoordinates[i]
-            assembled_estimations = assembled_estimation_lists[i]
-            errors.append(self.errorEstimators[coord].error(*unpackedList(assembled_estimations)))
+        errors = [self.errorEstimators[c].error(e)
+                  for c,e in zip(errorEstimatorCoordinates,globalEst)]
+
         return errors
 
     def updateIndexSet(self, newHierarchy):
@@ -127,6 +152,7 @@ class MonteCarloSampler():
         newIndices,newSamples = splitOneListIntoTwo(newHierarchy)
         # Collect the positions in self.indices that are not
         # present in newHierarchy
+        # TODO there must be a simpler way
         list_of_positions_to_remove = []
         for i in range(len(self.indices)):
             is_index_found = False
@@ -139,11 +165,11 @@ class MonteCarloSampler():
 
         # Delete the positions in self.indices that are not
         # present in newHierarchy
-        for i in range(len(list_of_positions_to_remove)):
-            del self.indices[list_of_positions_to_remove[i]]
+        self._removeMonteCarloIndex(list_of_positions_to_remove)
 
         # Collect the entries in newHierarchy that are not
         # present in self.indices
+        # TODO there must be a simpler way
         list_of_indices_to_add = []
         for i in range(len(newIndices)):
             is_index_found = False
@@ -156,7 +182,7 @@ class MonteCarloSampler():
 
         # Pass the list of missing entries to the method that creates
         # these entries in self.indices
-        self.newMonteCarloIndex(list_of_indices_to_add)
+        self._addMonteCarloIndex(list_of_indices_to_add)
 
         # Rearrange self.indices to match the ordering of newHierarchy
         for i in range(len(newIndices)):
@@ -168,16 +194,34 @@ class MonteCarloSampler():
             else:
                 self.indices[i],self.indices[j] = self.indices[j],self.indices[i]
 
-    def newMonteCarloIndex(self, listOfIndicesToAdd):
+    def _addMonteCarloIndex(self, indicesToAdd):
         """
-        Create and return MonteCarloIndex instances corresponding to each entry of
-        listOfIndicesToAdd.
+        Creates and appends MonteCarloIndex instances corresponding to each entry of
+        indicesToAdd.
         """
         assert(self.indexConstructor is not None),"Index constructor is not defined."
-        new_indices = []
-        for i in listOfIndicesToAdd:
+        for i in indicesToAdd:
             self.indexConstructorDictionary['indexValue']=i
             self.indices.append(self.indexConstructor(**self.indexConstructorDictionary))
+
+    def _removeMonteCarloIndex(self,indicesToRemove):
+        """
+        Removes elements of self.indices corresponding to each entry of
+        indicesToAdd.
+        """
+
+        # Warn if list is not empty
+        if indicesToRemove:
+            warnings.warn(('Monte Carlo Index removal requested but not expected. '
+                           'I will do it anyway, but check that it is what you expect.'),
+                          UserWarning)
+            # Warning intended for developers, hence the category (although inaccurate)
+            warnings.warn(('Future objects associated with MonteCarloIndex instances'
+                           'are not removed.'),
+                          PendingDeprecationWarning)
+        for i in indicesToRemove:
+            del self.indices[i]
+
 
     def updatePredictors(self, predictorCoordinates=None):
         """
@@ -195,8 +239,8 @@ class MonteCarloSampler():
             predictorCoordinates = range(len(self.qoiPredictor))
 
         # Extract current hierarchy from list of indices
-        extracted_hierarchy = self.hierarchy()
-        [indices,number_samples] = splitOneListIntoTwo(extracted_hierarchy)
+        hierarchy = self.hierarchy()
+        [indices,number_samples] = splitOneListIntoTwo(hierarchy)
 
         # Retrieve all index estimations corresponding to each entry of predictorCooridnates
         for i in predictorCoordinates:
@@ -206,45 +250,45 @@ class MonteCarloSampler():
             value_transform_function = self.estimatorsForPredictor[i][2]
 
             # Assemble this quantity across all indices and apply transformation
-            index_estimations_before_transform = self.indexEstimation(qoi_estimator_coordinate,qoi_estimator_value_arguements)
+            estimations = self.indexEstimation(
+                qoi_estimator_coordinate,qoi_estimator_value_arguements)
             # TODO - qoiEstimator.value returns Var(Y_l)/N_l, whereas the model is fit
             # on Var(Y_l). The following if-else is a hack to multiply by the number of
             # samples . It is here temporarily until a better mechanism can be found.
             # Refer the to-do above.
             if qoi_estimator_value_arguements[-1] is False:
-                index_estimation_for_predictor = [value_transform_function(index_estimations_before_transform[i])
-                                for i in range(len(index_estimations_before_transform))]
+                estimationsForPredictors = [value_transform_function(i) for i in estimations]
             else:
-                index_estimation_for_predictor = [value_transform_function(index_estimations_before_transform[i],number_samples[i])
-                                for i in range(len(index_estimations_before_transform))]
+                estimationsForPredictors = [value_transform_function(index,number_samples[i])
+                                                  for i,index in enumerate(estimations)]
 
             # Extract only the indices for which all of the multi-index components are non-zero
             data = []
             for j in range(len(indices)):
                 index = indices[j]
                 if all([index[i]>0 for i in range(len(index))]):
-                    data.append([index,index_estimation_for_predictor[j]])
+                    data.append([index,estimationsForPredictors[j]])
                 else:
                     pass
 
             # Run update method of qoiPredictor on these index estimations
-            self.qoiPredictor[i].update(*unpackedList(data))
+            self.qoiPredictor[i].update(data)
 
         # Retrieve all index cost estimations and pass them to costPredictor
         if self.isCostUpdated:
-            index_estimation_for_predictor = self.indexCostEstimation(self.costEstimatorForPredictor)
+            estimationsForPredictors = self.indexCostEstimation(self.costEstimatorForPredictor)
 
             # Extract only the indices for which all of the multi-index components are non-zero
             data = []
             for j in range(len(indices)):
                 index = indices[j]
                 if all([index[i]>0 for i in range(len(index))]):
-                    data.append([index,index_estimation_for_predictor[j]])
+                    data.append([index,estimationsForPredictors[j]])
                 else:
                     pass
 
-            data = mergeTwoListsIntoOne(indices,index_estimation_for_predictor)
-            self.costPredictor.update(*unpackedList(data))
+            data = mergeTwoListsIntoOne(indices,estimationsForPredictors)
+            self.costPredictor.update(data)
 
     def update(self,newHierarchy):
         """
@@ -255,12 +299,16 @@ class MonteCarloSampler():
         self.updateIndexSet(newHierarchy)
 
         for i in range(len(self.indices)):
-                self.indices[i].update(newHierarchy[i])
+            self.indices[i].update(newHierarchy[i])
 
-        # Update model coefficients for cost, bias, variance with new
-        # observations
+        # synchronize estimator needed for checking convergence and updating hierarchy
+        for i,index in enumerate(self.indices):
+            self.indices[i].qoiEstimator = get_value_from_remote(index.qoiEstimator)
+            self.indices[i].costEstimator = get_value_from_remote(index.costEstimator)
+
+        # TODO Find a way to update predictors before sync?
+        # Update models with new observations
         self.updatePredictors()
-
 
     ####################################################################################################
     ###################################### ASYNCHRONOUS FRAMEWORK ######################################
@@ -321,7 +369,7 @@ class MonteCarloSampler():
         else:
             new_number_batches = 1
         self.numberBatches = self.numberBatches + new_number_batches
-        for new_batch in range (new_number_batches):
+        for _ in range (new_number_batches):
             self.batchIndices.append([])
             self.batchesLaunched.append(False)
             self.batchesExecutionFinished.append(False)
@@ -347,98 +395,19 @@ class MonteCarloSampler():
     def asynchronousFinalize(self,batch):
         # Postprocess on finished batches
         for level in range (len(self.batchIndices[batch])):
-            # Update global qoi estimators
-            for qoi_index in range (self.batchIndices[batch][level].numberOfSamplerOutputs()):
-                if (batch == 0):
-                    self.indices[level].qoiEstimator[qoi_index].powerSums = self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums
-                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter = self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter
-                else:
-                    # asynchronous MC
-                    if (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 0):
-                        globalIndexPowerSum1,globalIndexPowerSum2 = mcsua.updateGlobalMonteCarloIndexOrder2Dimension0_Task(\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0])
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSum1
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSum2
-                        del(globalIndexPowerSum1,globalIndexPowerSum2)
-                    # asynchronous MLMC
-                    elif (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 1):
-                        globalIndexPowerSum10,globalIndexPowerSum01,globalIndexPowerSum20,globalIndexPowerSum11,globalIndexPowerSum02 = mcsua.updateGlobalMonteCarloIndexOrder2Dimension1_Task(\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][1],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][1],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][2],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][1],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][1],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][2])
-                        # update
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSum10
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][1] = globalIndexPowerSum01
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSum20
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][1] = globalIndexPowerSum11
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][2] = globalIndexPowerSum02
-                        del(globalIndexPowerSum10,globalIndexPowerSum01,globalIndexPowerSum20,globalIndexPowerSum11,globalIndexPowerSum02)
-                    else:
-                        raise Exception ("Order or dimension not supported. Add the required task into xmc/methodDefs_monteCarloSampler/asynchronousUpdate.py")
-                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter = self.indices[level].qoiEstimator[qoi_index]._sampleCounter + self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter
-
-            # Update global cost estimator
-            if (batch == 0):
-                self.indices[level].costEstimator.powerSums = self.batchIndices[batch][level].costEstimator.powerSums
-                self.indices[level].costEstimator._sampleCounter = self.batchIndices[batch][level].costEstimator._sampleCounter
-            else:
-                for order in range (len(self.indices[level].costEstimator.powerSums)):
-                        if (len(self.indices[level].costEstimator.powerSums[order]) == 2): # order power sum is two
-                            globalIndexPowerSum1,globalIndexPowerSum2 = mcsua.updateGlobalMonteCarloIndexOrder2Dimension0_Task(self.indices[level].costEstimator.powerSums[order][0],self.indices[level].costEstimator.powerSums[order][1],self.batchIndices[batch][level].costEstimator.powerSums[order][0],self.batchIndices[batch][level].costEstimator.powerSums[order][1])
-                            self.indices[level].costEstimator.powerSums[order][0] = globalIndexPowerSum1
-                            self.indices[level].costEstimator.powerSums[order][1] = globalIndexPowerSum2
-                            del(globalIndexPowerSum1,globalIndexPowerSum2)
-                self.indices[level].costEstimator._sampleCounter = self.indices[level].costEstimator._sampleCounter + self.batchIndices[batch][level].costEstimator._sampleCounter
+            # update global estimators
+            mda.updateGlobalMomentEstimator_Task(self.indices[level].qoiEstimator,self.batchIndices[batch][level].qoiEstimator,self.indices[level].costEstimator,self.batchIndices[batch][level].costEstimator,batch)
+            # delete COMPSs future objects no longer needed
+            delete_object(self.batchIndices[batch][level].costEstimator,
+                          *self.batchIndices[batch][level].qoiEstimator)
             # Update model coefficients for cost, bias, variance with new observations
             self.updatePredictors()
 
-            # Update global combined power sums
-            for qoi_index in range (self.batchIndices[batch][level].numberOfSamplerOutputs(),self.batchIndices[batch][level].numberOfSamplerOutputs()+self.batchIndices[batch][level].numberOfSamplerCombinedOutputs()):
-                if (batch == 0):
-                    self.indices[level].qoiEstimator[qoi_index].powerSums = self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums
-                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter = [self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter]
-                else:
-                    # asynchronous MC
-                    if (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 0 and self.indices[level].qoiEstimator[qoi_index]):
-                        globalIndexPowerSum1,globalIndexPowerSum2 = mcsua.updateGlobalMonteCarloIndexTimePowerSumsOrder2Dimension0_Task(\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0])
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSum1
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSum2
-                        del(globalIndexPowerSum1,globalIndexPowerSum2)
-                    # asynchronous MLMC
-                    elif (self.indices[level].qoiEstimator[qoi_index].order == 1 and self.indices[level].qoiEstimator[qoi_index].indexSetDimension == 1 and self.indices[level].qoiEstimator[qoi_index]):
-                        globalIndexPowerSumUpper1,globalIndexPowerSumLower1,globalIndexPowerSumUpper2,globalIndexPowerSumLower2 = mcsua.updateGlobalMonteCarloIndexTimePowerSumsOrder2Dimension1_Task(\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[0][1],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][0],\
-                            self.indices[level].qoiEstimator[qoi_index].powerSums[1][1],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[0][1],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][0],\
-                            self.batchIndices[batch][level].qoiEstimator[qoi_index].powerSums[1][1])
-                        # update
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][0] = globalIndexPowerSumUpper1
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[0][1] = globalIndexPowerSumLower1
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][0] = globalIndexPowerSumUpper2
-                        self.indices[level].qoiEstimator[qoi_index].powerSums[1][1] = globalIndexPowerSumLower2
-                        del(globalIndexPowerSumUpper1,globalIndexPowerSumLower1,globalIndexPowerSumUpper2,globalIndexPowerSumLower2)
-                    else:
-                        raise Exception ("Order or dimension not supported. Add the required task into xmc/methodDefs_monteCarloSampler/asynchronousUpdate.py")
-                    # append number of samples, since it is a future object and is neeeded only for post processing
-                    self.indices[level].qoiEstimator[qoi_index]._sampleCounter.append(self.batchIndices[batch][level].qoiEstimator[qoi_index]._sampleCounter)
+        for level in range (len(self.indices)):
+            # synchronize estimator needed for checking convergence and updating hierarchy
+            self.indices[level].qoiEstimator = get_value_from_remote(self.indices[level].qoiEstimator)
+            self.indices[level].costEstimator = get_value_from_remote(self.indices[level].costEstimator)
+
 
     def asynchronousUpdate(self,newHierarchy):
         self.asynchronousInitialize(newHierarchy)

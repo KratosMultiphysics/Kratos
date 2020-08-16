@@ -135,7 +135,7 @@ VALUE: None
 
 TITLE:DEM_Parameters
 QUESTION: Dimension#CB#(2,3)
-VALUE: 2
+VALUE: 3
 QUESTION: GravityX
 VALUE: 0.0
 QUESTION: GravityY

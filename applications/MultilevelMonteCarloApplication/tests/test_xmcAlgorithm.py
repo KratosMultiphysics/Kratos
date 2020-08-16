@@ -9,6 +9,11 @@ import os
 # Import xmc classes
 import xmc
 
+# Import PyCOMPSs
+# from exaqute.ExaquteTaskPyCOMPSs import get_value_from_remote   # to execute with runcompss
+# from exaqute.ExaquteTaskHyperLoom import get_value_from_remote  # to execute with the IT4 scheduler
+from exaqute.ExaquteTaskLocal import get_value_from_remote      # to execute with python3
+
 
 class TestXMCAlgorithm(unittest.TestCase):
 
@@ -17,6 +22,7 @@ class TestXMCAlgorithm(unittest.TestCase):
         # read parameters
         parametersList = ["parameters/parameters_xmc_test_mc_Kratos_asynchronous_poisson_2d.json", \
             "parameters/parameters_xmc_test_mc_Kratos_asynchronous_poisson_2d_with_combined_power_sums.json", \
+            "parameters/parameters_xmc_test_mc_Kratos_asynchronous_poisson_2d_with_10_combined_power_sums.json", \
             "parameters/parameters_xmc_test_mc_Kratos_poisson_2d.json", \
             "parameters/parameters_xmc_test_mc_Kratos_poisson_2d_with_combined_power_sums.json"]
 
@@ -24,34 +30,27 @@ class TestXMCAlgorithm(unittest.TestCase):
             with open(parametersPath,'r') as parameter_file:
                 parameters = json.load(parameter_file)
             # add path of the problem folder to python path
-            problem_id = parameters["solverWrapperInputDict"]["problemId"]
+            problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
             sys.path.append(os.path.join("poisson_square_2d_xmc"))
-            # RandomGeneratorWrapper
-            randomGeneratorInputDict = parameters["randomGeneratorInputDict"]
-            # SolverWrapper
-            solverWrapperInputDict = parameters["solverWrapperInputDict"]
             # SampleGenerator
-            samplerInputDict = parameters["samplerInputDict"]
-            samplerInputDict['randomGeneratorInputDict'] = randomGeneratorInputDict
-            samplerInputDict['solverWrapperInputDict'] = solverWrapperInputDict
+            samplerInputDictionary = parameters["samplerInputDictionary"]
+            samplerInputDictionary['randomGeneratorInputDictionary'] = parameters["randomGeneratorInputDictionary"]
+            samplerInputDictionary['solverWrapperInputDictionary'] = parameters["solverWrapperInputDictionary"]
+            # MonteCarloIndex
+            monteCarloIndexInputDictionary = parameters["monteCarloIndexInputDictionary"]
+            monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
             # Moment Estimators
-            qoiEstimatorInputDict = parameters["qoiEstimatorInputDict"]
-            combinedEstimatorInputDict = parameters["combinedEstimatorInputDict"]
-            costEstimatorInputDict = parameters["costEstimatorInputDict"]
-            # MonteCarloIndex Constructor
-            monteCarloIndexInputDict = parameters["monteCarloIndexInputDict"]
-            monteCarloIndexInputDict["samplerInputDict"] = samplerInputDict
+            qoiEstimatorInputDictionary = parameters["qoiEstimatorInputDictionary"]
+            combinedEstimatorInputDictionary = parameters["combinedEstimatorInputDictionary"]
+            costEstimatorInputDictionary = parameters["costEstimatorInputDictionary"]
             # qoi estimators
-            monteCarloIndexInputDict["qoiEstimator"] = [monteCarloIndexInputDict["qoiEstimator"][0] for _ in range (0,parameters["solverWrapperInputDict"]["numberQoI"])]
-            monteCarloIndexInputDict["qoiEstimatorInputDict"] = [qoiEstimatorInputDict]*parameters["solverWrapperInputDict"]["numberQoI"]
+            monteCarloIndexInputDictionary["qoiEstimator"] = [monteCarloIndexInputDictionary["qoiEstimator"][0] for _ in range (0,parameters["solverWrapperInputDictionary"]["numberQoI"])]
+            monteCarloIndexInputDictionary["qoiEstimatorInputDictionary"] = [qoiEstimatorInputDictionary]*parameters["solverWrapperInputDictionary"]["numberQoI"]
             # combined estimators
-            monteCarloIndexInputDict["combinedEstimator"] = [monteCarloIndexInputDict["combinedEstimator"][0] for _ in range (0,parameters["solverWrapperInputDict"]["numberCombinedQoi"])]
-            monteCarloIndexInputDict["combinedEstimatorInputDict"] = [combinedEstimatorInputDict]*parameters["solverWrapperInputDict"]["numberCombinedQoi"]
+            monteCarloIndexInputDictionary["combinedEstimator"] = [monteCarloIndexInputDictionary["combinedEstimator"][0] for _ in range (0,parameters["solverWrapperInputDictionary"]["numberCombinedQoi"])]
+            monteCarloIndexInputDictionary["combinedEstimatorInputDictionary"] = [combinedEstimatorInputDictionary]*parameters["solverWrapperInputDictionary"]["numberCombinedQoi"]
             # cost estimator
-            monteCarloIndexInputDict["costEstimatorInputDict"] = costEstimatorInputDict
-
-            #################### RUN TIME GENERATED ENTITIES END HERE ####################
-
+            monteCarloIndexInputDictionary["costEstimatorInputDictionary"] = costEstimatorInputDictionary
             # MonoCriterion
             criteriaArray = []
             criteriaInputs = []
@@ -61,42 +60,39 @@ class TestXMCAlgorithm(unittest.TestCase):
                     parameters["monoCriteriaInpuctDict"][monoCriterion]["tolerance"]))
                 criteriaInputs.append([parameters["monoCriteriaInpuctDict"][monoCriterion]["input"]])
             # MultiCriterion
-            criterion = xmc.multiCriterion.MultiCriterion(criteria=criteriaArray,
-                                                        inputsForCriterion=criteriaInputs,
-                                                        interpreter='xmc.methodDefs_multiCriterion.interpreter.interpretAsConvergenceAndIterationBounds',
-                                                        flag='xmc.methodDefs_multiCriterion.flag.plainFlag')
+            multiCriterionInputDictionary=parameters["multiCriterionInputDictionary"]
+            multiCriterionInputDictionary["criteria"] = criteriaArray
+            multiCriterionInputDictionary["inputsForCriterion"] = criteriaInputs
+            criterion = xmc.multiCriterion.MultiCriterion(**multiCriterionInputDictionary)
             # ErrorEstimator
-            statErrorEstimator = xmc.errorEstimator.ErrorEstimator(
-                error='xmc.methodDefs_errorEstimator.errorEstimation.errorEstimationStatError_Task',
-                parameters=[0.95])
+            statErrorEstimator = xmc.errorEstimator.ErrorEstimator(**parameters["errorEstimatorInputDictionary"])
             # HierarchyOptimiser
-            hierarchyOptimiserInputDict = parameters["hierarchyOptimiserInputDict"]
-            hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**hierarchyOptimiserInputDict)
+            hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**parameters["hierarchyOptimiserInputDictionary"])
             # EstimationAssembler
-            expectationAssembler = xmc.estimationAssembler.EstimationAssembler(
-                assembleEstimation='xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue_Task')
-            varianceAssembler = xmc.estimationAssembler.EstimationAssembler(
-                assembleEstimation='xmc.methodDefs_estimationAssembler.assembleEstimation.assembleStatisticalError_Task')
+            if "expectationAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+                expectationAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["expectationAssembler"])
+            if "varianceAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+                varianceAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["varianceAssembler"])
             # MonteCarloSampler
-            monteCarloSamplerInputDict = parameters["monteCarloSamplerInputDict"]
-            monteCarloSamplerInputDict["indexConstructorDictionary"] = monteCarloIndexInputDict
-            monteCarloSamplerInputDict["assemblers"] =  [expectationAssembler,varianceAssembler]
-            monteCarloSamplerInputDict["errorEstimators"] = [statErrorEstimator]
-            mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDict)
+            monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
+            monteCarloSamplerInputDictionary["indexConstructorDictionary"] = monteCarloIndexInputDictionary
+            monteCarloSamplerInputDictionary["assemblers"] =  [expectationAssembler,varianceAssembler]
+            monteCarloSamplerInputDictionary["errorEstimators"] = [statErrorEstimator]
+            mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDictionary)
             # XMCAlgorithm
-            XMCAlgorithmInputDict = parameters["XMCAlgorithmInputDict"]
-            XMCAlgorithmInputDict["monteCarloSampler"] = mcSampler
-            XMCAlgorithmInputDict["hierarchyOptimiser"] = hierarchyCostOptimiser
-            XMCAlgorithmInputDict["stoppingCriterion"] = criterion
-            algo = xmc.XMCAlgorithm(**XMCAlgorithmInputDict)
-            # run
-            if (parameters["solverWrapperInputDict"]["asynchronous"] is True):
+            XMCAlgorithmInputDictionary = parameters["XMCAlgorithmInputDictionary"]
+            XMCAlgorithmInputDictionary["monteCarloSampler"] = mcSampler
+            XMCAlgorithmInputDictionary["hierarchyOptimiser"] = hierarchyCostOptimiser
+            XMCAlgorithmInputDictionary["stoppingCriterion"] = criterion
+            algo = xmc.XMCAlgorithm(**XMCAlgorithmInputDictionary)
+
+            if (parameters["solverWrapperInputDictionary"]["asynchronous"] is True):
                 algo.runAsynchronousXMC()
             else:
                 algo.runXMC()
 
             # test
-            estimations = algo.estimation()
+            estimations = get_value_from_remote(algo.estimation())
             estimated_mean = 1.5
             self.assertAlmostEqual(estimations[0],estimated_mean,delta=0.1)
             self.assertEqual(algo.monteCarloSampler.indices[0].costEstimator._sampleCounter,15)
@@ -113,34 +109,27 @@ class TestXMCAlgorithm(unittest.TestCase):
             with open(parametersPath,'r') as parameter_file:
                     parameters = json.load(parameter_file)
             # add path of the problem folder to python path
-            problem_id = parameters["solverWrapperInputDict"]["problemId"]
+            problem_id = parameters["solverWrapperInputDictionary"]["problemId"]
             sys.path.append(os.path.join("poisson_square_2d_xmc"))
-            # RandomGeneratorWrapper
-            randomGeneratorInputDict = parameters["randomGeneratorInputDict"]
-            # SolverWrapper
-            solverWrapperInputDict = parameters["solverWrapperInputDict"]
             # SampleGenerator
-            samplerInputDict = parameters["samplerInputDict"]
-            samplerInputDict['randomGeneratorInputDict'] = randomGeneratorInputDict
-            samplerInputDict['solverWrapperInputDict'] = solverWrapperInputDict
-            # Moment Estimators
-            qoiEstimatorInputDict = parameters["qoiEstimatorInputDict"]
-            combinedEstimatorInputDict = parameters["combinedEstimatorInputDict"]
-            costEstimatorInputDict = parameters["costEstimatorInputDict"]
+            samplerInputDictionary = parameters["samplerInputDictionary"]
+            samplerInputDictionary['randomGeneratorInputDictionary'] = parameters["randomGeneratorInputDictionary"]
+            samplerInputDictionary['solverWrapperInputDictionary'] = parameters["solverWrapperInputDictionary"]
             # MonteCarloIndex Constructor
-            monteCarloIndexInputDict = parameters["monteCarloIndexInputDict"]
-            monteCarloIndexInputDict["samplerInputDict"] = samplerInputDict
+            monteCarloIndexInputDictionary = parameters["monteCarloIndexInputDictionary"]
+            monteCarloIndexInputDictionary["samplerInputDictionary"] = samplerInputDictionary
+            # Moment Estimators
+            qoiEstimatorInputDictionary = parameters["qoiEstimatorInputDictionary"]
+            combinedEstimatorInputDictionary = parameters["combinedEstimatorInputDictionary"]
+            costEstimatorInputDictionary = parameters["costEstimatorInputDictionary"]
             # qoi estimators
-            monteCarloIndexInputDict["qoiEstimator"] = [monteCarloIndexInputDict["qoiEstimator"][0] for _ in range (0,parameters["solverWrapperInputDict"]["numberQoI"])]
-            monteCarloIndexInputDict["qoiEstimatorInputDict"] = [qoiEstimatorInputDict]*parameters["solverWrapperInputDict"]["numberQoI"]
+            monteCarloIndexInputDictionary["qoiEstimator"] = [monteCarloIndexInputDictionary["qoiEstimator"][0] for _ in range (0,parameters["solverWrapperInputDictionary"]["numberQoI"])]
+            monteCarloIndexInputDictionary["qoiEstimatorInputDictionary"] = [qoiEstimatorInputDictionary]*parameters["solverWrapperInputDictionary"]["numberQoI"]
             # combined estimators
-            monteCarloIndexInputDict["combinedEstimator"] = [monteCarloIndexInputDict["combinedEstimator"][0] for _ in range (0,parameters["solverWrapperInputDict"]["numberCombinedQoi"])]
-            monteCarloIndexInputDict["combinedEstimatorInputDict"] = [combinedEstimatorInputDict]*parameters["solverWrapperInputDict"]["numberCombinedQoi"]
+            monteCarloIndexInputDictionary["combinedEstimator"] = [monteCarloIndexInputDictionary["combinedEstimator"][0] for _ in range (0,parameters["solverWrapperInputDictionary"]["numberCombinedQoi"])]
+            monteCarloIndexInputDictionary["combinedEstimatorInputDictionary"] = [combinedEstimatorInputDictionary]*parameters["solverWrapperInputDictionary"]["numberCombinedQoi"]
             # cost estimator
-            monteCarloIndexInputDict["costEstimatorInputDict"] = costEstimatorInputDict
-
-            ################################# RUN TIME GENERATED ENTITIES END HERE #######################
-
+            monteCarloIndexInputDictionary["costEstimatorInputDictionary"] = costEstimatorInputDictionary
             # MonoCriterion
             criteriaArray = []
             criteriaInputs = []
@@ -150,44 +139,41 @@ class TestXMCAlgorithm(unittest.TestCase):
                     parameters["monoCriteriaInpuctDict"][monoCriterion]["tolerance"]))
                 criteriaInputs.append([parameters["monoCriteriaInpuctDict"][monoCriterion]["input"]])
             # MultiCriterion
-            criterion = xmc.multiCriterion.MultiCriterion(criteria=criteriaArray,
-                                                        inputsForCriterion=criteriaInputs,
-                                                        interpreter='xmc.methodDefs_multiCriterion.interpreter.interpretAsConvergenceAndIterationBounds',
-                                                        flag='xmc.methodDefs_multiCriterion.flag.plainFlag')
+            multiCriterionInputDictionary=parameters["multiCriterionInputDictionary"]
+            multiCriterionInputDictionary["criteria"] = criteriaArray
+            multiCriterionInputDictionary["inputsForCriterion"] = criteriaInputs
+            criterion = xmc.multiCriterion.MultiCriterion(**multiCriterionInputDictionary)
             # ErrorEstimator
-            MSEErrorEstimator = xmc.errorEstimator.ErrorEstimator(
-                error='xmc.methodDefs_errorEstimator.errorEstimation.errorEstimationMSE_Task',
-                parameters=[0.95])
+            MSEErrorEstimator = xmc.errorEstimator.ErrorEstimator(**parameters["errorEstimatorInputDictionary"])
             # HierarchyOptimiser
-            hierarchyOptimiserInputDict = parameters["hierarchyOptimiserInputDict"]
-            hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**hierarchyOptimiserInputDict)
+            hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**parameters["hierarchyOptimiserInputDictionary"])
             # EstimationAssembler
-            expectationAssembler = xmc.estimationAssembler.EstimationAssembler(
-                assembleEstimation='xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue_Task')
-            biasAssembler = xmc.estimationAssembler.EstimationAssembler(
-                assembleEstimation='xmc.methodDefs_estimationAssembler.assembleEstimation.assembleBias_Task')
-            varianceAssembler = xmc.estimationAssembler.EstimationAssembler(
-                assembleEstimation='xmc.methodDefs_estimationAssembler.assembleEstimation.assembleStatisticalError_Task')
+            if "expectationAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+                expectationAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["expectationAssembler"])
+            if "discretizationErrorAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+                discretizationErrorAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["discretizationErrorAssembler"])
+            if "varianceAssembler" in parameters["estimationAssemblerInputDictionary"].keys():
+                varianceAssembler = xmc.estimationAssembler.EstimationAssembler(**parameters["estimationAssemblerInputDictionary"]["varianceAssembler"])
             # MonteCarloSampler
-            monteCarloSamplerInputDict = parameters["monteCarloSamplerInputDict"]
-            monteCarloSamplerInputDict["indexConstructorDictionary"] = monteCarloIndexInputDict
-            monteCarloSamplerInputDict["assemblers"] =  [expectationAssembler,biasAssembler,varianceAssembler]
-            monteCarloSamplerInputDict["errorEstimators"] = [MSEErrorEstimator]
-            mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDict)
+            monteCarloSamplerInputDictionary = parameters["monteCarloSamplerInputDictionary"]
+            monteCarloSamplerInputDictionary["indexConstructorDictionary"] = monteCarloIndexInputDictionary
+            monteCarloSamplerInputDictionary["assemblers"] =  [expectationAssembler,discretizationErrorAssembler,varianceAssembler]
+            monteCarloSamplerInputDictionary["errorEstimators"] = [MSEErrorEstimator]
+            mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**monteCarloSamplerInputDictionary)
             # XMCAlgorithm
-            XMCAlgorithmInputDict = parameters["XMCAlgorithmInputDict"]
-            XMCAlgorithmInputDict["monteCarloSampler"] = mcSampler
-            XMCAlgorithmInputDict["hierarchyOptimiser"] = hierarchyCostOptimiser
-            XMCAlgorithmInputDict["stoppingCriterion"] = criterion
-            algo = xmc.XMCAlgorithm(**XMCAlgorithmInputDict)
-            # run
-            if (parameters["solverWrapperInputDict"]["asynchronous"] is True):
+            XMCAlgorithmInputDictionary = parameters["XMCAlgorithmInputDictionary"]
+            XMCAlgorithmInputDictionary["monteCarloSampler"] = mcSampler
+            XMCAlgorithmInputDictionary["hierarchyOptimiser"] = hierarchyCostOptimiser
+            XMCAlgorithmInputDictionary["stoppingCriterion"] = criterion
+            algo = xmc.XMCAlgorithm(**XMCAlgorithmInputDictionary)
+
+            if (parameters["solverWrapperInputDictionary"]["asynchronous"] is True):
                 algo.runAsynchronousXMC()
             else:
                 algo.runXMC()
 
             # test
-            estimations = algo.estimation()
+            estimations = get_value_from_remote(algo.estimation())
             estimated_mean = 1.47
             self.assertAlmostEqual(estimations[0],estimated_mean,delta=1.0)
             self.assertEqual(algo.monteCarloSampler.indices[0].costEstimator._sampleCounter,15) # level 0

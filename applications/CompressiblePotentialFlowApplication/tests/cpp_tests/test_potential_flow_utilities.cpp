@@ -429,6 +429,57 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCaseSubsonicElement, CompressiblePo
     KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
 }
 
+// tests the function ComputeUpwindFactorDerivativeWRTMachSquared from utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorDerivativeWRTMachSquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    const double upwind_factor_derivative = PotentialFlowUtilities::ComputeUpwindFactorDerivativeWRTMachSquared<2,3>(local_mach_number_squared,model_part.GetProcessInfo());
+    
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_derivative, 0.1089, 1e-15);
+}
+
+// tests the function ComputeUpwindFactorDerivativeWRTVelocitySquared from utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorDerivativeWRTVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number sqrt(3.0)
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> current_velocity(2, 0.0);
+    current_velocity[0] = std::sqrt(local_velocity_squared);
+
+    const double upwind_factor_derivative = PotentialFlowUtilities::ComputeUpwindFactorDerivativeWRTVelocitySquared<2,3>(current_velocity, model_part.GetProcessInfo());
+    
+    const double mach_derivative_ref = 2.0657955895264163348e-05;
+    const double upwind_factor_ref = 0.1089;
+
+    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_derivative, mach_derivative_ref * upwind_factor_ref, 1e-15);
+}
+
+// tests the function ComputeDensity from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDensity, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    const double density = PotentialFlowUtilities::ComputeDensity<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density, 0.450114595263459, 1e-15);
+}
+
 // tests the function ComputeDensity from the utilities
 KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensity, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
@@ -455,6 +506,100 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensity, CompressiblePotentialApplicati
     const double upwinded_density = PotentialFlowUtilities::ComputeUpwindedDensity<2,3>(current_velocity, upwind_velocity, model_part.GetProcessInfo());
 
     KRATOS_CHECK_RELATIVE_NEAR(upwinded_density, 0.92388212928098, 1e-15);
+}
+
+// tests the function ComputeDensityDerivativeWRTVelocitySquared from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeDensityDerivativeWRTVelocitySquared, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    const double density_derivative = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<2,3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative, -2.905764830239754E-06, 1e-15);
+}
+
+// tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number sqrt(3.0)
+    const double local_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(local_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> current_velocity(2, 0.0);
+    current_velocity[0] = std::sqrt(local_velocity_squared);
+
+    const double upwind_mach_number_squared = 0.7 * 0.7;
+
+    const double density_derivative_accel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating<2,3>(
+        current_velocity, local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, 6.3365379876068035e-07, 1e-15);
+}
+
+// tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 1.3;
+
+    const double upwind_mach_number_squared = 3.0;
+
+    const double density_derivative_deaccel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<2,3>(
+        local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_deaccel, -1.3584190201217436E-06, 1e-15);
+}
+
+// tests the function ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 3.0;
+
+    const double upwind_mach_number_squared = 0.7 * 0.7;
+
+    const double density_derivative_accel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(
+        local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, -3.441482308103857E-06, 1e-15);
+}
+
+// tests the function ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating from the utilities
+KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    AssignFreeStreamValues(model_part);
+
+    const double local_mach_number_squared = 1.3;
+
+    const double upwind_mach_number_squared = 3.0;
+
+    // velocity corresponding to mach number sqrt(3.0)
+    const double upwind_velocity_squared = PotentialFlowUtilities::ComputeVelocityMagnitude<2, 3>(upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    array_1d<double, 2> upwind_velocity(2, 0.0);
+    upwind_velocity[0] = std::sqrt(upwind_velocity_squared);
+
+    const double density_derivative_deaccel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(
+        upwind_velocity, local_mach_number_squared, upwind_mach_number_squared, model_part.GetProcessInfo());
+
+    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_deaccel, -2.7838255012122669E-06, 1e-15);
 }
 
 } // namespace Testing

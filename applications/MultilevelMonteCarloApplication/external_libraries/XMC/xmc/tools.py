@@ -1,14 +1,11 @@
 import importlib
 import math
+import warnings
 
 # Import PyCOMPSs
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 from exaqute.ExaquteTaskLocal import *      # to execute with python3
-
-@ExaquteTask(returns=1)
-def convertObjectToFuture(inputObject):
-    return inputObject
 
 def dynamicImport(fullName):
     """
@@ -36,7 +33,7 @@ def instantiateObject(fullName, **kwargs):
     object_type = dynamicImport(fullName)
     return object_type(**kwargs)
 
-def doNothing(*args):
+def doNothing(*args,**kwArgs):
     """
     This is a function that does nothing. Useful to hold a place without taking any action.
     """
@@ -48,6 +45,14 @@ def returnInput(*args):
     """
     return args
 
+@ExaquteTask(returns=1)
+def returnInput_Task(*args):
+    return returnInput(*args)
+
+# For backward compatibility
+convertObjectToFuture = returnInput_Task
+
+#TODO Unused. remove?
 def getUnionAndMap(listOfLists):
     """
     Given a list of lists, computes union of all lists, as well as map from list of lists
@@ -110,17 +115,31 @@ def strictlyPositiveBoundaryBooleans(indexSet):
         is_index_in_bias[i] = any(is_index_max) and all(is_index_nonzero)
     return is_index_in_bias
 
+#TODO is this function useful?
+def summation(*args):
+    return sum(args)
+
 @ExaquteTask(returns=1)
-def sum_Task(*args):
-    return sum(packedList(args))
+def summation_Task(*args):
+    return sum(args)
 
 def packedList(obj):
     """
     Adapted from PyCOMPS module exaqute.ExaquteTask
     """
+
+    warnings.warn(('packedList is deprecated. '
+                   'Use COLLECTION type in task parameters with COMPSs version ≥ 2.6. '
+                   'Retro-compatibility is ensured only until 2020-08.'),
+                   DeprecationWarning)
+    # Ensure that obj is not a tuple
+    if isinstance(obj,tuple):
+        obj = list(obj)
     index = [i for i, x in enumerate(obj) if x == "##"]
     if len(index) == 0:
-        return obj
+        # The original nest list must have been of length 1,
+        # e.g. [[1]], then obj=[1] and so we return [[1]]=[obj]
+        return [obj]
     new_vector = []
     new_vector.append(list(obj[0:index[0]]))
     for i in range(len(index) - 1):
@@ -130,8 +149,13 @@ def packedList(obj):
 
 def unpackedList(obj):
     """
-    Adapted from PyCOMPS module exaqute.ExaquteTask
+    Adapted from PyCOMPS module exaqute.ExaquteTask.
     """
+
+    warnings.warn(('unpackedList is deprecated. '
+                   'Use COLLECTION type in task parameters with COMPSs version ≥ 2.6. '
+                   'Retro-compatibility is ensured only until 2020-08.'),
+                   DeprecationWarning)    
     if not any(isinstance(l,list) for l in obj):
         return obj
     new_vector = []
@@ -140,6 +164,15 @@ def unpackedList(obj):
         new_vector.append("##")
         new_vector.extend(obj[i])
     return new_vector
+
+def splitList(listToSplit, num_sublists=1):
+    """
+    Function that splits a list into a given number of sublists
+    Reference: https://stackoverflow.com/questions/752308/split-list-into-smaller-lists-split-in-half
+    """
+    length = len(listToSplit)
+    return [ listToSplit[i*length // num_sublists: (i+1)*length // num_sublists]
+             for i in range(num_sublists) ]
 
 def normalInverseCDF(y0):
     """
