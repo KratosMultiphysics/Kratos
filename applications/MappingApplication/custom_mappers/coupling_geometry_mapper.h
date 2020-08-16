@@ -133,7 +133,7 @@ public:
         mpModeler->GenerateNodes(rModelPartDestination);
 
         mpModeler->SetupGeometryModel();
-        mpModeler->PrepareGeometryModel();
+        // mpModeler->PrepareGeometryModel(); // @tobi, I propose this only be used for the 'update' geometry function eg. every timestep
 
         // here use whatever ModelPart(s) was created by the Modeler
         mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
@@ -161,9 +161,11 @@ public:
     {
         mpModeler->PrepareGeometryModel();
 
-        AssignInterfaceEquationIds();
+        this->InitializeInterface();
+        //AssignInterfaceEquationIds();
 
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+
+        //KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
     void Map(

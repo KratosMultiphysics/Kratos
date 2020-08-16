@@ -105,7 +105,7 @@ public:
 
     void PrepareGeometryModel() override
     {
-        //this->UpdateGeometryModel();
+        this->UpdateGeometryModel();
     }
 
     ///@}
@@ -201,6 +201,15 @@ public:
                     data_container,
                     points,
                     &r_geometry);
+
+                if (!mIsOriginMpm)
+                {
+                    // we need to set the jacobian of the mpm quad points to the interface jacobian
+                    //TODO @tobi this is kinda dodgy, we should figure out why the mapping matrix is singular
+                    Vector jac(1);
+                    rInputQuadraturePointGeometries[i]->DeterminantOfJacobian(jac);
+                    rOuputQuadraturePointGeometries[i]->SetValue(DETERMINANT_F, jac[0]);
+                }
             }
         }
     }

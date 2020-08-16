@@ -71,9 +71,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
     const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
 
-    const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
-        ? true
-        : false;
+    const bool is_dual_mortar = (!mIsProjection && mIsDualMortar) ? true : false;
 
     const std::size_t number_of_nodes_master = r_geometry_master.size();
     const std::size_t number_of_nodes_slave = r_geometry_slave.size();
@@ -89,8 +87,11 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     auto sf_values_master = r_geometry_master.ShapeFunctionsValues();
     auto sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
     auto integration_point_values_slave = r_geometry_slave.IntegrationPoints();
-    Vector det_jacobian;
-    r_geometry_slave.DeterminantOfJacobian(det_jacobian);
+
+    Vector det_jacobian(1);
+    if (r_geometry_slave.Has(DETERMINANT_F)) det_jacobian[0] = r_geometry_slave.GetValue(DETERMINANT_F);
+    else r_geometry_slave.DeterminantOfJacobian(det_jacobian);
+
     KRATOS_ERROR_IF(det_jacobian.size() != 1)
         << "Coupling Geometry Mapper should only have 1 integration point coupling per local system" << std::endl;
 
