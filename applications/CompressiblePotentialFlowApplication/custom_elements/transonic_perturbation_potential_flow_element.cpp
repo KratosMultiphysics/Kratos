@@ -258,11 +258,13 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
     }
     else if (rVariable == MACH)
     {
-        rValues[0] = PotentialFlowUtilities::ComputePerturbationLocalMachNumber<TDim, TNumNodes>(*this, rCurrentProcessInfo);
+        const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
+        rValues[0] = std::sqrt(PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo));
     }
     else if (rVariable == SOUND_VELOCITY)
     {
-        rValues[0] = PotentialFlowUtilities::ComputePerturbationLocalSpeedOfSound<TDim, TNumNodes>(*this, rCurrentProcessInfo);
+        const array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
+        rValues[0] = std::sqrt(PotentialFlowUtilities::ComputeLocalSpeedofSoundSquared<TDim, TNumNodes>(velocity, rCurrentProcessInfo));
     }
     else if (rVariable == WAKE)
     {
@@ -319,12 +321,11 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
     }
     if (rVariable == VELOCITY)
     {
-        const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
-        array_1d<double, TDim> vaux = PotentialFlowUtilities::ComputeVelocity<TDim, TNumNodes>(*this);
+        array_1d<double, TDim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<TDim,TNumNodes>(*this, rCurrentProcessInfo);
         for (unsigned int k = 0; k < TDim; k++)
         {
-            v[k] = vaux[k] + free_stream_velocity[k];
+            v[k] = velocity[k];
         }
         rValues[0] = v;
     }

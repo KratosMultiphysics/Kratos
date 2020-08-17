@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -33,12 +33,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
         .def("GetMinimumScalarValue", &RansVariableUtilities::GetMinimumScalarValue)
         .def("GetMaximumScalarValue", &RansVariableUtilities::GetMaximumScalarValue)
-        .def("CopyNodalSolutionStepVariablesList",
-             &RansVariableUtilities::CopyNodalSolutionStepVariablesList);
+        .def("CopyNodalSolutionStepVariablesList", &RansVariableUtilities::CopyNodalSolutionStepVariablesList);
 
     m.def_submodule("RansCalculationUtilities")
-        .def("CalculateLogarithmicYPlusLimit",
-             &RansCalculationUtilities::CalculateLogarithmicYPlusLimit);
+        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit);
 }
 
 } // namespace Python.
