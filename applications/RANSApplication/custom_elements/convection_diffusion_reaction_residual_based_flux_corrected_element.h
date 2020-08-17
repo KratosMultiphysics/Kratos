@@ -286,10 +286,6 @@ protected:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0) const;
 
-    double GetScalarVariableRelaxedAcceleration(
-        const Vector& rShapeFunctions,
-        const int Step = 0) const;
-
     /**
      * @brief Calculate gradient matrix for a vector
      *

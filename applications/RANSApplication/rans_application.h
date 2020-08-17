@@ -26,8 +26,7 @@
 #include "custom_elements/rans_fractional_step_element.h"
 
 // incompressible potential flow elements
-#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
-#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
+#include "custom_elements/incompressible_potential_flow_velocity_element.h"
 
 // stabilized generic convection diffusion reaction elements
 #include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
@@ -53,8 +52,7 @@
 #include "custom_conditions/fractional_step_k_based_wall_condition.h"
 
 // incompressible potential flow conditions
-#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_velocity_inlet_condition.h"
-#include "custom_conditions/incompressible_potential_flow/incompressible_potential_flow_pressure_body_force_condition.h"
+#include "custom_conditions/incompressible_potential_flow_velocity_inlet_condition.h"
 
 // generic scalar wall flux condition
 #include "custom_conditions/scalar_wall_flux_condition.h"
@@ -146,8 +144,6 @@ private:
     /// incompressible potential flow elements
     const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;
     const IncompressiblePotentialFlowVelocityElement<3, 4> mIncompressiblePotentialFlowVelocity3D;
-    const IncompressiblePotentialFlowPressureElement<2, 3> mIncompressiblePotentialFlowPressure2D;
-    const IncompressiblePotentialFlowPressureElement<3, 4> mIncompressiblePotentialFlowPressure3D;
 
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements
@@ -226,8 +222,6 @@ private:
     // incompressible potential flow conditions
     const IncompressiblePotentialFlowVelocityInletCondition<2, 2> mIncompressiblePotentialFlowVelocityInlet2D2N;
     const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
-    const IncompressiblePotentialFlowPressureBodyForceCondition<2, 2> mIncompressiblePotentialFlowPressureBodyForce2D2N;
-    const IncompressiblePotentialFlowPressureBodyForceCondition<3, 3> mIncompressiblePotentialFlowPressureBodyForce3D3N;
 
     // k-epsilon turbulence model conditions
     const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall2D2N;

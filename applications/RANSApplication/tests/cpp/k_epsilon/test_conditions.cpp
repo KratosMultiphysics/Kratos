@@ -29,19 +29,19 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansKEpsilonEpsilonKBasedWall2D2N_SetUp(
+ModelPart& RansKEpsilonEpsilonKBasedWall2D2NSetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2N_SetUp(
+    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2NSetUp(
         rModel, "RansKEpsilonEpsilonKBasedWall2D2N");
 
     return r_model_part;
 }
 
-ModelPart& RansKEpsilonEpsilonUBasedWall2D2N_SetUp(
+ModelPart& RansKEpsilonEpsilonUBasedWall2D2NSetUp(
     Model& rModel)
 {
-    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2N_SetUp(
+    auto& r_model_part = KEpsilonTestUtilities::RansKEpsilonEpsilon2D2NSetUp(
         rModel, "RansKEpsilonEpsilonUBasedWall2D2N");
 
     return r_model_part;
@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonKBasedWall2D2N_EquationIdVector, Kr
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ConditionsContainerType>(r_model_part);
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonKBasedWall2D2N_GetDofList, KratosRa
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestGetDofList<ModelPart::ConditionsContainerType>(
@@ -74,17 +74,18 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonKBasedWall2D2N_CalculateLocalSystem
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS;
     Vector RHS, ref_RHS;
     auto& r_condition = r_model_part.Conditions().front();
 
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.CalculateLocalSystem(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
     // setting reference values
     ref_RHS = ZeroVector(2);
     ref_LHS = ZeroMatrix(2, 2);
@@ -94,8 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonKBasedWall2D2N_CalculateLocalSystem
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.CalculateLocalSystem(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
     // setting reference values
     ref_RHS[0] = 3.6948017788689281e+03;
     ref_RHS[1] = 3.6948017788689281e+03;
@@ -109,7 +109,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonKBasedWall2D2N_CalculateRightHandSi
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonKBasedWall2D2NSetUp(model);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Test:
     Vector RHS, ref_RHS;
@@ -117,8 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonKBasedWall2D2N_CalculateRightHandSi
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.CalculateRightHandSide(
-        RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateRightHandSide(RHS, r_process_info);
     // setting reference values
     ref_RHS = ZeroVector(2);
 
@@ -126,8 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonKBasedWall2D2N_CalculateRightHandSi
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.CalculateRightHandSide(
-        RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateRightHandSide(RHS, r_process_info);
     // setting reference values
     ref_RHS[0] = 3.6948017788689281e+03;
     ref_RHS[1] = 3.6948017788689281e+03;
@@ -139,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_EquationIdVector, Kr
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ConditionsContainerType>(r_model_part);
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_GetDofList, KratosRa
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2NSetUp(model);
 
     // Test:
     RansApplicationTestUtilities::TestGetDofList<ModelPart::ConditionsContainerType>(
@@ -160,7 +160,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_CalculateLocalSystem
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2NSetUp(model);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Test:
     Matrix LHS, ref_LHS;
@@ -169,8 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_CalculateLocalSystem
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.CalculateLocalSystem(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
     // setting reference values
     ref_RHS = ZeroVector(2);
     ref_LHS = ZeroMatrix(2, 2);
@@ -180,8 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_CalculateLocalSystem
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.CalculateLocalSystem(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
     // setting reference values
     ref_RHS[0] = 1.9338281386498181e+01;
     ref_RHS[1] = 1.9338281386498181e+01;
@@ -195,7 +195,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_CalculateRightHandSi
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansKEpsilonEpsilonUBasedWall2D2NSetUp(model);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Test:
     Vector RHS, ref_RHS(3);
@@ -203,8 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_CalculateRightHandSi
 
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
-    r_condition.CalculateRightHandSide(
-        RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateRightHandSide(RHS, r_process_info);
     // setting reference values
     ref_RHS = ZeroVector(2);
 
@@ -212,8 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonUBasedWall2D2N_CalculateRightHandSi
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
-    r_condition.CalculateRightHandSide(
-        RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateRightHandSide(RHS, r_process_info);
     // setting reference values
     ref_RHS[0] = 1.9338281386498181e+01;
     ref_RHS[1] = 1.9338281386498181e+01;
