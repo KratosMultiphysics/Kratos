@@ -196,19 +196,18 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
 
     BoundedMatrix<double, TDim, TDim> velocity_gradient;
 
-    double nut = 0.0;
+    double nut{0.0}, tke, omega, nu, y;
 
     for (int g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& r_gauss_shape_functions = row(shape_functions, g);
 
-        const double tke = EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY,
-                                           r_gauss_shape_functions);
-        const double omega = EvaluateInPoint(
-            r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_gauss_shape_functions);
-        const double nu =
-            EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, r_gauss_shape_functions);
-        const double y = EvaluateInPoint(r_geometry, DISTANCE, r_gauss_shape_functions);
+        RansCalculationUtilities::EvaluateInPoint(r_geometry, r_gauss_shape_functions,
+            std::tie(tke, TURBULENT_KINETIC_ENERGY),
+            std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+            std::tie(nu, KINEMATIC_VISCOSITY),
+            std::tie(y, DISTANCE)
+        );
 
         CalculateGradient<TDim>(velocity_gradient, r_geometry, VELOCITY, r_shape_derivatives);
 
