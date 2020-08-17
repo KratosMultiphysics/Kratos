@@ -233,7 +233,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
     const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry()); //this->GetValue(ELEMENT_H);
-    const double epsilon = 1.0e4*dt*he*he;
+    const double epsilon = 1.0e3*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
@@ -411,7 +411,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double slip_velocity = inner_prod(slip_vector,
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                            const double zeta = 0.5;
+                            const double zeta = 0.3;
                             const double gamma = 0.0311;
 
                             const double cos_theta_s = 0.77933796493;
@@ -428,6 +428,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             } else //if (cos_theta_d < -1.0){
                                 corrected_gradient = norm_grad_phi*solid_normal;
                             //}
+                            //corrected_gradient = GradPHIold[i];
 
                         } else { //not a cut solid surface element
                             corrected_gradient = GradPHIold[i];

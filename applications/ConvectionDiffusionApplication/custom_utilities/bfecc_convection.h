@@ -87,10 +87,29 @@ public:
             Element::Pointer pelement;
             Element::Pointer pelement_valid;
 
+            // For slip wall boundary tangential projection is needed
+            BoundedMatrix<double, TDim, TDim> tangent = Kratos::IdentityMatrix(TDim);
+            if (iparticle->Is(SLIP)){
+                Vector normal = iparticle->FastGetSolutionStepValue(NORMAL);
+                normal /= norm_2(normal);
+                for (unsigned int i=0; i<TDim; i++){
+                    for (unsigned int j=0; j<TDim; j++){
+                        tangent(i,j) -= normal(i)*normal(j);
+                    }
+                }
+            }
+
             array_1d<double,3> bckPos = iparticle->Coordinates();
             const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var);
             bool has_valid_elem_pointer = false;
-            bool is_found = ConvectBySubstepping(dt,bckPos,vel, N,N_valid, pelement,pelement_valid, result_begin, max_results, -1.0, substeps, conv_var, has_valid_elem_pointer);
+
+            bool is_found;
+
+            if (iparticle->Is(SLIP))
+                is_found = ConvectBySubstepping(dt, bckPos, vel, tangent, N, N_valid, pelement,pelement_valid, result_begin, max_results, -1.0, substeps, conv_var, has_valid_elem_pointer);
+            else
+                is_found = ConvectBySubstepping(dt, bckPos, vel, N, N_valid, pelement,pelement_valid, result_begin, max_results, -1.0, substeps, conv_var, has_valid_elem_pointer);
+
             found[i] = is_found;
 
             if(is_found) {
@@ -133,10 +152,28 @@ public:
             Element::Pointer pelement;
             Element::Pointer pelement_valid;
 
+            // For slip wall boundary tangential projection is needed
+            BoundedMatrix<double, TDim, TDim> tangent = Kratos::IdentityMatrix(TDim);
+            if (iparticle->Is(SLIP)){
+                Vector normal = iparticle->FastGetSolutionStepValue(NORMAL);
+                normal /= norm_2(normal);
+                for (unsigned int i=0; i<TDim; i++){
+                    for (unsigned int j=0; j<TDim; j++){
+                        tangent(i,j) -= normal(i)*normal(j);
+                    }
+                }
+            }
+
             array_1d<double,3> fwdPos = iparticle->Coordinates();
             const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var,1);
             bool has_valid_elem_pointer = false;
-            bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
+
+            bool is_found;
+
+            if (iparticle->Is(SLIP))
+                is_found = ConvectBySubstepping(dt, fwdPos, vel, tangent, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
+            else
+                is_found = ConvectBySubstepping(dt, fwdPos, vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
 
             if(is_found) {
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
@@ -262,6 +299,90 @@ public:
 
                 return is_found;
 
+    }
+
+    bool ConvectBySubstepping(
+        const double dt,
+        array_1d<double,3>& position, //IT WILL BE MODIFIED
+        const array_1d<double,3>& initial_velocity,
+        BoundedMatrix<double, TDim, TDim>& tangential,
+        Vector& N,
+        Vector& N_valid,
+        Element::Pointer& pelement,
+        Element::Pointer& pelement_valid,
+        typename BinBasedFastPointLocator<TDim>::ResultIteratorType& result_begin,
+        const unsigned int max_results,
+        const double velocity_sign,
+        const double subdivisions,
+        const Variable<array_1d<double,3> >& conv_var,
+        bool& has_valid_elem_pointer)
+    {
+        bool is_found = false;
+        array_1d<double,3> veulerian;
+        const double small_dt = dt/subdivisions;
+
+        if(velocity_sign > 0.0) //going from the past to the future
+        {
+            noalias(position) += prod(tangential, small_dt*initial_velocity);
+            unsigned int substep=0;
+            while(substep++ < subdivisions)
+            {
+                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+
+                if (is_found == true)
+                {
+                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+
+                    const double new_step_factor = static_cast<double>(substep)/subdivisions;
+                    const double old_step_factor = (1.0 - new_step_factor);
+
+                    noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
+                    for (unsigned int k = 1; k < geom.size(); k++)
+                        noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
+
+                    noalias(position) += prod(tangential, small_dt*veulerian);
+
+                    N_valid  = N;
+                    pelement_valid = pelement;
+                    has_valid_elem_pointer = true;
+
+                }
+                else
+                    break;
+            }
+        }
+        else //going from the future to the past
+        {
+            noalias(position) -= prod(tangential, small_dt*initial_velocity);
+            unsigned int substep=0;
+            while(substep++ < subdivisions)
+            {
+                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+
+                if (is_found == true){
+                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+
+                    //this factors get inverted from the other case
+                   const double old_step_factor = static_cast<double>(substep)/subdivisions;
+                   const double new_step_factor = (1.0 - old_step_factor);
+
+                    noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
+                    for (unsigned int k = 1; k < geom.size(); k++)
+                        noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
+
+                    noalias(position) -= prod(tangential, small_dt*veulerian);
+
+                    N_valid  = N;
+                    pelement_valid = pelement;
+                    has_valid_elem_pointer = true;
+
+
+                }
+                else
+                    break;
+            }
+        }
+        return is_found;
     }
 
 
