@@ -63,6 +63,8 @@ class RANSKinematicFormulation(Formulation):
         self.effective_wave_number_convergence_utility = ScalarVariableDifferenceNormCalculationUtility(self.GetBaseModelPart(), KratosRANS.EFFECTIVE_WAVE_NUMBER)
         self.SetMaxCouplingIterations(self.settings["coupling_settings"]["max_iterations"].GetInt())
 
+        self.IsFirstStep = 1 # flag for spectral constant calculation
+
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
@@ -149,28 +151,31 @@ class RANSKinematicFormulation(Formulation):
         super(RANSKinematicFormulation, self).SetTimeSchemeSettings(settings)
 
     def SolveCouplingStep(self):
-        relative_tolerance = self.settings["coupling_settings"]["relative_tolerance"].GetDouble()
-        absolute_tolerance = self.settings["coupling_settings"]["absolute_tolerance"].GetDouble()
-        max_iterations = self.GetMaxCouplingIterations()
 
-        for itration in range(max_iterations):
-            self.effective_wave_number_convergence_utility.InitializeCalculation()
+        if self.IsFirstStep == 1:
+            self.IsFirstStep = 0 # the spectral constants are calculated only at the first step!
+            relative_tolerance = self.settings["coupling_settings"]["relative_tolerance"].GetDouble()
+            absolute_tolerance = self.settings["coupling_settings"]["absolute_tolerance"].GetDouble()
+            max_iterations = self.GetMaxCouplingIterations()
 
-            for formulation in self.list_of_formulations:
-                if (not formulation.SolveCouplingStep()):
-                    return False
-            self.ExecuteAfterCouplingSolveStep()
+            for itration in range(max_iterations):
+                self.effective_wave_number_convergence_utility.InitializeCalculation()
 
-            relative_error, absolute_error = self.effective_wave_number_convergence_utility.CalculateDifferenceNorm()
-            info = GetConvergenceInfo(KratosRANS.EFFECTIVE_WAVE_NUMBER, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
-            Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", info)
+                for formulation in self.list_of_formulations:
+                    if (not formulation.SolveCouplingStep()):
+                        return False
+                self.ExecuteAfterCouplingSolveStep()
 
-            is_converged = relative_error < relative_tolerance or absolute_error < absolute_tolerance
-            if (is_converged):
-                Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", "EFFECTIVE_WAVE_NUMBER *** CONVERGENCE ACHIEVED ***")
+                relative_error, absolute_error = self.effective_wave_number_convergence_utility.CalculateDifferenceNorm()
+                info = GetConvergenceInfo(KratosRANS.EFFECTIVE_WAVE_NUMBER, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
+                Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", info)
 
-            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling itr. " + str(itration + 1) + "/" + str(max_iterations) + ".")
-            if (is_converged):
-                return True
+                is_converged = relative_error < relative_tolerance or absolute_error < absolute_tolerance
+                if (is_converged):
+                    Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", "EFFECTIVE_WAVE_NUMBER *** CONVERGENCE ACHIEVED ***")
+
+                Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling itr. " + str(itration + 1) + "/" + str(max_iterations) + ".")
+                if (is_converged):
+                    return True
 
         return True

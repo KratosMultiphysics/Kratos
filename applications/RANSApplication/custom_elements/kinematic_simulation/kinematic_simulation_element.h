@@ -296,6 +296,7 @@ public:
         this->GetValuesVector(values, 0);
 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
+        KRATOS_WATCH(rRightHandSideVector)
     }
 
     /**
@@ -318,6 +319,9 @@ public:
         this->GetValuesVector(values, 0);
 
         noalias(rRightHandSideVector) -= prod(lhs, values);
+        KRATOS_WATCH(rRightHandSideVector)
+        KRATOS_WATCH(lhs)
+        KRATOS_WATCH(values)
 
         KRATOS_CATCH("");
     }
@@ -355,7 +359,6 @@ public:
             const Vector& gauss_shape_functions = row(shape_functions, g);
             noalias(rRHS) += gauss_shape_functions * gauss_weights[g];
         }
-        KRATOS_WATCH(rRHS)
     }
 
     /**
