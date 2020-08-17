@@ -162,6 +162,9 @@ public:
     {
         mpModeler->PrepareGeometryModel();
 
+        mMapperLocalSystems.clear();
+
+
         this->InitializeInterface();
         //AssignInterfaceEquationIds();
 
