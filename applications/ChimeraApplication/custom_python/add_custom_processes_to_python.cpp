@@ -74,7 +74,9 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<RotateRegionProcess, RotateRegionProcess::Pointer, Process>(m, "RotateRegionProcess")
         .def(py::init<ModelPart &, Parameters>());
 
-    py::class_<SlidingInterfaceProcess, SlidingInterfaceProcess::Pointer, Process>(m, "SlidingInterfaceProcess")
+    py::class_<SlidingInterfaceProcess<2>, SlidingInterfaceProcess<2>::Pointer, Process>(m, "SlidingInterfaceProcess2D")
+        .def(py::init<ModelPart &, ModelPart &, Parameters>());
+    py::class_<SlidingInterfaceProcess<3>, SlidingInterfaceProcess<3>::Pointer, Process>(m, "SlidingInterfaceProcess3D")
         .def(py::init<ModelPart &, ModelPart &, Parameters>());
 }
 

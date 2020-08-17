@@ -69,10 +69,14 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
         sliding_parameters = KratosMultiphysics.Parameters()
         sliding_parameters.AddValue("variable_names", settings["variable_names"])
         sliding_parameters.AddValue("search_settings", settings["search_settings"])
-
+        nD = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         ## Here we create the c++ process with all the necessary parameters
-        self.sliding_interface_proc = KratosChimera.SlidingInterfaceProcess(self.master_model_part , self.slave_model_part , sliding_parameters)
-
+        if(nD == 2):
+            self.sliding_interface_proc = KratosChimera.SlidingInterfaceProcess2D(self.master_model_part , self.slave_model_part , sliding_parameters)
+        elif(nD == 3):
+            self.sliding_interface_proc = KratosChimera.SlidingInterfaceProcess3D(self.master_model_part , self.slave_model_part , sliding_parameters)
+        else:
+            raise Exception("SlidingInterfaceProcess is only for 2 and 3 dimension problems !! Check input.")
 
     def ExecuteInitializeSolutionStep(self):
         """

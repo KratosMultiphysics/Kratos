@@ -279,8 +279,9 @@ public:
         KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
                 <<"Build time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_time - start_build_time).count()/1000.0 <<"s"<<std::endl;
 
+            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                    <<"Build Master-Slave constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_ms_time - start_build_ms_time).count()/1000.0 <<" s"<<std::endl;
 
-        if(global_num_constraints > 0) {
             auto start_ac_time = std::chrono::steady_clock::now();
             ApplyConstraints(pScheme, rModelPart, rA, rb);
             auto end_ac_time = std::chrono::steady_clock::now();
@@ -395,7 +396,6 @@ public:
     {
         KRATOS_TRY
         BaseType::ResizeAndInitializeVectors(pScheme, rpA, rpDx, rpb, rModelPart);
-
         ConstructMasterSlaveConstraintsStructure(rModelPart);
         KRATOS_CATCH("")
     }
@@ -452,11 +452,6 @@ protected:
         const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
         if (global_num_constraints > 0) {
             // We make T and L matrices and C vector
-            auto start_build_ms_time = std::chrono::steady_clock::now();
-            BuildMasterSlaveConstraints(rModelPart);
-            auto end_build_ms_time = std::chrono::steady_clock::now();
-            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
-                    <<"Build Master-Slave constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_ms_time - start_build_ms_time).count()/1000.0 <<" s"<<std::endl;
             auto start_mod_b_time = std::chrono::steady_clock::now();
             {// To be able to clear res_b automatically.
                 TSystemVectorType res_b(rb.Map());
@@ -607,6 +602,9 @@ protected:
 
             Element::EquationIdVectorType slave_ids;
             Element::EquationIdVectorType master_ids;
+            mMasterIds.clear();
+            mMasterIds.shrink_to_fit();
+            mMasterIds.reserve(local_eq_ids.size());
 
             for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                 auto it_const = it_const_begin + i_const;
