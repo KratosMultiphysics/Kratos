@@ -37,7 +37,7 @@ ModelPart& RansKEpsilonEpsilon2D3NSetUp(
     Model& rModel,
     const std::string& rElementName);
 
-ModelPart& RansKEpsilonEpsilon2D2N_SetUp(
+ModelPart& RansKEpsilonEpsilon2D2NSetUp(
     Model& rModel,
     const std::string& rConditionName);
 

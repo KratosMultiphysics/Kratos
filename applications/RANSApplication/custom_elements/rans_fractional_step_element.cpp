@@ -12,6 +12,9 @@
 //  Extended by :    Suneth Warnakulasuriya
 //
 
+// Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
+
 // Include base h
 #include "rans_fractional_step_element.h"
 
@@ -23,6 +26,10 @@ void RansFractionalStepElement<TDim>::CalculateLocalFractionalVelocitySystem(
     Vector& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
+    using namespace RansCalculationUtilities;
+
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
     const SizeType local_size = TDim * number_of_nodes;
@@ -65,12 +72,13 @@ void RansFractionalStepElement<TDim>::CalculateLocalFractionalVelocitySystem(
         const Vector& r_shape_functions = row(shape_functions, g);
         const Matrix& r_shape_function_derivatives = shape_function_derivatives[g];
 
-        this->EvaluateInPoint(density, DENSITY, r_shape_functions);
-        this->EvaluateInPoint(mass_projection, DIVPROJ, r_shape_functions);
-        this->EvaluateInPoint(body_force, BODY_FORCE, r_shape_functions);
-        this->EvaluateInPoint(momentum_projection, CONV_PROJ, r_shape_functions);
-        this->EvaluateInPoint(old_pressure, PRESSURE, r_shape_functions, 0);
-        this->EvaluateConvVelocity(convective_velocity, r_shape_functions);
+        EvaluateInPoint(r_geometry, r_shape_functions,
+                        std::tie(density, DENSITY),
+                        std::tie(mass_projection, DIVPROJ),
+                        std::tie(body_force, BODY_FORCE),
+                        std::tie(momentum_projection, CONV_PROJ),
+                        std::tie(old_pressure, PRESSURE),
+                        std::tie(convective_velocity, VELOCITY));
 
         const double viscosity = this->EffectiveViscosity(
             density, r_shape_functions, r_shape_function_derivatives,
@@ -113,6 +121,8 @@ void RansFractionalStepElement<TDim>::CalculateLocalFractionalVelocitySystem(
     }
 
     noalias(rRightHandSideVector) -= prod(mass_matrix, time_term);
+
+    KRATOS_CATCH("");
 }
 
 template <unsigned int TDim>
@@ -121,6 +131,8 @@ void RansFractionalStepElement<TDim>::CalculateLocalPressureSystem(
     Vector& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    using namespace RansCalculationUtilities;
+
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.PointsNumber();
 
@@ -160,12 +172,14 @@ void RansFractionalStepElement<TDim>::CalculateLocalPressureSystem(
         const Matrix& r_shape_function_derivatives = shape_function_derivatives[g];
 
         // Evaluate required variables at the integration point
-        this->EvaluateInPoint(density, DENSITY, r_shape_functions);
-        this->EvaluateInPoint(body_force, BODY_FORCE, r_shape_functions);
-        this->EvaluateInPoint(momentum_projection, PRESS_PROJ, r_shape_functions);
+        EvaluateInPoint(r_geometry, r_shape_functions,
+                        std::tie(density, DENSITY),
+                        std::tie(body_force, BODY_FORCE),
+                        std::tie(momentum_projection, PRESS_PROJ),
+                        std::tie(convective_velocity, VELOCITY));
+
         this->EvaluateGradientInPoint(old_pressure_gradient, PRESSURE,
                                       r_shape_function_derivatives);
-        this->EvaluateConvVelocity(convective_velocity, r_shape_functions);
 
         const double viscosity = this->EffectiveViscosity(
             density, r_shape_functions, r_shape_function_derivatives,
