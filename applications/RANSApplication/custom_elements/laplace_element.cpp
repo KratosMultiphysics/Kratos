@@ -118,15 +118,11 @@ void LaplaceElement<TDim, TNumNodes>::CalculateLocalSystem(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void LaplaceElement<TDim, TNumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+void LaplaceElement<TDim, TNumNodes>::CalculateBoundedLeftHandSide(
+    BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-
-    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
-        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-    }
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
@@ -139,7 +135,6 @@ void LaplaceElement<TDim, TNumNodes>::CalculateLeftHandSide(
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
-        const Vector gauss_shape_functions = row(shape_functions, g);
 
         for (IndexType a = 0; a < TNumNodes; ++a) {
             for (IndexType b = 0; b < TNumNodes; ++b) {
@@ -157,6 +152,25 @@ void LaplaceElement<TDim, TNumNodes>::CalculateLeftHandSide(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void LaplaceElement<TDim, TNumNodes>::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    }
+
+    BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
+    this->CalculateBoundedLeftHandSide(local_matrix, rCurrentProcessInfo);
+
+    noalias(rLeftHandSideMatrix) = local_matrix;
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void LaplaceElement<TDim, TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -167,13 +181,14 @@ void LaplaceElement<TDim, TNumNodes>::CalculateRightHandSide(
         rRightHandSideVector.resize(TNumNodes, false);
     }
 
-    Matrix lhs;
-    this->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
+    BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
+    this->CalculateBoundedLeftHandSide(local_matrix, rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> values;
     this->GetValuesArray(values);
 
-    noalias(rRightHandSideVector) = prod(lhs, values) * (-1.0);
+    noalias(rRightHandSideVector) = prod(local_matrix, values);
+    noalias(rRightHandSideVector) = rRightHandSideVector * -1.0;
 
     KRATOS_CATCH("");
 }

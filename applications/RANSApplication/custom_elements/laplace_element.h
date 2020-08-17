@@ -261,6 +261,11 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateBoundedLeftHandSide(
+        BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const;
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector only

@@ -84,6 +84,7 @@ public:
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
+    array_1d<double, 3> mEffectiveVelocity;
 
     double mC1;
     double mC2;
