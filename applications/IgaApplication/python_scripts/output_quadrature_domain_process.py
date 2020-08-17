@@ -4,7 +4,7 @@ import KratosMultiphysics.IgaApplication as IGA
 
 
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return IgaOutputIntegrationDomainProcess(model, settings["Parameters"])
 
