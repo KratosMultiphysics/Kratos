@@ -107,7 +107,7 @@ ModelPart& RansKOmegaOmega2D3NSetUp(
     return r_model_part;
 }
 
-ModelPart& RansKOmegaOmega2D2N_SetUp(
+ModelPart& RansKOmegaOmega2D2NSetUp(
     Model& rModel,
     const std::string& rConditionName)
 {

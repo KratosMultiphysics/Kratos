@@ -104,13 +104,15 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 {
     KRATOS_TRY
 
-    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+    using namespace RansCalculationUtilities;
+
+    if (IsWallFunctionActive(*this)) {
         const auto& r_geometry = this->GetGeometry();
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
-        RansCalculationUtilities::CalculateConditionGeometryData(
-            r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
+        CalculateConditionGeometryData(r_geometry, this->GetIntegrationMethod(),
+                                       gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
         const size_t block_size = TDim + 1;
@@ -126,46 +128,45 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         double condition_y_plus{0.0};
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
 
+        double tke, rho, nu;
+        array_1d<double, 3> wall_velocity;
+
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
 
-            const array_1d<double, 3>& r_wall_velocity =
-                RansCalculationUtilities::EvaluateInPoint(
-                    r_geometry, VELOCITY, gauss_shape_functions);
-            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
+            EvaluateInPoint(r_geometry, gauss_shape_functions,
+                            std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                            std::tie(rho, DENSITY),
+                            std::tie(nu, KINEMATIC_VISCOSITY),
+                            std::tie(wall_velocity, VELOCITY));
 
-            const double tke = RansCalculationUtilities::EvaluateInPoint(
-                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-            const double rho = RansCalculationUtilities::EvaluateInPoint(
-                r_geometry, DENSITY, gauss_shape_functions);
-            const double nu = RansCalculationUtilities::EvaluateInPoint(
-                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double wall_velocity_magnitude = norm_2(wall_velocity);
 
             double y_plus{0.0}, u_tau{0.0};
-            RansCalculationUtilities::CalculateYPlusAndUtau(
-                y_plus, u_tau, wall_velocity_magnitude, mWallHeight, nu, kappa, beta);
+            CalculateYPlusAndUtau(y_plus, u_tau, wall_velocity_magnitude,
+                                  mWallHeight, nu, kappa, beta);
             y_plus = std::max(y_plus, y_plus_limit);
 
             condition_y_plus += y_plus;
 
             if (wall_velocity_magnitude > eps) {
-                const double u_tau = RansCalculationUtilities::SoftMax(
+                const double u_tau = SoftMax(
                     c_mu_25 * std::sqrt(std::max(tke, 0.0)),
                     wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta));
 
-                noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
+                noalias(condition_u_tau) += wall_velocity * u_tau / wall_velocity_magnitude;
 
                 const double value = rho * std::pow(u_tau, 2) *
                                      gauss_weights[g] / wall_velocity_magnitude;
 
-                for (size_t a = 0; a < r_geometry.PointsNumber(); ++a) {
-                    for (size_t dim = 0; dim < TDim; ++dim) {
-                        for (size_t b = 0; b < r_geometry.PointsNumber(); ++b) {
+                for (IndexType a = 0; a < r_geometry.PointsNumber(); ++a) {
+                    for (IndexType dim = 0; dim < TDim; ++dim) {
+                        for (IndexType b = 0; b < r_geometry.PointsNumber(); ++b) {
                             rLocalMatrix(a * block_size + dim, b * block_size + dim) +=
                                 gauss_shape_functions[a] * gauss_shape_functions[b] * value;
                         }
                         rLocalVector[a * block_size + dim] -=
-                            gauss_shape_functions[a] * value * r_wall_velocity[dim];
+                            gauss_shape_functions[a] * value * wall_velocity[dim];
                     }
                 }
             }

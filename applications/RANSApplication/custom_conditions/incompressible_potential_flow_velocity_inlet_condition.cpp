@@ -25,48 +25,49 @@
 #include "rans_application_variables.h"
 
 // Include base h
-#include "incompressible_potential_flow_pressure_body_force_condition.h"
+#include "incompressible_potential_flow_velocity_inlet_condition.h"
 
 namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
-int IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Check(
+int IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Check(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    int Check = BaseType::Check(rCurrentProcessInfo);
+    int check = BaseType::Check(rCurrentProcessInfo);
 
     const auto& r_geometry = this->GetGeometry();
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         const auto& r_node = r_geometry[i_node];
 
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_POTENTIAL, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(PRESSURE_POTENTIAL, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_POTENTIAL, r_node);
     }
 
-    return Check;
+    return check;
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Initialize()
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Initialize()
 {
     KRATOS_TRY;
 
-    const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
-    KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
-        << "NORMAL is not initialized for " << this->Info();
+    if (RansCalculationUtilities::IsInlet(*this)) {
+        const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
+        KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
+            << "NORMAL is not initialized for inlet condition " << this->Info();
+    }
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::EquationIdVector(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -75,12 +76,12 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Equ
     }
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[i] = Condition::GetGeometry()[i].GetDof(PRESSURE_POTENTIAL).EquationId();
+        rResult[i] = Condition::GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::GetDofList(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::GetDofList(
     DofsVectorType& ConditionDofList,
     const ProcessInfo& CurrentProcessInfo) const
 {
@@ -89,12 +90,12 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Get
     }
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        ConditionDofList[i] = Condition::GetGeometry()[i].pGetDof(PRESSURE_POTENTIAL);
+        ConditionDofList[i] = Condition::GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::GetValuesVector(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::GetValuesVector(
     VectorType& rValues,
     int Step) const
 {
@@ -106,18 +107,18 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Get
     IndexType local_index = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         rValues[local_index++] =
-            r_geometry[i_node].FastGetSolutionStepValue(PRESSURE_POTENTIAL, Step);
+            r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL, Step);
     }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::GetIntegrationMethod()
+GeometryData::IntegrationMethod IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::GetIntegrationMethod()
 {
     return GeometryData::GI_GAUSS_1;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::CalculateLocalSystem(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -130,7 +131,7 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::CalculateLeftHandSide(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -146,11 +147,13 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::CalculateRightHandSide(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    using namespace RansCalculationUtilities;
 
     if (rRightHandSideVector.size() != TNumNodes) {
         rRightHandSideVector.resize(TNumNodes, false);
@@ -158,30 +161,33 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
 
     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-    const auto& r_geometry = this->GetGeometry();
-    // Get Shape function data
-    Vector gauss_weights;
-    Matrix shape_functions;
-    RansCalculationUtilities::CalculateConditionGeometryData(
-        r_geometry, this->GetIntegrationMethod(), gauss_weights, shape_functions);
-    const IndexType num_gauss_points = gauss_weights.size();
+    if (IsInlet(*this)) {
+        // Get Shape function data
+        Vector gauss_weights;
+        Matrix shape_functions;
+        CalculateConditionGeometryData(
+            this->GetGeometry(), this->GetIntegrationMethod(), gauss_weights, shape_functions);
+        const IndexType num_gauss_points = gauss_weights.size();
 
-    array_1d<double, 3> r_normal = this->GetValue(NORMAL);
-    r_normal = r_normal * (1.0 / norm_2(r_normal));
+        array_1d<double, 3> r_normal = this->GetValue(NORMAL);
+        const double normal_magnitude = norm_2(r_normal);
+        KRATOS_ERROR_IF(normal_magnitude == 0)
+            << "NORMAL is not properly initialized for condition id "
+            << this->Id() << ".";
+        r_normal /= normal_magnitude;
 
-    for (IndexType g = 0; g < num_gauss_points; ++g) {
-        const Vector gauss_shape_functions = row(shape_functions, g);
+        array_1d<double, 3> velocity;
 
-        const array_1d<double, 3>& r_body_force = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, BODY_FORCE, gauss_shape_functions);
-        const double density = RansCalculationUtilities::EvaluateInPoint(
-            r_geometry, DENSITY, gauss_shape_functions);
+        for (IndexType g = 0; g < num_gauss_points; ++g) {
+            const Vector gauss_shape_functions = row(shape_functions, g);
 
-        const double value =
-            density * inner_prod(r_body_force, r_normal) * gauss_weights[g];
+            EvaluateInPoint(this->GetGeometry(), gauss_shape_functions,
+                            std::tie(velocity, VELOCITY));
 
-        for (IndexType a = 0; a < TNumNodes; ++a) {
-            rRightHandSideVector[a] += value * gauss_shape_functions[a];
+            const double velocity_potential_flux =
+                inner_prod(velocity, r_normal) * gauss_weights[g];
+
+            noalias(rRightHandSideVector) += gauss_shape_functions * velocity_potential_flux;
         }
     }
 
@@ -189,42 +195,43 @@ void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Cal
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::string IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::Info() const
+std::string IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "IncompressiblePotentialFlowPressureBodyForceCondition" << TDim << "D"
-           << " ID: " << this->Id();
+    buffer << "IncompressiblePotentialFlowVelocityInletCondition" << TDim << "D";
     return buffer.str();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::PrintInfo(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::PrintInfo(
     std::ostream& rOStream) const
 {
-    rOStream << "IncompressiblePotentialFlowPressureBodyForceCondition";
+    rOStream << "IncompressiblePotentialFlowVelocityInletCondition";
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::PrintData(
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::PrintData(
     std::ostream& rOStream) const
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::save(
+    Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowPressureBodyForceCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::load(
+    Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
 }
 
 // template instantiations
 
-template class IncompressiblePotentialFlowPressureBodyForceCondition<2, 2>;
-template class IncompressiblePotentialFlowPressureBodyForceCondition<3, 3>;
+template class IncompressiblePotentialFlowVelocityInletCondition<2, 2>;
+template class IncompressiblePotentialFlowVelocityInletCondition<3, 3>;
 
 } // namespace Kratos.

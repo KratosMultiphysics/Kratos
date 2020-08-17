@@ -30,7 +30,7 @@ namespace Testing
 {
 namespace
 {
-ModelPart& RansVMSMonolithicKBasedWall2D2N_SetUp(Model& rModel)
+ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_EquationIdVector, Krat
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansVMSMonolithicKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
 
     // Test:
     auto eqn_ids = std::vector<IndexType>{};
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_GetDofList, KratosRans
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansVMSMonolithicKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
 
     // Test:
     auto dofs = Element::DofsVectorType{};
@@ -140,18 +140,19 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansVMSMonolithicKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
 
     // Test:
     Matrix LHS, ref_LHS;
     Vector RHS, ref_RHS;
     auto& r_condition = r_model_part.Conditions().front();
 
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
-    r_condition.CalculateLocalSystem(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
 
     // setting reference values
     ref_RHS = ZeroVector(6);
@@ -163,8 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
-    r_condition.CalculateLocalSystem(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalSystem(LHS, RHS, r_process_info);
 
     // setting reference values
     ref_RHS = ZeroVector(6);
@@ -178,7 +178,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansVMSMonolithicKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Test:
     Matrix LHS, ref_LHS;
@@ -187,8 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
-    r_condition.CalculateLeftHandSide(
-        LHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
     // setting reference values
     ref_LHS = ZeroMatrix(6, 6);
@@ -198,8 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
-    r_condition.CalculateLeftHandSide(
-        LHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLeftHandSide(LHS, r_process_info);
 
     // setting reference values
     ref_LHS = ZeroMatrix(6, 6);
@@ -211,7 +211,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansVMSMonolithicKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Test:
     Vector RHS, ref_RHS;
@@ -220,8 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
-    r_condition.CalculateRightHandSide(
-        RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateRightHandSide(RHS, r_process_info);
 
     // setting reference values
     ref_RHS = ZeroVector(6);
@@ -231,8 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
-    r_condition.CalculateRightHandSide(
-        RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateRightHandSide(RHS, r_process_info);
 
     // setting reference values
     ref_RHS = ZeroVector(6);
@@ -244,7 +244,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansVMSMonolithicKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Test:
     Matrix LHS, ref_LHS;
@@ -253,8 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
-    r_condition.CalculateDampingMatrix(
-        LHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
     ref_LHS = ZeroMatrix(6, 6);
@@ -264,8 +265,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
-    r_condition.CalculateDampingMatrix(
-        LHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateDampingMatrix(LHS, r_process_info);
 
     // setting reference values
     ref_LHS(0, 0) = 7.5197560293399790e-01;
@@ -285,7 +285,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
 {
     // Setup:
     Model model;
-    auto& r_model_part = RansVMSMonolithicKBasedWall2D2N_SetUp(model);
+    auto& r_model_part = RansVMSMonolithicKBasedWall2D2NSetUp(model);
+
+    const auto& r_process_info = r_model_part.GetProcessInfo();
 
     // Test:
     Matrix LHS, ref_LHS;
@@ -295,8 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     // checking for no-wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 0);
     r_condition.Initialize();
-    r_condition.CalculateLocalVelocityContribution(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
     ref_RHS = ZeroVector(6);
@@ -310,8 +311,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
     r_condition.Initialize();
-    r_condition.CalculateLocalVelocityContribution(
-        LHS, RHS, static_cast<const ProcessInfo>(r_model_part.GetProcessInfo()));
+    r_condition.CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
     // setting reference values
     ref_RHS[0] = -1.3560206485323209e+02;

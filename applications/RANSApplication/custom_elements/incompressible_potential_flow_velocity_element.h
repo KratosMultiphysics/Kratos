@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_PRESSURE_ELEMENT_H_INCLUDED)
-#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_PRESSURE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_VELOCITY_ELEMENT_H_INCLUDED)
+#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_VELOCITY_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -21,7 +21,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_elements/incompressible_potential_flow/laplace_element.h"
+#include "custom_elements/laplace_element.h"
 
 namespace Kratos
 {
@@ -29,7 +29,7 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class IncompressiblePotentialFlowPressureElement
+class IncompressiblePotentialFlowVelocityElement
 : public LaplaceElement<TDim, TNumNodes>
 {
 public:
@@ -45,10 +45,6 @@ public:
 
     using PropertiesType = Properties;
 
-    using MatrixType = Element::MatrixType;
-
-    using VectorType = Element::VectorType;
-
     /// Definition of nodes container type, redefined from GeometryType
     using NodesArrayType = GeometryType::PointsArrayType;
 
@@ -58,8 +54,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of IncompressiblePotentialFlowPressureElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowPressureElement);
+    /// Pointer definition of IncompressiblePotentialFlowVelocityElement
+    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowVelocityElement);
 
     ///@}
     ///@name Life Cycle
@@ -68,7 +64,7 @@ public:
     /**
      * Constructor.
      */
-    explicit IncompressiblePotentialFlowPressureElement(
+    explicit IncompressiblePotentialFlowVelocityElement(
         IndexType NewId = 0)
     : BaseType(NewId)
     {
@@ -77,7 +73,7 @@ public:
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowPressureElement(
+    IncompressiblePotentialFlowVelocityElement(
         IndexType NewId,
         const NodesArrayType& ThisNodes)
     : BaseType(NewId, ThisNodes)
@@ -87,7 +83,7 @@ public:
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowPressureElement(
+    IncompressiblePotentialFlowVelocityElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
@@ -97,7 +93,7 @@ public:
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowPressureElement(
+    IncompressiblePotentialFlowVelocityElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -108,8 +104,8 @@ public:
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowPressureElement(
-        IncompressiblePotentialFlowPressureElement const& rOther)
+    IncompressiblePotentialFlowVelocityElement(
+        IncompressiblePotentialFlowVelocityElement const& rOther)
     : BaseType(rOther)
     {
     }
@@ -117,7 +113,7 @@ public:
     /**
      * Destructor
      */
-    ~IncompressiblePotentialFlowPressureElement() override = default;
+    ~IncompressiblePotentialFlowVelocityElement() override = default;
 
     ///@}
     ///@name Operations
@@ -141,7 +137,7 @@ public:
         PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive<IncompressiblePotentialFlowPressureElement>(
+        return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
             NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
@@ -159,7 +155,7 @@ public:
         PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive<IncompressiblePotentialFlowPressureElement>(
+        return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
             NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
@@ -176,44 +172,17 @@ public:
         NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive<IncompressiblePotentialFlowPressureElement>(
+        return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
             NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
         KRATOS_CATCH("");
     }
 
     const Variable<double>& GetVariable() const override;
 
-    /**
-     * ELEMENTS inherited from this class have to implement next
-     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide
-     * methods they can be managed internally with a private method to do the
-     * same calculations only once: MANDATORY
-     */
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -223,25 +192,18 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "IncompressiblePotentialFlowPressureElement #" << this->Id();
+        buffer << "IncompressiblePotentialFlowVelocityElement #" << this->Id();
         return buffer.str();
     }
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "IncompressiblePotentialFlowPressureElement #" << this->Id();
+        rOStream << "IncompressiblePotentialFlowVelocityElement #" << this->Id();
     }
 
     ///@}
 
-protected:
-    ///@name Private Operations
-    ///@{
-
-    void CalculateRightHandSideVelocityContribution(
-        Vector& rRHS) const;
-
-    ///@}
+private:
     ///@name Serialization
     ///@{
 
@@ -265,23 +227,22 @@ protected:
     }
 
     ///@}
-}; // Class IncompressiblePotentialFlowPressureElement
+}; // Class IncompressiblePotentialFlowVelocityElement
 
 ///@}
-
 ///@name Input and output
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator>>(
     std::istream& rIStream,
-    IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>& rThis);
+    IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const IncompressiblePotentialFlowPressureElement<TDim, TNumNodes>& rThis)
+    const IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -293,4 +254,4 @@ inline std::ostream& operator<<(
 
 } // namespace Kratos.
 
-#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_PRESSURE_ELEMENT_H_INCLUDED defined
+#endif // KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_VELOCITY_ELEMENT_H_INCLUDED defined

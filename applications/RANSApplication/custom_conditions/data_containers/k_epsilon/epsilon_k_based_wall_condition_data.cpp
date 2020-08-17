@@ -91,12 +91,14 @@ bool EpsilonKBasedWallConditionData::IsWallFluxComputable() const
 double EpsilonKBasedWallConditionData::CalculateWallFlux(
     const Vector& rShapeFunctions) const
 {
-    const double nu = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions);
-    const double nu_t = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions);
-    const double tke = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions);
+    using namespace RansCalculationUtilities;
+
+    double nu, nu_t, tke;
+
+    EvaluateInPoint(this->GetGeometry(), rShapeFunctions,
+                    std::tie(nu, KINEMATIC_VISCOSITY),
+                    std::tie(nu_t, TURBULENT_VISCOSITY),
+                    std::tie(tke, TURBULENT_KINETIC_ENERGY));
 
     const double u_tau = mCmu25 * std::sqrt(std::max(tke, 0.0));
 
