@@ -96,15 +96,15 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     const auto& r_geometry = this->GetGeometry();
 
-    mTurbulentKineticEnergy =
-        EvaluateInPoint(r_geometry, TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    mTurbulentSpecificEnergyDissipationRate = EvaluateInPoint(
-        r_geometry, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, rShapeFunctions);
-    mKinematicViscosity = EvaluateInPoint(r_geometry, KINEMATIC_VISCOSITY, rShapeFunctions);
-    mWallDistance = EvaluateInPoint(r_geometry, DISTANCE, rShapeFunctions);
+    EvaluateInPoint(r_geometry, rShapeFunctions, Step,
+                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+                    std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
+                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+                    std::tie(mWallDistance, DISTANCE),
+                    std::tie(mEffectiveVelocity, VELOCITY));
+
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;
-    mTurbulentKinematicViscosity =
-        EvaluateInPoint(r_geometry, TURBULENT_VISCOSITY, rShapeFunctions);
 
     CalculateGradient(mTurbulentKineticEnergyGradient, r_geometry,
                       TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives, Step);
@@ -137,8 +137,7 @@ array_1d<double, 3> KElementData<TDim>::CalculateEffectiveVelocity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
-    return RansCalculationUtilities::EvaluateInPoint(this->GetGeometry(),
-                                                     VELOCITY, rShapeFunctions);
+    return mEffectiveVelocity;
 }
 
 template <unsigned int TDim>
