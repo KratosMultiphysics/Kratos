@@ -15,6 +15,7 @@
 
 // System includes
 #include <cmath>
+#include <tuple>
 
 // Project includes
 #include "geometries/geometry.h"
@@ -36,6 +37,9 @@ using ConditionType = ModelPart::ConditionType;
 /// Geometry type (using with given NodeType)
 using GeometryType = Geometry<NodeType>;
 
+template<class TDataType>
+using RefVariablePair = std::tuple<TDataType&, const Variable<TDataType>&>;
+
 inline long double SoftMax(
     const long double value_1,
     const long double value_2)
@@ -49,6 +53,7 @@ inline long double SoftPositive(
     return SoftMax(value, 0.0);
 }
 
+// TODO: Move this to core GeometryUtils
 void CalculateGeometryData(
     const GeometryType& rGeometry,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
@@ -56,6 +61,7 @@ void CalculateGeometryData(
     Matrix& rNContainer,
     GeometryType::ShapeFunctionsGradientsType& rDN_DX);
 
+// TODO: Move this to core GeometryUtils
 void CalculateConditionGeometryData(
     const GeometryType& rGeometry,
     const GeometryData::IntegrationMethod& rIntegrationMethod,
@@ -73,23 +79,56 @@ void CalculateGeometryParameterDerivativesShapeSensitivity(
     const Matrix& rDnDe,
     const Matrix& rDeDx);
 
-double EvaluateInPoint(
-    const GeometryType& rGeometry,
-    const Variable<double>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step = 0);
+template<class TDataType>
+void UpdateValue(TDataType& rOutput, const TDataType& rInput);
 
-array_1d<double, 3> EvaluateInPoint(
+template <class... TRefVariableValuePairArgs>
+void EvaluateInPoint(
     const GeometryType& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
     const Vector& rShapeFunction,
-    const int Step = 0);
+    const int Step,
+    const TRefVariableValuePairArgs&... rValueVariablePairs)
+{
+    KRATOS_TRY
 
-template <typename TDataType>
-TDataType EvaluateInParentCenter(
-    const Variable<TDataType>& rVariable,
-    const ConditionType& rCondition,
-    const int Step = 0);
+    const int number_of_nodes = rGeometry.PointsNumber();
+
+    const auto& r_node = rGeometry[0];
+    const double shape_function_value = rShapeFunction[0];
+
+    int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
+        std::get<0>(rValueVariablePairs) =
+            r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value,
+        0)...};
+
+    // this can be removed with fold expressions in c++17
+    *dummy = 0;
+
+    for (int c = 1; c < number_of_nodes; ++c) {
+        const auto& r_node = rGeometry[c];
+        const double shape_function_value = rShapeFunction[c];
+
+        int dummy[sizeof...(TRefVariableValuePairArgs)] = {(
+            UpdateValue<typename std::remove_reference<typename std::tuple_element<0, TRefVariableValuePairArgs>::type>::type>(
+                std::get<0>(rValueVariablePairs),
+                r_node.FastGetSolutionStepValue(std::get<1>(rValueVariablePairs), Step) * shape_function_value),
+            0)...};
+
+        // this can be removed with fold expressions in c++17
+        *dummy = 0;
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class... TRefVariableValuePairArgs>
+void inline EvaluateInPoint(
+    const GeometryType& rGeometry,
+    const Vector& rShapeFunction,
+    const TRefVariableValuePairArgs&... rValueVariablePairs)
+{
+    EvaluateInPoint<TRefVariableValuePairArgs...>(rGeometry, rShapeFunction, 0, rValueVariablePairs...);
+}
 
 template <unsigned int TDim>
 double CalculateMatrixTrace(

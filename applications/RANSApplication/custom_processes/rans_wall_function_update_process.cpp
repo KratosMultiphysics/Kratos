@@ -140,19 +140,20 @@ void RansWallFunctionUpdateProcess::Execute()
         const double wall_height =
             RansCalculationUtilities::CalculateWallHeight(rCondition, r_normal);
 
-        double condition_y_plus{0.0};
+        double condition_y_plus{0.0}, nu, tke;
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
+        array_1d<double, 3> wall_velocity;
 
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
-            const array_1d<double, 3>& r_wall_velocity =
-                RansCalculationUtilities::EvaluateInPoint(
-                    rCondition.GetGeometry(), VELOCITY, gauss_shape_functions);
-            const double wall_velocity_magnitude = norm_2(r_wall_velocity);
-            const double nu = RansCalculationUtilities::EvaluateInPoint(
-                rCondition.GetGeometry(), KINEMATIC_VISCOSITY, gauss_shape_functions);
-            const double tke = RansCalculationUtilities::EvaluateInPoint(
-                rCondition.GetGeometry(), TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+
+            RansCalculationUtilities::EvaluateInPoint(
+                rCondition.GetGeometry(), gauss_shape_functions,
+                std::tie(wall_velocity, VELOCITY),
+                std::tie(nu, KINEMATIC_VISCOSITY),
+                std::tie(tke, TURBULENT_KINETIC_ENERGY));
+
+            const double wall_velocity_magnitude = norm_2(wall_velocity);
 
             double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
@@ -166,7 +167,7 @@ void RansWallFunctionUpdateProcess::Execute()
             condition_y_plus += y_plus;
 
             if (wall_velocity_magnitude > 0.0) {
-                noalias(condition_u_tau) += r_wall_velocity * u_tau / wall_velocity_magnitude;
+                noalias(condition_u_tau) += wall_velocity * u_tau / wall_velocity_magnitude;
             }
         }
 
