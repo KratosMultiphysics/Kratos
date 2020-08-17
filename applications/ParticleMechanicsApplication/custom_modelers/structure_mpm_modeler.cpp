@@ -180,24 +180,31 @@ namespace Kratos
         KRATOS_ERROR_IF(mpm_coupling_nodes.NumberOfNodes() == 0)
              << "The MPM model has no model part 'coupling_nodes', which should have been created in the structure_mpm_modeler setupGeometry";
 
-        // Unfix interface nodes of previous timestep
+        // Unfix interface nodes of previous timestep (just mpm, since the fem nodes stay the same),
         ReleaseMPMDestInterfaceNodes(mpm_coupling_nodes);
 
-        // Remove all old interface nodes from coupling nodes modelpart
-        KRATOS_WATCH(mpm_coupling_nodes);
-        for (auto node : mpm_coupling_nodes.NodesArray()) mpm_coupling_nodes.RemoveNode(node);
-        KRATOS_WATCH(mpm_coupling_nodes);
+        // Set all mpm interface nodal forces to be zero
+        if (mIsOriginMpm)
+        {
+            for (auto interface_node : mpm_coupling_nodes.NodesArray())
+            {
+                if (interface_node->Has(POINT_LOAD))
+                {
+                    array_1d<double, 3 >& point_load = (interface_node)->FastGetSolutionStepValue(POINT_LOAD);
+                    point_load.clear();
+                }
+            }
+        }
 
+        // Remove all old interface nodes from coupling nodes modelpart
+        mpm_coupling_nodes.NodesArray().clear();
 
         ModelPart& coupling_interface_mpm = (mIsOriginMpm)
             ? coupling_model_part.GetSubModelPart("interface_origin")
             : coupling_model_part.GetSubModelPart("interface_destination");
-        KRATOS_WATCH(coupling_interface_mpm);
-        for (auto node : coupling_interface_mpm.NodesArray()) coupling_interface_mpm.RemoveNode(node);
-        KRATOS_WATCH(coupling_interface_mpm);
+        coupling_interface_mpm.NodesArray().clear();
 
         // Add in new interface nodes
-
         for (auto cond_it : coupling_model_part.ConditionsArray())
         {
             auto quads_mpm = cond_it->GetGeometry().pGetGeometryPart(mpm_index);
@@ -205,11 +212,8 @@ namespace Kratos
                 mpm_coupling_nodes.AddNode(quads_mpm->pGetPoint(j));
             }
         }
-        KRATOS_WATCH(mpm_coupling_nodes);
-
         // Set coupling interface nodes in coupling model part
         coupling_interface_mpm.SetNodes(mpm_coupling_nodes.pNodes());
-        KRATOS_WATCH(coupling_interface_mpm);
 
         // We fix the interface nodes so they can receive the prescribed displacements from FEM.
         FixMPMDestInterfaceNodes(mpm_coupling_nodes);

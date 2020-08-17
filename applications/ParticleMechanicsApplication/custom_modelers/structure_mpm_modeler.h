@@ -26,7 +26,7 @@
 #include "geometries/line_2d_2.h"
 #include "utilities/quadrature_points_utility.h"
 #include "utilities/binbased_fast_point_locator.h"
-
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -226,12 +226,18 @@ public:
         const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
         const IndexType fem_index = 1- mpm_index;
 
+        Geometry<Node<3>>* p_quad_geom;
+        auto cond_begin = rInputConditions.ptr_begin();
+
         // Loop over the submodelpart of rInitialModelPart
         for (IndexType i = 0; i < rInputConditions.size(); ++i)
         {
             typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-            array_1d<double, 3> coordinates = rInputConditions(i)->GetGeometry().pGetGeometryPart(fem_index)->Center();
+            p_quad_geom = (&((*(cond_begin+i))->GetGeometry()));
+
+            array_1d<double, 3> coordinates = p_quad_geom->GetGeometryPart(fem_index).Center();
+            KRATOS_WATCH(coordinates);
 
             Element::Pointer p_elem;
             Vector N;
@@ -243,9 +249,9 @@ public:
 
             if (is_found) {
                 CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
-                    rInputConditions(i)->GetGeometry().pGetGeometryPart(mpm_index),
+                    p_quad_geom->pGetGeometryPart(mpm_index),
                     local_coordinates,
-                    rInputConditions(i)->pGetGeometry()->IntegrationPoints()[0].Weight(),
+                    p_quad_geom->IntegrationPoints()[0].Weight(),
                     p_elem->GetGeometry());
             }
         }
