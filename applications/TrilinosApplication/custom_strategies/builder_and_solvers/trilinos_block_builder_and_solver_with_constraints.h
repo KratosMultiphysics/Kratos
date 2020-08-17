@@ -270,7 +270,7 @@ public:
                        TSystemVectorType& rb) override
     {
         KRATOS_TRY
-
+        const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
         const Epetra_CrsGraph a_graph = rA.Graph();
 
         auto start_build_time = std::chrono::steady_clock::now();
@@ -279,7 +279,7 @@ public:
         KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
                 <<"Build time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_time - start_build_time).count()/1000.0 <<"s"<<std::endl;
 
-        const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
+
         if(global_num_constraints > 0) {
             auto start_ac_time = std::chrono::steady_clock::now();
             ApplyConstraints(pScheme, rModelPart, rA, rb);
@@ -308,10 +308,11 @@ public:
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
 
-
-        TSystemMatrixType new_a(Copy, a_graph);
-        TSparseSpace::SetToZero(rA);
-        TSparseSpace::Copy(new_a, rA);
+        if(global_num_constraints > 0) {
+            TSystemMatrixType new_a(Copy, a_graph);
+            TSparseSpace::SetToZero(rA);
+            TSparseSpace::Copy(new_a, rA);
+        }
         KRATOS_CATCH("")
     }
 
@@ -328,7 +329,6 @@ public:
             TSystemVectorType dx_mod(rb.Map());
             InternalSystemSolveWithPhysics(rA, dx_mod, rb, rModelPart);
             //recover solution of the original problem
-            // TODO: Sparse matrix vector multiplication to get Dx
             TSparseSpace::Mult(*mpT, dx_mod, rDx);
         } else {
             InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
@@ -429,10 +429,6 @@ protected:
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::set<int> mInactiveSlaveEqIDs; /// The set containing the inactive slave dofs
-
-    TSystemVectorPointerType mpDx = nullptr; /// The increment in the solution
-    TSystemVectorPointerType mpb = nullptr; /// The RHS vector of the system of equations
-    TSystemMatrixPointerType mpA = nullptr; /// The LHS matrix of the system of equations
 
     ///@}
     ///@name Protected member Variables
