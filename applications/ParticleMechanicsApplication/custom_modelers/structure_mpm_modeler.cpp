@@ -136,10 +136,15 @@ namespace Kratos
     {
         Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
         Model* p_model_fem = (mIsOriginMpm) ? mpModelDest : mpModelOrigin;
+        const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
+        const IndexType fem_index = 1 - mpm_index;
 
         ModelPart& coupling_model_part = (mpModelOrigin->HasModelPart("coupling"))
             ? mpModelOrigin->GetModelPart("coupling")
             : mpModelOrigin->CreateModelPart("coupling");
+
+        KRATOS_ERROR_IF(coupling_model_part.NumberOfConditions() == 0)
+            << "The MPM model model part 'coupling_model_part' has no conditions, which should have been created in the structure_mpm_modeler setupGeometry";
 
         std::string origin_interface_sub_model_part_name;
         std::string destination_interface_sub_model_part_name;
@@ -159,14 +164,14 @@ namespace Kratos
         }
 
         ModelPart& mpm_background_grid_model_part = (p_model_mpm->HasModelPart("Background_Grid"))
-            ? p_model_mpm->GetModelPart("BackgroundGrid")
-            : p_model_mpm->CreateModelPart("BackgroundGrid");
+            ? p_model_mpm->GetModelPart("Background_Grid")
+            : p_model_mpm->CreateModelPart("Background_Grid");
 
         std::vector<GeometryPointerType> quads_structure;
+
         UpdateMpmQuadraturePointGeometries<3,
             typename ModelPart::ConditionsContainerType>(
                 coupling_model_part.Conditions(), mpm_background_grid_model_part);
-
 
         ModelPart& mpm_coupling_nodes = (p_model_mpm->HasModelPart("coupling_nodes"))
             ? p_model_mpm->GetModelPart("coupling_nodes")
@@ -192,7 +197,7 @@ namespace Kratos
         KRATOS_WATCH(coupling_interface_mpm);
 
         // Add in new interface nodes
-        const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
+
         for (auto cond_it : coupling_model_part.ConditionsArray())
         {
             auto quads_mpm = cond_it->GetGeometry().pGetGeometryPart(mpm_index);

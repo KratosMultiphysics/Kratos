@@ -224,13 +224,14 @@ public:
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
         const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
+        const IndexType fem_index = 1- mpm_index;
 
         // Loop over the submodelpart of rInitialModelPart
         for (IndexType i = 0; i < rInputConditions.size(); ++i)
         {
             typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-            array_1d<double, 3> coordinates = rInputConditions(i)->GetGeometry().pGetGeometryPart(0)->Center(); // same for fem or mpm quad point
+            array_1d<double, 3> coordinates = rInputConditions(i)->GetGeometry().pGetGeometryPart(fem_index)->Center();
 
             Element::Pointer p_elem;
             Vector N;
