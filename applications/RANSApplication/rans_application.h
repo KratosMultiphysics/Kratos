@@ -26,8 +26,7 @@
 #include "custom_elements/rans_fractional_step_element.h"
 
 // incompressible potential flow elements
-#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_velocity_element.h"
-#include "custom_elements/incompressible_potential_flow/incompressible_potential_flow_pressure_element.h"
+#include "custom_elements/incompressible_potential_flow_velocity_element.h"
 
 // stabilized generic convection diffusion reaction elements
 #include "custom_elements/convection_diffusion_reaction_cross_wind_stabilized_element.h"
@@ -45,6 +44,26 @@
 // k-omega-sst turbulence model element data
 #include "custom_elements/data_containers/k_omega_sst/k_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
+
+// vms monolithic wall conditions
+#include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
+
+// fractional step wall conditions
+#include "custom_conditions/fractional_step_k_based_wall_condition.h"
+
+// incompressible potential flow conditions
+#include "custom_conditions/incompressible_potential_flow_velocity_inlet_condition.h"
+
+// generic scalar wall flux condition
+#include "custom_conditions/scalar_wall_flux_condition.h"
+
+// k-epsilon turbulence model condition data
+#include "custom_conditions/data_containers/k_epsilon/epsilon_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_epsilon/epsilon_u_based_wall_condition_data.h"
+
+// k-omega turbulence model condition data
+#include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
 namespace Kratos
 {
@@ -125,8 +144,6 @@ private:
     /// incompressible potential flow elements
     const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;
     const IncompressiblePotentialFlowVelocityElement<3, 4> mIncompressiblePotentialFlowVelocity3D;
-    const IncompressiblePotentialFlowPressureElement<2, 3> mIncompressiblePotentialFlowPressure2D;
-    const IncompressiblePotentialFlowPressureElement<3, 4> mIncompressiblePotentialFlowPressure3D;
 
     /// k-epsilon turbulence model elements
     /// Algebraic flux correction based elements
@@ -193,6 +210,32 @@ private:
 
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, KOmegaSSTElementData::OmegaElementData<2>> mRansKOmegaSSTOmegaCWD2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<3, 4, KOmegaSSTElementData::OmegaElementData<3>> mRansKOmegaSSTOmegaCWD3D;
+
+    // vms monolithic k based wall conditions
+    const VMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWall2D2N;
+    const VMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWall3D3N;
+
+    // fractional step wall conditions
+    const FractionalStepKBasedWallCondition<2, 2> mFractionalStepKBasedWall2D2N;
+    const FractionalStepKBasedWallCondition<3, 3> mFractionalStepKBasedWall3D3N;
+
+    // incompressible potential flow conditions
+    const IncompressiblePotentialFlowVelocityInletCondition<2, 2> mIncompressiblePotentialFlowVelocityInlet2D2N;
+    const IncompressiblePotentialFlowVelocityInletCondition<3, 3> mIncompressiblePotentialFlowVelocityInlet3D3N;
+
+    // k-epsilon turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonKBasedWallConditionData> mRansKEpsilonEpsilonKBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, KEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansKEpsilonEpsilonUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KEpsilonWallConditionData::EpsilonUBasedWallConditionData> mRansKEpsilonEpsilonUBasedWall3D3N;
+
+    // k-omega turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaOmegaKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaOmegaKBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
 
     ///@}
     ///@name Un accessible methods

@@ -21,7 +21,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "custom_elements/incompressible_potential_flow/laplace_element.h"
+#include "custom_elements/laplace_element.h"
 
 namespace Kratos
 {

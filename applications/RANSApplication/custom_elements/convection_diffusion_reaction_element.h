@@ -332,31 +332,6 @@ protected:
     void GetValuesArray(
         BoundedVector<double, TNumNodes>& rValues,
         const int Step = 0) const;
-    /**
-     * @brief Calculates scalar value for given gauss point
-     *
-     * @param rVariable      Scalar variable
-     * @param rShapeFunction Gauss point shape functions
-     * @param Step           Step
-     * @return double        Gauss point scalar value
-     */
-    double EvaluateInPoint(
-        const Variable<double>& rVariable,
-        const Vector& rShapeFunction,
-        const int Step = 0) const;
-
-    /**
-     * @brief Calculates vector value for given gauss point
-     *
-     * @param rVariable            Vector variable
-     * @param rShapeFunction       Gauss point shape functions
-     * @param Step                 Step
-     * @return array_1d<double, 3> Gauss point vector value
-     */
-    array_1d<double, 3> EvaluateInPoint(
-        const Variable<array_1d<double, 3>>& rVariable,
-        const Vector& rShapeFunction,
-        const int Step = 0) const;
 
     /**
      * @brief Get the Divergence Operator object

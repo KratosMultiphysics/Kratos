@@ -31,8 +31,6 @@ KratosRANSApplication::KratosRANSApplication()
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-      mIncompressiblePotentialFlowPressure2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mIncompressiblePotentialFlowPressure3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       // k-epsilon turbulence model elements
       mRansKEpsilonKAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonKAFC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -71,7 +69,26 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaSSTKCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansKOmegaSSTKCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
       mRansKOmegaSSTOmegaCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
+      mRansKOmegaSSTOmegaCWD3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+      // vms monolithic k based wall conditions
+      mRansVMSMonolithicKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansVMSMonolithicKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // fractional step wall conditions
+      mFractionalStepKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mFractionalStepKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // incompressible potential flow conditions
+      mIncompressiblePotentialFlowVelocityInlet2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mIncompressiblePotentialFlowVelocityInlet3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-epsilon turbulence model conditions
+      mRansKEpsilonEpsilonKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKEpsilonEpsilonKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansKEpsilonEpsilonUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKEpsilonEpsilonUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      // k-omega turbulence model conditions
+      mRansKOmegaOmegaKBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaOmegaKBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+      mRansKOmegaOmegaUBasedWall2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+      mRansKOmegaOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -109,6 +126,13 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_C1 )
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_C2 )
 
+    // wall function condition specific additional variables
+    KRATOS_REGISTER_VARIABLE( RANS_Y_PLUS )
+    KRATOS_REGISTER_VARIABLE( RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT )
+    KRATOS_REGISTER_VARIABLE( WALL_SMOOTHNESS_BETA )
+    KRATOS_REGISTER_VARIABLE( RANS_IS_WALL_FUNCTION_ACTIVE )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FRICTION_VELOCITY )
+
     // k-omega turbulence modelling specific additional variables
     KRATOS_REGISTER_VARIABLE( TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE )
     KRATOS_REGISTER_VARIABLE( TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2 )
@@ -134,8 +158,6 @@ void KratosRANSApplication::Register()
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
-    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure2D3N", mIncompressiblePotentialFlowPressure2D);
-    KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowPressure3D4N", mIncompressiblePotentialFlowPressure3D);
 
     // registering k-epsilon algebraic flux correction based elements
     KRATOS_REGISTER_ELEMENT("RansKEpsilonKAFC2D3N", mRansKEpsilonKAFC2D);
@@ -190,6 +212,33 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTKCWD3D4N", mRansKOmegaSSTKCWD3D);
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTOmegaCWD2D3N", mRansKOmegaSSTOmegaCWD2D);
     KRATOS_REGISTER_ELEMENT("RansKOmegaSSTOmegaCWD3D4N", mRansKOmegaSSTOmegaCWD3D);
+
+    // registering conditions
+    // registering vms monolithic conditions
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall2D2N", mRansVMSMonolithicKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansVMSMonolithicKBasedWall3D3N", mRansVMSMonolithicKBasedWall3D3N);
+
+    // registering fractional step wall conditions
+    KRATOS_REGISTER_CONDITION("RansFractionalStepKBasedWall2D2N", mFractionalStepKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansFractionalStepKBasedWall3D3N", mFractionalStepKBasedWall3D3N);
+
+    // registering incompressible potential flow conditions
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet2D2N", mIncompressiblePotentialFlowVelocityInlet2D2N);
+    KRATOS_REGISTER_CONDITION("RansIncompressiblePotentialFlowVelocityInlet3D3N", mIncompressiblePotentialFlowVelocityInlet3D3N);
+
+    // registering k-epsilon conditions
+    KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonKBasedWall2D2N", mRansKEpsilonEpsilonKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonKBasedWall3D3N", mRansKEpsilonEpsilonKBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonUBasedWall2D2N", mRansKEpsilonEpsilonUBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKEpsilonEpsilonUBasedWall3D3N", mRansKEpsilonEpsilonUBasedWall3D3N);
+
+    // registering k-omega conditions
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaKBasedWall2D2N", mRansKOmegaOmegaKBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaKBasedWall3D3N", mRansKOmegaOmegaKBasedWall3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall2D2N", mRansKOmegaOmegaUBasedWall2D2N);
+    KRATOS_REGISTER_CONDITION("RansKOmegaOmegaUBasedWall3D3N", mRansKOmegaOmegaUBasedWall3D3N);
 
 }
 } // namespace Kratos.
