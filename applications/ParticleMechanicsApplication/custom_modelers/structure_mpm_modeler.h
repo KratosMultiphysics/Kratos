@@ -223,12 +223,14 @@ public:
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
+        const IndexType mpm_index = (mIsOriginMpm) ? 0 : 1;
+
         // Loop over the submodelpart of rInitialModelPart
         for (IndexType i = 0; i < rInputConditions.size(); ++i)
         {
             typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
-            array_1d<double, 3> coordinates = rInputConditions(i)->GetGeometry().pGetGeometryPart(0)->Center();
+            array_1d<double, 3> coordinates = rInputConditions(i)->GetGeometry().pGetGeometryPart(0)->Center(); // same for fem or mpm quad point
 
             Element::Pointer p_elem;
             Vector N;
@@ -240,7 +242,7 @@ public:
 
             if (is_found) {
                 CreateQuadraturePointsUtility<NodeType>::UpdateFromLocalCoordinates(
-                    rInputConditions(i)->GetGeometry().pGetGeometryPart(1),
+                    rInputConditions(i)->GetGeometry().pGetGeometryPart(mpm_index),
                     local_coordinates,
                     rInputConditions(i)->pGetGeometry()->IntegrationPoints()[0].Weight(),
                     p_elem->GetGeometry());
@@ -289,6 +291,32 @@ private:
         std::vector<GeometryPointerType>& rGeometries);
 
     void CheckParameters();
+
+    void FixMPMDestInterfaceNodes(ModelPart& rMPMDestInterfaceModelPart)
+    {
+        if (!mIsOriginMpm)
+        {
+            for (size_t i = 0; i < rMPMDestInterfaceModelPart.NumberOfNodes(); i++)
+            {
+                rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_X);
+                rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_Y);
+                rMPMDestInterfaceModelPart.NodesArray()[i]->Fix(DISPLACEMENT_Z);
+            }
+        }
+    }
+
+    void ReleaseMPMDestInterfaceNodes(ModelPart& rMPMDestInterfaceModelPart)
+    {
+        if (!mIsOriginMpm)
+        {
+            for (size_t i = 0; i < rMPMDestInterfaceModelPart.NumberOfNodes(); i++)
+            {
+                rMPMDestInterfaceModelPart.NodesArray()[i]->Free(DISPLACEMENT_X);
+                rMPMDestInterfaceModelPart.NodesArray()[i]->Free(DISPLACEMENT_Y);
+                rMPMDestInterfaceModelPart.NodesArray()[i]->Free(DISPLACEMENT_Z);
+            }
+        }
+    }
 
     ///@}
     ///@name Serializer
