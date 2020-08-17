@@ -131,6 +131,7 @@ public:
 
         // adds destination model part
         mpModeler->GenerateNodes(rModelPartDestination);
+        mLastInterfaceUpdateTime = rModelPartOrigin.GetProcessInfo().GetValue(TIME);
 
         mpModeler->SetupGeometryModel();
         // mpModeler->PrepareGeometryModel(); // @tobi, I propose this only be used for the 'update' geometry function eg. every timestep
@@ -286,6 +287,8 @@ private:
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
     ModelPart* mpCouplingInterfaceDestination = nullptr;
+
+    double mLastInterfaceUpdateTime = -1.0;
 
     Parameters mMapperSettings;
 
