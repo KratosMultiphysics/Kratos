@@ -11,7 +11,6 @@ from KratosMultiphysics.RANSApplication.formulations.formulation import Formulat
 
 # import formulations
 from .incompressible_potential_flow_velocity_formulation import IncompressiblePotentialFlowVelocityFormulation
-from .incompressible_potential_flow_pressure_formulation import IncompressiblePotentialFlowPressureFormulation
 
 
 class IncompressiblePotentialFlowFormulation(Formulation):
@@ -27,14 +26,12 @@ class IncompressiblePotentialFlowFormulation(Formulation):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.AddFormulation(IncompressiblePotentialFlowVelocityFormulation(model_part, settings["velocity_potential_flow_solver_settings"]))
-        self.AddFormulation(IncompressiblePotentialFlowPressureFormulation(model_part, settings["pressure_potential_flow_solver_settings"]))
         self.SetMaxCouplingIterations(1)
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.PRESSURE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.VELOCITY_POTENTIAL)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.PRESSURE_POTENTIAL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.BODY_FORCE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
@@ -50,7 +47,6 @@ class IncompressiblePotentialFlowFormulation(Formulation):
 
     def AddDofs(self):
         Kratos.VariableUtils().AddDof(KratosRANS.VELOCITY_POTENTIAL, self.GetBaseModelPart())
-        Kratos.VariableUtils().AddDof(KratosRANS.PRESSURE_POTENTIAL, self.GetBaseModelPart())
 
         # these dofs are required since they are fixed in inlet and outlet boundary conditions.
         Kratos.VariableUtils().AddDof(Kratos.VELOCITY_X, Kratos.REACTION_X,self.GetBaseModelPart())

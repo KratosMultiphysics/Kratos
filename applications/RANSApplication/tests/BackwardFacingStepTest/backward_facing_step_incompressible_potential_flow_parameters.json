@@ -127,9 +127,7 @@
                     "check_variables": [
                         "VELOCITY_X",
                         "VELOCITY_Y",
-                        "PRESSURE",
-                        "VELOCITY_POTENTIAL",
-                        "PRESSURE_POTENTIAL"
+                        "VELOCITY_POTENTIAL"
                     ],
                     "input_file_name": "backward_facing_step_incompressible_potential_flow_field_test_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
@@ -150,9 +148,7 @@
                 "check_variables": [
                     "VELOCITY_X",
                     "VELOCITY_Y",
-                    "PRESSURE",
-                    "VELOCITY_POTENTIAL",
-                    "PRESSURE_POTENTIAL"
+                    "VELOCITY_POTENTIAL"
                 ],
                 "input_file_name": "backward_facing_step_incompressible_potential_flow_field_test_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
@@ -170,9 +166,7 @@
                 "output_variables": [
                     "VELOCITY_X",
                     "VELOCITY_Y",
-                    "PRESSURE",
-                    "VELOCITY_POTENTIAL",
-                    "PRESSURE_POTENTIAL"
+                    "VELOCITY_POTENTIAL"
                 ],
                 "output_file_name": "backward_facing_step_incompressible_potential_flow_field_test_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
