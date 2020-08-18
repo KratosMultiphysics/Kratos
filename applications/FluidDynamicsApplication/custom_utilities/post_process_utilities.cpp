@@ -19,6 +19,7 @@ namespace Kratos {
         double flow = 0.0;
         auto conditions_begin = rModelPart.ConditionsBegin();
         const int num_conditions = rModelPart.NumberOfConditions();
+        auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
 
         #pragma omp parallel for reduction(+:flow)
         for(int i_c=0; i_c<num_conditions;++i_c) {
@@ -48,7 +49,14 @@ namespace Kratos {
             flow += condition_flow;
         } //for conditions
 
-        return flow;
+        // For MPI
+        double total_flow = flow;
+        if(r_data_comm.IsDistributed())
+        {
+            total_flow = r_data_comm.SumAll(flow);
+        }
+
+        return total_flow;
     }
 
 } // namespace Kratos.

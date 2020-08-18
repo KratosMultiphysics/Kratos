@@ -45,7 +45,8 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         # Only rank 0 writes in MPI
         my_rank = 0
         comm = self.model_part_for_time.GetCommunicator().GetDataCommunicator()
-        if my_rank == comm.Rank():
+        self.is_writing_rank = my_rank == comm.Rank()
+        if self.is_writing_rank:
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
             file_header = self.GetFileHeader()
             self.output_file =  TimeBasedAsciiFileWriterUtility(self.model_part_for_time, file_handler_params, file_header).file
@@ -69,7 +70,8 @@ class FlowOutputProcess(KratosMultiphysics.Process):
             out += " " + format(flow_value,self.format)
 
         out += "\n"
-        self.output_file.write(out)
+        if self.is_writing_rank:
+            self.output_file.write(out)
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -78,7 +80,8 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalize(self):
-        self.output_file.close()
+        if self.is_writing_rank:
+            self.output_file.close()
 
     def GetFileHeader(self):
         model_part_name_list = self.params["model_part_name_list"]
