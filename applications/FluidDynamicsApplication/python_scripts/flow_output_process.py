@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication.PostProcessUtilities as post_proc_utils
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # other imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
@@ -31,23 +31,23 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         self.model = model
         self.params = params
         self.params.ValidateAndAssignDefaults(default_settings)
-        self.output_file = none
+        self.output_file = None
         self.format = self.params["print_format"].GetString()
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
         model_part_name_list = self.params["model_part_name_list"]
-        if len(model_part_name_list) == 0:
+        if model_part_name_list.size() == 0:
             raise Exception('No model parts are specified!')
 
         self.model_part_for_time = self.model[model_part_name_list[0].GetString()]
 
         # Only rank 0 writes in MPI
         my_rank = 0
-        comm = self.model_part.GetCommunicator().GetDataCommunicator()
+        comm = self.model_part_for_time.GetCommunicator().GetDataCommunicator()
         if my_rank == comm.Rank():
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
-            file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
+            file_header = self.GetFileHeader()
             self.output_file =  TimeBasedAsciiFileWriterUtility(self.model_part_for_time, file_handler_params, file_header).file
 
     def ExecuteBeforeSolutionLoop(self):
@@ -60,6 +60,7 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         time = self.model_part_for_time.ProcessInfo[KratosMultiphysics.TIME]
         model_part_name_list = self.params["model_part_name_list"]
 
+        out = str(time)
         for model_part_name_param in model_part_name_list:
             model_part_name = model_part_name_param.GetString()
             model_part = self.model[model_part_name]
@@ -93,5 +94,5 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         return header
 
     def CalculateFlow(self, model_part):
-        flow_value = post_proc_utils().ComputeFlow(model_part)
+        flow_value = KratosCFD.PostProcessUtilities().ComputeFlow(model_part)
         return flow_value

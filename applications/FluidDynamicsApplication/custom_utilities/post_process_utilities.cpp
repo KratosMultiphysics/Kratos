@@ -32,9 +32,9 @@ namespace Kratos {
             array_1d<double,3> unit_normal = r_geom.Normal(point_local);
 
             if( area < std::numeric_limits<double>::epsilon())
-                unit_normal *= 1/area;
-            else
                 unit_normal *= 0.0;
+            else
+                unit_normal *= 1/area;
 
             double average_velocity = 0.0;
 
