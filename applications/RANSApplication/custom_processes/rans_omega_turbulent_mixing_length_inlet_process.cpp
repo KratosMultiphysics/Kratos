@@ -77,8 +77,6 @@ void RansOmegaTurbulentMixingLengthInletProcess::ExecuteInitialize()
     if (mIsConstrained) {
         auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        const int number_of_nodes = r_model_part.NumberOfNodes();
-
         BlockPartition<ModelPart::NodesContainerType>(r_model_part.Nodes())
             .for_each([&](ModelPart::NodeType& rNode) {
                 rNode.Fix(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
