@@ -188,11 +188,8 @@ namespace Kratos
         {
             for (auto interface_node : mpm_coupling_nodes.NodesArray())
             {
-                if (interface_node->Has(POINT_LOAD))
-                {
-                    array_1d<double, 3 >& point_load = (interface_node)->FastGetSolutionStepValue(POINT_LOAD);
-                    point_load.clear();
-                }
+                array_1d<double, 3 >& point_load = (interface_node)->FastGetSolutionStepValue(POINT_LOAD);
+                point_load.clear();
             }
         }
 
