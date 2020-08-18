@@ -128,6 +128,9 @@ void SlidingInterfaceProcess<TDim>::MakeSearchModelpart()
         mrMasterModelPart.GetCommunicator().GetDataCommunicator();
     Model& current_model = mrMasterModelPart.GetModel();
     ModelPart &gathered_master = r_comm.IsDistributed() ? current_model.CreateModelPart("gathered_master") : mrMasterModelPart;
+    if (r_comm.IsDistributed()){
+         GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
+    }
     typename BinBasedFastPointLocatorConditions<TDim>::Pointer new_ptr = Kratos::make_shared< BinBasedFastPointLocatorConditions<TDim> > (gathered_master);
     mpPointLocator.swap(new_ptr);
     mpPointLocator->UpdateSearchDatabase();
