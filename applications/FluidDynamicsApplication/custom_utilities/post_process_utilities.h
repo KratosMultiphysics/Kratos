@@ -15,31 +15,131 @@
 
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/model_part.h"
+namespace Kratos
+{
+  ///@addtogroup FluidDynamicsApplication
+  ///@{
 
-namespace Kratos {
+  ///@name Kratos Globals
+  ///@{
 
-    class PostProcessUtilities {
+  ///@}
+  ///@name Type Definitions
+  ///@{
 
-    public:
+  ///@}
+  ///@name  Enum's
+  ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
+  ///@}
+  ///@name  Functions
+  ///@{
 
-        /// Default constructor.
+  ///@}
+  ///@name Kratos Classes
+  ///@{
+  ///
+  /** Auxiliary utility for computing different values as post processing.
+   */
+    class KRATOS_API(FLUID_DYNAMICS_APPLICATION) PostProcessUtilities {
+  public:
 
-        PostProcessUtilities() {};
+    ///@name Type Definitions
+    ///@{
 
-        /// Destructor.
+    typedef Node<3>                                               NodeType;
+    typedef Geometry<NodeType>                                 GeometryType;
+    typedef IntegrationPoint<3>                       IntegrationPointType;
+    typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
 
-        virtual ~PostProcessUtilities() {};
+    /// Pointer definition of DragUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
 
-        void ComputeFlow(const ModelPart& rModelPart, double& flow);
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    protected:
+    /// Constructor
+    PostProcessUtilities() {};
 
-    private:
+    /// Destructor.
+    virtual ~PostProcessUtilities() {};
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    double ComputeFlow(const ModelPart& rModelPart);
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-    }; // Class PostProcessUtilities
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    PostProcessUtilities& operator=(PostProcessUtilities const& rOther);
+
+    /// Copy constructor.
+    PostProcessUtilities(PostProcessUtilities const& rOther);
+
+    ///@}
+
+
+}; // Class PostProcessUtilities
 
 } // namespace Kratos.
 
