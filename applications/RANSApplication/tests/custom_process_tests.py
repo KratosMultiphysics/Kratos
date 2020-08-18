@@ -5,8 +5,6 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.testing.utilities  import ReadModelPart
 
-import os
-
 
 class CustomProcessTest(UnitTest.TestCase):
     @classmethod
