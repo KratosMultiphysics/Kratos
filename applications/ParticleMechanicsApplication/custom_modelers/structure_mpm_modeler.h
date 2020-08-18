@@ -154,7 +154,7 @@ public:
             Vector N;
 
             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin);
+            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin,100,1e-12);
 
             if (is_found) {
                 const double integration_weight = rInputQuadraturePointGeometries[i]->IntegrationPoints()[0].Weight();
@@ -237,13 +237,12 @@ public:
             p_quad_geom = (&((*(cond_begin+i))->GetGeometry()));
 
             array_1d<double, 3> coordinates = p_quad_geom->GetGeometryPart(fem_index).Center();
-            KRATOS_WATCH(coordinates);
 
             Element::Pointer p_elem;
             Vector N;
 
             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
-            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin);
+            bool is_found = SearchStructure.FindPointOnMesh(coordinates, N, p_elem, result_begin,100,1e-12);
             array_1d<double, 3> local_coordinates;
             p_elem->GetGeometry().PointLocalCoordinates(local_coordinates, coordinates);
 
