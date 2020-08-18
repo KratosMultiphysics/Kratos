@@ -26,13 +26,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * @class OutputQuadratureDomainProcess
- * @ingroup KratosCore
- * @brief This class is used in order to check results using a json file containing the solution a given model part with a certain frequency
- * @details This stores the dababase in a class denominated ResultDatabase which considers Table to store the information, therefore being able to interpolate results
- * @author Vicente Mataix Ferrandiz
-*/
+/* @class OutputQuadratureDomainProcess
+ * @ingroup IgaApplication
+ * @brief This class outputs the location of the quadrature points within the local space of the containing geometry. */
 class KRATOS_API(IGA_APPLICATION) OutputQuadratureDomainProcess
     : public Process
 {
@@ -56,13 +52,13 @@ public:
         Parameters ThisParameters);
 
     /// Destructor.
-    virtual ~OutputQuadratureDomainProcess() {}
+    ~OutputQuadratureDomainProcess() = default;
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Called only once befor the solution loop
+    /// Called once before the solution loop and is writing the quadrature domain.
     void ExecuteBeforeSolutionLoop() override;
 
     const Parameters GetDefaultParameters() const override;
@@ -93,18 +89,12 @@ private:
     ///@{
 
     /// Model part and different settings
-    Model& mrModel;         /// The main model part
-    Parameters mThisParameters;     /// The parameters (can be used for general pourposes)
+    Model& mrModel;             /// The main model part
+    Parameters mThisParameters; /// The parameters (can be used for general pourposes)
 
     ///@}
 
 }; // Class OutputQuadratureDomainProcess
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output
@@ -125,7 +115,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 
