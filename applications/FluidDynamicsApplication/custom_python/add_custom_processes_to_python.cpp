@@ -35,7 +35,6 @@
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
-#include "custom_processes/flows_measuring_process.h"
 #include "custom_processes/mass_conservation_check_process.h"
 #include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
@@ -119,11 +118,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
     (m, "IntegrationPointStatisticsProcess")
-    .def(py::init<Model&, Parameters::Pointer>())
-    ;
-
-    py::class_<FlowsMeasuringProcess, FlowsMeasuringProcess::Pointer, Process>
-    (m, "FlowsMeasuringProcess")
     .def(py::init<Model&, Parameters::Pointer>())
     ;
 
