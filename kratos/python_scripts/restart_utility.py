@@ -15,6 +15,8 @@ class RestartUtility(object):
     in the main-script
     """
     def __init__(self, model_part, settings):
+        # number_of_stored_files    : max number of restart files to keep
+        #                             - negative value keeps all restart files (default)
         default_settings = KratosMultiphysics.Parameters("""
         {
             "input_filename"                 : "",
@@ -26,7 +28,8 @@ class RestartUtility(object):
             "restart_save_frequency"         : 0.0,
             "restart_control_type"           : "time",
             "save_restart_files_in_folder"   : true,
-            "set_mpi_communicator"           : true
+            "set_mpi_communicator"           : true,
+            "number_of_stored_files"         : -1
         }
         """)
 
@@ -86,7 +89,8 @@ class RestartUtility(object):
 
         self.next_output = self.restart_save_frequency # Schedule the first output to avoid printing in first step
 
-        self.save_restart_files_in_folder = settings["save_restart_files_in_folder"].GetBool()
+        self.save_restart_files_in_folder   = settings["save_restart_files_in_folder"].GetBool()
+        self.number_of_stored_files         = settings["number_of_stored_files"].GetInt()
 
     #### Public functions ####
 
@@ -154,6 +158,8 @@ class RestartUtility(object):
             while self.next_output <= control_label:
                 self.next_output += self.restart_save_frequency
 
+        self.ClearObsoleteRestartFiles()
+
     def IsRestartOutputStep(self):
         """
         This function checks and returns whether a restart file should be written in this time-step
@@ -169,6 +175,48 @@ class RestartUtility(object):
             if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
                 os.makedirs(folder_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+
+    def GetRestartFiles(self):
+        """
+        Return a list of all restart files as os.DirEntry objects sorted in ascending order.
+        """
+        restart_files = []
+        if os.path.isdir(self.__GetFolderPathSave()):
+            with os.scandir(path=self.__GetFolderPathSave()) as contents:                           # <-- list all restart files
+                [ restart_files.append(entry) for entry in contents if self.__IsRestartFile(entry) ]
+
+            modified_key = lambda entry: entry.stat().st_mtime_ns                                   # <-- sort files
+            restart_files.sort( key=modified_key )                                                  # - by time of last modification
+
+            def label_key(dir_entry):
+                key = self.__ExtractFileLabel(dir_entry.name)                                       # - by their labels
+                if key is None:                                                                     # (time of modification might be ambiguous)
+                    key = 0
+                return key
+            restart_files.sort( key=label_key )
+        return restart_files
+
+    def ClearObsoleteRestartFiles(self):
+        """
+        Collect all restart files from the current restart directory, sort them by date(time) modified
+        and delete the oldest ones such that only number_of_stored_files remain.
+        Note: a secondary sorting is performed based on the labels of the file names to resolve equalities.
+        """
+        if self.number_of_stored_files > -1:
+            restart_files = self.GetRestartFiles()
+            number_of_obsolete_files = len(restart_files) - self.number_of_stored_files
+            if number_of_obsolete_files > 0:
+                for file_index in range(number_of_obsolete_files):
+                    file_path = os.path.join( self.__GetFolderPathSave(), restart_files.pop(0).name )
+                    try:
+                        if os.path.isfile( file_path ):
+                            os.remove( file_path )
+                    except:
+                        message =   'Failed to delete restart file "'
+                        message +=  file_path
+                        message += '"'
+                        print( message )                # <-- TODO: decide whether to throw a non-blocking exception or display a warning
+                        #raise Exception(message)       #
 
 
     #### Protected functions ####
@@ -213,3 +261,26 @@ class RestartUtility(object):
         pretty_time = "{0:.12g}".format(time)
         pretty_time = float(pretty_time)
         return pretty_time
+
+    def __IsRestartFile(self, dir_entry):
+        """
+        Check whether the input os.DirEntry object refers to a file
+        and has an appropriate file name for a restart file.
+        """
+        assert type(dir_entry) is os.DirEntry
+        if dir_entry.is_file(follow_symlinks=False):
+            if dir_entry.name.endswith('.rest') and self.raw_file_name in os.path.basename(dir_entry.name):
+                # additional checks might have to be performed here if multiple simulations
+                # save their restart files in the same directory.
+                return True
+        return False
+
+    def __ExtractFileLabel(self, file_name):
+        label_begin = file_name.find(self.raw_file_name + '_') + len(self.raw_file_name + '_')
+        label_end   = file_name.find('.rest')
+        if label_begin != -1 and label_end != -1:
+            try:
+                return float(file_name[label_begin:label_end])
+            except:
+                return None
+        return None

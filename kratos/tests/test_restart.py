@@ -253,9 +253,11 @@ class TestRestart(KratosUnittest.TestCase):
             "Parameters" : {
                 "model_part_name"        : "MainRestart",
                 "restart_save_frequency" : 2,
-                "restart_control_type"   : "step"
+                "restart_control_type"   : "step",
+                "number_of_stored_files" : 20
             }
         }""")
+        number_of_stored_files                          = 20
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
         model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
@@ -276,11 +278,11 @@ class TestRestart(KratosUnittest.TestCase):
 
         # Checking if the files exist
         base_file_name = os.path.join(base_path, "MainRestart_")
-        for i in range(2,50,2):
+        for i in range(50-number_of_stored_files*2,50,2):
             self.assertTrue(os.path.isfile(base_file_name + str(i) + ".rest"))
 
         # Check number of restart-files
-        expected_num_files = 24
+        expected_num_files = number_of_stored_files
         num_files = len([name for name in os.listdir(base_path) if IsRestartFile(os.path.join(base_path, name))])
         self.assertEqual(expected_num_files, num_files)
 
