@@ -37,7 +37,8 @@ class CouplingOutput(CoSimulationCouplingOperation):
 
     def FinalizeSolutionStep(self):
         if self.execution_point == "finalize_solution_step":
-            pass
+            model_part_name = self.settings["output_parameters"]["model_part_name"].GetString()
+            KM.VtkOutput(self.model[model_part_name], self.settings["output_parameters"]).PrintOutput(self.settings["solver"].GetString()+"_"+model_part_name+"_"+str(self.step)) # this also validates the settings
 
     def InitializeCouplingIteration(self):
         self.coupling_iteration += 1
