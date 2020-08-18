@@ -213,7 +213,7 @@ class RestartUtility(object):
                     try:
                         if os.path.isfile( file_path ):
                             os.remove( file_path )
-                    except:
+                    except OSError:
                         message =   'Failed to delete restart file "'
                         message +=  file_path
                         message += '"'
