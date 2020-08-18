@@ -1643,12 +1643,14 @@ public:
     *        external point.
     * @param rResult the local coordinates of the point.
     * @param Tolerance the tolerance to the boundary.
-    * @return true if the point is inside, false otherwise
+    * @param ProjectionThreshold If we allow a certain gap between the point and the geometry, projecting the point
+     * @return True if the point is inside, false otherwise
     */
     virtual bool IsInside(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = std::numeric_limits<double>::epsilon(),
+        const double ProjectionThreshold = 0.0
         ) const
     {
         PointLocalCoordinates(
