@@ -879,12 +879,14 @@ public:
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @param ProjectionThreshold If we allow a certain gap between the point and the geometry, projecting the point
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = std::numeric_limits<double>::epsilon(),
+        const double ProjectionThreshold = 1.0e-6
         ) const override
     {
         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
@@ -899,7 +901,7 @@ public:
 
         // We check if we are on the plane
         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
-            if (std::abs(distance) > 1.0e-6 * Length()) {
+            if (std::abs(distance) >  ProjectionThreshold * Length()) {
                 KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The " << rPoint << " is in a distance: " << std::abs(distance) << std::endl;
                 return false;
             }
