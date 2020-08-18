@@ -183,7 +183,9 @@ class RestartUtility(object):
         restart_files = []
         if os.path.isdir(self.__GetFolderPathSave()):
             with os.scandir(path=self.__GetFolderPathSave()) as contents:                           # <-- list all restart files
-                [ restart_files.append(entry) for entry in contents if self.__IsRestartFile(entry) ]
+                for entry in contents:
+                    if self.__IsRestartFile(entry):
+                        restart_files.append(entry)
 
             modified_key = lambda entry: entry.stat().st_mtime_ns                                   # <-- sort files
             restart_files.sort( key=modified_key )                                                  # - by time of last modification
@@ -206,7 +208,7 @@ class RestartUtility(object):
             restart_files = self.GetRestartFiles()
             number_of_obsolete_files = len(restart_files) - self.number_of_stored_files
             if number_of_obsolete_files > 0:
-                for file_index in range(number_of_obsolete_files):
+                for _ in range(number_of_obsolete_files):
                     file_path = os.path.join( self.__GetFolderPathSave(), restart_files.pop(0).name )
                     try:
                         if os.path.isfile( file_path ):
@@ -267,7 +269,13 @@ class RestartUtility(object):
         Check whether the input os.DirEntry object refers to a file
         and has an appropriate file name for a restart file.
         """
-        assert type(dir_entry) is os.DirEntry
+        if not isinstance( dir_entry, os.DirEntry ):
+            message =   "Expecting an "
+            message +=  type(os.DirEntry).__name__
+            message +=  ", got "
+            message +=  type(dir_entry).__name__
+            raise ValueError( message )
+
         if dir_entry.is_file(follow_symlinks=False):
             if dir_entry.name.endswith('.rest') and self.raw_file_name in os.path.basename(dir_entry.name):
                 # additional checks might have to be performed here if multiple simulations
@@ -281,6 +289,6 @@ class RestartUtility(object):
         if label_begin != -1 and label_end != -1:
             try:
                 return float(file_name[label_begin:label_end])
-            except:
+            except ValueError:
                 return None
         return None
