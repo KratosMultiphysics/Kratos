@@ -28,6 +28,12 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
   file(GLOB_RECURSE  KRATOS_PARTICLE_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
+if((${USE_MPI} MATCHES ON))
+ set(EXTRA_LIBRARIES "KratosMPICore")
+else()
+ set(EXTRA_LIBRARIES "")
+endif((${USE_MPI} MATCHES ON))
+
 add_library(KratosParticleMechanicsCore SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE} ${KRATOS_PARTICLE_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosParticleMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosParticleMechanicsCore PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
@@ -75,3 +81,10 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosParticleMechanicsCore DESTINATION libs )
 install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
+
+## If trilinos is avaliable, switch on the ParticleMecchanics trilinos extension
+
+if((${USE_MPI} MATCHES ON) )
+  message("Enabling trilinos extension for KratosParticleMechanicsApplication")
+  add_subdirectory(trilinos_extension)
+endif((${USE_MPI} MATCHES ON) )
