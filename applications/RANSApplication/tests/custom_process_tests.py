@@ -34,7 +34,6 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
         cls.model_part.ProcessInfo.SetValue(Kratos.STEP, 1)
 
-        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         ReadModelPart("BackwardFacingStepTest/backward_facing_step", cls.model_part)
 
     def setUp(self):
