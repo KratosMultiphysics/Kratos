@@ -27,8 +27,11 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\", \"dynamic\", \"quasi_static\""
             raise Exception(err_msg)
-
+    if (parallelism == "MPI"):
+        if (solver_type == "Static" or solver_type == "static"):
+            solver_module_name = "mpi_mpm_solver"
     else:
+        print(parallelism)
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\""
         raise Exception(err_msg)
