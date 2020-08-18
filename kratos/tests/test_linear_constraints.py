@@ -89,7 +89,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = False
-        self.strategy = KM.ResidualBasedNewtonRaphsonStrategy(self.mp, self.scheme, self.linear_solver, self.convergence_criterion, self.builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag)
+        self.strategy = KM.ResidualBasedNewtonRaphsonStrategy(self.mp, self.scheme, self.convergence_criterion, self.builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag)
         self.strategy.SetEchoLevel(0)
         self.strategy.Initialize()
 
@@ -415,7 +415,6 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KM.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,

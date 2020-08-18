@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # This module contains the class AndersonConvergenceAccelerator
 # Author: Andreas Winterstein
 # Date: Jul. 2018
@@ -28,7 +26,7 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param p factor for switch between constant relaxation and alternating anderson Gauß-Seidel/Jacobian method
     # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation
     def __init__( self, settings, solvers, cosim_solver_details ):
-        super(AndersonConvergenceAccelerator, self).__init__(settings, solvers, cosim_solver_details)
+        super().__init__(settings, solvers, cosim_solver_details)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:

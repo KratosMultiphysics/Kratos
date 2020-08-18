@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural as structural_solvers
@@ -40,17 +38,17 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if self.contact_problem:
             if solver_settings.Has("use_computing_model_part"):
                 if not solver_settings["use_computing_model_part"].GetBool():
-                    KM.Logger.PrintInfo("StructuralMechanicsAnalysis", 'For a contact problem the "ComputingModelPart" has to be used for now! Switching to True')
+                    KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", 'For a contact problem the "ComputingModelPart" has to be used for now! Switching to True')
                     solver_settings["use_computing_model_part"].SetBool(True)
             else:
                 solver_settings.AddEmptyValue("use_computing_model_part").SetBool(True)
 
 
-        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(StructuralMechanicsAnalysis, self).Initialize()
+        super().Initialize()
 
         # In case of contact problem
         if self.contact_problem:
@@ -78,11 +76,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
-        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
+        super().OutputSolutionStep()
 
 
     def Check(self):
-        super(StructuralMechanicsAnalysis, self).Check()
+        super().Check()
 
         # performing some checks if the submodelparts used for the processes and
         # the material-assignments are being added to the ComputingModelPart
@@ -154,7 +152,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
