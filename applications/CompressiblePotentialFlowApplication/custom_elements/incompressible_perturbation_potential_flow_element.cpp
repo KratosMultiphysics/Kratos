@@ -188,7 +188,7 @@ int IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const P
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -224,7 +224,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -244,7 +244,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIn
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
