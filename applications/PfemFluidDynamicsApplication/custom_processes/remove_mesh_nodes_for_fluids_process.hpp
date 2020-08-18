@@ -1140,7 +1140,7 @@ namespace Kratos
 
 			std::vector<array_1d<double, 3>> rigidNodesCoordinates;
 			std::vector<array_1d<double, 3>> rigidNodesNormals;
-			array_1d<double, 3> notRigidNodeCoordinates;
+			array_1d<double, 3> notRigidNodeCoordinates(3,0.0);
 			unsigned int notRigidNodeId = 0;
 			rigidNodesCoordinates.resize(3);
 			rigidNodesNormals.resize(3);
