@@ -85,9 +85,9 @@ namespace Kratos
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
                         IndexType index = 3 * i;
-                        f[index]     += dead_load[0] * r_N(point_number, i) * d_weight;
-                        f[index + 1] += dead_load[1] * r_N(point_number, i) * d_weight;
-                        f[index + 2] += dead_load[2] * r_N(point_number, i) * d_weight;
+                        f[index]     += dead_load[0] * r_N(point_number, i) * d0_weight;
+                        f[index + 1] += dead_load[1] * r_N(point_number, i) * d0_weight;
+                        f[index + 2] += dead_load[2] * r_N(point_number, i) * d0_weight;
                     }
                 }
 
