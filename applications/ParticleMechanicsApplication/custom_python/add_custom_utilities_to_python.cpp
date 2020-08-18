@@ -58,6 +58,7 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
+        m.def("CopyCommunicator",&MPMParticleGeneratorUtility::CopyCommunicator);
     }
 
 }  // namespace Python.

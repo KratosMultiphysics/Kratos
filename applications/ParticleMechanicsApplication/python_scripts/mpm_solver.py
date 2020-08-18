@@ -217,9 +217,18 @@ class MPMSolver(PythonSolver):
         self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
         self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
+        # TODO: Clean Up here
+        KratosParticle.CopyCommunicator(self.grid_model_part, self.material_point_model_part)
+
+        self.material_point_model_part.GetCommunicator().LocalMesh().Nodes= self.grid_model_part.GetCommunicator().LocalMesh().Nodes
+        self.material_point_model_part.GetCommunicator().GhostMesh().Nodes = self.grid_model_part.GetCommunicator().GhostMesh().Nodes
+        self.material_point_model_part.GetCommunicator().InterfaceMesh().Nodes = self.grid_model_part.GetCommunicator().InterfaceMesh().Nodes
+        self.material_point_model_part.GetCommunicator().LocalMesh().Properties = self.material_point_model_part.Properties
         # Generate MP Element and Condition
         KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
         KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
+        #self.post_process(self.grid_model_part, "_rank_" + str(self.comm.Rank()))
+        #self.post_process_MPM(self.material_point_model_part, "_rank_" + str(self.comm.Rank()))
 
     def _SearchElement(self):
         searching_alg_type = self.settings["element_search_settings"]["search_algorithm_type"].GetString()
@@ -468,3 +477,63 @@ class MPMSolver(PythonSolver):
             materials_imported = False
         return materials_imported
 
+    def post_process(self,main_model_part, name):
+        from KratosMultiphysics.gid_output_process import GiDOutputProcess
+        self.gid_output = GiDOutputProcess(main_model_part,
+                                    "gid_output"+name,
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results"       : [],
+                                                "gauss_point_results" : []
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        self.gid_output.ExecuteInitialize()
+        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.PrintOutput()
+        self.gid_output.ExecuteFinalizeSolutionStep()
+        self.gid_output.ExecuteFinalize()
+
+    def post_process_MPM(self,main_model_part, name):
+        from KratosMultiphysics.ParticleMechanicsApplication.particle_gid_output_process import ParticleGiDOutputProcess
+        self.gid_output = ParticleGiDOutputProcess(main_model_part,
+            "gid_output_mpm" + name,
+            KratosMultiphysics.Parameters("""
+                {
+                    "result_file_configuration" : {
+                        "gidpost_flags"               : {
+                                    "GiDPostMode"           : "GiD_PostBinary",
+                                    "WriteDeformedMeshFlag" : "WriteDeformed",
+                                    "WriteConditionsFlag"   : "WriteConditions",
+                                    "MultiFileFlag"         : "SingleFile"
+                                },
+                                "file_label"                  : "time",
+                                "output_control_type"         : "step",
+                                "output_interval"             : 0.1,
+                                "body_output"                 : true,
+                                "node_output"                 : false,
+                                "skin_output"                 : false,
+                                "plane_output"                : [],
+                                "gauss_point_results"         : ["MP_DISPLACEMENT"],
+                                "nodal_nonhistorical_results" : []
+                            },
+                            "point_data_configuration"  : []
+                }
+                """)
+            )
+        self.gid_output.ExecuteInitialize()
+        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.PrintOutput()
+        self.gid_output.ExecuteFinalizeSolutionStep()
+        self.gid_output.ExecuteFinalize()

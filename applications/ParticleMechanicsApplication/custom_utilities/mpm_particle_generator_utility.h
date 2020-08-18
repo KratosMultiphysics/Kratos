@@ -58,6 +58,11 @@ namespace MPMParticleGeneratorUtility
     void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
+    // TODO: Move this to mpi utilities
+    void CopyCommunicator(ModelPart& origin, ModelPart& dest)
+    {
+        dest.SetCommunicator(origin.pGetCommunicator());
+    }
     /**
      * @brief Construct material points or particles from given initial mesh
      * @details Generating particles using a designated shape functions
@@ -194,8 +199,10 @@ namespace MPMParticleGeneratorUtility
 
                         // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                         bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
-                        if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
+                        //if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
 
+                        //TODO: Can this be general case?
+                        if(is_found){
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
@@ -227,6 +234,9 @@ namespace MPMParticleGeneratorUtility
 
                         // Add the MP Element to the model part
                         rMPMModelPart.GetSubModelPart(submodelpart_name).AddElement(p_element);
+                        //TODO: Test if this also works in python..
+                        rMPMModelPart.GetCommunicator().LocalMesh().AddElement(p_element);
+                        }
                     }
 
                     last_element_id += integration_point_per_elements;
