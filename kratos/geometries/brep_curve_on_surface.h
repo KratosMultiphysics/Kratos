@@ -77,7 +77,7 @@ public:
     ///@{
 
     /// constructor for untrimmed surface
-    BrepCurveOnSurface( 
+    BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         bool SameCurveDirection = true)
@@ -279,13 +279,15 @@ public:
     * @param rPoint The point to be checked if is inside o note in global coordinates
     * @param rResult The local coordinates of the point
     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
-    * @return True if the point is inside, false otherwise
+    * @param ProjectionThreshold If we allow a certain gap between the point and the geometry, projecting the point
+     * @return True if the point is inside, false otherwise
     */
     bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
+        const double Tolerance = std::numeric_limits<double>::epsilon(),
+        const double ProjectionThreshold = 0.0
+        ) const override
     {
         KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
     }
