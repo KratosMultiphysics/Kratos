@@ -43,8 +43,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
     /// Pointer definition of RansClipScalarVariableProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansClipScalarVariableProcess);
 
@@ -75,6 +73,8 @@ public:
 
     void Execute() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -95,7 +95,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
+
     std::string mModelPartName;
     std::string mVariableName;
     int mEchoLevel;

@@ -93,6 +93,8 @@ public:
 
     int Check() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -113,9 +115,8 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters& mrParameters;
-    std::string mModelPartName;
 
+    std::string mModelPartName;
     double mTurbulentMixingLength;
     double mCmu_25;
     double mMinValue;

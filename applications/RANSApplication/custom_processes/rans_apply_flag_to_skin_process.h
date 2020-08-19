@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_RANS_CHECK_VECTOR_BOUNDS_PROCESS_H_INCLUDED)
-#define KRATOS_RANS_CHECK_VECTOR_BOUNDS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_RANS_APPLY_FLAG_PROCESS_H_INCLUDED)
+#define KRATOS_RANS_APPLY_FLAG_PROCESS_H_INCLUDED
 
 // System includes
 #include <string>
@@ -31,51 +31,48 @@ namespace Kratos
 ///@{
 
 /**
- * @brief Checks lower and upper bounds of a vector
+ * @brief Apply a specific flag for nodes and conditions
  *
- * This process checks lower and upper bounds of a vector variable in nodes in a given modelpart
+ * This process apply a given flag to nodes of the modelpart.
+ * Then, if preferred, applies to all conditions in the given model, which has
+ * the given flag applied to all the nodes in the specific condition.
  *
  */
 
-class KRATOS_API(RANS_APPLICATION) RansCheckVectorBoundsProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansApplyFlagToSkinProcess : public Process
 {
-    enum VectorComponent { Magnitude, X, Y, Z };
-
 public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = Node<3>;
-
-    /// Pointer definition of RansCheckVectorBoundsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(RansCheckVectorBoundsProcess);
+    /// Pointer definition of RansApplyFlagToSkinProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RansApplyFlagToSkinProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-
-    RansCheckVectorBoundsProcess(
+    RansApplyFlagToSkinProcess(
         Model& rModel,
         Parameters rParameters);
 
     /// Destructor.
-    ~RansCheckVectorBoundsProcess() override = default;
+    ~RansApplyFlagToSkinProcess() override = default;
 
     /// Assignment operator.
-    RansCheckVectorBoundsProcess& operator=(RansCheckVectorBoundsProcess const& rOther) = delete;
+    RansApplyFlagToSkinProcess& operator=(RansApplyFlagToSkinProcess const& rOther) = delete;
 
     /// Copy constructor.
-    RansCheckVectorBoundsProcess(RansCheckVectorBoundsProcess const& rOther) = delete;
+    RansApplyFlagToSkinProcess(RansApplyFlagToSkinProcess const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    int Check() override;
+    void ExecuteInitialize() override;
 
-    void Execute() override;
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -89,6 +86,7 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override;
+
     ///@}
 
 private:
@@ -96,23 +94,33 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
-    std::string mModelPartName;
-    std::string mVariableName;
+    int mEchoLevel;
 
-    VectorComponent mVectorComponent;
+    std::string mModelPartName;
+    std::string mFlagVariableName;
+
+    bool mFlagVariableValue;
+
+    std::vector<std::string> mModelPartsForConditionFlags;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void ApplyNodeFlags();
+
+    void ApplyConditionFlags(ModelPart& rModelPart);
 
     ///@}
 
-}; // Class RansCheckVectorBoundsProcess
+}; // Class RansApplyFlagToSkinProcess
 
 ///@}
 ///@name Input and output
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansCheckVectorBoundsProcess& rThis);
+inline std::ostream& operator<<(std::ostream& rOStream, const RansApplyFlagToSkinProcess& rThis);
 
 ///@}
 
@@ -120,4 +128,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_CHECK_VECTOR_BOUNDS_PROCESS_H_INCLUDED defined
+#endif // KRATOS_RANS_APPLY_FLAG_PROCESS_H_INCLUDED defined

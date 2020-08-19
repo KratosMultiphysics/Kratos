@@ -70,35 +70,22 @@ public:
     RansWallDistanceCalculationBaseProcess(
         Model& rModel,
         Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+    : mrModel(rModel)
     {
         KRATOS_TRY
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "max_iterations"                   : 10,
-            "echo_level"                       : 0,
-            "wall_flag_variable_name"          : "STRUCTURE",
-            "wall_flag_variable_value"         : true,
-            "re_calculate_at_each_time_step"   : false,
-            "correct_distances_using_neighbors": true,
-            "linear_solver_settings" : {
-                "solver_type"     : "amgcl"
-            }
-        })");
+        rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-        mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-        mMaxIterations = mrParameters["max_iterations"].GetInt();
-        mEchoLevel = mrParameters["echo_level"].GetInt();
-        mModelPartName = mrParameters["model_part_name"].GetString();
-        mWallFlagVariableName = mrParameters["wall_flag_variable_name"].GetString();
-        mWallFlagVariableValue = mrParameters["wall_flag_variable_value"].GetBool();
+        mMaxIterations = rParameters["max_iterations"].GetInt();
+        mEchoLevel = rParameters["echo_level"].GetInt();
+        mModelPartName = rParameters["model_part_name"].GetString();
+        mWallFlagVariableName = rParameters["wall_flag_variable_name"].GetString();
+        mWallFlagVariableValue = rParameters["wall_flag_variable_value"].GetBool();
         mRecalculateAtEachTimeStep =
-            mrParameters["re_calculate_at_each_time_step"].GetBool();
+            rParameters["re_calculate_at_each_time_step"].GetBool();
         mCorrectDistancesUsingNeighbors =
-            mrParameters["correct_distances_using_neighbors"].GetBool();
+            rParameters["correct_distances_using_neighbors"].GetBool();
+        mLinearSolverParameters = rParameters["linear_solver_settings"];
 
         KRATOS_CATCH("");
     }
@@ -165,6 +152,26 @@ public:
         }
     }
 
+    const Parameters GetDefaultParameters() const override
+    {
+
+        const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "max_iterations"                   : 10,
+            "echo_level"                       : 0,
+            "wall_flag_variable_name"          : "STRUCTURE",
+            "wall_flag_variable_value"         : true,
+            "re_calculate_at_each_time_step"   : false,
+            "correct_distances_using_neighbors": true,
+            "linear_solver_settings" : {
+                "solver_type"     : "amgcl"
+            }
+        })");
+
+        return default_parameters;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -187,9 +194,9 @@ protected:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
-    std::string mModelPartName;
 
+    Parameters mLinearSolverParameters;
+    std::string mModelPartName;
     typename TLinearSolver::Pointer mpLinearSolver;
     BuilderSolverPointerType mpBuilderAndSolver;
 

@@ -38,15 +38,7 @@ def Factory(settings, Model):
         ],
         [
             "ApplyFlagProcess",
-            KratosRANS.RansApplyFlagProcess
-        ],
-        [
-            "CheckScalarBoundsProcess",
-            KratosRANS.RansCheckScalarBoundsProcess
-        ],
-        [
-            "CheckVectorBoundsProcess",
-            KratosRANS.RansCheckVectorBoundsProcess
+            KratosRANS.RansApplyFlagToSkinProcess
         ],
         [
             "ClipScalarVariableProcess",

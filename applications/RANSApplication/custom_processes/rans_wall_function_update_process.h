@@ -82,6 +82,8 @@ public:
 
     void Execute() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{

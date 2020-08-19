@@ -44,41 +44,41 @@ class CustomProcessTest(UnitTest.TestCase):
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.KINEMATIC_VISCOSITY, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
-    def testCheckScalarBoundsProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "CheckScalarBoundsProcess",
-                "Parameters" : {
-                    "model_part_name"                : "test",
-                    "variable_name"                  : "DENSITY"
-                }
-            }
-        ]''')
+    # def testCheckScalarBoundsProcess(self):
+    #     settings = Kratos.Parameters(r'''
+    #     [
+    #         {
+    #             "kratos_module" : "KratosMultiphysics.RANSApplication",
+    #             "python_module" : "cpp_process_factory",
+    #             "process_name"  : "CheckScalarBoundsProcess",
+    #             "Parameters" : {
+    #                 "model_part_name"                : "test",
+    #                 "variable_name"                  : "DENSITY"
+    #             }
+    #         }
+    #     ]''')
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+    #     factory = KratosProcessFactory(self.model)
+    #     self.process_list = factory.ConstructListOfProcesses(settings)
+    #     self.__ExecuteProcesses()
 
-    def testCheckVectorBoundsProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "cpp_process_factory",
-                "process_name"  : "CheckVectorBoundsProcess",
-                "Parameters" : {
-                    "model_part_name"                : "test",
-                    "variable_name"                  : "VELOCITY"
-                }
-            }
-        ]''')
+    # def testCheckVectorBoundsProcess(self):
+    #     settings = Kratos.Parameters(r'''
+    #     [
+    #         {
+    #             "kratos_module" : "KratosMultiphysics.RANSApplication",
+    #             "python_module" : "cpp_process_factory",
+    #             "process_name"  : "CheckVectorBoundsProcess",
+    #             "Parameters" : {
+    #                 "model_part_name"                : "test",
+    #                 "variable_name"                  : "VELOCITY"
+    #             }
+    #         }
+    #     ]''')
 
-        factory = KratosProcessFactory(self.model)
-        self.process_list = factory.ConstructListOfProcesses(settings)
-        self.__ExecuteProcesses()
+    #     factory = KratosProcessFactory(self.model)
+    #     self.process_list = factory.ConstructListOfProcesses(settings)
+    #     self.__ExecuteProcesses()
 
     def testClipScalarVariableProcess(self):
         settings = Kratos.Parameters(r'''
@@ -389,6 +389,50 @@ class CustomProcessTest(UnitTest.TestCase):
         test_variables = ["REACTION"]
         test_model_part_name = "test.Slip2D.Slip2D_walls"
         test_file_name = "compute_reactions_test_output"
+        CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
+        # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+    def testWallDistanceCalculationProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "ApplyFlagProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test.Slip2D.Slip2D_walls",
+                    "echo_level"                     : 0,
+                    "flag_variable_name"             : "STRUCTURE",
+                    "flag_variable_value"            : true,
+                    "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "WallDistanceCalculationProcess",
+                "Parameters" : {
+                    "model_part_name"                  : "test",
+                    "max_iterations"                   : 10,
+                    "echo_level"                       : 0,
+                    "wall_flag_variable_name"          : "STRUCTURE",
+                    "wall_flag_variable_value"         : true,
+                    "re_calculate_at_each_time_step"   : false,
+                    "correct_distances_using_neighbors": true,
+                    "linear_solver_settings" : {
+                        "solver_type"     : "amgcl"
+                    }
+                }
+            }
+        ]''')
+
+        test_variables = ["DISTANCE"]
+        test_model_part_name = "test"
+        test_file_name = "wall_distance_calculation_test_output"
         CustomProcessTest.__AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)
         # CustomProcessTest.__AddJsonOutputProcess(settings, test_variables, test_model_part_name, test_file_name)
 

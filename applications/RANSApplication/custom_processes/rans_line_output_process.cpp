@@ -31,30 +31,16 @@ namespace Kratos
 RansLineOutputProcess::RansLineOutputProcess(
     Model& rModel,
     Parameters rParameters)
-: Process(), mrModel(rModel), mrParameters(rParameters)
+: Process(), mrModel(rModel)
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "variable_names_list"               : [],
-            "historical_value"                  : true,
-            "start_point"                       : [0.0, 0.0, 0.0],
-            "end_point"                         : [0.0, 0.0, 0.0],
-            "number_of_sampling_points"         : 0,
-            "output_file_name"                  : "",
-            "output_step_control_variable_name" : "STEP",
-            "output_step_interval"              : 1,
-            "write_header_information"          : true
-        })");
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mWriteHeader = rParameters["write_header_information"].GetBool();
 
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mWriteHeader = mrParameters["write_header_information"].GetBool();
-
-    const Vector& r_start_point = mrParameters["start_point"].GetVector();
+    const Vector& r_start_point = rParameters["start_point"].GetVector();
     KRATOS_ERROR_IF(r_start_point.size() != 3)
         << "\"start_point\" should be given as 3-valued vector. [ "
            "start_point = "
@@ -63,7 +49,7 @@ RansLineOutputProcess::RansLineOutputProcess(
     mStartPoint[1] = r_start_point[1];
     mStartPoint[2] = r_start_point[2];
 
-    const Vector& r_end_point = mrParameters["end_point"].GetVector();
+    const Vector& r_end_point = rParameters["end_point"].GetVector();
     KRATOS_ERROR_IF(r_end_point.size() != 3)
         << "\"end_point\" should be given as 3-valued vector. [ "
            "end_point = "
@@ -72,20 +58,20 @@ RansLineOutputProcess::RansLineOutputProcess(
     mEndPoint[1] = r_end_point[1];
     mEndPoint[2] = r_end_point[2];
 
-    mNumberOfSamplingPoints = mrParameters["number_of_sampling_points"].GetInt();
+    mNumberOfSamplingPoints = rParameters["number_of_sampling_points"].GetInt();
     KRATOS_ERROR_IF(mNumberOfSamplingPoints <= 2)
         << "Sampling points should be greater than 2. [ "
            "number_of_sampling_points = "
         << mNumberOfSamplingPoints << " ]\n";
 
-    mVariableNames = mrParameters["variable_names_list"].GetStringArray();
-    mIsHistoricalValue = mrParameters["historical_value"].GetBool();
+    mVariableNames = rParameters["variable_names_list"].GetStringArray();
+    mIsHistoricalValue = rParameters["historical_value"].GetBool();
 
     // output controls
-    mOutputFileName = mrParameters["output_file_name"].GetString();
+    mOutputFileName = rParameters["output_file_name"].GetString();
     mOutputStepControlVariableName =
-        mrParameters["output_step_control_variable_name"].GetString();
-    mOutputStepInterval = mrParameters["output_step_interval"].GetInt();
+        rParameters["output_step_control_variable_name"].GetString();
+    mOutputStepInterval = rParameters["output_step_interval"].GetInt();
 
     mPreviousStepValue = 0.0;
 
@@ -99,16 +85,14 @@ int RansLineOutputProcess::Check()
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     if (mIsHistoricalValue) {
-        for (std::string variable_name : mVariableNames) {
+        for (const auto& variable_name : mVariableNames) {
             if (KratosComponents<Variable<double>>::Has(variable_name)) {
-                const Variable<double>& r_variable =
-                    KratosComponents<Variable<double>>::Get(variable_name);
+                const auto& r_variable = KratosComponents<Variable<double>>::Get(variable_name);
                 KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_variable))
                     << variable_name << " is not found in nodal solution step variables list of "
                     << mModelPartName << ".";
             } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
-                const Variable<array_1d<double, 3>>& r_variable =
-                    KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
+                const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
                 KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_variable))
                     << variable_name << " is not found in nodal solution step variables list of "
                     << mModelPartName << ".";
@@ -133,26 +117,23 @@ void RansLineOutputProcess::ExecuteInitialize()
     const auto& r_process_info = r_model_part.GetProcessInfo();
 
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
-        const Variable<int>& r_variable =
-            KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
         KRATOS_ERROR_IF(!r_process_info.Has(r_variable))
             << "\"output_step_control_variable_name\" ( " << mOutputStepControlVariableName
             << " ) not found in process info of " << r_model_part.Name() << ".\n";
     } else if (KratosComponents<Variable<double>>::Has(mOutputStepControlVariableName)) {
-        const Variable<double>& r_variable =
-            KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
         KRATOS_ERROR_IF(!r_process_info.Has(r_variable))
             << "\"output_step_control_variable_name\" ( " << mOutputStepControlVariableName
             << " ) not found in process info of " << r_model_part.Name() << ".\n";
     } else if (KratosComponents<Variable<std::string>>::Has(mOutputStepControlVariableName)) {
-        const Variable<std::string>& r_variable =
-            KratosComponents<Variable<std::string>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<std::string>>::Get(mOutputStepControlVariableName);
         KRATOS_ERROR_IF(!r_process_info.Has(r_variable))
             << "\"output_step_control_variable_name\" ( " << mOutputStepControlVariableName
             << " ) not found in process info of " << r_model_part.Name() << ".\n";
     }
 
-    const array_1d<double, 3>& r_direction_vector = mEndPoint - mStartPoint;
+    const auto& r_direction_vector = mEndPoint - mStartPoint;
 
     mSamplingPoints.resize(mNumberOfSamplingPoints * 3);
     mSamplingPointElementIds.resize(mNumberOfSamplingPoints, 0);
@@ -163,14 +144,15 @@ void RansLineOutputProcess::ExecuteInitialize()
 
     // calculate the sampling points in the rank zero
     if (r_communicator.Rank() == 0) {
+        unsigned int local_index = 0;
         for (int i = 0; i < mNumberOfSamplingPoints; ++i) {
-            const array_1d<double, 3> current_point =
+            const auto& current_point =
                 mStartPoint + r_direction_vector *
                                   (static_cast<double>(i) /
                                    static_cast<double>(mNumberOfSamplingPoints - 1));
-            mSamplingPoints[i * 3] = current_point[0];
-            mSamplingPoints[i * 3 + 1] = current_point[1];
-            mSamplingPoints[i * 3 + 2] = current_point[2];
+            mSamplingPoints[local_index++] = current_point[0];
+            mSamplingPoints[local_index++] = current_point[1];
+            mSamplingPoints[local_index++] = current_point[2];
         }
     }
 
@@ -191,7 +173,7 @@ void RansLineOutputProcess::ExecuteInitialize()
         r_communicator.Gatherv(mSamplePointLocalIndexList, 0);
     if (r_communicator.Rank() == 0) {
         mFoundGlobalPoints.resize(mNumberOfSamplingPoints, -1);
-        for (std::vector<int> current_index_list : mSamplePointLocalIndexListMaster) {
+        for (const auto& current_index_list : mSamplePointLocalIndexListMaster) {
             for (int sample_index : current_index_list) {
                 KRATOS_ERROR_IF(sample_index > mNumberOfSamplingPoints)
                     << "Sampling index error.\n";
@@ -249,12 +231,10 @@ bool RansLineOutputProcess::IsOutputStep()
     double current_step_value = 0.0;
 
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
-        const Variable<int>& r_variable =
-            KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
         current_step_value = static_cast<double>(r_process_info[r_variable]);
     } else if (KratosComponents<Variable<double>>::Has(mOutputStepControlVariableName)) {
-        const Variable<double>& r_variable =
-            KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
         current_step_value = r_process_info[r_variable];
     } else {
         return true;
@@ -284,7 +264,7 @@ void RansLineOutputProcess::WriteOutputFile()
     std::vector<std::vector<double>> global_sample_point_variables_value_list;
     std::vector<std::string> global_variable_names_list;
 
-    for (std::string variable_name : mVariableNames) {
+    for (const auto& variable_name : mVariableNames) {
         std::vector<double> sample_point_values_list;
         int variable_length = 0;
         if (KratosComponents<Variable<double>>::Has(variable_name)) {
@@ -292,8 +272,7 @@ void RansLineOutputProcess::WriteOutputFile()
             variable_length = 1;
             global_variable_names_list.push_back(variable_name);
 
-            const Variable<double>& r_variable =
-                KratosComponents<Variable<double>>::Get(variable_name);
+            const auto& r_variable = KratosComponents<Variable<double>>::Get(variable_name);
 
             for (int i = 0; i < number_of_local_points; ++i) {
                 const double sample_point_value =
@@ -306,11 +285,10 @@ void RansLineOutputProcess::WriteOutputFile()
             global_variable_names_list.push_back(variable_name + "_X");
             global_variable_names_list.push_back(variable_name + "_Y");
             global_variable_names_list.push_back(variable_name + "_Z");
-            const Variable<array_1d<double, 3>>& r_variable =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
+            const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
 
             for (int i = 0; i < number_of_local_points; ++i) {
-                const array_1d<double, 3>& sample_point_value =
+                const auto& sample_point_value =
                     InterpolateVariable(r_variable, mSamplePointLocalIndexList[i]);
                 sample_point_values_list[i * 3] = sample_point_value[0];
                 sample_point_values_list[i * 3 + 1] = sample_point_value[1];
@@ -332,10 +310,8 @@ void RansLineOutputProcess::WriteOutputFile()
                      i_process <
                      static_cast<int>(global_sample_point_values_list.size());
                      ++i_process) {
-                    const std::vector<double>& local_sample_point_values_list =
-                        global_sample_point_values_list[i_process];
-                    const std::vector<int>& local_sample_point_indices =
-                        mSamplePointLocalIndexListMaster[i_process];
+                    const auto& local_sample_point_values_list = global_sample_point_values_list[i_process];
+                    const auto& local_sample_point_indices = mSamplePointLocalIndexListMaster[i_process];
                     const int number_of_local_sample_points =
                         local_sample_point_indices.size();
                     for (int i_local_index = 0;
@@ -425,17 +401,13 @@ void RansLineOutputProcess::WriteOutputFileHeader(std::ofstream& rOutputFileStre
 
     std::stringstream output_step_control_variable_value;
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
-        const Variable<int>& r_variable =
-            KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
-
+        const auto& r_variable = KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
         output_step_control_variable_value << r_process_info[r_variable];
     } else if (KratosComponents<Variable<double>>::Has(mOutputStepControlVariableName)) {
-        const Variable<double>& r_variable =
-            KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
         output_step_control_variable_value << r_process_info[r_variable];
     } else if (KratosComponents<Variable<std::string>>::Has(mOutputStepControlVariableName)) {
-        const Variable<std::string>& r_variable =
-            KratosComponents<Variable<std::string>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<std::string>>::Get(mOutputStepControlVariableName);
         output_step_control_variable_value << r_process_info[r_variable];
     } else {
         KRATOS_ERROR << "Output step control variable name not found in "
@@ -507,20 +479,17 @@ std::string RansLineOutputProcess::GetOutputFileName() const
     const auto& r_process_info = mrModel.GetModelPart(mModelPartName).GetProcessInfo();
 
     if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
-        const Variable<int>& r_variable =
-            KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
         std::stringstream output_name;
         output_name << mOutputFileName << "_" << r_process_info[r_variable] << ".csv";
         return output_name.str();
     } else if (KratosComponents<Variable<double>>::Has(mOutputStepControlVariableName)) {
-        const Variable<double>& r_variable =
-            KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
         std::stringstream output_name;
         output_name << mOutputFileName << "_" << r_process_info[r_variable] << ".csv";
         return output_name.str();
     } else if (KratosComponents<Variable<std::string>>::Has(mOutputStepControlVariableName)) {
-        const Variable<std::string>& r_variable =
-            KratosComponents<Variable<std::string>>::Get(mOutputStepControlVariableName);
+        const auto& r_variable = KratosComponents<Variable<std::string>>::Get(mOutputStepControlVariableName);
         std::stringstream output_name;
         output_name << mOutputFileName << "_" << r_process_info[r_variable] << ".csv";
         return output_name.str();
@@ -532,6 +501,25 @@ std::string RansLineOutputProcess::GetOutputFileName() const
     }
 
     return "";
+}
+
+const Parameters RansLineOutputProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "variable_names_list"               : [],
+            "historical_value"                  : true,
+            "start_point"                       : [0.0, 0.0, 0.0],
+            "end_point"                         : [0.0, 0.0, 0.0],
+            "number_of_sampling_points"         : 0,
+            "output_file_name"                  : "",
+            "output_step_control_variable_name" : "STEP",
+            "output_step_interval"              : 1,
+            "write_header_information"          : true
+        })");
+
+    return default_parameters;
 }
 
 } // namespace Kratos.

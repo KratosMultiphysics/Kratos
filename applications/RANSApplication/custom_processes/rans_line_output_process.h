@@ -36,8 +36,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
     /// Pointer definition of RansLineOutputProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansLineOutputProcess);
 
@@ -72,6 +70,8 @@ public:
 
     void ExecuteFinalizeSolutionStep() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -92,7 +92,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
+
     std::string mModelPartName;
     std::vector<std::string> mVariableNames;
     bool mWriteHeader;

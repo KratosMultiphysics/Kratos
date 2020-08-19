@@ -52,10 +52,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
-    using NodesContainerType = ModelPart::NodesContainerType;
-
     /// Pointer definition of RansEpsilonTurbulentMixingLengthInletProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansEpsilonTurbulentMixingLengthInletProcess);
 
@@ -89,6 +85,8 @@ public:
 
     int Check() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -109,9 +107,8 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
-    std::string mModelPartName;
 
+    std::string mModelPartName;
     double mTurbulentMixingLength;
     double mCmu_75;
     double mMinValue;
