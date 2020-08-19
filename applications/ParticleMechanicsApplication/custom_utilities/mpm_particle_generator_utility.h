@@ -58,11 +58,6 @@ namespace MPMParticleGeneratorUtility
     void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
-    // TODO: Move this to mpi utilities
-    void CopyCommunicator(ModelPart& origin, ModelPart& dest)
-    {
-        dest.SetCommunicator(origin.pGetCommunicator());
-    }
     /**
      * @brief Construct material points or particles from given initial mesh
      * @details Generating particles using a designated shape functions
