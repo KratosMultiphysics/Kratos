@@ -132,7 +132,7 @@ namespace Kratos
                 actual_metric, CalculateStiffnessMatrixFlag);   // only Reissner-Mindlin contribution, the contributions in B are added to that one of the Kirchhoff-Love part
 
             double integration_weight = mGaussIntegrationThickness.integration_weight_thickness(Gauss_index) * 
-                GetValue(INTEGRATION_WEIGHT) * dV * thickness / 2.0;
+                GetGeometry().IntegrationPoints()[0].Weight()  * dV * thickness / 2.0;
 
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag == true)
