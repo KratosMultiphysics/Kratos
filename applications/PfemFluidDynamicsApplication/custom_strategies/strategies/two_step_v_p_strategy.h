@@ -873,7 +873,7 @@ namespace Kratos
 
       if (it == 0)
       {
-        this->ComputeVelocityNorm(velocityNorm);
+        velocityNorm=this->ComputeVelocityNorm();
       }
       double DvErrorNorm = NormDv / velocityNorm;
       // double DvErrorNorm = 0;
@@ -1306,11 +1306,11 @@ namespace Kratos
       myfileVelocity.close();
     }
 
-    void ComputeVelocityNorm(double &NormV)
+double ComputeVelocityNorm()
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
 
-      NormV = 0.00;
+      double NormV = 0.00;
 
 #pragma omp parallel reduction(+ \
                                : NormV)
@@ -1338,6 +1338,8 @@ namespace Kratos
 
       if (NormV == 0.0)
         NormV = 1.00;
+
+      return NormV;
     }
 
     bool CheckVelocityConvergence(const double NormDv, double &errorNormDv)
@@ -1448,9 +1450,9 @@ namespace Kratos
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
 
-#pragma omp parallel reduction(+ \
-                               : NormP)
-      {
+// #pragma omp parallel reduction(+ \
+//                                : NormP)
+//       {
         ModelPart::NodeIterator NodeBegin;
         ModelPart::NodeIterator NodeEnd;
         OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
@@ -1459,7 +1461,7 @@ namespace Kratos
           const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
           NormP += Pr * Pr;
         }
-      }
+      // }
 
       BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
 
