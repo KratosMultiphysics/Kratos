@@ -9,7 +9,6 @@
 //
 //  Main authors:    Miguel Angel Celigueta
 
-
 #ifndef POST_PROCESS_UTILITIES_H
 #define POST_PROCESS_UTILITIES_H
 
@@ -42,7 +41,7 @@ namespace Kratos
   ///
   /** Auxiliary utility for computing different values as post processing.
    */
-    class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidPostProcessUtilities {
+  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidPostProcessUtilities {
   public:
 
     ///@name Type Definitions
@@ -64,7 +63,14 @@ namespace Kratos
     FluidPostProcessUtilities() {};
 
     /// Destructor.
-    virtual ~FluidPostProcessUtilities() {};
+    virtual ~FluidPostProcessUtilities() = default;
+
+
+    /// Assignment operator.
+    FluidPostProcessUtilities& operator=(FluidPostProcessUtilities const& rOther) = delete;
+
+    /// Copy constructor.
+    FluidPostProcessUtilities(FluidPostProcessUtilities const& rOther) = delete;
 
     ///@}
     ///@name Operators
@@ -74,7 +80,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    /** 
+    /**
      *  @brief This method calculates the flow throught the given modelpart (surface/line) in the normal
      *          direction.
      *  @param[in] rModelPart The model part instance where statistics are recorded.
@@ -135,12 +141,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    FluidPostProcessUtilities& operator=(FluidPostProcessUtilities const& rOther);
-
-    /// Copy constructor.
-    FluidPostProcessUtilities(FluidPostProcessUtilities const& rOther);
 
     ///@}
 
