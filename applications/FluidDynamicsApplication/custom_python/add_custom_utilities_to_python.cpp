@@ -184,7 +184,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // Post process utilities
     py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
         .def(py::init<>())
-        .def("ComputeFlow", &FluidPostProcessUtilities::ComputeFlow)
+        .def("ComputeFlow", &FluidPostProcessUtilities::CalculateFlow)
         ;
 
 }

@@ -74,7 +74,13 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    double ComputeFlow(const ModelPart& rModelPart);
+    /** 
+     *  @brief This method calculates the flow throught the given modelpart (surface/line) in the normal
+     *          direction.
+     *  @param[in] rModelPart The model part instance where statistics are recorded.
+     *  @return flow through the modelpart.
+     */
+    double CalculateFlow(const ModelPart& rModelPart);
 
     ///@}
     ///@name Access
