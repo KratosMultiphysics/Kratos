@@ -14,7 +14,7 @@
 
 namespace Kratos {
 
-    double PostProcessUtilities::ComputeFlow(const ModelPart& rModelPart) {
+    double FluidPostProcessUtilities::ComputeFlow(const ModelPart& rModelPart) {
 
         double flow = 0.0;
         auto conditions_begin = rModelPart.ConditionsBegin();

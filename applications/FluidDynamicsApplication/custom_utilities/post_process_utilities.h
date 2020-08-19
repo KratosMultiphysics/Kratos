@@ -42,7 +42,7 @@ namespace Kratos
   ///
   /** Auxiliary utility for computing different values as post processing.
    */
-    class KRATOS_API(FLUID_DYNAMICS_APPLICATION) PostProcessUtilities {
+    class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FluidPostProcessUtilities {
   public:
 
     ///@name Type Definitions
@@ -54,17 +54,17 @@ namespace Kratos
     typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
 
     /// Pointer definition of DragUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(PostProcessUtilities);
+    KRATOS_CLASS_POINTER_DEFINITION(FluidPostProcessUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    PostProcessUtilities() {};
+    FluidPostProcessUtilities() {};
 
     /// Destructor.
-    virtual ~PostProcessUtilities() {};
+    virtual ~FluidPostProcessUtilities() {};
 
     ///@}
     ///@name Operators
@@ -131,15 +131,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    PostProcessUtilities& operator=(PostProcessUtilities const& rOther);
+    FluidPostProcessUtilities& operator=(FluidPostProcessUtilities const& rOther);
 
     /// Copy constructor.
-    PostProcessUtilities(PostProcessUtilities const& rOther);
+    FluidPostProcessUtilities(FluidPostProcessUtilities const& rOther);
 
     ///@}
 
 
-}; // Class PostProcessUtilities
+}; // Class FluidPostProcessUtilities
 
 } // namespace Kratos.
 
