@@ -52,6 +52,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             "time_order": 2,
             "move_mesh_flag": false,
             "shock_capturing": true,
+            "nithiarasu_smoothing": false,
             "compute_reactions": false,
             "reform_dofs_at_each_step" : false,
             "assign_neighbour_elements_to_conditions": false,
@@ -154,6 +155,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing").SetBool(self.settings["shock_capturing"].GetBool())
+        strategy_settings.AddEmptyValue("nithiarasu_smoothing").SetBool(self.settings["nithiarasu_smoothing"].GetBool())
 
         strategy = KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
             self.computing_model_part,

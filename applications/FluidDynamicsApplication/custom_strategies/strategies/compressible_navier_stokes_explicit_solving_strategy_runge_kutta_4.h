@@ -92,6 +92,7 @@ public:
         Parameters ThisParameters)
         : BaseType(rModelPart, ThisParameters)
         , mShockCapturing(ThisParameters["shock_capturing"].GetBool())
+        , mNithiarasuSmoothing(ThisParameters["nithiarasu_smoothing"].GetBool())
     {
         // TODO: DO THE PARAMETERS CHECK
     }
@@ -260,8 +261,15 @@ public:
         // // Calculate the magnitudes time derivatives with the obtained solution
         // UpdateUnknownsTimeDerivatives(1.0);
 
+        // Apply the momentum slip condition
+        if (mApplySlipCondition) {
+            ApplySlipCondition();
+        }
+
         // Do the values smoothing
-        CalculateValuesSmoothing();
+        if (mNithiarasuSmoothing) {
+            CalculateValuesSmoothing();
+        }
     }
 
     /// Turn back information as a string.
@@ -439,6 +447,8 @@ private:
     ///@{
 
     bool mShockCapturing;
+    bool mApplySlipCondition = true;
+    bool mNithiarasuSmoothing;
     const bool mPAD = false;
     const double mMinDensity = 1.0e-2;
     const double mMinTotalEnergy = 1.0e-6;
@@ -723,6 +733,26 @@ private:
                 it_elem->GetValue(SHOCK_CAPTURING_CONDUCTIVITY) = 0.0;
             }
         }
+    }
+
+    void ApplySlipCondition()
+    {
+        // Calculate the model part data
+        auto &r_model_part = BaseType::GetModelPart();
+        const int n_nodes = r_model_part.NumberOfNodes();
+
+        // Calculate and substract the normal contribution
+#pragma omp parallel for
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = r_model_part.NodesBegin() + i_node;
+            if (it_node->Is(SLIP)) {
+                auto unit_normal = it_node->FastGetSolutionStepValue(NORMAL);
+                unit_normal /= norm_2(unit_normal);
+                auto& r_mom = it_node->FastGetSolutionStepValue(MOMENTUM);
+                const double r_mom_n = inner_prod(r_mom, unit_normal);
+                r_mom -= r_mom_n * unit_normal;
+            }
+        }        
     }
 
     void CalculateValuesSmoothing()
