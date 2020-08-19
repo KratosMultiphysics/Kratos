@@ -20,7 +20,7 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(TrilinosImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
@@ -32,16 +32,16 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
             "rayleigh_alpha"          : 0.0,
             "rayleigh_beta"           : 0.0
         }""")
-        this_defaults.AddMissingParameters(super(TrilinosImplicitMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):
-        super(TrilinosImplicitMechanicalSolver, self).AddVariables()
+        super().AddVariables()
         self._add_dynamic_variables()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
 
     def AddDofs(self):
-        super(TrilinosImplicitMechanicalSolver, self).AddDofs()
+        super().AddDofs()
         self._add_dynamic_dofs()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 

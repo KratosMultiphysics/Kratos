@@ -299,26 +299,6 @@ GeometryData::IntegrationMethod ConvectionDiffusionReactionElement<TDim, TNumNod
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::EvaluateInPoint(
-    const Variable<double>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step) const
-{
-    return RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), rVariable, rShapeFunction, Step);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-array_1d<double, 3> ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::EvaluateInPoint(
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step) const
-{
-    return RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), rVariable, rShapeFunction, Step);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
 double ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetDivergenceOperator(
     const Variable<array_1d<double, 3>>& rVariable,
     const Matrix& rShapeDerivatives,
