@@ -34,10 +34,21 @@ class TrilinosMPMSolver(MPMSolver):
 
     def ImportModelPart(self):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMPMSolver]:: ", "Importing model part.")
-        grid_model_part_settings = self.settings["grid_model_import_settings"]
-        mdpa_file_name = grid_model_part_settings["input_filename"].GetString()
+        # Make local copy of import settings and rename "grid_model_import settings" to "model_import_settings"
+        # DistributedImportModelPartUtility only allows "model_import_settings"
+        grid_model_import_settings = self.settings["grid_model_import_settings"]
+        input_type = grid_model_import_settings["input_type"].GetString()
+        file_name = grid_model_import_settings["input_filename"].GetString()
+        local_import_settings = KratosMultiphysics.Parameters("""{
+                    "model_import_settings" : {},
+                    "echo_level"            : 0
+        }
+        """)
+        local_import_settings["model_import_settings"].AddMissingParameters(grid_model_import_settings)
+        local_import_settings["echo_level"].SetInt(self.settings["echo_level"].GetInt())
+
         if(self.settings["grid_model_import_settings"]["input_type"].GetString() == "mdpa"):
-            self.distributed_model_part_importer = DistributedImportModelPartUtility(self.grid_model_part, self.settings)
+            self.distributed_model_part_importer = DistributedImportModelPartUtility(self.grid_model_part, local_import_settings)
             self.distributed_model_part_importer.ImportModelPart()
         else:
             raise Exception("Other input options are not implemented yet.")
@@ -60,14 +71,12 @@ class TrilinosMPMSolver(MPMSolver):
         super(TrilinosMPMSolver, self).Finalize()
         self._GetSolutionStrategy().Clear() # needed for proper finalization of MPI
 
-
-#### Specific internal functions ####
+#### Protected functions ####
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = self._CreateEpetraCommunicator()
         return self._epetra_communicator
 
-#### Protected functions ####
     def _CreateEpetraCommunicator(self):
         return TrilinosApplication.CreateCommunicator()
 

@@ -19,8 +19,7 @@ class DistributedImportModelPartUtility(object):
         self.ImportModelPart()
 
     def ImportModelPart(self):
-        # TODO: Avoid change here!!
-        model_part_import_settings = self.settings["grid_model_import_settings"]
+        model_part_import_settings = self.settings["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
 
         # in single process runs, do not call metis (no partitioning is necessary)
