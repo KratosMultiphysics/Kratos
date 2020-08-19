@@ -51,12 +51,6 @@ class FlowOutputProcess(KratosMultiphysics.Process):
             file_header = self.GetFileHeader()
             self.output_file =  TimeBasedAsciiFileWriterUtility(self.model_part_for_time, file_handler_params, file_header).file
 
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part_for_time.ProcessInfo[KratosMultiphysics.TIME]
         model_part_name_list = self.params["model_part_name_list"]
@@ -72,12 +66,6 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         out += "\n"
         if self.is_writing_rank:
             self.output_file.write(out)
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
 
     def ExecuteFinalize(self):
         if self.is_writing_rank:
