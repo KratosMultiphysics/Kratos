@@ -237,7 +237,7 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Check(const Proc
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -274,7 +274,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -310,7 +310,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)

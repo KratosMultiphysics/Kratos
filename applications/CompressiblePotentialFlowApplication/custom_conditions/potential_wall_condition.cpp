@@ -182,27 +182,27 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(Process
 
     // Get pressure coefficient
     std::vector<double> pressure;
-    pElem->GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT, pressure, rCurrentProcessInfo);
+    pElem->CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT, pressure, rCurrentProcessInfo);
     this->SetValue(PRESSURE_COEFFICIENT, pressure[0]);
 
     // Get velocity
     std::vector<array_1d<double, 3>> velocity;
-    pElem->GetValueOnIntegrationPoints(VELOCITY, velocity, rCurrentProcessInfo);
+    pElem->CalculateOnIntegrationPoints(VELOCITY, velocity, rCurrentProcessInfo);
     this->SetValue(VELOCITY, velocity[0]);
 
     // Get density
     std::vector<double> density;
-    pElem->GetValueOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
+    pElem->CalculateOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
     this->SetValue(DENSITY, density[0]);
 
     // Get local mach number
     std::vector<double> local_mach_number;
-    pElem->GetValueOnIntegrationPoints(MACH, local_mach_number, rCurrentProcessInfo);
+    pElem->CalculateOnIntegrationPoints(MACH, local_mach_number, rCurrentProcessInfo);
     this->SetValue(MACH, local_mach_number[0]);
 
     // Get local speed of sound
     std::vector<double> local_speed_of_sound;
-    pElem->GetValueOnIntegrationPoints(SOUND_VELOCITY, local_speed_of_sound, rCurrentProcessInfo);
+    pElem->CalculateOnIntegrationPoints(SOUND_VELOCITY, local_speed_of_sound, rCurrentProcessInfo);
     this->SetValue(SOUND_VELOCITY, local_speed_of_sound[0]);
 }
 

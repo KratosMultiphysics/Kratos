@@ -266,9 +266,12 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
     array_1d<double, 3> variable_gradient;
     const Variable<double>& primal_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
+    const Variable<double>& relaxed_primal_rate_variable =
+        TConvectionDiffusionReactionData::GetScalarRelaxedRateVariable();
 
     const auto& r_geometry = this->GetGeometry();
     TConvectionDiffusionReactionData r_current_data(r_geometry);
+    double variable_value, relaxed_variable_acceleration;
 
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
@@ -300,10 +303,11 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
         this->CalculateGradient(variable_gradient, primal_variable, r_shape_derivatives);
         const double velocity_dot_variable_gradient =
             inner_prod(velocity, variable_gradient);
-        const double variable_value =
-            this->EvaluateInPoint(primal_variable, gauss_shape_functions);
-        const double relaxed_variable_acceleration =
-            this->GetScalarVariableRelaxedAcceleration(gauss_shape_functions);
+
+        RansCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(variable_value, primal_variable),
+            std::tie(relaxed_variable_acceleration, relaxed_primal_rate_variable));
 
         double residual = relaxed_variable_acceleration;
         residual += velocity_dot_variable_gradient;
@@ -350,20 +354,6 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
                             TConvectionDiffusionReactionData::GetScalarVariable(),
                             rShapeFunctionDerivatives, Step);
     return norm_2(scalar_variable_gradient);
-
-    KRATOS_CATCH("");
-}
-
-template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetScalarVariableRelaxedAcceleration(
-    const Vector& rShapeFunctions,
-    const int Step) const
-{
-    KRATOS_TRY;
-
-    return this->EvaluateInPoint(
-        TConvectionDiffusionReactionData::GetScalarRelaxedRateVariable(),
-        rShapeFunctions, Step);
 
     KRATOS_CATCH("");
 }
