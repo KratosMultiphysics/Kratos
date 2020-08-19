@@ -296,7 +296,6 @@ public:
         this->GetValuesVector(values, 0);
 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
-        KRATOS_WATCH(rRightHandSideVector)
     }
 
     /**

@@ -46,8 +46,12 @@ class AnalysisStage(object):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
         """
+        print('analysis_stage.py Initialize()~')
         self.Initialize()
+        print('~analysis_stage.py Initialize()')
+        print('analysis_stage.py RunSolutionLoop()~')
         self.RunSolutionLoop()
+        print('~analysis_stage.py RunSolutionLoop()')
         self.Finalize()
 
     def KeepAdvancingSolutionLoop(self):
@@ -75,32 +79,52 @@ class AnalysisStage(object):
         This function has to be implemented in deriving classes!
         """
         # Modelers:
+        print('analysis_stage.py _CreateModelers()~')
         self._CreateModelers()
+        print('analysis_stage.py _ModelersSetupGeometryModel()~')
         self._ModelersSetupGeometryModel()
+        print('analysis_stage.py _ModelersPrepareGeometryModel()~')
         self._ModelersPrepareGeometryModel()
+        print('analysis_stage.py _ModelersSetupModelPart()~')
         self._ModelersSetupModelPart()
 
+        print('analysis_stage.py _GetSolver().ImportModelPart()~')
         self._GetSolver().ImportModelPart()
+        print('analysis_stage.py _GetSolver().PrepareModelPart()~')
         self._GetSolver().PrepareModelPart()
+        print('analysis_stage.py _GetSolver().AddDofs()~')
         self._GetSolver().AddDofs()
 
+        print('analysis_stage.py ModifyInitialProperties()~')
         self.ModifyInitialProperties()
+        print('analysis_stage.py ModifyInitialGeometry()~')
         self.ModifyInitialGeometry()
 
         ##here we initialize user-provided processes
         self.__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
+        print('_GetListOfProcesses()')
+        print(self._GetListOfProcesses())
         for process in self._GetListOfProcesses():
+            print(process)
+            print('analysis_stage.py process.ExecuteInitialize()~')
             process.ExecuteInitialize()
 
+        print('analysis_stage.py _GetSolver().Initialize()~')
         self._GetSolver().Initialize()
+        print('analysis_stage.py Check()') 
         self.Check()
 
+        print('analysis_stage.py ModifyAfterSolverInitialize()')
         self.ModifyAfterSolverInitialize()
 
         for process in self._GetListOfProcesses():
+            print(process)
+            print('analysis_stage.py process.ExecuteBeforeSolutionLoop()~')
             process.ExecuteBeforeSolutionLoop()
+            print('~analysis_stage.py process.ExecuteBeforeSolutionLoop()')
 
         ## Stepping and time settings
+        print('Stepping and time settings')
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:

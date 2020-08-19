@@ -31,9 +31,9 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
                 "model_part_name"      : "",
                 "ABL_friction_velocity" : 0.375,
                 "seed_for_random_samples_generation": 2020,
-                "lamda_unsteadiness_parameter" : 1.0,
+                "lambda_unsteadiness_parameter" : 1.0,
                 "constants":{
-                    "total_wave_number": 100
+                    "total_wave_number": 10
                     }
             }
             """)
@@ -52,7 +52,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         #self.total_wave_number = self.model_part.ProcessInfo[KratosRANS.TOTAL_WAVE_NUMBER]
         self.ABL_friction_velocity = params["ABL_friction_velocity"].GetDouble()
         self.rand_seed = params["seed_for_random_samples_generation"].GetInt()
-        self.lambda_unsteadiness = params["lamda_unsteadiness_parameter"].GetDouble()
+        self.lambda_unsteadiness = params["lambda_unsteadiness_parameter"].GetDouble()
 
     #def InitializeModelConstants(self):
         # reading constants
@@ -92,17 +92,19 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         b_n = list()
         omega_n = list()
         end_time = 0.0
+        i = 0
         for node in self.model_part.Nodes:
             k_n.append(self._DiscretiseWaveNumber(node)) # k_n: list[node][total_wavenumber_discretization]
             energy_spectrum.append(self._CalculateEnergySpectrum(node, k_n[-1])) # energy_spectrum: list[node][total_wavenumber_discretization][3]
-            a_n.append(self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed)) # a_n: list[node][total_wavenumber_discretization][3]
-            b_n.append(self._GenerateFouerierCoefficient(energy_spectrum, self.rand_seed+1)) # b_n: list[node][total_wavenumber_discretization][3]
+            a_n.append(self._GenerateFouerierCoefficient(energy_spectrum[-1], self.rand_seed)) # a_n: list[node][total_wavenumber_discretization][3]
+            b_n.append(self._GenerateFouerierCoefficient(energy_spectrum[-1], self.rand_seed+1)) # b_n: list[node][total_wavenumber_discretization][3]
             # a_n and b_n have same PDF but chage the seed so they have different values
-            omega_n.append(self._CalculateAngularFrequency(energy_spectrum, k_n)) # omega_n: list[node][total_wavenumber]
+            omega_n.append(self._CalculateAngularFrequency(energy_spectrum[-1], k_n[-1])) # omega_n: list[node][total_wavenumber]
             end_time_pre = 2*math.pi/min(omega_n[i])
             if end_time_pre > end_time:
                 end_time = end_time_pre
-        
+            i += 1
+
         return [k_n, energy_spectrum, a_n, b_n, omega_n, end_time]
 
     def ExecuteFinalizeSolutionStep(self):
@@ -188,11 +190,6 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         Kw = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_W)
         k_kol = k_n[-1]
         E = list()
-        print('check')
-        print(Ku)
-        print(k_n[0])
-        print(k_kol)
-        print(ke)
         for i in range(self.total_wave_number):
             k_i = k_n[i]
             Eu_i = Au * 2 * Ku * math.exp(-2*((k_i/k_kol)**2)) / (ke*pow(1+(k_i/ke)**2, 0.833333333333333))
@@ -208,20 +205,22 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         samples = list()
         for i in range(self.total_wave_number):
             mean_vec = [0.0, 0.0, 0.0]
-            cov_matrix = [[sqrt(2*energy_spectrum[i][0]), 0.0, 0.0],
-                         [0.0, sqrt(2*energy_spectrum[i][1]), 0.0],
-                         [0.0, 0.0, sqrt(2*energy_spectrum[i][2])]]
+            cov_matrix = [[math.sqrt(2*energy_spectrum[i][0]), 0.0, 0.0],
+                         [0.0, math.sqrt(2*energy_spectrum[i][1]), 0.0],
+                         [0.0, 0.0, math.sqrt(2*energy_spectrum[i][2])]]
 
-            samples_i = np.random.multivariate_normal(mean_vec, cov_matrix, 1) #samples_i[1, 3]
+            samples_i = np.random.multivariate_normal(mean_vec, cov_matrix) #samples_i[1, 3]
             samples.append(samples_i.tolist())
 
         return samples
 
     def _CalculateAngularFrequency(self, energy_spectrum, k_n):
 
-        omega_n = self.lamda_unsteadiness * np.sqrt(np.pow(k_n,3)*(energy_spectrum[0]+energy_spectrum[1]+energy_spectrum[2]))
+        omega_n = list()
+        for i in range(self.total_wave_number):
+            omega_n.append(self.lambda_unsteadiness * math.sqrt(pow(k_n[i],3)*(energy_spectrum[i][0]+energy_spectrum[i][1]+energy_spectrum[i][2])))
 
-        return omega_n.tolist()
+        return omega_n
 
     def _FouerierSummation(self, node, k_n, k_n_unitvector, a_n, b_n, omega_n, current_time):
 
@@ -229,9 +228,9 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         u_y = 0.0
         u_z = 0.0
         for i in range(self.total_wave_number):
-            A = self.__cross(a_n, k_n_unitvector)
-            B = self.__cross(b_n, k_n_unitvector)
-            C = (k_n_unitvector[0]*node.X + k_n_unitvector[1]*node.Y + k_n_unitvector[2]*node.Z)*k_n[i]
+            A = self.__cross(a_n[i], k_n_unitvector[i])
+            B = self.__cross(b_n[i], k_n_unitvector[i])
+            C = (k_n_unitvector[i][0]*node.X + k_n_unitvector[i][1]*node.Y + k_n_unitvector[i][2]*node.Z)*k_n[i]
             u_x += A[0]*math.cos(C+omega_n[i]*current_time) + B[0]*math.sin(C+omega_n[i]*current_time)
             u_y += A[1]*math.cos(C+omega_n[i]*current_time) + B[1]*math.sin(C+omega_n[i]*current_time)
             u_z += A[2]*math.cos(C+omega_n[i]*current_time) + B[2]*math.sin(C+omega_n[i]*current_time)

@@ -101,7 +101,7 @@ class RANSKinematicFormulation(Formulation):
                 "model_part_name"      : "{0:s}",
                 "ABL_friction_velocity" : 0.375,
                 "seed_for_random_samples_generation": 2020,
-                "lamda_unsteadiness_parameter" : 1.0
+                "lambda_unsteadiness_parameter" : 1.0
             }}
             '''.format(self.GetBaseModelPart().Name))
 
@@ -130,7 +130,7 @@ class RANSKinematicFormulation(Formulation):
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
-            "total_wave_number": 100
+            "total_wave_number": 10
         }''')
 
         settings.ValidateAndAssignDefaults(defaults)
