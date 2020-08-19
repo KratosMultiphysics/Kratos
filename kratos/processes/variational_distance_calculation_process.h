@@ -353,7 +353,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         if(mrModel.HasModelPart( mAuxModelPartName ))
             mrModel.DeleteModelPart( mAuxModelPartName );

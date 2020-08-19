@@ -188,7 +188,7 @@ int CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const Pro
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -218,7 +218,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnInte
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -238,7 +238,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnInte
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
