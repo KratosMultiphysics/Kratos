@@ -155,21 +155,21 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& CurrentProcessInfo) override;
+                          const ProcessInfo& CurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& rElementalDofList,
-                    ProcessInfo& rCurrentProcessInfo) override;
+                    const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
