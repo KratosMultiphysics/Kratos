@@ -94,8 +94,8 @@ class FlowsMeasuringUtilityTest(UnitTest.TestCase):
         second_smp.AddConditions([3])
 
 
-        flow_value_first = KratosCFD.PostProcessUtilities().ComputeFlow(first_smp)
-        flow_value_second = KratosCFD.PostProcessUtilities().ComputeFlow(second_smp)
+        flow_value_first = KratosCFD.PostProcessUtilities().CalculateFlow(first_smp)
+        flow_value_second = KratosCFD.PostProcessUtilities().CalculateFlow(second_smp)
 
         self.assertEqual(flow_value_first, 1.0)
         self.assertEqual(flow_value_second, -0.5)
