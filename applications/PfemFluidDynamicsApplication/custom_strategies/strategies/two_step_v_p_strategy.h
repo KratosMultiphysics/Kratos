@@ -958,7 +958,7 @@ namespace Kratos
 
       if (it == 0)
       {
-        this->ComputePressureNorm(NormP);
+        NormP = this->ComputePressureNorm();
       }
 
       double DpErrorNorm = NormDp / (NormP);
@@ -1446,13 +1446,15 @@ double ComputeVelocityNorm()
         return false;
     }
 
-    void ComputePressureNorm(double &NormP)
+    double ComputePressureNorm()
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
 
-// #pragma omp parallel reduction(+ \
-//                                : NormP)
-//       {
+      double NormP = 0.0;
+
+#pragma omp parallel reduction(+ \
+                               : NormP)
+      {
         ModelPart::NodeIterator NodeBegin;
         ModelPart::NodeIterator NodeEnd;
         OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
@@ -1461,7 +1463,7 @@ double ComputeVelocityNorm()
           const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
           NormP += Pr * Pr;
         }
-      // }
+      }
 
       BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
 
@@ -1469,6 +1471,8 @@ double ComputeVelocityNorm()
 
       if (NormP == 0.0)
         NormP = 1.00;
+
+      return NormP;
     }
 
     bool FixTimeStepMomentum(const double DvErrorNorm)
