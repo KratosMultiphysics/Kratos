@@ -185,7 +185,7 @@ public:
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
     // Find the condition's parent element.
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                const ProcessInfo& rCurrentProcessInfo) override;

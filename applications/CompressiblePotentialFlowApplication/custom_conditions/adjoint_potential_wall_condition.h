@@ -76,7 +76,7 @@ public:
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
     // Find the condition's parent element.
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

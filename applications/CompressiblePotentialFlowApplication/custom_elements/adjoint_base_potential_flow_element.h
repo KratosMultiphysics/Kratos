@@ -92,7 +92,7 @@ public:
 
     IntegrationMethod GetIntegrationMethod() const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

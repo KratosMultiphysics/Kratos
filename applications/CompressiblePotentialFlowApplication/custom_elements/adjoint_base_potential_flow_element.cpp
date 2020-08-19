@@ -27,9 +27,9 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::Initialize()
+    void AdjointBasePotentialFlowElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
-        mpPrimalElement->Initialize();
+        mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>

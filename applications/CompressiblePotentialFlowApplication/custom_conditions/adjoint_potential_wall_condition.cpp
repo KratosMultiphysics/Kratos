@@ -47,9 +47,9 @@ Condition::Pointer AdjointPotentialWallCondition<TPrimalCondition>::Clone(IndexT
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::Initialize()
+void AdjointPotentialWallCondition<TPrimalCondition>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    mpPrimalCondition->Initialize();
+    mpPrimalCondition->Initialize(rCurrentProcessInfo);
 }
 
 template <class TPrimalCondition>

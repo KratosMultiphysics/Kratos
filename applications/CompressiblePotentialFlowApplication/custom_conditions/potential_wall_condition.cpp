@@ -50,7 +50,7 @@ Condition::Pointer PotentialWallCondition<TDim, TNumNodes>::Clone(IndexType NewI
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PotentialWallCondition<TDim, TNumNodes>::Initialize()
+void PotentialWallCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
