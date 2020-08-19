@@ -246,10 +246,10 @@ class MainCouplingPfemFemDem_Solution:
                 time_to_print = self.FEMDEM_Solution.FEM_Solution.time - self.FEMDEM_Solution.FEM_Solution.time_old_print
 
             if print_parameters["output_control_type"].GetString() == "step":
-                if print_parameters["output_frequency"].GetInt() - time_to_print == 0:
+                if print_parameters["output_interval"].GetInt() - time_to_print == 0:
                     self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
                     self.FEMDEM_Solution.FEM_Solution.step_old_print = self.FEMDEM_Solution.FEM_Solution.step
             else:
-                if print_parameters["output_frequency"].GetDouble() - time_to_print < 1e-2 * self.FEMDEM_Solution.FEM_Solution.delta_time:
+                if print_parameters["output_interval"].GetDouble() - time_to_print < 1e-2 * self.FEMDEM_Solution.FEM_Solution.delta_time:
                     self.gid_output.Writeresults(self.FEMDEM_Solution.FEM_Solution.time)
                     self.FEMDEM_Solution.FEM_Solution.time_old_print = self.FEMDEM_Solution.FEM_Solution.time
