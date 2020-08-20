@@ -36,6 +36,11 @@ ModelPart& RansKEpsilonK2D3NSetUp(
 ModelPart& RansKEpsilonEpsilon2D3NSetUp(
     Model& rModel,
     const std::string& rElementName);
+
+ModelPart& RansKEpsilonEpsilon2D2NSetUp(
+    Model& rModel,
+    const std::string& rConditionName);
+
 } // namespace KEpsilonTestUtilities
 } // namespace Kratos
 

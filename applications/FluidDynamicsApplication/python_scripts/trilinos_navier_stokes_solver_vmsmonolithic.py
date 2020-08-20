@@ -182,11 +182,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 self.settings["relative_velocity_tolerance"].GetDouble(),
                 self.settings["absolute_velocity_tolerance"].GetDouble())
         else:
-            convergence_criterion = KratosTrilinos.TrilinosUPCriteria(
-                self.settings["relative_velocity_tolerance"].GetDouble(),
-                self.settings["absolute_velocity_tolerance"].GetDouble(),
-                self.settings["relative_pressure_tolerance"].GetDouble(),
-                self.settings["absolute_pressure_tolerance"].GetDouble())
+            convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+                [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+                (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
