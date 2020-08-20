@@ -14,11 +14,11 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
 file(GLOB_RECURSE KRATOS_RANS_APPLICATION_PYTHON_INTERFACE
