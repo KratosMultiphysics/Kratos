@@ -1,14 +1,12 @@
 # importing the Kratos Library
-import KratosMultiphysics as kratoscore
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-import KratosMultiphysics.FluidDynamicsApplication as cfd
-
-from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
+import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication
 
 # Import base class file
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import StabilizedFormulation
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
 
-class StabilizedStokesFormulation(object):
+class StabilizedStokesFormulation(StabilizedFormulation):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
         self.element_name = None
@@ -21,6 +19,11 @@ class StabilizedStokesFormulation(object):
             formulation = settings["element_type"].GetString()
             if formulation == "symbolic_stokes":
                 self._SetUpSymbolicStokes(settings)
+            else:
+                err_msg = "Found \'element_type\' is \'" + formulation + "\'.\n"
+                err_msg += "Available options are:\n"
+                err_msg += "\t- \'symbolic_stokes\'"
+                raise RuntimeError(err_msg)
         else:
             print(settings)
             raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
@@ -62,9 +65,10 @@ class StokesSolverMonolithic(NavierStokesSolverMonolithic):
                 "element_type": "symbolic_stokes"
             },
             "echo_level": 0,
-            "consider_periodic_conditions": false,
             "compute_reactions": false,
+            "analysis_type": "linear",
             "reform_dofs_at_each_step": false,
+            "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
@@ -91,35 +95,20 @@ class StokesSolverMonolithic(NavierStokesSolverMonolithic):
         default_settings.AddMissingParameters(super(StokesSolverMonolithic, cls).GetDefaultSettings())
         return default_settings
 
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass = True # To be removed eventually
-        super(StokesSolverMonolithic,self).__init__(model, custom_settings)
-
-        self.formulation = StabilizedStokesFormulation(self.settings["formulation"])
-        self.element_name = self.formulation.element_name
-        self.condition_name = self.formulation.condition_name
-        self.element_integrates_in_time = self.formulation.element_integrates_in_time
-        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-
-        scheme_type = self.settings["time_scheme"].GetString()
-        if scheme_type == "bdf2":
-            self.min_buffer_size = 3
-        else:
-            msg  = "Unknown time_scheme option found in project parameters:\n"
-            msg += "\"" + scheme_type + "\"\n"
-            msg += "Accepted value is \"bdf2\".\n"
-            raise Exception(msg)
-
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of StokesSolverMonolithic finished.")
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION_WATER_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(kratoscore.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
 
         # Adding variables required for the nodal material properties
         if self.element_has_nodal_properties:
@@ -130,7 +119,7 @@ class StokesSolverMonolithic(NavierStokesSolverMonolithic):
 
     def InitializeSolutionStep(self):
         # Computes BDF coefficients and strategy InitializeSolutionStep
-        super(StokesSolverMonolithic,self).__init__(model, custom_settings)
+        super().InitializeSolutionStep()
 
         # Force the steady regime by setting the BDF coefficients to zero
         if(self.settings["force_steady_state"].GetBool()):
@@ -139,21 +128,19 @@ class StokesSolverMonolithic(NavierStokesSolverMonolithic):
                 bdf_vec[i] = 0.0
             self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
 
-    #TODO: This only works with Newtonian constitutive laws
-    #TODO: Add the NR option in case non-linear models are used
-    def _CreateSolutionStrategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
-        builder_and_solver = self._GetBuilderAndSolver()
-        calculate_norm_dx = False
-        return KratosMultiphysics.ResidualBasedLinearStrategy(
-            computing_model_part,
-            time_scheme,
-            linear_solver
-            builder_and_solver,
-            self.settings["compute_reactions"].GetBool(),
-            self.settings["reform_dofs_at_each_step"].GetBool(),
-            calculate_norm_dx,
-            self.settings["move_mesh_flag"].GetBool())
+    def _SetFormulation(self):
+        self.formulation = StabilizedStokesFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
+        self.element_integrates_in_time = self.formulation.element_integrates_in_time
+        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
 
+    def _SetTimeSchemeBufferSize(self):
+        scheme_type = self.settings["time_scheme"].GetString()
+        if scheme_type == "bdf2":
+            self.min_buffer_size = 3
+        else:
+            msg  = "Unknown time_scheme option found in project parameters:\n"
+            msg += "\"" + scheme_type + "\"\n"
+            msg += "Accepted value is \"bdf2\".\n"
+            raise Exception(msg)
