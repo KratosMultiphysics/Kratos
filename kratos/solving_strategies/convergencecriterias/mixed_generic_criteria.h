@@ -57,8 +57,6 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef typename DofUpdater<TSparseSpace >::UniquePointer DofUpdaterPointerType;
-
     typedef std::vector<std::tuple<VariableData*, TDataType, TDataType>> ConvergenceVariableListType;
 
     typedef std::size_t KeyType;
@@ -206,6 +204,36 @@ protected:
     int GetVariableSize() const
     {
         return mVariableSize;
+    }
+
+    /**
+     * @brief Get the Variable Data Vector object
+     * Get the member vector that stores pointers to the variables to check
+     * @return std::vector<VariableData*> Vector containing pointers to the variables to check
+     */
+    std::vector<VariableData*> GetVariableDataVector() const
+    {
+        return mVariableDataVector;
+    }
+
+    /**
+     * @brief Get the Ratio Tolerance Vector object
+     * Get the member vector containing the ratio tolerances for each variable to check
+     * @return std::vector<TDataType> Vector containing the ratio tolerances
+     */
+    std::vector<TDataType> GetRatioToleranceVector() const
+    {
+        return mRatioToleranceVector;
+    }
+    
+    /**
+     * @brief Get the Abs Tolerance Vector object
+     * Get the member vector containing the absolute tolerances for each variable to check
+     * @return std::vector<TDataType> Vector containing the absolute tolerances
+     */
+    std::vector<TDataType> GetAbsToleranceVector() const
+    {
+        return mAbsToleranceVector;
     }
 
     /**
