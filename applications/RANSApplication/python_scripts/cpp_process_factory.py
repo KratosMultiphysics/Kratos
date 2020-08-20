@@ -114,7 +114,7 @@ class RansCheckScalarBoundsProcess(Kratos.Process):
     Args:
         model (Kratos.Model): Kratos model
         settings (Kratos.Parameters): Settings for process
-    """    
+    """
     def __init__(self, model, settings):
         Kratos.Process.__init__(self)
 
