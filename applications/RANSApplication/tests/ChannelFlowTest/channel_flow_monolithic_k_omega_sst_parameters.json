@@ -178,7 +178,6 @@
                 "kratos_module": "KratosMultiphysics.RANSApplication",
                 "process_name": "ApplyExactNodalPeriodicConditionProcess",
                 "Parameters": {
-                    "base_model_part_name": "FluidModelPart",
                     "master_model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
                     "slave_model_part_name": "FluidModelPart.Outlet2D_outlet",
                     "tolerance": 5e-4,
