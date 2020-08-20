@@ -30,6 +30,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Line output process
+ *
+ * This process outputs double/array_1d<double, 3> variables in historical/non-historical nodal
+ * data value containers to files. Values will be sampled along a lint from starting point to end point
+ * with given number of sampling points. All the sampled values will be written into one file per time step.
+ *
+ * Output frequency can be controlled by output control parameters. But, if a string is used as output control
+ * variable, then it is assumed every step is output step.
+ *
+ * Output is given in Comma Seperated Values (CSV) format.
+ *
+ */
 class KRATOS_API(RANS_APPLICATION) RansLineOutputProcess : public Process
 {
 public:
@@ -38,6 +51,8 @@ public:
 
     /// Pointer definition of RansLineOutputProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansLineOutputProcess);
+
+    using NodeType = ModelPart::NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -124,12 +139,13 @@ private:
 
     void WriteOutputFile();
 
-    void WriteOutputFileHeader(std::ofstream& rOutputFileStream) const;
+    void WriteOutputFileHeader(
+        std::ofstream& rOutputFileStream) const;
 
-    double InterpolateVariable(const Variable<double>& rVariable, const int SamplingIndex) const;
-
-    array_1d<double, 3> InterpolateVariable(const Variable<array_1d<double, 3>>& rVariable,
-                                            const int SamplingIndex) const;
+    template<class TDataType>
+    TDataType InterpolateVariable(
+        const Variable<TDataType>& rVariable,
+        const int SamplingIndex) const;
 
     std::string GetOutputFileName() const;
 
@@ -142,7 +158,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const RansLineOutputProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansLineOutputProcess& rThis);
 
 ///@}
 

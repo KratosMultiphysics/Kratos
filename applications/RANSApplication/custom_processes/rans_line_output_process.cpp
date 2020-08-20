@@ -12,6 +12,7 @@
 
 // System includes
 #include <fstream>
+#include <functional>
 
 // External includes
 
@@ -22,6 +23,7 @@
 #include "utilities/brute_force_point_locator.h"
 
 // Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
 
 // Include base h
 #include "rans_line_output_process.h"
@@ -45,18 +47,13 @@ RansLineOutputProcess::RansLineOutputProcess(
         << "\"start_point\" should be given as 3-valued vector. [ "
            "start_point = "
         << r_start_point << " ]\n";
-    mStartPoint[0] = r_start_point[0];
-    mStartPoint[1] = r_start_point[1];
-    mStartPoint[2] = r_start_point[2];
-
     const Vector& r_end_point = rParameters["end_point"].GetVector();
     KRATOS_ERROR_IF(r_end_point.size() != 3)
         << "\"end_point\" should be given as 3-valued vector. [ "
            "end_point = "
         << r_end_point << " ]\n";
-    mEndPoint[0] = r_end_point[0];
-    mEndPoint[1] = r_end_point[1];
-    mEndPoint[2] = r_end_point[2];
+    noalias(mStartPoint) = r_start_point;
+    noalias(mEndPoint) = r_end_point;
 
     mNumberOfSamplingPoints = rParameters["number_of_sampling_points"].GetInt();
     KRATOS_ERROR_IF(mNumberOfSamplingPoints <= 2)
@@ -139,8 +136,7 @@ void RansLineOutputProcess::ExecuteInitialize()
     mSamplingPointElementIds.resize(mNumberOfSamplingPoints, 0);
     mSamplingPointElementShapeFunctions.resize(mNumberOfSamplingPoints);
 
-    const DataCommunicator& r_communicator =
-        r_model_part.GetCommunicator().GetDataCommunicator();
+    const auto& r_communicator = r_model_part.GetCommunicator().GetDataCommunicator();
 
     // calculate the sampling points in the rank zero
     if (r_communicator.Rank() == 0) {
@@ -174,7 +170,7 @@ void RansLineOutputProcess::ExecuteInitialize()
     if (r_communicator.Rank() == 0) {
         mFoundGlobalPoints.resize(mNumberOfSamplingPoints, -1);
         for (const auto& current_index_list : mSamplePointLocalIndexListMaster) {
-            for (int sample_index : current_index_list) {
+            for (const int sample_index : current_index_list) {
                 KRATOS_ERROR_IF(sample_index > mNumberOfSamplingPoints)
                     << "Sampling index error.\n";
                 KRATOS_ERROR_IF(mFoundGlobalPoints[sample_index] != -1)
@@ -333,8 +329,7 @@ void RansLineOutputProcess::WriteOutputFile()
             }
             output_file << "#\n#POINT_ID,POINT_X,POINT_Y,POINT_Z";
 
-            const int number_of_variables =
-                static_cast<int>(global_sample_point_variables_value_list.size());
+            const int number_of_variables = global_sample_point_variables_value_list.size();
             for (int i_variable_index = 0;
                  i_variable_index < number_of_variables; ++i_variable_index) {
                 output_file << "," << global_variable_names_list[i_variable_index];
@@ -366,7 +361,8 @@ void RansLineOutputProcess::WriteOutputFile()
     KRATOS_CATCH("");
 }
 
-void RansLineOutputProcess::WriteOutputFileHeader(std::ofstream& rOutputFileStream) const
+void RansLineOutputProcess::WriteOutputFileHeader(
+    std::ofstream& rOutputFileStream) const
 {
     std::stringstream kratos_header;
     LoggerOutput current_logger_output(kratos_header);
@@ -427,10 +423,27 @@ void RansLineOutputProcess::WriteOutputFileHeader(std::ofstream& rOutputFileStre
                          "settings ----------------\n";
 }
 
-double RansLineOutputProcess::InterpolateVariable(const Variable<double>& rVariable,
-                                                  const int SamplingIndex) const
+template<class TDataType>
+TDataType RansLineOutputProcess::InterpolateVariable(
+    const Variable<TDataType>& rVariable,
+    const int SamplingIndex) const
 {
-    double value = 0.0;
+    KRATOS_TRY
+
+    TDataType value = rVariable.Zero();
+
+    const std::function<TDataType(const NodeType&, const double)> historical_retrieval_method =
+        [&](const NodeType& rNode, const double ShapeFunctionValue) -> TDataType {
+        return rNode.FastGetSolutionStepValue(rVariable) * ShapeFunctionValue;
+    };
+
+    const std::function<TDataType(const NodeType&, const double)> non_historical_retrieval_method =
+        [&](const NodeType& rNode, const double ShapeFunctionValue) -> TDataType {
+        return rNode.GetValue(rVariable) * ShapeFunctionValue;
+    };
+
+    const auto value_retireval_method =
+        mIsHistoricalValue ? historical_retrieval_method : non_historical_retrieval_method;
 
     if (mSamplingPointElementIds[SamplingIndex] > -1) {
         const auto& r_modelpart = mrModel.GetModelPart(mModelPartName);
@@ -438,40 +451,14 @@ double RansLineOutputProcess::InterpolateVariable(const Variable<double>& rVaria
         const Vector& r_shape_functions = mSamplingPointElementShapeFunctions[SamplingIndex];
 
         for (int i = 0; i < static_cast<int>(r_geometry.PointsNumber()); ++i) {
-            if (mIsHistoricalValue) {
-                value += r_geometry[i].FastGetSolutionStepValue(rVariable) *
-                         r_shape_functions[i];
-            } else {
-                value += r_geometry[i].GetValue(rVariable) * r_shape_functions[i];
-            }
+            RansCalculationUtilities::UpdateValue<TDataType>(
+                value, value_retireval_method(r_geometry[i], r_shape_functions[i]));
         }
     }
 
     return value;
-}
 
-array_1d<double, 3> RansLineOutputProcess::InterpolateVariable(
-    const Variable<array_1d<double, 3>>& rVariable, const int SamplingIndex) const
-{
-    array_1d<double, 3> value;
-    value.clear();
-
-    if (mSamplingPointElementIds[SamplingIndex] > -1) {
-        const auto& r_modelpart = mrModel.GetModelPart(mModelPartName);
-        const auto& r_geometry = r_modelpart.GetElement(mSamplingPointElementIds[SamplingIndex]).GetGeometry();
-        const Vector& r_shape_functions = mSamplingPointElementShapeFunctions[SamplingIndex];
-
-        for (int i = 0; i < static_cast<int>(r_geometry.PointsNumber()); ++i) {
-            if (mIsHistoricalValue) {
-                value += r_geometry[i].FastGetSolutionStepValue(rVariable) *
-                         r_shape_functions[i];
-            } else {
-                value += r_geometry[i].GetValue(rVariable) * r_shape_functions[i];
-            }
-        }
-    }
-
-    return value;
+    KRATOS_CATCH("");
 }
 
 std::string RansLineOutputProcess::GetOutputFileName() const
@@ -521,5 +508,9 @@ const Parameters RansLineOutputProcess::GetDefaultParameters() const
 
     return default_parameters;
 }
+
+// template instantiations
+template double RansLineOutputProcess::InterpolateVariable(const Variable<double>&, const int) const;
+template array_1d<double, 3> RansLineOutputProcess::InterpolateVariable(const Variable<array_1d<double, 3>>&, const int) const;
 
 } // namespace Kratos.

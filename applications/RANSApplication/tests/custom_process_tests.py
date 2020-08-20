@@ -44,41 +44,23 @@ class CustomProcessTest(UnitTest.TestCase):
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.KINEMATIC_VISCOSITY, 0.0, 100.0, 0)
         KratosRANS.RansTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
-    # def testCheckScalarBoundsProcess(self):
-    #     settings = Kratos.Parameters(r'''
-    #     [
-    #         {
-    #             "kratos_module" : "KratosMultiphysics.RANSApplication",
-    #             "python_module" : "cpp_process_factory",
-    #             "process_name"  : "CheckScalarBoundsProcess",
-    #             "Parameters" : {
-    #                 "model_part_name"                : "test",
-    #                 "variable_name"                  : "DENSITY"
-    #             }
-    #         }
-    #     ]''')
+    def testCheckScalarBoundsProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "CheckScalarBoundsProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test",
+                    "variable_name"                  : "DENSITY"
+                }
+            }
+        ]''')
 
-    #     factory = KratosProcessFactory(self.model)
-    #     self.process_list = factory.ConstructListOfProcesses(settings)
-    #     self.__ExecuteProcesses()
-
-    # def testCheckVectorBoundsProcess(self):
-    #     settings = Kratos.Parameters(r'''
-    #     [
-    #         {
-    #             "kratos_module" : "KratosMultiphysics.RANSApplication",
-    #             "python_module" : "cpp_process_factory",
-    #             "process_name"  : "CheckVectorBoundsProcess",
-    #             "Parameters" : {
-    #                 "model_part_name"                : "test",
-    #                 "variable_name"                  : "VELOCITY"
-    #             }
-    #         }
-    #     ]''')
-
-    #     factory = KratosProcessFactory(self.model)
-    #     self.process_list = factory.ConstructListOfProcesses(settings)
-    #     self.__ExecuteProcesses()
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
 
     def testClipScalarVariableProcess(self):
         settings = Kratos.Parameters(r'''

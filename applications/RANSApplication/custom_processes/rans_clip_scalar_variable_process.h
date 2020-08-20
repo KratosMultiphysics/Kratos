@@ -111,8 +111,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansClipScalarVariableProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansClipScalarVariableProcess& rThis);
 
 ///@}
 

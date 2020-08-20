@@ -48,10 +48,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
-    using NodesContainerType = ModelPart::NodesContainerType;
-
     /// Pointer definition of RansNutKOmegaUpdateProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansNutKOmegaUpdateProcess);
 
@@ -126,8 +122,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansNutKOmegaUpdateProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansNutKOmegaUpdateProcess& rThis);
 
 ///@}
 

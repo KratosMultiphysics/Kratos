@@ -36,10 +36,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-    using ConditionType = ModelPart::ConditionType;
-    using ConditionGeometryType = ModelPart::ConditionType::GeometryType;
-
     /// Pointer definition of RansNutYPlusWallFunctionUpdateProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansNutYPlusWallFunctionUpdateProcess);
 
@@ -110,12 +106,6 @@ private:
     bool mIsInitialized = false;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    void CalculateConditionNeighbourCount();
-
-    ///@}
 
 }; // Class RansNutYPlusWallFunctionUpdateProcess
 
@@ -124,8 +114,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansNutYPlusWallFunctionUpdateProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansNutYPlusWallFunctionUpdateProcess& rThis);
 
 ///@}
 

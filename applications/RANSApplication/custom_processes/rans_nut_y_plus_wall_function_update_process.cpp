@@ -85,11 +85,6 @@ int RansNutYPlusWallFunctionUpdateProcess::Check()
 
 void RansNutYPlusWallFunctionUpdateProcess::ExecuteInitialize()
 {
-    CalculateConditionNeighbourCount();
-}
-
-void RansNutYPlusWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
-{
     RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
         mrModel.GetModelPart(mModelPartName), NUMBER_OF_NEIGHBOUR_CONDITIONS);
 

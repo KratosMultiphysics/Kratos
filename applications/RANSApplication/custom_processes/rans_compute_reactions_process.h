@@ -129,8 +129,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansComputeReactionsProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansComputeReactionsProcess& rThis);
 
 ///@}
 ///@} addtogroup block

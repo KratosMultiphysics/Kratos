@@ -107,9 +107,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Applies flags to nodes
+     *
+     * This method applies given mFlagVariableValue to mFlagVariableName in all
+     * nodes of mModelPartName.
+     *
+     */
     void ApplyNodeFlags();
 
-    void ApplyConditionFlags(ModelPart& rModelPart);
+    /**
+     * @brief Applies flags to conditions
+     *
+     * This method applies mFlagVariableValue for mFlagVariableName in conditions for given rModelPart,
+     * if given condition has all of its nodes with mFlagVariableValue for flag mFlagVariableName. Otherwise, it
+     * applies inverse mFlagVariableValue for mFlagVariableName flag in the same condition.
+     *
+     * @param rModelPart    Model part to look for conditions
+     */
+    void ApplyConditionFlags(
+        ModelPart& rModelPart);
 
     ///@}
 
@@ -120,7 +137,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const RansApplyFlagToSkinProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansApplyFlagToSkinProcess& rThis);
 
 ///@}
 

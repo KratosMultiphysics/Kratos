@@ -50,8 +50,6 @@ public:
     /// Pointer definition of RansApplyExactNodalPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansApplyExactNodalPeriodicConditionProcess);
 
-    using NodeType = ModelPart::NodeType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -76,6 +74,8 @@ public:
 
     void ExecuteInitialize() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -96,7 +96,7 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
+
     int mEchoLevel;
 
     std::string mBaseModelPartName;
@@ -120,11 +120,38 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Create a Periodic Conditions
+     *
+     * This method iterates through master and slave model parts nodes, and find matching
+     * slave node in slave model part for its master node in master model part. If translation
+     * is given with magnitude greater than zero, then first master node is translated with direction and magnitude
+     * then if rotation is given this translated coordinates are rotated to locate slave node in slave model part.
+     *
+     * Afterwards, it creates two node Periodic conditions (in 2D and 3D) in the base model part.
+     *
+     */
     void CreatePeriodicConditions();
 
+    /**
+     * @brief The method calculates rotated position
+     *
+     * This method returns rotated coordinates of rInitialPosition. It rotates around
+     * mRotationCenter in the mRotationAxis for given mRotationAngle
+     *
+     * @param rInitialPosition       Initial position to be rotated
+     * @return array_1d<double, 3>   Rotated initial position
+     */
     array_1d<double, 3> CalculateRotatedPosition(
         const array_1d<double, 3>& rInitialPosition) const;
 
+    /**
+     * @brief Calculates rotation matrix
+     *
+     * Calculates rotation matrix based on mRotationAxis and mRotationAngle
+     *
+     * @param rOutput               Bounded rotation matrix
+     */
     void CalculateRotationMatrix(
         BoundedMatrix<double, 3, 3>& rOutput) const;
 
@@ -138,8 +165,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansApplyExactNodalPeriodicConditionProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansApplyExactNodalPeriodicConditionProcess& rThis);
 
 ///@}
 

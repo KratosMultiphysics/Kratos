@@ -124,8 +124,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansEpsilonTurbulentMixingLengthInletProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansEpsilonTurbulentMixingLengthInletProcess& rThis);
 
 ///@}
 

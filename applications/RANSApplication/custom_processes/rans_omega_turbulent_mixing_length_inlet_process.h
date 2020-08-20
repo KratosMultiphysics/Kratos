@@ -56,10 +56,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
-    using NodesContainerType = ModelPart::NodesContainerType;
-
     /// Pointer definition of RansOmegaTurbulentMixingLengthInletProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansOmegaTurbulentMixingLengthInletProcess);
 
@@ -73,7 +69,7 @@ public:
         Parameters& rParameters);
 
     /// Destructor.
-    ~RansOmegaTurbulentMixingLengthInletProcess() override;
+    ~RansOmegaTurbulentMixingLengthInletProcess() override = default;
 
     /// Assignment operator.
     RansOmegaTurbulentMixingLengthInletProcess& operator=(RansOmegaTurbulentMixingLengthInletProcess const& rOther) = delete;
@@ -132,8 +128,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansOmegaTurbulentMixingLengthInletProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansOmegaTurbulentMixingLengthInletProcess& rThis);
 
 ///@}
 

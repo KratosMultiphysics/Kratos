@@ -58,10 +58,6 @@ RansOmegaTurbulentMixingLengthInletProcess::RansOmegaTurbulentMixingLengthInletP
 
     KRATOS_CATCH("");
 }
-/// Destructor.
-RansOmegaTurbulentMixingLengthInletProcess::~RansOmegaTurbulentMixingLengthInletProcess()
-{
-}
 
 void RansOmegaTurbulentMixingLengthInletProcess::ExecuteInitialize()
 {

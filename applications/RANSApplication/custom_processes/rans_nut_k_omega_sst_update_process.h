@@ -48,10 +48,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
-    using NodesContainerType = ModelPart::NodesContainerType;
-
     /// Pointer definition of RansNutKOmegaSSTUpdateProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansNutKOmegaSSTUpdateProcess);
 
@@ -128,6 +124,16 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculates NuT based on k_omega_sst formulation
+     *
+     * This method calculates NuT on element based on k_omega_sst formulation, then distributes
+     * it to nodes using neighbours count.
+     *
+     * @tparam TDim
+     * @param rElement
+     * @return double
+     */
     template <unsigned int TDim>
     double CalculateElementNuT(const Element& rElement) const;
 
@@ -140,8 +146,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansNutKOmegaSSTUpdateProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansNutKOmegaSSTUpdateProcess& rThis);
 
 ///@}
 
