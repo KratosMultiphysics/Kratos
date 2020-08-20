@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "rans_application_variables.h"
@@ -34,28 +35,18 @@ namespace Kratos
 RansOmegaTurbulentMixingLengthInletProcess::RansOmegaTurbulentMixingLengthInletProcess(
     Model& rModel,
     Parameters& rParameters)
-: mrModel(rModel), mrParameters(rParameters)
+: mrModel(rModel)
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "turbulent_mixing_length" : 0.005,
-        "c_mu"                    : 0.09,
-        "echo_level"              : 0,
-        "is_fixed"                : true,
-        "min_value"               : 1e-12
-    })");
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-    mTurbulentMixingLength = mrParameters["turbulent_mixing_length"].GetDouble();
-    mIsConstrained = mrParameters["is_fixed"].GetBool();
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mCmu_25 = std::pow(mrParameters["c_mu"].GetDouble(), 0.25);
-    mMinValue = mrParameters["min_value"].GetDouble();
+    mTurbulentMixingLength = rParameters["turbulent_mixing_length"].GetDouble();
+    mIsConstrained = rParameters["is_fixed"].GetBool();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mCmu_25 = std::pow(rParameters["c_mu"].GetDouble(), 0.25);
+    mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_ERROR_IF(mTurbulentMixingLength < std::numeric_limits<double>::epsilon())
         << "turbulent_mixing_length should be greater than zero.\n";
@@ -67,22 +58,14 @@ RansOmegaTurbulentMixingLengthInletProcess::RansOmegaTurbulentMixingLengthInletP
 
     KRATOS_CATCH("");
 }
-/// Destructor.
-RansOmegaTurbulentMixingLengthInletProcess::~RansOmegaTurbulentMixingLengthInletProcess()
-{
-}
 
 void RansOmegaTurbulentMixingLengthInletProcess::ExecuteInitialize()
 {
     if (mIsConstrained) {
-        auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+        auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
 
-        const int number_of_nodes = r_model_part.NumberOfNodes();
-
-        BlockPartition<ModelPart::NodesContainerType>(r_model_part.Nodes())
-            .for_each([&](ModelPart::NodeType& rNode) {
-                rNode.Fix(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
-            });
+        VariableUtils().ApplyFixity(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, true,
+                                    r_nodes);
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
             << "Fixed TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE dofs in "
@@ -148,6 +131,21 @@ void RansOmegaTurbulentMixingLengthInletProcess::PrintInfo(std::ostream& rOStrea
 /// Print object's data.
 void RansOmegaTurbulentMixingLengthInletProcess::PrintData(std::ostream& rOStream) const
 {
+}
+
+const Parameters RansOmegaTurbulentMixingLengthInletProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+    {
+        "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "turbulent_mixing_length" : 0.005,
+        "c_mu"                    : 0.09,
+        "echo_level"              : 0,
+        "is_fixed"                : true,
+        "min_value"               : 1e-12
+    })");
+
+    return default_parameters;
 }
 
 } // namespace Kratos.

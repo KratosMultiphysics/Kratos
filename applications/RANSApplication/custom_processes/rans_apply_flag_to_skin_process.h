@@ -39,38 +39,40 @@ namespace Kratos
  *
  */
 
-class KRATOS_API(RANS_APPLICATION) RansApplyFlagProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansApplyFlagToSkinProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RansApplyFlagProcess
-    KRATOS_CLASS_POINTER_DEFINITION(RansApplyFlagProcess);
+    /// Pointer definition of RansApplyFlagToSkinProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RansApplyFlagToSkinProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    RansApplyFlagProcess(
+    RansApplyFlagToSkinProcess(
         Model& rModel,
         Parameters rParameters);
 
     /// Destructor.
-    ~RansApplyFlagProcess() override = default;
+    ~RansApplyFlagToSkinProcess() override = default;
 
     /// Assignment operator.
-    RansApplyFlagProcess& operator=(RansApplyFlagProcess const& rOther) = delete;
+    RansApplyFlagToSkinProcess& operator=(RansApplyFlagToSkinProcess const& rOther) = delete;
 
     /// Copy constructor.
-    RansApplyFlagProcess(RansApplyFlagProcess const& rOther) = delete;
+    RansApplyFlagToSkinProcess(RansApplyFlagToSkinProcess const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
     void ExecuteInitialize() override;
+
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -92,7 +94,6 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
     int mEchoLevel;
 
     std::string mModelPartName;
@@ -106,20 +107,39 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Applies flags to nodes
+     *
+     * This method applies given mFlagVariableValue to mFlagVariableName in all
+     * nodes of mModelPartName.
+     *
+     */
     void ApplyNodeFlags();
 
-    void ApplyConditionFlags(ModelPart& rModelPart);
+    /**
+     * @brief Applies flags to conditions
+     *
+     * This method applies mFlagVariableValue for mFlagVariableName in conditions for given rModelPart,
+     * if given condition has all of its nodes with mFlagVariableValue for flag mFlagVariableName. Otherwise, it
+     * applies inverse mFlagVariableValue for mFlagVariableName flag in the same condition.
+     *
+     * @param rModelPart    Model part to look for conditions
+     */
+    void ApplyConditionFlags(
+        ModelPart& rModelPart);
 
     ///@}
 
-}; // Class RansApplyFlagProcess
+}; // Class RansApplyFlagToSkinProcess
 
 ///@}
 ///@name Input and output
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const RansApplyFlagProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansApplyFlagToSkinProcess& rThis);
 
 ///@}
 
