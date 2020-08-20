@@ -958,7 +958,7 @@ namespace Kratos
 
       if (it == 0)
       {
-        this->ComputePressureNorm(NormP);
+        NormP=this->ComputePressureNorm();
       }
 
       double DpErrorNorm = NormDp / (NormP);
@@ -1446,30 +1446,34 @@ namespace Kratos
         return false;
     }
 
-    void ComputePressureNorm(double &NormP)
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
+		double ComputePressureNorm()
+		{
+			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			double NormP = 0.00;
 
 #pragma omp parallel reduction(+ \
-                               : NormP)
-      {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-        {
-          const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-          NormP += Pr * Pr;
-        }
-      }
+							   : NormP)
+			{
+				ModelPart::NodeIterator NodeBegin;
+				ModelPart::NodeIterator NodeEnd;
+				OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
+				for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+				{
+					const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
+					NormP += Pr * Pr;
+				}
+			}
 
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
+			BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
 
-      NormP = sqrt(NormP);
+			NormP = sqrt(NormP);
 
-      if (NormP == 0.0)
-        NormP = 1.00;
-    }
+			if (NormP == 0.0)
+				NormP = 1.00;
+
+			return NormP;
+		}
 
     bool FixTimeStepMomentum(const double DvErrorNorm)
     {

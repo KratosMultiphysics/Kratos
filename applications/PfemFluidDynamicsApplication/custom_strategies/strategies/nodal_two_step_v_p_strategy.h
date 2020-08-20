@@ -1607,7 +1607,7 @@ namespace Kratos
 
 			if (it == 0)
 			{
-				this->ComputePressureNorm(NormP);
+				NormP=this->ComputePressureNorm();
 			}
 
 			double DpErrorNorm = NormDp / (NormP);
@@ -1750,9 +1750,11 @@ namespace Kratos
 			return NormV;
 		}
 
-		void ComputePressureNorm(double &NormP)
+		double ComputePressureNorm()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			double NormP = 0.00;
 
 #pragma omp parallel reduction(+ \
 							   : NormP)
@@ -1773,6 +1775,8 @@ namespace Kratos
 
 			if (NormP == 0.0)
 				NormP = 1.00;
+
+			return NormP;
 		}
 
 		void ComputeErrorL2NormCaseImposedG()
