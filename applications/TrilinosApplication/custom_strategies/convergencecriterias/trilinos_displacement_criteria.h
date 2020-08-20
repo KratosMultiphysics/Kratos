@@ -147,12 +147,12 @@ public:
             double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
 
             if(rModelPart.GetCommunicator().MyPID() == 0) //print performed only by the first processor
-                std::cout << "DISPLACEMENT CRITERIA :: obtained tol = " << ratio << ";  expected ratio = " << mRatioTolerance << "absolute tol = " << AbsoluteNorm << std::endl;
+                KRATOS_INFO("DISPLACEMENT CRITERION") << " :: obtained tol = " << ratio << ";  expected ratio = " << mRatioTolerance << "absolute tol = " << AbsoluteNorm << std::endl;
 
             if ( ratio <= mRatioTolerance || AbsoluteNorm<mAlwaysConvergedNorm ) // || (mFinalCorrectionNorm/x.size())<=1e-7)
             {
                 if(rModelPart.GetCommunicator().MyPID() == 0) //print performed only by the first processor
-                    std::cout <<"convergence is achieved" <<std::endl;
+                    KRATOS_INFO("DISPLACEMENT CRITERION") << "convergence is achieved" <<std::endl;
 
                 return true;
             }
@@ -278,7 +278,7 @@ private:
         TDataType local_ReferenceDispNorm = TDataType();
         TDataType value;
 
-        const double rank = rModelPart.GetCommunicator().MyPID(); // double because I want to compare with PARTITION_INDEX
+        const int rank = rModelPart.GetCommunicator().MyPID();
 
         for(auto it_dof = rDofSet.begin() ; it_dof != rDofSet.end() ; ++it_dof)
         {

@@ -107,8 +107,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         min_distance = comm.MinAll(min_distance)
         max_distance = comm.MaxAll(max_distance)
 
-        self.assertAlmostEqual(max_distance, 0.7904255118014996)
-        self.assertAlmostEqual(min_distance,-0.11710292469993094)
+        self.assertAlmostEqual(max_distance, 0.7333041045431626)
+        self.assertAlmostEqual(min_distance,-0.06371359024393104)
 
 class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
 

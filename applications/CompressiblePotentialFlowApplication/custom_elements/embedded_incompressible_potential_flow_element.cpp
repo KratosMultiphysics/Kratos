@@ -65,7 +65,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
 
     if (is_embedded && wake == 0 && kutta == 0) {
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-        if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        if (std::abs(rCurrentProcessInfo[STABILIZATION_FACTOR]) > std::numeric_limits<double>::epsilon()) {
             AddPotentialGradientStabilizationTerm(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
         }
     }
@@ -196,12 +196,12 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGrad
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    auto penalty_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
-    auto penalty_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
-    auto penalty_coefficient = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    auto stabilization_term_nodal_gradient = data.vol*prod(data.DN_DX, averaged_nodal_gradient);
+    auto stabilization_term_potential = data.vol*prod(data.DN_DX,trans(data.DN_DX));
+    auto stabilization_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
 
-    noalias(rLeftHandSideMatrix) +=  penalty_coefficient*penalty_term_potential;
-    noalias(rRightHandSideVector) += penalty_coefficient*(penalty_term_nodal_gradient-prod(penalty_term_potential, potential));
+    noalias(rLeftHandSideMatrix) +=  stabilization_factor*stabilization_term_potential;
+    noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
 template <>

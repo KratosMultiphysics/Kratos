@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 template<class TSparseSpace, class TDenseSpace>
-class InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
+class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -60,7 +60,7 @@ public:
     typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVariableType;
+    typedef Variable<double> ComponentVariableType;
 
     ///@}
     ///@name Life Cycle
@@ -182,6 +182,11 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    int AreMeshesConforming() const override
+    {
+        return mpIntefaceCommunicator->AreMeshesConforming();
+    }
 
     ///@}
     ///@name Input and output

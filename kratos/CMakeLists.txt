@@ -61,6 +61,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_normal_divergence_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
@@ -73,6 +74,8 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_ray_casting_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_elemental_neighbours_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/time_averaging_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/from_json_check_result_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_input_to_entities_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -103,7 +106,11 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/delaunator_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/modeler/iga_modeler.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/properties_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/string_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/result_dabatase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometry_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/normal_calculation_utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_io_modeler.cpp;
@@ -181,7 +188,7 @@ set( KRATOS_VERSION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_version.cpp
 )
 
-## Kratos testing engine soruces
+## Kratos testing engine sources
 file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp)
 
 ## Kratos I/o sources
@@ -198,7 +205,7 @@ set_target_properties(KratosVersion PROPERTIES COMPILE_DEFINITIONS "KRATOS_VERSI
 target_compile_definitions(KratosVersion PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
-    KRATOS_PATCH_VERSION=${KratosMultiphysics_PATCH_VERSION}
+    KRATOS_PATCH_VERSION="${KratosMultiphysics_PATCH_VERSION}"
     KRATOS_SHA1_NUMBER="${KratosMultiphysics_SHA1_NUMBER}"
     KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
@@ -214,8 +221,8 @@ target_compile_definitions(KratosCore PRIVATE
 
 if (${AMGCL_GPGPU} MATCHES ON)
     add_subdirectory(
-        ${CMAKE_SOURCE_DIR}/external_libraries/vexcl
-        ${CMAKE_BINARY_DIR}/external_libraries/vexcl)
+        ${KRATOS_SOURCE_DIR}/external_libraries/vexcl
+        ${KRATOS_BINARY_DIR}/external_libraries/vexcl)
 
     if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
         target_link_libraries(KratosCore PUBLIC VexCL::OpenCL)
@@ -249,7 +256,7 @@ if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
     SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
 
-    ## This soruces in particular take too much ram by their own
+    ## This sources in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometrical_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -65,7 +64,8 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                     "higher_bounding_box_coefficient" : 1.0
                 }
             },
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "consider_tessellation"       : false
         }
         """)
 
@@ -83,6 +83,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         base_process_settings.AddValue("interval", self.mesh_tying_settings["interval"])
         base_process_settings.AddValue("zero_tolerance_factor", self.mesh_tying_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
+        base_process_settings.AddValue("consider_tessellation", self.mesh_tying_settings["consider_tessellation"])
         base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
 
         # Construct the base process.

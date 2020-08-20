@@ -35,12 +35,16 @@
 #include "Epetra_SerialDenseVector.h"
 #include "Epetra_Vector.h"
 
+#if !defined(START_TIMER)
 #define START_TIMER(label, rank) \
     if (mrComm.MyPID() == rank)  \
         Timer::Start(label);
+#endif
+#if !defined(STOP_TIMER)
 #define STOP_TIMER(label, rank) \
     if (mrComm.MyPID() == rank) \
         Timer::Stop(label);
+#endif
 
 namespace Kratos {
 

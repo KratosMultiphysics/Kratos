@@ -10,7 +10,7 @@
           "swapped_surface_normal": false,
           "surface": {
             "is_trimmed": true,
-            "is_rational": false,
+            "is_rational": true,
             "degrees": [ 1, 1 ],
             "knot_vectors": [
               [ 0, 0, 15, 15 ],

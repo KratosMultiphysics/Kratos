@@ -7,36 +7,29 @@ import KratosMultiphysics as KM
 from importlib import import_module
 
 class KratosModelerFactory(object):
-    def ConstructListOfModelers( self, modeler_list ):
+    def ConstructListOfModelers( self, model, modeler_list ):
         constructed_modelers = []
         for modeler_item in modeler_list:
-            if modeler_item.Has("python_module"):
-                # python-script that contains the modeler
-                python_module_name = modeler_item["python_module"].GetString()
-
-                if modeler_item.Has("kratos_module"): # for Kratos-Modelers
-                    """Location of the modelers in Kratos; eg.:
-                    - KratosMultiphysics
-                    - KratosMultiphysics.FluidDynamicsApplication
-                    """
-
-                    kratos_module_name = modeler_item["kratos_module"].GetString()
-                    if not kratos_module_name.startswith("KratosMultiphysics"):
-                        kratos_module_name = "KratosMultiphysics." + kratos_module_name
-
-                    full_module_name = kratos_module_name + "." + python_module_name
-                    python_module = import_module(full_module_name)
-
-                    p = python_module.Factory(modeler_item)
-                    constructed_modelers.append( p )
+            if modeler_item.Has("modeler_name"):
+                modeler_name = modeler_item["modeler_name"].GetString()
+                if (KM.HasModeler(modeler_name)):
+                    constructed_modelers.append( KM.CreateModeler(modeler_name, model, modeler_item["Parameters"]) )
 
                 else:
-                    python_module = import_module(python_module_name)
-                    p = python_module.Factory(modeler_item)
-                    constructed_modelers.append( p )
+                    if modeler_item.Has("kratos_module"):
+                        """Location of the modelers in Kratos; eg.:
+                        - KratosMultiphysics
+                        - KratosMultiphysics.FluidDynamicsApplication
+                        """
+                        kratos_module_name = modeler_item["kratos_module"].GetString()
 
-            else: # for cpp modelers
-                kratos_module = modeler_item["modeler_name"].GetString()
-                constructed_modelers.append( KM.CreateModeler(kratos_module, modeler_item["Parameters"]) )
+                        if not kratos_module_name.startswith("KratosMultiphysics"):
+                            kratos_module_name = "KratosMultiphysics." + kratos_module_name
+                        modeler_name = kratos_module_name + ".modelers." + modeler_name
+
+
+                    python_module = import_module(modeler_name)
+                    modeler = python_module.Factory(model, modeler_item["Parameters"])
+                    constructed_modelers.append(modeler)
 
         return constructed_modelers

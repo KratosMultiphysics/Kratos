@@ -17,17 +17,7 @@
             "parameters": {
                 "type": "condition",
                 "name": "LoadCondition",
-                "shape_function_derivatives_order": 1
-            }
-        },
-        {
-            "brep_ids": [ 1 ],
-            "geometry_type": "SurfaceEdge",
-            "iga_model_part": "Support_1",
-            "parameters": {
-                "type": "condition",
-                "name": "SupportPenaltyCondition",
-                "shape_function_derivatives_order": 1
+                "shape_function_derivatives_order": 2
             }
         }
     ]

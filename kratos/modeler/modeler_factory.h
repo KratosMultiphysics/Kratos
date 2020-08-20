@@ -37,7 +37,8 @@ namespace ModelerFactory
     }
 
     /// Checks if the modeler is registered
-    typename Modeler::Pointer Create(const std::string& ModelerName, const Parameters ModelParameters)
+    typename Modeler::Pointer Create(
+        const std::string& ModelerName, Model& rModel, const Parameters ModelParameters)
     {
         KRATOS_ERROR_IF_NOT(Has(ModelerName))
             << "Trying to construct a modeler: "
@@ -46,7 +47,7 @@ namespace ModelerFactory
             << KratosComponents< Modeler >() << std::endl;
 
         Modeler const& r_clone_modeler = KratosComponents< Modeler >::Get(ModelerName);
-        return r_clone_modeler.Create(ModelParameters);
+        return r_clone_modeler.Create(rModel, ModelParameters);
     }
 
 }

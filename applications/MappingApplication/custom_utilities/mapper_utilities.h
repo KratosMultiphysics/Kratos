@@ -314,7 +314,7 @@ void DeserializeMapperInterfaceInfosFromBuffer(
  * @TODO test the performance against the Serializer
  * @author Philipp Bucher
  */
-class MapperInterfaceInfoSerializer
+class KRATOS_API(MAPPING_APPLICATION) MapperInterfaceInfoSerializer
 {
 public:
 

@@ -14,14 +14,6 @@
                 },
                 "Tables": {}
             }
-        },
-        {
-            "model_part_name": "IgaModelPart.Support_1",
-            "properties_id": 1,
-            "Material": {
-                "Variables": { "PENALTY_FACTOR": 10000000.0 },
-                "Tables": {}
-            }
         }
     ]
 }

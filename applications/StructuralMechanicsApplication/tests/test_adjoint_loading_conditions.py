@@ -1,17 +1,9 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import math
 
 class TestAdjointLoadingConditions(KratosUnittest.TestCase):
-
-    def __CheckSensitivityMatrix(self, sen_matrix, reference_sen_matrix, digits_to_check=5):
-        if ((sen_matrix.Size1() != len(reference_sen_matrix)) or (sen_matrix.Size2() != len(reference_sen_matrix[0]))):
-            raise Exception('Matrix sizes does not fit!')
-        for i in range(sen_matrix.Size1()):
-            for j in range(sen_matrix.Size2()):
-                self.assertAlmostEqual(sen_matrix[i,j], reference_sen_matrix[i][j], digits_to_check)
 
     def _SurfaceLoadCondition3D4N(self, prefix = ""):
         current_model = KratosMultiphysics.Model()
@@ -47,18 +39,31 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         mp.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = 1e-5
 
         # check w.r.t. to design variable SURFACE_LOAD
-        reference_res_1 = [[0.25,0,0,0.25,0,0,0.25,0,0,0.25,0,0],[0,0.25,0,0,0.25,0,0,0.25,0,0,0.25,0],[0,0,0.25,0,0,0.25,0,0,0.25,0,0,0.25]]
+        reference_res_1 = KratosMultiphysics.Matrix(3, 12)
+        reference_res_1.fill(0.0)
+        reference_res_1[0,0] = reference_res_1[0,3] = reference_res_1[0,6] = reference_res_1[0,9]  = 0.25
+        reference_res_1[1,1] = reference_res_1[1,4] = reference_res_1[1,7] = reference_res_1[1,10] = 0.25
+        reference_res_1[2,2] = reference_res_1[2,5] = reference_res_1[2,8] = reference_res_1[2,11] = 0.25
         cond.CalculateSensitivityMatrix(StructuralMechanicsApplication.SURFACE_LOAD, sen_matrix, mp.ProcessInfo)
-        self.__CheckSensitivityMatrix(sen_matrix, reference_res_1)
+        self.assertMatrixAlmostEqual(reference_res_1, sen_matrix)
 
         # check w.r.t. to design variable SHAPE_SENSITIVITY
-        reference_res_2 = ((0,0,-0.166667,0,0,-0.166667,0,0,-0.0833333,0,0,-0.0833333),(0,0,-0.166667,0,0,-0.0833333,0,0,-0.0833333,0,0,-0.166667),
-        (0,0,1.25e-06,0,0,8.33328e-07,0,0,4.16669e-07,0,0,8.33336e-07),(0,0,0.166667,0,0,0.166667,0,0,0.0833333,0,0,0.0833333),
-        (0,0,-0.0833333,0,0,-0.166667,0,0,-0.166667,0,0,-0.0833333),(0,0,8.33336e-07,0,0,1.25e-06,0,0,8.33336e-07,0,0,4.16664e-07),
-        (0,0,0.0833333,0,0,0.0833333,0,0,0.166667,0,0,0.166667),(0,0,0.0833333,0,0,0.166667,0,0,0.166667,0,0,0.0833333),(0,0,4.16664e-07,0,0,8.33333e-07,0,0,1.25e-06,0,0,8.33336e-07),
-        (0,0,-0.0833333,0,0,-0.0833333,0,0,-0.166667,0,0,-0.166667),(0,0,0.166667,0,0,0.0833333,0,0,0.0833333,0,0,0.166667),(0,0,8.33336e-07,0,0,4.16667e-07,0,0,8.33336e-07,0,0,1.25e-06))
+        reference_res_2 = KratosMultiphysics.Matrix(12, 12)
+        reference_res_2.fill(0.0)
+        reference_res_2[0,2] = reference_res_2[0,5] = reference_res_2[1,2] = reference_res_2[1,11] = -0.166667
+        reference_res_2[0,8] = reference_res_2[0,11] = reference_res_2[1,5] = reference_res_2[1,8] = -0.0833333
+        reference_res_2[3,2] = reference_res_2[3,5] = reference_res_2[10,2] = reference_res_2[10,11]  = 0.166667
+        reference_res_2[3,8] = reference_res_2[3,11] = reference_res_2[10,5] = reference_res_2[10,8] = 0.0833333
+        reference_res_2[6,8] = reference_res_2[6,11] = reference_res_2[7,5] = reference_res_2[7,8]  = 0.166667
+        reference_res_2[6,2] = reference_res_2[6,5] = reference_res_2[7,2] = reference_res_2[7,11] = 0.0833333
+        reference_res_2[4,5] = reference_res_2[4,8] = reference_res_2[9,8] = reference_res_2[9,11] = -0.166667
+        reference_res_2[4,2] = reference_res_2[4,11] = reference_res_2[9,2] = reference_res_2[9,5] = -0.0833333
+        reference_res_2[2,2] = reference_res_2[5,5] = reference_res_2[8,8] = reference_res_2[11,11] = 1.25e-06
+        reference_res_2[2,8] = reference_res_2[5,11] = reference_res_2[8,2] = reference_res_2[11,5] = 4.1667e-07
+        reference_res_2[2,5] = reference_res_2[2,11] = reference_res_2[5,2] = reference_res_2[5,8] = 4.1667e-07
+        reference_res_2[8,5] = reference_res_2[8,11] = reference_res_2[11,2] = reference_res_2[11,8] = 8.333e-07
         cond.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY, sen_matrix, mp.ProcessInfo)
-        self.__CheckSensitivityMatrix(sen_matrix, reference_res_2)
+        self.assertMatrixAlmostEqual(reference_res_2, sen_matrix, 6)
 
         # change loading
         load_on_cond[2] =  0.0
@@ -66,12 +71,11 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         cond.SetValue(KratosMultiphysics.PRESSURE, 1.0)
 
         # check w.r.t. to design variable PRESSURE
-        reference_res_3 = [0,0,0.25,0,0,0.25,0,0,0.25,0,0,0.25]
+        reference_res_3 = KratosMultiphysics.Matrix(1, 12)
+        reference_res_3.fill(0.0)
+        reference_res_3[0,2] = reference_res_3[0,5] = reference_res_3[0,8] = reference_res_3[0,11]  = 0.25
         cond.CalculateSensitivityMatrix(KratosMultiphysics.PRESSURE, sen_matrix, mp.ProcessInfo)
-        if ((sen_matrix.Size2() != len(reference_res_3)) or sen_matrix.Size1() != 1):
-            raise Exception('Matrix sizes does not fit!')
-        for i in range(sen_matrix.Size2()):
-            self.assertAlmostEqual(sen_matrix[0,i], reference_res_3[i], 5)
+        self.assertMatrixAlmostEqual(reference_res_3, sen_matrix)
 
 
     def _LineLoadCondition3D2N(self, prefix = ""):
@@ -111,16 +115,23 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         mp.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = 1e-6
 
         # check w.r.t. to design variable SURFACE_LOAD
-        reference_res_1 = ((0.707107,0,0,0.707107,0,0),(0,0.707107,0,0,0.707107,0),(0,0,0.707107,0,0,0.707107))
+        reference_res_1 = KratosMultiphysics.Matrix(3, 6)
+        reference_res_1.fill(0.0)
+        reference_res_1[0,0] = reference_res_1[0,3] = reference_res_1[1,1] = reference_res_1[1,4]  = reference_res_1[2,2] = reference_res_1[2,5] = 0.70710678
         cond.CalculateSensitivityMatrix(StructuralMechanicsApplication.LINE_LOAD, sen_matrix, mp.ProcessInfo)
-        self.__CheckSensitivityMatrix(sen_matrix, reference_res_1)
+        self.assertMatrixAlmostEqual(reference_res_1, sen_matrix, 6)
 
         # check w.r.t. to design variable SHAPE_SENSITIVITY
-        reference_res_2 = ((0,2499.999376,2499.999376,0,2499.999376,2499.999376),(0,2499.999376,2499.999376,0,2499.999376,2499.999376),
-        (0,-0.001250,-0.001250,0,-0.0012450,-0.001250),(0,-2500.000624,-2500.000624,0,-2500.000624,-2500.000624),
-        (0,-2500.000624,-2500.000624,0,-2500.000624,-2500.000624),(0,-0.001250,-0.001250,0,-0.001250,-0.001250))
+        reference_res_2 = KratosMultiphysics.Matrix(6, 6)
+        reference_res_2.fill(0.0)
+        reference_res_2[0,1] = reference_res_2[0,2] = reference_res_2[0,4] = reference_res_2[0,5] = 2499.999376
+        reference_res_2[1,1] = reference_res_2[1,2] = reference_res_2[1,4] = reference_res_2[1,5] = 2499.999376
+        reference_res_2[2,1] = reference_res_2[2,2] = reference_res_2[2,4] = reference_res_2[2,5] = -0.001250
+        reference_res_2[3,1] = reference_res_2[3,2] = reference_res_2[3,4] = reference_res_2[3,5] = -2500.000624
+        reference_res_2[4,1] = reference_res_2[4,2] = reference_res_2[4,4] = reference_res_2[4,5] = -2500.000624
+        reference_res_2[5,1] = reference_res_2[5,2] = reference_res_2[5,4] = reference_res_2[5,5] = -0.001250
         cond.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY, sen_matrix, mp.ProcessInfo)
-        self.__CheckSensitivityMatrix(sen_matrix, reference_res_2)
+        self.assertMatrixAlmostEqual(reference_res_2, sen_matrix, 6)
 
     def test_SDSurfaceLoadCondition3D4N(self):
         self._SurfaceLoadCondition3D4N(prefix = "SmallDisplacement")
