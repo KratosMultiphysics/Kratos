@@ -38,13 +38,32 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
 
     def ExecuteInitialize(self):
-        for element in self.model_part.Elements:
-            A3 = element.GetGeometry().Normal(point_number); //this makes only sense if the geometry is undeformed
-            A3 = A3 / sqrt((A3 * A3));
-            //Vector m_Nvec = trans(row(m_N, point_number));
-            rRightHandSideMatrix = rRightHandSideMatrix + outer_prod(trans(row(m_N, point_number)),  trans(A3)     ) ;
+     director = KratosMultiphysics.Vector(3) 
+     director[0] = 0
+     director[1] = 0
+     director[2] = 1
 
-            rLeftHandSideMatrix = rLeftHandSideMatrix + outer_prod(row(m_N,point_number), row(m_N, point_number));
+     dirTang = KratosMultiphysics.Matrix(3,2) 
+     dirTang[0,0] = 1
+     dirTang[1,0] = 0
+     dirTang[2,0] = 0
+
+     dirTang[0,1] = 1
+     dirTang[1,1] = 0
+     dirTang[2,1] = 0
+
+#       for node in self.model_part.Nodes:
+#          
+#          node.SetValue(DIRECTOR, director);
+#
+#
+#        for element in self.model_part.Elements:
+#            A3 = element.GetGeometry().Normal(point_number); //this makes only sense if the geometry is undeformed
+#            A3 = A3 / sqrt((A3 * A3));
+#            //Vector m_Nvec = trans(row(m_N, point_number));
+#            rRightHandSideMatrix = rRightHandSideMatrix + outer_prod(trans(row(m_N, point_number)),  trans(A3)     ) ;
+
+#            rLeftHandSideMatrix = rLeftHandSideMatrix + outer_prod(row(m_N,point_number), row(m_N, point_number));
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -57,6 +76,7 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
             inc3d = BLA * inc2d
 
             director = director + inc3d
-            director = director / sqrt(director * director);
+            director = director / sqrt(director * director)
 
-            node.SetValue(DIRECTOR, director);
+            node.SetValue(DIRECTOR, director)
+            # node.SetValue(DIRECTORTANGENTSPACE, director)

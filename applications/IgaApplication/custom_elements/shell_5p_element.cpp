@@ -608,16 +608,18 @@ namespace Kratos
 
 		const SizeType number_of_control_points = GetGeometry().size();
 
-		if (rResult.size() != 3 * number_of_control_points)
-			rResult.resize(3 * number_of_control_points, false);
+		if (rResult.size() != 5 * number_of_control_points)
+			rResult.resize(5 * number_of_control_points, false);
 
 		const SizeType pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
 		for (IndexType i = 0; i < number_of_control_points; ++i) {
-			const SizeType index = i * 3;
+			const SizeType index = i * 5;
 			rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos    ).EquationId();
 			rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
 			rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+			rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
+			rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId();
 		}
 
 		KRATOS_CATCH("")
@@ -633,7 +635,7 @@ namespace Kratos
 		const SizeType number_of_control_points = GetGeometry().size();
 
 		rElementalDofList.resize(0);
-		rElementalDofList.reserve(3 * number_of_control_points);
+		rElementalDofList.reserve(5 * number_of_control_points);
 
 		for (IndexType i = 0; i < number_of_control_points; ++i) {
 			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
