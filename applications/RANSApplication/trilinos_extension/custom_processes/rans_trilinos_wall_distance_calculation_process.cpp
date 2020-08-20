@@ -36,7 +36,7 @@ void TrilinosRansWallDistanceCalculationProcess<
     LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector>>>::CreateLinearSolver()
 {
     mpLinearSolver = LinearSolverFactory<SparseSpaceType, DenseSpaceType>().Create(
-        mrParameters["linear_solver_settings"]);
+        mLinearSolverParameters);
 }
 
 template <>
