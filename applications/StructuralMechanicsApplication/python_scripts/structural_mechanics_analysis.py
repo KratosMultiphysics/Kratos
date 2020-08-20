@@ -44,11 +44,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 solver_settings.AddEmptyValue("use_computing_model_part").SetBool(True)
 
 
-        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(StructuralMechanicsAnalysis, self).Initialize()
+        super().Initialize()
 
         # In case of contact problem
         if self.contact_problem:
@@ -76,11 +76,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
-        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
+        super().OutputSolutionStep()
 
 
     def Check(self):
-        super(StructuralMechanicsAnalysis, self).Check()
+        super().Check()
 
         # performing some checks if the submodelparts used for the processes and
         # the material-assignments are being added to the ComputingModelPart
@@ -152,7 +152,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
