@@ -278,7 +278,10 @@ public:
         auto end_build_time = std::chrono::steady_clock::now();
         KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
                 <<"Build time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_time - start_build_time).count()/1000.0 <<"s"<<std::endl;
-
+        if(global_num_constraints > 0) {
+            auto start_build_ms_time = std::chrono::steady_clock::now();
+            BuildMasterSlaveConstraints(rModelPart);
+            auto end_build_ms_time = std::chrono::steady_clock::now();
             KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
                     <<"Build Master-Slave constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_ms_time - start_build_ms_time).count()/1000.0 <<" s"<<std::endl;
 
