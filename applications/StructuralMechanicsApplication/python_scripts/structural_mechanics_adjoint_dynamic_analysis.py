@@ -53,6 +53,7 @@ class StructuralMechanicsAdjointDynamicAnalysis(AnalysisStage):
                             project_parameters["problem_data"]["start_time"].GetDouble() - \
                             project_parameters["problem_data"]["end_time"].GetDouble()
                             )
+        # TODO move this
     
         # Detect is a contact problem
         # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)

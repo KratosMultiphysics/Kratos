@@ -184,7 +184,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const double& x = mrModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(DISPLACEMENT_Z, 0);
+        const double& x = mrModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(DISPLACEMENT_Z, 0); //TODO Change this
         return  x * x / mTimeDomain;
         
         KRATOS_CATCH("");
