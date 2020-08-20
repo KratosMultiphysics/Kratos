@@ -14,6 +14,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "utilities/indirect_scalar.h"
 
 
 namespace Kratos
@@ -93,7 +94,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::ThisExtensions::
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVariables(
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::ThisExtensions::GetAuxiliaryVariables(
     std::vector<VariableData const*>& rVariables) const
 {
     if (rVariables.size() != 1)
@@ -101,6 +102,231 @@ void AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtens
         rVariables.resize(1);
     }
     rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{  
+    KRATOS_TRY
+    const GeometryType& geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension = geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rResult.size() != num_dofs)
+        rResult.resize(num_dofs, false);
+
+    for(IndexType i = 0; i < geom.size(); ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType& iNode = geom[i];
+
+        rResult[index    ] = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
+        rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
+        rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if (rElementalDofList.size() != num_dofs)
+        rElementalDofList.resize(num_dofs);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType& iNode = geom[i];
+
+        rElementalDofList[index    ] = iNode.pGetDof(ADJOINT_DISPLACEMENT_X);
+        rElementalDofList[index + 1] = iNode.pGetDof(ADJOINT_DISPLACEMENT_Y);
+        rElementalDofList[index + 2] = iNode.pGetDof(ADJOINT_DISPLACEMENT_Z);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType& iNode = geom[i];
+
+        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, Step);
+        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y, Step);
+        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z, Step);
+    }
+    
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    BaseType::Initialize(rCurrentProcessInfo);
+    this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                                                ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    BaseType::CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    KRATOS_CATCH("");
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType & iNode = geom[i];
+
+        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
+        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_2_Y, Step);
+        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_2_Z, Step);
+    }
+
+    KRATOS_CATCH("")  
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const IndexType index = i * dimension;
+        const NodeType & iNode = geom[i];
+
+        rValues[index    ] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_3_X, Step);
+        rValues[index + 1] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_3_Y, Step);
+        rValues[index + 2] = iNode.FastGetSolutionStepValue(ADJOINT_VECTOR_3_Z, Step);
+    }
+
+    KRATOS_CATCH("")  
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateFirstDerivativesLHS(
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    BaseType::CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+    noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    KRATOS_CATCH("");
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateSecondDerivativesLHS(
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    BaseType::CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+    noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    KRATOS_CATCH("");
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateSensitivityMatrix(
+                                            const Variable<double>& rDesignVariable, Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType local_size = number_of_nodes * dimension;
+
+    if (this->Has(rDesignVariable) && rDesignVariable == CROSS_AREA) 
+    {
+        if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) 
+        {
+                rOutput.resize(0, local_size, false);
+        }
+
+        // save original cross area parameters
+        const auto variable_value = this->pGetPrimalElement()->GetValue(rDesignVariable);
+
+        // reset original cross area parameter before computing the derivative
+        this->pGetPrimalElement()->SetValue(rDesignVariable, rDesignVariable.Zero());
+
+        ProcessInfo process_info = rCurrentProcessInfo;
+        Vector RHS;
+
+        // The following approach assumes a linear dependency between RHS and cross area
+        double perturbed_nodal_cross_area = 1.0;
+        this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_cross_area);
+        this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+
+        KRATOS_ERROR_IF_NOT(RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+        for(IndexType i = 0; i < RHS.size(); ++i) 
+        {
+            rOutput(0, i) = RHS[i];
+        }
+        
+        // give original stiffness parameters back
+        this->pGetPrimalElement()->SetValue(rDesignVariable, variable_value);
+    }
+    else 
+    {
+        if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) 
+        {
+            rOutput.resize(0, local_size, false);
+        }
+        noalias(rOutput) = ZeroMatrix(0, local_size);
+    }
+
+    KRATOS_CATCH("")
 }
 
 template <class TPrimalElement>

@@ -53,13 +53,14 @@ class AdjointFiniteDifferenceTrussElementLinear
 
         void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
     };
-    
+
 public:
 
     // redefine the typedefs because of templated base class
     typedef AdjointFiniteDifferenceTrussElement<TPrimalElement> BaseType;
     typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::IndexType IndexType;
+    typedef typename BaseType::NodeType NodeType;
     typedef typename BaseType::GeometryType GeometryType;
     typedef typename BaseType::PropertiesType PropertiesType;
     typedef typename BaseType::NodesArrayType NodesArrayType;
@@ -105,6 +106,30 @@ public:
         return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
+
+    void GetValuesVector(Vector& values, int Step = 0) const override;
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& rCurrentProcessInfo) override;
+    
+    void GetFirstDerivativesVector(Vector& values, int Step) const override;
+
+    void GetSecondDerivativesVector(Vector& values, int Step) const override;
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                      ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                  std::vector< array_1d<double, 3 > >& rOutput,
