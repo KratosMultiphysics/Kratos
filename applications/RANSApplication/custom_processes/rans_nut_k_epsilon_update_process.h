@@ -48,10 +48,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
-    using NodesContainerType = ModelPart::NodesContainerType;
-
     /// Pointer definition of RansNutKEpsilonUpdateProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansNutKEpsilonUpdateProcess);
 
@@ -91,6 +87,8 @@ public:
 
     void Execute() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -126,8 +124,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansNutKEpsilonUpdateProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansNutKEpsilonUpdateProcess& rThis);
 
 ///@}
 

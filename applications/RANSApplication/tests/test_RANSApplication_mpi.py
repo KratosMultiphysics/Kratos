@@ -1,3 +1,5 @@
+import os
+
 import KratosMultiphysics
 
 # Import Kratos "wrapper" for unittests
@@ -59,6 +61,9 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
+    # this is required by the CI since, CI runs these tests from $KRATOS_HOME folder.
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
         KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
