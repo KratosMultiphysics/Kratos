@@ -1,5 +1,5 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
 # Importing Kratos
 import KratosMultiphysics
@@ -15,15 +15,16 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     if solver_type == "pfem_fluid_solver" or solver_type == "PfemFluid":
         solver_module_name = "pfem_fluid_solver"
 
-    elif solver_type == "pfem_fluid_explicit_solver" or solver_type == "PfemFluidExplicit":
-        solver_module_name = "pfem_fluid_explicit_solver"
-
     elif solver_type == "pfem_fluid_nodal_integration_solver" or solver_type == "PfemFluidNodalIntegration":
         solver_module_name = "pfem_fluid_nodal_integration_solver"
 
+    elif solver_type == "pfem_fluid_thermally_coupled_solver" or solver_type == "PfemFluidThermallyCoupled":
+        solver_module_name = "pfem_fluid_thermally_coupled_solver"
+
     else:
-        err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-        err_msg += "Available options are: \"pfem_fluid_solver\", \"pfem_fluid_explicit_solver\", \"pfem_fluid_nodal_integration_solver\""
+        err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper.\n"
+        err_msg += "Available options are: \"pfem_fluid_solver\", \n"
+        err_msg += "\"pfem_fluid_nodal_integration_solver\", \"pfem_fluid_thermally_coupled_solver\""
         raise Exception(err_msg)
 
     module_full = 'KratosMultiphysics.PfemFluidDynamicsApplication.' + solver_module_name

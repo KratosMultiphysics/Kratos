@@ -15,7 +15,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
 
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowElement"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
 
         # Pfem2 settings
@@ -55,7 +55,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         domain_size = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.neighbour_search = KM.FindNodalNeighboursProcess(self.main_model_part, number_of_avg_elems, number_of_avg_nodes)
+        self.neighbour_search = KM.FindNodalNeighboursProcess(self.main_model_part)
         self.neighbour_search.Execute()
         self.neighbour_elements_search = KM.FindElementalNeighboursProcess(self.main_model_part, domain_size, number_of_avg_elems)
         self.neighbour_elements_search.Execute()

@@ -22,8 +22,9 @@
 // Strategies
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
-#include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
+#include "custom_strategies/custom_strategies/formfinding_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
+#include "custom_strategies/custom_strategies/prebuckling_strategy.hpp"
 
 // Schemes
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
@@ -66,8 +67,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom strategy types
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
+    typedef PrebucklingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PrebucklingStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
-    typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
+    typedef FormfindingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingStrategyType;
     typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
 
 
@@ -91,18 +93,28 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>(), py::arg("model_part"), py::arg("scheme"), py::arg("builder_and_solver"), py::arg("compute_model_decomposition")=false)
+        .def(py::init<ModelPart&,
+             BaseSchemeType::Pointer,
+             BuilderAndSolverPointer,
+             double,
+             double,
+             bool>(),
+                py::arg("model_part"),
+                py::arg("scheme"),
+                py::arg("builder_and_solver"),
+                py::arg("mass_matrix_diagonal_value"),
+                py::arg("stiffness_matrix_diagonal_value"),
+                py::arg("compute_modal_decomposition")=false)
             ;
 
-    py::class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool >())
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool, bool >())
-        .def("SetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::SetMaxIterationNumber)
-        .def("GetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::GetMaxIterationNumber)
-        .def("SetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::SetKeepSystemConstantDuringIterations)
-        .def("GetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::GetKeepSystemConstantDuringIterations)
-        .def("SetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::SetInitializePerformedFlag)
-        .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
+    // Prebuckling Strategy
+    py::class_< PrebucklingStrategyType, typename PrebucklingStrategyType::Pointer,BaseSolvingStrategyType >(m,"PrebucklingStrategy")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, BuilderAndSolverPointer, ConvergenceCriteriaPointer, int, Parameters >())
+        .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
+        ;
+    py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
+        .def_static("WriteFormFoundMdpa", &FormfindingStrategyType::WriteFormFoundMdpa)
         ;
 
 

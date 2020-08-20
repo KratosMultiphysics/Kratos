@@ -85,10 +85,6 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
-    void UpdatePrimitiveVariables(ModelPart& rModelPart);
-
-    void UpdatePrimitiveVariables(ModelPart& rModelPart, double Epsilon);
-
     void ComputeAccelerations(ModelPart& rModelPart);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
@@ -126,6 +122,8 @@ public:
             it_node->FastGetSolutionStepValue(rVariable,1) = it_node->FastGetSolutionStepValue(rVariable);
         }
     }
+
+    void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
 
     ///@}
     ///@name Access

@@ -73,6 +73,12 @@ namespace Kratos
         VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_2, r_nodes_array);
         VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_3, r_nodes_array);
         VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_4, r_nodes_array);
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_5, r_nodes_array);
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_6, r_nodes_array);
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_7, r_nodes_array);
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_8, r_nodes_array);
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_9, r_nodes_array);
+        VariableUtils().SetNonHistoricalVariableToZero(POWER_SUM_10, r_nodes_array);
 
         KRATOS_CATCH("");
     }
@@ -99,6 +105,12 @@ namespace Kratos
                 it_node->GetValue(POWER_SUM_2) += std::pow(variable_current,2);
                 it_node->GetValue(POWER_SUM_3) += std::pow(variable_current,3);
                 it_node->GetValue(POWER_SUM_4) += std::pow(variable_current,4);
+                it_node->GetValue(POWER_SUM_5) += std::pow(variable_current,5);
+                it_node->GetValue(POWER_SUM_6) += std::pow(variable_current,6);
+                it_node->GetValue(POWER_SUM_7) += std::pow(variable_current,7);
+                it_node->GetValue(POWER_SUM_8) += std::pow(variable_current,8);
+                it_node->GetValue(POWER_SUM_9) += std::pow(variable_current,9);
+                it_node->GetValue(POWER_SUM_10) += std::pow(variable_current,10);
             }
         }
         else {

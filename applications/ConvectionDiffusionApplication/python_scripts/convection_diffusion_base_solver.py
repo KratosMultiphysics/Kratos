@@ -162,8 +162,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : [],
-            "buffer_size" : -1
+            "auxiliary_variables_list" : []
         }
         """)
         default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultSettings())
@@ -420,9 +419,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 var = KratosMultiphysics.KratosGlobals.GetVariable(key)
                 if (self._check_variable_to_set(var)):
                     if value.IsDouble():
-                        KratosMultiphysics.VariableUtils().SetScalarVar(var, value.GetDouble(), model_part.Nodes)
+                        KratosMultiphysics.VariableUtils().SetVariable(var, value.GetDouble(), model_part.Nodes)
                     elif value.IsVector():
-                        KratosMultiphysics.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                        KratosMultiphysics.VariableUtils().SetVariable(var, value.GetVector(), model_part.Nodes)
                     else:
                         raise ValueError("Type of value is not available")
 

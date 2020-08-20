@@ -345,7 +345,7 @@ class NodalData(Attribute):
         return e
 
 
-class ElementData(Attribute):
+class GeometrycalObjectData(Attribute):
     """An XDMF Attribute for element data value container data."""
 
     @property
@@ -384,6 +384,17 @@ class ElementData(Attribute):
         return e
 
 
+class ElementData(GeometrycalObjectData):
+    """An XDMF Attribute for element data value container data."""
+    def __init__(self, name, data):
+        super(ElementData, self).__init__(name, data)
+
+
+class ConditionData(GeometrycalObjectData):
+    def __init__(self, name, data):
+        super(ConditionData, self).__init__(name, data)
+
+
 class SpatialGrid(Grid):
     """A collection of uniform XDMF Grid objects with results data.
 
@@ -407,7 +418,13 @@ class SpatialGrid(Grid):
     def add_attribute(self, attr):
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
-            grid.add_attribute(attr)
+            if (attr.center == "Cell"):
+                if (isinstance(attr, ConditionData) and (grid.name.startswith("RootModelPart.Conditions"))):
+                    grid.add_attribute(attr)
+                if (isinstance(attr, ElementData) and (grid.name.startswith("RootModelPart.Elements"))):
+                    grid.add_attribute(attr)
+            else:
+                grid.add_attribute(attr)
 
     def add_grid(self, grid):
         self.grids.append(grid)

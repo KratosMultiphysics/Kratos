@@ -15,8 +15,6 @@
 // External includes
 
 // Project includes
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
@@ -26,6 +24,7 @@
 /* Processes */
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/mmg_process.h"
+#include "utilities/cpp_tests_utilities.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -59,71 +58,9 @@ namespace Kratos
 //             gid_io.WriteMesh(rModelPart.GetMesh());
 //             gid_io.FinalizeMesh();
 //             gid_io.InitializeResults(label, rModelPart.GetMesh());
-//             auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+//             const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
 //             gid_io.PrintOnGaussPoints(this_var, rModelPart, label);
 //         }
-
-        void Create2DModelPart(ModelPart& rModelPart)
-        {
-            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
-
-            // First we create the nodes
-            rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-            // Now we create the elements
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 1, {{1,2,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 2, {{1,3,4}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, {{2,5,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, {{5,6,3}}, p_elem_prop);
-
-            // Initialize Elements
-            for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
-        }
-
-        void Create3DModelPart(ModelPart& rModelPart)
-        {
-            Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
-
-            // First we create the nodes
-            rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
-
-            rModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-            rModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-            rModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-            rModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-            rModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
-
-            // Now we create the elements
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 1, {{12,10,8,9}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 2, {{4,6,9,7}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 3, {{11,7,9,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 4, {{5,3,8,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 5, {{4,6,7,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 6, {{2,3,5,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 7, {{10,9,6,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 8, {{7,8,3,6}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 9, {{7,8,6,9}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 10, {{4,1,6,3}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, {{9,12,11,8}}, p_elem_prop);
-            rModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, {{3,2,1,6}}, p_elem_prop);
-
-            // Initialize Elements
-            for (auto& r_elem : rModelPart.Elements())
-                r_elem.Initialize();
-        }
-
 
         /**
         * Checks the correct work of the internal variable interpolation process after remesh CPT test
@@ -140,8 +77,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -151,7 +88,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create2DModelPart(r_model_part);
+            CppTestsUtilities::Create2DGeometry(r_model_part, "UpdatedLagrangianElement2D3N");
 
             // Set DISTANCE and other variables
             array_1d<double, 3> ref_metric;
@@ -235,8 +172,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -246,7 +183,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create2DModelPart(r_model_part);
+            CppTestsUtilities::Create2DGeometry(r_model_part, "UpdatedLagrangianElement2D3N");
 
             // Set DISTANCE and other variables
             array_1d<double, 3> ref_metric(3);
@@ -335,8 +272,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -346,7 +283,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create3DModelPart(r_model_part);
+            CppTestsUtilities::Create3DGeometry(r_model_part, "UpdatedLagrangianElement3D4N");
 
             // Set DISTANCE and other variables
             array_1d<double, 6> ref_metric = ZeroVector(6);
@@ -431,8 +368,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
             auto p_this_law = r_clone_cl.Clone();
@@ -442,7 +379,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create3DModelPart(r_model_part);
+            CppTestsUtilities::Create3DGeometry(r_model_part, "UpdatedLagrangianElement3D4N");
 
             // Set DISTANCE and other variables
             array_1d<double, 6> ref_metric = ZeroVector(6);
@@ -531,8 +468,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -541,7 +478,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create2DModelPart(r_model_part);
+            CppTestsUtilities::Create2DGeometry(r_model_part, "UpdatedLagrangianElement2D3N");
 
             // Set DISTANCE and other variables
             array_1d<double, 3> ref_metric;
@@ -584,8 +521,8 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -606,8 +543,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -616,7 +553,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create2DModelPart(r_model_part);
+            CppTestsUtilities::Create2DGeometry(r_model_part, "UpdatedLagrangianElement2D3N");
 
             // Set DISTANCE and other variables
             array_1d<double, 3> ref_metric;
@@ -663,8 +600,8 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -686,8 +623,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -696,7 +633,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create3DModelPart(r_model_part);
+            CppTestsUtilities::Create3DGeometry(r_model_part, "UpdatedLagrangianElement3D4N");
 
             // Set DISTANCE and other variables
             array_1d<double, 6> ref_metric = ZeroVector(6);
@@ -739,8 +676,8 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
@@ -762,8 +699,8 @@ namespace Kratos
 
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
-            if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
-                return void();
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
@@ -772,7 +709,7 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            Create3DModelPart(r_model_part);
+            CppTestsUtilities::Create3DGeometry(r_model_part, "UpdatedLagrangianElement3D4N");
 
             // Set DISTANCE and other variables
             array_1d<double, 6> ref_metric = ZeroVector(6);
@@ -819,8 +756,8 @@ namespace Kratos
 
                 // Getting the this_var
                 std::vector<double> detF0_vector(integration_points_number);
-                auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
-                elem.GetValueOnIntegrationPoints(this_var,detF0_vector,current_process_info);
+                const auto& this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
+                elem.CalculateOnIntegrationPoints(this_var,detF0_vector,current_process_info);
 
                 for (std::size_t i = 0; i <integration_points_number; i++)
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);

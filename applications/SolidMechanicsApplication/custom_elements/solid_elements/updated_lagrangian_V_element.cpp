@@ -136,7 +136,7 @@ UpdatedLagrangianVElement::~UpdatedLagrangianVElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void UpdatedLagrangianVElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianVElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -156,7 +156,7 @@ void UpdatedLagrangianVElement::SetValueOnIntegrationPoints( const Variable<doub
   }
   else{
 
-    LargeDisplacementVElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementVElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 

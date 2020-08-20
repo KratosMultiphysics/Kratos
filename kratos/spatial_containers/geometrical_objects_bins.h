@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -73,16 +73,16 @@ public:
 
     /// The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
     template<typename TIteratorType>
-	GeometricalObjectsBins(TIteratorType GeometricalObjectsBegin, TIteratorType GeometricalObjectsEnd) {
+    GeometricalObjectsBins(TIteratorType GeometricalObjectsBegin, TIteratorType GeometricalObjectsEnd) {
         std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
         if(number_of_objects > 0){
             mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
             for(TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
                 mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
             }
-	    }
+        }
         mBoundingBox.Extend(Tolerance);
-		CalculateCellSize(number_of_objects);
+        CalculateCellSize(number_of_objects);
         mCells.resize(GetTotalNumberOfCells());
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
     }
@@ -190,7 +190,7 @@ public:
     */
      template<typename TPointType>
     ResultType SearchNearestInRadius(TPointType const& ThePoint, double Radius) {
-		ResultType current_result;
+        ResultType current_result;
         current_result.SetDistance(std::numeric_limits<double>::max());
 
         double radius_increment = *std::max_element(mCellSizes.begin(), mCellSizes.end());
@@ -220,8 +220,8 @@ public:
                 break;
             }
         }
-		return current_result;
-	}
+        return current_result;
+    }
 
     /** This method takes a point and finds the nearest object to it.
      * If there are more than one object in the same minimum distance only one is returned
@@ -229,13 +229,13 @@ public:
     */
     template<typename TPointType>
     ResultType SearchNearest(TPointType const& ThePoint) {
-		ResultType current_result;
+        ResultType current_result;
 
         array_1d<double, 3> box_size = mBoundingBox.GetMaxPoint() - mBoundingBox.GetMinPoint();
         double max_radius= *std::max_element(box_size.begin(), box_size.end());
 
         return SearchNearestInRadius(ThePoint, max_radius);
-	}
+    }
 
     ///@}
     ///@name Inquiry
@@ -275,11 +275,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-	
+    
     BoundingBox<Point> mBoundingBox;
-	array_1d<std::size_t, Dimension> mNumberOfCells;
+    array_1d<std::size_t, Dimension> mNumberOfCells;
     array_1d<double, 3>  mCellSizes;
-	array_1d<double, 3>  mInverseOfCellSize;
+    array_1d<double, 3>  mInverseOfCellSize;
     std::vector<CellType> mCells;
 
 
@@ -294,38 +294,38 @@ private:
 
     /// Caclculate the cell sizes to be as equilateral as possible and tries to approximate (roughly) the given number of cells
     void CalculateCellSize(std::size_t NumberOfCells) {
-		std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
-		std::array<double, 3> lengths;
-		double avarage_length = 0.00;
-		for (int i = 0; i < Dimension; i++) {
-			lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
-			avarage_length += lengths[i];
-		}
-		avarage_length *= 1.00 / 3.00;
+        std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
+        std::array<double, 3> lengths;
+        double avarage_length = 0.00;
+        for (int i = 0; i < Dimension; i++) {
+            lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
+            avarage_length += lengths[i];
+        }
+        avarage_length *= 1.00 / 3.00;
 
-		if (avarage_length < std::numeric_limits<double>::epsilon()) {
-			mNumberOfCells = ScalarVector(3, 1);
-			return;
-		}
+        if (avarage_length < std::numeric_limits<double>::epsilon()) {
+            mNumberOfCells = ScalarVector(3, 1);
+            return;
+        }
 
-		for (int i = 0; i < Dimension; i++) {
-			mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / avarage_length * avarage_number_of_cells) + 1;
-			if (mNumberOfCells[i] > 1)
-				mCellSizes[i] = lengths[i] / mNumberOfCells[i];
-			else
-				mCellSizes[i] = avarage_length;
+        for (int i = 0; i < Dimension; i++) {
+            mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / avarage_length * avarage_number_of_cells) + 1;
+            if (mNumberOfCells[i] > 1)
+                mCellSizes[i] = lengths[i] / mNumberOfCells[i];
+            else
+                mCellSizes[i] = avarage_length;
 
-			mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
-		}
+            mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
+        }
 
-	}
+    }
 
     /// Adding objects to the cells that intersecting with it.
     template<typename TIteratorType>
-	void AddObjectsToCells(TIteratorType GeometricalObjectsBegin, TIteratorType GeometricalObjectsEnd) {
+    void AddObjectsToCells(TIteratorType GeometricalObjectsBegin, TIteratorType GeometricalObjectsEnd) {
         for(auto i_geometrical_object = GeometricalObjectsBegin ; i_geometrical_object != GeometricalObjectsEnd ; i_geometrical_object++){
-            array_1d< std::size_t, 3 > min_position;
-            array_1d< std::size_t, 3 > max_position;
+            array_1d<std::size_t, 3> min_position(3,0);
+            array_1d<std::size_t, 3> max_position(3,0);
             CalculateMinMaxPositions(i_geometrical_object->GetGeometry(), min_position, max_position);
             for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
                 for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
@@ -389,10 +389,10 @@ private:
             auto& geometry = p_geometrical_object->GetGeometry();
             // TODO: Change this to new Distance method of the geometry to be more general
             double distance = GeometryUtils::PointDistanceToTriangle3D(
-			geometry[0],
-			geometry[1],
-			geometry[2],
-			ThePoint);
+            geometry[0],
+            geometry[1],
+            geometry[2],
+            ThePoint);
             if((Radius + Tolerance) > distance){
                 rResults.insert(p_geometrical_object);
             }
@@ -406,10 +406,10 @@ private:
             auto& geometry = p_geometrical_object->GetGeometry();
             // TODO: Change this to new Distance method of the geometry to be more general
             double distance = GeometryUtils::PointDistanceToTriangle3D(
-			geometry[0],
-			geometry[1],
-			geometry[2],
-			ThePoint);
+            geometry[0],
+            geometry[1],
+            geometry[2],
+            ThePoint);
             if ((distance < rResult.GetDistance()) && (distance < MaxRadius)) {
                 rResult.Set(p_geometrical_object);
                 rResult.SetDistance(distance);
@@ -475,5 +475,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRICAL_OBJECTS_BINS_H_INCLUDED  defined
-
-

@@ -104,19 +104,23 @@ public:
             VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(VELOCITY, rBaseModelPart.Nodes());
         }
 
-        if(TDim == 2){
-            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
-                "In 2D the element type is expected to be a triangle" << std::endl;
-        } else if(TDim == 3) {
-            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
-                "In 3D the element type is expected to be a tetrahedra" << std::endl;
-        }
-
         n_nodes = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_nodes);
         n_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_elems);
 
+        // Check if the modelpart is globaly empty
         KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
+
+        // Check if any partition has incorrect elements
+        if(TDim == 2){
+            int has_incorrect_elems = rBaseModelPart.NumberOfElements() ? rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle : 0;
+            has_incorrect_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
+            KRATOS_ERROR_IF(has_incorrect_elems) << "In 2D the element type is expected to be a triangle" << std::endl;
+        } else if(TDim == 3) {
+            int has_incorrect_elems = rBaseModelPart.NumberOfElements() ? rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra : 0;
+            has_incorrect_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(has_incorrect_elems);
+            KRATOS_ERROR_IF(has_incorrect_elems) << "In 3D the element type is expected to be a tetrahedra" << std::endl;
+        }
 
         // Allocate if needed the variable DYNAMIC_TAU of the process info, and if it does not exist, set it to zero
         if( rBaseModelPart.GetProcessInfo().Has(DYNAMIC_TAU) == false){

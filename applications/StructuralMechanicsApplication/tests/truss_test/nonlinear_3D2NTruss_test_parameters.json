@@ -65,6 +65,7 @@
         	"mesh_id"         : 0,
             "model_part_name" : "Structure.PointLoad3D_neumann",
             "variable_name"   : "POINT_LOAD",
+            "constrained"     : false,
             "value"           : [0.0,"-37000000*t",0.0]
         }
     }],

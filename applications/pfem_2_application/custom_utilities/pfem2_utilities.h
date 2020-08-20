@@ -1307,12 +1307,12 @@ public:
 	//find neighbors within reduced model part
 	if (n_nodes==3)
 		{
-		FindNodalNeighboursProcess N_FINDER=FindNodalNeighboursProcess(reduced_model_part, 9, 20);
+		FindNodalNeighboursProcess N_FINDER(reduced_model_part);
 		N_FINDER.Execute();
 		}
 	else if (n_nodes==4)
 		{
-		FindNodalNeighboursProcess N_FINDER=FindNodalNeighboursProcess(reduced_model_part, 20, 30);
+		FindNodalNeighboursProcess N_FINDER(reduced_model_part);
 		N_FINDER.Execute();
 		}
 

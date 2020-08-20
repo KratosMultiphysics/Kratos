@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
@@ -48,12 +47,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
         else:
             self.assertLessEqual(abs(eigenvalue - 11.959)/11.959, 5.0e-3)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_lowest_power_in_core(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -65,7 +60,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                            "solver_type"             : "SuperLUSolver",
+                            "solver_type"             : "LinearSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -76,12 +71,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_highest_power_in_core(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -93,7 +84,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                        "solver_type"             : "SuperLUSolver",
+                        "solver_type"             : "LinearSolversApplication.sparse_lu",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -116,7 +107,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                         "shifting_convergence"    : 0.25,
                         "verbosity"               : 0,
                         "linear_solver_settings"      : {
-                            "solver_type"             : "SkylineLUFactorizationSolver",
+                            "solver_type"             : "skyline_lu_factorization",
                             "max_iteration"           : 500,
                             "tolerance"               : 1e-9,
                             "scaling"                 : false,
@@ -127,11 +118,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_eigen_eigensystem_solver(self):
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -146,93 +134,20 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_FEAST_with_eigen_solver(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("'feast' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
+        from KratosMultiphysics import LinearSolversApplication
+        if not LinearSolversApplication.HasFEAST():
+            self.skipTest("FEAST is not available")
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
                         "solver_type": "feast",
-                        "print_feast_output": false,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_eigen_sparse_lu"
-                        }
-                    }
-                ]
-            }
-            """)
-
-    def test_FEAST_with_mkl_solver(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("'feast' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        try:
-            import KratosMultiphysics.EigenSolversApplication
-            if not hasattr(KratosMultiphysics.EigenSolversApplication, "ComplexPardisoLUSolver"):
-                self.skipTest("'ComplexPardisoLUSolver' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
-
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "feast",
-                        "print_feast_output": false,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_eigen_pardiso_lu"
-                        }
-                    }
-                ]
-            }
-            """)
-
-    def test_FEAST_with_skyline_solver(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-            if not hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver"):
-                self.skipTest("'feast' is not available")
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "feast",
-                        "print_feast_output": false,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_skyline_lu_solver"
-                        }
+                        "symmetric": true,
+                        "e_min": 0.01,
+                        "e_max": 0.20,
+                        "subspace_size": 5
                     }
                 ]
             }

@@ -120,7 +120,7 @@ public:
   /**
    * Set a double  Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   //GET:
   /**

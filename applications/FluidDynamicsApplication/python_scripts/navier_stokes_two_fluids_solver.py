@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
@@ -13,8 +11,6 @@ if have_conv_diff:
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
-
-import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
@@ -44,8 +40,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "maximum_iterations": 7,
             "echo_level": 0,
             "time_order": 2,
+            "time_scheme": "bdf2",
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
+            "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
@@ -55,7 +53,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : true,
@@ -78,22 +76,29 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
+
+        # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
+
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
+        self.condition_name = "TwoFluidNavierStokesWallCondition"
+        self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
         self.min_buffer_size = 3
 
         self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
 
+        dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Construction of NavierStokesTwoFluidsSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesTwoFluidsSolver finished.")
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
@@ -114,76 +119,38 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
         # Initialize the level-set function
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Setting the nodal distance
-            self._set_distance_function()
+            self.__SetDistanceFunction()
 
         # Call the base solver PrepareModelPart()
         super(NavierStokesTwoFluidsSolver, self).PrepareModelPart()
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
+        computing_model_part = self.GetComputingModelPart()
 
-        ## Construct the linear solver
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        # Calculate boundary normals
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+            computing_model_part,
+            computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        # Elemental neighbours calculation
+        data_communicator = computing_model_part.GetCommunicator().GetDataCommunicator()
+        neighbour_search = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
+            data_communicator,
+            computing_model_part)
+        neighbour_search.Execute()
 
-        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 10, 10)
-        (self.neighbour_search).Execute()
+        # Set and initialize the solution strategy
+        solution_strategy = self._GetSolutionStrategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        solution_strategy.Initialize()
 
-        self.accelerationLimitationUtility = KratosCFD.AccelerationLimitationUtilities( self.computing_model_part, 5.0 )
-
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
-
-        # Set the time discretization utility to compute the BDF coefficients
-        time_order = self.settings["time_order"].GetInt()
-        if time_order == 2:
-            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
-        else:
-            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
-
-        # Creating the solution strategy
-        self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                     self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                     self.settings["absolute_pressure_tolerance"].GetDouble())
-
-        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        self.level_set_convection_process = self._set_level_set_convection_process()
-
-        self.variational_distance_process = self._set_variational_distance_process()
-
-        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
-                                                                                        self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
-
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
-                                                                            time_scheme,
-                                                                            self.linear_solver,
-                                                                            self.conv_criteria,
-                                                                            builder_and_solver,
-                                                                            self.settings["maximum_iterations"].GetInt(),
-                                                                            self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                            self.settings["move_mesh_flag"].GetBool())
-
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
-        (self.solver).Check()
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -192,31 +159,30 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
-                (self.level_set_convection_process).BFECCconvect(
+                self._GetLevelSetConvectionProcess().BFECCconvect(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosMultiphysics.VELOCITY,
                     self.settings["bfecc_number_substeps"].GetInt())
             else:
-                (self.level_set_convection_process).Execute()
+                self._GetLevelSetConvectionProcess().Execute()
 
             # Recompute the distance field according to the new level-set position
-            (self.variational_distance_process).Execute()
+            self._GetVariationalDistanceProcess().Execute()
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
 
             # Initialize the solver current step
-            (self.solver).InitializeSolutionStep()
+            self._GetSolutionStrategy().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            (self.solver).FinalizeSolutionStep()
-            (self.accelerationLimitationUtility).Execute()
+            self._GetSolutionStrategy().FinalizeSolutionStep()
+            self._GetAccelerationLimitationUtility().Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
-        import os
         warn_msg  = '\nThe materials import mechanism used in the two fluids solver is DEPRECATED!\n'
         warn_msg += 'It will be removed to use the base fluid_solver.py one as soon as the subproperties are available.\n'
         KratosMultiphysics.Logger.PrintWarning('\n\x1b[1;31mDEPRECATION-WARNING\x1b[0m', warn_msg)
@@ -242,8 +208,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
                 KratosMultiphysics.ReadMaterialsUtility(aux_material_settings, self.model)
-
-                os.remove(aux_materials_filename)
+                KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 
             materials_imported = True
         else:
@@ -284,7 +249,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 node.SetSolutionStepValue(KratosMultiphysics.DENSITY, rho_2)
                 node.SetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY, mu_2)
 
-    def _set_distance_function(self):
+    def __SetDistanceFunction(self):
         ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             DistanceUtility = DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
@@ -292,45 +257,73 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
             KratosMultiphysics.Logger.PrintInfo("Navier Stokes Embedded Solver","Distance function taken from the .mdpa input file.")
 
-    def _set_level_set_convection_process(self):
+    def _GetAccelerationLimitationUtility(self):
+        if not hasattr(self, '_acceleration_limitation_utility'):
+            self._acceleration_limitation_utility = self.__CreateAccelerationLimitationUtility()
+        return self._acceleration_limitation_utility
+
+    def _GetLevelSetConvectionProcess(self):
+        if not hasattr(self, '_level_set_convection_process'):
+            self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
+        return self._level_set_convection_process
+
+    def _GetVariationalDistanceProcess(self):
+        if not hasattr(self, '_variational_distance_process'):
+            self._variational_distance_process = self._CreateVariationalDistanceProcess()
+        return self._variational_distance_process
+
+    def __CreateAccelerationLimitationUtility(self):
+        maximum_multiple_of_g_acceleration_allowed = 5.0
+        acceleration_limitation_utility = KratosCFD.AccelerationLimitationUtilities(
+            self.GetComputingModelPart(),
+            maximum_multiple_of_g_acceleration_allowed)
+
+        return acceleration_limitation_utility
+
+    def _CreateLevelSetConvectionProcess(self):
         # Construct the level set convection process
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        computing_model_part = self.GetComputingModelPart()
         if self._bfecc_convection:
             if have_conv_diff:
-                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part).UpdateSearchDatabase()
+                if domain_size == 2:
+                    locator = KratosMultiphysics.BinBasedFastPointLocator2D(computing_model_part).UpdateSearchDatabase()
                     level_set_convection_process = KratosConvDiff.BFECCConvection2D(locator)
                 else:
-                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part).UpdateSearchDatabase()
+                    locator = KratosMultiphysics.BinBasedFastPointLocator3D(computing_model_part).UpdateSearchDatabase()
                     level_set_convection_process = KratosConvDiff.BFECCConvection3D(locator)
             else:
                 raise Exception("The BFECC level set convection requires the Kratos ConvectionDiffusionApplication compilation.")
         else:
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            linear_solver = self._GetLinearSolver()
+            if domain_size == 2:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(
                     KratosMultiphysics.DISTANCE,
-                    self.main_model_part,
-                    self.linear_solver)
+                    computing_model_part,
+                    linear_solver)
             else:
                 level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess3D(
                     KratosMultiphysics.DISTANCE,
-                    self.main_model_part,
-                    self.linear_solver)
+                    computing_model_part,
+                    linear_solver)
 
         return level_set_convection_process
 
-    def _set_variational_distance_process(self):
+    def _CreateVariationalDistanceProcess(self):
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
+        linear_solver = self._GetLinearSolver()
+        computing_model_part = self.GetComputingModelPart()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
-                self.main_model_part,
-                self.linear_solver,
+                computing_model_part,
+                linear_solver,
                 maximum_iterations,
                 KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
-                self.main_model_part,
-                self.linear_solver,
+                computing_model_part,
+                linear_solver,
                 maximum_iterations,
                 KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 

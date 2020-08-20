@@ -35,6 +35,8 @@ class ExplicitStrategy(object):
         self.DEM_parameters = DEM_parameters
         self.mesh_motion = DEMFEMUtilities()
 
+        self.dimension = DEM_parameters["Dimension"].GetInt()
+
         if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
         else:
@@ -215,6 +217,9 @@ class ExplicitStrategy(object):
         # Setting ProcessInfo variables
         for name in self.all_model_parts.model_parts.keys():
             self.all_model_parts.Get(name).ProcessInfo.SetValue(IS_RESTARTED, self._GetInputType() == 'rest')
+
+        # DIMENSION PARAMETERS
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.dimension)
 
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
@@ -409,6 +414,9 @@ class ExplicitStrategy(object):
 
     def FinalizeSolutionStep(self):
         (self.cplusplus_strategy).FinalizeSolutionStep()
+
+    def Finalize(self):
+        pass
 
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
@@ -673,20 +681,14 @@ class ExplicitStrategy(object):
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
-        if properties.Has(PARTICLE_FRICTION):
-            self.Procedures.KratosPrintWarning("---------------------------------------------------")
-            self.Procedures.KratosPrintWarning("  WARNING: Property PARTICLE_FRICTION is deprecated ")
-            self.Procedures.KratosPrintWarning("  since April 11th, 2018, replace with FRICTION")
-            self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
-            self.Procedures.KratosPrintWarning("---------------------------------------------------")
-            properties[FRICTION] = properties[PARTICLE_FRICTION]
-        if properties.Has(WALL_FRICTION):
+        if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
-            self.Procedures.KratosPrintWarning("  WARNING: Property WALL_FRICTION is deprecated")
-            self.Procedures.KratosPrintWarning("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KratosPrintWarning("  WARNING: Property FRICTION is deprecated since April 6th, 2020, ")
+            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION and DYNAMIC_FRICTION")
             self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
-            properties[FRICTION] = properties[WALL_FRICTION]
+            properties[STATIC_FRICTION] = properties[FRICTION]
+            properties[DYNAMIC_FRICTION] = properties[FRICTION]
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 

@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class NearestNeighborInterfaceInfo : public MapperInterfaceInfo
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborInterfaceInfo : public MapperInterfaceInfo
 {
 public:
 
@@ -98,7 +98,7 @@ private:
     }
 };
 
-class NearestNeighborLocalSystem : public MapperLocalSystem
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborLocalSystem : public MapperLocalSystem
 {
 public:
 
@@ -131,7 +131,7 @@ private:
 * look into the class description of the MapperCommunicator
 */
 template<class TSparseSpace, class TDenseSpace>
-class NearestNeighborMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -232,9 +232,11 @@ private:
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
-            "search_radius"            : -1.0,
-            "search_iterations"        : 3,
-            "echo_level"               : 0
+            "search_radius"                : -1.0,
+            "search_iterations"            : 3,
+            "echo_level"                   : 0,
+            "print_pairing_status_to_file" : true,
+            "pairing_status_file_path"     : ""
         })");
     }
 

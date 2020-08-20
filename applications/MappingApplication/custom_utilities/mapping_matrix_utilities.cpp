@@ -186,8 +186,7 @@ void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(SparseSpaceType::IsDistributed())
-        << "Using a distributed Space!" << std::endl;
+    static_assert(!SparseSpaceType::IsDistributed(), "Using a distributed Space!");
 
     const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
     const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();

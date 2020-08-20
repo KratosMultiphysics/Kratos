@@ -2,43 +2,26 @@ name: CI
 
 on:
   pull_request:
-    paths:
-    - '.github/**'
-    - 'cmake_modules/**'
-    - 'scripts/**'
-    - 'CMakeLists.txt'
-    - 'external_libraries/**'
-    - 'kratos/**'
-    - 'applications/CableNetApplication/**'
-    - 'applications/CompressiblePotentialFlowApplication/**'
-    - 'applications/ContactStructuralMechanicsApplication/**'
-    - 'applications/CoSimulationApplication/**'
-    - 'applications/CSharpWrapperApplication/**'
-    - 'applications/DEMApplication/**'
-    - 'applications/EigenSolversApplication/**'
-    - 'applications/ExternalSolversApplication/**'
-    - 'applications/FluidDynamicsApplication/**'
-    - 'applications/FSIApplication/**'
-    - 'applications/MappingApplication/**'
-    - 'applications/MeshingApplication/**'
-    - 'applications/MeshMovingApplication/**'
-    - 'applications/MetisApplication/**'
-    - 'applications/RANSApplication/**'
-    - 'applications/ShapeOptimizationApplication/**'
-    - 'applications/StructuralMechanicsApplication/**'
-    - 'applications/SwimmingDEMApplication/**'
-    - 'applications/TrilinosApplication/**'
-    - 'applications/HDF5Application/**'
+    branches:
+      - master
 
-  schedule:
-    - cron:  '0 1 * * *'
 
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Custom, FullDebug]
+        compiler: [gcc, clang]
+    env:
+      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      MKLVARS_ARCHITECTURE: intel64
+      MKLVARS_INTERFACE: lp64
 
     container:
-      image: oberbichler/kratos-dev:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      options: --user 1001
       env:
         CCACHE_SLOPPINESS: pch_defines,time_macros
         CCACHE_COMPILERCHECK: content
@@ -46,54 +29,183 @@ jobs:
         CCACHE_NODISABLE: true
         CCACHE_MAXSIZE: 500M
         FC: gfortran-7
-        CC: /usr/lib/ccache/gcc
-        CXX: /usr/lib/ccache/g++
 
     steps:
-    - uses: actions/checkout@v2-beta
+    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+    - uses: actions/checkout@v2
 
     - name: Cache Build
       id: cache-build
       uses: actions/cache@v1
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-ccache-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-ccache-
+        key: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-${{ matrix.build-type }}-${{ matrix.compiler }}-ccache-
 
     - name: Build
       run: |
-        export MKLVARS_ARCHITECTURE=intel64
-        export MKLVARS_INTERFACE=lp64
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CC=/usr/lib/ccache/gcc
+          export CXX=/usr/lib/ccache/g++
+          export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON"
+          export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable -Werror=misleading-indentation -Werror=return-type -Werror=sign-compare -Werror=unused-but-set-variable -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized -Werror=comment"
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CC=clang-9
+          export CXX=clang++-9
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable"
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
         . /opt/intel/mkl/bin/mklvars.sh
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
         ccache -s
 
     - name: Running small tests
-      if: github.event_name == 'pull_request'
       run: |
-        export MKLVARS_ARCHITECTURE=intel64
-        export MKLVARS_INTERFACE=lp64
         . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/run_tests.py -l small -c python3
 
-    - name: Running nightly tests
-      if: github.event_name == 'schedule' # this is the nightly build
+    - name: Running MPICore C++ tests (2 Cores)
       run: |
-        export MKLVARS_ARCHITECTURE=intel64
-        export MKLVARS_INTERFACE=lp64
         . /opt/intel/mkl/bin/mklvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPICore C++ tests (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPICore C++ tests (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 kratos/python_scripts/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPICore Python tests (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
+
+    - name: Running MPICore Python tests (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
+
+    - name: Running MPICore Python tests (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 kratos/mpi/tests/test_KratosMPICore.py --using-mpi
+
+    - name: Running MPI Python TrilinosApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python TrilinosApplication (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python TrilinosApplication (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 applications/TrilinosApplication/tests/test_TrilinosApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python CoSimulationApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python CoSimulationApplication (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python CoSimulationApplication (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python MappingApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python MappingApplication (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python MappingApplication (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 applications/MappingApplication/tests/test_MappingApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python StructuralMechanicsApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/StructuralMechanicsApplication/tests/test_StructuralMechanicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python FluidDynamicsApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/FluidDynamicsApplication/tests/test_FluidDynamicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python RANSApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi
+
 
   windows:
     runs-on: windows-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v2-beta
+    - uses: actions/checkout@v2
     - uses: actions/setup-python@v1
       with:
         python-version: '3.6'
@@ -104,6 +216,12 @@ jobs:
         path: build
         key: ${{ runner.os }}-build-${{ github.sha }}
         restore-keys: ${{ runner.os }}-build-
+
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+
     - name: Build
       shell: cmd
       run: |
@@ -112,21 +230,25 @@ jobs:
         set CC=cl.exe
         set CXX=cl.exe
 
-        set KRATOS_BUILD_TYPE=Release
         set KRATOS_SOURCE=%cd%
         set KRATOS_BUILD=%cd%\build
         set KRATOS_APP_DIR=applications
 
         set KRATOS_APPLICATIONS=
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ConvectionDiffusionApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\FluidDynamicsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshingApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MeshMovingApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\LinearSolversApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StructuralMechanicsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\DEMApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ChimeraApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\IgaApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\ParticleMechanicsApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\MappingApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CoSimulationApplication;
+        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\StatisticsApplication;
         set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\SwimmingDEMApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\CSharpWrapperApplication;
-        set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%KRATOS_APP_DIR%\EigenSolversApplication;
 
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
         del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
@@ -136,15 +258,25 @@ jobs:
           -G"Visual Studio 16 2019"                          ^
           -H"%KRATOS_SOURCE%"                                ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"             ^
-          -DBOOST_ROOT="%BOOST_ROOT%"                        ^
-          -DINCLUDE_FEAST=OFF                                ^
+          -DBOOST_ROOT="%BOOST_ROOT_1_72_0%"                 ^
           -DINSTALL_RUNKRATOS=OFF                            ^
+          -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804"            ^
+          -DFORCE_LOCAL_ZLIB_COMPILATION=ON                  ^
           -DUSE_COTIRE=ON                                    || goto :error
 
-        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity || goto :error
+        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target zlibstatic -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
+        cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 || goto :error
 
         goto :EOF
 
         :error
         echo Failed with error #%errorlevel%.
         exit /b %errorlevel%
+
+    - name: Running small tests
+      shell: cmd
+      run: |
+        set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
+        set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
+        python kratos/python_scripts/run_tests.py -l small -c python

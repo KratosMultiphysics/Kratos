@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** Configuring KratosContactStructuralMechanicsApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 
@@ -61,6 +63,10 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 if(USE_COTIRE MATCHES ON)
     ## The interface_preprocess is not compatible with cotire (solve problem with explicit instantations)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    file(GLOB condition_files ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp)
+    foreach(condition_file ${condition_files})
+        set_source_files_properties (${condition_file} PROPERTIES COTIRE_EXCLUDED TRUE)
+    endforeach(condition_file)
     cotire(KratosContactStructuralMechanicsCore)
     cotire(KratosContactStructuralMechanicsApplication)
 endif(USE_COTIRE MATCHES ON)

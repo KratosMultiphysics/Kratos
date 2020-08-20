@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya
+//
+
 // System includes
 
 #ifdef KRATOS_USE_AMATRIX
@@ -10,8 +22,6 @@
 // Project includes
 
 // Application includes
-#include "custom_python/add_custom_auxiliary_processes_to_python.h"
-#include "custom_python/add_custom_solving_processes_to_python.h"
 
 namespace Kratos
 {
@@ -19,8 +29,6 @@ namespace Python
 {
 void AddCustomProcessesToPython(pybind11::module& m)
 {
-    AddCustomSolvingProcessesToPython(m);
-    AddCustomAuxiliaryProcessesToPython(m);
 }
 
 } // namespace Python.

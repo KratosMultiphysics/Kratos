@@ -39,8 +39,6 @@ namespace Python
 {
 namespace py = pybind11;
 
-typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 void  AddProcessesToPython(pybind11::module& m)
 {
     // The process to interpolate nodal values
@@ -73,13 +71,13 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // LEVEL SET
     py::class_<ComputeLevelSetSolMetricProcess<2>, ComputeLevelSetSolMetricProcess<2>::Pointer, Process>(m, "ComputeLevelSetSolMetricProcess2D")
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>>())
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& >())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& , Parameters>())
     ;
 
     py::class_<ComputeLevelSetSolMetricProcess<3>, ComputeLevelSetSolMetricProcess<3>::Pointer, Process>(m, "ComputeLevelSetSolMetricProcess3D")
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>>())
-    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>& >())
+    .def(py::init<ModelPart&, const Variable<array_1d<double,3>>&, Parameters>())
     ;
 
     // HESSIAN PROCESS
@@ -87,8 +85,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>())
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
-    .def(py::init<ModelPart&, ComponentType&>())
-    .def(py::init<ModelPart&, ComponentType&, Parameters>())
     ;
 
     m.attr("ComputeHessianSolMetricProcess2D") = m.attr("ComputeHessianSolMetricProcess");
@@ -126,10 +122,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,6>>>)
     .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,9>>>)
     .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<Variable<double>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,4>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,6>>>>)
-    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,9>>>>)
     .def("GetCoarseModelPart", &MultiscaleRefiningProcess::GetCoarseModelPart)
     .def("GetRefinedModelPart", &MultiscaleRefiningProcess::GetRefinedModelPart)
     .def("GetVisualizationModelPart", &MultiscaleRefiningProcess::GetVisualizationModelPart)

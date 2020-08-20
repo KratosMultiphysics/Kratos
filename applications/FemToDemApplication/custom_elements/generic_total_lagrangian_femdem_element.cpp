@@ -312,36 +312,13 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         if (dimension == 2 && this->GetProperties().Has(THICKNESS))
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
-        bool is_damaging = false;
-        Vector damages_edges = ZeroVector(NumberOfEdges);
-        if (yield_surface != "Elastic") {
-            // Loop over edges of the element...
-            Vector average_stress_edge(VoigtSize);
-            Vector average_strain_edge(VoigtSize);
-
-            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
-                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
- 
-                damages_edges[edge] = mDamages[edge];
-                double threshold = mThresholds[edge];
-                
-                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
-                                                     average_stress_edge, edge, characteristic_length, cl_values, 
-                                                     is_damaging);
-
-            } // Loop over edges
-        }
-
-        // Calculate the elemental Damage...
-        const double damage_element = this->CalculateElementalDamage(damages_edges);
-
         Vector r_strain_vector;
-        this->CalculateGreenLagrangeStrainVector(r_strain_vector, this_kinematic_variables.F);
-        const Vector& r_stress_vector = this_constitutive_variables.StressVector;
-        const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
+        double damage_element;
+        bool is_damaging = false;
+        const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
+                                                        yield_surface, cl_values, this_constitutive_variables,
+                                                        this_kinematic_variables, r_strain_vector, damage_element, 
+                                                        is_damaging, characteristic_length, false);
 
         if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
@@ -353,9 +330,9 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
                 } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 1) {
                     tangent_tensor = (1.0 - damage_element) * this_constitutive_variables.D;
                 } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 2) {
-                this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
+                    this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
                 } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 3) {
-                this->CalculateTangentTensorSecondOrder(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
+                    this->CalculateTangentTensorSecondOrder(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
                 }
                 this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);                
             } else {
@@ -438,33 +415,14 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         if (dimension == 2 && this->GetProperties().Has(THICKNESS))
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
+        Vector r_strain_vector;
+        double damage_element;
         bool is_damaging = false;
-        if (yield_surface != "Elastic") {
-            // Loop over edges of the element...
-            Vector average_stress_edge(VoigtSize);
-            Vector average_strain_edge(VoigtSize);
-
-            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
-                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
-
-                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
-                                                     average_stress_edge, edge, characteristic_length, cl_values, 
-                                                     is_damaging);
-            } // Loop over edges
-        }
-
-        // Calculate the elemental Damage...
-        mDamage = this->CalculateElementalDamage(mDamages);
-
-        if (mDamage >= 0.98) {
-            this->Set(ACTIVE, false);
-            mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
-            rCurrentProcessInfo[GENERATE_DEM] = true;
-        }
+        const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
+                                                        yield_surface, cl_values, this_constitutive_variables,
+                                                        this_kinematic_variables, r_strain_vector, damage_element, 
+                                                        is_damaging, characteristic_length, true);
+        this->CheckIfEraseElement(rCurrentProcessInfo, r_properties);
     }
     KRATOS_CATCH( "" )
 }
@@ -862,165 +820,216 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamage
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedConstitutiveLaw(
+    const std::string& rYieldSurface,
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveVariables& rThisConstVars,
+    const KinematicVariables& rKinVariables,
+    Vector& rStrainVector,
+    double& rDamageElement,
+    bool& rIsDamaging,
+    const double CharacteristicLength,
+    const bool SaveIntVars
+    )
+{
+    Vector damages_edges = ZeroVector(NumberOfEdges);
+    if (rYieldSurface != "Elastic") {
+        // Loop over edges of the element...
+        Vector average_stress_edge(VoigtSize);
+        Vector average_strain_edge(VoigtSize);
+
+        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            noalias(average_stress_edge) = rThisConstVars.StressVector;
+            noalias(average_strain_edge) = rThisConstVars.StrainVector;
+            this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+            this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+
+            if (!SaveIntVars) {
+                damages_edges[edge] = mDamages[edge];
+                double threshold = mThresholds[edge];
+            
+                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
+                                                        average_stress_edge, edge, CharacteristicLength, rValues, 
+                                                        rIsDamaging);
+                rDamageElement = this->CalculateElementalDamage(damages_edges);         
+            } else {
+                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
+                                        average_stress_edge, edge, CharacteristicLength, rValues, 
+                                        rIsDamaging);
+                mDamage = this->CalculateElementalDamage(mDamages);
+                rDamageElement = mDamage;
+            }
+        } // Loop over edges
+    }
+
+    this->CalculateGreenLagrangeStrainVector(rStrainVector, rKinVariables.F);
+    const Vector& r_stress_vector = rThisConstVars.StressVector;
+    return (1.0 - rDamageElement)*r_stress_vector;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void GenericTotalLagrangianFemDemElement<3,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,1>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,2>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,3>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,4>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,5>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<3,6>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,1>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,2>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,3>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,4>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,5>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 template<>
 void GenericTotalLagrangianFemDemElement<2,6>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector,
     const int edge
     )
 {
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, rThisVariable, rAverageVector, edge);
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector, // must be assigned to the current element outside this method
     const int edge
     )
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-    rAverageVector += r_elem_neigb[edge].GetValue(ThisVariable);
+    rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
     rAverageVector *= 0.5;
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge3D(
     const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
+    const Variable<Vector>& rThisVariable,
     Vector& rAverageVector, // must be assigned to the current element outside this method
     const int edge
     )
@@ -1029,7 +1038,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
     int counter = 0;
 
     for (unsigned int elem = 0; elem < p_edge_neighbours.size(); elem++) {
-        rAverageVector += p_edge_neighbours[elem]->GetValue(ThisVariable);
+        rAverageVector += p_edge_neighbours[elem]->GetValue(rThisVariable);
         counter++;
     }
     rAverageVector /= (counter + 1);
@@ -2040,10 +2049,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetValueOnIntegration
     const ProcessInfo &rCurrentProcessInfo)
 {
     if (rVariable == DAMAGE_ELEMENT || 
-    rVariable == IS_DAMAGED || 
-    rVariable == STRESS_THRESHOLD || 
-    rVariable == EQUIVALENT_STRESS_VM) {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        rVariable == IS_DAMAGED || 
+        rVariable == STRESS_THRESHOLD || 
+        rVariable == ACUMULATED_PLASTIC_STRAIN ||
+        rVariable == PLASTIC_UNIAXIAL_STRESS) {
+            CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
@@ -2146,6 +2156,19 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
         }
     }
 
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::SetValuesOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == DAMAGE_ELEMENT) {
+        mDamage = rValues[0];
+    } else if (rVariable == STRESS_THRESHOLD) {
+        mThreshold = rValues[0];
+    }
 }
 
 

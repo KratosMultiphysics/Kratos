@@ -5,13 +5,6 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Using kratos_utilities
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-    has_external_solvers_application = True
-else:
-    has_external_solvers_application = False
-
 import os
 import sys
 def GetFilePath(fileName):

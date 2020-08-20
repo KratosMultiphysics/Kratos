@@ -28,7 +28,7 @@
 #include "geometries/geometry_data.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
-
+#include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
 
@@ -338,11 +338,11 @@ public:
     * @note Copied geometry shares the same Id as the
     *       original geometry.
     */
-    Geometry(
-        const Geometry& rOther)
-        : mId(rOther.mId)
-        , mpGeometryData(rOther.mpGeometryData)
-        , mPoints(rOther.mPoints)
+    Geometry( const Geometry& rOther )
+        : mId(rOther.mId),
+          mpGeometryData(rOther.mpGeometryData),
+          mPoints(rOther.mPoints),
+          mData(rOther.mData)
     {
     }
 
@@ -360,10 +360,10 @@ public:
     *       original geometry.
     */
     template<class TOtherPointType>
-    Geometry(
-        Geometry<TOtherPointType> const & rOther)
-        : mId(rOther.mId)
-        , mpGeometryData(rOther.mpGeometryData)
+    Geometry( Geometry<TOtherPointType> const & rOther )
+        : mId(rOther.mId),
+          mpGeometryData(rOther.mpGeometryData),
+          mData(rOther.mData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
@@ -399,6 +399,7 @@ public:
     {
         mpGeometryData = rOther.mpGeometryData;
         mPoints = rOther.mPoints;
+        mData = rOther.mData;
 
         return *this;
     }
@@ -517,7 +518,7 @@ public:
         return mPoints.size();
     }
 
-    /** 
+    /**
     * @detail Returns the number of the points/ nodes
     *         belonging to this geometry.
     * @return Number of points/ nodes.
@@ -573,6 +574,67 @@ public:
     }
 
     ///@}
+    ///@name Data Container
+    ///@{
+
+    /**
+     * Access Data:
+     */
+    DataValueContainer& GetData()
+    {
+      return mData;
+    }
+
+    DataValueContainer const& GetData() const
+    {
+      return mData;
+    }
+
+    void SetData(DataValueContainer const& rThisData)
+    {
+      mData = rThisData;
+    }
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(
+        const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        mData.SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    ///@}
     ///@name Inquiry
     ///@{
 
@@ -599,7 +661,7 @@ public:
     }
 
     ///@}
-    ///@name  Geometry Data
+    ///@name Geometry Data and Geometry Shape Function Container
     ///@{
 
     /**
@@ -611,6 +673,18 @@ public:
     GeometryData const& GetGeometryData() const
     {
         return *mpGeometryData;
+    }
+
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     *        E.g. QuadraturePointGeometries.
+     */
+    virtual void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&  rGeometryShapeFunctionContainer)
+    {
+        KRATOS_ERROR <<
+            "Calling SetGeometryShapeFunctionContainer from base geometry class."
+            << std::endl;
     }
 
     ///@}
@@ -714,7 +788,7 @@ public:
     *        within the derived classes.
     * @return reference to corresponding geometry.
      */
-    virtual GeometryType& GetGeometryPart(IndexType Index)
+    virtual GeometryType& GetGeometryPart(const IndexType Index)
     {
         return *pGetGeometryPart(Index);
     }
@@ -726,7 +800,7 @@ public:
     *        within the derived classes.
     * @return const reference to corresponding geometry.
     */
-    virtual const GeometryType& GetGeometryPart(IndexType Index) const
+    virtual const GeometryType& GetGeometryPart(const IndexType Index) const
     {
         return *pGetGeometryPart(Index);
     }
@@ -738,7 +812,7 @@ public:
     *        within the derived classes.
     * @return pointer to corresponding geometry.
     */
-    virtual typename GeometryType::Pointer pGetGeometryPart(IndexType Index)
+    virtual typename GeometryType::Pointer pGetGeometryPart(const IndexType Index)
     {
         KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
             << " Please check the definition in the derived class. " << *this << std::endl;
@@ -752,9 +826,53 @@ public:
     *        within the derived classes.
     * @return const pointer to corresponding geometry.
     */
-    virtual const typename GeometryType::Pointer pGetGeometryPart(IndexType Index) const
+    virtual const typename GeometryType::Pointer pGetGeometryPart(const IndexType Index) const
     {
         KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Allows to exchange certain geometries.
+     * @param Index of the geometry part. 0->Master; 1->Slave
+     * @param pGeometry The new geometry to add
+     */
+    virtual void SetGeometryPart(
+        const IndexType Index,
+        GeometryType::Pointer pGeometry
+        )
+    {
+        KRATOS_ERROR << "Calling base class 'SetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Allows to enhance the coupling geometry, with another geometry.
+     * @param pGeometry The new geometry to add
+     */
+    virtual IndexType AddGeometryPart(GeometryType::Pointer pGeometry)
+    {
+        KRATOS_ERROR << "Calling base class 'AddGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Removes a geometry part
+     * @param pGeometry The new geometry to remove
+     */
+    virtual void RemoveGeometryPart(GeometryType::Pointer pGeometry)
+    {
+        KRATOS_ERROR << "Calling base class 'RemoveGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Removes a geometry part
+     * @param Index of the geometry part.
+     */
+    virtual void RemoveGeometryPart(const IndexType Index)
+    {
+        KRATOS_ERROR << "Calling base class 'RemoveGeometryPart' method instead of derived function."
             << " Please check the definition in the derived class. " << *this << std::endl;
     }
 
@@ -765,7 +883,7 @@ public:
     *        within the derived classes.
     * @return true if has geometry part
     */
-    virtual bool HasGeometryPart(IndexType Index) const
+    virtual bool HasGeometryPart(const IndexType Index) const
     {
         KRATOS_ERROR << "Calling base class 'HasGeometryPart' method instead of derived function."
             << " Please check the definition in the derived class. " << *this << std::endl;
@@ -1879,6 +1997,64 @@ public:
     const IntegrationPointsArrayType& IntegrationPoints( IntegrationMethod ThisMethod ) const
     {
         return mpGeometryData->IntegrationPoints( ThisMethod );
+    }
+
+    /* Creates integration points according to its quadrature rule.
+     * @return integration points.
+     */
+    virtual void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const
+    {
+        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    virtual void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints)
+    {
+        KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from geometry base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points. It creates the list of
+     *        integration points byitself.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    virtual void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives)
+    {
+        IntegrationPointsArrayType IntegrationPoints;
+        CreateIntegrationPoints(IntegrationPoints);
+
+        this->CreateQuadraturePointGeometries(
+            rResultGeometries,
+            NumberOfShapeFunctionDerivatives,
+            IntegrationPoints);
     }
 
     ///@}
@@ -3045,16 +3221,34 @@ public:
     /*
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
     * @param IntegrationPointIndex the corresponding contorl point of this geometry
-    * @return the shape function or derivative value related to the input parameters
-    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
     const Matrix& ShapeFunctionDerivatives(
         IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        return mpGeometryData->ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+    }
+
+    /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex) const
+    {
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, GetDefaultIntegrationMethod());
     }
 
     /** This method gives second order derivatives of all shape
@@ -3494,6 +3688,9 @@ private:
 
     PointsArrayType mPoints;
 
+    DataValueContainer mData;
+
+
     ///@}
     ///@name Id Bit-Change Operations
     ///@{
@@ -3559,13 +3756,15 @@ private:
     {
         rSerializer.save("Id", mId);
         rSerializer.save( "Points", mPoints);
+        rSerializer.save("Data", mData);
     }
 
     virtual void load( Serializer& rSerializer )
     {
         rSerializer.load("Id", mId);
         rSerializer.load( "Points", mPoints );
-    }
+        rSerializer.load("Data", mData);
+   }
 
     ///@}
     ///@name Private Operations

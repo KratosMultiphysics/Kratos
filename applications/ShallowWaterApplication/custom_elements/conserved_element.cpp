@@ -72,7 +72,7 @@ void ConservedElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult
     if(rResult.size() != element_size)
         rResult.resize(element_size, false); // False says not to preserve existing storage!!
 
-    GeometryType& geom = GetGeometry();
+    const GeometryType& geom = GetGeometry();
 
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)
@@ -91,7 +91,7 @@ void ConservedElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, 
     if(rElementalDofList.size() != element_size)
         rElementalDofList.resize(element_size);
 
-    GeometryType& geom = GetGeometry();
+    const GeometryType& geom = GetGeometry();
 
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)

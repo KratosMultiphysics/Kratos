@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
@@ -34,118 +35,298 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
-    ModelPart& rModelPart,
-    ModelPart& rVisualizationModelPart,
-    const std::vector<Variable< double> >& rVisualizationScalarVariables,
-    const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
-    const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >& rVisualizationComponentVariables,
-    const std::string& rShapeFunctions,
-    const bool ReformModelPartAtEachTimeStep) :
-    Process(),
-    mrModelPart(rModelPart),
-    mrVisualizationModelPart(rVisualizationModelPart),
-    mVisualizationScalarVariables(rVisualizationScalarVariables),
-    mVisualizationVectorVariables(rVisualizationVectorVariables),
-    mVisualizationComponentVariables(rVisualizationComponentVariables),
-    mShapeFunctions(rShapeFunctions),
-    mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep){
-}
-
-EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
-    ModelPart& rModelPart,
-    ModelPart& rVisualizationModelPart,
-    Parameters& rParameters) :
-    Process(),
-    mrModelPart(rModelPart),
-    mrVisualizationModelPart(rVisualizationModelPart) {
-
-    Parameters default_parameters( R"(
+Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
+{
+    Parameters default_settings(R"(
     {
-        "shape_functions"                     : "standard",
-        "reform_model_part_at_each_time_step" : false,
-        "visualization_variables"             : ["VELOCITY","PRESSURE","DISTANCE"]
+        "model_part_name"                       : "",
+        "visualization_model_part_name"         : "EmbeddedSkinVisualizationModelPart",
+        "reform_model_part_at_each_time_step"   : false,
+        "level_set_type"                        : "",
+        "shape_functions"                       : "",
+        "distance_variable_name"                : "",
+        "visualization_variables"               : ["VELOCITY","PRESSURE"],
+        "visualization_nonhistorical_variables" : []
     })");
 
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    return default_settings;
+}
 
-    // Validate if given shape functions value is admissible
-    std::set<std::string> available_shape_functions = {"standard","ausas"};
-    std::stringstream error_msg;
+ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelPart(
+    Model& rModel,
+    const Parameters rParameters)
+{
+    // Set visualization model part data
+    const std::size_t buffer_size = 1;
+    std::string visualization_mp_name = rParameters["visualization_model_part_name"].GetString();
+    auto &r_origin_model_part = rModel.GetModelPart(rParameters["model_part_name"].GetString());
+    const unsigned int domain_size = r_origin_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
-    if (available_shape_functions.find(rParameters["shape_functions"].GetString()) == available_shape_functions.end()){
-        error_msg << "currently prescribed shape_functions : " << rParameters["shape_functions"].GetString() << std::endl;
-        error_msg << "\tAdmissible values are : standard, ausas" << std::endl;
-        KRATOS_ERROR << error_msg.str();
+    // Check visualization model part data
+    KRATOS_ERROR_IF_NOT(domain_size == 2 || domain_size == 3) << "Origin model part DOMAIN_SIZE is " << domain_size << "." << std::endl;
+    if (visualization_mp_name == "") {
+        KRATOS_WARNING("EmbeddedSkinVisualizationProcess") << "\'visualization_model_part_name\' is empty. Using \'EmbeddedSkinVisualizationModelPart\'." << std::endl;
+        visualization_mp_name = "EmbeddedSkinVisualizationModelPart";
     }
 
-    mShapeFunctions = rParameters["shape_functions"].GetString();
-    mReformModelPartAtEachTimeStep = rParameters["reform_model_part_at_each_time_step"].GetBool();
+    // Create the visualization model part
+    auto& r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
+    
+    // Set visualization model part ProcessInfo
+    // Note that the visualization model part and the origin model part share the ProcessInfo container
+    const auto p_process_info = r_origin_model_part.pGetProcessInfo();
+    r_visualization_model_part.SetProcessInfo(p_process_info);
 
-    const unsigned int n_variables = rParameters["visualization_variables"].size();
-    for (unsigned int i_var = 0; i_var < n_variables; ++i_var){
-        std::string variable_name = rParameters["visualization_variables"].GetArrayItem(i_var).GetString();
+    // Check and add variables to visualization model part
+    auto& r_origin_variables_list = r_origin_model_part.GetNodalSolutionStepVariablesList();
+    auto& r_visualization_variables_list = r_visualization_model_part.GetNodalSolutionStepVariablesList();
+    for (auto var_name_param : rParameters["visualization_variables"]) {
+        // Check if variable exists in origin model part
+        const std::string var_name = var_name_param.GetString();
+        const auto& r_var = KratosComponents<VariableData>::Get(var_name);
+        KRATOS_ERROR_IF_NOT(r_origin_variables_list.Has(r_var)) << "Requested variable " << var_name << " is not in the origin model part." << std::endl;
+        // Add the variable to the visualization model part
+        r_visualization_variables_list.Add(r_var);
+    }
 
-        if(KratosComponents<Variable<double>>::Has(variable_name)){
-            mVisualizationScalarVariables.push_back(KratosComponents< Variable<double> >::Get(variable_name));
-        } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
-            mVisualizationVectorVariables.push_back(KratosComponents< Variable< array_1d<double, 3> > >::Get(variable_name));
-        } else if (KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >::Has(variable_name)) {
-            mVisualizationComponentVariables.push_back(KratosComponents< VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >::Get(variable_name));
-        } else {
-            KRATOS_ERROR << "Only double, component and vector variables are allowed in the visualization variables list." ;
+    return r_visualization_model_part;
+}
+
+void EmbeddedSkinVisualizationProcess::CheckAndSetLevelSetType(
+    const Parameters rParameters,
+    LevelSetType& rLevelSetType)
+{
+    const std::string level_set_type = rParameters["level_set_type"].GetString();
+    KRATOS_ERROR_IF(level_set_type == "") << "\'level_set_type\' is not prescribed. Admissible values are: \'continuous\' and \'discontinuous\'." << std::endl;
+
+    if (level_set_type == "continuous") {
+        rLevelSetType = LevelSetType::Continuous;
+    } else if (level_set_type == "discontinuous") {
+        rLevelSetType = LevelSetType::Discontinuous;
+    } else {
+        std::stringstream error_msg;
+        error_msg << "Currently prescribed \'level_set_type\': " << level_set_type << std::endl;
+        error_msg << "Admissible values are : \'continuous\' and \'discontinuous\'" << std::endl;
+        KRATOS_ERROR << error_msg.str();
+    }
+}
+
+void EmbeddedSkinVisualizationProcess::CheckAndSetShapeFunctionsType(
+    const Parameters rParameters,
+    ShapeFunctionsType& rShapeFunctionsType)
+{
+    const std::string shape_functions = rParameters["shape_functions"].GetString();
+    KRATOS_ERROR_IF(shape_functions == "") << "\'shape_functions\' is not prescribed. Admissible values are: \'standard\' and \'ausas\'." << std::endl;
+
+    if (shape_functions == "ausas") {
+        rShapeFunctionsType = ShapeFunctionsType::Ausas;
+    } else if (shape_functions == "standard") {
+        rShapeFunctionsType = ShapeFunctionsType::Standard;
+    } else {
+        std::stringstream error_msg;
+        error_msg << "Currently prescribed \'shape_functions\': " << shape_functions << std::endl;
+        error_msg << "Admissible values are : \'standard\' and \'ausas\'" << std::endl;
+        KRATOS_ERROR << error_msg.str();
+    }
+}
+
+const std::string EmbeddedSkinVisualizationProcess::CheckAndReturnDistanceVariableName(
+    const Parameters rParameters,
+    const LevelSetType& rLevelSetType)
+{
+    std::string distance_variable_name = rParameters["distance_variable_name"].GetString();
+    // If the distance variable name is not provided, try to deduce it from the FE space type
+    if (distance_variable_name == "") {
+        switch (rLevelSetType) {
+            // Nodal-based level set
+            case LevelSetType::Continuous:
+                distance_variable_name = "DISTANCE";
+                break;
+            // Element-based level set
+            case LevelSetType::Discontinuous:
+                distance_variable_name = "ELEMENTAL_DISTANCES";
+                break;
+            default:
+                KRATOS_ERROR << "Default \"distance_variable_name\" cannot be deduced from the shape functions type" << std::endl;
+        }
+        KRATOS_INFO("EmbeddedSkinVisualizationProcess") << "\'distance_variable_name\' is not prescribed. Using default " << distance_variable_name << std::endl;
+    // User-defined distance variable name case
+    } else {
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(distance_variable_name) || KratosComponents<Variable<Vector>>::Has(distance_variable_name))
+           << "Provided \"distance_variable_name\" " << distance_variable_name << " is not in the KratosComponents. Please check the provided value." << std::endl;
+    }
+
+    return distance_variable_name;
+}
+
+template <class TDataType>
+void EmbeddedSkinVisualizationProcess::FillVariablesList(
+    const Parameters rParameters,
+    std::vector<const Variable<TDataType>*>& rVariablesList)
+{
+    rVariablesList.clear();
+    for (auto i_var_params : rParameters) {
+        const Variable<TDataType>* p_aux = nullptr;
+        const std::string i_var_name = i_var_params.GetString();
+        if(KratosComponents<Variable<TDataType>>::Has(i_var_name)){
+            const auto& r_var = KratosComponents<Variable<TDataType>>::Get(i_var_name);
+            p_aux = &r_var;
+            rVariablesList.push_back(p_aux);
         }
     }
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
-    KRATOS_TRY;
-
-    // Check that model part is not empty
-    KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "There are no nodes in the origin model part.";
-    KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "There are no elements in the origin model part.";
-
-    // Required variables check
-    const auto &r_orig_node = *mrModelPart.NodesBegin();
-
-    // Check visualization scalar variables
-    for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationScalarVariables[i_var], r_orig_node);
-    }
-
-    // Check visualization vector variables
-    for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_orig_node);
-    }
-
-    // Check visualization component variables
-    for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationComponentVariables[i_var], r_orig_node);
-    }
-
-    KRATOS_CATCH("");
+EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
+    ModelPart& rModelPart,
+    ModelPart& rVisualizationModelPart,
+    const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
+    const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
+    const std::vector<const Variable< double>* >& rVisualizationNonHistoricalScalarVariables,
+    const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationNonHistoricalVectorVariables,
+    const LevelSetType& rLevelSetType,
+    const ShapeFunctionsType& rShapeFunctionsType,
+    const bool ReformModelPartAtEachTimeStep) :
+    Process(),
+    mrModelPart(rModelPart),
+    mrVisualizationModelPart(rVisualizationModelPart),
+    mLevelSetType(rLevelSetType),
+    mShapeFunctionsType(rShapeFunctionsType),
+    mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep),
+    mVisualizationScalarVariables(rVisualizationScalarVariables),
+    mVisualizationVectorVariables(rVisualizationVectorVariables),
+    mVisualizationNonHistoricalScalarVariables(rVisualizationNonHistoricalScalarVariables),
+    mVisualizationNonHistoricalVectorVariables(rVisualizationNonHistoricalVectorVariables)
+{
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
-    if (mSetVisualizationMesh){
-        // Copy the original nodes to the visualization model part
-        this->CopyOriginNodes();
+EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
+    ModelPart& rModelPart,
+    ModelPart& rVisualizationModelPart,
+    Parameters rParameters)
+    : Process()
+    , mrModelPart(rModelPart)
+    , mrVisualizationModelPart(rVisualizationModelPart)
+    , mLevelSetType(
+        [&] (Parameters& x) {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            LevelSetType aux_level_set_type;
+            CheckAndSetLevelSetType(x, aux_level_set_type);
+            return aux_level_set_type;
+        } (rParameters)
+    )
+    , mShapeFunctionsType(
+        [&] (Parameters& x) {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            ShapeFunctionsType aux_shape_func_type;
+            CheckAndSetShapeFunctionsType(x, aux_shape_func_type);
+            return aux_shape_func_type;
+        } (rParameters)
+    )
+    , mReformModelPartAtEachTimeStep(
+        [&] (Parameters& x) {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            return x["reform_model_part_at_each_time_step"].GetBool();
+        } (rParameters)
+    )
+    , mpNodalDistanceVariable(
+        [&] (Parameters& x) -> const Variable<double>* {
+            const Variable<double>* p_aux;
+            switch (mLevelSetType) {
+                case LevelSetType::Continuous: {
+                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
+                    p_aux = &(KratosComponents<Variable<double>>::Get(dist_var_name));
+                    return p_aux;
+                } default: {
+                    p_aux = nullptr;
+                    return p_aux;
+                }
+            }
+        } (rParameters)
+    )
+    , mpElementalDistanceVariable(
+        [&] (Parameters& x) -> const Variable<Vector>* {
+            const Variable<Vector>* p_aux;
+            switch (mLevelSetType) {
+                case LevelSetType::Discontinuous: {
+                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
+                    p_aux = &(KratosComponents<Variable<Vector>>::Get(dist_var_name));
+                    return p_aux;
+                } default: {
+                    p_aux = nullptr;
+                    return p_aux;
+                }
+            }
+        } (rParameters)
+    )
+    , mVisualizationScalarVariables(
+        [&] (Parameters& x) -> std::vector<const Variable<double>*> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<const Variable<double>*> aux_list;
+            FillVariablesList<double>(x["visualization_variables"], aux_list);
+            return aux_list;
+        } (rParameters)
+    )
+    , mVisualizationVectorVariables(
+        [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<const Variable<array_1d<double,3>>*> aux_list;
+            FillVariablesList<array_1d<double,3>>(x["visualization_variables"], aux_list);
+            return aux_list;
+        } (rParameters)
+    )
+    , mVisualizationNonHistoricalScalarVariables(
+        [&] (Parameters& x) -> std::vector<const Variable<double>*> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<const Variable<double>*> aux_list;
+            FillVariablesList<double>(x["visualization_nonhistorical_variables"], aux_list);
+            return aux_list;
+        } (rParameters)
+    )
+    , mVisualizationNonHistoricalVectorVariables(
+        [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
+            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            std::vector<const Variable<array_1d<double,3>>*> aux_list;
+            FillVariablesList<array_1d<double,3>>(x["visualization_nonhistorical_variables"], aux_list);
+            return aux_list;
+        } (rParameters)
+    )
+{
+}
 
-        // Creates the visualization model part geometrical entities (elements and conditions)
-        this->CreateVisualizationGeometries();
+EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
+    Model& rModel,
+    Parameters rParameters)
+    : EmbeddedSkinVisualizationProcess(
+        [&] (Model& x, Parameters& y) -> ModelPart& {
+            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            KRATOS_ERROR_IF(y["model_part_name"].GetString() == "") << "\'model_part_name\' is empty. Please provide the origin model part name." << std::endl;
+            return x.GetModelPart(y["model_part_name"].GetString());
+        } (rModel, rParameters),
+        [&] (Model& x, Parameters& y) -> ModelPart& {
+            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            return CreateAndPrepareVisualizationModelPart(x, y);
+        } (rModel, rParameters),
+        rParameters)
+{
+}
 
-        // Avoid creating the visualization mesh again
-        mSetVisualizationMesh = false;
+void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop()
+{
+    // If mesh update is not required (constant level set function) create the visualization mesh once
+    if (!mReformModelPartAtEachTimeStep) {
+        this->CreateVisualizationMesh();
     }
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
-    if (mReformModelPartAtEachTimeStep){
-        this->ExecuteBeforeSolutionLoop();
+void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep()
+{
+    // If required, set the visualization mesh
+    if (mReformModelPartAtEachTimeStep) {
+        this->CreateVisualizationMesh();
     }
-}
 
-void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
     // Copy the origin model part nodal values for the non-intersection nodes
     this->CopyOriginNodalValues();
 
@@ -153,7 +334,8 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
     this->ComputeNewNodesInterpolation();
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteFinalizeSolutionStep(){
+void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep()
+{
     if (mReformModelPartAtEachTimeStep){
         // Clear the new nodes hash map
         mCutNodesMap.clear();
@@ -171,16 +353,41 @@ void EmbeddedSkinVisualizationProcess::ExecuteFinalizeSolutionStep(){
         mrVisualizationModelPart.RemoveElements(TO_ERASE);
         mrVisualizationModelPart.RemoveConditions(TO_ERASE);
 
-        // Initialize the create visualization mesh flag again
-        mSetVisualizationMesh = true;
+        // Remove the positive and negative sides properties
+        RemoveVisualizationProperties();
     }
+}
+
+int EmbeddedSkinVisualizationProcess::Check()
+{
+    // Check that model part is not empty
+    KRATOS_ERROR_IF(mrModelPart.NumberOfNodes() == 0) << "There are no nodes in the origin model part." << std::endl;
+    KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "There are no elements in the origin model part." << std::endl;
+
+    // Required variables check
+    const auto &r_orig_node = *mrModelPart.NodesBegin();
+
+    // Check visualization scalar variables
+    for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
+        const Variable<double>& r_var = *(mVisualizationScalarVariables[i_var]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_var, r_orig_node);
+    }
+
+    // Check visualization vector variables
+    for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
+        const Variable<array_1d<double,3>>& r_var = *(mVisualizationVectorVariables[i_var]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_var, r_orig_node);
+    }
+
+    return 0;
 }
 
 /* Protected functions ****************************************************/
 
 /* Private functions ******************************************************/
 
-void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
+void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation()
+{
     // For all the new elements, compute the interpolation with the proper shape functions
     // Note that this can be done in parallel since the intersection nodes are duplicated
     const int n_new_elems = mNewElementsPointers.size();
@@ -210,35 +417,95 @@ void EmbeddedSkinVisualizationProcess::ComputeNewNodesInterpolation(){
                 double weight_edge_node_i, weight_edge_node_j;
                 std::tie(p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j) = std::get<1>(*cut_node_info);
 
-                // Interpolate the scalar variables
-                for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-                    const Variable<double> &r_scalar_var = mVisualizationScalarVariables[i_var];
-                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_scalar_var);
-                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_scalar_var);
-                    p_node->FastGetSolutionStepValue(r_scalar_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
-                }
-
-                // Interpolate the vector variables
-                for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-                    const Variable<array_1d<double, 3> > &r_vector_var = mVisualizationVectorVariables[i_var];
-                    const array_1d<double, 3> &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_vector_var);
-                    const array_1d<double, 3> &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_vector_var);
-                    p_node->FastGetSolutionStepValue(r_vector_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
-                }
-
-                // Interpolate the component variables
-                for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-                    const VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > &r_comp_var = mVisualizationComponentVariables[i_var];
-                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(r_comp_var);
-                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(r_comp_var);
-                    p_node->FastGetSolutionStepValue(r_comp_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
-                }
+                // Interpolate the visualization variables
+                InterpolateVariablesListValues<double, true>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationScalarVariables);
+                InterpolateVariablesListValues<double, false>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalScalarVariables);
+                InterpolateVariablesListValues<array_1d<double,3>, true>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationVectorVariables);
+                InterpolateVariablesListValues<array_1d<double,3>, false>(p_node, p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j, mVisualizationNonHistoricalVectorVariables);
             }
         }
     }
 }
 
-void EmbeddedSkinVisualizationProcess::CopyOriginNodes(){
+template<class TDataType, bool IsHistorical>
+void EmbeddedSkinVisualizationProcess::CopyVariablesListValues(
+    const ModelPart::NodeIterator& rItOriginNode,
+    ModelPart::NodeIterator& rItVisualizationNode,
+    const std::vector<const Variable<TDataType>*>& rVariablesList)
+{
+    for (unsigned int i_var = 0; i_var < rVariablesList.size(); ++i_var){
+        const Variable<TDataType> &r_var = *(rVariablesList[i_var]);
+        const TDataType &r_origin_value = AuxiliaryGetValue<IsHistorical>(*rItOriginNode, r_var);
+        TDataType &r_visualization_value = AuxiliaryGetValue<IsHistorical>(*rItVisualizationNode, r_var);
+        r_visualization_value = r_origin_value;
+    }
+}
+
+template<class TDataType, bool IsHistorical>
+void EmbeddedSkinVisualizationProcess::InterpolateVariablesListValues(
+    const Node<3>::Pointer& rpNode,
+    const Node<3>::Pointer& rpNodeI,
+    const Node<3>::Pointer& rpNodeJ,
+    const double WeightI,
+    const double WeightJ,
+    const std::vector<const Variable<TDataType>*>& rVariablesList)
+{
+    for (unsigned int i_var = 0; i_var < rVariablesList.size(); ++i_var){
+        const auto &r_var = *(rVariablesList[i_var]);
+        const TDataType &r_edge_node_i_value = AuxiliaryGetValue<IsHistorical>(*rpNodeI, r_var);
+        const TDataType &r_edge_node_j_value = AuxiliaryGetValue<IsHistorical>(*rpNodeJ, r_var);
+        TDataType& r_value = AuxiliaryGetValue<IsHistorical>(*rpNode, r_var);
+        r_value = WeightI * r_edge_node_i_value + WeightJ * r_edge_node_j_value;
+    }
+}
+
+template<>
+double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
+    Node<3>& rNode,
+    const Variable<double>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+double& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
+    Node<3>& rNode,
+    const Variable<double>& rVariable)
+{
+    return rNode.GetValue(rVariable);
+}
+
+template<>
+array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<true>(
+    Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+template<>
+array_1d<double,3>& EmbeddedSkinVisualizationProcess::AuxiliaryGetValue<false>(
+    Node<3>& rNode,
+    const Variable<array_1d<double,3>>& rVariable)
+{
+    return rNode.GetValue(rVariable);
+}
+
+void EmbeddedSkinVisualizationProcess::CreateVisualizationMesh()
+{
+    // Copy the original nodes to the visualization model part
+    this->CopyOriginNodes();
+
+    // Creates the visualization model part geometrical entities (elements and conditions)
+    this->CreateVisualizationGeometries();
+
+    // Initialize (allocate) non-historical variables
+    InitializeNonHistoricalVariables<double>(mVisualizationNonHistoricalScalarVariables);
+    InitializeNonHistoricalVariables<array_1d<double,3>>(mVisualizationNonHistoricalVectorVariables);
+}
+
+void EmbeddedSkinVisualizationProcess::CopyOriginNodes()
+{
     // Creates a copy of all the origin model part nodes to the visualization model part
     // Note that the original nodes will be reused when creating the splitting geometries
     const int n_nodes = mrModelPart.NumberOfNodes();
@@ -249,33 +516,24 @@ void EmbeddedSkinVisualizationProcess::CopyOriginNodes(){
     }
 }
 
-void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues(){
+void EmbeddedSkinVisualizationProcess::CopyOriginNodalValues()
+{
     const unsigned int n_old_nodes = mrModelPart.NumberOfNodes();
 
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(n_old_nodes); ++i_node){
-        const auto it_old_node = mrModelPart.NodesBegin() + i_node;
-        auto it_new_node = mrVisualizationModelPart.NodesBegin() + i_node;
+        const auto it_origin_node = mrModelPart.NodesBegin() + i_node;
+        auto it_visualization_node = mrVisualizationModelPart.NodesBegin() + i_node;
 
-        for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-            it_new_node->FastGetSolutionStepValue(mVisualizationScalarVariables[i_var]) =
-                it_old_node->FastGetSolutionStepValue(mVisualizationScalarVariables[i_var]);
-        }
-
-        for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-            it_new_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]) =
-                it_old_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]);
-        }
-
-        for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-            it_new_node->FastGetSolutionStepValue(mVisualizationComponentVariables[i_var]) =
-                it_old_node->FastGetSolutionStepValue(mVisualizationComponentVariables[i_var]);
-        }
+        CopyVariablesListValues<double, true>(it_origin_node, it_visualization_node, mVisualizationScalarVariables);
+        CopyVariablesListValues<double, false>(it_origin_node, it_visualization_node, mVisualizationNonHistoricalScalarVariables);
+        CopyVariablesListValues<array_1d<double,3>, true>(it_origin_node, it_visualization_node, mVisualizationVectorVariables);
+        CopyVariablesListValues<array_1d<double,3>, false>(it_origin_node, it_visualization_node, mVisualizationNonHistoricalVectorVariables);
     }
 }
 
-void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
-
+void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries()
+{
     int n_nodes = mrModelPart.NumberOfNodes();
     int n_elems = mrModelPart.NumberOfElements();
     int n_conds = mrModelPart.NumberOfConditions();
@@ -305,6 +563,11 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
         const Vector nodal_distances = this->SetDistancesVector(it_elem);
 
         // Check if the element is split
+        const double zero_tol = 1.0e-10;
+        const double nodal_distances_norm = norm_2(nodal_distances);
+        if (nodal_distances_norm < zero_tol) {
+            KRATOS_WARNING_FIRST_N("EmbeddedSkinVisualizationProcess", 10) << "Element: " << it_elem->Id() << " Distance vector norm: " << nodal_distances_norm << ". Please check the level set function." << std::endl;
+        }
         const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
         // If the element is split, create the new entities
@@ -523,10 +786,23 @@ void EmbeddedSkinVisualizationProcess::CreateVisualizationGeometries(){
     r_comm.Barrier();
 }
 
+template<class TDataType>
+void EmbeddedSkinVisualizationProcess::InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector)
+{
+    const int n_nodes = mrVisualizationModelPart.NumberOfNodes();
+#pragma omp parallel for
+    for (int i_node = 0; i_node < n_nodes; ++i_node) {
+        auto it_node = mrVisualizationModelPart.NodesBegin() + i_node;
+        for (auto& r_var : rNonHistoricalVariablesVector) {
+            it_node->SetValue(*r_var, r_var->Zero());
+        }
+    }
+}
+
 bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
     Geometry<Node<3>>::Pointer pGeometry,
-    const Vector &rNodalDistances){
-
+    const Vector &rNodalDistances)
+{
     const unsigned int pts_number = pGeometry->PointsNumber();
     unsigned int n_pos (0);
 
@@ -542,8 +818,8 @@ bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
 
 bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     Geometry<Node<3>>::Pointer pGeometry,
-    const Vector &rNodalDistances){
-
+    const Vector &rNodalDistances)
+{
     const unsigned int pts_number = pGeometry->PointsNumber();
     unsigned int n_pos (0), n_neg(0);
 
@@ -559,21 +835,25 @@ bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     return is_split;
 }
 
-const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem){
-
-    auto &r_geom = ItElem->GetGeometry();
+const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::ElementIterator ItElem)
+{
+    const auto &r_geom = ItElem->GetGeometry();
     Vector nodal_distances(r_geom.PointsNumber());
 
-    if (mShapeFunctions == "standard"){
+    switch (mLevelSetType) {
         // Continuous nodal distance function case
-        for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-            nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-        }
-    } else if (mShapeFunctions == "ausas") {
+        case LevelSetType::Continuous:
+            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                nodal_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(*mpNodalDistanceVariable);
+            }
+            break;
         // Discontinuous elemental distance function case
-        nodal_distances = ItElem->GetValue(ELEMENTAL_DISTANCES);
-    } else {
-        KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
+        case LevelSetType::Discontinuous:
+            nodal_distances = ItElem->GetValue(*mpElementalDistanceVariable);
+            break;
+        // Default error case
+        default:
+            KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
     }
 
     return nodal_distances;
@@ -581,39 +861,40 @@ const Vector EmbeddedSkinVisualizationProcess::SetDistancesVector(ModelPart::Ele
 
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
     const Geometry<Node<3>>::Pointer pGeometry,
-    const Vector& rNodalDistances){
-
+    const Vector& rNodalDistances)
+{
     // Get the geometry type
     const GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
 
     // Return the modified shape functions utility
-    if (mShapeFunctions == "standard"){
-        switch (geometry_type){
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
-        }
-    } else if (mShapeFunctions == "ausas"){
-        switch (geometry_type){
-            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
-            default:
-                KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
-        }
-    } else {
-        KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
+    switch (mShapeFunctionsType) {
+        case ShapeFunctionsType::Standard:
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                default:
+                    KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
+            }
+        case ShapeFunctionsType::Ausas:
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    return Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    return Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(pGeometry, rNodalDistances);
+                default:
+                    KRATOS_ERROR << "Asking for a non-implemented Ausas modified shape functions geometry.";
+            }
+        default:
+            KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
     }
 }
 
 Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGeometry(
     const GeometryData::KratosGeometryType &rOriginGeometryType,
-    const Condition::NodesArrayType &rNewNodesArray){
-
+    const Condition::NodesArrayType &rNewNodesArray)
+{
     switch(rOriginGeometryType){
         case GeometryData::KratosGeometryType::Kratos_Line2D2:
             return Kratos::make_shared<Line2D2< Node<3> > >(rNewNodesArray);
@@ -624,10 +905,8 @@ Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGe
     }
 }
 
-std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizationProcess::SetVisualizationProperties(){
-    // Set the properties for the new elements depending if the
-    // element is in the positive or negative side of the cut.
-    // In this way, two layers will appear in GiD.
+std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizationProcess::SetVisualizationProperties()
+{
     unsigned int max_prop_id = 0;
     for (auto it_prop = mrModelPart.GetRootModelPart().PropertiesBegin(); it_prop < mrModelPart.GetRootModelPart().PropertiesEnd(); ++it_prop){
         if (max_prop_id < it_prop->Id()){
@@ -640,6 +919,25 @@ std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizatio
     mrVisualizationModelPart.AddProperties(p_neg_prop);
 
     return std::make_tuple(p_pos_prop , p_neg_prop);
+}
+
+void EmbeddedSkinVisualizationProcess::RemoveVisualizationProperties()
+{
+    // Search for the maximum property id in the base model part
+    unsigned int max_prop_id = 0;
+    for (auto it_prop = mrModelPart.GetRootModelPart().PropertiesBegin(); it_prop < mrModelPart.GetRootModelPart().PropertiesEnd(); ++it_prop){
+        if (max_prop_id < it_prop->Id()){
+            max_prop_id = it_prop->Id();
+        }
+    }
+
+    // Check that the positive and negative sides properties exist
+    KRATOS_ERROR_IF_NOT(mrVisualizationModelPart.HasProperties(max_prop_id + 1)) << "Visualization model part has no property " << max_prop_id + 1 << std::endl;
+    KRATOS_ERROR_IF_NOT(mrVisualizationModelPart.HasProperties(max_prop_id + 2)) << "Visualization model part has no property " << max_prop_id + 2 << std::endl;
+
+    // Remove the positive and negative sides properties
+    mrVisualizationModelPart.RemoveProperties(max_prop_id + 1);
+    mrVisualizationModelPart.RemoveProperties(max_prop_id + 2);
 }
 
 };  // namespace Kratos.

@@ -30,19 +30,7 @@ TimeAveragingProcess::TimeAveragingProcess(Model& rModel, Parameters rParameters
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"                               : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "variables_list"                                : [],
-            "averaged_variables_list"                       : [],
-            "time_averaging_container"                      : "NodalHistorical",
-            "time_averaging_method"                         : "Average",
-            "integration_start_point_control_variable_name" : "TIME",
-            "integration_start_point_control_value"         : 0.0,
-            "echo_level"                                    : 0
-        })");
-
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
+    mrParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
@@ -281,6 +269,23 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
     }
 
     KRATOS_CATCH("");
+}
+
+const Parameters TimeAveragingProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                               : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "variables_list"                                : [],
+        "averaged_variables_list"                       : [],
+        "time_averaging_container"                      : "NodalHistorical",
+        "time_averaging_method"                         : "Average",
+        "integration_start_point_control_variable_name" : "TIME",
+        "integration_start_point_control_value"         : 0.0,
+        "echo_level"                                    : 0
+    })");
+
+    return default_parameters;
 }
 
 bool TimeAveragingProcess::IsIntegrationStep() const

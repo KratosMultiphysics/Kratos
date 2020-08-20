@@ -15,7 +15,7 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
 
         # Set the element and condition names for the replace settings
         self.element_name = "SWE"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
         self.advection_epsilon = self.settings["advection_epsilon"].GetDouble()
 

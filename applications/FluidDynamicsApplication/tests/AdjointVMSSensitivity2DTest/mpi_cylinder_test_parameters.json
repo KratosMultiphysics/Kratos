@@ -6,32 +6,6 @@
         "echo_level"      : 0,
         "end_time"        : 0.095
     },
-    "output_configuration"             : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteUndeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : false,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
-    },
-    "restart_options"                  : {
-        "SaveRestart"      : "False",
-        "RestartFrequency" : 0,
-        "LoadRestart"      : "False",
-        "Restart_Step"     : 0
-    },
     "solver_settings"                  : {
         "solver_type"                  : "Monolithic",
         "model_import_settings"        : {
@@ -64,6 +38,11 @@
             "element_type"             : "vms",
             "use_orthogonal_subscales" : false,
             "dynamic_tau"              : 1.0
+        },
+        "linear_solver_settings":{
+            "solver_type"    : "amgcl",
+            "max_iteration"  : 200,
+            "tolerance"      : 1e-8
         }
     },
     "processes": {

@@ -223,7 +223,7 @@ public:
      * @param Constant The constant in the master slave relation
      * @return A Pointer to the new constraint
      */
-    virtual MasterSlaveConstraint::Pointer Create(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please remove it") virtual MasterSlaveConstraint::Pointer Create(
         IndexType Id,
         NodeType& rMasterNode,
         const VariableComponentType& rMasterVariable,

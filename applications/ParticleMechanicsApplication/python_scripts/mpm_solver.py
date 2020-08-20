@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -11,6 +9,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 
 # Other imports
 from KratosMultiphysics import auxiliary_solver_utilities
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
 def CreateSolver(model, custom_settings):
     return MPMSolver(model, custom_settings)
@@ -38,6 +37,7 @@ class MPMSolver(PythonSolver):
             "domain_size"     : -1,
             "echo_level"      : 0,
             "time_stepping"   : { },
+            "time_integration_method"   : "implicit",
             "analysis_type"   : "non_linear",
             "grid_model_import_settings" : {
                 "input_type"     : "mdpa",
@@ -58,7 +58,9 @@ class MPMSolver(PythonSolver):
             "residual_absolute_tolerance"        : 1.0E-9,
             "max_iteration"                      : 20,
             "pressure_dofs"                      : false,
+            "compressible"                       : true,
             "axis_symmetric_flag"                : false,
+            "consistent_mass_matrix"             : false,
             "block_builder"                      : true,
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
@@ -150,12 +152,15 @@ class MPMSolver(PythonSolver):
     def InitializeSolutionStep(self):
         self._SearchElement()
         self._GetSolutionStrategy().Initialize()
+
+        #clean nodal values and map from MPs to nodes
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
         self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
+        # Calc residual, update momenta
         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
         return is_converged
 
@@ -202,6 +207,10 @@ class MPMSolver(PythonSolver):
     def _GenerateMaterialPoint(self):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
+        if axis_symmetric_flag:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, True)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_AXISYMMETRIC, False)
 
         # Assigning extra information to the main model part
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
@@ -209,7 +218,7 @@ class MPMSolver(PythonSolver):
         self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
 
         # Generate MP Element and Condition
-        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, axis_symmetric_flag, pressure_dofs)
+        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, pressure_dofs)
         KratosParticle.GenerateMaterialPointCondition(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part)
 
     def _SearchElement(self):
@@ -325,10 +334,15 @@ class MPMSolver(PythonSolver):
             R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
+        elif (convergence_criterion_parameters["convergence_criterion"].GetString() == "displacement_criterion"):
+            D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
+            D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+            convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
         else:
             err_msg  = "The requested convergence criteria \"" + convergence_criterion_parameters["convergence_criterion"].GetString()
             err_msg += "\" is not supported for ParticleMechanicsApplication!\n"
-            err_msg += "Available options are: \"residual_criterion\""
+            err_msg += "Available options are: \"residual_criterion\" or \"displacement_criterion\""
             raise Exception(err_msg)
 
         return convergence_criterion
@@ -336,32 +350,10 @@ class MPMSolver(PythonSolver):
     def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            # using a default linear solver (selecting the fastest one available)
-            import KratosMultiphysics.kratos_utilities as kratos_utils
-            if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-                from KratosMultiphysics import EigenSolversApplication
-            elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-                from KratosMultiphysics import ExternalSolversApplication
-
-            linear_solvers_by_speed = [
-                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
-                "sparse_lu",  # EigenSolversApplication
-                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-                "super_lu",   # ExternalSolversApplication
-                "skyline_lu_factorization" # in Core, always available, but slow
-            ]
-
-            for solver_name in linear_solvers_by_speed:
-                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
-                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                    KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: ',\
-                        'Using "' + solver_name + '" as default linear solver')
-                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
-
-        raise Exception("Linear-Solver could not be constructed!")
+            KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
+            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
@@ -376,12 +368,23 @@ class MPMSolver(PythonSolver):
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
     def _CreateSolutionStrategy(self):
+        # this is for implicit only. explicit is implemented in derived mpm_explicit_solver
+        grid_model_part = self.GetGridModelPart();
+        grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_EXPLICIT, False)
         analysis_type = self.settings["analysis_type"].GetString()
+        is_consistent_mass_matrix = self.settings["consistent_mass_matrix"].GetBool()
+        if is_consistent_mass_matrix:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, False)
+        else:
+            self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX, True)
         if analysis_type == "non_linear":
                 solution_strategy = self._CreateNewtonRaphsonStrategy()
+        elif analysis_type == 'linear':
+                self.material_point_model_part.ProcessInfo.SetValue(KratosParticle.IGNORE_GEOMETRIC_STIFFNESS, True)
+                solution_strategy = self._CreateLinearStrategy();
         else:
-            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"non_linear\""
+            err_msg =  "The requested implicit analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg += "Available implicit options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
         return solution_strategy
 
@@ -401,6 +404,20 @@ class MPMSolver(PythonSolver):
                                                                         self.settings["compute_reactions"].GetBool(),
                                                                         reform_dofs_at_each_step,
                                                                         self.settings["move_mesh_flag"].GetBool())
+
+    def _CreateLinearStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        solution_scheme = self._GetSolutionScheme()
+        linear_solver = self._GetLinearSolver()
+        reform_dofs_at_each_step = False ## hard-coded, but can be changed upon implementation
+        calc_norm_dx_flag = False ## hard-coded, but can be changed upon implementation
+        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
+                                                              solution_scheme,
+                                                              linear_solver,
+                                                              self.settings["compute_reactions"].GetBool(),
+                                                              reform_dofs_at_each_step,
+                                                              calc_norm_dx_flag,
+                                                              self.settings["move_mesh_flag"].GetBool())
 
     def _SetBufferSize(self):
         current_buffer_size = self.grid_model_part.GetBufferSize()
