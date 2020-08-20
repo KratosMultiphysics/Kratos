@@ -38,15 +38,7 @@ def Factory(settings, Model):
         ],
         [
             "ApplyFlagProcess",
-            KratosRANS.RansApplyFlagProcess
-        ],
-        [
-            "CheckScalarBoundsProcess",
-            KratosRANS.RansCheckScalarBoundsProcess
-        ],
-        [
-            "CheckVectorBoundsProcess",
-            KratosRANS.RansCheckVectorBoundsProcess
+            KratosRANS.RansApplyFlagToSkinProcess
         ],
         [
             "ClipScalarVariableProcess",
@@ -83,6 +75,10 @@ def Factory(settings, Model):
         [
             "ComputeReactionsProcess",
             KratosRANS.RansComputeReactionsProcess
+        ],
+        [
+            "CheckScalarBoundsProcess",
+            RansCheckScalarBoundsProcess
         ]
     ]
 
@@ -110,3 +106,26 @@ def Factory(settings, Model):
                             "Created " + process_name + " with following properties...\n" + str(settings["Parameters"]))
 
     return current_process
+
+
+class RansCheckScalarBoundsProcess(Kratos.Process):
+    def __init__(self, model, settings):
+        Kratos.Process.__init__(self)
+
+        default_parameters = Kratos.Parameters("""
+        {
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "variable_name"   : "PLEASE_SPECIFY_SCALAR_VARIABLE"
+        }""")
+
+        settings.ValidateAndAssignDefaults(default_parameters)
+
+        self.variable = Kratos.KratosGlobals.GetVariable(settings["variable_name"].GetString())
+        self.model_part = model[settings["model_part_name"].GetString()]
+
+    def Execute(self):
+        min_value = KratosRANS.RansVariableUtilities.GetMinimumScalarValue(self.model_part, self.variable)
+        max_value = KratosRANS.RansVariableUtilities.GetMaximumScalarValue(self.model_part, self.variable)
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is bounded between [ {:f}, {:f} ] in {:s}.".format(
+            self.variable.Name(), min_value, max_value, self.model_part.Name))

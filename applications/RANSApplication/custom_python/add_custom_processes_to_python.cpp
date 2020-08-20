@@ -33,9 +33,7 @@
 #include "custom_processes/rans_wall_distance_calculation_process.h"
 #include "custom_processes/rans_nut_k_omega_sst_update_process.h"
 #include "custom_processes/rans_apply_exact_nodal_periodic_condition_process.h"
-#include "custom_processes/rans_apply_flag_process.h"
-#include "custom_processes/rans_check_scalar_bounds_process.h"
-#include "custom_processes/rans_check_vector_bounds_process.h"
+#include "custom_processes/rans_apply_flag_to_skin_process.h"
 #include "custom_processes/rans_clip_scalar_variable_process.h"
 #include "custom_processes/rans_line_output_process.h"
 #include "custom_processes/rans_compute_reactions_process.h"
@@ -104,16 +102,8 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansApplyExactNodalPeriodicConditionProcessType, RansApplyExactNodalPeriodicConditionProcessType::Pointer, Process>(m, "RansApplyExactNodalPeriodicConditionProcess")
         .def(py::init<Model&, Parameters&>());
 
-    using RansApplyFlagProcessType = RansApplyFlagProcess;
-    py::class_<RansApplyFlagProcessType, RansApplyFlagProcessType::Pointer, Process>(m, "RansApplyFlagProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansCheckScalarBoundsProcessType = RansCheckScalarBoundsProcess;
-    py::class_<RansCheckScalarBoundsProcessType, RansCheckScalarBoundsProcessType::Pointer, Process>(m, "RansCheckScalarBoundsProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansCheckVectorBoundsProcessType = RansCheckVectorBoundsProcess;
-    py::class_<RansCheckVectorBoundsProcessType, RansCheckVectorBoundsProcessType::Pointer, Process>(m, "RansCheckVectorBoundsProcess")
+    using RansApplyFlagToSkinProcessType = RansApplyFlagToSkinProcess;
+    py::class_<RansApplyFlagToSkinProcessType, RansApplyFlagToSkinProcessType::Pointer, Process>(m, "RansApplyFlagToSkinProcess")
         .def(py::init<Model&, Parameters&>());
 
     using RansClipScalarVariableProcessType = RansClipScalarVariableProcess;

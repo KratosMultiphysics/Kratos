@@ -34,22 +34,15 @@ namespace Kratos
 RansComputeReactionsProcess::RansComputeReactionsProcess(
     Model& rModel,
     Parameters rParameters)
-    : mrModel(rModel), mrParameters(rParameters)
+    : mrModel(rModel)
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"              : 0,
-            "consider_periodic"       : false
-        })");
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mPeriodic = mrParameters["consider_periodic"].GetBool();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mPeriodic = rParameters["consider_periodic"].GetBool();
 
     KRATOS_CATCH("");
 }
@@ -79,12 +72,10 @@ void RansComputeReactionsProcess::CorrectPeriodicNodes(
             const int slave_id = rNode.FastGetSolutionStepValue(PATCH_INDEX);
             const int master_id = rNode.Id();
             if (master_id < slave_id) {
-                array_1d<double, 3>& master_value =
-                    rNode.FastGetSolutionStepValue(rVariable);
+                auto& master_value = rNode.FastGetSolutionStepValue(rVariable);
 
-                NodeType& slave_node = rModelPart.GetNode(slave_id);
-                array_1d<double, 3>& slave_value =
-                    slave_node.FastGetSolutionStepValue(rVariable);
+                auto& slave_node = rModelPart.GetNode(slave_id);
+                auto& slave_value = slave_node.FastGetSolutionStepValue(rVariable);
 
                 const double master_value_norm = norm_2(master_value);
                 const double slave_value_norm = norm_2(slave_value);
@@ -126,7 +117,7 @@ void RansComputeReactionsProcess::ExecuteFinalizeSolutionStep()
 
     BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
         [&](ModelPart::NodeType& rNode) {
-            const array_1d<double, 3>& pressure_force =
+            const auto& pressure_force =
                 rNode.FastGetSolutionStepValue(NORMAL) *
                 (-1.0 * rNode.FastGetSolutionStepValue(PRESSURE));
             rNode.FastGetSolutionStepValue(REACTION) += pressure_force;
@@ -142,7 +133,7 @@ int RansComputeReactionsProcess::Check()
 {
     KRATOS_TRY
 
-    ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(REACTION))
         << "REACTION is not found in nodal solution step variables list of "
@@ -182,7 +173,7 @@ void RansComputeReactionsProcess::PrintData(std::ostream& rOStream) const
 void RansComputeReactionsProcess::CalculateReactionValues(
     ModelPart::ConditionType& rCondition)
 {
-    const array_1d<double, 3>& r_friction_velocity = rCondition.GetValue(FRICTION_VELOCITY);
+    const auto& r_friction_velocity = rCondition.GetValue(FRICTION_VELOCITY);
     const double u_tau = norm_2(r_friction_velocity);
     auto& r_geometry = rCondition.GetGeometry();
 
@@ -204,6 +195,18 @@ void RansComputeReactionsProcess::CalculateReactionValues(
             r_node.UnSetLock();
         }
     }
+}
+
+const Parameters RansComputeReactionsProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "echo_level"              : 0,
+            "consider_periodic"       : false
+        })");
+
+    return default_parameters;
 }
 
 } // namespace Kratos.
