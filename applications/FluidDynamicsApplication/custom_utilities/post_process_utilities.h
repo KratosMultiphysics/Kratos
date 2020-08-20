@@ -16,6 +16,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
+
 namespace Kratos
 {
   ///@addtogroup FluidDynamicsApplication
@@ -52,6 +53,7 @@ namespace Kratos
     typedef Geometry<NodeType>                                 GeometryType;
     typedef IntegrationPoint<3>                       IntegrationPointType;
     typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
+    typedef GeometryData::IntegrationMethod          IntegrationMethodType;
 
     /// Pointer definition of DragUtilities
     KRATOS_CLASS_POINTER_DEFINITION(FluidPostProcessUtilities);
