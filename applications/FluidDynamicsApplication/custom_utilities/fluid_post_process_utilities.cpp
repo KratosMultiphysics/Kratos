@@ -8,9 +8,10 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Miguel Angel Celigueta
+//                  Aditya Ghantasala
 //
 
-#include "post_process_utilities.h"
+#include "fluid_post_process_utilities.h"
 
 
 namespace Kratos {
