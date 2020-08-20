@@ -36,16 +36,7 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"      : 0,
-            "von_karman"      : 0.41,
-            "beta"            : 5.2,
-            "c_mu"            : 0.09
-        })");
-
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
@@ -196,6 +187,20 @@ void RansWallFunctionUpdateProcess::PrintInfo(std::ostream& rOStream) const
 
 void RansWallFunctionUpdateProcess::PrintData(std::ostream& rOStream) const
 {
+}
+
+const Parameters RansWallFunctionUpdateProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+        {
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "echo_level"      : 0,
+            "von_karman"      : 0.41,
+            "beta"            : 5.2,
+            "c_mu"            : 0.09
+        })");
+
+    return default_parameters;
 }
 
 } // namespace Kratos.

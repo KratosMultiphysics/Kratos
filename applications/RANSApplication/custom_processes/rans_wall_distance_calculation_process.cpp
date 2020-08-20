@@ -32,7 +32,7 @@ void RansWallDistanceCalculationProcess<
     LinearSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>>>::CreateLinearSolver()
 {
     mpLinearSolver = LinearSolverFactory<SparseSpaceType, DenseSpaceType>().Create(
-        mrParameters["linear_solver_settings"]);
+        mLinearSolverParameters);
 }
 
 template <>

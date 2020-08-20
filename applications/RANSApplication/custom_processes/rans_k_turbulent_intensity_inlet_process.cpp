@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
 #include "rans_application_variables.h"
@@ -31,26 +32,17 @@ namespace Kratos
 RansKTurbulentIntensityInletProcess::RansKTurbulentIntensityInletProcess(
     Model& rModel,
     Parameters rParameters)
-: mrModel(rModel), mrParameters(rParameters)
+: mrModel(rModel)
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"     : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "turbulent_intensity" : 0.05,
-            "echo_level"          : 0,
-            "is_fixed"            : true,
-            "min_value"           : 1e-14
-        })");
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mTurbulentIntensity = mrParameters["turbulent_intensity"].GetDouble();
-    mIsConstrained = mrParameters["is_fixed"].GetBool();
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mMinValue = mrParameters["min_value"].GetDouble();
+    mTurbulentIntensity = rParameters["turbulent_intensity"].GetDouble();
+    mIsConstrained = rParameters["is_fixed"].GetBool();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mMinValue = rParameters["min_value"].GetDouble();
 
     KRATOS_ERROR_IF(mTurbulentIntensity < 0.0)
         << "Turbulent intensity needs to be positive in the modelpart "
@@ -68,10 +60,8 @@ void RansKTurbulentIntensityInletProcess::ExecuteInitialize()
     if (mIsConstrained) {
         auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
 
-        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
-            [&](ModelPart::NodeType& rNode) {
-                rNode.Fix(TURBULENT_KINETIC_ENERGY);
-            });
+        VariableUtils().ApplyFixity(TURBULENT_KINETIC_ENERGY, true,
+                                    r_nodes);
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
             << "Fixed TURBULENT_KINETIC_ENERGY dofs in " << mModelPartName << ".\n";
@@ -90,7 +80,7 @@ void RansKTurbulentIntensityInletProcess::Execute()
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
 
     BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
-        const array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+        const auto& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
         const double velocity_magnitude = norm_2(r_velocity);
 
         rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = std::max(
@@ -134,6 +124,20 @@ void RansKTurbulentIntensityInletProcess::PrintInfo(std::ostream& rOStream) cons
 
 void RansKTurbulentIntensityInletProcess::PrintData(std::ostream& rOStream) const
 {
+}
+
+const Parameters RansKTurbulentIntensityInletProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name"     : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "turbulent_intensity" : 0.05,
+            "echo_level"          : 0,
+            "is_fixed"            : true,
+            "min_value"           : 1e-14
+        })");
+
+    return default_parameters;
 }
 
 } // namespace Kratos.

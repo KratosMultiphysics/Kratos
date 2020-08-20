@@ -54,10 +54,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-
-    using NodesContainerType = ModelPart::NodesContainerType;
-
     /// Pointer definition of RansKTurbulentIntensityInletProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansKTurbulentIntensityInletProcess);
 
@@ -91,6 +87,8 @@ public:
 
     int Check() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -111,13 +109,11 @@ private:
     ///@{
 
     Model& mrModel;
-    Parameters mrParameters;
-    std::string mModelPartName;
 
+    std::string mModelPartName;
     double mTurbulentIntensity;
     double mMinValue;
     int mEchoLevel;
-
     bool mIsConstrained;
 
     ///@}
@@ -129,8 +125,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansKTurbulentIntensityInletProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansKTurbulentIntensityInletProcess& rThis);
 
 ///@}
 

@@ -28,26 +28,17 @@ namespace Kratos
 RansClipScalarVariableProcess::RansClipScalarVariableProcess(
     Model& rModel,
     Parameters rParameters)
-: mrModel(rModel), mrParameters(rParameters)
+: mrModel(rModel)
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "variable_name"   : "PLEASE_SPECIFY_SCALAR_VARIABLE",
-            "echo_level"      : 0,
-            "min_value"       : 1e-18,
-            "max_value"       : 1e+30
-        })");
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
-
-    mVariableName = mrParameters["variable_name"].GetString();
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mMinValue = mrParameters["min_value"].GetDouble();
-    mMaxValue = mrParameters["max_value"].GetDouble();
+    mVariableName = rParameters["variable_name"].GetString();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mMinValue = rParameters["min_value"].GetDouble();
+    mMaxValue = rParameters["max_value"].GetDouble();
 
     KRATOS_CATCH("");
 }
@@ -56,9 +47,7 @@ int RansClipScalarVariableProcess::Check()
 {
     KRATOS_TRY
 
-    const Variable<double>& r_scalar_variable =
-        KratosComponents<Variable<double>>::Get(mVariableName);
-
+    const auto& r_scalar_variable = KratosComponents<Variable<double>>::Get(mVariableName);
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(r_scalar_variable))
@@ -75,9 +64,7 @@ void RansClipScalarVariableProcess::Execute()
     KRATOS_TRY
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    const Variable<double>& r_scalar_variable =
-        KratosComponents<Variable<double>>::Get(mVariableName);
+    const auto& r_scalar_variable = KratosComponents<Variable<double>>::Get(mVariableName);
 
     unsigned int nodes_below, nodes_above;
     std::tie(nodes_below, nodes_above) = RansVariableUtilities::ClipScalarVariable(
@@ -104,6 +91,20 @@ void RansClipScalarVariableProcess::PrintInfo(std::ostream& rOStream) const
 
 void RansClipScalarVariableProcess::PrintData(std::ostream& rOStream) const
 {
+}
+
+const Parameters RansClipScalarVariableProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "variable_name"   : "PLEASE_SPECIFY_SCALAR_VARIABLE",
+            "echo_level"      : 0,
+            "min_value"       : 1e-18,
+            "max_value"       : 1e+30
+        })");
+
+    return default_parameters;
 }
 
 } // namespace Kratos.
