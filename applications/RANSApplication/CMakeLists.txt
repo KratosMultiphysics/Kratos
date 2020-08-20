@@ -10,11 +10,15 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
-## RANSApplication Core sources
-file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE
+## RANSApplication Core utilities sources
+file(GLOB_RECURSE KRATOS_RANS_APPLICATION_UTILITIES
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+)
+
+## RANSApplication Core sources
+file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
@@ -32,7 +36,7 @@ file(GLOB_RECURSE KRATOS_RANS_APPLICATION_TESTING_SOURCES
 )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosRANSCore SHARED ${KRATOS_RANS_APPLICATION_CORE} ${KRATOS_RANS_APPLICATION_TESTING_SOURCES})
+add_library(KratosRANSCore SHARED ${KRATOS_RANS_APPLICATION_UTILITIES} ${KRATOS_RANS_APPLICATION_CORE} ${KRATOS_RANS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosRANSCore PUBLIC KratosCore KratosFluidDynamicsCore)
 set_target_properties(KratosRANSCore PROPERTIES COMPILE_DEFINITIONS "RANS_APPLICATION=EXPORT,API")
 
