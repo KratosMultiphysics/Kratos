@@ -109,6 +109,12 @@ def Factory(settings, Model):
 
 
 class RansCheckScalarBoundsProcess(Kratos.Process):
+    """Checks bounds of a scalar variable for given model part
+
+    Args:
+        model (Kratos.Model): Kratos model
+        settings (Kratos.Parameters): Settings for process
+    """    
     def __init__(self, model, settings):
         Kratos.Process.__init__(self)
 
