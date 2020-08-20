@@ -58,6 +58,7 @@ public:
     {
         if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) mIsProjection = rValue;
         else if (rVariable == IS_DUAL_MORTAR) mIsDualMortar = rValue;
+        else if (rVariable == IS_CONSISTENT_MORTAR) mIsConsistentMortar = rValue;
         else MapperLocalSystem::SetValue(rVariable, rValue);
     }
 
@@ -65,6 +66,7 @@ public:
     {
         if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) return mIsProjection;
         else if (rVariable == IS_DUAL_MORTAR) return mIsDualMortar;
+        else if (rVariable == IS_CONSISTENT_MORTAR) return mIsConsistentMortar;
         else return MapperLocalSystem::GetValue(rVariable);
     }
 
@@ -72,6 +74,7 @@ private:
     GeometryPointerType mpGeom;
     bool mIsProjection; // Set to true is we are projecting the master onto the slave.
                         // Set to false if we are projecting the slave onto the slave.
+    bool mIsConsistentMortar = false;
     bool mIsDualMortar = false;
 
 };
@@ -144,6 +147,7 @@ public:
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
 
         mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
+        mpCouplingMP->GetMesh().SetValue(IS_CONSISTENT_MORTAR, mMapperSettings["consistent_mortar"].GetBool());
 
         this->InitializeInterface();
     }
@@ -285,11 +289,15 @@ private:
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
     ModelPart* mpCouplingInterfaceDestination = nullptr;
 
+    IndexType mComponentIndex = 1;
+    Matrix mMappingData;
+
     Parameters mMapperSettings;
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
     DenseMappingMatrixUniquePointerType mpMappingMatrix;
+    DenseMappingMatrixUniquePointerType mpMappingMatrix_consistent_force;
 
     MapperLocalSystemPointerVector mMapperLocalSystems;
 

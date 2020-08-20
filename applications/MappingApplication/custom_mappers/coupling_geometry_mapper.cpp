@@ -66,10 +66,20 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
+    if (mIsConsistentMortar)
+    {
+        if (mIsProjection)
+        {
+            KRATOS_ERROR << "1111";
+        }
+    }
+
     const auto& r_geometry_master = (mIsProjection)
         ? mpGeom->GetGeometryPart(0) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
-    const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
+    const auto& r_geometry_slave = (mIsConsistentMortar)
+        ? mpGeom->GetGeometryPart(0)
+        : mpGeom->GetGeometryPart(1);
 
     const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
         ? true
@@ -172,8 +182,14 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     MapperLocalSystem::EquationIdVectorType origin_ids;
     MapperLocalSystem::EquationIdVectorType destination_ids;
 
+    const bool is_consistent = (mpCouplingMP->GetMesh().Has(IS_CONSISTENT_MORTAR))
+        ? mpCouplingMP->GetMesh().GetValue(IS_CONSISTENT_MORTAR) : false;
+    const size_t number_of_systems = (is_consistent)
+        ? mMapperLocalSystems.size() / 3 : mMapperLocalSystems.size() / 2;
+
+
     for (size_t local_projector_system = 0;
-        local_projector_system < mMapperLocalSystems.size()/2; ++local_projector_system) {
+        local_projector_system < number_of_systems; ++local_projector_system) {
         mMapperLocalSystems[local_projector_system]->PairingInfo(0);
         mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
         Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_projector);
@@ -182,12 +198,25 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // assemble slave interface mass matrix - interface_matrix_slave
     // TODO for dual mortar this should be a vector not a matrix
     Matrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
-    for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
-        local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
+    for (size_t local_projector_system = number_of_systems;
+        local_projector_system < 2* number_of_systems; ++local_projector_system)
     {
         mMapperLocalSystems[local_projector_system]->PairingInfo(0);
         mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
         Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_slave);
+    }
+
+    Matrix interface_matrix_master;
+    if (is_consistent)
+    {
+        interface_matrix_master = ZeroMatrix(num_nodes_interface_master, num_nodes_interface_master);
+        for (size_t local_projector_system = 2*number_of_systems;
+            local_projector_system < 3 * number_of_systems; ++local_projector_system)
+        {
+            mMapperLocalSystems[local_projector_system]->PairingInfo(0);
+            mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+            Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_master);
+        }
     }
 
     // Perform consistency scaling if requested
@@ -209,6 +238,25 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     }
     mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
     CheckMappingMatrixConsistency();
+
+    if (is_consistent)
+    {
+        KRATOS_WARNING("COUPLING GEOMETRY MAPPER") << "M_origin_dest assumed equal to trans(M_dest_origin)\n";
+        Matrix inv_interface_matrix_master(num_nodes_interface_master, num_nodes_interface_master, 0.0);
+        double aux_det = 0;
+        MathUtils<double>::InvertMatrix(interface_matrix_master, inv_interface_matrix_master, aux_det);
+        mpMappingMatrix_consistent_force = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_master, trans(interface_matrix_projector)));
+
+        for (size_t row = 0; row < mpMappingMatrix_consistent_force->size1(); ++row) {
+            double row_sum = 0.0;
+            for (size_t col = 0; col < mpMappingMatrix_consistent_force->size2(); ++col) row_sum += (*mpMappingMatrix_consistent_force)(row, col);
+            if (std::abs(row_sum - 1.0) > 1e-12) {
+                KRATOS_WATCH(*mpMappingMatrix_consistent_force)
+                    KRATOS_WATCH(row_sum)
+                    KRATOS_ERROR << "consistent mapping matrix is not consistent\n";
+            }
+        }
+    }
 
     Internals::InitializeSystemVector(mpInterfaceVectorContainerOrigin->pGetVector(), num_nodes_interface_master);
     Internals::InitializeSystemVector(mpInterfaceVectorContainerDestination->pGetVector(), num_nodes_interface_slave);
@@ -236,12 +284,38 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const Variable<double>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
+    const bool is_consistent = (mpCouplingMP->GetMesh().Has(IS_CONSISTENT_MORTAR))
+        ? mpCouplingMP->GetMesh().GetValue(IS_CONSISTENT_MORTAR) : false;
+
+    const double lag_factor = 0.0;
+
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
-    TSparseSpace::TransposeMult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerDestination->GetVector(),
-        mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+    auto& origin_vec = mpInterfaceVectorContainerOrigin->GetVector();
+
+    if (is_consistent)
+    {
+        KRATOS_WATCH("CONSISTENT MAPPING OF FORCE")
+        TSparseSpace::Mult(
+            *mpMappingMatrix_consistent_force,
+            mpInterfaceVectorContainerDestination->GetVector(),
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMod * rQd
+    }
+    else
+    {
+        TSparseSpace::TransposeMult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerDestination->GetVector(),
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+    }
+
+    KRATOS_WATCH(origin_vec)
+    for (size_t i = 0; i < origin_vec.size(); i++)
+    {
+        origin_vec[i] = (1.0- lag_factor) * origin_vec[i] + lag_factor * mMappingData(mComponentIndex, i);
+    }
+    //origin_vec = 0.5 * origin_vec + 0.5 * orig;
+    KRATOS_WATCH(origin_vec)
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }
@@ -266,11 +340,38 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
+    // store data for dodgy aitken
+    mComponentIndex = 0;
+    for (const auto var_ext : { "_X", "_Y", "_Z" }) {
+        const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
+
+        mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_origin, MappingOptions);
+        Vector orig = Vector(mpInterfaceVectorContainerOrigin->GetVector());
+
+        if (mComponentIndex == 0)
+        {
+            mMappingData.resize(3, orig.size());
+        }
+
+        for (size_t i = 0; i < orig.size(); i++)
+        {
+            mMappingData(mComponentIndex, i) = orig[i];
+        }
+
+        mComponentIndex += 1;
+    }
+
+    KRATOS_WATCH(mMappingData)
+
+    mComponentIndex = 0;
+
+
     for (const auto var_ext : {"_X", "_Y", "_Z"}) {
         const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
         const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
 
         MapInternalTranspose(var_origin, var_destination, MappingOptions);
+        mComponentIndex += 1;
     }
 }
 

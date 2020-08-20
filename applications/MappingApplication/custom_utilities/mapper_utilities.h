@@ -204,7 +204,10 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
     const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Conditions().ptr_begin();
 
     // set to 2x the number of systems. First block is projected systems, second block is slave systems
-    if (rLocalSystems.size() != 2*num_elements) rLocalSystems.resize(2*num_elements);
+    const bool is_consistent = (rModelPartCommunicator.LocalMesh().Has(IS_CONSISTENT_MORTAR))
+        ? rModelPartCommunicator.LocalMesh().GetValue(IS_CONSISTENT_MORTAR) : false;
+    const SizeType number_of_systems = (is_consistent) ? 3 * num_elements : 2 * num_elements;
+    if (rLocalSystems.size() != number_of_systems) rLocalSystems.resize(number_of_systems);
 
     const bool is_dual_mortar = (rModelPartCommunicator.LocalMesh().Has(IS_DUAL_MORTAR))
         ? rModelPartCommunicator.LocalMesh().GetValue(IS_DUAL_MORTAR) : false;
@@ -220,6 +223,14 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
         rLocalSystems[num_elements+i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
         rLocalSystems[num_elements+i]->SetValue(IS_PROJECTED_LOCAL_SYSTEM, false);
         rLocalSystems[num_elements+i]->SetValue(IS_DUAL_MORTAR, is_dual_mortar);
+
+        if (is_consistent)
+        {
+            rLocalSystems[2*num_elements + i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+            rLocalSystems[2*num_elements + i]->SetValue(IS_PROJECTED_LOCAL_SYSTEM, false);
+            rLocalSystems[2*num_elements + i]->SetValue(IS_DUAL_MORTAR, is_dual_mortar);
+            rLocalSystems[2*num_elements + i]->SetValue(IS_CONSISTENT_MORTAR, is_consistent);
+        }
     }
 
     int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
