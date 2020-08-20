@@ -1,4 +1,4 @@
-﻿//    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -359,6 +359,24 @@ namespace Kratos
             rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2)*dE_curvilinear[2];
             rB(2, r) = m_T_vector[IntegrationPointIndex](2, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](2, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](2, 2)*dE_curvilinear[2];
         }
+        for (IndexType node = 0; node < number_of_control_points; node++)
+        {
+            // local node number kr and dof direction dirr
+          //  IndexType kr = r / 3;
+          //  IndexType dirr = r % 3;
+
+            array_1d<double, 3> dE_curvilinear;
+            // strain
+         //   dE_curvilinear[0] = r_DN_De(node, 0) * rActualKinematic.a1(dirr);
+          //  dE_curvilinear[1] = r_DN_De(node, 1) * rActualKinematic.a2(dirr);
+           // dE_curvilinear[2] = 0.5 * (r_DN_De(kr, 0) * rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr) * r_DN_De(kr, 1));
+
+            subrange(rB, 0, 1, node, 3) =  rActualKinematic.a1;
+            rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2) * dE_curvilinear[2];
+            rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2) * dE_curvilinear[2];
+            rB(2, r) = m_T_vector[IntegrationPointIndex](2, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](2, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](2, 2) * dE_curvilinear[2];
+        }
+
     }
 
     void Shell3pElement::CalculateBCurvature(
