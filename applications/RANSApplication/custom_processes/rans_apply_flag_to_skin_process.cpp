@@ -17,58 +17,48 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Include base h
-#include "rans_apply_flag_process.h"
+#include "rans_apply_flag_to_skin_process.h"
 
 namespace Kratos
 {
-RansApplyFlagProcess::RansApplyFlagProcess(
+RansApplyFlagToSkinProcess::RansApplyFlagToSkinProcess(
     Model& rModel,
     Parameters rParameters)
-: mrModel(rModel), mrParameters(rParameters)
+: mrModel(rModel)
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"                : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"                     : 0,
-            "flag_variable_name"             : "PLEASE_SPECIFY_FLAG_VARIABLE_NAME",
-            "flag_variable_value"            : true,
-            "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
-        })");
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-    mModelPartName = mrParameters["model_part_name"].GetString();
-    mFlagVariableName = mrParameters["flag_variable_name"].GetString();
-    mFlagVariableValue = mrParameters["flag_variable_value"].GetBool();
-    mEchoLevel = mrParameters["echo_level"].GetInt();
-    mModelPartsForConditionFlags =
-        mrParameters["apply_to_model_part_conditions"].GetStringArray();
+    mModelPartName = rParameters["model_part_name"].GetString();
+    mFlagVariableName = rParameters["flag_variable_name"].GetString();
+    mFlagVariableValue = rParameters["flag_variable_value"].GetBool();
+    mEchoLevel = rParameters["echo_level"].GetInt();
+    mModelPartsForConditionFlags = rParameters["apply_to_model_part_conditions"].GetStringArray();
 
     KRATOS_CATCH("");
 }
 
-void RansApplyFlagProcess::ExecuteInitialize()
+void RansApplyFlagToSkinProcess::ExecuteInitialize()
 {
     ApplyNodeFlags();
 
     if (mModelPartsForConditionFlags.size() == 1 &&
         mModelPartsForConditionFlags[0] == "ALL_MODEL_PARTS") {
         mModelPartsForConditionFlags.clear();
-        for (const std::string& model_part_name : mrModel.GetModelPartNames()) {
+        for (const auto& model_part_name : mrModel.GetModelPartNames()) {
             mModelPartsForConditionFlags.push_back(model_part_name);
         }
     }
 
-    for (std::string model_part_name : mModelPartsForConditionFlags) {
+    for (const auto& model_part_name : mModelPartsForConditionFlags) {
         auto& r_model_part = mrModel.GetModelPart(model_part_name);
         ApplyConditionFlags(r_model_part);
     }
@@ -77,31 +67,28 @@ void RansApplyFlagProcess::ExecuteInitialize()
         << mFlagVariableName << " condition flag set for " << mModelPartName << ".\n";
 }
 
-std::string RansApplyFlagProcess::Info() const
+std::string RansApplyFlagToSkinProcess::Info() const
 {
-    return std::string("RansApplyFlagProcess");
+    return std::string("RansApplyFlagToSkinProcess");
 }
 
-void RansApplyFlagProcess::PrintInfo(std::ostream& rOStream) const
+void RansApplyFlagToSkinProcess::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info();
 }
 
-void RansApplyFlagProcess::PrintData(std::ostream& rOStream) const
+void RansApplyFlagToSkinProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-void RansApplyFlagProcess::ApplyNodeFlags()
+void RansApplyFlagToSkinProcess::ApplyNodeFlags()
 {
     KRATOS_TRY
 
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
-    const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
+    const auto& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
-        [&](ModelPart::NodeType& rNode) {
-            rNode.Set(r_flag, mFlagVariableValue);
-        });
+    VariableUtils().SetFlag(r_flag, mFlagVariableValue, r_nodes);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << mFlagVariableName << " is set to nodes " << mFlagVariableValue
@@ -110,12 +97,13 @@ void RansApplyFlagProcess::ApplyNodeFlags()
     KRATOS_CATCH("");
 }
 
-void RansApplyFlagProcess::ApplyConditionFlags(ModelPart& rModelPart)
+void RansApplyFlagToSkinProcess::ApplyConditionFlags(
+    ModelPart& rModelPart)
 {
     KRATOS_TRY
 
     auto& r_conditions = rModelPart.Conditions();
-    const Flags& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
+    const auto& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
 
     BlockPartition<ModelPart::ConditionsContainerType>(r_conditions)
         .for_each([&](ModelPart::ConditionType& rCondition) {
@@ -137,6 +125,20 @@ void RansApplyFlagProcess::ApplyConditionFlags(ModelPart& rModelPart)
         << rModelPart.Name() << ".\n";
 
     KRATOS_CATCH("");
+}
+
+const Parameters RansApplyFlagToSkinProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name"                : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "echo_level"                     : 0,
+            "flag_variable_name"             : "PLEASE_SPECIFY_FLAG_VARIABLE_NAME",
+            "flag_variable_value"            : true,
+            "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
+        })");
+
+    return default_parameters;
 }
 
 } // namespace Kratos.

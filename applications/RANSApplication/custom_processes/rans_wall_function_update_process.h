@@ -36,10 +36,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = ModelPart::NodeType;
-    using ConditionType = ModelPart::ConditionType;
-    using ConditionGeometryType = ModelPart::ConditionType::GeometryType;
-
     /// Pointer definition of RansWallFunctionUpdateProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansWallFunctionUpdateProcess);
 
@@ -82,6 +78,8 @@ public:
 
     void Execute() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -113,6 +111,10 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculates number of neighbour nodes on condition nodes
+     *
+     */
     void CalculateConditionNeighbourCount();
 
     ///@}
@@ -124,8 +126,9 @@ private:
 ///@{
 
 /// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansWallFunctionUpdateProcess& rThis);
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const RansWallFunctionUpdateProcess& rThis);
 
 ///@}
 
