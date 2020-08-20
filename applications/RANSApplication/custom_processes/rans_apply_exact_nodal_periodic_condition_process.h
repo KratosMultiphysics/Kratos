@@ -99,7 +99,6 @@ private:
 
     int mEchoLevel;
 
-    std::string mBaseModelPartName;
     std::string mMasterModelPartName;
     std::string mSlaveModelPartName;
 

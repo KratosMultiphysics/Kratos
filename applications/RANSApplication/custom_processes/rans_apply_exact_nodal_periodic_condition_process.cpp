@@ -39,12 +39,21 @@ RansApplyExactNodalPeriodicConditionProcess::RansApplyExactNodalPeriodicConditio
 
     rParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
 
-    mBaseModelPartName = rParameters["base_model_part_name"].GetString();
     mMasterModelPartName = rParameters["master_model_part_name"].GetString();
     mSlaveModelPartName = rParameters["slave_model_part_name"].GetString();
     mReorder = rParameters["reorder"].GetBool();
     mTolerance = rParameters["tolerance"].GetDouble();
     mEchoLevel = rParameters["echo_level"].GetInt();
+
+    const auto& r_master_model_part = rModel.GetModelPart(mMasterModelPartName);
+    const auto& r_slave_model_part = rModel.GetModelPart(mSlaveModelPartName);
+
+    KRATOS_ERROR_IF(&r_master_model_part.GetRootModelPart() !=
+                    &r_slave_model_part.GetRootModelPart())
+        << "Master model part [ " << mMasterModelPartName << " ] and Slave model part [ "
+        << mSlaveModelPartName << " ] has different root model parts. [ "
+        << r_master_model_part.GetRootModelPart().Name()
+        << " != " << r_slave_model_part.GetRootModelPart().Name() << " ]\n";
 
     const double eps = std::numeric_limits<double>::epsilon();
 
@@ -73,7 +82,7 @@ RansApplyExactNodalPeriodicConditionProcess::RansApplyExactNodalPeriodicConditio
     KRATOS_ERROR_IF(mTranslationMagnitude > eps && translation_direction_norm < eps) << "Translation magnitude defined, but translation direction is not defined.\n";
 
     const int domain_size =
-        mrModel.GetModelPart(mBaseModelPartName).GetProcessInfo()[DOMAIN_SIZE];
+        r_master_model_part.GetRootModelPart().GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
         KRATOS_WARNING_IF(this->Info(), (mRotationAxis[0] > eps || mRotationAxis[1] > eps))
             << "Using 2D rotation axis as [0.0, 0.0, 1.0].\n";
@@ -93,7 +102,7 @@ void RansApplyExactNodalPeriodicConditionProcess::ExecuteInitialize()
 {
     CreatePeriodicConditions();
     if (mReorder) {
-        auto& r_model_part = mrModel.GetModelPart(mBaseModelPartName);
+        auto& r_model_part = mrModel.GetModelPart(mMasterModelPartName).GetRootModelPart();
         Parameters default_params(R"({})");
         ReorderAndOptimizeModelPartProcess reorder_process(r_model_part, default_params);
         reorder_process.Execute();
@@ -118,7 +127,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
 {
     KRATOS_TRY
 
-    auto& r_base_model_part = mrModel.GetModelPart(mBaseModelPartName);
+    auto& r_base_model_part = mrModel.GetModelPart(mMasterModelPartName).GetRootModelPart();
     int condition_id = r_base_model_part.NumberOfConditions();
     auto p_properties = r_base_model_part.CreateNewProperties(
         r_base_model_part.NumberOfProperties() + 1);
@@ -204,7 +213,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Created periodic conditions between " << mMasterModelPartName << " and "
-        << mSlaveModelPartName << " in " << mBaseModelPartName << ".\n";
+        << mSlaveModelPartName << " in " << r_base_model_part.Name() << ".\n";
 
     KRATOS_CATCH("");
 }
@@ -245,7 +254,6 @@ const Parameters RansApplyExactNodalPeriodicConditionProcess::GetDefaultParamete
 {
     const auto default_parameters = Parameters(R"(
         {
-            "base_model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "master_model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "slave_model_part_name"          : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "tolerance"                      : 1e-9,
