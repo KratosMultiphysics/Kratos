@@ -18,6 +18,7 @@
 
 namespace Kratos
 {
+    
 template <class TPrimalElement>
 AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement)
     : mpElement{pElement}
