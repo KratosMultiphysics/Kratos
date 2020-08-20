@@ -40,17 +40,7 @@ RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"      : 0,
-            "a1"              : 0.31,
-            "b1"              : 1.0,
-            "beta_star"       : 0.09,
-            "min_value"       : 1e-15
-        })");
-
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
@@ -241,6 +231,20 @@ void RansNutKOmegaSSTUpdateProcess::PrintInfo(std::ostream& rOStream) const
 
 void RansNutKOmegaSSTUpdateProcess::PrintData(std::ostream& rOStream) const
 {
+}
+
+const Parameters RansNutKOmegaSSTUpdateProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "echo_level"      : 0,
+            "a1"              : 0.31,
+            "b1"              : 1.0,
+            "beta_star"       : 0.09,
+            "min_value"       : 1e-15
+        })");
+    return default_parameters;
 }
 
 // template instantiations

@@ -36,15 +36,7 @@ RansNutYPlusWallFunctionUpdateProcess::RansNutYPlusWallFunctionUpdateProcess(
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "von_karman"      : 0.41,
-            "echo_level"  : 0,
-            "min_value"   : 1e-18
-        })");
-
-    rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
@@ -92,11 +84,6 @@ int RansNutYPlusWallFunctionUpdateProcess::Check()
 }
 
 void RansNutYPlusWallFunctionUpdateProcess::ExecuteInitialize()
-{
-    CalculateConditionNeighbourCount();
-}
-
-void RansNutYPlusWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
 {
     RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
         mrModel.GetModelPart(mModelPartName), NUMBER_OF_NEIGHBOUR_CONDITIONS);
@@ -174,6 +161,18 @@ void RansNutYPlusWallFunctionUpdateProcess::PrintInfo(std::ostream& rOStream) co
 
 void RansNutYPlusWallFunctionUpdateProcess::PrintData(std::ostream& rOStream) const
 {
+}
+
+const Parameters RansNutYPlusWallFunctionUpdateProcess::GetDefaultParameters() const
+{
+    const auto default_parameters = Parameters(R"(
+        {
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "von_karman"      : 0.41,
+            "echo_level"  : 0,
+            "min_value"   : 1e-18
+        })");
+    return default_parameters;
 }
 
 } // namespace Kratos.
