@@ -323,7 +323,10 @@ public:
 
         if(velocity_sign > 0.0) //going from the past to the future
         {
-            noalias(position) += prod(tangential, small_dt*initial_velocity);
+            //array_1d<double,3> d_position = small_dt*initial_velocity;
+            //d_position(2) = 0.0;
+            noalias(position) += prod(tangential, small_dt*initial_velocity); //d_position;
+
             unsigned int substep=0;
             while(substep++ < subdivisions)
             {
@@ -340,7 +343,9 @@ public:
                     for (unsigned int k = 1; k < geom.size(); k++)
                         noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
 
-                    noalias(position) += prod(tangential, small_dt*veulerian);
+                    //d_position = small_dt*veulerian;
+                    //d_position(2) = 0.0;
+                    noalias(position) += prod(tangential, small_dt*veulerian); //d_position;
 
                     N_valid  = N;
                     pelement_valid = pelement;
@@ -353,7 +358,10 @@ public:
         }
         else //going from the future to the past
         {
-            noalias(position) -= prod(tangential, small_dt*initial_velocity);
+            //array_1d<double,3> d_position = small_dt*initial_velocity;
+            //d_position(2) = 0.0;
+            noalias(position) -= prod(tangential, small_dt*initial_velocity); //d_position;
+
             unsigned int substep=0;
             while(substep++ < subdivisions)
             {
@@ -370,13 +378,13 @@ public:
                     for (unsigned int k = 1; k < geom.size(); k++)
                         noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
 
-                    noalias(position) -= prod(tangential, small_dt*veulerian);
+                    //d_position = small_dt*veulerian;
+                    //d_position(2) = 0.0;
+                    noalias(position) -= prod(tangential, small_dt*veulerian); //d_position;
 
                     N_valid  = N;
                     pelement_valid = pelement;
                     has_valid_elem_pointer = true;
-
-
                 }
                 else
                     break;
@@ -385,40 +393,15 @@ public:
         return is_found;
     }
 
+    //void BFECCconvect(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps, const double dt_factor){
+        //
+    //}
 
-        void ResetBoundaryConditions(ModelPart& rModelPart, const Variable< double >& rVar)
-        {
-                KRATOS_TRY
 
-                ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
-                vector<unsigned int> node_partition;
-                #ifdef _OPENMP
-                    int number_of_threads = omp_get_max_threads();
-                #else
-                    int number_of_threads = 1;
-                #endif
-                OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
-
-                #pragma omp parallel for
-                for(int kkk=0; kkk<number_of_threads; kkk++)
-                {
-                    for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-                    {
-                            ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-
-                            if (inode->IsFixed(rVar))
-                            {
-                                inode->FastGetSolutionStepValue(rVar)=inode->GetSolutionStepValue(rVar,1);
-                            }
-                    }
-                }
-
-                KRATOS_CATCH("")
-        }
-
-        void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
-        {
+    void ResetBoundaryConditions(ModelPart& rModelPart, const Variable< double >& rVar)
+    {
             KRATOS_TRY
+
             ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
             vector<unsigned int> node_partition;
             #ifdef _OPENMP
@@ -433,12 +416,42 @@ public:
             {
                 for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
                 {
-                    ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-                    inode->GetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
+                        ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+
+                        if (inode->IsFixed(rVar))
+                        {
+                            inode->FastGetSolutionStepValue(rVar)=inode->GetSolutionStepValue(rVar,1);
+                        }
                 }
             }
+
             KRATOS_CATCH("")
+    }
+
+    void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
+        vector<unsigned int> node_partition;
+        #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+        #else
+            int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
+
+        #pragma omp parallel for
+        for(int kkk=0; kkk<number_of_threads; kkk++)
+        {
+            for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+                inode->GetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
+            }
         }
+        KRATOS_CATCH("")
+    }
+
 private:
     typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure;
 

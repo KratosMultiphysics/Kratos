@@ -90,9 +90,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 0.3;
-        const double surface_tension_coefficient = 0.0311; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
-        const double contact_line_coefficient = 0.77933796493*surface_tension_coefficient;
+        const double zeta = 1.0;
+        const double surface_tension_coefficient = 0.0426; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
+        const double contact_line_coefficient = 0.52991926*surface_tension_coefficient;
         const double micro_length_scale = 1.0e-9;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
@@ -3844,13 +3844,13 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
                             << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
                             << std::endl;
 
-                /* if (cubic_contact_angle_micro_gp >= 0.0 &&
+                if (cubic_contact_angle_micro_gp >= 0.0 &&
                         cubic_contact_angle_micro_gp <= 31.0) //std::pow(PI, 3.0))
                     contact_angle_micro_gp = std::pow(cubic_contact_angle_micro_gp, 1.0/3.0);
                 else if (cubic_contact_angle_micro_gp < 0.0)
                     contact_angle_micro_gp = 0.0; //contact_angle_equilibrium;
                 else //if (cubic_contact_angle_micro_gp > 31.0)
-                    contact_angle_micro_gp = PI; //contact_angle_equilibrium; */
+                    contact_angle_micro_gp = PI; //contact_angle_equilibrium;
 
                 // This relation is valid for contact_angle < 3PI/4 and vanishing Reynolds & Capillary numbers
             }
