@@ -120,6 +120,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_io_modeler.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/modeler/modeler_factory.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_modified_shape_functions.cpp;
@@ -227,8 +228,8 @@ target_compile_definitions(KratosCore PRIVATE
 
 if (${AMGCL_GPGPU} MATCHES ON)
     add_subdirectory(
-        ${CMAKE_SOURCE_DIR}/external_libraries/vexcl
-        ${CMAKE_BINARY_DIR}/external_libraries/vexcl)
+        ${KRATOS_SOURCE_DIR}/external_libraries/vexcl
+        ${KRATOS_BINARY_DIR}/external_libraries/vexcl)
 
     if ("${AMGCL_GPGPU_BACKEND}" STREQUAL "OpenCL" AND TARGET VexCL::OpenCL)
         target_link_libraries(KratosCore PUBLIC VexCL::OpenCL)

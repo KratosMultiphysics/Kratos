@@ -56,6 +56,7 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
+#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -412,6 +413,14 @@ namespace Kratos
                     .def(py::init<Parameters >() )
                     .def(py::init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
                     ;
+
+            typedef typename MixedGenericCriteria<SparseSpaceType, LocalSpaceType>::ConvergenceVariableListType ConvergenceVariableListType;
+            py::class_<MixedGenericCriteria<SparseSpaceType, LocalSpaceType >,
+                typename MixedGenericCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
+                ConvergenceCriteriaType >
+                (m,"MixedGenericCriteria")
+                .def(py::init< const ConvergenceVariableListType& > ())
+                ;
 
             //********************************************************************
             //********************************************************************
