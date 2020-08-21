@@ -85,6 +85,14 @@ class TestFactories(KratosUnittest.TestCase):
         """)
         self._auxiliary_test_function_ConvergenceCriteria(settings, "Or_Criteria")
 
+    def test_MixedGenericCriteria(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "mixed_generic_criteria"
+        }
+        """)
+        self._auxiliary_test_function_ConvergenceCriteria(settings, "MixedGenericCriteria")
+
     def _auxiliary_test_function_Scheme(self, settings, name):
         scheme = KM.SchemeFactory().Create(settings)
         self.assertTrue(KM.SchemeFactory().Has(settings["name"].GetString()))
