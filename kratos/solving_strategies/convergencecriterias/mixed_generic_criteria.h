@@ -49,6 +49,8 @@ public:
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+    typedef MixedGenericCriteria< TSparseSpace, TDenseSpace > ClassType;
+
     typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
