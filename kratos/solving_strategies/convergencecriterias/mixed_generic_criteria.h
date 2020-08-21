@@ -80,8 +80,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit MixedGenericCriteria(Kratos::Parameters ThisParameters)
-        : BaseType(),
-          mVariableSize(0)
+        : MixedGenericCriteria(GenerateConvergenceVariableListFromParameters(ThisParameters))
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
@@ -209,7 +208,7 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                       : "mixed_generic_criteria",
-            "convergence_variables_list" : []
+            "convergence_variables_list" : {}
         })");
 
         // Getting base class default parameters
@@ -535,6 +534,44 @@ private:
                 }
             }
         }
+    }
+
+    /**
+     * @brief This method generates the list of variables from Parameters
+     * @param ThisParameters Input parameters
+     * @return List of variables considered as input
+     */
+    ConvergenceVariableListType GenerateConvergenceVariableListFromParameters(Kratos::Parameters ThisParameters)
+    {
+      // Validate and assign defaults
+      ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+
+      // Iterate over variables
+      ConvergenceVariableListType aux_list;
+      for (auto& r_param : ThisParameters["convergence_variables_list"]) {
+          const std::string& r_variable_name = r_param["variable"].GetString();
+
+          // Variable point
+          VariableData* p_variable = nullptr;
+
+          // Options are double or array
+          if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+              const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+              p_variable = &const_cast<Variable<double>&>(r_variable);
+          } else {
+              const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
+              p_variable = &const_cast<Variable<array_1d<double, 3>>&>(r_variable);
+          }
+
+          // Tolerances
+          const double rel_tol = r_param["relative_tolerance"].GetDouble();
+          const double abs_tol = r_param["absolute_tolerance"].GetDouble();
+
+          // Push back list
+          aux_list.push_back(std::make_tuple(p_variable, rel_tol, abs_tol));
+      }
+
+      return aux_list;
     }
 
     ///@}
