@@ -81,6 +81,16 @@ namespace Kratos
             KRATOS_CHECK_STRING_EQUAL(p_conv_criteria->Info(), "Or_Criteria");
         }
 
+        /**
+         * Checks if the MixedGenericCriteria performs correctly the Factory
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MixedGenericCriteriaFactory, KratosCoreFastSuite)
+        {
+            Parameters this_parameters = Parameters(R"({"name" : "mixed_generic_criteria"})");
+            ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
+            KRATOS_CHECK_STRING_EQUAL(p_conv_criteria->Info(), "MixedGenericCriteria");
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
 
