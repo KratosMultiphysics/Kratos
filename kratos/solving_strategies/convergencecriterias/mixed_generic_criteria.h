@@ -82,9 +82,6 @@ public:
     explicit MixedGenericCriteria(Kratos::Parameters ThisParameters)
         : MixedGenericCriteria(GenerateConvergenceVariableListFromParameters(ThisParameters))
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -197,24 +194,6 @@ public:
     static std::string Name()
     {
         return "mixed_generic_criteria";
-    }
-
-      /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                       : "mixed_generic_criteria",
-            "convergence_variables_list" : {}
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
     }
 
     ///@}
@@ -420,15 +399,6 @@ protected:
         }
     }
 
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
-    void AssignSettings(const Parameters ThisParameters) override
-    {
-        BaseType::AssignSettings(ThisParameters);
-    }
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -543,9 +513,6 @@ private:
      */
     ConvergenceVariableListType GenerateConvergenceVariableListFromParameters(Kratos::Parameters ThisParameters)
     {
-      // Validate and assign defaults
-      ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-
       // Iterate over variables
       ConvergenceVariableListType aux_list;
       for (auto& r_param : ThisParameters["convergence_variables_list"]) {
