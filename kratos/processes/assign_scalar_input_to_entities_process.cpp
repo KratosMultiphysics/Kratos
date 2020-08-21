@@ -607,11 +607,11 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::ComputeExtrapolat
             const array_1d<double, 3> coordinates = GetCoordinatesEntity(id);
             double distance = 1.0e24;
             IndexType index = 0;
-            for (IndexType i = 0; i < number_of_definitions; ++i) {
-                const double aux_distance = norm_2(coordinates - mCoordinates[i]);
+            for (IndexType j = 0; j < number_of_definitions; ++j) {
+                const double aux_distance = norm_2(coordinates - mCoordinates[j]);
                 if (aux_distance < distance) {
                     distance = aux_distance;
-                    index = i;
+                    index = j;
                 }
             }
             std::unordered_map<IndexType, double> aux_map({{index, 1.0}});

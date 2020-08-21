@@ -1,12 +1,10 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # pyKratos imports
 from .Element import Element
 
 class QuadrilateralElement(Element):
 
     def __init__(self, elem_id, nodes):
-        super(QuadrilateralElement, self).__init__(elem_id, nodes)
+        super().__init__(elem_id, nodes)
 
         if(len(self.GetNodes()) != 4):
             raise Exception("wrong number of nodes! should be 4!")

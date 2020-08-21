@@ -113,7 +113,8 @@ class StabilizedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "fic",
             "beta": 0.8,
-            "adjust_beta_dynamically": false
+            "adjust_beta_dynamically": false,
+            "dynamic_tau": 0.0
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -125,6 +126,7 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = 0
+        self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
 
     def _SetUpSymbolic(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -180,7 +182,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,

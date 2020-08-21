@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -16,7 +14,7 @@ def Create(settings, models, solver_name):
 
 class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, models, solver_name):
-        super(GaussSeidelStrongCoupledSolver, self).__init__(settings, models, solver_name)
+        super().__init__(settings, models, solver_name)
 
         self.convergence_accelerators_list = factories_helper.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
@@ -31,7 +29,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
         self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
     def Initialize(self):
-        super(GaussSeidelStrongCoupledSolver, self).Initialize()
+        super().Initialize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Initialize()
@@ -40,7 +38,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             conv_crit.Initialize()
 
     def Finalize(self):
-        super(GaussSeidelStrongCoupledSolver, self).Finalize()
+        super().Finalize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Finalize()
@@ -49,7 +47,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             conv_crit.Finalize()
 
     def InitializeSolutionStep(self):
-        super(GaussSeidelStrongCoupledSolver, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.InitializeSolutionStep()
@@ -58,7 +56,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             conv_crit.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(GaussSeidelStrongCoupledSolver, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.FinalizeSolutionStep()
@@ -117,7 +115,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
 
     def Check(self):
-        super(GaussSeidelStrongCoupledSolver, self).Check()
+        super().Check()
 
         if len(self.convergence_criteria_list) == 0:
             raise Exception("At least one convergence criteria has to be specified")
@@ -137,7 +135,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             "convergence_criteria"     : [],
             "num_coupling_iterations"  : 10
         }""")
-        this_defaults.AddMissingParameters(super(GaussSeidelStrongCoupledSolver, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
 
         return this_defaults
 

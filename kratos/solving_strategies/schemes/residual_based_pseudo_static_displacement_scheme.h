@@ -89,7 +89,7 @@ public:
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme()
         : DerivedBaseType(0.0),
-          mRayleighBeta(NODAL_MAUX)
+          mpRayleighBeta(&NODAL_MAUX)
     {
     }
 
@@ -98,8 +98,7 @@ public:
      * @param ThisParameters Parameters with the Rayleigh variable
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
-        : DerivedBaseType(0.0),
-          mRayleighBeta(NODAL_MAUX)
+        : DerivedBaseType(0.0)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -109,7 +108,7 @@ public:
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mRayleighBeta = KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
+        mpRayleighBeta = &KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
     }
 
     /**
@@ -117,7 +116,7 @@ public:
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double>& RayleighBetaVariable)
         :DerivedBaseType(0.0),
-        mRayleighBeta(RayleighBetaVariable)
+        mpRayleighBeta(&RayleighBetaVariable)
     {
     }
 
@@ -125,7 +124,7 @@ public:
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(ResidualBasedPseudoStaticDisplacementScheme& rOther)
         :DerivedBaseType(rOther),
-        mRayleighBeta(rOther.mRayleighBeta)
+        mpRayleighBeta(rOther.mpRayleighBeta)
     {
     }
 
@@ -344,7 +343,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << Info() << ". Considering the following damping variable " << mRayleighBeta;
+        rOStream << Info() << ". Considering the following damping variable " << *mpRayleighBeta;
     }
 
     ///@}
@@ -386,7 +385,7 @@ protected:
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) // if D matrix declared
             noalias(rLHSContribution) += rD * DerivedBaseType::mBossak.c1;
         else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[mRayleighBeta];
+            const double beta = rCurrentProcessInfo[*mpRayleighBeta];
             noalias(rLHSContribution) += rM * beta * DerivedBaseType::mBossak.c1;
         }
     }
@@ -414,7 +413,7 @@ protected:
             rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[mRayleighBeta];
+            const double beta = rCurrentProcessInfo[*mpRayleighBeta];
             rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
@@ -444,7 +443,7 @@ protected:
             rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[mRayleighBeta];
+            const double beta = rCurrentProcessInfo[*mpRayleighBeta];
             rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
@@ -469,7 +468,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Variable<double> mRayleighBeta; /// The Rayleigh Beta variable
+    const Variable<double>* mpRayleighBeta = nullptr; /// The Rayleigh Beta variable
 
     ///@}
     ///@name Private Operators
