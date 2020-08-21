@@ -74,13 +74,26 @@ public:
     }
 
     /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit MixedGenericCriteria(Kratos::Parameters ThisParameters)
+        : BaseType(),
+          mVariableSize(0)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
      * @brief Construct a new Mixed Generic Criteria object
      * Construct the mixed generic convergence criteria from a convergence variables list.
      * The convergence variable list contains for each variable the variable itself as well as the corresponding relative and absolute tolerances.
      * @param rConvergenceVariablesList List containing tuples with the convergence variables to be checked. The tuples are set as <Variable, relative tolerance, absolute tolerance>
      */
     MixedGenericCriteria(const ConvergenceVariableListType& rConvergenceVariablesList)
-        : ConvergenceCriteria<TSparseSpace, TDenseSpace>()
+        : BaseType()
         , mVariableSize([&] (const ConvergenceVariableListType& rList) -> int {return rList.size();} (rConvergenceVariablesList))
         , mVariableDataVector([&] (const ConvergenceVariableListType& rList) -> std::vector<VariableData*> {
             int i = 0;
@@ -174,6 +187,24 @@ public:
     static std::string Name()
     {
         return "mixed_generic_criteria";
+    }
+
+      /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                       : "mixed_generic_criteria",
+            "convergence_variables_list" : []
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
     }
 
     ///@}
@@ -377,6 +408,15 @@ protected:
         } else {
             return false;
         }
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
     }
 
     ///@}
