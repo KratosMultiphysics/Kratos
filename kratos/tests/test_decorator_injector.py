@@ -80,6 +80,9 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         self.virtual_module.add_once(a)
         self.assertEqual(a[0], 1)
 
+    # This tests reports a sucess, but its intention is to test if we can inject the @profile UNDER the code's
+    # existing decorator, otherwhie it will profile the wrapper instead of the function ( which is essentially
+    # the current behaviour)
     def test_virtual_module_profiler_decorated_injected(self):
         DecroatorInjector.InjectIntoModule(self.virtual_module, builtins.__dict__['profile'], lambda *x: True)
 
