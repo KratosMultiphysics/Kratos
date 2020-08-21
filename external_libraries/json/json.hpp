@@ -1,7 +1,7 @@
 /*
     __ _____ _____ _____
  __|  |   __|     |   | |  JSON for Modern C++
-|  |  |__   |  |  | | | |  version 3.9.0
+|  |  |__   |  |  | | | |  version 3.9.1
 |_____|_____|_____|_|___|  https://github.com/nlohmann/json
 
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
@@ -32,7 +32,7 @@ SOFTWARE.
 
 #define NLOHMANN_JSON_VERSION_MAJOR 3
 #define NLOHMANN_JSON_VERSION_MINOR 9
-#define NLOHMANN_JSON_VERSION_PATCH 0
+#define NLOHMANN_JSON_VERSION_PATCH 1
 
 #include <algorithm> // all_of, find, for_each
 #include <cstddef> // nullptr_t, ptrdiff_t, size_t
@@ -2098,6 +2098,13 @@ JSON_HEDLEY_DIAGNOSTIC_POP
 #if !defined(JSON_ASSERT)
     #include <cassert> // assert
     #define JSON_ASSERT(x) assert(x)
+#endif
+
+// allow to access some private functions (needed by the test suite)
+#if defined(JSON_TESTS_PRIVATE)
+    #define JSON_PRIVATE_UNLESS_TESTED public
+#else
+    #define JSON_PRIVATE_UNLESS_TESTED private
 #endif
 
 /*!
@@ -4666,19 +4673,19 @@ std::size_t hash(const BasicJsonType& j)
             return combine(type, h);
         }
 
-        case nlohmann::detail::value_t::number_unsigned:
+        case BasicJsonType::value_t::number_unsigned:
         {
             const auto h = std::hash<number_unsigned_t> {}(j.template get<number_unsigned_t>());
             return combine(type, h);
         }
 
-        case nlohmann::detail::value_t::number_float:
+        case BasicJsonType::value_t::number_float:
         {
             const auto h = std::hash<number_float_t> {}(j.template get<number_float_t>());
             return combine(type, h);
         }
 
-        case nlohmann::detail::value_t::binary:
+        case BasicJsonType::value_t::binary:
         {
             auto seed = combine(type, j.get_binary().size());
             const auto h = std::hash<bool> {}(j.get_binary().has_subtype());
@@ -4691,8 +4698,9 @@ std::size_t hash(const BasicJsonType& j)
             return seed;
         }
 
-        default: // LCOV_EXCL_LINE
-            JSON_ASSERT(false); // LCOV_EXCL_LINE
+        default:                   // LCOV_EXCL_LINE
+            JSON_ASSERT(false);    // LCOV_EXCL_LINE
+            return 0;              // LCOV_EXCL_LINE
     }
 }
 
@@ -6759,13 +6767,13 @@ class lexer : public lexer_base<BasicJsonType>
                                 default:
                                 {
                                     unget();
-                                    break;
+                                    continue;
                                 }
                             }
                         }
 
                         default:
-                            break;
+                            continue;
                     }
                 }
             }
@@ -7390,7 +7398,7 @@ scan_number_done:
         skip_whitespace();
 
         // ignore comments
-        if (ignore_comments && current == '/')
+        while (ignore_comments && current == '/')
         {
             if (!scan_comment())
             {
@@ -8391,8 +8399,9 @@ class binary_reader
                         return parse_cbor_internal(true, tag_handler);
                     }
 
-                    default:            // LCOV_EXCL_LINE
+                    default:                 // LCOV_EXCL_LINE
                         JSON_ASSERT(false);  // LCOV_EXCL_LINE
+                        return false;        // LCOV_EXCL_LINE
                 }
             }
 
@@ -10640,6 +10649,7 @@ class primitive_iterator_t
     static constexpr difference_type begin_value = 0;
     static constexpr difference_type end_value = begin_value + 1;
 
+  JSON_PRIVATE_UNLESS_TESTED:
     /// iterator as signed integer type
     difference_type m_it = (std::numeric_limits<std::ptrdiff_t>::min)();
 
@@ -10932,7 +10942,7 @@ class iter_impl
         return *this;
     }
 
-  private:
+  JSON_PRIVATE_UNLESS_TESTED:
     /*!
     @brief set the iterator to the first value
     @pre The iterator is initialized; i.e. `m_object != nullptr`.
@@ -11396,7 +11406,7 @@ class iter_impl
         return operator*();
     }
 
-  private:
+  JSON_PRIVATE_UNLESS_TESTED:
     /// associated JSON instance
     pointer m_object = nullptr;
     /// the actual iterator of the associated instance
@@ -11911,6 +11921,7 @@ class json_pointer
         return static_cast<size_type>(res);
     }
 
+  JSON_PRIVATE_UNLESS_TESTED:
     json_pointer top() const
     {
         if (JSON_HEDLEY_UNLIKELY(empty()))
@@ -11923,6 +11934,7 @@ class json_pointer
         return result;
     }
 
+  private:
     /*!
     @brief create and return a reference to the pointed to value
 
@@ -12359,6 +12371,7 @@ class json_pointer
         {}
     }
 
+  JSON_PRIVATE_UNLESS_TESTED:
     /// escape "~" to "~0" and "/" to "~1"
     static std::string escape(std::string s)
     {
@@ -12374,6 +12387,7 @@ class json_pointer
         replace_substring(s, "~0", "~");
     }
 
+  private:
     /*!
     @param[in] reference_string  the reference string to the current value
     @param[in] value             the value to consider
@@ -15799,7 +15813,7 @@ class serializer
         }
     }
 
-  private:
+  JSON_PRIVATE_UNLESS_TESTED:
     /*!
     @brief dump escaped string
 
@@ -16062,6 +16076,7 @@ class serializer
         }
     }
 
+  private:
     /*!
     @brief count digits
 
@@ -16395,6 +16410,9 @@ class serializer
 #include <utility> // pair
 #include <vector> // vector
 
+// #include <nlohmann/detail/macro_scope.hpp>
+
+
 namespace nlohmann
 {
 
@@ -16408,6 +16426,7 @@ template <class Key, class T, class IgnoredLess = std::less<Key>,
     using mapped_type = T;
     using Container = std::vector<std::pair<const Key, T>, Allocator>;
     using typename Container::iterator;
+    using typename Container::const_iterator;
     using typename Container::size_type;
     using typename Container::value_type;
 
@@ -16420,7 +16439,7 @@ template <class Key, class T, class IgnoredLess = std::less<Key>,
     ordered_map(std::initializer_list<T> init, const Allocator& alloc = Allocator() )
         : Container{init, alloc} {}
 
-    std::pair<iterator, bool> emplace(key_type&& key, T&& t)
+    std::pair<iterator, bool> emplace(const key_type& key, T&& t)
     {
         for (auto it = this->begin(); it != this->end(); ++it)
         {
@@ -16433,9 +16452,40 @@ template <class Key, class T, class IgnoredLess = std::less<Key>,
         return {--this->end(), true};
     }
 
-    T& operator[](Key&& key)
+    T& operator[](const Key& key)
     {
-        return emplace(std::move(key), T{}).first->second;
+        return emplace(key, T{}).first->second;
+    }
+
+    const T& operator[](const Key& key) const
+    {
+        return at(key);
+    }
+
+    T& at(const Key& key)
+    {
+        for (auto it = this->begin(); it != this->end(); ++it)
+        {
+            if (it->first == key)
+            {
+                return it->second;
+            }
+        }
+
+        JSON_THROW(std::out_of_range("key not found"));
+    }
+
+    const T& at(const Key& key) const
+    {
+        for (auto it = this->begin(); it != this->end(); ++it)
+        {
+            if (it->first == key)
+            {
+                return it->second;
+            }
+        }
+
+        JSON_THROW(std::out_of_range("key not found"));
     }
 
     size_type erase(const Key& key)
@@ -16455,6 +16505,74 @@ template <class Key, class T, class IgnoredLess = std::less<Key>,
             }
         }
         return 0;
+    }
+
+    iterator erase(iterator pos)
+    {
+        auto it = pos;
+
+        // Since we cannot move const Keys, re-construct them in place
+        for (auto next = it; ++next != this->end(); ++it)
+        {
+            it->~value_type(); // Destroy but keep allocation
+            new (&*it) value_type{std::move(*next)};
+        }
+        Container::pop_back();
+        return pos;
+    }
+
+    size_type count(const Key& key) const
+    {
+        for (auto it = this->begin(); it != this->end(); ++it)
+        {
+            if (it->first == key)
+            {
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+    iterator find(const Key& key)
+    {
+        for (auto it = this->begin(); it != this->end(); ++it)
+        {
+            if (it->first == key)
+            {
+                return it;
+            }
+        }
+        return Container::end();
+    }
+
+    const_iterator find(const Key& key) const
+    {
+        for (auto it = this->begin(); it != this->end(); ++it)
+        {
+            if (it->first == key)
+            {
+                return it;
+            }
+        }
+        return Container::end();
+    }
+
+    std::pair<iterator, bool> insert( value_type&& value )
+    {
+        return emplace(value.first, std::move(value.second));
+    }
+
+    std::pair<iterator, bool> insert( const value_type& value )
+    {
+        for (auto it = this->begin(); it != this->end(); ++it)
+        {
+            if (it->first == value.first)
+            {
+                return {it, false};
+            }
+        }
+        Container::push_back(value);
+        return {--this->end(), true};
     }
 };
 
@@ -16577,6 +16695,7 @@ class basic_json
     /// workaround type for MSVC
     using basic_json_t = NLOHMANN_BASIC_JSON_TPL;
 
+  JSON_PRIVATE_UNLESS_TESTED:
     // convenience aliases for types residing in namespace detail;
     using lexer = ::nlohmann::detail::lexer_base<basic_json>;
 
@@ -16592,6 +16711,7 @@ class basic_json
                 std::move(cb), allow_exceptions, ignore_comments);
     }
 
+  private:
     using primitive_iterator_t = ::nlohmann::detail::primitive_iterator_t;
     template<typename BasicJsonType>
     using internal_iterator = ::nlohmann::detail::internal_iterator<BasicJsonType>;
@@ -16608,6 +16728,7 @@ class basic_json
     using binary_reader = ::nlohmann::detail::binary_reader<basic_json, InputType>;
     template<typename CharType> using binary_writer = ::nlohmann::detail::binary_writer<basic_json, CharType>;
 
+  JSON_PRIVATE_UNLESS_TESTED:
     using serializer = ::nlohmann::detail::serializer<basic_json>;
 
   public:
@@ -17322,6 +17443,7 @@ class basic_json
     // JSON value storage //
     ////////////////////////
 
+  JSON_PRIVATE_UNLESS_TESTED:
     /*!
     @brief a JSON value
 
@@ -17440,7 +17562,7 @@ class basic_json
                     object = nullptr;  // silence warning, see #821
                     if (JSON_HEDLEY_UNLIKELY(t == value_t::null))
                     {
-                        JSON_THROW(other_error::create(500, "961c151d2e87f2686a955a9be24d316f1362bf21 3.9.0")); // LCOV_EXCL_LINE
+                        JSON_THROW(other_error::create(500, "961c151d2e87f2686a955a9be24d316f1362bf21 3.9.1")); // LCOV_EXCL_LINE
                     }
                     break;
                 }
@@ -17598,6 +17720,7 @@ class basic_json
         }
     };
 
+  private:
     /*!
     @brief checks the class invariants
 
@@ -23335,7 +23458,7 @@ class basic_json
     }
 
 
-  private:
+  JSON_PRIVATE_UNLESS_TESTED:
     //////////////////////
     // member variables //
     //////////////////////
@@ -24181,7 +24304,7 @@ class basic_json
     string          | 0x02             | string
     document        | 0x03             | object
     array           | 0x04             | array
-    binary          | 0x05             | still unsupported
+    binary          | 0x05             | binary
     undefined       | 0x06             | still unsupported
     ObjectId        | 0x07             | still unsupported
     boolean         | 0x08             | boolean
@@ -25191,6 +25314,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 #undef JSON_CATCH
 #undef JSON_THROW
 #undef JSON_TRY
+#undef JSON_PRIVATE_UNLESS_TESTED
 #undef JSON_HAS_CPP_14
 #undef JSON_HAS_CPP_17
 #undef NLOHMANN_BASIC_JSON_TPL_DECLARATION
