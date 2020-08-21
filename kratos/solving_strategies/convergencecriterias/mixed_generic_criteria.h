@@ -67,6 +67,12 @@ public:
 
     /// Constructor.
 
+    explicit MixedGenericCriteria()
+        : BaseType(),
+          mVariableSize(0)
+    {
+    }
+
     /**
      * @brief Construct a new Mixed Generic Criteria object
      * Construct the mixed generic convergence criteria from a convergence variables list.
@@ -161,6 +167,15 @@ public:
         }
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "mixed_generic_criteria";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -225,7 +240,7 @@ protected:
     {
         return mRatioToleranceVector;
     }
-    
+
     /**
      * @brief Get the Abs Tolerance Vector object
      * Get the member vector containing the absolute tolerances for each variable to check
