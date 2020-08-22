@@ -518,7 +518,7 @@ private:
       for (auto& r_param : ThisParameters["convergence_variables_list"]) {
           const std::string& r_variable_name = r_param["variable"].GetString();
 
-          // Variable point
+          // Variable pointer
           VariableData* p_variable = nullptr;
 
           // Options are double or array
