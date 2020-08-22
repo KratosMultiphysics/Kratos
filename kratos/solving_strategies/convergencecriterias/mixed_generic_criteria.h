@@ -515,27 +515,31 @@ private:
     {
       // Iterate over variables
       ConvergenceVariableListType aux_list;
-      for (auto& r_param : ThisParameters["convergence_variables_list"]) {
-          const std::string& r_variable_name = r_param["variable"].GetString();
+      if (!ThisParameters.Has("convergence_variables_list")) return aux_list;
+      Kratos::Parameters convergence_variables_list = ThisParameters["convergence_variables_list"];
+      for (auto param : convergence_variables_list) {
+          if (param.Has("variable")) {
+              const std::string& r_variable_name = param["variable"].GetString();
 
-          // Variable pointer
-          VariableData* p_variable = nullptr;
+              // Variable pointer
+              VariableData* p_variable = nullptr;
 
-          // Options are double or array
-          if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-              const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
-              p_variable = &const_cast<Variable<double>&>(r_variable);
-          } else {
-              const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-              p_variable = &const_cast<Variable<array_1d<double, 3>>&>(r_variable);
+              // Options are double or array
+              if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+                  const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+                  p_variable = &const_cast<Variable<double>&>(r_variable);
+              } else {
+                  const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
+                  p_variable = &const_cast<Variable<array_1d<double, 3>>&>(r_variable);
+              }
+
+              // Tolerances
+              const double rel_tol = param.Has("relative_tolerance") ? param["relative_tolerance"].GetDouble() : 1.0e-4;
+              const double abs_tol = param.Has("absolute_tolerance") ? param["absolute_tolerance"].GetDouble() : 1.0e-9;
+
+              // Push back list
+              aux_list.push_back(std::make_tuple(p_variable, rel_tol, abs_tol));
           }
-
-          // Tolerances
-          const double rel_tol = r_param["relative_tolerance"].GetDouble();
-          const double abs_tol = r_param["absolute_tolerance"].GetDouble();
-
-          // Push back list
-          aux_list.push_back(std::make_tuple(p_variable, rel_tol, abs_tol));
       }
 
       return aux_list;
