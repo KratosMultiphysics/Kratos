@@ -67,6 +67,12 @@ public:
   void ExecuteInitializeSolutionStep() override;
 
   /**
+   * @brief This function is designed for being called at the beginning of the computations
+   * right after reading the model and the groups
+   */
+  void ExecuteInitialize() override;
+
+  /**
    * @brief Function finalizes the solution step
    */
   void ExecuteFinalizeSolutionStep() override;

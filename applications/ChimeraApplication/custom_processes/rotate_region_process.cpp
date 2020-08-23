@@ -80,6 +80,15 @@ void RotateRegionProcess::SetAngularVelocity(const double NewAngularVelocity)
   mAngularVelocityRadians = NewAngularVelocity;
 }
 
+void RotateRegionProcess::ExecuteInitialize()
+{
+  auto &r_model = mrModelPart.GetModel();
+  auto &r_torque_model_part = r_model.HasModelPart(mParameters["torque_model_part_name"].GetString()) ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
+
+  mTheta = r_torque_model_part.GetValue(ROTATIONAL_ANGLE);
+}
+
+
 void RotateRegionProcess::ExecuteFinalizeSolutionStep()
 {
   const auto &r_process_info = mrModelPart.GetProcessInfo();
