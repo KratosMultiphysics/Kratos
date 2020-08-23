@@ -68,6 +68,9 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         # Making the actual process
         self.rotate_region_process = KratosChimera.RotateRegionProcess(self.model_part, settings)
 
+    def ExecuteInitialize(self):
+        self.rotate_region_process.ExecuteInitialize()
+
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
 
