@@ -511,7 +511,7 @@ private:
      * @param ThisParameters Input parameters
      * @return List of variables considered as input
      */
-    ConvergenceVariableListType GenerateConvergenceVariableListFromParameters(Kratos::Parameters ThisParameters)
+    static ConvergenceVariableListType GenerateConvergenceVariableListFromParameters(Kratos::Parameters ThisParameters)
     {
       // Iterate over variables
       ConvergenceVariableListType aux_list;
