@@ -314,13 +314,12 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
-    ProcessInfo process_info = rCurrentProcessInfo;
 
     Vector RHS;
-    this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+    this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
     // Get pseudo-load from utility
-    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
+    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
     {
@@ -341,7 +340,6 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     KRATOS_TRY;
 
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
-    ProcessInfo process_info = rCurrentProcessInfo;
 
     const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
     const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -359,14 +357,14 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
         IndexType index = 0;
 
         Vector RHS;
-        pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+        pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
         for(auto& node_i : mpPrimalElement->GetGeometry())
         {
             for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
             {
                 // Get pseudo-load contribution from utility
                 FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, *coord_directions[coord_dir_i],
-                                                                            node_i, delta, derived_RHS, process_info);
+                                                                            node_i, delta, derived_RHS, rCurrentProcessInfo);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 

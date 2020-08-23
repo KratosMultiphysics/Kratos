@@ -152,14 +152,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart&, LinearSolverType::Pointer >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
-    .def("Clear", &DistanceSmoothingProcess<2, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
     ;
 
     py::class_<DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, DistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"DistanceSmoothingProcess3D")
     .def(py::init< ModelPart&, LinearSolverType::Pointer >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
-    .def("Clear", &DistanceSmoothingProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType>::Clear)
     ;
 }
 
