@@ -241,12 +241,14 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
     rGatheredModelPart.RemoveNode(node_id);
 
 #ifdef KRATOS_USING_MPI
-  ModelPart &r_root_mp = rModelPartToGather.GetRootModelPart();
-  Communicator::Pointer p_new_comm = Kratos::make_shared<MPICommunicator>(
-      &rModelPartToGather.GetNodalSolutionStepVariablesList(),
-      r_root_mp.GetCommunicator().GetDataCommunicator());
-  rGatheredModelPart.SetCommunicator(p_new_comm);
-  // ParallelFillCommunicator(rGatheredModelPart).Execute();
+  if(r_comm.IsDistributed()){
+    ModelPart &r_root_mp = rModelPartToGather.GetRootModelPart();
+    Communicator::Pointer p_new_comm = Kratos::make_shared<MPICommunicator>(
+        &rModelPartToGather.GetNodalSolutionStepVariablesList(),
+        r_root_mp.GetCommunicator().GetDataCommunicator());
+    rGatheredModelPart.SetCommunicator(p_new_comm);
+    // ParallelFillCommunicator(rGatheredModelPart).Execute();
+  }
 #endif
 }
 

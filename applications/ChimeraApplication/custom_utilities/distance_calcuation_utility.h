@@ -102,11 +102,13 @@ public:
         ModelPart &r_gathered_skin_mp = r_comm.IsDistributed() ? current_model.CreateModelPart("GatheredSkin") : rSkinModelPart;
 
 #ifdef KRATOS_USING_MPI
-        ModelPart& r_root_mp = rVolumeModelPart.GetRootModelPart();
-        Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rVolumeModelPart.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
-        r_gathered_skin_mp.SetCommunicator(pnew_comm);
-        GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rSkinModelPart, r_gathered_skin_mp);
-        ParallelFillCommunicator(r_gathered_skin_mp).Execute();
+        if(r_comm.IsDistributed()){
+            ModelPart& r_root_mp = rVolumeModelPart.GetRootModelPart();
+            Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rVolumeModelPart.GetNodalSolutionStepVariablesList(), r_root_mp.GetCommunicator().GetDataCommunicator());
+            r_gathered_skin_mp.SetCommunicator(pnew_comm);
+            GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rSkinModelPart, r_gathered_skin_mp);
+            ParallelFillCommunicator(r_gathered_skin_mp).Execute();
+        }
 #endif
         const int n_skin_nodes = static_cast<int>(r_gathered_skin_mp.NumberOfNodes());
         if(n_skin_nodes != 0 && n_vol_nodes != 0)

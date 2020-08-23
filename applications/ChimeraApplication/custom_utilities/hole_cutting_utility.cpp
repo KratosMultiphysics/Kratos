@@ -129,8 +129,10 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         }
     }
 
-#ifdef KRATOS_USING_MPI 
-    ParallelFillCommunicator(rRemovedModelPart).Execute();
+#ifdef KRATOS_USING_MPI
+    const auto &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+    if(r_comm.IsDistributed())
+        ParallelFillCommunicator(rRemovedModelPart).Execute();
 #endif
 
 if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE)
