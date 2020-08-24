@@ -31,6 +31,7 @@ class AdjointFiniteDifferenceTrussElementLinear
     class ThisExtensions : public AdjointExtensions
     {
         Element* mpElement;
+        bool mHasRotationDofs;
 
     public:
         explicit ThisExtensions(Element* pElement);
@@ -127,9 +128,6 @@ public:
 
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                  std::vector< array_1d<double, 3 > >& rOutput,

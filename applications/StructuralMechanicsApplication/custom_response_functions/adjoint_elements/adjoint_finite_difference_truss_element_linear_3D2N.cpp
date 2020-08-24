@@ -21,8 +21,8 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement)
-    : mpElement{pElement}
+AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement, bool HasRotationDofs)
+    : mpElement{pElement}, mHasRotationDofs(HasRotationDofs)
 {
 }
 
@@ -39,6 +39,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::ThisExtensions::
     {
         rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
     }
+
 }
 
 template <class TPrimalElement>
@@ -189,7 +190,7 @@ template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::Initialize(rCurrentProcessInfo);
-    this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+    this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this, HasRotationDofs));
 }
 
 template <class TPrimalElement>
@@ -274,59 +275,6 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateSecondD
     BaseType::CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
     noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
     KRATOS_CATCH("");
-}
-
-template <class TPrimalElement>
-void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateSensitivityMatrix(
-                                            const Variable<double>& rDesignVariable, Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
-    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-    const SizeType local_size = number_of_nodes * dimension;
-
-    if (this->Has(rDesignVariable) && rDesignVariable == CROSS_AREA) 
-    {
-        if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) 
-        {
-                rOutput.resize(0, local_size, false);
-        }
-
-        // save original cross area parameters
-        const auto variable_value = this->pGetPrimalElement()->GetValue(rDesignVariable);
-
-        // reset original cross area parameter before computing the derivative
-        this->pGetPrimalElement()->SetValue(rDesignVariable, rDesignVariable.Zero());
-
-        ProcessInfo process_info = rCurrentProcessInfo;
-        Vector RHS;
-
-        // The following approach assumes a linear dependency between RHS and cross area
-        double perturbed_nodal_cross_area = 1.0;
-        this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_cross_area);
-        this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
-
-        KRATOS_ERROR_IF_NOT(RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
-        for(IndexType i = 0; i < RHS.size(); ++i) 
-        {
-            rOutput(0, i) = RHS[i];
-        }
-        
-        // give original stiffness parameters back
-        this->pGetPrimalElement()->SetValue(rDesignVariable, variable_value);
-    }
-    else 
-    {
-        if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) 
-        {
-            rOutput.resize(0, local_size, false);
-        }
-        noalias(rOutput) = ZeroMatrix(0, local_size);
-    }
-
-    KRATOS_CATCH("")
 }
 
 template <class TPrimalElement>
