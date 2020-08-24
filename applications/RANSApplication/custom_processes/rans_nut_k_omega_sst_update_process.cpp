@@ -46,7 +46,6 @@ RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
     mModelPartName = rParameters["model_part_name"].GetString();
     mMinValue = rParameters["min_value"].GetDouble();
     mA1 = rParameters["a1"].GetDouble();
-    mB1 = rParameters["b1"].GetDouble();
     mBetaStar = rParameters["beta_star"].GetDouble();
 
     KRATOS_CATCH("");
@@ -240,7 +239,6 @@ const Parameters RansNutKOmegaSSTUpdateProcess::GetDefaultParameters() const
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
             "a1"              : 0.31,
-            "b1"              : 1.0,
             "beta_star"       : 0.09,
             "min_value"       : 1e-15
         })");

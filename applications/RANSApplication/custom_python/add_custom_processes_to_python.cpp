@@ -49,10 +49,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
-
     using RansWallFunctionUpdateProcessType = RansWallFunctionUpdateProcess;
     py::class_<RansWallFunctionUpdateProcessType, RansWallFunctionUpdateProcessType::Pointer, Process>(m, "RansWallFunctionUpdateProcess")
         .def(py::init<Model&, Parameters&>())
@@ -88,7 +84,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, const std::string&, const double, const int>());
 
     // k-omega-sst specific processes
-    using RansWallDistanceCalculationProcessType = RansWallDistanceCalculationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using RansWallDistanceCalculationProcessType = RansWallDistanceCalculationProcess;
     py::class_<RansWallDistanceCalculationProcessType, RansWallDistanceCalculationProcessType::Pointer, Process>(m, "RansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 
