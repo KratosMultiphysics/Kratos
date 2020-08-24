@@ -63,11 +63,11 @@ public:
                    int Nchunks = omp_get_max_threads())
         : mNchunks(Nchunks)
     {
-        ptrdiff_t mBlockPartitionSize = (it_end-it_begin) / mNchunks;
+        ptrdiff_t block_partition_size = (it_end-it_begin) / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
         for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
         }
     }
 
@@ -159,11 +159,11 @@ public:
                    int Nchunks = omp_get_max_threads())
         : mNchunks(Nchunks)
     {
-        int mBlockPartitionSize = Size / mNchunks;
+        int block_partition_size = Size / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = Size;
         for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
         }
 
     }
