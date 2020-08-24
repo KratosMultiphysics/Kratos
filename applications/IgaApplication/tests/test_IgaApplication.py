@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
-from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
+from iga_5p_element_tests import Iga5pElementTests
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -29,16 +29,14 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
-        TShell5pHierarchicLinearThickBeamTest,
+        Iga5pElementTests,
         TTestModelers
         ]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([]))
 
     allSuite = suites['all']
-    allSuite.addTests(smallSuite)
     allSuite.addTests(nightSuite)
 
     return suites
