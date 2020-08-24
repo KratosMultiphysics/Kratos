@@ -61,13 +61,14 @@ public:
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
-        : mNchunks(Nchunks)
     {
-        ptrdiff_t mBlockPartitionSize = (it_end-it_begin) / mNchunks;
+        int size_container = it_end-it_begin;
+        mNchunks = std::min(size_container, Nchunks);
+        ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
         for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
         }
     }
 
@@ -157,13 +158,13 @@ public:
  */
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
-        : mNchunks(Nchunks)
     {
-        int mBlockPartitionSize = Size / mNchunks;
+        mNchunks = std::min(static_cast<int>(Size), Nchunks);
+        const int block_partition_size = Size / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = Size;
         for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
         }
 
     }
