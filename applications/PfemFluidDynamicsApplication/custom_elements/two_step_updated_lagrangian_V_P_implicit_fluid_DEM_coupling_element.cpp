@@ -571,7 +571,7 @@ void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::CalculateL
   double totalVolume = 0;
   bool computeElement = false;
   // Loop on integration points
-  for (unsigned int g = 0; g < NumGauss; g++)
+  for (unsigned int g = 0; g < NumGauss; ++g)
   {
     const double GaussWeight = GaussWeights[g];
     totalVolume += GaussWeight;

@@ -54,6 +54,8 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                        BaseType;
 
+    typedef ResidualBasedPseudoStaticDisplacementScheme<TSparseSpace, TDenseSpace> ClassType;
+
     typedef typename BaseType::TDataType                                           TDataType;
 
     typedef typename BaseType::DofsArrayType                                   DofsArrayType;
@@ -76,8 +78,6 @@ public:
 
     typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
 
-    typedef typename BaseType::LocalSystemComponents               LocalSystemComponentsType;
-
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -85,12 +85,20 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedPseudoStaticDisplacementScheme()
+        : DerivedBaseType(0.0),
+          mpRayleighBeta(&NODAL_MAUX)
+    {
+    }
+
+    /**
      * @brief Constructor. The pseudo static scheme (parameters)
      * @param ThisParameters Parameters with the Rayleigh variable
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
-        : DerivedBaseType(0.0),
-          mRayleighBeta(NODAL_MAUX)
+        : DerivedBaseType(0.0)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -100,7 +108,7 @@ public:
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mRayleighBeta = KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
+        mpRayleighBeta = &KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
     }
 
     /**
@@ -108,7 +116,7 @@ public:
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double>& RayleighBetaVariable)
         :DerivedBaseType(0.0),
-        mRayleighBeta(RayleighBetaVariable)
+        mpRayleighBeta(&RayleighBetaVariable)
     {
     }
 
@@ -116,7 +124,7 @@ public:
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(ResidualBasedPseudoStaticDisplacementScheme& rOther)
         :DerivedBaseType(rOther),
-        mRayleighBeta(rOther.mRayleighBeta)
+        mpRayleighBeta(rOther.mpRayleighBeta)
     {
     }
 
@@ -141,6 +149,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Performing the update of the solution
@@ -290,6 +307,15 @@ public:
         KRATOS_CATCH( "" );
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "pseudo_static_scheme";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -317,7 +343,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << Info() << ". Considering the following damping variable " << mRayleighBeta;
+        rOStream << Info() << ". Considering the following damping variable " << *mpRayleighBeta;
     }
 
     ///@}
@@ -359,7 +385,7 @@ protected:
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) // if D matrix declared
             noalias(rLHSContribution) += rD * DerivedBaseType::mBossak.c1;
         else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[mRayleighBeta];
+            const double beta = rCurrentProcessInfo[*mpRayleighBeta];
             noalias(rLHSContribution) += rM * beta * DerivedBaseType::mBossak.c1;
         }
     }
@@ -387,7 +413,7 @@ protected:
             rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[mRayleighBeta];
+            const double beta = rCurrentProcessInfo[*mpRayleighBeta];
             rElement.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
@@ -417,7 +443,7 @@ protected:
             rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[mRayleighBeta];
+            const double beta = rCurrentProcessInfo[*mpRayleighBeta];
             rCondition.GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
             noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
@@ -442,7 +468,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Variable<double> mRayleighBeta; /// The Rayleigh Beta variable
+    const Variable<double>* mpRayleighBeta = nullptr; /// The Rayleigh Beta variable
 
     ///@}
     ///@name Private Operators

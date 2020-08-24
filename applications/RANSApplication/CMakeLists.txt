@@ -25,22 +25,14 @@ file(GLOB_RECURSE KRATOS_RANS_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
+## RANSApplication testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-  set( KRATOS_RANS_APPLICATION_TESTING
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_k_epsilon_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_adjoint_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_epsilon_vms_monolithic_adjoint_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_k_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_k_epsilon_vms_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_monolithic_k_epsilon_vms_adjoint_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_evm_monolithic_k_epsilon_vms_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_rans_evm_k_epsilon_conditions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/evm_k_epsilon/test_rans_evm_k_epsilon_elements.cpp
-  )
+file(GLOB_RECURSE KRATOS_RANS_APPLICATION_TESTING_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosRANSCore SHARED ${KRATOS_RANS_APPLICATION_CORE} ${KRATOS_RANS_APPLICATION_TESTING})
+add_library(KratosRANSCore SHARED ${KRATOS_RANS_APPLICATION_CORE} ${KRATOS_RANS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosRANSCore PUBLIC KratosCore KratosFluidDynamicsCore)
 set_target_properties(KratosRANSCore PROPERTIES COMPILE_DEFINITIONS "RANS_APPLICATION=EXPORT,API")
 
