@@ -134,6 +134,22 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vecto
 }
 
 template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if(rVariable == PRIMAL_VALUES_VECTOR) {
+           this->pGetPrimalElement()->GetValuesVector(rOutput, 0);
+    } else {
+        KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
+        rOutput.clear();
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
 {

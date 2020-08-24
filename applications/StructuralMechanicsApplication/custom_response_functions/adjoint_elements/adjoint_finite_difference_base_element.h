@@ -317,11 +317,8 @@ public:
     }
 
     void Calculate(const Variable<Vector >& rVariable,
-			   Vector& Output,
-			   const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "Calculate of the adjoint base element is called!" << std::endl;
-    }
+			   Vector& rOutput,
+			   const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(const Variable<Matrix >& rVariable,
 			   Matrix& Output,

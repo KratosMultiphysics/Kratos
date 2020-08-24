@@ -408,6 +408,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         type_labels = {
             "adjoint_nodal_displacement" : "NodalDisplacement",
             "adjoint_linear_strain_energy" : "StrainEnergy",
+            "adjoint_linear_strain_energy_of_parts" : "StrainEnergyOfParts",
             "adjoint_local_stress" : "LocalStress",
             "adjoint_max_stress" : "MaxStress",
             "adjoint_nodal_reaction" : "NodalReaction"

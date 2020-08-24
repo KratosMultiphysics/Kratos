@@ -30,6 +30,7 @@
 #include "custom_response_functions/response_utilities/adjoint_max_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_of_parts_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_reaction_response_function.h"
 
 namespace Kratos {
@@ -81,6 +82,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLinearStrainEnergyResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<AdjointLinearStrainEnergyOfPartsResponseFunction, AdjointLinearStrainEnergyOfPartsResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointLinearStrainEnergyOfPartsResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
     py::class_<AdjointNodalReactionResponseFunction, AdjointNodalReactionResponseFunction::Pointer, AdjointResponseFunction>
