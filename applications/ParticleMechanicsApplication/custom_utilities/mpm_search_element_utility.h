@@ -34,6 +34,7 @@
 #include "boost/geometry/geometries/register/point.hpp"
 #include "boost/geometry/geometries/register/ring.hpp"
 
+#include "mpi/element_communicator_mpi.h"
 
 namespace Kratos
 {
@@ -1061,6 +1062,9 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
 
+        // temporary copy of missing elements
+        std::vector<typename Condition::Pointer> missing_conditions= {};
+
         #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
@@ -1155,13 +1159,17 @@ namespace MPMSearchElementUtility
                     } else {
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
                             << " is failed. Geometry is cleared." << std::endl;
-
-                        condition_itr->GetGeometry().clear();
-                        condition_itr->Reset(ACTIVE);
-                        condition_itr->Set(TO_ERASE);
+                        missing_conditions.push_back(&*condition_itr);
+                        // condition_itr->GetGeometry().clear();
+                        // condition_itr->Reset(ACTIVE);
+                        // condition_itr->Set(TO_ERASE);
                     }
                 }
             }
+        }
+        rMissingConditions = {};
+        for( auto& cond : missing_conditions){
+            rMissingConditions.push_back(cond);
         }
     }
 
@@ -1206,6 +1214,8 @@ namespace MPMSearchElementUtility
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,
                 rBackgroundGridModelPart, missing_elements, missing_conditions,
                 MaxNumberOfResults, Tolerance);
+
+        ElementCommunicatorMPI::MPI_InitialSearch(rMPMModelPart, rBackgroundGridModelPart, missing_conditions);
     }
 } // end namespace MPMSearchElementUtility
 

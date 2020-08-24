@@ -10,7 +10,6 @@ def Factory(settings, Model):
 class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
-
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
@@ -137,8 +136,11 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         if (self.model_part_name.startswith('Background_Grid.')):
             self.model_part_name = self.model_part_name.replace('Background_Grid.','')
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
-        self.model_part = self.model[mpm_material_model_part_name]
-        self.ExecuteInitializeSolutionStep()
+
+        if( self.model.HasModelPart(mpm_material_model_part_name )):
+            self.model_part = self.model[mpm_material_model_part_name]
+        #TODO: Is the function call below really required?
+        #self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -146,7 +148,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
@@ -154,7 +156,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             if self.interval.IsInInterval(current_time):
 
                 self.step_is_active = True
-                
+
                 # Loop over components X, Y and Z
                 for i in range(3):
                     self.variable = self.name[i]
@@ -163,6 +165,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                             self.value[i] = self.aux_function[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
                         else: #most general case - space varying function (possibly also time varying)
                             self.value[i] = self.aux_function[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0)
-                            
-                        
+
+
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)

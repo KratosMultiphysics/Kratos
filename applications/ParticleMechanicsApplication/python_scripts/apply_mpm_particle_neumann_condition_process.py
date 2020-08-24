@@ -66,14 +66,14 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
             err_msg += "Available options are: " + ", ".join(variable_name_list)
             raise Exception(err_msg)
 
-        
+
         self.vector_direction = KratosMultiphysics.Vector(3)
         self.aux_function_direction = ["0.0","0.0","0.0"]
         self.value_direction_is_numeric = [False, False, False]
         for i in range(3):
             if settings["direction"][i].IsNumber():
                 self.value_direction_is_numeric[i] = True
-                self.vector_direction[i] = settings["direction"][i].GetDouble() 
+                self.vector_direction[i] = settings["direction"][i].GetDouble()
             else:
                 self.function_string_direction = settings["direction"][i].GetString()
                 self.aux_function_direction[i] = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string_direction, settings["local_axes"])
@@ -82,7 +82,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         self.value_is_numeric = False
         self.value = KratosMultiphysics.Vector(3)
         self.aux_function = "0.0"
-        
+
         if settings["modulus"].IsNumber():
             self.value_is_numeric = True
             self.modulus = settings["modulus"].GetDouble()
@@ -125,8 +125,10 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         if (self.model_part_name.startswith('Background_Grid.')):
             self.model_part_name = self.model_part_name.replace('Background_Grid.','')
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
-        self.model_part = self.model[mpm_material_model_part_name]
-        self.ExecuteInitializeSolutionStep()
+        if( self.model.HasModelPart(mpm_material_model_part_name )):
+            self.model_part = self.model[mpm_material_model_part_name]
+        #TODO Check if function call below is really required?
+        #self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -134,12 +136,12 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            
+
             mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
-           
+
 
             if self.interval.IsInInterval(current_time):
 
@@ -148,11 +150,11 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
                 for i in range(3):
                     if not self.value_direction_is_numeric[i]:
                         if self.aux_function_direction[i].DependsOnSpace() == False: #depends on time only
-                            self.vector_direction[i] = self.aux_function_direction[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0) 
+                            self.vector_direction[i] = self.aux_function_direction[i].CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
                         else: #most general case - space varying function (possibly also time varying)
-                            self.vector_direction[i]= self.aux_function_direction[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0) 
-                
-                
+                            self.vector_direction[i]= self.aux_function_direction[i].CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0)
+
+
                 if not self.value_is_numeric:
                     if self.aux_function.DependsOnSpace() == False: #depends on time only
                         self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0) * self.vector_direction
@@ -160,7 +162,4 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
                         self.value = self.aux_function.CallFunction(mpc_coord[0],mpc_coord[1],mpc_coord[2],current_time,0.0,0.0,0.0) * self.vector_direction
                 else:
                     self.value = self.vector_direction * self.modulus
-                        
-
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD,[self.value],self.model_part.ProcessInfo)
-                
