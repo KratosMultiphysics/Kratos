@@ -35,11 +35,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         solver_settings = project_parameters["solver_settings"]
         self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
 
-        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(StructuralMechanicsAnalysis, self).Initialize()
+        super().Initialize()
 
         # In case of contact problem
         if self.contact_problem:
@@ -67,7 +67,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
-        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
+        super().OutputSolutionStep()
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -80,7 +80,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",

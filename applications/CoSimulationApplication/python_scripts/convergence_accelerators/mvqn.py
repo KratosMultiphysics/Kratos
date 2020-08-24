@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 ## @module iqnils
 # This module contains the class MVQNConvergenceAccelerator
 # Author: Wei He
@@ -31,7 +29,7 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
     def __init__( self, settings):
-        super(MVQNConvergenceAccelerator, self).__init__(settings)
+        super().__init__(settings)
 
         horizon = self.settings["horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()
@@ -113,5 +111,5 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             "horizon" : 15,
             "alpha"   : 0.125
         }""")
-        this_defaults.AddMissingParameters(super(MVQNConvergenceAccelerator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
         return this_defaults

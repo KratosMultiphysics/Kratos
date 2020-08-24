@@ -48,7 +48,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "time_step"           : -0.1
             },
             "consider_periodic_conditions": false,
-            "assign_neighbour_elements_to_conditions": false
+            "assign_neighbour_elements_to_conditions": true
         }""")
 
         default_settings.AddMissingParameters(super(AdjointVMSMonolithicSolver, cls).GetDefaultSettings())
