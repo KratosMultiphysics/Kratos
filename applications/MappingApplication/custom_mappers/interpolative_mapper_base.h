@@ -94,7 +94,7 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        KRATOS_ERROR_IF(mMapperSettings["use_initial_configuration"].GetBool()) << "Updating the interface doesn't make sense when using the initial configuration for mapping!" << std::endl;
+        KRATOS_WARNING_IF("Mapper", mMapperSettings["use_initial_configuration"].GetBool()) << "Updating the interface while using the initial configuration for mapping!" << std::endl;
 
         // Set the Flags according to the type of remeshing
         if (MappingOptions.Is(MapperFlags::REMESHED)) {
