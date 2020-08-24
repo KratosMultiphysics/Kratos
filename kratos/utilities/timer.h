@@ -359,10 +359,10 @@ private:
     }
 
     static std::string CreateFullLabel(){
-        auto& labels_stack = GetLabelsStackInstance();
+        const auto& r_labels_stack = GetLabelsStackInstance();
         std::string result;
-        for(auto& label : labels_stack){
-        result += "/" + label;
+        for(const auto& r_label : r_labels_stack){
+        result += "/" + r_label;
         }
         return result;
     }
