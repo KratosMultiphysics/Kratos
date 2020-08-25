@@ -27,27 +27,27 @@
 
 // Defining the OS
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
-    #define KRATOS_COMPILED_IN_LINUX
+#define KRATOS_COMPILED_IN_LINUX
 #elif defined(__APPLE__) && defined(__MACH__)
-    #define KRATOS_COMPILED_IN_OS
+#define KRATOS_COMPILED_IN_OS
 #elif defined(_WIN32) || defined(_WIN64)
-    #define KRATOS_COMPILED_IN_WINDOWS
+#define KRATOS_COMPILED_IN_WINDOWS
 #endif
 
 // Defining the architecture (see https://sourceforge.net/p/predef/wiki/Architectures/)
 // Check Windows
 #if defined(_WIN32) || defined(_WIN64)
-   #if defined(_WIN64)
-     #define KRATOS_ENV64BIT
-   #else
-     #define KRATOS_ENV32BIT
-  #endif
+#if defined(_WIN64)
+#define KRATOS_ENV64BIT
+#else
+#define KRATOS_ENV32BIT
+#endif
 #else // It is POSIX (Linux, MacOSX, BSD...)
-  #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
-    #define KRATOS_ENV64BIT
-  #else // This includes __arm__ and __x86__
-    #define KRATOS_ENV32BIT
-  #endif
+#if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
+#define KRATOS_ENV64BIT
+#else // This includes __arm__ and __x86__
+#define KRATOS_ENV32BIT
+#endif
 #endif
 
 //-----------------------------------------------------------------
@@ -156,6 +156,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
   KRATOS_API(application) extern Kratos::Variable<double> name##_X;\
   KRATOS_API(application) extern Kratos::Variable<double> name##_Y;\
   KRATOS_API(application) extern Kratos::Variable<double> name##_Z;
+
+#ifdef KRATOS_DEFINE_2D_APPLICATION_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_DEFINE_2D_APPLICATION_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_DEFINE_2D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
+  KRATOS_API(application) extern Kratos::Variable<Kratos::array_1d<double, 2> > name; \
+  KRATOS_API(application) extern Kratos::Variable<double> name##_1;\
+  KRATOS_API(application) extern Kratos::Variable<double> name##_2;
 
 #ifdef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
@@ -300,11 +308,29 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     /*const*/ Kratos::Variable<double> \
                   component3(#component3, &name, 2);
 
+#ifdef KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS
+#undef KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS
+#endif
+#define KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2) \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 2> > name(#name, Kratos::array_1d<double, 2>(Kratos::ZeroVector(2))); \
+\
+    /*const*/ Kratos::Variable<double> \
+                  component1(#component1, &name, 0); \
+\
+    /*const*/ Kratos::Variable<double> \
+                  component2(#component2, &name, 1);
+
 #ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
 #endif
 #define KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(name) \
      KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_X, name##_Y, name##_Z)
+
+#ifdef KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS(name) \
+     KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_1, name##_2)
 
 #ifdef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
@@ -782,8 +808,8 @@ __pragma(warning(pop))
 
 namespace Kratos
 {
-///@name Type Definitions
-///@{
+    ///@name Type Definitions
+    ///@{
 
 #if defined(_MSC_VER)
 #pragma warning (disable: 4355)
