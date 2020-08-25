@@ -69,16 +69,8 @@ namespace Kratos
             mpMappingMatrix = pMappingMatrix;
         };
 
-        void EquilibrateDomains()
-        {
-            // calculate interface free veloicity
-            // (map dest domain to origin)
-            // calculate sensitivity velocities
-            // calculate condensation matrix
-            // calculate lagrange mults
-            // calculate correction velocities
-            // apply correct
-        }
+        void EquilibrateDomains();
+
 
         //void KRATOS_API(CO_SIMULATION_APPLICATION) FindIntersection1DGeometries2D(
 
@@ -94,6 +86,7 @@ namespace Kratos
         MappingMatrixType* mpMappingMatrix = nullptr;
 
 
+        void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);
 
 
 

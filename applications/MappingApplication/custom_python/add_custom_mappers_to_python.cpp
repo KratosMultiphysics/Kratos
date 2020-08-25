@@ -158,6 +158,7 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 
             .def("GetInterfaceModelPart", &MapperType::GetInterfaceModelPart)
             .def("pGetMappingMatrix", &MapperType::pGetMappingMatrix)
+            .def("pGetDenseMappingMatrix", &MapperType::pGetDenseMappingMatrix)
 
             .def("__str__",             PrintObject<MapperType>)
             ;

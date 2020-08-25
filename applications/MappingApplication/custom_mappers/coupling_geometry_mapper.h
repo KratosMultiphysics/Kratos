@@ -243,6 +243,11 @@ public:
         KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
+    DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix() override
+    {
+        return mpMappingMatrix;
+    }
+
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
