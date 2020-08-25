@@ -36,7 +36,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         self._validate_settings_in_baseclass=True # To be removed eventually
 
         # Construct the base solver.
-        super(MPCContactStaticSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         self.mpc_contact_settings = self.settings["mpc_contact_settings"]
         self.mpc_contact_settings.RecursivelyAddMissingParameters(GetDefaults()["mpc_contact_settings"])
@@ -54,7 +54,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
 
     def AddVariables(self):
 
-        super(MPCContactStaticSolver, self).AddVariables()
+        super().AddVariables()
 
         # We add the contact related variables
         contact_type = self.mpc_contact_settings["contact_type"].GetString()
@@ -63,7 +63,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactStaticSolver]:: ", "Initializing ...")
 
-        super(MPCContactStaticSolver, self).Initialize() # The mechanical solver is created here.
+        super().Initialize() # The mechanical solver is created here.
 
         # We set the flag INTERACTION
         if self.mpc_contact_settings["simplified_semi_smooth_newton"].GetBool():
