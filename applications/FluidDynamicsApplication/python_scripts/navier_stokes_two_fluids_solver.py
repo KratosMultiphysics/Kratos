@@ -460,6 +460,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ###############################
 
             if self.model.HasModelPart("FluidModelPart.Slip3D"):
+                x_center = 4.0e-3
+                y_center = x_center
+                z_center = 0.0
+                mean_radius = 0.0
+                num_points = 0.0
                 for slip_condition in self.slip_model_part.Conditions:
                     num_positive = 0
                     num_negative = 0
@@ -509,10 +514,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                             y_zero = 0.5*((abs_dist_positive[0]*y_negative[0]+abs_dist_negative[0]*y_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[0]*y_negative[1]+abs_dist_negative[1]*y_positive[0])/(abs_dist_positive[0]+abs_dist_negative[1]))
                             z_zero = 0.5*((abs_dist_positive[0]*z_negative[0]+abs_dist_negative[0]*z_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[0]*z_negative[1]+abs_dist_negative[1]*z_positive[0])/(abs_dist_positive[0]+abs_dist_negative[1]))
 
-                mean_radius = 0.0
+                        num_points += 1.0
+                        mean_radius += math.sqrt((x_center-x_zero)**2+(y_center-y_zero)**2+(z_center-z_zero)**2)
 
                 with open("ZeroDistance_Unstructured.log", "a") as USdistLogFile:
-                    USdistLogFile.write( str(TimeStep*DT) + "\t" + str(mean_radius) + "\n" )
+                    USdistLogFile.write( str(TimeStep*DT) + "\t" + str(mean_radius/num_points) + "\n" )
 
             #############################
             # Zero Disance - Structured #
