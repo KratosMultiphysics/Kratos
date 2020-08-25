@@ -454,7 +454,7 @@ namespace Kratos
             // }
           }
 
-          if (freeSurfaceNodes == numNodes && rigidNodes == 0 && isolatedNodes >= (numNodes-1))
+          if (freeSurfaceNodes == numNodes && rigidNodes == 0 && isolatedNodes >= (numNodes - 1))
           {
             (itElem)->Set(ISOLATED, true);
             (itElem)->Set(BLOCKED, false);
@@ -873,7 +873,7 @@ namespace Kratos
 
       if (it == 0)
       {
-        this->ComputeVelocityNorm(velocityNorm);
+        velocityNorm=this->ComputeVelocityNorm();
       }
       double DvErrorNorm = NormDv / velocityNorm;
       // double DvErrorNorm = 0;
@@ -958,7 +958,7 @@ namespace Kratos
 
       if (it == 0)
       {
-        this->ComputePressureNorm(NormP);
+        NormP=this->ComputePressureNorm();
       }
 
       double DpErrorNorm = NormDp / (NormP);
@@ -1306,11 +1306,11 @@ namespace Kratos
       myfileVelocity.close();
     }
 
-    void ComputeVelocityNorm(double &NormV)
+    double ComputeVelocityNorm()
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
 
-      NormV = 0.00;
+      double NormV = 0.00;
 
 #pragma omp parallel reduction(+ \
                                : NormV)
@@ -1338,6 +1338,8 @@ namespace Kratos
 
       if (NormV == 0.0)
         NormV = 1.00;
+
+      return NormV;
     }
 
     bool CheckVelocityConvergence(const double NormDv, double &errorNormDv)
@@ -1444,30 +1446,34 @@ namespace Kratos
         return false;
     }
 
-    void ComputePressureNorm(double &NormP)
-    {
-      ModelPart &rModelPart = BaseType::GetModelPart();
+		double ComputePressureNorm()
+		{
+			ModelPart &rModelPart = BaseType::GetModelPart();
+
+			double NormP = 0.00;
 
 #pragma omp parallel reduction(+ \
-                               : NormP)
-      {
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-        {
-          const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-          NormP += Pr * Pr;
-        }
-      }
+							   : NormP)
+			{
+				ModelPart::NodeIterator NodeBegin;
+				ModelPart::NodeIterator NodeEnd;
+				OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
+				for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+				{
+					const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
+					NormP += Pr * Pr;
+				}
+			}
 
-      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
+			BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
 
-      NormP = sqrt(NormP);
+			NormP = sqrt(NormP);
 
-      if (NormP == 0.0)
-        NormP = 1.00;
-    }
+			if (NormP == 0.0)
+				NormP = 1.00;
+
+			return NormP;
+		}
 
     bool FixTimeStepMomentum(const double DvErrorNorm)
     {

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # pyKratos imports
 import KratosMultiphysics as KM
 from .Node import Node
@@ -24,7 +22,7 @@ class ModelPart(DataValueContainer):
         if not internal_construction:
             raise Exception("Creation of standalone ModelParts is not possible, please use Model.CreateModelPart()!")
 
-        super(ModelPart, self).__init__()
+        super().__init__()
 
         self.__parent_model_part = None
         self.__sub_model_parts = ModelPart.PointerVectorSet()
