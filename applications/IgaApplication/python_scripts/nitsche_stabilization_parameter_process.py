@@ -104,7 +104,7 @@ class NitscheStabilizationParameterProcess(KratosMultiphysics.Process):
                 self.model_part.AddElement(elem, 0)
 
 
-    def ExecuteBeforeSolutionLoop(self):
+    def ExecuteInitializeSolutionStep(self):
         """ This method is executed before starting the loop
 
         Keyword arguments:
