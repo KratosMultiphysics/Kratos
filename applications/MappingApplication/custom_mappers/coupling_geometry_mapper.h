@@ -238,9 +238,10 @@ public:
     ///@name Access
     ///@{
 
-    TMappingMatrixType* pGetMappingMatrix() override
+    MapperUniquePointerType pGetMappingMatrix() override
     {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        return mpMappingMatrix;
+        //KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
