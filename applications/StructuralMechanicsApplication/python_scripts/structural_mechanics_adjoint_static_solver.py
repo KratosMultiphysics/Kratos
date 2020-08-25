@@ -3,7 +3,6 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
@@ -116,11 +115,16 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyOfPartsResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_reaction":
             self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_aggregated_stress":
+            self.response_function = StructuralMechanicsApplication.AdjointAggregatedStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
             raise Exception("invalid response_type: " + response_type)
 
         self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
         self.sensitivity_builder.Initialize()
+
+        self.max_number_of_threads = KratosMultiphysics.OpenMPUtils.GetNumThreads()
+        KratosMultiphysics.OpenMPUtils.SetNumThreads(1)
 
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
         self.response_function.Initialize()
@@ -133,8 +137,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
     def FinalizeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
-        self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
+        self.response_function.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         if self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_linear_strain_energy":
@@ -142,6 +146,10 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             return True
         else:
             return super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
+
+    def Finalize(self):
+        super(StructuralMechanicsAdjointStaticSolver, self).Finalize()
+        KratosMultiphysics.OpenMPUtils.SetNumThreads(self.max_number_of_threads)
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:
