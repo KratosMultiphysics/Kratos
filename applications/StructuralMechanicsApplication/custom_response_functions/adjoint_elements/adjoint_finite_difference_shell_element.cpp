@@ -26,6 +26,100 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
+void AdjointFiniteDifferencingShellElement<TPrimalElement>::CalculateSensitivityMatrix(
+                                            const Variable<double>& rDesignVariable, Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const PropertiesType & r_props = this->GetProperties();
+    bool design_variable_part_of_layers = false;
+
+    if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
+        IndexType design_variable_index = 0;
+        const auto& orthotropic_layers = r_props.GetValue(SHELL_ORTHOTROPIC_LAYERS);
+        KRATOS_ERROR_IF_NOT(orthotropic_layers.size1()==1) << "CalculateSensitivityMatrix only implemented for one layer" << std::endl;
+
+        if (rDesignVariable ==  THICKNESS) {
+            design_variable_part_of_layers = true;
+        }
+        else if (rDesignVariable == DENSITY) {
+            design_variable_index = 2;
+            design_variable_part_of_layers = true;
+        }
+        else if (rDesignVariable == YOUNG_MODULUS_X) {
+            design_variable_index = 3;
+            design_variable_part_of_layers = true;
+        }
+        else if (rDesignVariable == YOUNG_MODULUS_Y) {
+            design_variable_index = 4;
+            design_variable_part_of_layers = true;
+        }
+        else if (rDesignVariable == POISSON_RATIO_XY) {
+            design_variable_index = 5;
+            design_variable_part_of_layers = true;
+        }
+        else if (rDesignVariable == SHEAR_MODULUS_XY) {
+            design_variable_index = 6;
+            design_variable_part_of_layers = true;
+        }
+        else if (rDesignVariable == SHEAR_MODULUS_XZ) {
+            design_variable_index = 7;
+            design_variable_part_of_layers = true;
+        }
+        else if (rDesignVariable == SHEAR_MODULUS_YZ) {
+            design_variable_index = 8;
+            design_variable_part_of_layers = true;
+        }
+
+        if(design_variable_part_of_layers) {
+            // Get perturbation size
+            double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+            if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+                delta *= orthotropic_layers(0,design_variable_index);
+            }
+
+            // define working variables
+            Vector RHS_perturbed;
+            Vector RHS;
+            this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+            if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS.size() ) )
+                rOutput.resize(1, RHS.size(), false);
+
+            // Save property pointer
+            Properties::Pointer p_global_properties = this->pGetPrimalElement()->pGetProperties();
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+            this->pGetPrimalElement()->SetProperties(p_local_property);
+
+            // perturb the design variable
+            auto orthotropic_layers = this->pGetPrimalElement()->GetProperties().GetValue(SHELL_ORTHOTROPIC_LAYERS);
+            orthotropic_layers(0, design_variable_index) += delta;
+            p_local_property->SetValue(SHELL_ORTHOTROPIC_LAYERS, orthotropic_layers);
+
+            // Compute RHS after perturbation
+            this->pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+            // Compute derivative of RHS w.r.t. design variable with finite differences
+            for(IndexType i = 0; i < RHS_perturbed.size(); ++i) {
+                rOutput(0, i) = (RHS_perturbed[i] - RHS[i]) / delta;
+            }
+
+            // Give element original properties back
+            this->pGetPrimalElement()->SetProperties(p_global_properties);
+        }
+    }
+
+    if (!design_variable_part_of_layers) {
+        BaseType::CalculateSensitivityMatrix(rDesignVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
 int AdjointFiniteDifferencingShellElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
