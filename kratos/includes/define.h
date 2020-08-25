@@ -142,6 +142,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Y;\
     KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Z;
 
+#ifdef KRATOS_DEFINE_2D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_DEFINE_2D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_DEFINE_2D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(module, name) \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<Kratos::array_1d<double, 2> > name; \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_1;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_2;
+
 #ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #endif
