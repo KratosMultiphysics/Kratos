@@ -196,6 +196,7 @@ namespace Kratos
 		rKin.dtd1 = ZeroVector(3);
 		rKin.dtd2 = ZeroVector(3);
 
+
 		const SizeType number_of_nodes = GetGeometry().size();
 		for (size_t i = 0; i < number_of_nodes; i++)
 		{
@@ -207,11 +208,11 @@ namespace Kratos
 		double invL_t = 1.0 / norm_2(rKin.t);
 		rKin.t *= invL_t;
 
-		array_1d<double, 3>& t = rKin.t; //define alias for cleaner code
-		array_1d<double, 3>& dtd1 = rKin.dtd1; //define alias for cleaner code
-		array_1d<double, 3>& dtd2 = rKin.dtd2; //define alias for cleaner code
-		array_1d<double, 3>& a1 = rKin.a1; //define alias for cleaner code
-		array_1d<double, 3>& a2 = rKin.a2; //define alias for cleaner code
+		const array_1d<double, 3>& t = rKin.t; //define alias for cleaner code
+		const array_1d<double, 3>& dtd1 = rKin.dtd1; //define alias for cleaner code
+		const array_1d<double, 3>& dtd2 = rKin.dtd2; //define alias for cleaner code
+		const array_1d<double, 3>& a1 = rKin.a1; //define alias for cleaner code
+		const array_1d<double, 3>& a2 = rKin.a2; //define alias for cleaner code
 
 		rVar.P = outer_prod(t, t) - IdentityMatrix(3);
 		rVar.P *= invL_t;
@@ -345,15 +346,15 @@ namespace Kratos
 		Vector Temp3(1, 2);
 		Vector Temp4(1, 2);
 
-		for (IndexType r = 0; r < number_of_nodes; r++)
+		for (SizeType r = 0; r < number_of_nodes; r++)
 		{
-			IndexType kr = 5 * r;
+			SizeType kr = 5 * r;
 
 			BLAI = GetGeometry()[r].GetValue(DIRECTORTANGENTSPACE);
 			WI1 = rVariations.Q1 * m_N(IntegrationPointIndex, r) + rVariations.P * m_cart_deriv[IntegrationPointIndex](0, r);
 			WI2 = rVariations.Q2 * m_N(IntegrationPointIndex, r) + rVariations.P * m_cart_deriv[IntegrationPointIndex](1, r);
 
-			for (IndexType s = 0; s < 3; s++)
+			for (int s = 0; s < 3; s++)
 			{ 
 			//membrane
 			rB(0, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.a1[s];
@@ -378,7 +379,7 @@ namespace Kratos
 			Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
 			Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
 
-			for (IndexType s = 0; s < 2; s++)
+			for (int s = 0; s < 2; s++)
 			{
 				rB(3, kr + 3 + s) = Temp[s];
 				rB(4, kr + 3 + s) = Temp1[s];
@@ -425,7 +426,7 @@ namespace Kratos
 		const auto& r_geometry = GetGeometry();
 		int ii1, ii2, ii3, ii4, ii5, jj1, jj2, jj3, jj4, iimult3, jjmult3;
 		double kgT = 0;
-		const SizeType number_of_control_points = GetGeometry().size();
+		const SizeType number_of_control_points = r_geometry.size();
 
 		const array_1d<double, 8>& StressResultants = rConstitutive.StressVector;
 
@@ -446,7 +447,7 @@ namespace Kratos
 		double  Nii, dN1ii, dN2ii, Njj, dN1jj, dN2jj, dN1ii_dN2jj_p_dN2ii_dN1jj, NS, NdN1, NdN2; //the first 6 are only for cleaner coding/debugging, can be removed and m_cart_deriv[IntegrationPointIndex](0, ii) directly called
 
 
-		for (int ii = 0; ii < number_of_control_points; ii++)
+		for (SizeType ii = 0; ii < number_of_control_points; ii++)
 		{
 			ii1 = 5 * ii;
 			ii2 = ii1 + 1;
@@ -464,8 +465,8 @@ namespace Kratos
 
 			iimult3 = 3 * ii;
 
-			BLAI_T = trans(GetGeometry()[ii].GetValue(DIRECTORTANGENTSPACE));
-			for (int jj = ii; jj < number_of_control_points; jj++)
+			BLAI_T = trans(r_geometry[ii].GetValue(DIRECTORTANGENTSPACE));
+			for (SizeType jj = ii; jj < number_of_control_points; jj++)
 			{
 				jj1 = 5 * jj;
 				jj2 = jj1 + 1;
@@ -478,7 +479,7 @@ namespace Kratos
 
 				jjmult3 = 3 * jj;
 
-				BLAJ = GetGeometry()[jj].GetValue(DIRECTORTANGENTSPACE);
+				BLAJ = r_geometry[jj].GetValue(DIRECTORTANGENTSPACE);
 
 				noalias(WJ1) = ractVar.Q1 * Njj + ractVar.P * dN1jj;
 				noalias(WJ2) = ractVar.Q2 * Njj + ractVar.P * dN2jj;
@@ -524,10 +525,10 @@ namespace Kratos
 			///  Residual Part second part of Linearisation
 			///   difference to only projected Euclidean Hessian
 			/// LINEARIZATION OF PROJECTOR
-			kgT = -inner_prod(GetGeometry()[ii].GetValue(DIRECTOR),(prod(WI1, rActKin.a1)                         * StressResultants[3] +
+			kgT = -inner_prod(r_geometry.GetValue(DIRECTOR),(prod(WI1, rActKin.a1)                         * StressResultants[3] +
 				                                                    prod(WI2, rActKin.a2)                         * StressResultants[4] + 
 				                                                   (prod(WI2      , rActKin.a1)+ prod(WI1, rActKin.a2)) * StressResultants[5]));
-			kgT -= inner_prod(GetGeometry()[ii].GetValue(DIRECTOR), prod(ractVar.P, rActKin.a1) * Nii * StressResultants[6] + prod(ractVar.P, rActKin.a2) * Nii * StressResultants[7]);
+			kgT -= inner_prod(r_geometry.GetValue(DIRECTOR), prod(ractVar.P, rActKin.a1) * Nii * StressResultants[6] + prod(ractVar.P, rActKin.a2) * Nii * StressResultants[7]);
 			Kg(ii4, ii4) += kgT;
 			Kg(ii5, ii5) += kgT;
 		}
@@ -548,7 +549,7 @@ namespace Kratos
 		if (rValues.size() != mat_size)
 			rValues.resize(mat_size, false);
 
-		for (unsigned int i = 0; i < number_of_control_points; ++i)
+		for (int i = 0; i < number_of_control_points; ++i)
 		{
 			const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
 			const int index = i * 3; //TODO Geometry are 6 parameters but degrees of freedeom are 5 how to deal with this?
@@ -618,8 +619,8 @@ namespace Kratos
 			rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos    ).EquationId();
 			rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
 			rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-			rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
-			rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId();
+			rResult[index + 3] = GetGeometry()[i].GetDof(DIRECTORINC_1, pos + 3).EquationId();
+			rResult[index + 4] = GetGeometry()[i].GetDof(DIRECTORINC_2, pos + 4).EquationId();
 		}
 
 		KRATOS_CATCH("")
@@ -641,8 +642,8 @@ namespace Kratos
 			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
 			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-			rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-			rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
+			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DIRECTORINC_1));
+			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DIRECTORINC_2));
 		}
 
 		KRATOS_CATCH("")
