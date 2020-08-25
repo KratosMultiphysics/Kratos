@@ -88,17 +88,9 @@ namespace Kratos
             std::string seperator = (TheMessage.GetMessage().empty() || TheMessage.GetLabel().empty()) ? "" : ": ";
             std::string message_body = TheMessage.GetMessage();
 
-            if(TheMessage.GetMessage().empty()){
-                if(TheMessage.GetFlags().Is(LoggerMessage::START)){
-                    message_body =  " started\n";
-                }
-                else if(TheMessage.GetFlags().Is(LoggerMessage::STOP)){
-                    message_body =  " finished\n";
-                }
+            if (TheMessage.GetFlags().IsNot(LoggerMessage::START) && TheMessage.GetFlags().IsNot(LoggerMessage::STOP)) {
+                r_stream << TheMessage.GetLabel() << seperator<< message_body;
             }
-
-
-            r_stream << TheMessage.GetLabel() << seperator<< message_body;
 
             ResetMessageColor(message_severity);
         }
