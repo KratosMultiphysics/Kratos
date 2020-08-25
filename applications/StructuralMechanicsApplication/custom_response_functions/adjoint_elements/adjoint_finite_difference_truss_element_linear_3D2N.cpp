@@ -21,8 +21,8 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
-AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement, bool HasRotationDofs)
-    : mpElement{pElement}, mHasRotationDofs(HasRotationDofs)
+AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement)
+    : mpElement{pElement}
 {
 }
 
@@ -190,7 +190,7 @@ template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::Initialize(rCurrentProcessInfo);
-    this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this, HasRotationDofs));
+    this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
 }
 
 template <class TPrimalElement>

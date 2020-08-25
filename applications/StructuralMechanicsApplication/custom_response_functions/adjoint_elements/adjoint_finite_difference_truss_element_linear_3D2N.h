@@ -31,7 +31,6 @@ class AdjointFiniteDifferenceTrussElementLinear
     class ThisExtensions : public AdjointExtensions
     {
         Element* mpElement;
-        bool mHasRotationDofs;
 
     public:
         explicit ThisExtensions(Element* pElement);
