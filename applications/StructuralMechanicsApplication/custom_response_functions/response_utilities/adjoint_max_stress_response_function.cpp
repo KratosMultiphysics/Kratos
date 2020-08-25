@@ -61,9 +61,9 @@ namespace Kratos
                 mean_stress += element_stress[i];
             mean_stress /= stress_vec_size;
 
-            if(mean_stress > max_mean_stress)
+            if(std::abs(mean_stress) > max_mean_stress)
             {
-                max_mean_stress = mean_stress;
+                max_mean_stress = std::abs(mean_stress);
                 elem_id_at_max = elem.Id();
             }
         }
