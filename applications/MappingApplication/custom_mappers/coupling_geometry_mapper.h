@@ -238,10 +238,9 @@ public:
     ///@name Access
     ///@{
 
-    MapperUniquePointerType pGetMappingMatrix() override
+    TMappingMatrixType* pGetMappingMatrix() override
     {
-        return mpMappingMatrix;
-        //KRATOS_ERROR << "Not implemented!" << std::endl;
+        KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
@@ -278,6 +277,12 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
+    }
+
+    // Get values
+    ModelPart& GetInterfaceModelPart(IndexType ModelPartIndex) override
+    {
+        return (ModelPartIndex == 0) ? *mpCouplingInterfaceOrigin : *mpCouplingInterfaceDestination;
     }
 
 private:
