@@ -50,7 +50,7 @@ class MechanicalSolver(PythonSolver):
             kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "problem_domain_sub_model_part_list" and "processes_sub_model_part_list" is deprecated, please remove it from your "solver_settings"')
 
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(MechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -133,7 +133,7 @@ class MechanicalSolver(PythonSolver):
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
         }""")
-        this_defaults.AddMissingParameters(super(MechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):

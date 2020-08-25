@@ -66,6 +66,12 @@ public:
     /// The node type
     typedef ModelPart::NodeType NodeType;
 
+    /// The condition type
+    typedef ModelPart::ConditionType ConditionType;
+
+    /// The element type
+    typedef ModelPart::ElementType ElementType;
+
     /// We create the Pointer related to VariableUtils
     KRATOS_CLASS_POINTER_DEFINITION(VariableUtils);
 
@@ -191,6 +197,414 @@ public:
         const unsigned int BuffStep = 0)
     {
         this->CopyModelPartNodalVarToNonHistoricalVar(rVariable, rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(
+            rOriginModelPart.FullName() == rDestinationModelPart.FullName() &&
+            rOriginVariable == rDestinationVariable &&
+            ReadBufferStep == WriteBufferStep)
+            << "Trying to copy flagged nodal solution step values with the same origin and destination model parts/variables/buffer steps. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+            << ", variable: " << rOriginVariable.Name() << ", buffer step: " << ReadBufferStep << " ) !";
+
+        KRATOS_ERROR_IF_NOT(rOriginModelPart.HasNodalSolutionStepVariable(rOriginVariable))
+            << rOriginVariable.Name() << " is not found in nodal solution step variables list in origin model part ( "
+            << rOriginModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF_NOT(rDestinationModelPart.HasNodalSolutionStepVariable(rDestinationVariable))
+            << rDestinationVariable.Name() << " is not found in nodal solution step variables list in destination model part ( "
+            << rDestinationModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF(ReadBufferStep >= rOriginModelPart.GetBufferSize())
+            << "Origin model part ( " << rOriginModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rOriginModelPart.GetBufferSize() << " <= " << ReadBufferStep << " ].";
+
+        KRATOS_ERROR_IF(WriteBufferStep >= rDestinationModelPart.GetBufferSize())
+            << "Destination model part ( " << rDestinationModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rDestinationModelPart.GetBufferSize() << " <= " << WriteBufferStep << " ].";
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.FastGetSolutionStepValue(
+                    rDestinationVariable, WriteBufferStep) = rValue;
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.FastGetSolutionStepValue(rOriginVariable, ReadBufferStep);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, ReadBufferStep, WriteBufferStep);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
+            rFlag, CheckValue, ReadBufferStep, WriteBufferStep);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF_NOT(rOriginModelPart.HasNodalSolutionStepVariable(rOriginVariable))
+            << rOriginVariable.Name() << " is not found in nodal solution step variables list in origin model part ( "
+            << rOriginModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF(ReadBufferStep >= rOriginModelPart.GetBufferSize())
+            << "Origin model part ( " << rOriginModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rOriginModelPart.GetBufferSize() << " <= " << ReadBufferStep << " ].";
+
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.FastGetSolutionStepValue(rOriginVariable, ReadBufferStep);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, ReadBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
+            rFlag, CheckValue, ReadBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int ReadBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+            rVariable, rVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, ReadBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF_NOT(rDestinationModelPart.HasNodalSolutionStepVariable(rDestinationVariable))
+            << rDestinationVariable.Name() << " is not found in nodal solution step variables list in destination model part ( "
+            << rDestinationModelPart.Name() << " ).";
+
+        KRATOS_ERROR_IF(WriteBufferStep >= rDestinationModelPart.GetBufferSize())
+            << "Destination model part ( " << rDestinationModelPart.Name()
+            << " ) buffer size is smaller or equal than read buffer size [ "
+            << rDestinationModelPart.GetBufferSize() << " <= " << WriteBufferStep << " ].";
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.FastGetSolutionStepValue(
+                    rDestinationVariable, WriteBufferStep) = rValue;
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.GetValue(rOriginVariable);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, WriteBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart,
+            rFlag, CheckValue, WriteBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true,
+        const unsigned int WriteBufferStep = 0)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+            rVariable, rVariable, rModelPart, rModelPart,
+            rFlag, CheckValue, WriteBufferStep);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(
+            rOriginModelPart.FullName() == rDestinationModelPart.FullName() &&
+            rOriginVariable == rDestinationVariable
+        ) << "Trying to copy flagged nodal non-historical values with the same model parts/variables. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+          << ", variable: " << rOriginVariable.Name() << " ) !";
+
+        CopyModelPartFlaggedVariable<NodesContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](NodeType& rDestNode, const TDataType& rValue) {
+                rDestNode.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const NodeType& rOriginNode) -> const TDataType& {
+                return rOriginNode.GetValue(rOriginVariable);
+            });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedElementVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(rOriginModelPart.FullName() == rDestinationModelPart.FullName() && rOriginVariable == rDestinationVariable)
+            << "Trying to copy flagged elemental variable data with the same model "
+               "parts/variables. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+            << ", variable: " << rOriginVariable.Name() << " ) !";
+
+        CopyModelPartFlaggedVariable<ElementsContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](ElementType& rDestElement, const TDataType& rValue) {
+                rDestElement.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const ElementType& rOriginElement) -> const TDataType& {
+                return rOriginElement.GetValue(rOriginVariable);
+            });
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedElementVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedElementVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedElementVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedElementVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedConditionVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(rOriginModelPart.FullName() == rDestinationModelPart.FullName() && rOriginVariable == rDestinationVariable)
+            << "Trying to copy flagged condition variable data with the same model "
+               "parts/variables. This is not permitted ( Origin model part: "
+            << rOriginModelPart.Name() << ", destination model part: " << rDestinationModelPart.Name()
+            << ", variable: " << rOriginVariable.Name() << " ) !";
+
+        CopyModelPartFlaggedVariable<ConditionsContainerType>(
+            rOriginModelPart, rDestinationModelPart, rFlag, CheckValue,
+            [&](ConditionType& rDestCondition, const TDataType& rValue) {
+                rDestCondition.SetValue(rDestinationVariable, rValue);
+            },
+            [&](const ConditionType& rOriginCondition) -> const TDataType& {
+                return rOriginCondition.GetValue(rOriginVariable);
+            });
+
+        KRATOS_CATCH("");
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedConditionVar(
+        const Variable<TDataType>& rOriginVariable,
+        const Variable<TDataType>& rDestinationVariable,
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedConditionVar(
+            rOriginVariable, rDestinationVariable, rModelPart, rModelPart, rFlag, CheckValue);
+    }
+
+    template <class TDataType>
+    void CopyModelPartFlaggedConditionVar(
+        const Variable<TDataType>& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue = true)
+    {
+        CopyModelPartFlaggedConditionVar(
+            rVariable, rVariable, rOriginModelPart, rDestinationModelPart, rFlag, CheckValue);
     }
 
     /**
@@ -1338,6 +1752,44 @@ private:
 
     template <class TContainerType>
     TContainerType& GetContainer(ModelPart& rModelPart);
+
+    template <class TContainerType>
+    const TContainerType& GetContainer(const ModelPart& rModelPart);
+
+    template <class TContainerType, class TSetterFunction, class TGetterFunction>
+    void CopyModelPartFlaggedVariable(
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const Flags& rFlag,
+        const bool CheckValue,
+        TSetterFunction&& rSetterFunction,
+        TGetterFunction&& rGetterFunction)
+    {
+        KRATOS_TRY
+
+        const auto& r_origin_container = GetContainer<TContainerType>(rOriginModelPart);
+        auto& r_destination_container = GetContainer<TContainerType>(rDestinationModelPart);
+
+        const int number_of_origin_items = r_origin_container.size();
+        const int number_of_destination_items = r_destination_container.size();
+
+        KRATOS_ERROR_IF_NOT(number_of_origin_items == number_of_destination_items)
+            << "Origin ( " << rOriginModelPart.Name() << " ) and destination ( "
+            << rDestinationModelPart.Name() << " ) model parts have different number of items."
+            << "\n\t- Number of origin items: " << number_of_origin_items
+            << "\n\t- Number of destination items: " << number_of_destination_items
+            << std::endl;
+
+        IndexPartition<int>(number_of_origin_items).for_each([&](int i_node) {
+            const auto& r_orig_item = *(r_origin_container.begin() + i_node);
+            auto& r_dest_item = *(r_destination_container.begin() + i_node);
+            if (r_orig_item.Is(rFlag) == CheckValue) {
+                rSetterFunction(r_dest_item, rGetterFunction(r_orig_item));
+            }
+        });
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Private  Acces
