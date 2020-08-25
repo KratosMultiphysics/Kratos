@@ -64,6 +64,8 @@ namespace Kratos
 
     // Mesh variables
     KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node<3>>::Pointer>, GEOMETRY_NEIGHBOURS)
+    // MPI variables
+    KRATOS_CREATE_VARIABLE( int, MPI_SEND_COUNTER)
 
     // Conditions
     // Essential Boundary Conditions

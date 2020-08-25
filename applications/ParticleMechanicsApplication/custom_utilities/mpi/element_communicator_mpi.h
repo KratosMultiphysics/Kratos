@@ -21,10 +21,15 @@ namespace Kratos {
 
 namespace ElementCommunicatorMPI{
 
-    void MPI_InitialSearch(ModelPart& rMPMModelPart, ModelPart& rBackgroundGridModelPart,  std::vector<typename Condition::Pointer>& rMissingConditions);
-    void SentCondition(ModelPart& rMPMModelPart, Condition::Pointer cond, bool empty, MPI_Datatype& message_type, int destination, int tag);
-    void RecieveCondition(ModelPart& rMPMModelPart, ModelPart& rBackgroundGridModelPart, std::vector<typename Condition::Pointer>& rMissingCondition, MPI_Datatype& message_type, int source, int tag);
-
+    void MPI_Search(ModelPart& rMPMModelPart, ModelPart& rBackgroundGridModelPart,
+                    std::vector<typename Condition::Pointer>& rMissingConditions,
+                    const std::size_t MaxNumberOfResults, const double Tolerance);
+    void SentCondition(ModelPart& rMPMModelPart, Condition::Pointer cond, bool empty,
+                    MPI_Datatype& message_type, int destination, int tag);
+    int RecieveCondition(ModelPart& rMPMModelPart, ModelPart& rBackgroundGridModelPart,
+                    std::vector<typename Condition::Pointer>& rMissingCondition,
+                    bool& empty, MPI_Datatype& message_type, int source, int tag);
+    void CreateMPIDataType(MPI_Datatype& type, bool condition);
 } // namespace ElementCommunicatorMPI
 } // namespace Kratos
 

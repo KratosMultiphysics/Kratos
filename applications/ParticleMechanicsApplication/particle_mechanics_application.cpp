@@ -193,6 +193,9 @@ namespace Kratos
         // Mesh variables
         KRATOS_REGISTER_VARIABLE( GEOMETRY_NEIGHBOURS )
 
+        // MPI Variables
+        KRATOS_REGISTER_VARIABLE( MPI_SEND_COUNTER)
+
         // Registering condition variables
         // Essential Boundary Conditions
         KRATOS_REGISTER_VARIABLE( MPC_BOUNDARY_CONDITION_TYPE )
