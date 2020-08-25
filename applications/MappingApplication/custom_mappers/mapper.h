@@ -198,6 +198,12 @@ public:
         }
     }
 
+    // Get values
+    virtual ModelPart& GetInterfaceModelPart(IndexType ModelPartIndex)
+    {
+        KRATOS_ERROR << "YEEEEEEEEEEEEEEEEEE";
+    }
+
 }; // Class Mapper
 
 /// output stream function
