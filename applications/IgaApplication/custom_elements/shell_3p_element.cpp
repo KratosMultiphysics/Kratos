@@ -341,7 +341,7 @@ namespace Kratos
             rB.resize(3, mat_size);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
-        for (IndexType node = 0; node < number_of_control_points; r++)
+        for (IndexType node = 0; node < number_of_control_points; node++)
         {
             // local node number kr and dof direction dirr
             IndexType index = 3*node;
@@ -382,24 +382,17 @@ namespace Kratos
         Matrix H = ZeroMatrix(3, 3);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex));
 
-        for (IndexType i = 0; i < number_of_control_points; i++)
+        for (IndexType node = 0; node < number_of_control_points; node++)
         {
-            IndexType index = 3 * i;
-            //first line
+            IndexType index = 3 * node;
 
-            da3(0, 0) =  0;
-            da3(0, 1) = -r_DN_De(i, 0) * rActualKinematic.a2[2] + r_DN_De(i, 1) * rActualKinematic.a1[2];
-            da3(0, 2) =  r_DN_De(i, 0) * rActualKinematic.a2[1] - r_DN_De(i, 1) * rActualKinematic.a1[1];
+            da3(0, 1) = -r_DN_De(node, 0) * rActualKinematic.a2[2] + r_DN_De(node, 1) * rActualKinematic.a1[2];
+            da3(0, 2) =  r_DN_De(node, 0) * rActualKinematic.a2[1] - r_DN_De(node, 1) * rActualKinematic.a1[1];
+            da3(1, 2) = -r_DN_De(node, 0) * rActualKinematic.a2[0] + r_DN_De(node, 1) * rActualKinematic.a1[0];
 
-            //second line
-            da3(1, 0) =  r_DN_De(i, 0) * rActualKinematic.a2[2] - r_DN_De(i, 1) * rActualKinematic.a1[2];
-            da3(1, 1) =  0;
-            da3(1, 2) = -r_DN_De(i, 0) * rActualKinematic.a2[0] + r_DN_De(i, 1) * rActualKinematic.a1[0];
-
-            //third line
-            da3(2, 0) = -r_DN_De(i, 0) * rActualKinematic.a2[1] + r_DN_De(i, 1) * rActualKinematic.a1[1];
-            da3(2, 1) =  r_DN_De(i, 0) * rActualKinematic.a2[0] - r_DN_De(i, 1) * rActualKinematic.a1[0];
-            da3(2, 2) =  0;
+            da3(1, 0) = -da3(0, 1);
+            da3(2, 0) = -da3(0, 2);
+            da3(2, 1) = -da3(1, 2);
 
 
             noalias(dn) = da3 * inv_dA -prod(trans(da3), rActualKinematic.a3_tilde);
@@ -412,9 +405,9 @@ namespace Kratos
                 dn(j, 2) -=   rActualKinematic.a3_tilde[2] * a3da3la3;
             }
 
-            subrange(b, 0, 1, index, 3) = -(r_DDN_DDe(i, 0)* trans(rActualKinematic.a3) + prod(dn, column(H, 0)));
-            subrange(b, 1, 1, index, 3) = -(r_DDN_DDe(i, 2)* trans(rActualKinematic.a3) + prod(dn, column(H, 1)));
-            subrange(b, 2, 1, index, 3) = -(r_DDN_DDe(i, 1)* trans(rActualKinematic.a3) + prod(dn, column(H, 2)));
+            subrange(b, 0, 1, index, 3) = -(r_DDN_DDe(node, 0)* trans(rActualKinematic.a3) + prod(dn, column(H, 0)));
+            subrange(b, 1, 1, index, 3) = -(r_DDN_DDe(node, 2)* trans(rActualKinematic.a3) + prod(dn, column(H, 1)));
+            subrange(b, 2, 1, index, 3) = -(r_DDN_DDe(node, 1)* trans(rActualKinematic.a3) + prod(dn, column(H, 2)));
 
         }
 
@@ -741,6 +734,24 @@ namespace Kratos
             Hessian(2, 2) += rDDN_DDe(k, 1)*coords[2];
         }
     }
+
+
+    Matrix DiagonalCrossProductOrDiagonalCrossProduct(const double& rN, const array_1d<double, 3>& a2)
+    {
+        Matrix Result(3, 3);
+
+        Result(0, 0) = 0;
+        Result(0, 1) = -rN * a2[2] ;
+        Result(0, 2) = rN * a2[1] ;
+
+        Result(1, 0) = rN * a2[2] ;
+        Result(1, 1) = 0;
+        Result(1, 2) = -rN * a2[0] ;
+
+        Result(2, 0) = -rN * a2[1];
+        Result(2, 1) = rN * a2[0] ;
+        Result(2, 2) = 0;
+       }
 
     ///@}
 
