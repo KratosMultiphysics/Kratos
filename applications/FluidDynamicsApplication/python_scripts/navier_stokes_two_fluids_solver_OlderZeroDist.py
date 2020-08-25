@@ -151,13 +151,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
 
-        # Geting the slip condition model part
-        if self.model.HasModelPart("FluidModelPart.Slip3D"):
-            self.slip_model_part = self.model.GetModelPart("FluidModelPart.Slip3D")
-            for slip_condition in self.slip_model_part.Conditions:
-                for node in slip_condition.GetNodes():
-                    print(node.X)
-
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -275,11 +268,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
 
-        with open("ZeroDistance_Structured.log", "w") as SdistLogFile:
-            SdistLogFile.write( "time_step" + "\t" + "XZeroMin" + "\t" + "XZeroMax" + "\t" + "ZZero" + "\n" )
-
-        with open("ZeroDistance_Unstructured.log", "w") as USdistLogFile:
-            USdistLogFile.write( "time_step" + "\t" + "MeanRadius" + "\n" )
+        with open("ZeroDistance.log", "w") as distLogFile:
+            distLogFile.write( "time_step" + "\t" + "XZeroMin" + "\t" + "XZeroMax" + "\t" + "ZZero" + "\n" )
 
         with open("solver_iteration.log", "w") as iterLogFile:
             iterLogFile.write( "time_step" + "\t" + "iter_number" + "\n" )
@@ -338,9 +328,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
                 KratosMultiphysics.Logger.PrintInfo("LevelSetSolver", "BFECCconvect will be called")
-                (self.level_set_convection_process).CopyScalarVarToPreviousTimeStep(
-                    self.main_model_part,
-                    KratosMultiphysics.DISTANCE)
                 (self.level_set_convection_process).BFECCconvect(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
@@ -351,8 +338,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
                     velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
                     node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1, 
-                        #0.5 * (velocity + velocityOld) )
-                        velocityOld )
+                        0.5 * (velocity + velocityOld) )
+                #        #velocityOld )
                     node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 
                         velocity )
                         #0.5 * (velocity + velocityOld) )
@@ -405,16 +392,16 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-        #if not(self._bfecc_convection):
-        #    for node in self.main_model_part.Nodes:
-        #        velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
-        #        velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-        #        node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1,
-        #            0.5 * (velocity + velocityOld) )
-        #        node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY,
-        #            velocity )
+        if not(self._bfecc_convection):
+            for node in self.main_model_part.Nodes:
+                velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
+                velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY, 1,
+                    0.5 * (velocity + velocityOld) )
+                node.SetSolutionStepValue(KratosCFD.CONVECTIVE_VELOCITY,
+                    velocity )
 
-        #    (self.level_set_convection_process).Execute()
+            (self.level_set_convection_process).Execute()
 
     def FinalizeSolutionStep(self):
 
@@ -455,68 +442,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     meanMicroCangleLogFile.write( str(TimeStep*DT) + "\t" + str(mean_Cangle_micro/num_C) + "\n" )
                     meanCvelLogFile.write( str(TimeStep*DT) + "\t" + str(mean_Cvel/num_C) + "\n" )
 
-            ###############################
-            # Zero Disance - Unstructured #
-            ###############################
-
-            if self.model.HasModelPart("FluidModelPart.Slip3D"):
-                for slip_condition in self.slip_model_part.Conditions:
-                    num_positive = 0
-                    num_negative = 0
-                    for node in slip_condition.GetNodes():
-                        dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                        if (dist > 0.0):
-                            num_positive += 1
-                        else:
-                            num_negative += 1
-
-                    if ((num_positive == 2 and num_negative == 1) or (num_positive == 1 and num_negative == 2)):
-                        x_positive = [-1.0, -1.0]
-                        y_positive = [-1.0, -1.0]
-                        z_positive = [-1.0, -1.0]
-                        x_negative = [-1.0, -1.0]
-                        y_negative = [-1.0, -1.0]
-                        z_negative = [-1.0, -1.0]
-                        abs_dist_positive = [-1.0, -1.0]
-                        abs_dist_negative = [-1.0, -1.0]
-
-                        positive_pos = 0
-                        negative_pos = 0
-                        for node in slip_condition.GetNodes():
-                            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                            if (dist > 0):
-                                x_positive[positive_pos] = node.X
-                                y_positive[positive_pos] = node.Y
-                                z_positive[positive_pos] = node.Z
-                                abs_dist_positive[positive_pos] = abs(dist)
-                                positive_pos += 1
-                            else:
-                                x_negative[negative_pos] = node.X
-                                y_negative[negative_pos] = node.Y
-                                z_negative[negative_pos] = node.Z
-                                abs_dist_negative[negative_pos] = abs(dist)
-                                negative_pos += 1
-
-                        x_zero = -1.0
-                        y_zero = -1.0
-                        z_zero = -1.0
-                        if (positive_pos == 2):
-                            x_zero = 0.5*((abs_dist_positive[0]*x_negative[0]+abs_dist_negative[0]*x_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[1]*x_negative[0]+abs_dist_negative[0]*x_positive[1])/(abs_dist_positive[1]+abs_dist_negative[0]))
-                            y_zero = 0.5*((abs_dist_positive[0]*y_negative[0]+abs_dist_negative[0]*y_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[1]*y_negative[0]+abs_dist_negative[0]*y_positive[1])/(abs_dist_positive[1]+abs_dist_negative[0]))
-                            z_zero = 0.5*((abs_dist_positive[0]*z_negative[0]+abs_dist_negative[0]*z_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[1]*z_negative[0]+abs_dist_negative[0]*z_positive[1])/(abs_dist_positive[1]+abs_dist_negative[0]))
-                        else:
-                            x_zero = 0.5*((abs_dist_positive[0]*x_negative[0]+abs_dist_negative[0]*x_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[0]*x_negative[1]+abs_dist_negative[1]*x_positive[0])/(abs_dist_positive[0]+abs_dist_negative[1]))
-                            y_zero = 0.5*((abs_dist_positive[0]*y_negative[0]+abs_dist_negative[0]*y_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[0]*y_negative[1]+abs_dist_negative[1]*y_positive[0])/(abs_dist_positive[0]+abs_dist_negative[1]))
-                            z_zero = 0.5*((abs_dist_positive[0]*z_negative[0]+abs_dist_negative[0]*z_positive[0])/(abs_dist_positive[0]+abs_dist_negative[0])+(abs_dist_positive[0]*z_negative[1]+abs_dist_negative[1]*z_positive[0])/(abs_dist_positive[0]+abs_dist_negative[1]))
-
-                mean_radius = 0.0
-
-                with open("ZeroDistance_Unstructured.log", "a") as USdistLogFile:
-                    USdistLogFile.write( str(TimeStep*DT) + "\t" + str(mean_radius) + "\n" )
-
-            #############################
-            # Zero Disance - Structured #
-            #############################
+            ################
+            # Zero Disance #
+            ################
 
             X_c = 4.0e-3
             Z_max = 3.0e-3
@@ -588,7 +516,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 ZZero = ZMinus
 
-            with open("ZeroDistance_Structured.log", "a") as distLogFile:
+            with open("ZeroDistance.log", "a") as distLogFile:
                 distLogFile.write( str(TimeStep*DT) + "\t" + str(XZeroMin) + "\t" + str(XZeroMax) + "\t" + str(ZZero) + "\n" )
 
             ####################
@@ -718,7 +646,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosCFD.CONVECTIVE_VELOCITY,
                     self.main_model_part,
                     self.linear_solver,
-                    1.0,    #dt_factor = 1.0
+                    0.5,    #dt_factor = 1.0
                     0.5,    #max_cfl = 1.0
                     0.7,    #cross_wind_stabilization_factor = 0.7
                     0)      #max_substeps = 0: diabled

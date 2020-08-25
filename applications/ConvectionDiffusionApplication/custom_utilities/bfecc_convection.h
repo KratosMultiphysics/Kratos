@@ -34,7 +34,6 @@
 #include "utilities/timer.h"
 #include "utilities/binbased_fast_point_locator.h"
 
-
 #include <boost/timer.hpp>
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
@@ -42,6 +41,7 @@
 
 namespace Kratos
 {
+    constexpr double tolerance = 1.0e-9;
 
 template<std::size_t TDim> class BFECCConvection
 {
@@ -175,7 +175,7 @@ public:
             else
                 is_found = ConvectBySubstepping(dt, fwdPos, vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
 
-            if(is_found) {
+            if (is_found) {
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 double phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
 
@@ -193,7 +193,7 @@ public:
             }
         }
 
-         #pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
@@ -208,8 +208,8 @@ public:
 
                 iparticle->FastGetSolutionStepValue(rVar) = phi1;
             }
-//             else
-//                 std::cout << "it should find it" << std::endl;
+            else
+                std::cout << "it should find it, IS(SLIP): " << iparticle->Is(SLIP) << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -240,7 +240,7 @@ public:
             unsigned int substep=0;
             while(substep++ < subdivisions)
             {
-                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results, tolerance);
 
                 if (is_found == true)
                 {
@@ -270,7 +270,7 @@ public:
             unsigned int substep=0;
             while(substep++ < subdivisions)
             {
-                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results, tolerance);
 
                 if (is_found == true)
                 {
@@ -296,7 +296,6 @@ public:
                  break;
             }
         }
-
                 return is_found;
 
     }
@@ -330,7 +329,7 @@ public:
             unsigned int substep=0;
             while(substep++ < subdivisions)
             {
-                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results, tolerance);
 
                 if (is_found == true)
                 {
@@ -365,7 +364,7 @@ public:
             unsigned int substep=0;
             while(substep++ < subdivisions)
             {
-                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+                is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results, tolerance);
 
                 if (is_found == true){
                     Geometry< Node < 3 > >& geom = pelement->GetGeometry();
