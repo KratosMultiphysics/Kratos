@@ -51,6 +51,12 @@ namespace Kratos
 
     void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)
     {
+        if ((TheMessage.GetFlags().Is(LoggerMessage::START)
+                || TheMessage.GetFlags().Is(LoggerMessage::STOP))
+                && TheMessage.GetMessage().empty())
+        {
+            return;
+        }
         auto& r_stream = GetStream();
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
@@ -88,9 +94,7 @@ namespace Kratos
             std::string seperator = (TheMessage.GetMessage().empty() || TheMessage.GetLabel().empty()) ? "" : ": ";
             std::string message_body = TheMessage.GetMessage();
 
-            if (TheMessage.GetFlags().IsNot(LoggerMessage::START) && TheMessage.GetFlags().IsNot(LoggerMessage::STOP)) {
-                r_stream << TheMessage.GetLabel() << seperator<< message_body;
-            }
+            r_stream << TheMessage.GetLabel() << seperator<< message_body;
 
             ResetMessageColor(message_severity);
         }

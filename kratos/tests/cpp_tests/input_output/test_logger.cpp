@@ -494,9 +494,9 @@ namespace Kratos {
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
-            
+
             KRATOS_INFO("TestLevel") << "Level 0\n";
-            
+
             double time = 0.1;
             KRATOS_INFO_START("TimeStep") << time << std::endl;
             KRATOS_INFO("TestLevel") << "Level 1\n";
@@ -513,13 +513,8 @@ namespace Kratos {
                 expected_output << "TestLevel: Level 0\n";
                 expected_output << "TimeStep: 0.1\n";
                 expected_output << "  TestLevel: Level 1\n";
-                expected_output << "  Build started\n";
                 expected_output << "    TestLevel: Level 2\n";
-                expected_output << "  Build finished\n";
-                expected_output << "  Solve started\n";
                 expected_output << "    TestLevel: Level 2\n";
-                expected_output << "  Solve finished\n";
-                expected_output << "TimeStep finished\n";
             }
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.str().c_str());
         }
