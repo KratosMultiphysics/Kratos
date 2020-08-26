@@ -91,7 +91,7 @@ void NormalCalculationUtils::InitializeNormals(ModelPart& rModelPart)
 /***********************************************************************************/
 
 template <>
-void NormalCalculationUtils::CalculateNormals<Condition>(
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>(
     ModelPart& rModelPart,
     const bool EnforceGenericGeometryAlgorithm)
 {
@@ -126,7 +126,7 @@ void NormalCalculationUtils::CalculateNormals<Condition>(
 /***********************************************************************************/
 
 template<>
-void NormalCalculationUtils::CalculateNormals<Element>(
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element>(
     ModelPart& rModelPart,
     const bool
     )
@@ -319,14 +319,14 @@ void NormalCalculationUtils::CalculateNormal3D(
 }
 
 template <>
-ModelPart::ConditionsContainerType& NormalCalculationUtils::GetContainer(
+KRATOS_API(KRATOS_CORE) ModelPart::ConditionsContainerType& NormalCalculationUtils::GetContainer(
     ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
 template <>
-ModelPart::ElementsContainerType& NormalCalculationUtils::GetContainer(
+KRATOS_API(KRATOS_CORE) ModelPart::ElementsContainerType& NormalCalculationUtils::GetContainer(
     ModelPart& rModelPart)
 {
     return rModelPart.Elements();
