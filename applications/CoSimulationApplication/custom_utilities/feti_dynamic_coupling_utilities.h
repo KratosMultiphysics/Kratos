@@ -48,10 +48,25 @@ namespace Kratos
 
 
 
-        FetiDynamicCouplingUtilities(ModelPart& rInterfaceOrigin, ModelPart& rInterFaceDestination)
-            :mrOriginModelPart(rInterfaceOrigin), mrDestinationModelPart(rInterFaceDestination)
+        FetiDynamicCouplingUtilities(ModelPart& rInterfaceOrigin, ModelPart& rInterFaceDestination,
+            double OriginNewmarkBeta, double OriginNewmarkGamma,
+            double DestinationNewmarkBeta, double DestinationNewmarkGamma)
+            :mrOriginModelPart(rInterfaceOrigin), mrDestinationModelPart(rInterFaceDestination),
+            mOriginBeta(OriginNewmarkBeta), mOriginGamma(OriginNewmarkGamma),
+            mDestinationBeta(DestinationNewmarkBeta), mDestinationGamma(DestinationNewmarkGamma)
         {
-            KRATOS_WATCH("11111")
+            KRATOS_WATCH("11111");
+
+            // Check newmark parameters are valid
+            KRATOS_ERROR_IF(mOriginBeta < 0.0 || mOriginBeta > 1.0)
+                << "FetiDynamicCouplingUtilities | Error, mOriginBeta has invalid value. It must be between 0 and 1.";
+            KRATOS_ERROR_IF(mOriginGamma < 0.0 || mOriginGamma > 1.0)
+                << "FetiDynamicCouplingUtilities | Error, mOriginGamma has invalid value. It must be between 0 and 1.";
+            KRATOS_ERROR_IF(mDestinationBeta < 0.0 || mDestinationBeta > 1.0)
+                << "FetiDynamicCouplingUtilities | Error, mDestinationBeta has invalid value. It must be between 0 and 1.";
+            KRATOS_ERROR_IF(mDestinationGamma < 0.0 || mDestinationGamma > 1.0)
+                << "FetiDynamicCouplingUtilities | Error, mDestinationGamma has invalid value. It must be between 0 and 1.";
+
             // Todo
             // more todo
             // add more liens
@@ -84,6 +99,11 @@ namespace Kratos
 
         //DenseMappingMatrixUniquePointerType mpMappingMatrix = nullptr;
         MappingMatrixType* mpMappingMatrix = nullptr;
+
+        const double mOriginBeta;
+        const double mOriginGamma;
+        const double mDestinationBeta;
+        const double mDestinationGamma;
 
 
         void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);

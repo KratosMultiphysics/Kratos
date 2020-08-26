@@ -12,6 +12,13 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.modelpart_interface_origin = self.mapper.GetInterfaceModelPart(0)
         self.modelpart_interface_destination = self.mapper.GetInterfaceModelPart(1)
 
+        # Get time integration parameters
+        origin_newmark_beta = self.settings["origin_newmark_beta"].GetDouble()
+        origin_newmark_gamma = self.settings["origin_newmark_gamma"].GetDouble()
+        destination_newmark_beta = self.settings["destination_newmark_beta"].GetDouble()
+        destination_newmark_gamma = self.settings["destination_newmark_gamma"].GetDouble()
+
+        # Create feti class instance
         self.feti_coupling_solver = FetiDynamicCouplingUtilities(
             self.modelpart_interface_origin,
             self.modelpart_interface_destination)
@@ -45,3 +52,15 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             coupling_op.FinalizeCouplingIteration()
 
         return True
+
+    @classmethod
+    def _GetDefaultSettings(cls):
+        this_defaults = KM.Parameters("""{
+            "origin_newmark_beta" : -1.0,
+            "origin_newmark_gamma" : -1.0,
+            "destination_newmark_beta" : -1.0,
+            "destination_newmark_gamma" : -1.0,
+        }""")
+        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+
+        return this_defaults

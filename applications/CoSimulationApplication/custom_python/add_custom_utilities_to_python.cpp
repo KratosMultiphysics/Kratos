@@ -32,7 +32,7 @@ namespace Python{
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         pybind11::class_< FetiDynamicCouplingUtilities>(m, "FetiDynamicCouplingUtilities")
-            .def(pybind11::init<ModelPart&, ModelPart&>())
+            .def(pybind11::init<ModelPart&, ModelPart&, double, double, double, double>())
             .def("SetEffectiveStiffnessMatrices", &FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrices)
             .def("EquilibrateDomains", &FetiDynamicCouplingUtilities::EquilibrateDomains)
             .def("SetMappingMatrix", &FetiDynamicCouplingUtilities::SetMappingMatrix)
