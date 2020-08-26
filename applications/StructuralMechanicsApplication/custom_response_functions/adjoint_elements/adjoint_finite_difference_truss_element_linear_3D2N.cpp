@@ -195,7 +195,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::Initialize(const
 
 template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                                ProcessInfo& rCurrentProcessInfo)
+                                                               const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     BaseType::CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -259,7 +259,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::GetSecondDerivat
 
 template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateFirstDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     BaseType::CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -269,7 +269,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateFirstDe
 
 template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateSecondDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     BaseType::CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);

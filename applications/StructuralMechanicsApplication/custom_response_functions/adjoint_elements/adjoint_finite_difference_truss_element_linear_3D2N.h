@@ -116,17 +116,17 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
     
     void GetFirstDerivativesVector(Vector& values, int Step) const override;
 
     void GetSecondDerivativesVector(Vector& values, int Step) const override;
 
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                  std::vector< array_1d<double, 3 > >& rOutput,
