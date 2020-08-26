@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division
 import sys
 import types
 import builtins
+import functools
 
 import line_profiler
 
@@ -14,12 +15,13 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 def dummy_decorator_repeat(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         func(*args, **kwargs)
         func(*args, **kwargs)
     return wrapper
 
-class TestNodalDivergence(KratosUnittest.TestCase):
+class TestDecoratorInjector(KratosUnittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -89,6 +91,13 @@ class TestNodalDivergence(KratosUnittest.TestCase):
         a = [0]
         self.virtual_module.add_once_decorated(a)
         self.assertEqual(a[0], 2)
+
+    def test_virtual_module_profiler_injected_no_filter(self):
+        DecroatorInjector.InjectIntoAllModule(self.virtual_module, builtins.__dict__['profile'])
+
+        a = [0]
+        self.virtual_module.add_once(a)
+        self.assertEqual(a[0], 1)
 
     def tearDown(self):
         pass
