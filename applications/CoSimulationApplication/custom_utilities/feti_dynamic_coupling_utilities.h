@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp  DetectosIntersectosOverlapposAndMappos
+//  Main authors:    Peter Wilson
 //
 
 #if !defined(KRATOS_FETI_DYNAMIC_COUPLING_UTILITIES_H_INCLUDED)
@@ -64,7 +64,7 @@ namespace Kratos
 
         void SetMappingMatrix(MappingMatrixType* pMappingMatrix)
         {
-            mpMappingMatrix = pMappingMatrix;
+            //mpMappingMatrix = pMappingMatrix;
         };
 
         void EquilibrateDomains();
@@ -83,16 +83,13 @@ namespace Kratos
         SystemMatrixType* mpKOrigin = nullptr;
         SystemMatrixType* mpKDestination = nullptr;
 
-        //DenseMappingMatrixUniquePointerType mpMappingMatrix = nullptr;
-        MappingMatrixType* mpMappingMatrix = nullptr;
+        DenseMappingMatrixUniquePointerType mpMappingMatrix = nullptr;
+        //MappingMatrixType* mpMappingMatrix = nullptr;
 
         const double mOriginBeta;
         const double mOriginGamma;
         const double mDestinationBeta;
         const double mDestinationGamma;
-
-        std::vector<NodePointerType> mOriginInterfaceNodePointers;
-        std::vector<NodePointerType> mDestinationInterfaceNodePointers;
 
 
         void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Big T
+//  Main authors:    Peter Wilson
 //
 
 // System includes

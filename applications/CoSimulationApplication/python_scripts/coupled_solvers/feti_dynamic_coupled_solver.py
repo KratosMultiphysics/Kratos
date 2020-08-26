@@ -1,3 +1,6 @@
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
 
@@ -8,7 +11,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, models, solver_name):
         super().__init__(settings, models, solver_name)
 
-        self.mapper = self.__GetDataTransferOperator("coupling_geometry")
+        #self.mapper = self.__GetDataTransferOperator("coupling_geometry")
+        print(self.data_transfer_operators_dict)
+        self.mapper = self.data_transfer_operators_dict["mapper"]
+        print(self.mapper)
         self.modelpart_interface_origin = self.mapper.GetInterfaceModelPart(0)
         self.modelpart_interface_destination = self.mapper.GetInterfaceModelPart(1)
 
@@ -59,7 +65,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "origin_newmark_beta" : -1.0,
             "origin_newmark_gamma" : -1.0,
             "destination_newmark_beta" : -1.0,
-            "destination_newmark_gamma" : -1.0,
+            "destination_newmark_gamma" : -1.0
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultSettings())
 
