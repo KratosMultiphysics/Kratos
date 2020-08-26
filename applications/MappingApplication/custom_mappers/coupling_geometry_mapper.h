@@ -77,7 +77,7 @@ private:
 };
 
 template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
+class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
 

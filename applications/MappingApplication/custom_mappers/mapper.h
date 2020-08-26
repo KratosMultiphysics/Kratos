@@ -160,7 +160,10 @@ public:
      * @return The mapping-matrix
      */
     virtual TMappingMatrixType* pGetMappingMatrix() = 0;
-    virtual DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix();
+    virtual DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix()
+    {
+        KRATOS_ERROR << "YEEEEEEEEEEEEEEEEEE";
+    }
 
 
     ///@}

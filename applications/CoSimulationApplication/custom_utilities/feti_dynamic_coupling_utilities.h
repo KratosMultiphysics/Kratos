@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
+#include "co_simulation_application_variables.h"
 
 
 namespace Kratos
@@ -48,29 +49,11 @@ namespace Kratos
 
 
 
-        FetiDynamicCouplingUtilities(ModelPart& rInterfaceOrigin, ModelPart& rInterFaceDestination,
+        FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin,
+            ModelPart & rInterFaceDestination,
             double OriginNewmarkBeta, double OriginNewmarkGamma,
-            double DestinationNewmarkBeta, double DestinationNewmarkGamma)
-            :mrOriginModelPart(rInterfaceOrigin), mrDestinationModelPart(rInterFaceDestination),
-            mOriginBeta(OriginNewmarkBeta), mOriginGamma(OriginNewmarkGamma),
-            mDestinationBeta(DestinationNewmarkBeta), mDestinationGamma(DestinationNewmarkGamma)
-        {
-            KRATOS_WATCH("11111");
+            double DestinationNewmarkBeta, double DestinationNewmarkGamma);
 
-            // Check newmark parameters are valid
-            KRATOS_ERROR_IF(mOriginBeta < 0.0 || mOriginBeta > 1.0)
-                << "FetiDynamicCouplingUtilities | Error, mOriginBeta has invalid value. It must be between 0 and 1.";
-            KRATOS_ERROR_IF(mOriginGamma < 0.0 || mOriginGamma > 1.0)
-                << "FetiDynamicCouplingUtilities | Error, mOriginGamma has invalid value. It must be between 0 and 1.";
-            KRATOS_ERROR_IF(mDestinationBeta < 0.0 || mDestinationBeta > 1.0)
-                << "FetiDynamicCouplingUtilities | Error, mDestinationBeta has invalid value. It must be between 0 and 1.";
-            KRATOS_ERROR_IF(mDestinationGamma < 0.0 || mDestinationGamma > 1.0)
-                << "FetiDynamicCouplingUtilities | Error, mDestinationGamma has invalid value. It must be between 0 and 1.";
-
-            // Todo
-            // more todo
-            // add more liens
-        };
 
         void SetEffectiveStiffnessMatrices(SystemMatrixType& rK, IndexType SolverIndex)
         {
@@ -91,8 +74,11 @@ namespace Kratos
 
 
     private:
-        ModelPart& mrOriginModelPart;
-        ModelPart& mrDestinationModelPart;
+        ModelPart& mrOriginInterfaceModelPart;
+        ModelPart& mrDestinationInterfaceModelPart;
+
+        ModelPart* mpOriginDomain;
+        ModelPart* mpDestinationDomain;
 
         SystemMatrixType* mpKOrigin = nullptr;
         SystemMatrixType* mpKDestination = nullptr;
@@ -105,12 +91,31 @@ namespace Kratos
         const double mDestinationBeta;
         const double mDestinationGamma;
 
+        std::vector<NodePointerType> mOriginInterfaceNodePointers;
+        std::vector<NodePointerType> mDestinationInterfaceNodePointers;
+
 
         void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);
 
+        void ComposeProjector(Matrix& rProjector, const bool IsOrigin);
 
+        void DetermineInvertedEffectiveMassMatrix(const Matrix& rEffectiveK, Matrix& rEffInvMass,
+            const bool IsOrigin);
 
+        void CalculateCondensationMatrix(Matrix& rCondensationMatrix,
+            const Matrix& rOriginInverseMass, const Matrix& rDestinationInverseMass,
+            const Matrix& rOriginProjector, const Matrix& rDestinationProjector);
 
+        void DetermineLagrangianMultipliers(Vector& rLagrangeVec,
+            const Matrix& rCondensationMatrix, const Vector& rUnbalancedVelocities);
+
+        void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
+            const Matrix& rInvertedMassMatrix, const Matrix& rProjector,
+            const bool IsOrigin);
+
+        void AddCorrectionToDomain(ModelPart& rDomain,
+            const Variable< array_1d<double, 3> >& rVariable,
+            const Vector& rCorrection);
 
     };  // namespace FetiDynamicCouplingUtilities.
 
