@@ -1690,7 +1690,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
         {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
             const auto& Variable = KratosComponents<Kratos::Variable<int> >::Get(variable_name);
-            
+
             for(std::size_t j = 0; j < r_this_nodes.size(); j++)
             {
                 auto it_node = r_this_nodes.begin() + j;
@@ -1859,7 +1859,7 @@ void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContain
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadNodalDofVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
+void ModelPartIO::ReadNodalDofVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -1918,7 +1918,7 @@ void ModelPartIO::ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rF
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
+void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -1958,7 +1958,7 @@ void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TV
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 
@@ -2050,7 +2050,7 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable)
+void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -2082,7 +2082,7 @@ void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisEl
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 
@@ -2166,7 +2166,7 @@ void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditi
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable)
+void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -2198,7 +2198,7 @@ void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rTh
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 
