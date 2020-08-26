@@ -58,7 +58,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.NORMAL, self.model_part.Nodes)
 
     def test_ComputeSimplexNormalModelPart(self):
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, 3)
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part)
 
         ## DEBUG
         #PostProcess(self.model_part)

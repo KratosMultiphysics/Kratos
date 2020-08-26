@@ -202,6 +202,23 @@ void NormalCalculationUtils::CalculateOnSimplex(
 /***********************************************************************************/
 
 void NormalCalculationUtils::CalculateOnSimplex(
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+
+    KRATOS_ERROR_IF(!r_process_info.Has(DOMAIN_SIZE))
+        << "DOMAIN_SIZE not found in process info of " << rModelPart.Name() << ".";
+    CalculateOnSimplex(rModelPart, r_process_info[DOMAIN_SIZE]);
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NormalCalculationUtils::CalculateOnSimplex(
     ModelPart& rModelPart,
     const std::size_t Dimension
     )
@@ -210,12 +227,7 @@ void NormalCalculationUtils::CalculateOnSimplex(
     InitializeNormals<ModelPart::ConditionsContainerType>(rModelPart);
 
     // Calling CalculateOnSimplex for conditions
-    const auto& r_process_info = rModelPart.GetProcessInfo();
-    const bool has_domain_size = r_process_info.Has(DOMAIN_SIZE);
-    KRATOS_ERROR_IF(has_domain_size && Dimension == 0) << "Dimension not defined" << std::endl;
-    const SizeType dimension_in_model_part = has_domain_size ? r_process_info.GetValue(DOMAIN_SIZE) : Dimension;
-    KRATOS_WARNING_IF("NormalCalculationUtils", dimension_in_model_part != Dimension) << "Inconsistency between DOMAIN_SIZE and Dimension provided" << std::endl;
-    this->CalculateOnSimplex(rModelPart.Conditions(), dimension_in_model_part);
+    this->CalculateOnSimplex(rModelPart.Conditions(), Dimension);
 
     // Synchronize the normal
     rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
