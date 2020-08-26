@@ -37,15 +37,12 @@ def PostProcess(model_part):
     gid_output.ExecuteFinalize()
 
 def CalculateAnalyticalNormal(node):
-    normal = []
     norm = math.sqrt(node.X**2+node.Y**2+node.Z**2)
-    normal.append(node.X/norm)
-    normal.append(node.Y/norm)
-    normal.append(node.Z/norm)
+    normal = KratosMultiphysics.Array3([node.X/norm, node.Y/norm, node.Z/norm])
     return normal
 
-def CalculateNormalResidual(analytical_normal, utilities_normal):
-    return math.sqrt((utilities_normal[0]-analytical_normal[0])**2+(utilities_normal[1]-analytical_normal[1])**2+(utilities_normal[2]-analytical_normal[2])**2)
+def CalculateNorm(array_3d_value):
+    return math.sqrt(array_3d_value[0]**2+array_3d_value[1]**2+array_3d_value[2]**2)
 
 
 class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
@@ -55,8 +52,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
-        model_part_io.ReadModelPart(cls.model_part)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"), cls.model_part)
 
     def setUp(self):
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.NORMAL, self.model_part.Nodes)
@@ -71,10 +67,9 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
             normal = CalculateAnalyticalNormal(node)
 
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
-            solution_normal_norm = math.sqrt(solution_normal[0]**2+solution_normal[1]**2+solution_normal[2]**2)
-            solution_normal /= solution_normal_norm
+            solution_normal /= CalculateNorm(solution_normal)
 
-            self.assertLess(CalculateNormalResidual(normal, solution_normal), 0.15)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
     def test_ComputeUnitNormalModelPart(self):
         KratosMultiphysics.NormalCalculationUtils().CalculateUnitNormals(self.model_part)
@@ -85,7 +80,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
             normal = CalculateAnalyticalNormal(node)
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
-            self.assertLess(CalculateNormalResidual(normal, solution_normal), 0.15)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
     def test_ComputeNodesMeanNormalModelPart(self):
         KratosMultiphysics.MortarUtilities.ComputeNodesMeanNormalModelPart(self.model_part, True)
@@ -96,7 +91,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
             normal = CalculateAnalyticalNormal(node)
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
-            self.assertLess(CalculateNormalResidual(normal, solution_normal), 0.1)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.1)
 
     def test_InvertNormal(self):
         KratosMultiphysics.MortarUtilities.InvertNormal(self.model_part.Conditions)
@@ -108,7 +103,7 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         for node in self.model_part.GetSubModelPart("Skin_Part").Nodes:
             normal = CalculateAnalyticalNormal(node)
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL) * -1.0
-            self.assertLess(CalculateNormalResidual(normal, solution_normal), 0.1)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.1)
 
 
 class TestNormalUtilsQuadSphere(KratosUnittest.TestCase):
@@ -118,8 +113,7 @@ class TestNormalUtilsQuadSphere(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quad_sphere"))
-        model_part_io.ReadModelPart(cls.model_part)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quad_sphere"), cls.model_part)
 
     def setUp(self):
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.NORMAL, self.model_part.Nodes)
@@ -133,7 +127,7 @@ class TestNormalUtilsQuadSphere(KratosUnittest.TestCase):
         for node in self.model_part.Nodes:
             normal = CalculateAnalyticalNormal(node)
             solution_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
-            self.assertLess(CalculateNormalResidual(normal, solution_normal), 0.15)
+            self.assertLess(CalculateNorm(normal - solution_normal), 0.15)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
