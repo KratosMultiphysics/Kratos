@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-    class FetiDynamicCouplingUtilities
+    class KRATOS_API(CO_SIMULATION_APPLICATION) FetiDynamicCouplingUtilities
     {
     public:
         typedef std::size_t SizeType;

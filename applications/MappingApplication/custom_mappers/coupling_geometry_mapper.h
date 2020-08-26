@@ -77,7 +77,7 @@ private:
 };
 
 template<class TSparseSpace, class TDenseSpace>
-class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
+class KRATOS_API(MAPPING_APPLICATION) CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -243,10 +243,11 @@ public:
         KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
-    DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix() override
-    {
-        return mpMappingMatrix;
-    }
+    //DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix() override
+    //{
+    //    KRATOS_ERROR << "Not implemented!" << std::endl;
+    //    //return mpMappingMatrix;
+    //}
 
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,

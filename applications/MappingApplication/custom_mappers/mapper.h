@@ -160,7 +160,7 @@ public:
      * @return The mapping-matrix
      */
     virtual TMappingMatrixType* pGetMappingMatrix() = 0;
-    virtual DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix() = 0;
+    virtual DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix();
 
 
     ///@}
