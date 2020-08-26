@@ -67,20 +67,29 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        self.__SetWakeAndSpanDirections()
-        # Save the trailing edge and wing tip nodes for further computations
-        self.__MarkTrailingEdgeNodes()
-        # Save the lower surface normals to help mark kutta elements later on
-        self.__ComputeLowerSurfaceNormals()
         # Read wake from stl and create the wake model part
         self.__CreateWakeModelPart()
-        # Check which elements are cut and mark them as wake
-        self.__MarkWakeElements()
-        # Mark the elements touching the trailing edge from below as kutta
-        self.__MarkKuttaElements()
-        # Output the wake in GiD for visualization
-        if(self.output_wake):
-            self.__VisualizeWake()
+        import time as time
+        start_time = time.time()
+        CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part, self.wake_model_part, self.epsilon, self.wake_normal).ExecuteInitialize()
+        exe_time = time.time() - start_time
+        print('Executing Define3DWakeProcess took ' + str(round(exe_time, 2)) + ' sec')
+        print('Executing Define3DWakeProcess took ' + str(round(exe_time/60, 2)) + ' min')
+
+        # self.__SetWakeAndSpanDirections()
+        # # Save the trailing edge and wing tip nodes for further computations
+        # self.__MarkTrailingEdgeNodes()
+        # # Save the lower surface normals to help mark kutta elements later on
+        # self.__ComputeLowerSurfaceNormals()
+        # # Read wake from stl and create the wake model part
+        # self.__CreateWakeModelPart()
+        # # Check which elements are cut and mark them as wake
+        # self.__MarkWakeElements()
+        # # Mark the elements touching the trailing edge from below as kutta
+        # self.__MarkKuttaElements()
+        # # Output the wake in GiD for visualization
+        # if(self.output_wake):
+        #     self.__VisualizeWake()
 
     def __SetWakeAndSpanDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
@@ -133,6 +142,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         dummy_property = self.wake_model_part.Properties[0]
         node_id = 1
         elem_id = 1
+        z= -1e-4
 
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:
@@ -398,4 +408,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.ExecuteFinalize()
 
     def ExecuteFinalizeSolutionStep(self):
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 0)
+        if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
+            raise Exception("Fluid model part does not have a wake_elements_model_part")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)
+        CPFApp.PotentialFlowUtilities.CheckIfPressureEqualityWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 2)

@@ -119,7 +119,7 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
 
 template <int Dim, int NumNodes>
 array_1d<double, Dim> ComputePerturbedVelocity(
-    const Element& rElement, 
+    const Element& rElement,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
@@ -547,7 +547,7 @@ double ComputePerturbationLocalMachNumber(const Element& rElement, const Process
 
 template <int Dim, int NumNodes>
 double ComputeUpwindFactor(
-        double localMachNumberSquared, 
+        double localMachNumberSquared,
         const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -569,8 +569,8 @@ double ComputeUpwindFactor(
 
 template <int Dim, int NumNodes>
 double SelectMaxUpwindFactor(
-        const array_1d<double, Dim>& rCurrentVelocity, 
-        const array_1d<double, Dim>& rUpwindVelocity, 
+        const array_1d<double, Dim>& rCurrentVelocity,
+        const array_1d<double, Dim>& rUpwindVelocity,
         const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -602,7 +602,7 @@ size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions)
         rUpwindFactorOptions[2] = 0.0;
     }
     const auto max_upwind_factor_opt = std::max_element(rUpwindFactorOptions.begin(), rUpwindFactorOptions.end());
-    
+
     // Case 0: Subsonic flow
     // Case 1: Supersonic and accelerating flow (M^2 > M^2_up)
     // Case 2: Supersonic and decelerating flow (M^2 < M^2_up)
@@ -647,7 +647,7 @@ double ComputeUpwindFactorDerivativeWRTVelocitySquared(
 
 template <int Dim, int NumNodes>
 double ComputeDensity(
-    const double localMachNumberSquared, 
+    const double localMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Implemented according to Equation 8.9 of Drela, M. (2014) Flight Vehicle
@@ -673,8 +673,8 @@ double ComputeDensity(
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensity(
-    const array_1d<double, Dim>& rCurrentVelocity, 
-    const array_1d<double, Dim>& rUpwindVelocity, 
+    const array_1d<double, Dim>& rCurrentVelocity,
+    const array_1d<double, Dim>& rUpwindVelocity,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -694,7 +694,7 @@ double ComputeUpwindedDensity(
 
 template <int Dim, int NumNodes>
 double ComputeDensityDerivativeWRTVelocitySquared(
-    const double localMachNumberSquared, 
+    const double localMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -726,9 +726,9 @@ double ComputeDensityDerivativeWRTVelocitySquared(
 
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(
-    const array_1d<double, Dim>& rCurrentVelocity, 
+    const array_1d<double, Dim>& rCurrentVelocity,
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -754,7 +754,7 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeacceleratin
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
     //           and the Integral Boundary Layer Equations in Three Dimensions
-    //           by Brian Nishida (1996), Section A.2.6    
+    //           by Brian Nishida (1996), Section A.2.6
     // const double current_mach_sq = ComputeLocalMachNumberSquared<Dim, NumNodes>(rCurrentVelocity, rCurrentProcessInfo);
     const double Drho_Dq2 = ComputeDensityDerivativeWRTVelocitySquared<Dim, NumNodes>(currentMachNumberSquared, rCurrentProcessInfo);
 
@@ -767,7 +767,7 @@ double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeacceleratin
 template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -784,7 +784,7 @@ template <int Dim, int NumNodes>
 double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(
     const array_1d<double, Dim>& rUpwindVelocity,
     const double currentMachNumberSquared,
-    const double upwindMachNumberSquared, 
+    const double upwindMachNumberSquared,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Following Fully Simulataneous Coupling of the Full Potential Equation
@@ -863,19 +863,113 @@ bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const
     const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
 
     bool wake_condition_is_fulfilled = true;
-    for (unsigned int i = 0; i < upper_velocity.size(); i++){
-        if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
-            wake_condition_is_fulfilled = false;
-            break;
-        }
+    if(std::abs(upper_velocity[0] - lower_velocity[0]) > rTolerance){
+        wake_condition_is_fulfilled = false;
     }
+    if(std::abs(upper_velocity[2] - lower_velocity[2]) > rTolerance){
+        wake_condition_is_fulfilled = false;
+    }
+    // for (unsigned int i = 0; i < upper_velocity.size(); i++){
+    //     if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
+    //         wake_condition_is_fulfilled = false;
+    //         break;
+    //     }
+    // }
 
-    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 0)
-        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id() << std::endl;
-    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 1)
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 2)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT WING TIP" << rElement.GetValue(WING_TIP)
+        << " WITH ID # " << rElement.Id() << std::endl;
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 3)
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
         << " upper_velocity  = " << upper_velocity
         << " lower_velocity  = " << lower_velocity << std::endl;
+    if(!wake_condition_is_fulfilled && rEchoLevel > 1){
+        std::ofstream outfile;
+        outfile.open("unfulfilled_wake_elements_id.txt", std::ios_base::app);
+        outfile << rElement.Id();
+        outfile << "\n";
+    }
+
+    return wake_condition_is_fulfilled;
+}
+
+template <int Dim>
+void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
+{
+    std::ofstream outfile;
+    outfile.open("unfulfilled_pressure_wake_elements_id.txt");
+    unsigned int number_of_unfulfilled_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_wing_tip_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_zero_velocity_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_structure_wake_conditions = 0;
+    for (auto& r_element : rWakeModelPart.Elements()){
+        const bool wake_condition_is_fulfilled =
+            CheckPressureEqualityWakeCondition<Dim, Dim + 1>(r_element, rTolerance, rEchoLevel);
+        if (!wake_condition_is_fulfilled)
+        {
+            number_of_unfulfilled_wake_conditions += 1;
+            if(r_element.GetValue(WING_TIP)){
+                number_of_unfulfilled_wing_tip_wake_conditions += 1;
+                number_of_unfulfilled_structure_wake_conditions += 1;
+            }
+            else if(r_element.GetValue(ZERO_VELOCITY_CONDITION)){
+                number_of_unfulfilled_zero_velocity_wake_conditions += 1;
+                number_of_unfulfilled_structure_wake_conditions += 1;
+            }
+        }
+    }
+    const double percentage_unfulfilled = number_of_unfulfilled_wake_conditions * 100.0 / rWakeModelPart.NumberOfElements();
+
+    KRATOS_WARNING_IF("\nCheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << " THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << percentage_unfulfilled
+        << " % OF THE WAKE ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
+        << " OF " << rWakeModelPart.NumberOfElements()
+        << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_structure_wake_conditions
+        << " STRUCTURE ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wing_tip_wake_conditions
+        << " WING_TIP ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfPressureEqualityWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE PRESSURE EQUALITY WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_zero_velocity_wake_conditions
+        << " ZERO VELOCITY ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+}
+
+template <int Dim, int NumNodes>
+bool CheckPressureEqualityWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel)
+{
+    const auto upper_velocity = ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+    const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+
+    const double upper_velocity_2 = inner_prod(upper_velocity, upper_velocity);
+    const double lower_velocity_2 = inner_prod(lower_velocity, lower_velocity);
+
+    bool wake_condition_is_fulfilled = true;
+    if(std::abs(upper_velocity_2 - lower_velocity_2) > rTolerance){
+            wake_condition_is_fulfilled = false;
+    }
+
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 2)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id() << std::endl;
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 3)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
+        << " upper_velocity  = " << upper_velocity
+        << " lower_velocity  = " << lower_velocity << std::endl;
+
+    if(!wake_condition_is_fulfilled && rEchoLevel > 1){
+        std::ofstream outfile;
+        outfile.open("unfulfilled_pressure_wake_elements_id.txt", std::ios_base::app);
+        outfile << rElement.Id();
+        outfile << "\n";
+    }
 
     return wake_condition_is_fulfilled;
 }
@@ -951,7 +1045,9 @@ template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSuperson
 template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfPressureEqualityWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template bool CheckPressureEqualityWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 // 3D
@@ -997,7 +1093,9 @@ template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSuperson
 template double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfPressureEqualityWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template bool CheckPressureEqualityWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 } // namespace PotentialFlow

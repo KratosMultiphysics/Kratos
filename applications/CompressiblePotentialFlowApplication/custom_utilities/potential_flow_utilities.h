@@ -168,8 +168,14 @@ bool CheckIfElementIsTrailingEdge(const Element& rElement);
 template <int Dim>
 void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
 
+template <int Dim>
+void CheckIfPressureEqualityWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
+
 template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
+bool CheckPressureEqualityWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
 void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
