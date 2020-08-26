@@ -248,7 +248,8 @@ inline double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNo
             max_element_size = std::max(max_element_size, edge_length);
         }
     }
-    return max_element_size;
+    // TODO should be reated to mesh dim, check DOMAIN_SIZE! => should be divided by sqrt, sth in the direction what the conv crit does (check again why and what is done there, but I think it is to somehow account for the size of the problem).
+    return max_element_size / static_cast<double>(rNodes.size());
 }
 
 double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel);
