@@ -15,10 +15,10 @@ class Profiler(object):
             builtins.__dict__['profile'] = self.lp
 
     def ProfileAllModule(self, module):
-        DecroatorInjector.InjectIntoAllModule(module, builtins.__dict__['profile'])
+        DecroatorInjector.InjectIntoAllContainer(module, builtins.__dict__['profile'])
 
     def ProfileModule(self, module, expression):
-        DecroatorInjector.InjectIntoModule(module, builtins.__dict__['profile'], expression)
+        DecroatorInjector.InjectIntoContainer(module, builtins.__dict__['profile'], expression)
 
     def PrintResults(self):
         self.printed_once = True

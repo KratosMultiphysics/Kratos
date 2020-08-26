@@ -1,15 +1,19 @@
-def InjectIntoAllModule(module, function):
-    InjectIntoModule(module, function, lambda *x: True)
+import inspect
 
-def InjectIntoModule(module, function, expression):
-    for symbol_name in module.__dict__:
-        symbol = getattr(module, symbol_name)
+def InjectIntoAllContainer(container, function):
+    InjectIntoContainer(container, function, lambda *x: True)
 
-        if callable(symbol):
+def InjectIntoContainer(container, function, expression):
+    for symbol_name in container.__dict__:
+        symbol = getattr(container, symbol_name)
+
+        print(symbol_name, symbol, callable(symbol), inspect.isclass(symbol))
+        if callable(symbol) and not inspect.isclass(symbol):
             if expression(symbol_name):
-                is_wrapped = hasattr(symbol, "__wrapped__")
-
-                if is_wrapped:
-                    print("Warning: function", symbol_name, "is laready decorated. Injectior may fail.")
+                if hasattr(symbol, "__wrapped__"):
+                    print("Warning: symbol", symbol_name, "is already decorated. Injector may fail.")
                 
-                setattr(module, symbol_name, function(symbol))
+                setattr(container, symbol_name, function(symbol))
+
+        if callable(symbol) and inspect.isclass(symbol):
+            InjectIntoContainer(symbol, function, expression)

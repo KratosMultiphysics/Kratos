@@ -41,11 +41,27 @@ class TestDecoratorInjector(KratosUnittest.TestCase):
         def add_once_decorated(input):
             input[0] += 1
 
+        class dummy_class(object):
+            def __init__(self):
+                pass
+
+            def cls_add_once(self, input):
+                input[0] += 1
+
+            @dummy_decorator_repeat
+            def cls_add_once_decorated(self, input):
+                input[0] += 1
+
+            @classmethod
+            def cls_add_once_classmethod(cls, input):
+                input[0] += 1
+
         # Generate a virtual module. This should be equivalent to "import VirtualModule"
         virtual_module = types.ModuleType('VirtualModule', 'Module created to provide a context for the decorator injector')
         virtual_module.__dict__.update({
             "add_once":add_once,
-            "add_once_decorated":add_once_decorated
+            "add_once_decorated":add_once_decorated,
+            "dummy_class":dummy_class
         })
 
         sys.modules['VirtualModule'] = virtual_module
@@ -62,21 +78,21 @@ class TestDecoratorInjector(KratosUnittest.TestCase):
         self.assertEqual(a[0], 2)
 
     def test_virtual_module_injected(self):
-        DecroatorInjector.InjectIntoModule(self.virtual_module, dummy_decorator_repeat, lambda *x: True)
+        DecroatorInjector.InjectIntoContainer(self.virtual_module, dummy_decorator_repeat, lambda *x: True)
 
         a = [0]
         self.virtual_module.add_once(a)
         self.assertEqual(a[0], 2)
 
     def test_virtual_module_decorated_injected(self):
-        DecroatorInjector.InjectIntoModule(self.virtual_module, dummy_decorator_repeat, lambda *x: True)
+        DecroatorInjector.InjectIntoContainer(self.virtual_module, dummy_decorator_repeat, lambda *x: True)
 
         a = [0]
         self.virtual_module.add_once_decorated(a)
         self.assertEqual(a[0], 4)
 
     def test_virtual_module_profiler_injected(self):
-        DecroatorInjector.InjectIntoModule(self.virtual_module, builtins.__dict__['profile'], lambda *x: True)
+        DecroatorInjector.InjectIntoContainer(self.virtual_module, builtins.__dict__['profile'], lambda *x: True)
 
         a = [0]
         self.virtual_module.add_once(a)
@@ -86,18 +102,36 @@ class TestDecoratorInjector(KratosUnittest.TestCase):
     # existing decorator, otherwhie it will profile the wrapper instead of the function ( which is essentially
     # the current behaviour)
     def test_virtual_module_profiler_decorated_injected(self):
-        DecroatorInjector.InjectIntoModule(self.virtual_module, builtins.__dict__['profile'], lambda *x: True)
+        DecroatorInjector.InjectIntoContainer(self.virtual_module, builtins.__dict__['profile'], lambda *x: True)
 
         a = [0]
         self.virtual_module.add_once_decorated(a)
         self.assertEqual(a[0], 2)
 
     def test_virtual_module_profiler_injected_no_filter(self):
-        DecroatorInjector.InjectIntoAllModule(self.virtual_module, builtins.__dict__['profile'])
+        DecroatorInjector.InjectIntoAllContainer(self.virtual_module, builtins.__dict__['profile'])
 
         a = [0]
         self.virtual_module.add_once(a)
         self.assertEqual(a[0], 1)
+
+    def test_virtual_module_injected_class(self):
+        DecroatorInjector.InjectIntoContainer(self.virtual_module, dummy_decorator_repeat, lambda *x: True)
+
+        a = [0]
+        c = self.virtual_module.dummy_class()
+        c.cls_add_once(a)
+
+        self.assertEqual(a[0], 2)
+
+    def test_virtual_module_decorated_injected_class(self):
+        DecroatorInjector.InjectIntoContainer(self.virtual_module, dummy_decorator_repeat, lambda *x: True)
+
+        a = [0]
+        c = self.virtual_module.dummy_class()
+        c.cls_add_once_decorated(a)
+
+        self.assertEqual(a[0], 4)
 
     def tearDown(self):
         pass
