@@ -93,13 +93,8 @@ public:
      * @brief It computes the normal in the conditions
      * @param rModelPart The model part to compute
      */
-    void CalculateNormalsInConditions(ModelPart& rModelPart);
-
-    /**
-     * @brief It computes the normal in the elements
-     * @param rModelPart The model part to compute
-     */
-    void CalculateNormalsInElements(ModelPart& rModelPart);
+    template<class TContainerType>
+    void CalculateNormalsInContainer(ModelPart& rModelPart);
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes
@@ -511,6 +506,12 @@ private:
         array_1d<double,3>& rv1,
         array_1d<double,3>& rv2
         );
+
+    template<class TContainerType>
+    TContainerType& GetContainer(ModelPart& rModelPart);
+
+    template<class TContainerType>
+    void CalculateNormalsUsingGenericAlgorithm(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Access
