@@ -28,32 +28,7 @@ template <typename TPrimalElement>
 class AdjointFiniteDifferenceTrussElementLinear
     : public AdjointFiniteDifferenceTrussElement<TPrimalElement>
 {
-    class ThisExtensions : public AdjointExtensions
-    {
-        Element* mpElement;
-
-    public:
-        explicit ThisExtensions(Element* pElement);
-
-        void GetFirstDerivativesVector(std::size_t NodeId,
-                                       std::vector<IndirectScalar<double>>& rVector,
-                                       std::size_t Step) override;
-
-        void GetSecondDerivativesVector(std::size_t NodeId,
-                                        std::vector<IndirectScalar<double>>& rVector,
-                                        std::size_t Step) override;
-
-        void GetAuxiliaryVector(std::size_t NodeId,
-                                std::vector<IndirectScalar<double>>& rVector,
-                                std::size_t Step) override;
-
-        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
-
-        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
-
-        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
-    };
-
+    
 public:
 
     // redefine the typedefs because of templated base class
@@ -106,27 +81,6 @@ public:
         return Kratos::make_intrusive<AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
-
-    void GetValuesVector(Vector& values, int Step = 0) const override;
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
-    
-    void GetFirstDerivativesVector(Vector& values, int Step) const override;
-
-    void GetSecondDerivativesVector(Vector& values, int Step) const override;
-
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                  std::vector< array_1d<double, 3 > >& rOutput,

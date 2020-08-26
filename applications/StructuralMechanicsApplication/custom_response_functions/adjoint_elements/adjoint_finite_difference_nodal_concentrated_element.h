@@ -27,31 +27,6 @@ namespace Kratos
 template <typename TPrimalElement>
 class AdjointFiniteDifferenceNodalConcentratedElement: public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
-    class ThisExtensions : public AdjointExtensions
-    {
-        Element* mpElement;
-
-    public:
-        explicit ThisExtensions(Element* pElement);
-
-        void GetFirstDerivativesVector(std::size_t NodeId,
-                                       std::vector<IndirectScalar<double>>& rVector,
-                                       std::size_t Step) override;
-
-        void GetSecondDerivativesVector(std::size_t NodeId,
-                                        std::vector<IndirectScalar<double>>& rVector,
-                                        std::size_t Step) override;
-
-        void GetAuxiliaryVector(std::size_t NodeId,
-                                std::vector<IndirectScalar<double>>& rVector,
-                                std::size_t Step) override;
-
-        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
-
-        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
-
-        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
-    };
 
 public:
 
@@ -76,7 +51,6 @@ public:
     AdjointFiniteDifferenceNodalConcentratedElement(IndexType NewId = 0)
     : BaseType(NewId, false)
     {
-        // SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this)); ????
     }
 
     AdjointFiniteDifferenceNodalConcentratedElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
@@ -106,27 +80,6 @@ public:
         return Kratos::make_intrusive<AdjointFiniteDifferenceNodalConcentratedElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
-
-    void GetValuesVector(Vector& values, int Step = 0) const override;
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetFirstDerivativesVector(Vector& values, int Step) const override;
-
-    void GetSecondDerivativesVector(Vector& values, int Step) const override;
-
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
     
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;

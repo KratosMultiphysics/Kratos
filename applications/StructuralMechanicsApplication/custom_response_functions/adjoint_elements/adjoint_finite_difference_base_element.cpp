@@ -25,6 +25,7 @@
 #include "custom_elements/small_displacement.h"
 #include "custom_elements/spring_damper_element_3D2N.hpp"
 #include "custom_elements/nodal_concentrated_element.hpp"
+#include "utilities/indirect_scalar.h"
 
 
 namespace Kratos
@@ -594,6 +595,91 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 }
 
 // private
+template <class TPrimalElement>
+AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement)
+    : mpElement{pElement}
+{
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension());
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
+    {
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
+    }
+
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension());
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
+    {
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Z, Step);
+    }
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension());
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
+    {
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Z, Step);
+    }
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    if (rVariables.size() != 1)
+    {
+        rVariables.resize(1);
+    }
+    rVariables[0] = &ADJOINT_VECTOR_2;
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    if (rVariables.size() != 1)
+    {
+        rVariables.resize(1);
+    }
+    rVariables[0] = &ADJOINT_VECTOR_3;
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    if (rVariables.size() != 1)
+    {
+        rVariables.resize(1);
+    }
+    rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+}
+
 template <class TPrimalElement>
 double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {

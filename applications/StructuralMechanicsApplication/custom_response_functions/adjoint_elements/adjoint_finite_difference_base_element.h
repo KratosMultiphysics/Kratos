@@ -135,6 +135,7 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->Initialize(rCurrentProcessInfo);
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
 
     void ResetConstitutiveLaw() override
@@ -179,8 +180,13 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
-                                               rCurrentProcessInfo);
+            KRATOS_TRY;
+            mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+            noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+            KRATOS_CATCH("");
+
+            KRATOS_WARNING("AdjointFiniteDifferencingBaseElement")<<"WARNING: Negative LHS was calculated." << std::endl;
+            //TODO Flag to distinguish between static and transient computation. 
     }
 
     void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
@@ -220,8 +226,10 @@ public:
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					        const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
-					        rCurrentProcessInfo);
+            KRATOS_TRY;
+            mpPrimalElement->CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+            noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+            KRATOS_CATCH("");
     }
 
     void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
@@ -243,8 +251,10 @@ public:
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					       const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
-					        rCurrentProcessInfo);
+            KRATOS_TRY;
+            mpPrimalElement->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+            noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+            KRATOS_CATCH("");
     }
 
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
@@ -499,6 +509,31 @@ private:
 
     ///@name Private Classes
     ///@{
+        class ThisExtensions : public AdjointExtensions
+    {
+        Element* mpElement;
+
+    public:
+        explicit ThisExtensions(Element* pElement);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };
     ///@}
 
     ///@name Private Operations
