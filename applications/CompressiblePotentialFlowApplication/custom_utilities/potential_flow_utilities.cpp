@@ -843,17 +843,49 @@ template <int Dim>
 void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
 {
     unsigned int number_of_unfulfilled_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_wake_conditions_in_x_direction = 0;
+    unsigned int number_of_unfulfilled_wake_conditions_in_y_direction = 0;
+    unsigned int number_of_unfulfilled_wake_conditions_in_z_direction = 0;
     for (auto& r_element : rWakeModelPart.Elements()){
         const bool wake_condition_is_fulfilled =
             CheckWakeCondition<Dim, Dim + 1>(r_element, rTolerance, rEchoLevel);
-        if (!wake_condition_is_fulfilled)
-        {
+        if (!wake_condition_is_fulfilled){
             number_of_unfulfilled_wake_conditions += 1;
+        }
+        for(unsigned int i = 0; i < Dim; i++){
+            const bool wake_condition_is_fulfilled_in_direction =
+                CheckWakeConditionXDirection<Dim, Dim + 1>(r_element, i, rTolerance, rEchoLevel);
+            if (!wake_condition_is_fulfilled_in_direction){
+                if(i < 0.5){
+                    number_of_unfulfilled_wake_conditions_in_x_direction += 1;
+                }
+                else if(i < 1.5){
+                    number_of_unfulfilled_wake_conditions_in_y_direction += 1;
+                }
+                else{
+                    number_of_unfulfilled_wake_conditions_in_z_direction += 1;
+                }
+            }
         }
     }
     KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "TOTAL NUMBER OF WAKE ELEMENTS = " << rWakeModelPart.NumberOfElements() << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
         << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
         << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions_in_x_direction > 0)
+        << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions_in_x_direction
+        << " ELEMENTS IN THE X DIRECTION " << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions_in_y_direction > 0)
+        << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions_in_y_direction
+        << " ELEMENTS IN THE Y DIRECTION " << std::endl;
+
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions_in_z_direction > 0)
+        << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions_in_z_direction
+        << " ELEMENTS IN THE Z DIRECTION " << std::endl;
 }
 
 template <int Dim, int NumNodes>
@@ -889,6 +921,37 @@ bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const
         outfile << rElement.Id();
         outfile << "\n";
     }
+
+    return wake_condition_is_fulfilled;
+}
+
+template <int Dim, int NumNodes>
+bool CheckWakeConditionXDirection(const Element& rElement, const int& rComponent, const double& rTolerance, const int& rEchoLevel)
+{
+    const auto upper_velocity = ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+    const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+
+    double reference = std::abs(upper_velocity[rComponent]);
+    if(reference < 1e-8){
+        reference = 1e-8;
+    }
+
+    const double absolute_error = std::abs(upper_velocity[rComponent] - lower_velocity[rComponent]);
+    const double relative_error = absolute_error/reference;
+
+    bool wake_condition_is_fulfilled = true;
+    if(absolute_error > rTolerance){
+        wake_condition_is_fulfilled = false;
+    }
+
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 2)
+        << "WAKE CONDITION NOT FULFILLED WITH AN ABSOLUTE ERROR = " << absolute_error
+        << "AND A RELATIVE ERROR = " << relative_error
+        << " IN THE " << rComponent << "COMPONENT, IN ELEMENT WITH ID # " << rElement.Id() << std::endl;
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 3)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
+        << " upper_velocity  = " << upper_velocity
+        << " lower_velocity  = " << lower_velocity << std::endl;
 
     return wake_condition_is_fulfilled;
 }
@@ -1047,6 +1110,7 @@ template bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfPressureEqualityWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template bool CheckWakeConditionXDirection<2, 3>(const Element& rElement, const int& rComponent, const double& rTolerance, const int& rEchoLevel);
 template bool CheckPressureEqualityWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
@@ -1095,6 +1159,7 @@ template bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfPressureEqualityWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+template bool CheckWakeConditionXDirection<3, 4>(const Element& rElement, const int& rComponent, const double& rTolerance, const int& rEchoLevel);
 template bool CheckPressureEqualityWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);

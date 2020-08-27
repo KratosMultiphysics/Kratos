@@ -175,6 +175,9 @@ template <int Dim, int NumNodes>
 bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
+bool CheckWakeConditionXDirection(const Element& rElement, const int& rComponent, const double& rTolerance, const int& rEchoLevel);
+
+template <int Dim, int NumNodes>
 bool CheckPressureEqualityWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
