@@ -172,6 +172,28 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
 
+        # Lagrange multipliers
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_0)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_1)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_2)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_3)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_4)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_5)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_6)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_7)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_8)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_9)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_10)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_11)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_12)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_13)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_14)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_15)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_16)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_17)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_18)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_19)
+
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
@@ -183,6 +205,27 @@ class PotentialFlowSolver(FluidSolver):
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_0, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_1, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_2, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_3, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_4, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_5, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_6, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_7, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_8, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_9, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_10, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_11, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_12, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_13, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_14, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_15, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_16, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_17, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_18, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_19, self.main_model_part)
 
     def Initialize(self):
         self._ComputeNodalElementalNeighbours()
