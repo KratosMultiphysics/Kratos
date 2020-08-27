@@ -42,7 +42,7 @@ namespace Kratos
         typedef typename SparseSpaceType::MatrixType SystemMatrixType;
 
         typedef Matrix DenseMappingMatrixType;
-        typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+        typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
 
         typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef typename SparseSpaceType::MatrixType MappingMatrixType;
@@ -62,9 +62,11 @@ namespace Kratos
             else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, Index must be 0 or 1";
         };
 
-        void SetMappingMatrix(MappingMatrixType* pMappingMatrix)
+        void SetMappingMatrix(DenseMappingMatrixUniquePointerType pMappingMatrix)
         {
-            //mpMappingMatrix = pMappingMatrix;
+            mpMappingMatrix = pMappingMatrix;
+
+            KRATOS_WATCH(*(mpMappingMatrix.get()))
         };
 
         void EquilibrateDomains();
@@ -91,6 +93,8 @@ namespace Kratos
         const double mDestinationBeta;
         const double mDestinationGamma;
 
+        const bool mIsCheckEquilibrium = true;
+
 
         void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);
 
@@ -110,9 +114,57 @@ namespace Kratos
             const Matrix& rInvertedMassMatrix, const Matrix& rProjector,
             const bool IsOrigin);
 
-        void AddCorrectionToDomain(ModelPart& rDomain,
+        void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,
             const Vector& rCorrection);
+
+        void PrintInterfaceVelocity(const bool IsOrigin)
+        {
+            const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+            const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
+            Vector interface_velocities(origin_interface_dofs);
+
+            ModelPart& r_interface = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
+
+            auto interface_nodes = r_interface.NodesArray();
+            for (size_t i = 0; i < interface_nodes.size(); i++)
+            {
+                IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+                array_1d<double, 3>& vel = interface_nodes[i]->FastGetSolutionStepValue(VELOCITY);
+
+                for (size_t dof = 0; dof < dim_origin; dof++)
+                {
+                    interface_velocities[interface_id * dim_origin + dof] = vel[dof];
+                }
+            }
+
+            std::cout << "\n\nInterface velocities, is origin = " << IsOrigin
+                << "\n" << interface_velocities << "\n\n";
+        }
+
+        void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const bool IsOrigin)
+        {
+            const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+            const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
+            Vector interface_velocities(origin_interface_dofs);
+
+            ModelPart& r_interface = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
+
+            auto interface_nodes = r_interface.NodesArray();
+            for (size_t i = 0; i < interface_nodes.size(); i++)
+            {
+                IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+                array_1d<double, 3>& vel = interface_nodes[i]->FastGetSolutionStepValue(rVariable);
+
+                for (size_t dof = 0; dof < dim_origin; dof++)
+                {
+                    interface_velocities[interface_id * dim_origin + dof] = vel[dof];
+                }
+            }
+
+            std::cout << "\n\nInterface " << rVariable.Name() << ", is origin = " << IsOrigin
+                << "\n" << interface_velocities << "\n\n";
+        }
 
     };  // namespace FetiDynamicCouplingUtilities.
 

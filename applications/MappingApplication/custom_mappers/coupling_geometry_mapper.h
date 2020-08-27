@@ -104,7 +104,8 @@ public:
     typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
     typedef Matrix DenseMappingMatrixType;
-    typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+    //typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+    typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
 
     ///@}
     ///@name Life Cycle
@@ -243,11 +244,11 @@ public:
         KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
-    //DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix() override
-    //{
-    //    KRATOS_ERROR << "Not implemented!" << std::endl;
-    //    //return mpMappingMatrix;
-    //}
+    DenseMappingMatrixUniquePointerType pGetDenseMappingMatrix() override
+    {
+        //KRATOS_ERROR << "Not implemented!" << std::endl;
+        return mpMappingMatrix;
+    }
 
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,

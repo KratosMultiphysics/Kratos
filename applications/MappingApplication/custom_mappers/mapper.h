@@ -55,7 +55,7 @@ public:
     typedef typename TSparseSpace::MatrixType TMappingMatrixType;
 
     typedef Matrix DenseMappingMatrixType;
-    typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+    typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
 
     ///@}
     ///@name Life Cycle
