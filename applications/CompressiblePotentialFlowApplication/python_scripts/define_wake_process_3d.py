@@ -147,11 +147,11 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:
             for vertex in stl_mesh.points:
-                node1 = self.wake_model_part.CreateNewNode(node_id, float(vertex[0]), float(vertex[1]), float(vertex[2]))
+                node1 = self.wake_model_part.CreateNewNode(node_id, float(vertex[0]), float(vertex[1]), float(vertex[2]) + z )
                 node_id+=1
-                node2 = self.wake_model_part.CreateNewNode(node_id, float(vertex[3]), float(vertex[4]), float(vertex[5]))
+                node2 = self.wake_model_part.CreateNewNode(node_id, float(vertex[3]), float(vertex[4]), float(vertex[5]) + z )
                 node_id+=1
-                node3 = self.wake_model_part.CreateNewNode(node_id, float(vertex[6]), float(vertex[7]), float(vertex[8]))
+                node3 = self.wake_model_part.CreateNewNode(node_id, float(vertex[6]), float(vertex[7]), float(vertex[8]) + z )
                 node_id+=1
 
                 self.wake_model_part.CreateNewElement("Element3D3N", elem_id,  [

@@ -38,6 +38,10 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
 
 void Define3DWakeProcess::ExecuteInitialize()
 {
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    auto& r_nodes = root_model_part.Nodes();
+    VariableUtils().SetNonHistoricalVariable(WING_TIP, 0, r_nodes);
+
     InitializeTrailingEdgeSubModelpart();
 
     InitializeWakeSubModelpart();
@@ -211,8 +215,12 @@ void Define3DWakeProcess::MarkWakeElements()
     for (int i = 0; i < static_cast<int>(root_model_part.Elements().size()); i++) {
         ModelPart::ElementIterator it_elem = root_model_part.ElementsBegin() + i;
 
+        //Initialize varaibles
+        it_elem->SetValue(WING_TIP_ELEMENT, false);
+
         // Check if the element is touching the trailing edge
         CheckIfTrailingEdgeElement(*it_elem);
+
 
         if(it_elem->Is(TO_SPLIT)){
             it_elem->SetValue(WAKE, true);
@@ -437,9 +445,9 @@ void Define3DWakeProcess::ComputeNodalDistancesToWakeAndLowerSurface(const Eleme
             }
             else{
                 distance = inner_prod(distance_vector, mWakeNormal);
-                // Nodes slightly below and above the wake are given a negative distance
+                // Nodes slightly below and above the wake are given a positive distance
                 if(std::abs(distance) < mTolerance){
-                    distance = - mTolerance;
+                    distance = mTolerance;
                 }
             }
 
@@ -618,15 +626,15 @@ void Define3DWakeProcess::SelectDoubleTrailingEdgeElements() const
             }
             if(te_node_counter > 1){
                 r_element.SetValue(WING_TIP, true);
-                wing_tip_elements_counter += 1;
-                std::ofstream outfile_wing_tip;
-                outfile_wing_tip.open("wing_tip_elements_id.txt", std::ios_base::app);
-                outfile_wing_tip << r_element.Id();
-                outfile_wing_tip << "\n";
                 for (unsigned int i = 0; i < r_geometry.size(); i++){
                     const auto& r_node = r_geometry[i];
                     if (r_node.GetValue(WING_TIP)){
                         r_element.SetValue(WING_TIP_ELEMENT, true);
+                        wing_tip_elements_counter += 1;
+                        std::ofstream outfile_wing_tip;
+                        outfile_wing_tip.open("wing_tip_elements_id.txt", std::ios_base::app);
+                        outfile_wing_tip << r_element.Id();
+                        outfile_wing_tip << "\n";
                     }
                 }
             }
