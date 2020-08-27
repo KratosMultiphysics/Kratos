@@ -329,7 +329,35 @@ void Define3DWakeProcess::MarkKuttaElements()
             KRATOS_WATCH(number_of_nodes_with_positive_distance)
         }
 
-        if(number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1){
+        // Wake structure elements (cut)
+        if(number_of_nodes_with_positive_distance > 0 && number_of_nodes_with_negative_distance > 0 && p_elem->GetValue(WAKE)){
+            p_elem->Set(STRUCTURE);
+            BoundedVector<double, 4> wake_elemental_distances = ZeroVector(4);
+            unsigned int counter = 0;
+            for(unsigned int j = 0; j < r_geometry.size(); j++){
+                const auto& r_node = r_geometry[j];
+                if(r_node.GetValue(TRAILING_EDGE)){
+                    wake_elemental_distances[j] = mTolerance;
+                    r_geometry[j].SetLock();
+                    // Trailing edge nodes are given a positive distance
+                    r_geometry[j].SetValue(WAKE_DISTANCE, mTolerance);
+                    r_geometry[j].UnSetLock();
+                    auto& r_number_of_neighbour_elements = r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+                    #pragma omp atomic
+                    r_number_of_neighbour_elements += 1;
+                }
+                else{
+                    r_geometry[j].SetLock();
+                    r_geometry[j].SetValue(WAKE_DISTANCE, nodal_distances_to_te[counter]);
+                    r_geometry[j].UnSetLock();
+                    wake_elemental_distances[j] = nodal_distances_to_te[counter];
+                    counter += 1;
+                }
+            }
+            p_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, wake_elemental_distances);
+        }
+        // Kutta elements (below)
+        else if(number_of_nodes_with_negative_distance > number_of_non_te_nodes - 1){
             p_elem->SetValue(KUTTA, true);
             p_elem->SetValue(WAKE, false);
             p_elem->Set(TO_ERASE, true);
@@ -363,32 +391,9 @@ void Define3DWakeProcess::MarkKuttaElements()
             // }
             // p_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, wake_elemental_distances);
         }
-        else if(number_of_nodes_with_positive_distance > 0 && number_of_nodes_with_negative_distance > 0 && p_elem->GetValue(WAKE)){
-            p_elem->Set(STRUCTURE);
-            BoundedVector<double, 4> wake_elemental_distances = ZeroVector(4);
-            unsigned int counter = 0;
-            for(unsigned int j = 0; j < r_geometry.size(); j++){
-                const auto& r_node = r_geometry[j];
-                if(r_node.GetValue(TRAILING_EDGE)){
-                    wake_elemental_distances[j] = mTolerance;
-                    r_geometry[j].SetLock();
-                    r_geometry[j].SetValue(WAKE_DISTANCE, mTolerance);
-                    r_geometry[j].UnSetLock();
-                    auto& r_number_of_neighbour_elements = r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-                    #pragma omp atomic
-                    r_number_of_neighbour_elements += 1;
-                }
-                else{
-                    r_geometry[j].SetLock();
-                    r_geometry[j].SetValue(WAKE_DISTANCE, nodal_distances_to_te[counter]);
-                    r_geometry[j].UnSetLock();
-                    wake_elemental_distances[j] = nodal_distances_to_te[counter];
-                    counter += 1;
-                }
-            }
-            p_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, wake_elemental_distances);
-        }
+        // Normal elements (above)
         else{
+            p_elem->SetValue(NORMAL_ELEMENT, true);
             p_elem->SetValue(WAKE, false);
             p_elem->Set(TO_ERASE, true);
         }
@@ -415,22 +420,26 @@ void Define3DWakeProcess::ComputeNodalDistancesToWakeAndLowerSurface(const Eleme
             const double free_stream_direction_distance = inner_prod(distance_vector, mWakeDirection);
 
             double distance;
+            // Nodes touching the lower surface have negative distance
             if(r_node.GetValue(LOWER_SURFACE)){
                 distance = - mTolerance;
             }
+            // Nodes touching the upper surface have positive distance
             else if(r_node.GetValue(UPPER_SURFACE)){
                 distance = mTolerance;
             }
             else if(free_stream_direction_distance < 0.0){
                 distance = inner_prod(distance_vector, pTrailingEdgeNode->GetValue(NORMAL));
+                // Nodes under the wing are given a negative distance
                 if(std::abs(distance) < mTolerance){
                     distance = - mTolerance;
                 }
             }
             else{
                 distance = inner_prod(distance_vector, mWakeNormal);
+                // Nodes slightly below and above the wake are given a negative distance
                 if(std::abs(distance) < mTolerance){
-                    distance = + mTolerance;
+                    distance = - mTolerance;
                 }
             }
 
@@ -647,6 +656,8 @@ void Define3DWakeProcess::Print() const
     outfile_wake.open("wake_elements_id.txt");
     std::ofstream outfile_structure;
     outfile_structure.open("structure_elements_id.txt");
+    std::ofstream outfile_kutta;
+    outfile_kutta.open("kutta_elements_id.txt");
     unsigned int normal_elements_counter = 0;
     unsigned int wake_elements_counter = 0;
     unsigned int kutta_elements_counter = 0;
@@ -655,6 +666,10 @@ void Define3DWakeProcess::Print() const
         if(!r_element.GetValue(WAKE)){
             if(r_element.GetValue(KUTTA)){
                 kutta_elements_counter += 1;
+                std::ofstream outfile_kutta;
+                outfile_kutta.open("kutta_elements_id.txt", std::ios_base::app);
+                outfile_kutta << r_element.Id();
+                outfile_kutta << "\n";
             }
             else{
                 normal_elements_counter += 1;
