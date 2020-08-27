@@ -380,14 +380,14 @@ public:
                                         const double SpectralConstantW,
                                         const double TurbulentKineticEnergyU,
                                         const double TurbulentKineticEnergyV,
-                                        const double TurbulentKineticEnergyW) const 
+                                        const double TurbulentKineticEnergyW) const
     {
         double output = 0.0;
         double k1 = 2*M_PI*TurbulentEnergyDissipationRate*std::pow(TurbulentKineticEnergy, -1.5);
         double kN = std::pow(TurbulentEnergyDissipationRate, 0.25)*std::pow(KinematicViscosity, -0.75);
         double dk = (std::log(kN) - std::log(k1))/(TotalWaveNumber-1);
         double kn = k1;
-        double kn_pre = 0.0; 
+        double kn_pre = 0.0;
         for (int i = 0; i < TotalWaveNumber; ++i)
         {
             output += (2/EffectiveWaveNumber) * (kn-kn_pre) * std::pow((kn/EffectiveWaveNumber),2) * std::exp(-2*std::pow((kn/kN), 2)) / (std::pow(1+std::pow((kn/EffectiveWaveNumber), 2), 1.833333333));
@@ -411,7 +411,7 @@ public:
         if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
 
-        const int total_wave_number = rCurrentProcessInfo[ACTIVATION_LEVEL];
+        const int total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
         //const int total_wave_number = TOTAL_WAVE_NUMBER[0];
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
@@ -425,7 +425,7 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
-        
+
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
             const Vector gauss_shape_functions = row(shape_functions, g);
