@@ -54,7 +54,7 @@ namespace Kratos
 
 		for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
 		{
-			CalculateCartesianDerivatives(point_number, kinematic_variables, m_cart_deriv[point_number]);
+			m_cart_deriv[point_number]= CalculateCartesianDerivatives(point_number, kinematic_variables );
 
 			CalculateKinematics(
 				point_number,
@@ -135,10 +135,7 @@ namespace Kratos
 				ConstitutiveLaw::StressMeasure_PK2);
 
 			// calculate B operator
-			Matrix BOperator = ZeroMatrix(8, mat_size);
-			CalculateStrainDisplacementOperator(
-				point_number,
-				BOperator,
+			Matrix BOperator = CalculateStrainDisplacementOperator(point_number,
 				kinematic_variables,
 				variation_variables);
 
@@ -151,10 +148,9 @@ namespace Kratos
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 			{
 				// Geometric stiffness matrix
-				Matrix Kg(mat_size, mat_size);
+				Matrix Kg =
 				CalculateGeometricStiffness(
 					point_number,
-					Kg,
 					kinematic_variables,
 					variation_variables,
 					constitutive_variables);
@@ -246,10 +242,9 @@ namespace Kratos
 	}
 
 	/* Transforms derivatives to obtain cartesian quantities  */
-	void Shell5pElement::CalculateCartesianDerivatives(
+	Matrix Shell5pElement::CalculateCartesianDerivatives(
 		IndexType IntegrationPointIndex,
-		const KinematicVariables& rKinematicVariables,
-		Matrix& mCartD
+		const KinematicVariables& rKinematicVariables
 	)
 	{
 		const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
@@ -282,7 +277,7 @@ namespace Kratos
 		Matrix invJ;
 		MathUtils<double>::InvertMatrix2(J, invJ, detJ);
 
-		mCartD = prod(invJ, r_DN_De);
+		return prod(invJ, r_DN_De);
 	}
 
 	void Shell5pElement::CalculateConstitutiveVariables(
@@ -324,186 +319,163 @@ namespace Kratos
 			rThisConstitutiveVariables.ConstitutiveMatrix, rThisConstitutiveVariables.StrainVector);
 	}
 
-	void Shell5pElement::CalculateStrainDisplacementOperator(
-		IndexType IntegrationPointIndex,
-		Matrix& rB,
+	Matrix Shell5pElement::CalculateStrainDisplacementOperator(
+		IndexType IntPoint,
 		const KinematicVariables& rActualKinematic,
 		const VariationVariables& rVariations)
 	{
 		const SizeType number_of_nodes = GetGeometry().size();
 		const SizeType num_dof = number_of_nodes * 5;
 
-		noalias(rB) = ZeroMatrix(8, num_dof);
-
-		Matrix WI1(3, 3);
-		Matrix WI2(3, 3);
-		Matrix BLAI(3, 2);
-
-		///=============== only used since ublas not working with the commented bloc ===============
-		Vector Temp(1, 2);
-		Vector Temp1(1, 2);
-		Vector Temp2(1, 2);
-		Vector Temp3(1, 2);
-		Vector Temp4(1, 2);
+		Matrix rB{ ZeroMatrix(8, num_dof) };
 
 		for (SizeType r = 0; r < number_of_nodes; r++)
 		{
 			SizeType kr = 5 * r;
 
-			BLAI = GetGeometry()[r].GetValue(DIRECTORTANGENTSPACE);
-			WI1 = rVariations.Q1 * m_N(IntegrationPointIndex, r) + rVariations.P * m_cart_deriv[IntegrationPointIndex](0, r);
-			WI2 = rVariations.Q2 * m_N(IntegrationPointIndex, r) + rVariations.P * m_cart_deriv[IntegrationPointIndex](1, r);
+			const BoundedMatrix<double, 3, 2> BLAI = GetGeometry()[r].GetValue(DIRECTORTANGENTSPACE);
+			const BoundedMatrix<double, 3, 3> WI1 = rVariations.Q1 * m_N(IntPoint, r) + rVariations.P * m_cart_deriv[IntPoint](0, r);
+			const BoundedMatrix<double, 3, 3> WI2 = rVariations.Q2 * m_N(IntPoint, r) + rVariations.P * m_cart_deriv[IntPoint](1, r);
+
+			Vector Temp(1, 2), Temp1(1, 2), Temp2(1, 2), Temp3(1, 2), Temp4(1, 2);
 
 			for (int s = 0; s < 3; s++)
-			{ 
-			//membrane
-			rB(0, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.a1[s];
-			rB(1, kr + s) = m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.a2[s];
+			{
+				//membrane
+				rB(0, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.a1[s];
+				rB(1, kr + s) = m_cart_deriv[IntPoint](1, r) * rActualKinematic.a2[s];
 
-            //inplane shear
-			rB(2, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.a2[s] + m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.a1[s];
+				//inplane shear
+				rB(2, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.a2[s] + m_cart_deriv[IntPoint](1, r) * rActualKinematic.a1[s];
 
-            //BENDING PART displacement variation
-			rB(3, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.dtd1[s];
-			rB(4, kr + s) = m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.dtd2[s];
-			rB(5, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.dtd2[s] + m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.dtd1[s];
+				//BENDING PART displacement variation
+				rB(3, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.dtd1[s];
+				rB(4, kr + s) = m_cart_deriv[IntPoint](1, r) * rActualKinematic.dtd2[s];
+				rB(5, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.dtd2[s] + m_cart_deriv[IntPoint](1, r) * rActualKinematic.dtd1[s];
 
-			//TransverseShear displacement variation
-			rB(6, kr + s) = m_cart_deriv[IntegrationPointIndex](0, r) * rActualKinematic.t[s];
-			rB(7, kr + s) = m_cart_deriv[IntegrationPointIndex](1, r) * rActualKinematic.t[s];
+				//TransverseShear displacement variation
+				rB(6, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.t[s];
+				rB(7, kr + s) = m_cart_deriv[IntPoint](1, r) * rActualKinematic.t[s];
 			}
 
-			Temp = prod(prod<Vector>(trans(rActualKinematic.a1), WI1), BLAI);
-			Temp1 = prod(prod<Vector>(trans(rActualKinematic.a2), WI2), BLAI);
-			Temp2 = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
-			Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
-			Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
+			 Temp = prod(prod<Vector>(trans(rActualKinematic.a1), WI1), BLAI);
+			 Temp1 = prod(prod<Vector>(trans(rActualKinematic.a2), WI2), BLAI);
+			 Temp2 = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
+			 Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntPoint, r), BLAI);
+			 Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntPoint, r), BLAI);
 
 			for (int s = 0; s < 2; s++)
 			{
-				rB(3, kr + 3 + s) = Temp[s];
-				rB(4, kr + 3 + s) = Temp1[s];
-				rB(5, kr + 3 + s) = Temp2[s];
-				rB(6, kr + 3 + s) = Temp3[s];
-				rB(7, kr + 3 + s) = Temp4[s];
+				rB(3, kr + 3 + s) = Temp(s);
+				rB(4, kr + 3 + s) = Temp1(s);
+				rB(5, kr + 3 + s) = Temp2(s);
+				rB(6, kr + 3 + s) = Temp3(s);
+				rB(7, kr + 3 + s) = Temp4(s);
 			}///=============== end of stupid version ===============
 
-			//membrane
-			//noalias(subrange(rB, 0, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.a1); //TODO WHY DOES THIS NOT WORK is  the equal sign not overloaded for array_1d?
-			//noalias(subrange(rB, 1, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.a2);
 
-			////inplane shear
-			//noalias(subrange(rB, 2, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.a2) + m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.a1);
+			////membrane
+			//noalias(subrange(rB, 0, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.a1);
+			//noalias(subrange(rB, 1, 1, kr, 3)) = m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.a2);
 
-			////BENDING PART displacement variation
-			//noalias(subrange(rB, 3, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.dtd1);
-			//noalias(subrange(rB, 4, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.dtd2);
-			//noalias(subrange(rB, 5, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.dtd2) + m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.dtd1);
+			//////inplane shear
+			//noalias(subrange(rB, 2, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.a2) + m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.a1);
 
-			////BENDING PART director variation
+			//////BENDING PART displacement variation
+			//noalias(subrange(rB, 3, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.dtd1);
+			//noalias(subrange(rB, 4, 1, kr, 3)) = m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.dtd2);
+			//noalias(subrange(rB, 5, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.dtd2); + m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.dtd1);
+
+			//////BENDING PART director variation
 			//noalias(subrange(rB, 3, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a1), WI1),BLAI);
 			//noalias(subrange(rB, 4, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), WI2),BLAI);
 			//noalias(subrange(rB, 5, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
 
-			////TransverseShear displacement variation
-			//noalias(subrange(rB, 6, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](0, r) * trans(rActualKinematic.t); //TODO WHY DOES THIS NOT WORK
-			//noalias(subrange(rB, 7, 1, kr, 3)) = m_cart_deriv[IntegrationPointIndex](1, r) * trans(rActualKinematic.t);
+			//////TransverseShear displacement variation
+			//noalias(subrange(rB, 6, 1, kr, 3)) = m_cart_deriv[IntPoint](0, r) * trans(rActualKinematic.t);
+			//noalias(subrange(rB, 7, 1, kr, 3)) = m_cart_deriv[IntPoint](1, r) * trans(rActualKinematic.t);
 
-			////TransverseShear director variation
-			//noalias(subrange(rB, 6, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
-			//noalias(subrange(rB, 7, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntegrationPointIndex, r), BLAI);
+			//////TransverseShear director variation
+			//noalias(subrange(rB, 6, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntPoint, r), BLAI);
+			//noalias(subrange(rB, 7, 1, kr + 3, 2)) = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntPoint, r), BLAI);
 		}
+		return rB;
 	}
 
 
-	void Shell5pElement::CalculateGeometricStiffness(
-		IndexType IntegrationPointIndex,
-		Matrix& Kg,
+	Matrix Shell5pElement::CalculateGeometricStiffness(
+		IndexType IntPoint,
 		const KinematicVariables& rActKin,
 		const VariationVariables& ractVar,
 		const ConstitutiveVariables& rConstitutive)
 	{
 		const auto& r_geometry = GetGeometry();
-		int ii1, ii2, ii3, ii4, ii5, jj1, jj2, jj3, jj4, iimult3, jjmult3;
-		double kgT = 0;
 		const SizeType number_of_control_points = r_geometry.size();
+		const SizeType num_dof = number_of_control_points * 5;
 
-		const array_1d<double, 8>& StressResultants = rConstitutive.StressVector;
+		Matrix Kg{ ZeroMatrix(num_dof, num_dof) };
+		const array_1d<double, 8>& StressRes = rConstitutive.StressVector;
 
-		const Matrix chifac = (ractVar.Chi11 * StressResultants[3] + ractVar.Chi22 * StressResultants[4] + (ractVar.Chi12 + ractVar.Chi21) * StressResultants[5]); //S[3..5] are moments
-		Matrix kg2directorshear = ractVar.S1 * StressResultants[6] + ractVar.S2 * StressResultants[7]; //S[6..7] is  shear
-		Matrix WI1(3, 3);
-		Matrix WI2(3, 3);
-		Matrix WJ1(3, 3);
-		Matrix WJ2(3, 3);
+		const BoundedMatrix<double,3,3> chifac = (ractVar.Chi11 * StressRes[3] + ractVar.Chi22 * StressRes[4] + (ractVar.Chi12 + ractVar.Chi21) * StressRes[5]); //S[3..5] are moments
+		const BoundedMatrix<double, 3, 3> kg2directorshear = ractVar.S1 * StressRes[6] + ractVar.S2 * StressRes[7]; //S[6..7] is  shear
 
-		Matrix BLAI_T(2, 3); //Nodal tangent space representations
 		Matrix BLAJ(3, 2);
 
 		Matrix Temp(3, 3);
 		Matrix Temp2(2, 3);
 
-
-		double  Nii, dN1ii, dN2ii, Njj, dN1jj, dN2jj, dN1ii_dN2jj_p_dN2ii_dN1jj, NS, NdN1, NdN2; //the first 6 are only for cleaner coding/debugging, can be removed and m_cart_deriv[IntegrationPointIndex](0, ii) directly called
-
-
 		for (SizeType ii = 0; ii < number_of_control_points; ii++)
 		{
-			ii1 = 5 * ii;
-			ii2 = ii1 + 1;
-			ii3 = ii1 + 2;
-			ii4 = ii1 + 3;
-			ii5 = ii1 + 4;
+			const int ii1 = 5 * ii;
+			const int ii2 = ii1 + 1;
+			const int ii3 = ii1 + 2;
+			const int ii4 = ii1 + 3;
+			const int ii5 = ii1 + 4;
 
-			Nii = m_N(IntegrationPointIndex, ii);
-			dN1ii = m_cart_deriv[IntegrationPointIndex](0, ii);
-			dN2ii = m_cart_deriv[IntegrationPointIndex](1, ii);
+			const double Nii = m_N(IntPoint, ii);
+			const double dN1ii = m_cart_deriv[IntPoint](0, ii);
+			const double dN2ii = m_cart_deriv[IntPoint](1, ii);
 
+			const BoundedMatrix<double, 3, 3> WI1 = ractVar.Q1 * Nii + ractVar.P * dN1ii;
+			const BoundedMatrix<double, 3, 3> WI2 = ractVar.Q2 * Nii + ractVar.P * dN2ii;
 
-			noalias(WI1) = ractVar.Q1 * Nii + ractVar.P * dN1ii;
-			noalias(WI2) = ractVar.Q2 * Nii + ractVar.P * dN2ii;
-
-			iimult3 = 3 * ii;
-
-			BLAI_T = trans(r_geometry[ii].GetValue(DIRECTORTANGENTSPACE));
+			const BoundedMatrix<double, 2, 3> BLAI_T = trans(r_geometry[ii].GetValue(DIRECTORTANGENTSPACE));
 			for (SizeType jj = ii; jj < number_of_control_points; jj++)
 			{
-				jj1 = 5 * jj;
-				jj2 = jj1 + 1;
-				jj3 = jj1 + 2;
-				jj4 = jj1 + 3;
+				const int jj1 = 5 * jj;
+				const int jj2 = jj1 + 1;
+				const int jj3 = jj1 + 2;
+				const int jj4 = jj1 + 3;
 
-				Njj = m_N(IntegrationPointIndex, jj);
-				dN1jj = m_cart_deriv[IntegrationPointIndex](0, jj);
-				dN2jj = m_cart_deriv[IntegrationPointIndex](1, jj);
+				const double Njj = m_N(IntPoint, jj);
+				const double dN1jj = m_cart_deriv[IntPoint](0, jj);
+				const double dN2jj = m_cart_deriv[IntPoint](1, jj);
 
-				jjmult3 = 3 * jj;
+				const BoundedMatrix<double,3,2> BLAJ = r_geometry[jj].GetValue(DIRECTORTANGENTSPACE);
 
-				BLAJ = r_geometry[jj].GetValue(DIRECTORTANGENTSPACE);
+				const BoundedMatrix<double, 3, 3> WJ1 = ractVar.Q1 * Njj + ractVar.P * dN1jj;
+				const BoundedMatrix<double, 3, 3> WJ2 = ractVar.Q2 * Njj + ractVar.P * dN2jj;
 
-				noalias(WJ1) = ractVar.Q1 * Njj + ractVar.P * dN1jj;
-				noalias(WJ2) = ractVar.Q2 * Njj + ractVar.P * dN2jj;
-
-				dN1ii_dN2jj_p_dN2ii_dN1jj = dN1ii * dN2jj + dN2ii * dN1jj;
+				const double dN1ii_dN2jj_p_dN2ii_dN1jj = dN1ii * dN2jj + dN2ii * dN1jj;
 				// MEMBRANE CONTRIBUTION
-				NS = dN1ii * dN1jj * StressResultants[0] + dN2ii * dN2jj * StressResultants[1] + dN1ii_dN2jj_p_dN2ii_dN1jj * StressResultants[2];
+				const double NS = dN1ii * dN1jj * StressRes[0] + dN2ii * dN2jj * StressRes[1] + dN1ii_dN2jj_p_dN2ii_dN1jj * StressRes[2];
 				Kg(ii1, jj1) = Kg(ii2, jj2) = Kg(ii3, jj3) = NS;
 
 				// BENDING CONTRIBUTION ROTATIONAL IJ
 				//bending part
-				Temp = StressResultants[3] * dN1ii * WJ1 + StressResultants[4] * dN2ii * WJ2 +
-					StressResultants[5] * (dN1ii * WJ2 + dN2ii * WJ1);
+				Temp = StressRes[3] * dN1ii * WJ1 + StressRes[4] * dN2ii * WJ2 +
+					StressRes[5] * (dN1ii * WJ2 + dN2ii * WJ1);
 				//TRANSVERSAL SHEAR ROTATIONAL IJ
-				Temp += ractVar.P * Njj * (dN1ii * StressResultants[6] + dN2ii * StressResultants[7]);
+				Temp += ractVar.P * Njj * (dN1ii * StressRes[6] + dN2ii * StressRes[7]);
 
 				//Kg.block<3, 2>(ii1, jj4).noalias() = prod(Temp , BLAJ);
 				noalias(subrange(Kg, ii, 3, jj4, 2)) = prod(Temp, BLAJ);
 
 				// BENDING CONTRIBUTION ROTATIONAL JI
-				Temp = StressResultants[3] * dN1jj * WI1 + StressResultants[4] * dN2jj * WI2 +
-					StressResultants[5] * (dN1jj * WI2 + dN2jj * WI1);
+				Temp = StressRes[3] * dN1jj * WI1 + StressRes[4] * dN2jj * WI2 +
+					StressRes[5] * (dN1jj * WI2 + dN2jj * WI1);
 				//TRANSVERSAL SHEAR ROTATIONAL JI
-				Temp += ractVar.P * Nii * (dN1jj * StressResultants[6] + dN2jj * StressResultants[7]);
+				Temp += ractVar.P * Nii * (dN1jj * StressRes[6] + dN2jj * StressRes[7]);
 
 				//Kg.block<2, 3>(ii4, jj1).noalias() = prod(BLAI_T , Temp);
 				noalias(subrange(Kg, ii4, 2, jj1, 3)) = prod(BLAI_T, Temp);
@@ -512,26 +484,28 @@ namespace Kratos
 				// linearization of variation of director shear part
 				Temp = Nii * Njj * kg2directorshear;
 				// linearization of variation of director bending part
-				NdN1 = dN1jj * Nii + Njj * dN1ii;
-				NdN2 = dN2jj * Nii + Njj * dN2ii;
+				const double NdN1 = dN1jj * Nii + Njj * dN1ii;
+				const double NdN2 = dN2jj * Nii + Njj * dN2ii;
 				Temp += Nii * Njj * chifac;
-				Temp += ractVar.S1 * NdN1 * StressResultants[3] + ractVar.S2 * NdN2 * StressResultants[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * StressResultants[5];
+				Temp += ractVar.S1 * NdN1 * StressRes[3] + ractVar.S2 * NdN2 * StressRes[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * StressRes[5];
 
 				//Kg.block<2, 2>(ii4, jj4).noalias() = prod(prod(BLAI_T , Temp) , BLAJ);
 				Temp2 = prod(BLAI_T, Temp); //useless temp due to ublas prodprod
 				noalias(subrange(Kg, ii4, 2, jj4, 2)) = prod(Temp2, BLAJ);
-
 			}
 			///  Residual Part second part of Linearisation
 			///   difference to only projected Euclidean Hessian
 			/// LINEARIZATION OF PROJECTOR
-			kgT = -inner_prod(r_geometry.GetValue(DIRECTOR),(prod(WI1, rActKin.a1)                         * StressResultants[3] +
-				                                                    prod(WI2, rActKin.a2)                         * StressResultants[4] + 
-				                                                   (prod(WI2      , rActKin.a1)+ prod(WI1, rActKin.a2)) * StressResultants[5]));
-			kgT -= inner_prod(r_geometry.GetValue(DIRECTOR), prod(ractVar.P, rActKin.a1) * Nii * StressResultants[6] + prod(ractVar.P, rActKin.a2) * Nii * StressResultants[7]);
+			const double kgT = -inner_prod(r_geometry[ii].GetValue(DIRECTOR),
+				                     prod(WI1, rActKin.a1) * StressRes[3] +
+				                     prod(WI2, rActKin.a2) * StressRes[4] + 
+				                     prod(WI2, rActKin.a1) + prod(WI1, rActKin.a2) * StressRes[5] +
+			                         prod(ractVar.P, rActKin.a1) * Nii * StressRes[6] +
+								     prod(ractVar.P, rActKin.a2) * Nii * StressRes[7]);
 			Kg(ii4, ii4) += kgT;
 			Kg(ii5, ii5) += kgT;
 		}
+		return Kg;
 	}
 
 

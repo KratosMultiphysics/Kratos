@@ -35,11 +35,14 @@ protected:
         array_1d<double, 2> transShear; //shear 
 
         //base vector 1
-        array_1d<double, 3> a1;
-        //base vector 2
-        array_1d<double, 3> a2;
+        BoundedVector<double, 3> a1;
+        BoundedVector<double, 3> a2;
+
+       //array_1d<double, 3> a1;
+      // array_1d<double, 3> a2;
         //director
-        array_1d<double, 3> t;
+        BoundedVector<double, 3> t;
+        //array_1d<double, 3> t;
 
         //director derivatives wrt physical space
         array_1d<double, 3> dtd1;
@@ -389,20 +392,17 @@ private:
         KinematicVariables& rKinematicVariables, VariationVariables& rVariationVariables);
 
     // Computes the cartesian derivatives from curvilinear ones
-    void CalculateCartesianDerivatives(
+    Matrix CalculateCartesianDerivatives(
         IndexType IntegrationPointIndex,
-        const KinematicVariables& rKinematicVariables,
-        Matrix& rT);
+        const KinematicVariables& rKinematicVariables);
 
-    void CalculateStrainDisplacementOperator(
+    Matrix CalculateStrainDisplacementOperator(
         IndexType IntegrationPointIndex,
-        Matrix& rB,
         const KinematicVariables& rActualKinematic,
         const VariationVariables& rVariations);
 
-    void CalculateGeometricStiffness(
+    Matrix CalculateGeometricStiffness(
         IndexType IntegrationPointIndex,
-        Matrix& Kg,
         const KinematicVariables& rActKin,
         const VariationVariables& ractVar,
         const ConstitutiveVariables& rThisConstitutiveVariables);
