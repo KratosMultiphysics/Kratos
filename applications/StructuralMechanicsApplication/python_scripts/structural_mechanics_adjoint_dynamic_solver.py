@@ -31,12 +31,15 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
         super(StructuralMechanicsAdjointDynamicSolver, self).AddVariables()
         self._add_dynamic_variables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_2)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_VECTOR_3)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_ADJOINT_VECTOR_1)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_2)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_3)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ANGULAR_AUX_ADJOINT_VECTOR_1)
         # TODO evaluate if these variables should be historical
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
@@ -112,6 +115,15 @@ class StructuralMechanicsAdjointDynamicSolver(MechanicalSolver):
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_2_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_2_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_2_Z, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_3_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_3_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_ADJOINT_VECTOR_3_Z, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_AUX_ADJOINT_VECTOR_1_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_AUX_ADJOINT_VECTOR_1_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ANGULAR_AUX_ADJOINT_VECTOR_1_Z, self.main_model_part)            
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
 
     def Initialize(self):
