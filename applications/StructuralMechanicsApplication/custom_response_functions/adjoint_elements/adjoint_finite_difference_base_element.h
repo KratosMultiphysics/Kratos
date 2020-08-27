@@ -135,7 +135,7 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->Initialize(rCurrentProcessInfo);
-        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this, mHasRotationDofs));
     }
 
     void ResetConstitutiveLaw() override
@@ -512,9 +512,10 @@ private:
         class ThisExtensions : public AdjointExtensions
     {
         Element* mpElement;
+        bool mHasRotationDofs = false;
 
     public:
-        explicit ThisExtensions(Element* pElement);
+        explicit ThisExtensions(Element* pElement, bool HasRotationDofs);
 
         void GetFirstDerivativesVector(std::size_t NodeId,
                                        std::vector<IndirectScalar<double>>& rVector,
