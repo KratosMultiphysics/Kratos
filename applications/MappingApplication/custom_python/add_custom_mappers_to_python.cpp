@@ -156,7 +156,7 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 
             .def("AreMeshesConforming", &MapperType::AreMeshesConforming)
 
-            .def("GetInterfaceModelPart", &MapperType::GetInterfaceModelPart)
+            .def("GetInterfaceModelPart", &MapperType::GetInterfaceModelPart, py::return_value_policy::reference_internal)
             .def("pGetMappingMatrix", &MapperType::pGetMappingMatrix)
             .def("pGetDenseMappingMatrix", &MapperType::pGetDenseMappingMatrix)
 
