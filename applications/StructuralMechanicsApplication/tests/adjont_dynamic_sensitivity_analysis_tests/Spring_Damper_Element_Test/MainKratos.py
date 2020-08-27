@@ -42,7 +42,7 @@ with controlledExecutionScope(_get_test_working_dir()):
  
     model_part_name = primal_parameters["solver_settings"]["model_part_name"].GetString()
     adjoint_model_part = adjoint_simulation.model.GetModelPart(model_part_name)
-    sensitivity = adjoint_model_part.Elements[1].GetValue(KratosMultiphysics.StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS)
+    sensitivity = adjoint_model_part.Elements[1].GetValue(KratosMultiphysics.StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS_SENSITIVITY)
     print("\n sensitivity:", sensitivity[0])     
     print("\n ** finished computations ** \n")
  
