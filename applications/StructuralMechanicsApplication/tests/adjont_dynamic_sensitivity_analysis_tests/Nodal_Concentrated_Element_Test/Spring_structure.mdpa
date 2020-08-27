@@ -1,0 +1,34 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+   1        0.0000000000        0.0000000000        0.0000000000
+End Nodes
+
+Begin Elements NodalConcentratedDampedElement3D1N
+    1     0      1
+End Elements
+
+Begin SubModelPart Parts_mass
+    Begin SubModelPartNodes
+        1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DIRICHLET_BC
+    Begin SubModelPartNodes
+         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

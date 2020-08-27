@@ -1,0 +1,343 @@
+{
+    "output_processes": {
+        "gid_output": [
+            {
+                "Parameters": {
+                    "model_part_name": "Structure.Parts_mass",
+                    "output_name": "sdof_adjoint_analysis",
+                    "postprocess_parameters": {
+                        "point_data_configuration": [],
+                        "result_file_configuration": {
+                            "additional_list_files": [],
+                            "body_output": true,
+                            "elemental_conditional_flags_results": [],
+                            "file_label": "step",
+                            "flush_after_output": false,
+                            "gauss_point_results": [],
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostAscii",
+                                "MultiFileFlag": "SingleFile",
+                                "WriteConditionsFlag": "WriteElementsOnly",
+                                "WriteDeformedMeshFlag": "WriteUndeformed"
+                            },
+                            "nodal_flags_results": [],
+                            "nodal_nonhistorical_results": [],
+                            "nodal_results": [
+                                "DISPLACEMENT"
+                            ],
+                            "node_output": false,
+                            "output_control_type": "step",
+                            "output_frequency": 1,
+                            "plane_output": [],
+                            "skin_output": false
+                        }
+                    }
+                },
+                "help": "This process writes postprocessing files for GiD",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "python_module": "gid_output_process"
+            }
+        ]
+    },
+    "problem_data": {
+        "echo_level": 3,
+        "end_time": 1.0,
+        "nsteps": 20,
+        "parallel_type": "OpenMP",
+        "problem_name": "Spring_structure",
+        "start_step": 21.0,
+        "start_time": 21.0
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.DIRICHLET_BC",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "ADJOINT_VECTOR_1"
+                },
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "python_module": "assign_vector_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.DIRICHLET_BC",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "ADJOINT_VECTOR_2"
+                },
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "python_module": "assign_vector_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.DIRICHLET_BC",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "ADJOINT_VECTOR_3"
+                },
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "python_module": "assign_vector_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.DIRICHLET_BC",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "AUX_ADJOINT_VECTOR_1"
+                },
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "python_module": "assign_vector_variable_process"
+            }
+        ],
+        "list_other_processes": [
+            {
+                "Parameters": {
+                    "entities": [
+                        "elements"
+                    ],
+                    "help": "This process assigns a given value (vector) to the elements belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        1e+30
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.Parts_mass",
+                    "value": [
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
+                    "variable_name": "NODAL_DISPLACEMENT_STIFFNESS"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableToElementProcess",
+                "python_module": "assign_vector_variable_to_elements_process"
+            },
+            {
+                "Parameters": {
+                    "entities": [
+                        "elements"
+                    ],
+                    "help": "This process assigns a given value (scalar) to the elements belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        1e+30
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.Parts_mass",
+                    "value": 1.0,
+                    "variable_name": "NODAL_MASS"
+                },
+                "help": "This process sets a scalar variable value over a element",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableToElementsProcess",
+                "python_module": "assign_scalar_variable_to_elements_process"
+            },
+            {
+                "Parameters": {
+                    "entities": [
+                        "elements"
+                    ],
+                    "help": "This process assigns a given value (vector) to the elements belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        1e+30
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.Parts_mass",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.04
+                    ],
+                    "variable_name": "NODAL_DAMPING_RATIO"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableToElementProcess",
+                "python_module": "assign_vector_variable_to_elements_process"
+            },
+            {
+                "Parameters": {
+                    "condition_data_value_settings": {},
+                    "condition_flag_value_settings": {},
+                    "element_data_value_settings": {},
+                    "element_flag_value_settings": {},
+                    "file_settings": {
+                        "file_access_mode": "read_only"
+                    },
+                    "model_part_name": "Structure",
+                    "nodal_data_value_settings": {},
+                    "nodal_flag_value_settings": {},
+                    "nodal_solution_step_data_settings": {
+                        "list_of_variables": [
+                            "DISPLACEMENT",
+                            "VELOCITY",
+                            "ACCELERATION"
+                        ]
+                    }
+                },
+                "help": "",
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "process_name": "",
+                "python_module": "single_mesh_temporal_input_process"
+            }
+        ],
+        "loads_process_list": []
+    },
+    "solver_settings": {
+        "analysis_type": "linear",
+        "auxiliary_dofs_list": [],
+        "auxiliary_reaction_list": [],
+        "auxiliary_variables_list": [],
+        "block_builder": true,
+        "buffer_size": 2,
+        "builder_and_solver_settings": {
+            "block_builder": true,
+            "diagonal_values_for_dirichlet_dofs": "use_max_diagonal",
+            "name": "ResidualBasedBlockBuilderAndSolver",
+            "silent_warnings": false
+        },
+        "clear_storage": false,
+        "compute_reactions": false,
+        "computing_model_part_name": "computing_domain",
+        "convergence_criterion": "residual_criterion",
+        "displacement_absolute_tolerance": 1e-09,
+        "displacement_control": false,
+        "displacement_relative_tolerance": 0.0001,
+        "domain_size": 3,
+        "echo_level": 3,
+        "line_search": false,
+        "linear_solver_settings": {},
+        "material_import_settings": {
+            "materials_filename": ""
+        },
+        "max_iteration": 10,
+        "model_import_settings": {
+            "ignore_variables_not_in_solution_step_data": false,
+            "input_filename": "Spring_structure",
+            "input_type": "mdpa",
+            "reorder": false,
+            "reorder_consecutive": false,
+            "skip_timer": true
+        },
+        "model_part_name": "Structure",
+        "move_mesh_flag": false,
+        "multi_point_constraints_used": true,
+        "pressure_dofs": false,
+        "problem_domain_sub_model_part_list": [
+            "Structure"
+        ],
+        "processes_sub_model_part_list": [
+            "Structure"
+        ],
+        "reform_dofs_at_each_step": false,
+        "residual_absolute_tolerance": 1e-09,
+        "residual_relative_tolerance": 0.0001,
+        "response_function_settings": {
+            "adapt_step_size": true,
+            "analyzer": "kratos",
+            "gradient_mode": "semi_analytic",
+            "response_type": "adjoint_test",
+            "step_size": 1e-06,
+            "traced_dof": "DISPLACEMENT_Z",
+            "traced_node_id": 1
+        },
+        "rotation_dofs": false,
+        "scheme_settings": {
+            "alpha_bossak": 0,
+            "name": "adjoint_bossak",
+            "scheme_type": "bossak"
+        },
+        "sensitivity_settings": {
+            "build_mode": "integrate",
+            "condition_data_value_sensitivity_variables": [],
+            "element_data_value_sensitivity_variables": [
+                "NODAL_DISPLACEMENT_STIFFNESS"
+            ],
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe": false,
+            "nodal_solution_step_sensitivity_variables": [],
+            "sensitivity_model_part_name": "Parts_mass"
+        },
+        "solver_type": "adjoint_dynamic",
+        "time_stepping": {
+            "time_step": -1.0
+        },
+        "use_computing_model_part": false,
+        "use_old_stiffness_in_first_iteration": false,
+        "volumetric_strain_dofs": false
+    }
+}

@@ -1,0 +1,163 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Spring_structure",
+        "start_time"      : 0.0,
+        "end_time"        : 4.99,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "Dynamic",
+        "analysis_type"                      : "non_linear",
+        "time_integration_method"            : "implicit",
+        "scheme_settings" : {
+            "scheme_type"              : "bossak",
+            "alpha_bossak"             : -0.3
+        },
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "model_import_settings"              : {
+            "input_type"                     : "mdpa",
+            "input_filename"                 : "Spring_structure"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.1
+        },
+        "line_search"                        : false,
+        "rotation_dofs"                      : false,
+        "move_mesh_flag"                     : false,
+        "use_computing_model_part"           : false
+    },
+    "processes" : {
+    "constraints_process_list" : [
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.DIRICHLET_BC",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [false,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.DIRICHLET_BC",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,false,false],
+            "value"           : [1.0,0.0,0.0],
+            "interval"        : [0.0,0.001]
+        }
+    },
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.DIRICHLET_BC",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,false,false],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,0.001]
+        }
+    }],
+    "loads_process_list"       : [],
+    "list_other_processes" :[{
+        "python_module"   : "assign_vector_variable_to_elements_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignVectorVariableToElementProcess",
+        "Parameters"            : {
+            "model_part_name"   : "Structure.Parts_mass",
+            "variable_name"     : "NODAL_DISPLACEMENT_STIFFNESS",
+            "value"             : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }},
+        {
+            "python_module" : "assign_scalar_variable_to_elements_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process sets a scalar variable value over a element",
+            "process_name"  : "AssignScalarVariableToElementsProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.Parts_mass",
+                "variable_name"   : "NODAL_MASS",
+                "value"           : 1.0,
+                "interval"        : [0.0,"End"]
+        }},
+        {
+                "python_module"   : "assign_vector_variable_to_elements_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"          : "AssignVectorVariableToElementProcess",
+                "Parameters"            : {
+                    "model_part_name"   : "Structure.Parts_mass",
+                    "variable_name"     : "NODAL_DAMPING_RATIO",
+                    "value"             : [0.4,0.0,0.0],
+                    "interval"        : [0.0,"End"]
+        }},
+        {
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "Structure",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "model_part_output_settings" : {
+                    "prefix" : "/ModelData"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["DISPLACEMENT", "VELOCITY", "ACCELERATION"]
+                }
+            }
+        }
+    ]},
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure",
+                "output_name"            : "sdof_primal_analysis",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostAscii",
+                            "WriteDeformedMeshFlag" : "WriteUndeformed",
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_interval"     : 1.0,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT"],
+                        "nodal_nonhistorical_results": [],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
+    }
+}
+
+
+
