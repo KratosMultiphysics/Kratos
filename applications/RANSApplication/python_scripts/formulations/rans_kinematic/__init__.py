@@ -118,7 +118,7 @@ class RANSKinematicFormulation(Formulation):
             K = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY, 0)
             node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_U, 0, K/denom)
             node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_V, 0, K*(beta_v**2)/denom)
-            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_V, 0, K*(beta_w**2)/denom)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_W, 0, K*(beta_w**2)/denom)
 
         factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
         self.auxiliar_process_list = factory.ConstructListOfProcesses(
@@ -144,7 +144,8 @@ class RANSKinematicFormulation(Formulation):
             if (scheme_type == "transient"):
                 self.is_steady_simulation = False
             else:
-                raise Exception("Only \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
+                #raise Exception("Only \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
+                self.is_steady_simulation = False
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 
@@ -179,3 +180,21 @@ class RANSKinematicFormulation(Formulation):
                     return True
 
         return True
+
+    def IsConverged(self):
+        if RansVariableUtilities.IsAnalysisStepCompleted(self.GetBaseModelPart(), "PERIOD_EXCEEDS_ENDTIME"):
+            return True
+
+        for formulation in self.list_of_formulations:
+            if (not formulation.IsConverged()):
+                return False
+
+        if (self.GetStrategy() is not None):
+            is_converged = self.GetStrategy().IsConverged()
+            if (is_converged):
+                Kratos.Logger.PrintInfo(self.GetName(), " *** CONVERGENCE ACHIEVED ***")
+            #return is_converged
+            return False # to not to stop the simulation
+
+        #return True
+        return False

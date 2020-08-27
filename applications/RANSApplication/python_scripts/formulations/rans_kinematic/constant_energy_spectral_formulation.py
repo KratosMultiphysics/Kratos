@@ -56,7 +56,7 @@ class ConstantEnergySpectralFormulation(Formulation):
             solver_settings["linear_solver_settings"])
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
             linear_solver, self.IsPeriodic(), self.GetCommunicator())
-        convergence_criteria = CreateResidualCriteria(
+        convergence_criteria = Kratos.ResidualCriteria(
             self.settings["relative_tolerance"].GetDouble(),
             self.settings["absolute_tolerance"].GetDouble())
 
@@ -106,9 +106,10 @@ class ConstantEnergySpectralFormulation(Formulation):
             if (scheme_type == "transient"):
                 self.is_steady_simulation = False
             else:
-                raise Exception(
-                    "Only \"transient\" scheme types supported. [ scheme_type = \""
-                    + scheme_type + "\" ]")
+                self.is_steady_simulation = False
+                #raise Exception(
+                #    "Only \"transient\" scheme types supported. [ scheme_type = \""
+                #    + scheme_type + "\" ]")
         else:
             raise Exception(
                 "\"scheme_type\" is missing in time scheme settings")

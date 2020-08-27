@@ -216,7 +216,7 @@ public:
      * @param rResult: the elemental equation ID vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override
     {
         if (rResult.size() != TNumNodes)
             rResult.resize(TNumNodes, false);
@@ -232,7 +232,7 @@ public:
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const override
     {
         if (rElementalDofList.size() != TNumNodes)
             rElementalDofList.resize(TNumNodes);
@@ -281,7 +281,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) override
     {
 
         // Calculate components of turbulent kinetic energy
@@ -296,6 +296,7 @@ public:
         this->GetValuesVector(values, 0);
 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
+        // KRATOS_WATCH(rRightHandSideVector);
     }
 
     /**
@@ -318,9 +319,9 @@ public:
         this->GetValuesVector(values, 0);
 
         noalias(rRightHandSideVector) -= prod(lhs, values);
-        KRATOS_WATCH(rRightHandSideVector)
-        KRATOS_WATCH(lhs)
-        KRATOS_WATCH(values)
+        // KRATOS_WATCH(rRightHandSideVector)
+        // KRATOS_WATCH(lhs)
+        // KRATOS_WATCH(values)
 
         KRATOS_CATCH("");
     }
