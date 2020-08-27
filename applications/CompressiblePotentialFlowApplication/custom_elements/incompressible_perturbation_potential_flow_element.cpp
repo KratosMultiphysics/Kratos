@@ -231,10 +231,12 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnI
         rValues.resize(1);
     if (rVariable == TRAILING_EDGE)
         rValues[0] = this->GetValue(TRAILING_EDGE);
-    else if (rVariable == KUTTA)
-        rValues[0] = this->GetValue(KUTTA);
     else if (rVariable == WAKE)
         rValues[0] = this->GetValue(WAKE);
+    else if (rVariable == KUTTA)
+        rValues[0] = this->GetValue(KUTTA);
+    else if (rVariable == NORMAL_ELEMENT)
+        rValues[0] = this->GetValue(NORMAL_ELEMENT);
     else if (rVariable == ZERO_VELOCITY_CONDITION)
         rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
     else if (rVariable == TRAILING_EDGE_ELEMENT)
