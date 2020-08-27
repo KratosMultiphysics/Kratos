@@ -5,6 +5,7 @@ import math
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
@@ -44,6 +45,9 @@ def CalculateAnalyticalNormal(node):
 def CalculateNorm(array_3d_value):
     return math.sqrt(array_3d_value[0]**2+array_3d_value[1]**2+array_3d_value[2]**2)
 
+def RemoveFiles(mdpa_name):
+    kratos_utils.DeleteFileIfExisting(mdpa_name + ".time")
+
 
 class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
     @classmethod
@@ -52,7 +56,12 @@ class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"), cls.model_part)
+        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
+        ReadModelPart(cls.mdpa_name, cls.model_part)
+
+    @classmethod
+    def tearDownClass(cls):
+        RemoveFiles(cls.mdpa_name)
 
     def setUp(self):
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.NORMAL, self.model_part.Nodes)
@@ -113,7 +122,12 @@ class TestNormalUtilsQuadSphere(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quad_sphere"), cls.model_part)
+        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quad_sphere")
+        ReadModelPart(cls.mdpa_name, cls.model_part)
+
+    @classmethod
+    def tearDownClass(cls):
+        RemoveFiles(cls.mdpa_name)
 
     def setUp(self):
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.NORMAL, self.model_part.Nodes)
