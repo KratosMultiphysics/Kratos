@@ -81,8 +81,6 @@ public:
 
     void ExecuteInitialize() override;
 
-    void Execute() override;
-
     void ExecuteFinalizeSolutionStep() override;
 
     const Parameters GetDefaultParameters() const override;

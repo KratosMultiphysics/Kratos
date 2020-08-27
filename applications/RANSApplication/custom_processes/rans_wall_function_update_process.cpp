@@ -90,7 +90,7 @@ void RansWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
     KRATOS_TRY
 
     if (!mIsInitialized) {
-        this->Execute();
+        this->ExecuteAfterCouplingSolveStep();
         mIsInitialized = true;
     }
 
@@ -106,7 +106,7 @@ void RansWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
         << "Calculated number of neighbour conditions in " << mModelPartName << ".\n";
 }
 
-void RansWallFunctionUpdateProcess::Execute()
+void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
