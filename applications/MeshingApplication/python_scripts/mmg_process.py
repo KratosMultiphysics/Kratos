@@ -155,6 +155,8 @@ class MmgProcess(KratosMultiphysics.Process):
             "save_external_files"              : false,
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
+            "remesh_post_process"              : true,
+            "output_file_name"                 : "final_refined_mesh",
             "max_number_of_searchs"            : 1000,
             "preserve_flags"                   : true,
             "interpolate_non_historical"       : true,
@@ -417,12 +419,38 @@ class MmgProcess(KratosMultiphysics.Process):
                                 self.step = 0  # Reset
                                 self.time = 0.0  # Reset
 
+    def ExecuteFinalize(self):
+        """ This method is executed in order to finalize the simulation and save the refined mesh in a new .mdpa file
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.average_remeshing = self.settings["remesh_post_process"].GetBool()
+        output_file_path = self.settings["output_file_name"].GetString()
+        if self.average_remeshing:
+            self._ExecuteRefinement()
+            if self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
+                self.main_model_part.RemoveSubModelPart("fluid_computational_model_part")
+            KratosMultiphysics.ModelPartIO(output_file_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
+
+    def _compute_average_quantity(self):
+        """ This method is executed in order to compute the average of a generic quantity, between consecutives time steps
+        
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        pass
+
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        self.average_remeshing = self.settings["remesh_post_process"].GetBool()
+        if self.average_remeshing:
+            self._compute_average_quantity()
+
         if self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if self.interval.IsInInterval(current_time):
