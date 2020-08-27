@@ -90,6 +90,18 @@ int RansNutKOmegaSSTUpdateProcess::Check()
     KRATOS_CATCH("");
 }
 
+void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    if (!mIsInitialized) {
+        this->Execute();
+        mIsInitialized = true;
+    }
+
+    KRATOS_CATCH("");
+}
+
 void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
 {
     RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ElementsContainerType>(
@@ -99,19 +111,7 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
         << "Calculated number of neighbour elements in " << mModelPartName << ".\n";
 }
 
-void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
-{
-    KRATOS_TRY
-
-    if (!mIsInitialized) {
-        this->ExecuteAfterCouplingSolveStep();
-        mIsInitialized = true;
-    }
-
-    KRATOS_CATCH("");
-}
-
-void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
+void RansNutKOmegaSSTUpdateProcess::Execute()
 {
     KRATOS_TRY
 

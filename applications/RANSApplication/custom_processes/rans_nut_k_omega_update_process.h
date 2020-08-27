@@ -20,9 +20,7 @@
 
 // Project includes
 #include "containers/model.h"
-
-// Application includes
-#include "rans_formulation_process.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
@@ -44,8 +42,7 @@ namespace Kratos
  * $k$ is the turbulent kinetic energy, $\epsilon$ is the turbulent energy dissipation rate
  */
 
-class KRATOS_API(RANS_APPLICATION) RansNutKOmegaUpdateProcess
-: public RansFormulationProcess
+class KRATOS_API(RANS_APPLICATION) RansNutKOmegaUpdateProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -87,7 +84,7 @@ public:
 
     void ExecuteInitializeSolutionStep() override;
 
-    void ExecuteAfterCouplingSolveStep() override;
+    void Execute() override;
 
     const Parameters GetDefaultParameters() const override;
 

@@ -194,6 +194,12 @@ void RansLineOutputProcess::ExecuteInitialize()
     KRATOS_CATCH("");
 }
 
+void RansLineOutputProcess::Execute()
+{
+    if (this->IsOutputStep())
+        this->WriteOutputFile();
+}
+
 void RansLineOutputProcess::ExecuteFinalizeSolutionStep()
 {
     if (this->IsOutputStep())

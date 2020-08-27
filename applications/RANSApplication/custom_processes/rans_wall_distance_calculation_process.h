@@ -21,9 +21,10 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
+#include "processes/process.h"
+
 
 // Application includes
-#include "rans_formulation_process.h"
 
 namespace Kratos
 {
@@ -33,8 +34,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(RANS_APPLICATION) RansWallDistanceCalculationProcess
-: public RansFormulationProcess
+class KRATOS_API(RANS_APPLICATION) RansWallDistanceCalculationProcess : public Process
 {
 public:
     ///@name Type Definitions

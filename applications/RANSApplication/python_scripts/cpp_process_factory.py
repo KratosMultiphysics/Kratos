@@ -108,7 +108,7 @@ def Factory(settings, Model):
     return current_process
 
 
-class RansCheckScalarBoundsProcess(KratosRANS.RansFormulationProcess):
+class RansCheckScalarBoundsProcess(Kratos.Process):
     """Checks bounds of a scalar variable for given model part
 
     Args:
@@ -135,6 +135,3 @@ class RansCheckScalarBoundsProcess(KratosRANS.RansFormulationProcess):
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is bounded between [ {:f}, {:f} ] in {:s}.".format(
             self.variable.Name(), min_value, max_value, self.model_part.Name))
-
-    def ExecuteAfterCouplingSolveStep(self):
-        self.Execute()

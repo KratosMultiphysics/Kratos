@@ -97,14 +97,14 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
     KRATOS_TRY
 
     if (!mIsInitialized) {
-        this->ExecuteAfterCouplingSolveStep();
+        this->Execute();
         mIsInitialized = true;
     }
 
     KRATOS_CATCH("");
 }
 
-void RansNutYPlusWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
+void RansNutYPlusWallFunctionUpdateProcess::Execute()
 {
     KRATOS_TRY
 

@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.RANSApplication as KratosRANS
 
 class Formulation:
     def __init__(self, base_computing_model_part, settings):
@@ -16,11 +15,7 @@ class Formulation:
         self.list_of_formulations.append(formulation)
 
     def AddProcess(self, process):
-        if (isinstance(process, KratosRANS.RansFormulationProcess)):
-            self.list_of_processes.append(process)
-        else:
-            msg = str(process).rstrip() + " is not a RansFormulationProcess. Please use only RansFormulationProcess objects."
-            raise Exception(msg)
+        self.list_of_processes.append(process)
 
     def AddVariables(self):
         self.__ExecuteFormulationMethods("AddVariables")
@@ -49,7 +44,6 @@ class Formulation:
     def SolveCouplingStep(self):
         max_iterations = self.GetMaxCouplingIterations()
         for iteration in range(max_iterations):
-            self.ExecuteBeforeCouplingSolveStep()
             for formulation in self.list_of_formulations:
                 if (not formulation.SolveCouplingStep()):
                     return False
@@ -58,11 +52,8 @@ class Formulation:
 
         return True
 
-    def ExecuteBeforeCouplingSolveStep(self):
-        self.__ExecuteProcessMethods("ExecuteBeforeCouplingSolveStep")
-
     def ExecuteAfterCouplingSolveStep(self):
-        self.__ExecuteProcessMethods("ExecuteAfterCouplingSolveStep")
+        self.__ExecuteProcessMethods("Execute")
 
     def FinalizeSolutionStep(self):
         self.__ExecuteFormulationMethods("FinalizeSolutionStep")
