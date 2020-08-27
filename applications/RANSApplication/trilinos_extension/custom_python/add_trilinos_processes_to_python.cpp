@@ -24,6 +24,7 @@
 #include "trilinos_space.h"
 
 // Application includes
+#include "custom_processes/rans_formulation_process.h"
 #include "trilinos_extension/custom_processes/rans_trilinos_wall_distance_calculation_process.h"
 
 // Include base h
@@ -38,8 +39,7 @@ void AddTrilinosProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using TrilinosRansWallDistanceCalculationProcessType = TrilinosRansWallDistanceCalculationProcess;
-    py::class_<TrilinosRansWallDistanceCalculationProcessType, TrilinosRansWallDistanceCalculationProcessType::Pointer, Process>(m, "TrilinosRansWallDistanceCalculationProcess")
+    py::class_<TrilinosRansWallDistanceCalculationProcess, TrilinosRansWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "TrilinosRansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
