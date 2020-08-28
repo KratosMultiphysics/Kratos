@@ -191,10 +191,7 @@ class RestartUtility(object):
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
     def GetRestartFiles(self):
-        """
-        Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart
-        files for each step. 
-        """
+        """ Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart files for each step."""
         restart_files = {}
         if os.path.isdir(self.__GetFolderPathSave()):
             number_of_restart_files = 0
@@ -204,7 +201,6 @@ class RestartUtility(object):
                     if self.__IsRestartFile(entry):
 
                         label = self.__ExtractFileLabel(entry.name) # Get thread ID and step ID
-                        
                         if label[1] in restart_files:               # Check if this step has entries already
                             restart_files[label[1]].append( entry.name )
                         else:
