@@ -58,7 +58,7 @@ void Define3DWakeProcess::ExecuteInitialize()
 
     AddWakeNodes();
 
-    //SelectWakeTipNodes();
+    SelectWakeTipNodes();
 
     SelectDoubleTrailingEdgeElements();
 
@@ -574,6 +574,8 @@ void Define3DWakeProcess::SelectWakeTipNodes() const
 
     std::ofstream outfile_wake_tip;
     outfile_wake_tip.open("wake_tip_nodes_id.txt");
+    std::ofstream outfile_wake_tip_elements;
+    outfile_wake_tip.open("wake_tip_elements_id.txt");
     const double tolerance = 1e-5;
     for (auto& r_element : wake_sub_model_part.Elements()){
         auto& r_geometry = r_element.GetGeometry();
@@ -583,8 +585,15 @@ void Define3DWakeProcess::SelectWakeTipNodes() const
             if( difference < tolerance){
                 r_node.SetValue(WING_TIP, true);
                 r_element.SetValue(WING_TIP_ELEMENT, true);
+                std::ofstream outfile_wake_tip;
+                outfile_wake_tip.open("wake_tip_nodes_id.txt", std::ios_base::app);
                 outfile_wake_tip << r_node.Id();
                 outfile_wake_tip << "\n";
+
+                std::ofstream outfile_wake_tip_elements;
+                outfile_wake_tip_elements.open("wake_tip_elements_id.txt", std::ios_base::app);
+                outfile_wake_tip_elements << r_element.Id();
+                outfile_wake_tip_elements << "\n";
             }
         }
     }
@@ -706,5 +715,21 @@ void Define3DWakeProcess::Print() const
     KRATOS_WATCH(kutta_elements_counter)
     KRATOS_WATCH(wake_elements_counter)
     KRATOS_WATCH(structure_elements_counter)
+
+    // Loop over all wake elements
+    ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_elements_model_part");
+
+    std::ofstream outfile_all_wake;
+    outfile_wake.open("all_wake_elements_id.txt");
+    unsigned int all_wake_elements_counter = 0;
+    for (auto& r_element : wake_sub_model_part.Elements()){
+        all_wake_elements_counter += 1;
+        std::ofstream outfile_all_wake;
+        outfile_all_wake.open("all_wake_elements_id.txt", std::ios_base::app);
+        outfile_all_wake << r_element.Id();
+        outfile_all_wake << "\n";
+
+    }
+    KRATOS_WATCH(all_wake_elements_counter)
 }
 } // namespace Kratos.
