@@ -117,6 +117,9 @@ namespace Kratos
         }
 
 
+        // 8 - Write nodal lagrange multipliers to interface
+        WriteLagrangeMultiplierResults(lagrange_vector);
+
         KRATOS_CATCH("")
 	}
 
@@ -330,6 +333,35 @@ namespace Kratos
             for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
             {
                 r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void FetiDynamicCouplingUtilities::WriteLagrangeMultiplierResults(const Vector& rLagrange)
+    {
+        KRATOS_TRY
+
+        const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+        for (size_t interface_index = 0; interface_index < 2; ++interface_index)
+        {
+            ModelPart& r_interface = (interface_index == 0)
+                ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
+            const double sign = (interface_index == 0) ? 1.0 : -1.0;
+            auto interface_nodes = r_interface.NodesArray();
+            for (size_t i = 0; i < interface_nodes.size(); ++i)
+            {
+                IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+
+                array_1d<double, 3>& lagrange = interface_nodes[i]->GetValue(VECTOR_LAGRANGE_MULTIPLIER);
+                lagrange.clear();
+                for (size_t dof = 0; dof < dim; dof++)
+                {
+                    lagrange[dof] = sign*rLagrange[interface_id * dim + dof];
+                }
+                KRATOS_WATCH(lagrange);
             }
         }
 

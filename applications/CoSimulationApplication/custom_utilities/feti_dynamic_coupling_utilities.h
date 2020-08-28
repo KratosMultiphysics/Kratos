@@ -24,6 +24,7 @@
 #include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
 #include "co_simulation_application_variables.h"
+#include "includes/variables.h"
 
 
 namespace Kratos
@@ -119,6 +120,8 @@ namespace Kratos
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,
             const Vector& rCorrection);
+
+        void WriteLagrangeMultiplierResults(const Vector& rLagrange);
 
         // Printing method for debugging
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const bool IsOrigin)

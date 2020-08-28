@@ -14,6 +14,13 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, models, solver_name):
         super().__init__(settings, models, solver_name)
 
+        #get solvers and add lagrange multiplier solution variable
+        self.solver_wrappers_vector = []
+        for solver_name, solver in self.solver_wrappers.items():
+            self.solver_wrappers_vector.append(solver)
+            structure = solver.model.GetModelPart("Structure")
+            structure.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
+
         self.is_initialized = False
 
 
@@ -26,13 +33,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         solver_index = 0
         for solver_name, solver in self.solver_wrappers.items():
-            #self._SynchronizeInputData(solver_name)# -  not required, EquilibrateDomains handles mapping
             solver.SolveSolutionStep()
 
             system_matrix = solver.GetSolverStrategy().GetSystemMatrix()
             self.feti_coupling.SetEffectiveStiffnessMatrices(system_matrix,solver_index)
-
-            #self._SynchronizeOutputData(solver_name)# -  not required, EquilibrateDomains handles mapping
 
             solver_index += 1
 
@@ -50,10 +54,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         self.mapper_parameters = self.data_transfer_operators_dict["mapper"].settings["mapper_settings"]
         mapper_type = self.mapper_parameters["mapper_type"].GetString()
 
-        #get solvers
-        self.solver_wrappers_vector = []
-        for solver_name, solver in self.solver_wrappers.items():
-            self.solver_wrappers_vector.append(solver)
 
         # get mapper origin and destination modelparts
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
