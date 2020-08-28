@@ -250,6 +250,7 @@ namespace Kratos
             rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
             mConstitutiveLawVector_master[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+            rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties()[THICKNESS];
         }
         if (rPatch==PatchType::Slave) 
         {
@@ -262,6 +263,7 @@ namespace Kratos
             rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
             mConstitutiveLawVector_slave[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+            rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties()[THICKNESS];
         }
 
         //Local Cartesian Forces and Moments
@@ -494,11 +496,8 @@ namespace Kratos
 
             array_1d<double, 3> transformed_prestress_master = prod(prestresstrans_variables_master.Tpre, prestress);
             array_1d<double, 3> transformed_prestress_slave = prod(prestresstrans_variables_slave.Tpre, prestress);
-            constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
-            constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
-
-            constitutive_variables_membrane_master.StressVector *= thickness;
-            constitutive_variables_membrane_slave.StressVector *= thickness;
+            constitutive_variables_membrane_master.StressVector += transformed_prestress_master * thickness;
+            constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave * thickness;
 
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;
@@ -647,7 +646,8 @@ namespace Kratos
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
-            const double determinat_jacobian = r_geometry_master.DeterminantOfJacobian(point_number);
+            //const double determinat_jacobian = r_geometry_master.DeterminantOfJacobian(point_number);
+            const double determinat_jacobian = norm_2(kinematic_variables_reference_master.a2);
 
             const double gammaTilde = 0.5;
 
@@ -871,11 +871,8 @@ namespace Kratos
 
             array_1d<double, 3> transformed_prestress_master = prod(prestresstrans_variables_master.Tpre, prestress);
             array_1d<double, 3> transformed_prestress_slave = prod(prestresstrans_variables_slave.Tpre, prestress);
-            constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
-            constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
-
-            constitutive_variables_membrane_master.StressVector *= thickness;
-            constitutive_variables_membrane_slave.StressVector *= thickness;
+            constitutive_variables_membrane_master.StressVector += transformed_prestress_master * thickness;
+            constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave * thickness;
 
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;
@@ -1130,14 +1127,14 @@ namespace Kratos
         if (rPatch==PatchType::Master)
         {
             rPi = prod(m_T_hat_vector_master[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.ConstitutiveMatrix);
-            rPi = prod(rPi, m_T_vector_master[IntegrationPointIndex])*GetProperties()[THICKNESS];
+            rPi = prod(rPi, m_T_vector_master[IntegrationPointIndex]);
 
             n_contravariant_vector = m_n_contravariant_vector_master[IntegrationPointIndex];
         }
         if (rPatch==PatchType::Slave)
         {
             rPi = prod(m_T_hat_vector_slave[IntegrationPointIndex], rThisConstitutiveVariablesMembrane.ConstitutiveMatrix);
-            rPi = prod(rPi, m_T_vector_slave[IntegrationPointIndex])*GetProperties()[THICKNESS];
+            rPi = prod(rPi, m_T_vector_slave[IntegrationPointIndex]);
 
             n_contravariant_vector = m_n_contravariant_vector_slave[IntegrationPointIndex];
         }
@@ -1208,7 +1205,7 @@ namespace Kratos
 
         //Compute the first variations of the 2nd Piola-Kichhoff stresses in the local Cartesian bases
         Matrix dN_cartesian = ZeroMatrix(3, mat_size);
-        dN_cartesian = prod(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix,dE_cartesian)*GetProperties()[THICKNESS];
+        dN_cartesian = prod(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix,dE_cartesian);
 
         //Transform the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
         if (rPatch==PatchType::Master)
