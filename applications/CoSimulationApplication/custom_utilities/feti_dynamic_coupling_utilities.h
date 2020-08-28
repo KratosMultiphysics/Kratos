@@ -27,6 +27,7 @@
 #include "includes/variables.h"
 
 
+
 namespace Kratos
 {
     class KRATOS_API(CO_SIMULATION_APPLICATION) FetiDynamicCouplingUtilities
@@ -42,6 +43,8 @@ namespace Kratos
 
         typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef typename SparseSpaceType::MatrixType SystemMatrixType;
+
+        typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
         typedef Matrix DenseMappingMatrixType;
         typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;

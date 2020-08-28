@@ -17,6 +17,9 @@
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
 
+//#include "linear_solvers/umfpack_lu_solver.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
+
 
 namespace Kratos
 {
@@ -276,12 +279,30 @@ namespace Kratos
             rLagrangeVec.resize(rUnbalancedVelocities.size(), false);
         else rLagrangeVec.clear();
 
-        double det;
-        // TODO - this can be done with a linear solve
-        Matrix inv_condensation;
-        MathUtils<double>::InvertMatrix(rCondensationMatrix, inv_condensation, det);
+        bool is_slow_solve = true;
 
-        rLagrangeVec = prod(inv_condensation, rUnbalancedVelocities);
+        if (is_slow_solve)
+        {
+            double det;
+
+            Matrix inv_condensation;
+            MathUtils<double>::InvertMatrix(rCondensationMatrix, inv_condensation, det);
+
+            rLagrangeVec = prod(inv_condensation, rUnbalancedVelocities);
+        }
+        else
+        {
+            // TODO - use umpfpack
+            Vector b(rUnbalancedVelocities);
+            CompressedMatrix A = CompressedMatrix(rCondensationMatrix);
+            LUSkylineFactorization<SparseSpaceType, DenseSpaceType> solver;
+            //UMFpackLUsolver<SparseSpaceType, DenseSpaceType> solver;
+            //solver.
+            //solver.Solve(A, rLagrangeVec, b);
+        }
+
+        KRATOS_WATCH(rLagrangeVec);
+
 
         KRATOS_CATCH("")
     }
