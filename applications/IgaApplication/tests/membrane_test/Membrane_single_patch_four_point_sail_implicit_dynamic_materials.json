@@ -12,7 +12,7 @@
                 "POISSON_RATIO": 0.4,
                 "DENSITY": 800,
                 "THICKNESS": 0.001,
-                "PRESTRESS": [3000000000.0, 3000000000.0, 0.0]
+                "PRESTRESS": [3000000.0, 3000000.0, 0.0]
             },
             "Tables": {}
         }
