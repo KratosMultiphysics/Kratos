@@ -87,6 +87,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/variational_non_eikonal_distance.cpp #MRH
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/lumped_interface_curvature_calculation.cpp #MRH
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/lumped_interface_positive_negative_pressure_gradient.cpp #MRH
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hyperbolic_distance_reinitialization.cpp
 )
 
 ## define python interface sources
