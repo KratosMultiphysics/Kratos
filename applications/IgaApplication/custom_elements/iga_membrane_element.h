@@ -103,16 +103,6 @@ protected:
         }
     };
 
-    struct PrestresstransVariables
-    {
-        Matrix Tpre;
-        
-        PrestresstransVariables(SizeType Dimension)
-        {
-           Matrix Tpre = ZeroMatrix(3, 3);
-        }
-    };
-
 public:
     ///@name Type Definitions
     ///@{
@@ -278,9 +268,8 @@ public:
         ProcessInfo& rCurrentProcessInfo
     ) override;
 
-
     void Calculate(const Variable<Matrix>& rVariable,
-      Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -321,8 +310,8 @@ public:
         int Step = 0) const override;
 
     enum class ConfigurationType {
-      Current,
-      Reference
+        Current,
+        Reference
     };
 
     ///@}
@@ -402,6 +391,12 @@ private:
         const bool CalculateResidualVectorFlag
     );
 
+    /// Calculates Initial Stiffness Matrix for Damping
+    void CalculateInitialStiffnessMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    );
+
     /// Initialize Operations
     void InitializeMaterial();
 
@@ -445,9 +440,9 @@ private:
     * @param rActualKinematic: The actual metric
     * @param rPrestresstransVariables: 
     */
-    void CalculateTransformationmatrixPrestress(
-        const KinematicVariables& rActualKinematic,
-        PrestresstransVariables& rPrestresstransVariables
+    void CalculateTransformationPrestress(
+        Matrix& rTransformationPrestress,
+        const KinematicVariables& rActualKinematic
         );
 
     inline void CalculateAndAddKm(
@@ -462,14 +457,20 @@ private:
         const Vector& rSD,
         const double IntegrationWeight);
     
-    /**
-    * @brief Calculate prestress tensor 
-    * @param rPrestressTensor: The prestress tensor to be calculated
-    * @param rMetric
-    */
-    void CalculatePresstressTensor(
-        Vector& rPrestressTensor,
-        KinematicVariables& rActualKinematic); 
+
+    void CalculatePK2Stresses(
+        IndexType IntegrationPointIndex,
+        Vector& rPK2Stresses,
+        KinematicVariables& rKinematicVariables,
+        const Matrix& rShapeFunctionGradientValues,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateCauchyStresses(
+        IndexType IntegrationPointIndex,
+        Vector& rCauchyStresses,
+        KinematicVariables& rKinematicVariables,
+        const Matrix& rShapeFunctionGradientValues,
+        const ProcessInfo& rCurrentProcessInfo);
 
     void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
@@ -501,13 +502,6 @@ private:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
-    ///@}
-    ///@name Geometrical Functions
-    ///@{
-
-    void CalculateHessian(
-        Matrix& Hessian,
-        const Matrix& rDDN_DDe);
 
     ///@}
     ///@name Serialization

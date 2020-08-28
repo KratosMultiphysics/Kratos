@@ -7,10 +7,6 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Ricky Aristio
-//                   Tobias Tescheamacher
-//                   Riccardo Rossi
-//
 
 
 // System includes
@@ -51,7 +47,6 @@ namespace Kratos
         //Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_number_of_integration_points)
             mConstitutiveLawVector.resize(r_number_of_integration_points);
-
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
             mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
@@ -153,19 +148,18 @@ namespace Kratos
 
             double integration_weight =
                 r_integration_points[point_number].Weight()
-                * m_dA_vector[point_number]
-                * GetProperties()[THICKNESS];
+                * m_dA_vector[point_number];
 
-            //Define Prestress
+            //Prestress component
             array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
 
-            PrestresstransVariables prestresstrans_variables(3);
-            CalculateTransformationmatrixPrestress(
-                kinematic_variables,
-                prestresstrans_variables 
+            Matrix T_pre = ZeroMatrix(3, 3);
+            CalculateTransformationPrestress(
+                T_pre ,
+                kinematic_variables
             );
 
-            array_1d<double, 3> transformed_prestress = prod(prestresstrans_variables.Tpre, prestress);
+            array_1d<double, 3> transformed_prestress = prod(T_pre, prestress);
             constitutive_variables_membrane.StressVector += transformed_prestress;
 
             // LEFT HAND SIDE MATRIX
@@ -177,7 +171,6 @@ namespace Kratos
                     BMembrane,
                     constitutive_variables_membrane.ConstitutiveMatrix,
                     integration_weight);
-
                 // adding  non-linear-contribution to Stiffness-Matrix
                 CalculateAndAddNonlinearKm(
                     rLeftHandSideMatrix,
@@ -195,6 +188,113 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    void IgaMembraneElement::CalculateInitialStiffnessMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY
+
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = number_of_nodes * 3;
+
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+
+        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+        
+        // Prepare memory
+        if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
+            m_A_ab_covariant_vector.resize(r_number_of_integration_points);
+        if (m_dA_vector.size() != r_number_of_integration_points)
+            m_dA_vector.resize(r_number_of_integration_points);
+        if (m_T_vector.size() != r_number_of_integration_points)
+            m_T_vector.resize(r_number_of_integration_points);
+        if (m_T_hat_vector.size() != r_number_of_integration_points)
+            m_T_hat_vector.resize(r_number_of_integration_points);
+        if (m_reference_contravariant_base.size() != r_number_of_integration_points)
+            m_reference_contravariant_base.resize(r_number_of_integration_points);
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+            //Compute Kinematics Reference
+            KinematicVariables kinematic_variables_reference(
+                GetGeometry().WorkingSpaceDimension());
+
+            CalculateKinematics(
+                point_number,
+                kinematic_variables_reference,shape_functions_gradients_i, ConfigurationType::Reference);
+            
+            m_A_ab_covariant_vector[point_number] = kinematic_variables_reference.a_ab_covariant;
+
+            m_dA_vector[point_number] = kinematic_variables_reference.dA;
+
+            CalculateTransformation(kinematic_variables_reference, m_T_vector[point_number], m_T_hat_vector[point_number], m_reference_contravariant_base[point_number]);
+
+            // Create constitutive law parameters:
+            ConstitutiveLaw::Parameters constitutive_law_parameters(
+                GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+            ConstitutiveVariables constitutive_variables_membrane(3);
+            CalculateConstitutiveVariables(
+                point_number,
+                kinematic_variables_reference,
+                constitutive_variables_membrane,
+                constitutive_law_parameters,
+                ConstitutiveLaw::StressMeasure_PK2);
+
+            // calculate B MATRICES
+            Matrix BMembrane = ZeroMatrix(3, mat_size);
+            CalculateBMembrane(
+                point_number,
+                BMembrane,
+                kinematic_variables_reference);
+   
+            // Nonlinear Deformation
+            SecondVariations second_variations_strain(mat_size);
+            CalculateSecondVariationStrain(
+                point_number,
+                second_variations_strain,
+                kinematic_variables_reference);
+
+            double integration_weight =
+                r_integration_points[point_number].Weight()
+                * m_dA_vector[point_number];
+
+            //Prestress component
+            array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+
+            Matrix T_pre = ZeroMatrix(3, 3);
+            CalculateTransformationPrestress(
+                T_pre ,
+                kinematic_variables_reference
+            );
+
+            array_1d<double, 3> transformed_prestress = prod(T_pre, prestress);
+            constitutive_variables_membrane.StressVector += transformed_prestress;
+
+            //adding membrane contributions to the stiffness matrix
+            CalculateAndAddKm(
+                rLeftHandSideMatrix,
+                BMembrane,
+                constitutive_variables_membrane.ConstitutiveMatrix,
+                integration_weight);
+            // adding  non-linear-contribution to Stiffness-Matrix
+            CalculateAndAddNonlinearKm(
+                rLeftHandSideMatrix,
+                second_variations_strain,
+                constitutive_variables_membrane.StressVector,
+                integration_weight);
+        }
+        KRATOS_CATCH("");
+    }
     ///@}
     ///@name Kinematics
     ///@{
@@ -350,6 +450,7 @@ namespace Kratos
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
 
         mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+        rThisConstitutiveVariablesMembrane.ConstitutiveMatrix *= GetProperties()[THICKNESS];
 
         //Local Cartesian Forces and Moments
         noalias(rThisConstitutiveVariablesMembrane.StressVector) = prod(
@@ -472,14 +573,16 @@ namespace Kratos
                 StiffnessMatrix.resize(mat_size, mat_size);
             noalias(StiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
 
-            // //VectorType ResidualVector = Vector();
-            Element::VectorType ResidualVector;
+            // // //VectorType ResidualVector = Vector();
+            // Element::VectorType ResidualVector;
 
-            if (ResidualVector.size() != mat_size)
-                ResidualVector.resize(mat_size);
-            noalias(ResidualVector) = ZeroVector(mat_size);
+            // if (ResidualVector.size() != mat_size)
+            //     ResidualVector.resize(mat_size);
+            // noalias(ResidualVector) = ZeroVector(mat_size);
 
-            this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+            //this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+            this->CalculateInitialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
+
             noalias(rDampingMatrix) += beta * StiffnessMatrix;
         }
 
@@ -539,28 +642,27 @@ namespace Kratos
     }
 
     //Prestress Transformation Matrix
-    void IgaMembraneElement::CalculateTransformationmatrixPrestress(
-        const KinematicVariables& rActualKinematic,
-        PrestresstransVariables& rPrestresstransVariables
+    void IgaMembraneElement::CalculateTransformationPrestress(
+        Matrix& rTransformationPrestress,
+        const KinematicVariables& rActualKinematic
     )
     {
         //define base vector in reference plane
-        //ATTENTION: in some cases the vector must be modified (e.g. catenoid t3_unten=[0, 0, 1])
+        //ATTENTION: in some cases the vector must be modified (e.g. catenoid t3=[0, 0, 1])
 
-        array_1d<double, 3> t3_unten;
-        t3_unten[0] = 0;
-        t3_unten[1] = 1;
-        t3_unten[2] = 0;
+        array_1d<double, 3> t3;
+        t3[0] = 0;
+        t3[1] = 1;
+        t3[2] = 0;
 
-        array_1d<double, 3> t1_z;
-        MathUtils<double>::CrossProduct(t1_z, t3_unten, rActualKinematic.a3);
+        array_1d<double, 3> t1;
+        MathUtils<double>::CrossProduct(t1, t3, rActualKinematic.a3);
 
         array_1d<double, 3> t2;
-        MathUtils<double>::CrossProduct(t2, rActualKinematic.a3, t1_z);
+        MathUtils<double>::CrossProduct(t2, rActualKinematic.a3, t1);
 
-        array_1d<double, 3> t1_n = t1_z/norm_2(t1_z);
+        array_1d<double, 3> t1_n = t1/norm_2(t1);
         array_1d<double, 3> t2_n = t2/norm_2(t2);
-        //array_1d<double, 3> t3_n = rActualKinematic.a3/norm_2(rActualKinematic.a3);
 
         //Contravariant metric g_ab_con
         double inv_det_g_ab = 1.0 /
@@ -572,14 +674,13 @@ namespace Kratos
         a_ab_contravariant[1] =  inv_det_g_ab * rActualKinematic.a_ab_covariant[0];
         a_ab_contravariant[2] = -inv_det_g_ab * rActualKinematic.a_ab_covariant[2];
 
-        //array_1d<double, 3> a_con_1 = rActualKinematic.a1*a_ab_contravariant[0] + rActualKinematic.a2*a_ab_contravariant[2];
-        array_1d<double, 3> a_con_2 = rActualKinematic.a1*a_ab_contravariant[2] + rActualKinematic.a2*a_ab_contravariant[1]; 
+        array_1d<double, 3> a_contravariant_2 = rActualKinematic.a1*a_ab_contravariant[2] + rActualKinematic.a2*a_ab_contravariant[1]; 
 
         //local cartesian coordinates oriented along the 1st base vector in the ref. config.
-        double la1 = norm_2(rActualKinematic.a1);
-        array_1d<double, 3> e1 = rActualKinematic.a1 / la1;
-        double la_con2 = norm_2(a_con_2);
-        array_1d<double, 3> e2 = a_con_2 / la_con2;
+        double l_a1 = norm_2(rActualKinematic.a1);
+        array_1d<double, 3> e1 = rActualKinematic.a1 / l_a1;
+        double l_a_contravariant_2 = norm_2(a_contravariant_2);
+        array_1d<double, 3> e2 = a_contravariant_2 / l_a_contravariant_2;
 
         //Transformation matrix from the projected basis T to the local cartesian basis
         double eG11 = inner_prod(e1,t1_n);
@@ -587,18 +688,17 @@ namespace Kratos
         double eG21 = inner_prod(e2,t1_n);
         double eG22 = inner_prod(e2,t2_n);
     
-        rPrestresstransVariables.Tpre = ZeroMatrix(3, 3);
-        rPrestresstransVariables.Tpre(0,0) = eG11*eG11;
-        rPrestresstransVariables.Tpre(0,1) = eG12*eG12;
-        rPrestresstransVariables.Tpre(0,2) = 2.0*eG11*eG12;
+        rTransformationPrestress(0,0) = eG11*eG11;
+        rTransformationPrestress(0,1) = eG12*eG12;
+        rTransformationPrestress(0,2) = 2.0*eG11*eG12;
 
-        rPrestresstransVariables.Tpre(1,0) = eG21*eG21;
-        rPrestresstransVariables.Tpre(1,1) = eG22*eG22;
-        rPrestresstransVariables.Tpre(1,2) = 2.0*eG21*eG22;
+        rTransformationPrestress(1,0) = eG21*eG21;
+        rTransformationPrestress(1,1) = eG22*eG22;
+        rTransformationPrestress(1,2) = 2.0*eG21*eG22;
 
-        rPrestresstransVariables.Tpre(2,0) = eG11*eG21;
-        rPrestresstransVariables.Tpre(2,1) = eG12*eG22;
-        rPrestresstransVariables.Tpre(2,2) = eG11*eG22+eG12*eG21;       
+        rTransformationPrestress(2,0) = eG11*eG21;
+        rTransformationPrestress(2,1) = eG12*eG22;
+        rTransformationPrestress(2,2) = eG11*eG22+eG12*eG21;       
     }  
 
 
@@ -776,33 +876,6 @@ namespace Kratos
         return 0;
     }
 
-    void IgaMembraneElement::CalculateHessian(
-        Matrix& Hessian,
-        const Matrix& rDDN_DDe)
-    {
-        const SizeType number_of_points = GetGeometry().size();
-        const SizeType working_space_dimension = 3;
-        Hessian.resize(working_space_dimension, working_space_dimension);
-        Hessian = ZeroMatrix(working_space_dimension, working_space_dimension);
-
-        for (IndexType k = 0; k < number_of_points; k++)
-        {
-            const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
-
-            Hessian(0, 0) += rDDN_DDe(k, 0)*coords[0];
-            Hessian(0, 1) += rDDN_DDe(k, 2)*coords[0];
-            Hessian(0, 2) += rDDN_DDe(k, 1)*coords[0];
-
-            Hessian(1, 0) += rDDN_DDe(k, 0)*coords[1];
-            Hessian(1, 1) += rDDN_DDe(k, 2)*coords[1];
-            Hessian(1, 2) += rDDN_DDe(k, 1)*coords[1];
-
-            Hessian(2, 0) += rDDN_DDe(k, 0)*coords[2];
-            Hessian(2, 1) += rDDN_DDe(k, 2)*coords[2];
-            Hessian(2, 2) += rDDN_DDe(k, 1)*coords[2];
-        }
-    }
-
     ///@}
 
     void IgaMembraneElement::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
@@ -830,9 +903,43 @@ namespace Kratos
         const auto& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
+        const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+
         if (rValues.size() != r_integration_points.size())
         {
             rValues.resize(r_integration_points.size());
+        }
+
+        if (rVariable==PRINCIPAL_STRESS_1 || rVariable==PRINCIPAL_STRESS_2)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
+            {
+                const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+                KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
+
+                Vector pk2_stresses = ZeroVector(3);
+                CalculatePK2Stresses(point_number, pk2_stresses, kinematic_variables, shape_functions_gradients_i, rCurrentProcessInfo);
+
+                if (rVariable==PRINCIPAL_STRESS_1)
+                {
+                    double principal_stresses_1 = 0.5*(pk2_stresses[0] + pk2_stresses[1] + sqrt(pow(pk2_stresses[0] - pk2_stresses[1], 2)+4*pow(pk2_stresses[2], 2)));
+                    rValues[point_number] = principal_stresses_1;
+                }
+
+                if (rVariable==PRINCIPAL_STRESS_2)
+                {
+                    double principal_stresses_2 = 0.5*(pk2_stresses[0] + pk2_stresses[1] - sqrt(pow(pk2_stresses[0] - pk2_stresses[1], 2)+4*pow(pk2_stresses[2], 2)));
+                    rValues[point_number] = principal_stresses_2;
+                }
+            }
+        }
+        else
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+            { 
+                rValues[point_number] = 0.0;
+            }
         }
     }
 
@@ -853,111 +960,29 @@ namespace Kratos
             rValues.resize(r_integration_points.size());
         }
 
-        if (rVariable == STRESSES)
+        if (rVariable==PK2_STRESS_VECTOR || rVariable==CAUCHY_STRESS_VECTOR)
         {
-            Vector sigma_top = ZeroVector(3);
-
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
             {
                 const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-                // Compute Kinematics and Metric
-                KinematicVariables kinematic_variables(
-                    GetGeometry().WorkingSpaceDimension());
-                CalculateKinematics(
-                    point_number,
-                    kinematic_variables,shape_functions_gradients_i, ConfigurationType::Current);
+                KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
 
-                // Create constitutive law parameters:
-                ConstitutiveLaw::Parameters constitutive_law_parameters(
-                    GetGeometry(), GetProperties(), rCurrentProcessInfo);
+                if (rVariable==PK2_STRESS_VECTOR)
+                {
+                    Vector pk2_stresses = ZeroVector(3);
+                    CalculatePK2Stresses(point_number, pk2_stresses, kinematic_variables, shape_functions_gradients_i, rCurrentProcessInfo);
 
-                ConstitutiveVariables constitutive_variables_membrane(3);
-                CalculateConstitutiveVariables(
-                    point_number,
-                    kinematic_variables,
-                    constitutive_variables_membrane,
-                    constitutive_law_parameters,
-                    ConstitutiveLaw::StressMeasure_PK2);
-
-                //Contravariant metric g_ab_con
-                double inv_det_g_ab = 1.0 /
-                    (kinematic_variables.a_ab_covariant[0] * kinematic_variables.a_ab_covariant[1]
-                        - kinematic_variables.a_ab_covariant[2] * kinematic_variables.a_ab_covariant[2]);
-
-                array_1d<double, 3> a_ab_contravariant;
-                a_ab_contravariant[0] =  inv_det_g_ab * kinematic_variables.a_ab_covariant[1];
-                a_ab_contravariant[1] =  inv_det_g_ab * kinematic_variables.a_ab_covariant[0];
-                a_ab_contravariant[2] = -inv_det_g_ab * kinematic_variables.a_ab_covariant[2];
-
-                //Calculate actual transformation
-                Matrix T_actual_vector = ZeroMatrix(r_integration_points.size(),r_integration_points.size());
-                Matrix T_hat_actual_vector = ZeroMatrix(r_integration_points.size(),r_integration_points.size());
-                array_1d<array_1d<double, 3>,2> actual_contravariant_base;
-                CalculateTransformation(kinematic_variables, T_actual_vector, T_hat_actual_vector, actual_contravariant_base);
-
-                double detF = kinematic_variables.dA / m_dA_vector[point_number];
-
-                //Prestress component
-                Vector prestress_tensor = ZeroVector(3);
-                CalculatePresstressTensor(prestress_tensor,kinematic_variables);
-
-                Vector n_pk2_ca = prod(constitutive_variables_membrane.ConstitutiveMatrix, constitutive_variables_membrane.StrainVector) + prestress_tensor;
-                
-                //Transform PK2 stress into Cauchy stress
-                //Deformation Gradient F
-                Matrix deformation_gradient = ZeroMatrix(2);
-
-                array_1d<Vector,2> rCurrentCovariantBase;
-                rCurrentCovariantBase[0] = kinematic_variables.a1;
-                rCurrentCovariantBase[1] = kinematic_variables.a2;
-
-                array_1d< array_1d<double, 3>,2> rReferenceContraVariantBase = m_reference_contravariant_base[point_number];
-
-                for (SizeType i=0;i<2;++i){
-                    for (SizeType j=0;j<2;++j){
-                        for (SizeType k=0;k<2;++k){
-                            deformation_gradient(j,k) += rCurrentCovariantBase[i][j]*rReferenceContraVariantBase[i][k];
-                        }
-                    }
+                    rValues[point_number] = pk2_stresses;
                 }
 
-                Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(n_pk2_ca);
-                Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
-                Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
-                Matrix cauchy_stress_matrix = temp_stress_matrix_2 / detF;
-   
-                Vector n_cau = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
-                
-                //PK2 stress
-                // sigma_top(0) = n_pk2_ca[0];
-                // sigma_top(1) = n_pk2_ca[1];
-                // sigma_top(2) = n_pk2_ca[2];
+                if (rVariable==CAUCHY_STRESS_VECTOR)
+                {
+                    Vector cauchy_stresses = ZeroVector(3);
+                    CalculateCauchyStresses(point_number, cauchy_stresses, kinematic_variables, shape_functions_gradients_i, rCurrentProcessInfo);
 
-                //Cauchy stress
-                sigma_top(0) = n_cau[0];
-                sigma_top(1) = n_cau[1];
-                sigma_top(2) = n_cau[2];
-
-                rValues[point_number] = sigma_top;
+                    rValues[point_number] = cauchy_stresses;
+                } 
             }
-        }
-        else if (rVariable == EXTERNAL_FORCES_VECTOR) {
-
-            // Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
-            // Vector external_forces_vector = ZeroVector(3);
-
-            // for (int i = 0; i < number_of_nodes; i++)
-            // {
-
-            //     const NodeType & iNode = GetGeometry()[i];
-            //     const Vector& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
-
-            //     external_forces_vector[0] += N[i] * forces[0];
-            //     external_forces_vector[1] += N[i] * forces[1];
-            //     external_forces_vector[2] += N[i] * forces[2];
-            // }
-
-            // rValues[0] = external_forces_vector;
         }
         else
         {
@@ -966,6 +991,85 @@ namespace Kratos
                 rValues[point_number] = ZeroVector(3);
             }
         }
+    }
+    
+    void IgaMembraneElement::CalculatePK2Stresses(
+        IndexType IntegrationPointIndex,
+        Vector& rPK2Stresses,
+        KinematicVariables& rKinematicVariables,
+        const Matrix& rShapeFunctionGradientValues,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        // Compute Kinematics and Metric
+        CalculateKinematics(
+            IntegrationPointIndex,
+            rKinematicVariables,rShapeFunctionGradientValues, ConfigurationType::Current);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        ConstitutiveVariables constitutive_variables_membrane(3);
+        CalculateConstitutiveVariables(
+            IntegrationPointIndex,
+            rKinematicVariables,
+            constitutive_variables_membrane,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2);
+
+        //Prestress component
+        array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
+
+        Matrix T_pre = ZeroMatrix(3, 3);
+        CalculateTransformationPrestress(
+            T_pre ,
+            rKinematicVariables
+        );
+
+        array_1d<double, 3> prestress_tensor = prod(T_pre, prestress);
+
+
+        rPK2Stresses = prod(constitutive_variables_membrane.ConstitutiveMatrix, constitutive_variables_membrane.StrainVector) + prestress_tensor;
+    }
+
+    void IgaMembraneElement::CalculateCauchyStresses(
+        IndexType IntegrationPointIndex,
+        Vector& rCauchyStresses,
+        KinematicVariables& rKinematicVariables,
+        const Matrix& rShapeFunctionGradientValues,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        Vector pk2_stresses = ZeroVector(3);
+        CalculatePK2Stresses(IntegrationPointIndex, pk2_stresses, rKinematicVariables, rShapeFunctionGradientValues, rCurrentProcessInfo);
+
+        //Transform PK2 stress into Cauchy stress
+        //Deformation Gradient F
+        Matrix deformation_gradient = ZeroMatrix(2);
+
+        double detF = rKinematicVariables.dA / m_dA_vector[IntegrationPointIndex];
+
+        array_1d<Vector,2> rCurrentCovariantBase;
+        rCurrentCovariantBase[0] = rKinematicVariables.a1;
+        rCurrentCovariantBase[1] = rKinematicVariables.a2;
+
+        array_1d< array_1d<double, 3>,2> rReferenceContraVariantBase = m_reference_contravariant_base[IntegrationPointIndex];
+
+        for (SizeType i=0;i<2;++i){
+            for (SizeType j=0;j<2;++j){
+                for (SizeType k=0;k<2;++k){
+                    deformation_gradient(j,k) += rCurrentCovariantBase[i][j]*rReferenceContraVariantBase[i][k];
+                }
+            }
+        }
+
+        Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(pk2_stresses);
+        Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
+        Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
+        Matrix cauchy_stress_matrix = temp_stress_matrix_2 / detF;
+
+        rCauchyStresses = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
     }
 
     void IgaMembraneElement::Calculate(
@@ -1015,24 +1119,5 @@ namespace Kratos
             column(rOutput,2) = base_3;
         }
     }
-
-    //Prestress postprocessing
-    void IgaMembraneElement::CalculatePresstressTensor(
-        Vector& rPrestressTensor,
-        KinematicVariables& rActualKinematic
-    )
-    {
-        rPrestressTensor.resize(3);
-
-        array_1d<double, 3> prestress = GetProperties()[PRESTRESS]*GetProperties()[THICKNESS];
-
-        PrestresstransVariables prestresstrans_variables(3);
-        CalculateTransformationmatrixPrestress(
-                rActualKinematic,
-                prestresstrans_variables 
-        );
-
-        rPrestressTensor = prod(prestresstrans_variables.Tpre, prestress);
-    } 
 
 } // Namespace Kratos
