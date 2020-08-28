@@ -27,6 +27,276 @@ namespace Kratos
 ///@addtogroup RANSApplication
 ///@{
 
+namespace LineOutputProcessUtilities
+{
+using NodeType = ModelPart::NodeType;
+using GeometryType = ModelPart::ElementType::GeometryType;
+
+/**
+ * @brief Class to get variable information
+ *
+ * @tparam TDataType data type of variable
+ */
+template <class TDataType>
+class VariableDataCollector
+{
+public:
+    /**
+     * @brief Updates TDataType values starting from StartIndex
+     *
+     * @param rValuesVector     Output vector
+     * @param rValue            Value to be added
+     * @param StartIndex        Start position
+     */
+    static void AddToValuesVector(
+        std::vector<double>& rValuesVector,
+        const TDataType& rValue,
+        const int StartIndex)
+    {
+        for (std::size_t i = 0; i < rValue.size(); ++i) {
+            rValuesVector[StartIndex + i] += rValue[i];
+        }
+    }
+
+    /**
+     * @brief Updates variable names from given variable
+     *
+     * @param rNamesVector      Output strings with variable names
+     * @param rVariable         Variable
+     * @param rValue            Example value to identify dynamic properties of Variable
+     * @param StartIndex        Start position
+     */
+    static void AddNamesToVector(
+        std::vector<std::string>& rNamesVector,
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue,
+        const int StartIndex)
+    {
+        for (std::size_t i = 0; i < rValue.size(); ++i) {
+            rNamesVector[StartIndex + i] =
+                rVariable.Name() + "_" + std::to_string(i + 1);
+        }
+    }
+
+    /**
+     * @brief Get the Variable Data Length
+     *
+     * @param rValue        Value to determin dynamic variable lengths
+     * @return int          Length of the rValue (in flattened number of doubles)
+     */
+    static int GetVariableDataLength(
+        const TDataType& rValue)
+    {
+        return static_cast<int>(rValue.size());
+    }
+};
+
+/**
+ * @brief Modifies names from list of variables
+ *
+ * The signature of TValueGetterFunction should accept const ModelPart::NodeType&, and const Variable<TDataType>&.
+ *
+ * @tparam TDataType                    Data type of the variable
+ * @tparam TValueGetterFunction         Getter function prototype
+ * @param rNamesList                    Output variable names list
+ * @param rNode                         Example node to identify dynamic variable properties
+ * @param rVariablesList                List of variables
+ * @param rVariableValuesStartIndex     Starting positions of each variable
+ * @param pValueGetterFunction          Function pointer to get variable value from nodes
+ */
+template <class TDataType, class TValueGetterFunction>
+void AddVariablesListNamesToVector(
+    std::vector<std::string>& rNamesList,
+    const NodeType& rNode,
+    const std::vector<const Variable<TDataType>*>& rVariablesList,
+    const std::vector<int>& rVariableValuesStartIndex,
+    TValueGetterFunction* pValueGetterFunction)
+{
+    const int number_of_variables = rVariablesList.size();
+    for (int i = 0; i < number_of_variables; ++i) {
+        const auto& r_variable = *(rVariablesList[i]);
+        VariableDataCollector<TDataType>::AddNamesToVector(
+            rNamesList, r_variable, (*pValueGetterFunction)(rNode, r_variable),
+            rVariableValuesStartIndex[i]);
+    }
+}
+
+/**
+ * @brief Get the Historical Value
+ *
+ * Returns rVariable from historical data value container of nodes.
+ *
+ * @tparam TDataType    Data type
+ * @param rNode         Node
+ * @param rVariable     Variable to read
+ * @return TDataType    Value
+ */
+template <class TDataType>
+TDataType GetHistoricalValue(
+    const NodeType& rNode,
+    const Variable<TDataType>& rVariable)
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+/**
+ * @brief Get the Historical Value
+ *
+ * Returns rVariable from non historical data value container of nodes.
+ *
+ * @tparam TDataType    Data type
+ * @param rNode         Node
+ * @param rVariable     Variable to read
+ * @return TDataType    Value
+ */
+template <class TDataType>
+TDataType GetNonHistoricalValue(
+    const NodeType& rNode,
+    const Variable<TDataType>& rVariable)
+{
+    return rNode.GetValue(rVariable);
+}
+
+/**
+ * @brief Calculates variable start indices
+ *
+ * @tparam TDataType                Data type
+ * @tparam TValueGetterFunction     Function prototype to retrieve nodal values
+ * @param rNode                     Example node to identify dynamic properties of variable values
+ * @param rVariablesList            List of variables to calculate start positions
+ * @param pValueGetterFunction      Function pointer to read values from nodes
+ * @param Offset                    Initial offset for flattned data. (This value will be overwritten by new offset)
+ * @return std::vector<int>         Vector containing all start positions for each variable
+ */
+template <class TDataType, class TValueGetterFunction>
+std::vector<int> GetVariableDataStartIndices(
+    const NodeType& rNode,
+    const std::vector<const Variable<TDataType>*>& rVariablesList,
+    TValueGetterFunction* pValueGetterFunction,
+    int& Offset)
+{
+    const int number_of_variables = rVariablesList.size();
+    std::vector<int> start_indices(number_of_variables + 1);
+    int start_index = Offset;
+    for (int i = 0; i < number_of_variables; ++i) {
+        start_indices[i] = start_index;
+        start_index += VariableDataCollector<TDataType>::GetVariableDataLength(
+            (*pValueGetterFunction)(rNode, *(rVariablesList[i])));
+    }
+
+    start_indices[number_of_variables] = start_index;
+    Offset = start_index;
+
+    return start_indices;
+}
+
+/**
+ * @brief Adds interpolation contributions for given variables list
+ *
+ * This method adds interpolation contributions from the given node for list of variables
+ * to a flat double vector which is already sized correctly.
+ *
+ * The signature of TValueGetterFunction should accept const ModelPart::NodeType&, and const Variable<TDataType>&.
+ *
+ * The size of rValuesList should be able to carry all the values coming from rVariablesList for all TDataType for all nodes.
+ * Example: In the case of 3 node model part with DENSITY and VELOCITY variables, this size should be 12.
+ *
+ * The size of rVariableValuesStartIndex should be one greater than the size of rVariablesList, last position holding the total
+ * size of rSamplePointVariableValuesList.
+ *
+ * @tparam TDataType                        Data type of variables
+ * @tparam TValueGetterFunction             Function prototype to retrive nodal values from.
+ * @param rValuesList                       Correctly sized double values vector
+ * @param rNode                             Node from where nodal values are retrieved from
+ * @param ShapeFunctionValue                Shape function value for sampling point
+ * @param pValueGetterFunction              Function pointer to retrieve nodal values from
+ * @param rVariableValuesStartIndex         List of indices to indicate where corresponding variable should start to write.
+ * @param rVariablesList                    List of variables
+ * @param SamplePointIndex                  Sample point index (local index)
+ * @param SamplePointValuesLength           Length of sample point values (number of total doubles per point from all variables)
+ */
+template <class TDataType, class TValueGetterFunction>
+void AddInterpolationContributions(
+    std::vector<double>& rValuesList,
+    const ModelPart::NodeType& rNode,
+    const double ShapeFunctionValue,
+    TValueGetterFunction* pValueGetterFunction,
+    const std::vector<int>& rVariableValuesStartIndex,
+    const std::vector<const Variable<TDataType>*>& rVariablesList,
+    const int SamplePointIndex,
+    const int SamplePointValuesLength)
+{
+    KRATOS_TRY
+
+    using variable_data_collector =
+        LineOutputProcessUtilities::VariableDataCollector<TDataType>;
+
+    const std::size_t number_of_variables = rVariablesList.size();
+    const int variable_values_start_index = SamplePointIndex * SamplePointValuesLength;
+
+    for (std::size_t i = 0; i < number_of_variables; ++i) {
+        variable_data_collector::AddToValuesVector(
+            rValuesList, (*pValueGetterFunction)(rNode, *(rVariablesList[i])) * ShapeFunctionValue,
+            variable_values_start_index + rVariableValuesStartIndex[i]);
+    }
+
+    KRATOS_CATCH("");
+}
+
+/**
+ * @brief Interpolates variables for given variable list tuples
+ *
+ * This method interpolates different types of variables given in the rVariableInfoTuplesList, using getter function
+ * and shape function.
+ *
+ * TVariableInfoTuplesList is a tuple, which should contain 3 tuple_elements.
+ *      1. std::vector<int> to hold start indices of each variable.
+ *      2. std::vector<const Variable<TDataType>*> to hold list of variable pointers.
+ *      3. Value getter function pointer returning TDataType and accepts const ModelPart::NodeType&, and const Variable<TDataType>& input args
+ *
+ * @tparam TValueGetterFunction             Function prototype to retrive nodal values from.
+ * @tparam TVariableInfoTuplesList          List of tuple argument prototype
+ * @param rGeometry                         Geometry where sample point is inside of
+ * @param rSamplingPointShapeFunctions      Shape function values of the sampling point
+ * @param SamplePointIndex                  Sample point index (local index)
+ * @param SamplePointValuesLength           Length of sample point values (number of total doubles per point from all variables)
+ * @param rVariableInfoTuplesList           List of tuple_elements
+ */
+template <class... TVariableInfoTuplesList>
+void InterpolateVariables(
+    std::vector<double>& rValuesList,
+    const GeometryType& rGeometry,
+    const Vector& rSamplingPointShapeFunctions,
+    const int SamplePointIndex,
+    const int SamplePointValuesLength,
+    const TVariableInfoTuplesList&... rVariableInfoTuplesList)
+{
+    KRATOS_TRY
+
+    const std::size_t number_of_nodes = rGeometry.PointsNumber();
+
+    KRATOS_DEBUG_ERROR_IF(number_of_nodes != rSamplingPointShapeFunctions.size())
+        << "number_of_nodes != rSamplingPointShapeFunctions.size().";
+
+    for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
+        const auto& r_node = rGeometry[i_node];
+        const double shape_function_value = rSamplingPointShapeFunctions[i_node];
+
+        int dummy[sizeof...(rVariableInfoTuplesList)] = {(
+            AddInterpolationContributions(
+                rValuesList, r_node, shape_function_value, std::get<2>(rVariableInfoTuplesList),
+                std::get<0>(rVariableInfoTuplesList), std::get<1>(rVariableInfoTuplesList),
+                SamplePointIndex, SamplePointValuesLength),
+            0)...};
+
+        *dummy = 0;
+    }
+
+    KRATOS_CATCH("");
+}
+
+} // namespace LineOutputProcessUtilities
+
 ///@name Kratos Classes
 ///@{
 
@@ -43,7 +313,8 @@ namespace Kratos
  * Output is given in Comma Seperated Values (CSV) format.
  *
  */
-class KRATOS_API(RANS_APPLICATION) RansLineOutputProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansLineOutputProcess
+: public Process
 {
 public:
     ///@name Type Definitions
@@ -53,6 +324,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RansLineOutputProcess);
 
     using NodeType = ModelPart::NodeType;
+    using GeometryType = ModelPart::ElementType::GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -60,9 +332,7 @@ public:
 
     /// Constructor
 
-    RansLineOutputProcess(
-        Model& rModel,
-        Parameters rParameters);
+    RansLineOutputProcess(Model& rModel, Parameters rParameters);
 
     /// Destructor.
     ~RansLineOutputProcess() override = default;
@@ -80,6 +350,8 @@ public:
     int Check() override;
 
     void ExecuteInitialize() override;
+
+    void ExecuteInitializeSolutionStep() override;
 
     void ExecuteFinalizeSolutionStep() override;
 
@@ -119,6 +391,7 @@ private:
     std::string mOutputStepControlVariableName;
 
     bool mIsHistoricalValue;
+    bool mUpdatePointsEachStep;
 
     int mNumberOfSamplingPoints;
     std::vector<double> mSamplingPoints;
@@ -129,22 +402,131 @@ private:
     std::vector<std::vector<int>> mSamplePointLocalIndexListMaster;
     std::vector<int> mFoundGlobalPoints;
 
+    template <class TDataType>
+    using variables_vector_type = std::vector<const Variable<TDataType>*>;
+
+    variables_vector_type<double> mDoubleVariablesList;
+    variables_vector_type<array_1d<double, 3>> mArray3VariablesList;
+    variables_vector_type<array_1d<double, 4>> mArray4VariablesList;
+    variables_vector_type<array_1d<double, 6>> mArray6VariablesList;
+    variables_vector_type<array_1d<double, 9>> mArray9VariablesList;
+    variables_vector_type<Vector> mVectorVariablesList;
+    variables_vector_type<Matrix> mMatrixVariablesList;
+
     ///@}
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Updates positions of sample points
+     *
+     * This method is used to recompute and re-find elements where sample points are located.
+     *
+     */
+    void UpdateSamplePoints();
+
+    /**
+     * @brief Checks and adds variables to lists
+     *
+     * This method is used to check whether the given variables are in historical variables list in the case
+     * of mIsHistoricalValue = true. Then it adds the proper variable to proper variable list.
+     *
+     * @tparam TDataType        Data type of variable
+     * @param rVariablesList    List of variables, if the variable found it will be added here
+     * @param rModelPart        Model part to check the variable exists in historical variable list
+     * @param rVariableName     Name of the variable
+     * @return true             rVariableName is found under TDataType variables
+     * @return false            rVariableName is not found under TDataType variables
+     */
+    template <class TDataType>
+    bool CheckAndAddVariableToList(
+        variables_vector_type<TDataType>& rVariablesList,
+        const ModelPart& rModelPart,
+        const std::string& rVariableName)
+    {
+        KRATOS_TRY
+
+        if (KratosComponents<Variable<TDataType>>::Has(rVariableName)) {
+            const auto& r_variable =
+                KratosComponents<Variable<TDataType>>::Get(rVariableName);
+            KRATOS_ERROR_IF(mIsHistoricalValue && !rModelPart.HasNodalSolutionStepVariable(r_variable))
+                << rVariableName << " is not found in nodal solution step variables list of "
+                << rModelPart.Name() << ".";
+
+            rVariablesList.push_back(&r_variable);
+
+            return true;
+        }
+
+        return false;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Get the Output Variable Value
+     *
+     * This method checks output control variable is in TDataType variables, and if found it
+     * returns the value corresponding from ProcessInfo, if not found it returns false and blank string
+     *
+     * @tparam TDataType                        Data type of the output control variable
+     * @param rVariableName                     Output control variable
+     * @return std::tuple<bool, std::string>    if found true with Output control variable, else false with ""
+     */
+    template <class TDataType>
+    std::tuple<bool, std::string> GetOutputVariableValue(
+        const std::string& rVariableName) const
+    {
+        KRATOS_TRY
+
+        if (KratosComponents<Variable<TDataType>>::Has(rVariableName)) {
+            const auto& r_process_info =
+                mrModel.GetModelPart(mModelPartName).GetProcessInfo();
+            const auto& r_variable =
+                KratosComponents<Variable<TDataType>>::Get(rVariableName);
+
+            if (r_process_info.Has(r_variable)) {
+                std::stringstream output_name;
+                output_name << r_process_info[r_variable];
+
+                return std::make_tuple<bool, std::string>(true, output_name.str());
+            } else {
+                return std::make_tuple<bool, std::string>(false, "");
+            }
+        }
+
+        return std::make_tuple<bool, std::string>(false, "");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Checks whether current step is an output step
+     *
+     * @return true     If it is an output step
+     * @return false    If it is not an output step
+     */
     bool IsOutputStep();
 
-    void WriteOutputFile();
+    /**
+     * @brief Write output file
+     *
+     */
+    void WriteOutputFile() const;
 
+    /**
+     * @brief Write output file header
+     *
+     * @param rOutputFileStream File stream in which the header will be written to
+     */
     void WriteOutputFileHeader(
         std::ofstream& rOutputFileStream) const;
 
-    template<class TDataType>
-    TDataType InterpolateVariable(
-        const Variable<TDataType>& rVariable,
-        const int SamplingIndex) const;
-
+    /**
+     * @brief Get the Output File Name
+     *
+     * @return std::string Output filename
+     */
     std::string GetOutputFileName() const;
 
     ///@}
