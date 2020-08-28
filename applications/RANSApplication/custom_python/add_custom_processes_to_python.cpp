@@ -76,7 +76,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     // adding RansFormulationProcesses
     py::class_<RansFormulationProcess, RansFormulationProcess::Pointer, Process>(m, "RansFormulationProcess")
-        .def(py::init())
+        .def(py::init<>())
         .def("ExecuteBeforeCouplingSolveStep", &RansFormulationProcess::ExecuteBeforeCouplingSolveStep)
         .def("ExecuteAfterCouplingSolveStep", &RansFormulationProcess::ExecuteAfterCouplingSolveStep);
 
