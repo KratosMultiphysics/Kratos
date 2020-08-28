@@ -276,6 +276,12 @@ private:
         const bool CalculateResidualVectorFlag
     );
 
+    /// Calculates Initial Stiffness Matrix for Damping
+    void CalculateInitialStiffnessMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    );
+
     /**
     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
     * @param rMassMatrix The elemental mass matrix

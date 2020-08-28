@@ -144,26 +144,96 @@ namespace Kratos
                             + r_DN_De(ks, 1) * t[1])
                             / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
-                        rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s;
+                        rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s * reference_a * integration_weight;
 
                         if (dirr == dirs) {
                             const double epsilon_var_rs =
                             (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
                             (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
                      
-                            rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs; 
+                            rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
                         }
                     }
                 }
                 if (CalculateResidualVectorFlag) {
-                    rRightHandSideVector[r] = -s11_membrane * epsilon_var_r;
+                    rRightHandSideVector[r] = -s11_membrane * epsilon_var_r * reference_a * integration_weight;
                 }
             }
-            if (CalculateStiffnessMatrixFlag) {
-                rLeftHandSideMatrix *= reference_a * integration_weight;
-            }
-            if (CalculateResidualVectorFlag) {
-                rRightHandSideVector *= reference_a * integration_weight;
+        }
+        KRATOS_CATCH("");
+    }
+
+    void IgaEdgeCableElement::CalculateInitialStiffnessMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY
+
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = number_of_nodes * 3;
+
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+
+        // Prepare memory
+        if (mReferenceBaseVector.size() != r_number_of_integration_points)
+            mReferenceBaseVector.resize(r_number_of_integration_points);
+        
+        //get properties
+        const Vector& t = GetProperties()[TANGENTS];
+        const double E = GetProperties()[YOUNG_MODULUS];
+        const double A = GetProperties()[CROSS_AREA];
+        const double prestress = GetProperties()[PRESTRESS_CAUCHY];
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
+        {   
+            // get integration data
+            const double& integration_weight = r_integration_points[point_number].Weight();
+            const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
+
+            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De, ConfigurationType::Reference);
+            const double reference_a = norm_2(mReferenceBaseVector[point_number]);    
+
+            // normal forcereference_aa
+            const double s11_membrane = prestress * A;
+
+            for (IndexType r = 0; r < mat_size; r++)
+            {
+                // local node number kr and dof direction dirr
+                IndexType kr = r / 3;
+                IndexType dirr = r % 3;
+
+                const double epsilon_var_r = mReferenceBaseVector[point_number][dirr] *
+                    (r_DN_De(kr, 0) * t[0] 
+                    + r_DN_De(kr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+
+                for (IndexType s = 0; s < mat_size; s++)
+                {
+                    // local node number ks and dof direction dirs
+                    IndexType ks = s / 3;
+                    IndexType dirs = s % 3;
+
+                    const double epsilon_var_s =
+                        mReferenceBaseVector[point_number][dirs] *
+                        (r_DN_De(ks, 0) * t[0]
+                        + r_DN_De(ks, 1) * t[1])
+                        / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+
+                    rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s * reference_a * integration_weight;
+
+                    if (dirr == dirs) {
+                        const double epsilon_var_rs =
+                        (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
+                        (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                    
+                        rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
+                    }
+                }
             }
         }
         KRATOS_CATCH("");
@@ -212,14 +282,17 @@ namespace Kratos
                 StiffnessMatrix.resize(mat_size, mat_size);
             noalias(StiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
 
-            // //VectorType ResidualVector = Vector();
-            Element::VectorType ResidualVector;
+            // // //VectorType ResidualVector = Vector();
+            // Element::VectorType ResidualVector;
 
-            if (ResidualVector.size() != mat_size)
-                ResidualVector.resize(mat_size);
-            noalias(ResidualVector) = ZeroVector(mat_size);
+            // if (ResidualVector.size() != mat_size)
+            //     ResidualVector.resize(mat_size);
+            // noalias(ResidualVector) = ZeroVector(mat_size);
 
-            this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+            //this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+            this->CalculateInitialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
+
+
             noalias(rDampingMatrix) += beta * StiffnessMatrix;
         }
 
