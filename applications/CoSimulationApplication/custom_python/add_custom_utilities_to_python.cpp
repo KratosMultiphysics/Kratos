@@ -33,9 +33,14 @@ namespace Python{
     {
         pybind11::class_< FetiDynamicCouplingUtilities>(m, "FetiDynamicCouplingUtilities")
             .def(pybind11::init<ModelPart&, ModelPart&, double, double, double, double>())
-            .def("SetEffectiveStiffnessMatrices", &FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrices)
-            .def("EquilibrateDomains", &FetiDynamicCouplingUtilities::EquilibrateDomains)
-            .def("SetMappingMatrix", &FetiDynamicCouplingUtilities::SetMappingMatrix)
+            .def("SetOriginAndDestinationDomainsWithInterfaceModelParts",
+                &FetiDynamicCouplingUtilities::SetOriginAndDestinationDomainsWithInterfaceModelParts)
+            .def("SetEffectiveStiffnessMatrices",
+                &FetiDynamicCouplingUtilities::SetEffectiveStiffnessMatrices)
+            .def("EquilibrateDomains",
+                &FetiDynamicCouplingUtilities::EquilibrateDomains)
+            .def("SetMappingMatrix",
+                &FetiDynamicCouplingUtilities::SetMappingMatrix)
             ;
     }
 

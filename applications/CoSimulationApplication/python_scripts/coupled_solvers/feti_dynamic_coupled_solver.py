@@ -57,19 +57,19 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         # get mapper origin and destination modelparts
         origin_modelpart_name = self.mapper_parameters["modeler_parameters"]["origin_interface_sub_model_part_name"].GetString()
-        self.model_part_origin = self.solver_wrappers_vector[0].model.GetModelPart(origin_modelpart_name)
+        self.model_part_origin_interface = self.solver_wrappers_vector[0].model.GetModelPart(origin_modelpart_name)
 
         destination_modelpart_name = self.mapper_parameters["modeler_parameters"]["destination_interface_sub_model_part_name"].GetString()
-        self.model_part_destination = self.solver_wrappers_vector[1].model.GetModelPart(destination_modelpart_name)
+        self.model_part_destination_interface = self.solver_wrappers_vector[1].model.GetModelPart(destination_modelpart_name)
 
         # manually create mapper
         mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
-        self.mapper = mapper_create_fct(self.model_part_origin, self.model_part_destination, self.mapper_parameters.Clone())
+        self.mapper = mapper_create_fct(self.model_part_origin_interface, self.model_part_destination_interface, self.mapper_parameters.Clone())
 
 
         # get interface modelparts created by the mapper modeler
-        self.modelpart_interface_origin = self.mapper.GetInterfaceModelPart(0)
-        self.modelpart_interface_destination = self.mapper.GetInterfaceModelPart(1)
+        self.modelpart_interface_origin_from_mapper = self.mapper.GetInterfaceModelPart(0)
+        self.modelpart_interface_destination_from_mapper = self.mapper.GetInterfaceModelPart(1)
 
 
         # Get time integration parameters
@@ -81,10 +81,18 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         # Create feti class instance
         self.feti_coupling = CoSim.FetiDynamicCouplingUtilities(
-            self.modelpart_interface_origin,
-            self.modelpart_interface_destination,
+            self.modelpart_interface_origin_from_mapper,
+            self.modelpart_interface_destination_from_mapper,
             origin_newmark_beta, origin_newmark_gamma,
             destination_newmark_beta, destination_newmark_gamma)
+
+        # The origin and destination interfaces from the mapper submitted above are both
+        # stored within the origin modelpart. Now we submit the 'original' origin and destination
+        # interface model parts stored on the origin and destination models to get access to the
+        # origin and destination models.
+        self.feti_coupling.SetOriginAndDestinationDomainsWithInterfaceModelParts(
+            self.model_part_origin_interface,
+            self.model_part_destination_interface)
 
 
         # set the mapper

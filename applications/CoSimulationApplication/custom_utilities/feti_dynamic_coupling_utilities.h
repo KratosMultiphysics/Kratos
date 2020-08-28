@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
@@ -54,6 +55,12 @@ namespace Kratos
             double OriginNewmarkBeta, double OriginNewmarkGamma,
             double DestinationNewmarkBeta, double DestinationNewmarkGamma);
 
+        void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart & rInterfaceOrigin,
+            ModelPart & rInterFaceDestination)
+        {
+            mpOriginDomain = &(rInterfaceOrigin.GetModel().GetModelPart("Structure"));
+            mpDestinationDomain = &(rInterFaceDestination.GetModel().GetModelPart("Structure"));
+        }
 
         void SetEffectiveStiffnessMatrices(SystemMatrixType& rK, IndexType SolverIndex)
         {
@@ -79,8 +86,8 @@ namespace Kratos
         ModelPart& mrOriginInterfaceModelPart;
         ModelPart& mrDestinationInterfaceModelPart;
 
-        ModelPart* mpOriginDomain;
-        ModelPart* mpDestinationDomain;
+        ModelPart* mpOriginDomain = nullptr;
+        ModelPart* mpDestinationDomain = nullptr;
 
         SystemMatrixType* mpKOrigin = nullptr;
         SystemMatrixType* mpKDestination = nullptr;

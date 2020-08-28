@@ -16,7 +16,7 @@
 
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
-#include "containers/model.h"
+
 
 namespace Kratos
 {
@@ -28,10 +28,6 @@ namespace Kratos
         mOriginBeta(OriginNewmarkBeta), mOriginGamma(OriginNewmarkGamma),
         mDestinationBeta(DestinationNewmarkBeta), mDestinationGamma(DestinationNewmarkGamma)
     {
-        KRATOS_WATCH("11111");
-        mpOriginDomain = &(mrOriginInterfaceModelPart.GetModel().GetModelPart("Structure"));
-        mpDestinationDomain = &(mrDestinationInterfaceModelPart.GetModel().GetModelPart("Structure"));
-
         // Check newmark parameters are valid
         KRATOS_ERROR_IF(mOriginBeta < 0.0 || mOriginBeta > 1.0)
             << "FetiDynamicCouplingUtilities | Error, mOriginBeta has invalid value. It must be between 0 and 1.";
@@ -41,10 +37,6 @@ namespace Kratos
             << "FetiDynamicCouplingUtilities | Error, mDestinationBeta has invalid value. It must be between 0 and 1.";
         KRATOS_ERROR_IF(mDestinationGamma < 0.0 || mDestinationGamma > 1.0)
             << "FetiDynamicCouplingUtilities | Error, mDestinationGamma has invalid value. It must be between 0 and 1.";
-
-        // Todo
-        // more todo
-        // add more liens
     };
 
 
@@ -53,6 +45,10 @@ namespace Kratos
         KRATOS_TRY
 
         // 0 - Setup and checks
+        KRATOS_ERROR_IF(mpOriginDomain == nullptr || mpDestinationDomain == nullptr)
+        << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination domains have not been set.\n"
+        << "Please call 'SetOriginAndDestinationDomainsWithInterfaceModelParts' from python before calling 'EquilibrateDomains'.\n";
+
         const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
 
@@ -63,10 +59,6 @@ namespace Kratos
 
         KRATOS_ERROR_IF_NOT(origin_interface_dofs == destination_interface_dofs)
             << "Origin and Destination have different number of interface DOFS.";
-
-        KRATOS_WATCH("PRINTING ORIGINAL VELOCITIES");
-        PrintInterfaceVelocity(true);
-        PrintInterfaceVelocity(false);
 
 
         // 1 - calculate unbalanced interface free velocity
@@ -108,47 +100,20 @@ namespace Kratos
 
 
         // 6 - Apply correction quantities
-        //ApplyCorrectionQuantities(lagrange_vector, inverted_origin_effective_mass_matrix, projector_origin, true);
+        ApplyCorrectionQuantities(lagrange_vector, inverted_origin_effective_mass_matrix, projector_origin, true);
         ApplyCorrectionQuantities(lagrange_vector, inverted_destination_effective_mass_matrix, projector_destination, false);
-
-        KRATOS_WATCH("PRINTING CORRECTED VELOCITIES");
-        PrintInterfaceVelocity(true);
-        PrintInterfaceVelocity(false);
 
 
         // 7 - Optional check of equilibrium
         if (mIsCheckEquilibrium)
         {
-            Vector origin_interface_velocities(lagrange_vector.size());
-            auto origin_interface_nodes = mrOriginInterfaceModelPart.NodesArray();
-            for (size_t i = 0; i < origin_interface_nodes.size(); i++)
-            {
-                IndexType interface_id = origin_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-
-                origin_interface_velocities[interface_id*dim_origin] = origin_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY_X);
-                origin_interface_velocities[interface_id*dim_origin + 1] = origin_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY_Y);
-            }
-
-            Vector dest_interface_velocities(lagrange_vector.size());
-            auto dest_interface_nodes = mrDestinationInterfaceModelPart.NodesArray();
-            for (size_t i = 0; i < dest_interface_nodes.size(); i++)
-            {
-                IndexType interface_id = dest_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-
-                dest_interface_velocities[interface_id * dim_origin] = dest_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY_X);
-                dest_interface_velocities[interface_id * dim_origin + 1] = dest_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY_Y);
-            }
-
-            KRATOS_WATCH("PRINTING FINALIZED VELOCITIES");
-            KRATOS_WATCH(origin_interface_velocities)
-            KRATOS_WATCH(dest_interface_velocities)
-            KRATOS_WATCH(dest_interface_velocities- origin_interface_velocities)
-
-
-
             unbalanced_interface_free_velocity.clear();
             CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
-            KRATOS_WATCH(unbalanced_interface_free_velocity);
+            const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
+            KRATOS_WATCH(equilibrium_norm);
+            KRATOS_ERROR_IF(equilibrium_norm > 1e-12)
+                << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
+                << unbalanced_interface_free_velocity << "\n";
         }
 
 
@@ -168,18 +133,16 @@ namespace Kratos
         if (rUnbalancedVelocities.size() != origin_interface_nodes.size() * dim)
             rUnbalancedVelocities.resize(origin_interface_nodes.size() * dim);
 
-
-
         // TODO this will need to be mortar mapped in the future
         Vector mapped_destination_interface_velocities(origin_interface_nodes.size() * dim);
 
         // Fill unbalanced velocities with origin velocities
-        IndexType interface_id;
-        for (size_t i = 0; i < origin_interface_nodes.size(); ++i)
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(origin_interface_nodes.size()); ++i)
         {
             KRATOS_ERROR_IF_NOT(origin_interface_nodes[i]->Has(INTERFACE_EQUATION_ID))
                 << "Error";
-            interface_id = origin_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+            IndexType interface_id = origin_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
 
             array_1d<double, 3>& vel = origin_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY);
             for (size_t dof = 0; dof < dim; dof++)  rUnbalancedVelocities[dim * interface_id+dof] = vel[dof];
@@ -188,9 +151,10 @@ namespace Kratos
         // Subtract mapped destination velocities
         KRATOS_ERROR_IF_NOT(mapped_destination_interface_velocities.size() == rUnbalancedVelocities.size())
             << "Mapped destination interface velocities and origin interface velocities must have the same size";
-        for (size_t i = 0; i < destination_interface_nodes.size(); i++)
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(destination_interface_nodes.size()); i++)
         {
-            interface_id = destination_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+            IndexType interface_id = destination_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
 
             array_1d<double, 3>& vel = destination_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY);
             for (size_t dof = 0; dof < dim; dof++)  rUnbalancedVelocities[dim * interface_id + dof] -= vel[dof];
@@ -232,19 +196,16 @@ namespace Kratos
         }
 
         // Debug check
-        double matrix_sum = 0.0;
         for (size_t i = 0; i < rProjector.size1(); i++)
         {
             double row_sum = 0.0;
             for (size_t j = 0; j < rProjector.size2(); j++) row_sum += rProjector(i, j);
-            matrix_sum += row_sum;
             row_sum = std::abs(row_sum);
             KRATOS_ERROR_IF_NOT(std::abs(row_sum - 1.0) < 1e-12)
                 << "FetiDynamicCouplingUtilities::ComposeProjector | Row sum does not equal one\n"
                 << rProjector;
 
         }
-        KRATOS_WATCH(matrix_sum);
         KRATOS_CATCH("")
     }
 
@@ -313,7 +274,7 @@ namespace Kratos
         else rLagrangeVec.clear();
 
         double det;
-        // TODO find faster way to invert
+        // TODO - this can be done with a linear solve
         Matrix inv_condensation;
         MathUtils<double>::InvertMatrix(rCondensationMatrix, inv_condensation, det);
 
@@ -332,39 +293,18 @@ namespace Kratos
         ModelPart* pDomainModelPart = (IsOrigin) ? mpOriginDomain : mpDestinationDomain;
         const double gamma = (IsOrigin) ? mOriginGamma : mDestinationGamma;
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
-        KRATOS_WATCH(dt);
 
         // Apply acceleration correction
         Matrix temp = prod(rInvertedMassMatrix, trans(rProjector));
         Vector accel_corrections = prod(temp, rLagrangeVec);
-        KRATOS_WATCH(prod(rProjector, accel_corrections));
-        PrintInterfaceKinematics(ACCELERATION, IsOrigin);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections);
-        PrintInterfaceKinematics(ACCELERATION, IsOrigin);
 
         // Apply velocity correction
         accel_corrections *= (gamma * dt);
-        KRATOS_WATCH(accel_corrections);
-        if (!IsOrigin)
-        {
-            KRATOS_WATCH("PRINTING JUST BEFORE CORRECTIONS");
-            KRATOS_WATCH(IsOrigin);
-            PrintInterfaceVelocity(IsOrigin);
-            KRATOS_WATCH(prod(rProjector, accel_corrections))
-        }
-
         AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections);
-        if (!IsOrigin)
-        {
-            KRATOS_WATCH("PRINTING JUST AFTER CORRECTIONS");
-            KRATOS_WATCH(IsOrigin);
-            PrintInterfaceVelocity(IsOrigin);
-        }
-
 
         // Apply displacement correction
         accel_corrections *= (gamma * dt);
-        KRATOS_WATCH(accel_corrections);
         AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections);
 
         KRATOS_CATCH("")
@@ -382,12 +322,11 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(rCorrection.size() == domain_nodes.size() * dim)
             << "AddCorrectionToDomain | Correction dof size does not match domain dofs";
 
-        IndexType equation_id;
-        for (size_t i = 0; i < domain_nodes.size(); i++)
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
         {
-            equation_id = domain_nodes[i]->GetDof(DISPLACEMENT_X).EquationId();
+            IndexType equation_id = domain_nodes[i]->GetDof(DISPLACEMENT_X).EquationId();
             array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
-            r_nodal_quantity.clear();
             for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
             {
                 r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
