@@ -199,6 +199,16 @@ public:
         const bool CalculateResidualVectorFlag
     );
 
+     /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     ///@}
     ///@name Input and output
     ///@{

@@ -123,6 +123,76 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    void PenaltyCouplingCondition::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+
+        // // definition of problem size
+        // const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
+        // const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
+
+        // // Size definitions
+        // const SizeType number_of_nodes_master = r_geometry_master.size();
+        // const SizeType number_of_nodes_slave = r_geometry_slave.size();
+
+        // const SizeType mat_size = 3 * (number_of_nodes_master + number_of_nodes_slave);
+
+        // // KRATOS_WATCH(rDampingMatrix.size1())
+
+        // if (rDampingMatrix.size1() != mat_size)
+        //     rDampingMatrix.resize(mat_size, mat_size, false);
+
+        // noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        // KRATOS_WATCH(mat_size)
+        // KRATOS_WATCH(rDampingMatrix)
+
+        // // 1.-Get Damping Coeffitients (RAYLEIGH_BETA)
+
+        // double beta = 0.0;
+        // if (GetProperties().Has(RAYLEIGH_BETA))
+        //     beta = GetProperties()[RAYLEIGH_BETA];
+        // else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+        //     beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+        // Rayleigh Damping Matrix: alpha*M + beta*K
+
+        // 2.-Calculate StiffnessMatrix:
+        // if (beta > 0.0)
+        // {
+        //     //MatrixType StiffnessMatrix = Matrix();
+        //     Condition::MatrixType StiffnessMatrix;
+
+        //     if (StiffnessMatrix.size1() != mat_size)
+        //         StiffnessMatrix.resize(mat_size, mat_size);
+        //     noalias(StiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        //     // //VectorType ResidualVector = Vector();
+        //     Condition::VectorType ResidualVector;
+
+        //     if (ResidualVector.size() != mat_size)
+        //         ResidualVector.resize(mat_size);
+        //     noalias(ResidualVector) = ZeroVector(mat_size);
+
+        //     std::cout<<"start"<<std::endl;
+
+        //     this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+        //     //this->CalculateInitialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
+
+        //     std::cout<<"membrane"<<std::endl;
+        //     //KRATOS_WATCH(StiffnessMatrix)
+
+        //     noalias(rDampingMatrix) += beta * StiffnessMatrix;
+
+        //     KRATOS_WATCH(beta)
+        // }
+
+        KRATOS_CATCH("")
+    }
+
     void PenaltyCouplingCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo)
