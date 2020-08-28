@@ -203,15 +203,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #(self.mass_conservation_correction).Initialize();
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Start re-distancing")
+        self.hyperbolic_distance_reinitialization = self._set_hyperbolic_distance_reinitialization()
+        (self.hyperbolic_distance_reinitialization).Execute()
+
         self.parallel_distance_process = self._set_parallel_distance_process()
-        layers = int(1000/100000*self.main_model_part.NumberOfElements())
-        (self.parallel_distance_process).CalculateDistances(
-                    self.main_model_part, 
-                    KratosMultiphysics.DISTANCE, 
-                    KratosCFD.AREA_VARIABLE_AUX, 
-                    layers, 
-                    8.0e-3,
-                    (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
+        # layers = int(2000/100000*self.main_model_part.NumberOfElements())
+        # (self.parallel_distance_process).CalculateDistances(
+        #             self.main_model_part,
+        #             KratosMultiphysics.DISTANCE,
+        #             KratosCFD.AREA_VARIABLE_AUX,
+        #             layers,
+        #             8.0e-3,
+        #             (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Re-distancing is finished")
 
         self.variational_distance_process = self._set_variational_distance_process()
@@ -317,7 +321,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if (TimeStep % 50 == 0):
                 print("Redistancing")
                 print(time.time())
-                layers = int(500/100000*self.main_model_part.NumberOfElements())
+                layers = int(2000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
@@ -889,3 +893,25 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         return find_neighbouring_nodes_process
 
+    def _set_hyperbolic_distance_reinitialization(self):
+        distance_gradient_process_redistance = KratosMultiphysics.ComputeNodalGradientProcess(
+                self.main_model_part,
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.DISTANCE_GRADIENT,
+                KratosMultiphysics.NODAL_AREA)
+
+        # Construct the process
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            locator_redistance = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
+            locator_redistance.UpdateSearchDatabase()
+            hyperbolic_distance_reinitialization = KratosCFD.HyperbolicDistanceReinitialization2D(
+                self.main_model_part, locator_redistance, distance_gradient_process_redistance,
+                2000, 1.0e-6, 1.0e-6)
+        else:
+            locator_redistance = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part)
+            locator_redistance.UpdateSearchDatabase()
+            hyperbolic_distance_reinitialization = KratosCFD.HyperbolicDistanceReinitialization3D(
+                self.main_model_part, locator_redistance, distance_gradient_process_redistance,
+                2000, 1.0e-6, 1.0e-6)
+
+        return hyperbolic_distance_reinitialization

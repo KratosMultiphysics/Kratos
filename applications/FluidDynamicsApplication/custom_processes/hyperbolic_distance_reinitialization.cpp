@@ -57,7 +57,6 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         it_node->SetValue(AUX_DISTANCE, distance1);
         const auto distance = it_node->FastGetSolutionStepValue(DISTANCE);
         it_node->SetValue(DISTANCE, distance);
-        it_node->FastGetSolutionStepValue(DISTANCE, 1) = distance;
         const auto distance_gradient = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
         it_node->SetValue(DISTANCE_GRADIENT, distance_gradient);
         const double nodal_h = it_node->GetValue(NODAL_H);
@@ -65,7 +64,7 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
             min_h = nodal_h;
     }
 
-    mPseudoTimeStep = std::min( mPseudoTimeStep, min_h/5.0);
+    //mPseudoTimeStep = std::min( mPseudoTimeStep, min_h/5.0);
 
     double dist_error = mTolerance + 1.0;
     unsigned int outer_iteration = 0;
@@ -85,12 +84,13 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         for (unsigned int i = 0; i < num_nodes; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-            auto i_node = mrModelPart.NodesBegin() + i;
             Element::Pointer pelement;
 
+            auto i_node = mrModelPart.NodesBegin() + i;
             const array_1d<double,3> node_position = i_node->Coordinates();
             const auto dist0 = i_node->GetValue(DISTANCE);
             const auto dist = i_node->FastGetSolutionStepValue(DISTANCE);
+            i_node->FastGetSolutionStepValue(DISTANCE, 1) = dist;
             const auto dist_grad = i_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
             const auto dist_grad_norm = norm_2(dist_grad);
 
@@ -112,17 +112,19 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
                 }
 
                 i_node->FastGetSolutionStepValue(DISTANCE) = phi1 + sgn0*mPseudoTimeStep;
+                //KRATOS_INFO("Hyperbolic Redistance") << "Found a regular node" << std::endl;
             }
             else if (i_node->Is(SLIP))
             {
                 auto normal = i_node->FastGetSolutionStepValue(NORMAL);
                 normal /= norm_2(normal);
-                const array_1d<double,3> vel_blind = 1.0/dist_grad_norm*normal;
+                const array_1d<double,3> vel_blind = sgn0/dist_grad_norm*normal;
 
-                const auto position_blind = node_position - mPseudoTimeStep*vel;
-                is_found = mpSearchStructure->FindPointOnMesh(position_blind, N, pelement, result_begin, max_results, mesh_tolerance);
+                const auto position_blind = node_position - mPseudoTimeStep*vel_blind;
+                bool is_found_blind = false;
+                is_found_blind = mpSearchStructure->FindPointOnMesh(position_blind, N, pelement, result_begin, max_results, mesh_tolerance);
 
-                if (is_found) {
+                if (is_found_blind) {
                     Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                     double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(DISTANCE,1) );
                     for (unsigned int k = 1; k < geom.size(); k++) {
@@ -134,7 +136,13 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
 
                     i_node->FastGetSolutionStepValue(DISTANCE) = phi1 +
                         sgn0*normal_dist_grad0/norm_2(dist_grad0)*mPseudoTimeStep;
+                } else {
+                    KRATOS_INFO("Hyperbolic Redistance") << "not found at all!, SLIP" << std::endl;
                 }
+            }
+            else
+            {
+                KRATOS_INFO("Hyperbolic Redistance") << "not found at all!" << std::endl;
             }
 
             const auto d_dist = std::abs( dist - i_node->FastGetSolutionStepValue(DISTANCE) );
