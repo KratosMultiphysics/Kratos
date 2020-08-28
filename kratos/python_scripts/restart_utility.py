@@ -241,7 +241,7 @@ class RestartUtility(object):
                         message += '"'
                         print( message )                # <-- TODO: decide whether to throw a non-blocking exception or display a warning
                         #raise Exception(message)       #
-                
+
                 # Update stored dictionary
                 del self.restart_files[oldest_step_id]
 
