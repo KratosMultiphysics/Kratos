@@ -61,10 +61,18 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         it_node->SetValue(DISTANCE_GRADIENT, distance_gradient);
         const double nodal_h = it_node->GetValue(NODAL_H);
         if (nodal_h < min_h)
+        {
+            #pragma omp critical
             min_h = nodal_h;
+        }
     }
 
-    //mPseudoTimeStep = std::min( mPseudoTimeStep, min_h/5.0);
+    mPseudoTimeStep = std::min( mPseudoTimeStep, min_h/20.0);
+    KRATOS_INFO("Hyperbolic Redistance") << "min_h = " << min_h << std::endl;
+    KRATOS_INFO("Hyperbolic Redistance") << "mPseudoTimeStep = " << mPseudoTimeStep << std::endl;
+
+    // Updating distance gradient at nodes
+    mpComputeGradient->Execute();
 
     double dist_error = mTolerance + 1.0;
     unsigned int outer_iteration = 0;
@@ -74,11 +82,18 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         outer_iteration++;
 
         // Updating distance gradient at nodes
-        mpComputeGradient->Execute();
+        //mpComputeGradient->Execute();
 
         Vector N(TDim + 1);
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+
+        #pragma omp parallel for firstprivate(results,N)
+        for (unsigned int i = 0; i < num_nodes; i++){
+            auto i_node = mrModelPart.NodesBegin() + i;
+            const auto dist = i_node->FastGetSolutionStepValue(DISTANCE);
+            i_node->FastGetSolutionStepValue(DISTANCE, 1) = dist;
+        }
 
         #pragma omp parallel for firstprivate(results,N)
         for (unsigned int i = 0; i < num_nodes; i++)
@@ -90,15 +105,18 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
             const array_1d<double,3> node_position = i_node->Coordinates();
             const auto dist0 = i_node->GetValue(DISTANCE);
             const auto dist = i_node->FastGetSolutionStepValue(DISTANCE);
-            i_node->FastGetSolutionStepValue(DISTANCE, 1) = dist;
             const auto dist_grad = i_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
             const auto dist_grad_norm = norm_2(dist_grad);
+            if (dist_grad_norm < mesh_tolerance)
+                KRATOS_INFO("Hyperbolic Redistance") << "dist_grad_norm = " << dist_grad_norm << std::endl;
 
             double sgn0 = 0.0;
             if (dist0 > mesh_tolerance){sgn0 = 1.0;}
             else if (dist0 < -mesh_tolerance){sgn0 = -1.0;}
 
             const array_1d<double,3> vel = sgn0/dist_grad_norm*dist_grad;
+            //KRATOS_INFO("Hyperbolic Redistance") << "vel = " << vel << std::endl;
+
             bool is_found = false;
 
             const auto position = node_position - mPseudoTimeStep*vel;
@@ -114,11 +132,12 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
                 i_node->FastGetSolutionStepValue(DISTANCE) = phi1 + sgn0*mPseudoTimeStep;
                 //KRATOS_INFO("Hyperbolic Redistance") << "Found a regular node" << std::endl;
             }
-            else if (i_node->Is(SLIP))
+            else if (i_node->Is(SLIP) && sgn0 != 0.0)
             {
                 auto normal = i_node->FastGetSolutionStepValue(NORMAL);
                 normal /= norm_2(normal);
-                const array_1d<double,3> vel_blind = sgn0/dist_grad_norm*normal;
+                const array_1d<double,3> vel_blind = /* sgn0* */normal/dist_grad_norm;
+                //KRATOS_INFO("Hyperbolic Redistance") << "vel_blind = " << vel_blind << std::endl;
 
                 const auto position_blind = node_position - mPseudoTimeStep*vel_blind;
                 bool is_found_blind = false;
@@ -135,19 +154,29 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
                     const auto normal_dist_grad0 = inner_prod(dist_grad0, normal);
 
                     i_node->FastGetSolutionStepValue(DISTANCE) = phi1 +
-                        sgn0*normal_dist_grad0/norm_2(dist_grad0)*mPseudoTimeStep;
+                        /* sgn0* */normal_dist_grad0/norm_2(dist_grad0)*mPseudoTimeStep;
                 } else {
-                    KRATOS_INFO("Hyperbolic Redistance") << "not found at all!, SLIP" << std::endl;
+                    KRATOS_INFO("Hyperbolic Redistance") << "not found at all!, SLIP" << position_blind << std::endl;
+                    KRATOS_INFO("Hyperbolic Redistance") << "vel_blind = " << vel_blind << std::endl;
+                    KRATOS_INFO("Hyperbolic Redistance") << "normal = " << normal << std::endl;
+                    KRATOS_INFO("Hyperbolic Redistance") << "dist_grad_norm = " << dist_grad_norm << std::endl;
                 }
             }
             else
             {
-                KRATOS_INFO("Hyperbolic Redistance") << "not found at all!" << std::endl;
+                if (sgn0 != 0.0)
+                    KRATOS_INFO("Hyperbolic Redistance") << "not found at all:" << position << std::endl;
+                    KRATOS_INFO("Hyperbolic Redistance") << "vel = " << vel << std::endl;
+                    KRATOS_INFO("Hyperbolic Redistance") << "dist_grad_norm = " << dist_grad_norm << std::endl;
+                    KRATOS_INFO("Hyperbolic Redistance") << "dist_grad = " << dist_grad << std::endl;
             }
 
             const auto d_dist = std::abs( dist - i_node->FastGetSolutionStepValue(DISTANCE) );
             if (d_dist > dist_error)
+            {
+                #pragma omp critical
                 dist_error = d_dist;
+            }
         }
     }
 
