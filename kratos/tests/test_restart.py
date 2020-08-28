@@ -33,6 +33,7 @@ def IsRestartFile(file_name):
 
 class TestRestart(KratosUnittest.TestCase):
     def tearDown(self):
+        return
         kratos_utils.DeleteFileIfExisting("test_restart_file.rest")
         kratos_utils.DeleteFileIfExisting("test_restart_file_15.0.rest")
         kratos_utils.DeleteDirectoryIfExisting("MainRestart__restart_files")
@@ -254,10 +255,10 @@ class TestRestart(KratosUnittest.TestCase):
                 "model_part_name"        : "MainRestart",
                 "restart_save_frequency" : 2,
                 "restart_control_type"   : "step",
-                "number_of_stored_files" : 20
+                "number_of_restart_files": 20
             }
         }""")
-        number_of_stored_files                          = 20
+        number_of_restart_files                         = 20
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
         model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
@@ -278,11 +279,12 @@ class TestRestart(KratosUnittest.TestCase):
 
         # Checking if the files exist
         base_file_name = os.path.join(base_path, "MainRestart_")
-        for i in range(50-number_of_stored_files*2,50,2):
+        for i in range(50-number_of_restart_files*2,50,2):
+            print(base_file_name + str(i) + ".rest")
             self.assertTrue(os.path.isfile(base_file_name + str(i) + ".rest"))
 
         # Check number of restart-files
-        expected_num_files = number_of_stored_files
+        expected_num_files = number_of_restart_files
         num_files = len([name for name in os.listdir(base_path) if IsRestartFile(os.path.join(base_path, name))])
         self.assertEqual(expected_num_files, num_files)
 

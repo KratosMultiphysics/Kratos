@@ -15,7 +15,7 @@ class RestartUtility(object):
     in the main-script
     """
     def __init__(self, model_part, settings):
-        # number_of_stored_files    : max number of restart files to keep
+        # number_of_restart_files    : max number of restart files to keep
         #                             - negative value keeps all restart files (default)
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -29,7 +29,7 @@ class RestartUtility(object):
             "restart_control_type"           : "time",
             "save_restart_files_in_folder"   : true,
             "set_mpi_communicator"           : true,
-            "number_of_stored_files"         : -1
+            "number_of_restart_files"        : -1
         }
         """)
 
@@ -90,7 +90,13 @@ class RestartUtility(object):
         self.next_output = self.restart_save_frequency # Schedule the first output to avoid printing in first step
 
         self.save_restart_files_in_folder   = settings["save_restart_files_in_folder"].GetBool()
-        self.number_of_stored_files         = settings["number_of_stored_files"].GetInt()
+        self.number_of_restart_files        = settings["number_of_restart_files"].GetInt()
+
+        # Check if restarted, and initialize the list of restart is true
+        self.restart_files = {}
+        if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.restart_files = self.GetRestartFiles()
+
 
     #### Public functions ####
 
@@ -158,6 +164,14 @@ class RestartUtility(object):
             while self.next_output <= control_label:
                 self.next_output += self.restart_save_frequency
 
+        # Add current file to stored dictionary
+        label = self._GetFileLabelSave(control_label)
+        if label in self.restart_files:
+            self.restart_files[label].append( file_name + ".rest" )
+        else:
+            self.restart_files[label] = [ file_name + ".rest" ]
+
+        # Cleanup
         self.ClearObsoleteRestartFiles()
 
     def IsRestartOutputStep(self):
@@ -178,38 +192,50 @@ class RestartUtility(object):
 
     def GetRestartFiles(self):
         """
-        Return a list of all restart files as os.DirEntry objects sorted in ascending order.
+        Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart
+        files for each step. 
         """
-        restart_files = []
+        restart_files = {}
         if os.path.isdir(self.__GetFolderPathSave()):
-            with os.scandir(path=self.__GetFolderPathSave()) as contents:                           # <-- list all restart files
+            number_of_restart_files = 0
+
+            with os.scandir(path=self.__GetFolderPathSave()) as contents:
                 for entry in contents:
                     if self.__IsRestartFile(entry):
-                        restart_files.append(entry)
 
-            modified_key = lambda entry: entry.stat().st_mtime_ns                                   # <-- sort files
-            restart_files.sort( key=modified_key )                                                  # - by time of last modification
+                        label = self.__ExtractFileLabel(entry.name) # Get thread ID and step ID
+                        
+                        if label[1] in restart_files:               # Check if this step has entries already
+                            restart_files[label[1]].append( entry.name )
+                        else:
+                            restart_files[label[1]] = [ entry.name ]
 
-            def label_key(dir_entry):
-                key = self.__ExtractFileLabel(dir_entry.name)                                       # - by their labels
-                if key is None:                                                                     # (time of modification might be ambiguous)
-                    key = 0
-                return key
-            restart_files.sort( key=label_key )
+                        number_of_restart_files += 1
+
+            # Throw a warning if the number of restart files is too large
+            if ( number_of_restart_files > 1000 ):
+                message =   "Detected " + str(len(restart_files)) + " restart files. "
+                message +=  "Consider restricting the number of restart files to keep."
+                print( message )
+
         return restart_files
 
     def ClearObsoleteRestartFiles(self):
         """
         Collect all restart files from the current restart directory, sort them by date(time) modified
-        and delete the oldest ones such that only number_of_stored_files remain.
+        and delete the oldest ones such that only number_of_restart_files remain.
         Note: a secondary sorting is performed based on the labels of the file names to resolve equalities.
         """
-        if self.number_of_stored_files > -1:
-            restart_files = self.GetRestartFiles()
-            number_of_obsolete_files = len(restart_files) - self.number_of_stored_files
-            if number_of_obsolete_files > 0:
-                for _ in range(number_of_obsolete_files):
-                    file_path = os.path.join( self.__GetFolderPathSave(), restart_files.pop(0).name )
+        if self.number_of_restart_files > -1:               # <-- number of restart files is limited
+            number_of_obsolete_files = len(self.restart_files) - self.number_of_restart_files
+            for _ in range(number_of_obsolete_files):
+
+                # Get oldest restart file set
+                oldest_step_id, oldest_file_set = min( self.restart_files.items(), key=lambda item: float(item[0]) )
+
+                # Try to delete every file in the set
+                for file_name in oldest_file_set:
+                    file_path = os.path.join( self.__GetFolderPathSave(), file_name )
                     try:
                         if os.path.isfile( file_path ):
                             os.remove( file_path )
@@ -219,6 +245,9 @@ class RestartUtility(object):
                         message += '"'
                         print( message )                # <-- TODO: decide whether to throw a non-blocking exception or display a warning
                         #raise Exception(message)       #
+                
+                # Update stored dictionary
+                del self.restart_files[oldest_step_id]
 
 
     #### Protected functions ####
@@ -284,11 +313,19 @@ class RestartUtility(object):
         return False
 
     def __ExtractFileLabel(self, file_name):
+        """
+        Return a list of labels attached to a file name (list entries separated by '_').
+        Expecting one of two possible file name formats:
+            1) serial execution     : <file_base_name>_<step_id>.rest
+            2) parallel execution   : <file_base_name>_<thread_id>_<step_id>.rest
+        The returned list always has 2 entries, but the first component will be '' for
+        serial execution.
+        """
         label_begin = file_name.find(self.raw_file_name + '_') + len(self.raw_file_name + '_')
         label_end   = file_name.find('.rest')
-        if label_begin != -1 and label_end != -1:
-            try:
-                return float(file_name[label_begin:label_end])
-            except ValueError:
-                return None
-        return None
+
+        labels      = file_name[label_begin:label_end].split("_")
+        if len(labels) < 2:
+            labels = [""] + labels
+
+        return labels

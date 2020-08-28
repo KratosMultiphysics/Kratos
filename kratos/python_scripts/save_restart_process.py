@@ -25,7 +25,7 @@ class SaveRestartProcess(KratosMultiphysics.Process):
             "restart_control_type"         : "time",
             "save_restart_files_in_folder" : true,
             "io_foldername"                : "",
-            "number_of_stored_files"       : -1
+            "number_of_restart_files"      : -1
         }""")
 
         ## Overwrite the default settings with user-provided parameters
