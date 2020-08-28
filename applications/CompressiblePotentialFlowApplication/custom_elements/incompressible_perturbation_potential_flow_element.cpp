@@ -106,14 +106,16 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVe
     }
     else // Wake element
     {
-        if(this->GetValue(WING_TIP_ELEMENT)){
-            if (rResult.size() != 2 * NumNodes + 1)
-                rResult.resize(2 * NumNodes + 1, false);
-        }
-        else{
-            if (rResult.size() != 2 * NumNodes)
-                rResult.resize(2 * NumNodes, false);
-        }
+        // if(this->GetValue(WING_TIP_ELEMENT)){
+        //     if (rResult.size() != 2 * NumNodes + 1)
+        //         rResult.resize(2 * NumNodes + 1, false);
+        // }
+        // else{
+        //     if (rResult.size() != 2 * NumNodes)
+        //         rResult.resize(2 * NumNodes, false);
+        // }
+        if (rResult.size() != 3 * NumNodes)
+            rResult.resize(3 * NumNodes, false);
 
         GetEquationIdVectorWakeElement(rResult);
     }
@@ -140,14 +142,16 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(D
     }
     else // wake element
     {
-        if(this->GetValue(WING_TIP_ELEMENT)){
-            if (rElementalDofList.size() != 2 * NumNodes + 1)
-                rElementalDofList.resize(2 * NumNodes + 1);
-        }
-        else{
-            if (rElementalDofList.size() != 2 * NumNodes)
-                rElementalDofList.resize(2 * NumNodes);
-        }
+        // if(this->GetValue(WING_TIP_ELEMENT)){
+        //     if (rElementalDofList.size() != 2 * NumNodes + 1)
+        //         rElementalDofList.resize(2 * NumNodes + 1);
+        // }
+        // else{
+        //     if (rElementalDofList.size() != 2 * NumNodes)
+        //         rElementalDofList.resize(2 * NumNodes);
+        // }
+        if (rElementalDofList.size() != 3 * NumNodes)
+            rElementalDofList.resize(3 * NumNodes);
 
         GetDofListWakeElement(rElementalDofList);
     }
@@ -249,8 +253,8 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnI
         rValues[0] = this->GetValue(KUTTA);
     else if (rVariable == NORMAL_ELEMENT)
         rValues[0] = this->GetValue(NORMAL_ELEMENT);
-    else if (rVariable == ZERO_VELOCITY_CONDITION)
-        rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
+    else if (rVariable == WING_TIP_ELEMENT)
+        rValues[0] = this->GetValue(WING_TIP_ELEMENT);
     else if (rVariable == TRAILING_EDGE_ELEMENT)
         rValues[0] = this->GetValue(TRAILING_EDGE_ELEMENT);
     else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
@@ -363,13 +367,17 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationI
                 GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
 
-    if(this->GetValue(WING_TIP_ELEMENT)){
-        for (unsigned int i = 0; i < NumNodes; i++){
-            if(GetGeometry()[i].GetValue(WING_TIP)){
-                rResult[2*NumNodes] = GetGeometry()[i].GetDof(LAGRANGE_MULTIPLIER_0).EquationId();
-            }
-        }
+    for (unsigned int i = 0; i < NumNodes; i++){
+        rResult[2*NumNodes + i] = GetGeometry()[i].GetDof(LAGRANGE_MULTIPLIER_0).EquationId();
     }
+
+    // if(this->GetValue(WING_TIP_ELEMENT)){
+    //     for (unsigned int i = 0; i < NumNodes; i++){
+    //         if(GetGeometry()[i].GetValue(WING_TIP)){
+    //             rResult[2*NumNodes] = GetGeometry()[i].GetDof(LAGRANGE_MULTIPLIER_0).EquationId();
+    //         }
+    //     }
+    // }
 }
 
 template <int Dim, int NumNodes>
@@ -418,13 +426,17 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListWa
                 GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 
-    if(this->GetValue(WING_TIP_ELEMENT)){
-        for (unsigned int i = 0; i < NumNodes; i++){
-            if(GetGeometry()[i].GetValue(WING_TIP)){
-                rElementalDofList[2*NumNodes] = GetGeometry()[i].pGetDof(LAGRANGE_MULTIPLIER_0);
-            }
-        }
+    for (unsigned int i = 0; i < NumNodes; i++){
+        rElementalDofList[2*NumNodes + i] = GetGeometry()[i].pGetDof(LAGRANGE_MULTIPLIER_0);
     }
+
+    // if(this->GetValue(WING_TIP_ELEMENT)){
+    //     for (unsigned int i = 0; i < NumNodes; i++){
+    //         if(GetGeometry()[i].GetValue(WING_TIP)){
+    //             rElementalDofList[2*NumNodes] = GetGeometry()[i].pGetDof(LAGRANGE_MULTIPLIER_0);
+    //         }
+    //     }
+    // }
 }
 
 template <int Dim, int NumNodes>
@@ -474,16 +486,19 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
     MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // Note that the lhs and rhs have double the size
-    if(this->GetValue(WING_TIP_ELEMENT)){
-        if (rLeftHandSideMatrix.size1() != 2 * NumNodes + 1 ||
-            rLeftHandSideMatrix.size2() != 2 * NumNodes + 1)
-            rLeftHandSideMatrix.resize(2 * NumNodes + 1, 2 * NumNodes + 1, false);
-    }
-    else{
-        if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
-            rLeftHandSideMatrix.size2() != 2 * NumNodes)
-            rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
-    }
+    // if(this->GetValue(WING_TIP_ELEMENT)){
+    //     if (rLeftHandSideMatrix.size1() != 2 * NumNodes + 1 ||
+    //         rLeftHandSideMatrix.size2() != 2 * NumNodes + 1)
+    //         rLeftHandSideMatrix.resize(2 * NumNodes + 1, 2 * NumNodes + 1, false);
+    // }
+    // else{
+    //     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
+    //         rLeftHandSideMatrix.size2() != 2 * NumNodes)
+    //         rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
+    // }
+    if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
+        rLeftHandSideMatrix.size2() != 2 * NumNodes)
+        rLeftHandSideMatrix.resize(3 * NumNodes, 3 * NumNodes, false);
     rLeftHandSideMatrix.clear();
 
     ElementalData<NumNodes, Dim> data;
@@ -503,7 +518,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
     BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
     condition_matrix(0,0) = 1.0;
     condition_matrix(1,1) = 0.0;
-    condition_matrix(2,2) = 1.0;
+    condition_matrix(2,2) = 0.0;
 
     auto xzfilter = prod(condition_matrix, trans(data.DN_DX));
 
@@ -513,6 +528,23 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
         for(unsigned int j = 0; j < NumNodes; j++){
             for(unsigned int k = 0; k < Dim; k++){
                 lhs_wake_condition(i,j) += data.vol*free_stream_density*data.DN_DX(i,k)*xzfilter(k,j);
+            }
+        }
+    }
+
+    BoundedMatrix<double, Dim, Dim> lagrange_condition_matrix = IdentityMatrix(Dim,Dim);
+    lagrange_condition_matrix(0,0) = 1.0;
+    lagrange_condition_matrix(1,1) = 0.0;
+    lagrange_condition_matrix(2,2) = 0.0;
+
+    auto xzfilter_lagrange = prod(lagrange_condition_matrix, trans(data.DN_DX));
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_wake_condition_lagrange = ZeroMatrix(NumNodes, NumNodes);
+
+    for (unsigned int i = 0; i < NumNodes; i++){
+        for(unsigned int j = 0; j < NumNodes; j++){
+            for(unsigned int k = 0; k < Dim; k++){
+                lhs_wake_condition_lagrange(i,j) += data.vol*free_stream_density*data.DN_DX(i,k)*xzfilter_lagrange(k,j);
             }
         }
     }
@@ -528,8 +560,13 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
             // we do not apply the wake condition on the TE node
             if (r_geometry[row].GetValue(TRAILING_EDGE)){
                 for (unsigned int column = 0; column < NumNodes; ++column){
+                    // Conservation of mass
                     rLeftHandSideMatrix(row, column) = lhs_positive(row, column);
                     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_negative(row, column);
+
+                    // // Wake condition below
+                    // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
+                    // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
                 }
             }
             else{
@@ -577,19 +614,76 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
                 }
             }
         }
+
+        // // Apply wake condition with lagrange multipliers
+        // for (unsigned int row = 0; row < NumNodes; ++row){
+        //     if(!GetGeometry()[row].GetValue(WING_TIP)){
+        //         for (unsigned int column = 0; column < NumNodes; ++column){
+        //             rLeftHandSideMatrix(2*NumNodes + row, column) = -lhs_wake_condition_lagrange(row, row);
+        //             rLeftHandSideMatrix(2*NumNodes + row, column + NumNodes) = lhs_wake_condition_lagrange(row, row);
+
+        //             rLeftHandSideMatrix(column, 2*NumNodes + row) = -lhs_wake_condition_lagrange(row, column);
+        //             rLeftHandSideMatrix(column + NumNodes, 2*NumNodes + row) = lhs_wake_condition_lagrange(row, column);
+        //         }
+        //     }
+        // }
     }
 
-    if(this->GetValue(WING_TIP_ELEMENT)){
-        KRATOS_WATCH(this->Id())
-        for (unsigned int row = 0; row < NumNodes; ++row){
-            if(GetGeometry()[row].GetValue(WING_TIP)){
-                rLeftHandSideMatrix(2*NumNodes, row) = -lhs_total(row, row);
-                rLeftHandSideMatrix(2*NumNodes, row + NumNodes) = lhs_total(row, row);
+    // if(this->GetValue(WING_TIP_ELEMENT)){
+    //     // KRATOS_WATCH(this->Id())
+    //     for (unsigned int row = 0; row < NumNodes; ++row){
+    //         if(GetGeometry()[row].GetValue(WING_TIP)){
+    //             rLeftHandSideMatrix(2*NumNodes + row, row) = -lhs_total(row, row);
+    //             rLeftHandSideMatrix(2*NumNodes + row, row + NumNodes) = lhs_total(row, row);
 
-                rLeftHandSideMatrix(row, 2*NumNodes) = -lhs_total(row, row);
-                rLeftHandSideMatrix(row + NumNodes, 2*NumNodes) = lhs_total(row, row);
+    //             rLeftHandSideMatrix(row, 2*NumNodes + row) = -lhs_total(row, row);
+    //             rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + row) = lhs_total(row, row);
+    //         }
+    //     }
+    // }
+
+    // Print lhs
+    std::cout.precision(5);
+    std::cout << std::scientific;
+    std::cout << std::showpos;
+    // if(this->GetValue(WING_TIP_ELEMENT)){
+    //     KRATOS_WATCH(this->Id())
+    // }
+    // if(this->Id()==12750 || this->Id()==26346 || this->Id()==265451 || this->Id()==87225){
+    if(this->Id()==161405){//} || this->Id()==79624){
+    //if(this->GetValue(WING_TIP_ELEMENT) || this->Id()==94253 || this->Id()==1){
+        std::cout << std::endl;
+        for(unsigned int row = 0; row < rLeftHandSideMatrix.size1(); ++row){
+            for(unsigned int column = 0; column < rLeftHandSideMatrix.size2(); column++){
+                if(column == 3 || column == 7){
+                    std::cout << " " << rLeftHandSideMatrix(row, column) << " |";
+                }
+                else{
+                    std::cout << " " << rLeftHandSideMatrix(row, column) << " ";
+                }
             }
+
+            std::cout << std::endl;
+
+            if(row ==3|| row == 7){
+                for(unsigned int j = 0; j < 14*rLeftHandSideMatrix.size1(); j++){
+                std::cout << "_" ;
+                }
+                std::cout << " " << std::endl;
+            }
+            else{
+                for(unsigned int i = 0; i < 3; i++){
+                    for(unsigned int j = 0; j < 14*4; j++){
+                        std::cout << " " ;
+                    }
+                    if(i != 2){
+                        std::cout << "|" ;
+                    }
+                }
+            }
+            std::cout << std::endl;
         }
+        std::cout << std::endl;
     }
 }
 
@@ -598,14 +692,16 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // Note that the rhs has double the size
-    if(this->GetValue(WING_TIP_ELEMENT)){
-        if (rRightHandSideVector.size() != 2 * NumNodes + 1)
-            rRightHandSideVector.resize(2 * NumNodes + 1, false);
-    }
-    else{
-        if (rRightHandSideVector.size() != 2 * NumNodes)
-            rRightHandSideVector.resize(2 * NumNodes, false);
-    }
+    // if(this->GetValue(WING_TIP_ELEMENT)){
+    //     if (rRightHandSideVector.size() != 2 * NumNodes + 1)
+    //         rRightHandSideVector.resize(2 * NumNodes + 1, false);
+    // }
+    // else{
+    //     if (rRightHandSideVector.size() != 2 * NumNodes)
+    //         rRightHandSideVector.resize(2 * NumNodes, false);
+    // }
+    if (rRightHandSideVector.size() != 3 * NumNodes)
+            rRightHandSideVector.resize(3 * NumNodes, false);
 
     rRightHandSideVector.clear();
 
