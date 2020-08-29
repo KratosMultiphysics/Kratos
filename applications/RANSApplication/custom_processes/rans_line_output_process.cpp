@@ -38,7 +38,7 @@ template <>
 void LineOutputProcessUtilities::VariableDataCollector<double>::AddToValuesVector(
     std::vector<double>& rValuesVector,
     const double& rValue,
-    const int StartIndex)
+    const std::size_t StartIndex)
 {
     rValuesVector[StartIndex] += rValue;
 }
@@ -48,7 +48,7 @@ void LineOutputProcessUtilities::VariableDataCollector<double>::AddNamesToVector
     std::vector<std::string>& rNamesVector,
     const Variable<double>& rVariable,
     const double&,
-    const int StartIndex)
+    const std::size_t StartIndex)
 {
     rNamesVector[StartIndex] = rVariable.Name();
 }
@@ -65,7 +65,7 @@ template <>
 void LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::AddToValuesVector(
     std::vector<double>& rValuesVector,
     const array_1d<double, 3>& rValue,
-    const int StartIndex)
+    const std::size_t StartIndex)
 {
     rValuesVector[StartIndex] += rValue[0];
     rValuesVector[StartIndex + 1] += rValue[1];
@@ -77,7 +77,7 @@ void LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::Add
     std::vector<std::string>& rNamesVector,
     const Variable<array_1d<double, 3>>& rVariable,
     const array_1d<double, 3>&,
-    const int StartIndex)
+    const std::size_t StartIndex)
 {
     rNamesVector[StartIndex] = rVariable.Name() + "_X";
     rNamesVector[StartIndex + 1] = rVariable.Name() + "_Y";
@@ -96,7 +96,7 @@ template <>
 void LineOutputProcessUtilities::VariableDataCollector<Matrix>::AddToValuesVector(
     std::vector<double>& rValuesVector,
     const Matrix& rValue,
-    const int StartIndex)
+    const std::size_t StartIndex)
 {
     int local_index = 0;
     for (std::size_t i = 0; i < rValue.size1(); ++i) {
@@ -111,7 +111,7 @@ void LineOutputProcessUtilities::VariableDataCollector<Matrix>::AddNamesToVector
     std::vector<std::string>& rNamesVector,
     const Variable<Matrix>& rVariable,
     const Matrix& rValue,
-    const int StartIndex)
+    const std::size_t StartIndex)
 {
     int local_index = 0;
     for (std::size_t i = 0; i < rValue.size1(); ++i) {
@@ -183,38 +183,14 @@ int RansLineOutputProcess::Check()
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     for (const auto& variable_name : mVariableNames) {
-        bool already_added = false;
-
-        already_added = (!already_added)
-                            ? CheckAndAddVariableToList(mDoubleVariablesList,
-                                                        r_model_part, variable_name)
-                            : already_added;
-        already_added = (!already_added)
-                            ? CheckAndAddVariableToList(mArray3VariablesList,
-                                                        r_model_part, variable_name)
-                            : already_added;
-        already_added = (!already_added)
-                            ? CheckAndAddVariableToList(mArray4VariablesList,
-                                                        r_model_part, variable_name)
-                            : already_added;
-        already_added = (!already_added)
-                            ? CheckAndAddVariableToList(mArray6VariablesList,
-                                                        r_model_part, variable_name)
-                            : already_added;
-        already_added = (!already_added)
-                            ? CheckAndAddVariableToList(mArray9VariablesList,
-                                                        r_model_part, variable_name)
-                            : already_added;
-        already_added = (!already_added)
-                            ? CheckAndAddVariableToList(mVectorVariablesList,
-                                                        r_model_part, variable_name)
-                            : already_added;
-        already_added = (!already_added)
-                            ? CheckAndAddVariableToList(mMatrixVariablesList,
-                                                        r_model_part, variable_name)
-                            : already_added;
-
-        KRATOS_ERROR_IF(!already_added)
+        KRATOS_ERROR_IF(!(
+            CheckAndAddVariableToList(mDoubleVariablesList, r_model_part, variable_name) ||
+            CheckAndAddVariableToList(mArray3VariablesList, r_model_part, variable_name) ||
+            CheckAndAddVariableToList(mArray4VariablesList, r_model_part, variable_name) ||
+            CheckAndAddVariableToList(mArray6VariablesList, r_model_part, variable_name) ||
+            CheckAndAddVariableToList(mArray9VariablesList, r_model_part, variable_name) ||
+            CheckAndAddVariableToList(mVectorVariablesList, r_model_part, variable_name) ||
+            CheckAndAddVariableToList(mMatrixVariablesList, r_model_part, variable_name)))
             << variable_name << " not found in following list of variable types: "
             << "\n\t double"
             << "\n\t Array3"
@@ -234,18 +210,7 @@ void RansLineOutputProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
-    std::string output_step_control_variable_value;
-
-    bool already_found = false;
-    std::tie(already_found, output_step_control_variable_value) = (!already_found) ? GetOutputVariableValue<int>(mOutputStepControlVariableName) : std::tie(already_found, output_step_control_variable_value);
-    std::tie(already_found, output_step_control_variable_value) = (!already_found) ? GetOutputVariableValue<double>(mOutputStepControlVariableName) : std::tie(already_found, output_step_control_variable_value);
-    std::tie(already_found, output_step_control_variable_value) = (!already_found) ? GetOutputVariableValue<std::string>(mOutputStepControlVariableName) : std::tie(already_found, output_step_control_variable_value);
-
-    KRATOS_ERROR_IF(!already_found)
-        << "Output step control variable name not found in "
-           "int, double or string variables list. [ "
-           "output_step_control_variable_name = "
-        << mOutputStepControlVariableName << " ].\n";
+    CheckAndGetOutputVariableValue<int, double>(mOutputStepControlVariableName);
 
     UpdateSamplePoints();
 
@@ -283,35 +248,39 @@ void RansLineOutputProcess::UpdateSamplePoints()
     r_communicator.Broadcast(mSamplingPoints, 0);
 
     BruteForcePointLocator brute_force_point_locator(r_model_part);
-    for (int i = 0; i < mNumberOfSamplingPoints; ++i) {
+
+    IndexPartition<int>(mNumberOfSamplingPoints).for_each([&](const int i) {
         Point current_point(mSamplingPoints[i * 3], mSamplingPoints[i * 3 + 1],
                             mSamplingPoints[i * 3 + 2]);
         mSamplingPointElementIds[i] = brute_force_point_locator.FindElement(
             current_point, mSamplingPointElementShapeFunctions[i]);
         if (mSamplingPointElementIds[i] > -1) {
-            mSamplePointLocalIndexList.push_back(i);
+#pragma omp critical
+            {
+                mSamplePointLocalIndexList.push_back(i);
+            }
         }
-    }
+    });
 
     mSamplePointLocalIndexListMaster =
         r_communicator.Gatherv(mSamplePointLocalIndexList, 0);
     if (r_communicator.Rank() == 0) {
-        mFoundGlobalPoints.resize(mNumberOfSamplingPoints, -1);
+        std::vector<int> found_global_points(mNumberOfSamplingPoints, -1);
         for (const auto& current_index_list : mSamplePointLocalIndexListMaster) {
             for (const int sample_index : current_index_list) {
                 KRATOS_ERROR_IF(sample_index > mNumberOfSamplingPoints)
                     << "Sampling index error.\n";
-                KRATOS_ERROR_IF(mFoundGlobalPoints[sample_index] != -1)
+                KRATOS_ERROR_IF(found_global_points[sample_index] != -1)
                     << "Two or more partitions found enclosed element for "
                        "sample point at [ "
                     << mSamplingPoints[sample_index * 3] << ", "
                     << mSamplingPoints[sample_index * 3 + 1] << ", "
                     << mSamplingPoints[sample_index * 3 + 2] << " ].\n";
-                mFoundGlobalPoints[sample_index] = 1;
+                found_global_points[sample_index] = 1;
             }
         }
         for (int sample_index = 0; sample_index < mNumberOfSamplingPoints; ++sample_index) {
-            KRATOS_WARNING_IF(this->Info(), mFoundGlobalPoints[sample_index] != 1)
+            KRATOS_WARNING_IF(this->Info(), found_global_points[sample_index] != 1)
                 << "Element not found for sample point at [ "
                 << mSamplingPoints[sample_index * 3] << ", "
                 << mSamplingPoints[sample_index * 3 + 1] << ", "
@@ -350,21 +319,8 @@ void RansLineOutputProcess::PrintData(std::ostream& rOStream) const
 
 bool RansLineOutputProcess::IsOutputStep()
 {
-    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-    const auto& r_process_info = r_model_part.GetProcessInfo();
-    double current_step_value = 0.0;
-
-    if (KratosComponents<Variable<int>>::Has(mOutputStepControlVariableName)) {
-        const auto& r_variable =
-            KratosComponents<Variable<int>>::Get(mOutputStepControlVariableName);
-        current_step_value = static_cast<double>(r_process_info[r_variable]);
-    } else if (KratosComponents<Variable<double>>::Has(mOutputStepControlVariableName)) {
-        const auto& r_variable =
-            KratosComponents<Variable<double>>::Get(mOutputStepControlVariableName);
-        current_step_value = r_process_info[r_variable];
-    } else {
-        return true;
-    }
+    const double& current_step_value =
+        CheckAndGetOutputVariableValue<int, double>(mOutputStepControlVariableName);
 
     mCurrentStepCount += (current_step_value - mPreviousStepValue);
     mPreviousStepValue = current_step_value;
@@ -447,9 +403,10 @@ void RansLineOutputProcess::WriteOutputFile() const
         const auto& r_geometry =
             r_model_part.GetElement(mSamplingPointElementIds[global_index]).GetGeometry();
         const Vector& r_shape_functions = mSamplingPointElementShapeFunctions[global_index];
+        const int local_sample_point_offset = SamplingIndex * total_doubles_length;
 
         InterpolateVariables(
-            local_sampled_values, r_geometry, r_shape_functions, SamplingIndex, total_doubles_length,
+            local_sampled_values, r_geometry, r_shape_functions, local_sample_point_offset,
             std::tie(double_start_indices, mDoubleVariablesList, get_double),
             std::tie(array3_start_indices, mArray3VariablesList, get_array3),
             std::tie(array4_start_indices, mArray4VariablesList, get_array4),
@@ -463,20 +420,19 @@ void RansLineOutputProcess::WriteOutputFile() const
 
     // gather everything to rank zero
     auto global_sample_point_double_values = r_communicator.Gatherv(local_sampled_values, 0);
-    const int number_of_processes = global_sample_point_double_values.size();
 
-    // arrange all the double values to one vector in rank zero
     if (my_pid == 0) {
+        // put all doubles in continuos double vector
+        const int number_of_processes = global_sample_point_double_values.size();
         std::vector<double> global_values(mNumberOfSamplingPoints * total_doubles_length);
         for (int rank = 0; rank < number_of_processes; ++rank) {
             const auto& local_indices = mSamplePointLocalIndexListMaster[rank];
-            const int number_of_points = local_indices.size();
-            for (int i = 0; i < number_of_points; ++i) {
+            IndexPartition<int>(local_indices.size()).for_each([&](const int i) {
                 for (int j = 0; j < total_doubles_length; ++j) {
                     global_values[local_indices[i] * total_doubles_length + j] =
                         global_sample_point_double_values[rank][i * total_doubles_length + j];
                 }
-            }
+            });
         }
 
         // writing the output to a file
@@ -559,20 +515,11 @@ void RansLineOutputProcess::WriteOutputFileHeader(
     rOutputFileStream << "# Output step control variable name : " << mOutputStepControlVariableName
                       << "\n";
 
-    std::string output_step_control_variable_value;
-    bool already_found = false;
-    std::tie(already_found, output_step_control_variable_value) = (!already_found) ? GetOutputVariableValue<int>(mOutputStepControlVariableName) : std::tie(already_found, output_step_control_variable_value);
-    std::tie(already_found, output_step_control_variable_value) = (!already_found) ? GetOutputVariableValue<double>(mOutputStepControlVariableName) : std::tie(already_found, output_step_control_variable_value);
-    std::tie(already_found, output_step_control_variable_value) = (!already_found) ? GetOutputVariableValue<std::string>(mOutputStepControlVariableName) : std::tie(already_found, output_step_control_variable_value);
-
-    KRATOS_ERROR_IF(!already_found)
-        << "Output step control variable name not found in "
-           "int, double or string variables list. [ "
-           "output_step_control_variable_name = "
-        << mOutputStepControlVariableName << " ].\n";
+    const std::string& output_value = std::to_string(
+        CheckAndGetOutputVariableValue<int, double>(mOutputStepControlVariableName));
 
     rOutputFileStream << "# Output step control variable value: "
-                      << output_step_control_variable_value << "\n";
+                      << output_value << "\n";
     rOutputFileStream << "# Output step frequency             : " << mOutputStepInterval
                       << "\n";
     rOutputFileStream << "# output historical values          : "
@@ -588,20 +535,11 @@ std::string RansLineOutputProcess::GetOutputFileName() const
 {
     KRATOS_TRY
 
-    bool already_found = false;
-    std::string output_variable_value;
-    std::tie(already_found, output_variable_value) = (!already_found) ? GetOutputVariableValue<int>(mOutputStepControlVariableName) : std::tie(already_found, output_variable_value);
-    std::tie(already_found, output_variable_value) = (!already_found) ? GetOutputVariableValue<double>(mOutputStepControlVariableName) : std::tie(already_found, output_variable_value);
-    std::tie(already_found, output_variable_value) = (!already_found) ? GetOutputVariableValue<std::string>(mOutputStepControlVariableName) : std::tie(already_found, output_variable_value);
+    const std::string& output_value = std::to_string(
+        CheckAndGetOutputVariableValue<int, double>(mOutputStepControlVariableName));
 
     std::stringstream output_name;
-    output_name << mOutputFileName << "_" << output_variable_value << ".csv";
-
-    KRATOS_ERROR_IF(!already_found)
-        << "Output step control variable name not found in "
-           "int, double or string variables list. [ "
-           "output_step_control_variable_name = "
-        << mOutputStepControlVariableName << " ].\n";
+    output_name << mOutputFileName << "_" << output_value << ".csv";
 
     return output_name.str();
 

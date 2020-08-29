@@ -180,7 +180,7 @@ class CustomProcessTest(UnitTest.TestCase):
                 "python_module" : "compare_two_files_check_process",
                 "Parameters" : {
                     "reference_file_name"   : "process_tests_data/line_output_test_output_historical_ref.csv",
-                    "output_file_name"      : "process_tests_data/line_output_test_output_historical_1.csv",
+                    "output_file_name"      : "process_tests_data/line_output_test_output_historical_1.000000.csv",
                     "remove_output_file"    : true,
                     "comparison_type"       : "csv_file",
                     "tolerance"             : 1e-6,
@@ -193,7 +193,7 @@ class CustomProcessTest(UnitTest.TestCase):
                 "python_module" : "compare_two_files_check_process",
                 "Parameters" : {
                     "reference_file_name"   : "process_tests_data/line_output_test_output_non_historical_ref.csv",
-                    "output_file_name"      : "process_tests_data/line_output_test_output_non_historical_1.csv",
+                    "output_file_name"      : "process_tests_data/line_output_test_output_non_historical_1.000000.csv",
                     "remove_output_file"    : true,
                     "comparison_type"       : "csv_file",
                     "tolerance"             : 1e-6,

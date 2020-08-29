@@ -48,10 +48,10 @@ public:
      * @param rValue            Value to be added
      * @param StartIndex        Start position
      */
-    static void AddToValuesVector(
+    static void inline AddToValuesVector(
         std::vector<double>& rValuesVector,
         const TDataType& rValue,
-        const int StartIndex)
+        const std::size_t StartIndex)
     {
         for (std::size_t i = 0; i < rValue.size(); ++i) {
             rValuesVector[StartIndex + i] += rValue[i];
@@ -66,11 +66,11 @@ public:
      * @param rValue            Example value to identify dynamic properties of Variable
      * @param StartIndex        Start position
      */
-    static void AddNamesToVector(
+    static void inline AddNamesToVector(
         std::vector<std::string>& rNamesVector,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue,
-        const int StartIndex)
+        const std::size_t StartIndex)
     {
         for (std::size_t i = 0; i < rValue.size(); ++i) {
             rNamesVector[StartIndex + i] =
@@ -84,7 +84,7 @@ public:
      * @param rValue        Value to determin dynamic variable lengths
      * @return int          Length of the rValue (in flattened number of doubles)
      */
-    static int GetVariableDataLength(
+    static int inline GetVariableDataLength(
         const TDataType& rValue)
     {
         return static_cast<int>(rValue.size());
@@ -105,15 +105,14 @@ public:
  * @param pValueGetterFunction          Function pointer to get variable value from nodes
  */
 template <class TDataType, class TValueGetterFunction>
-void AddVariablesListNamesToVector(
+void inline AddVariablesListNamesToVector(
     std::vector<std::string>& rNamesList,
     const NodeType& rNode,
     const std::vector<const Variable<TDataType>*>& rVariablesList,
     const std::vector<int>& rVariableValuesStartIndex,
     TValueGetterFunction* pValueGetterFunction)
 {
-    const int number_of_variables = rVariablesList.size();
-    for (int i = 0; i < number_of_variables; ++i) {
+    for (std::size_t i = 0; i < rVariablesList.size(); ++i) {
         const auto& r_variable = *(rVariablesList[i]);
         VariableDataCollector<TDataType>::AddNamesToVector(
             rNamesList, r_variable, (*pValueGetterFunction)(rNode, r_variable),
@@ -132,7 +131,7 @@ void AddVariablesListNamesToVector(
  * @return TDataType    Value
  */
 template <class TDataType>
-TDataType GetHistoricalValue(
+TDataType inline GetHistoricalValue(
     const NodeType& rNode,
     const Variable<TDataType>& rVariable)
 {
@@ -150,7 +149,7 @@ TDataType GetHistoricalValue(
  * @return TDataType    Value
  */
 template <class TDataType>
-TDataType GetNonHistoricalValue(
+TDataType inline GetNonHistoricalValue(
     const NodeType& rNode,
     const Variable<TDataType>& rVariable)
 {
@@ -212,35 +211,26 @@ std::vector<int> GetVariableDataStartIndices(
  * @param pValueGetterFunction              Function pointer to retrieve nodal values from
  * @param rVariableValuesStartIndex         List of indices to indicate where corresponding variable should start to write.
  * @param rVariablesList                    List of variables
- * @param SamplePointIndex                  Sample point index (local index)
- * @param SamplePointValuesLength           Length of sample point values (number of total doubles per point from all variables)
+ * @param StartIndexOffset                  Start array offset index
  */
 template <class TDataType, class TValueGetterFunction>
-void AddInterpolationContributions(
+void inline AddInterpolationContributions(
     std::vector<double>& rValuesList,
     const ModelPart::NodeType& rNode,
     const double ShapeFunctionValue,
     TValueGetterFunction* pValueGetterFunction,
     const std::vector<int>& rVariableValuesStartIndex,
     const std::vector<const Variable<TDataType>*>& rVariablesList,
-    const int SamplePointIndex,
-    const int SamplePointValuesLength)
+    const std::size_t StartIndexOffset)
 {
-    KRATOS_TRY
-
     using variable_data_collector =
         LineOutputProcessUtilities::VariableDataCollector<TDataType>;
 
-    const std::size_t number_of_variables = rVariablesList.size();
-    const int variable_values_start_index = SamplePointIndex * SamplePointValuesLength;
-
-    for (std::size_t i = 0; i < number_of_variables; ++i) {
+    for (std::size_t i = 0; i < rVariablesList.size(); ++i) {
         variable_data_collector::AddToValuesVector(
             rValuesList, (*pValueGetterFunction)(rNode, *(rVariablesList[i])) * ShapeFunctionValue,
-            variable_values_start_index + rVariableValuesStartIndex[i]);
+            StartIndexOffset + rVariableValuesStartIndex[i]);
     }
-
-    KRATOS_CATCH("");
 }
 
 /**
@@ -258,8 +248,7 @@ void AddInterpolationContributions(
  * @tparam TVariableInfoTuplesList          List of tuple argument prototype
  * @param rGeometry                         Geometry where sample point is inside of
  * @param rSamplingPointShapeFunctions      Shape function values of the sampling point
- * @param SamplePointIndex                  Sample point index (local index)
- * @param SamplePointValuesLength           Length of sample point values (number of total doubles per point from all variables)
+ * @param LocalSamplePointValuesOffset      Sample point value offset based on local_index of sample point
  * @param rVariableInfoTuplesList           List of tuple_elements
  */
 template <class... TVariableInfoTuplesList>
@@ -267,8 +256,7 @@ void InterpolateVariables(
     std::vector<double>& rValuesList,
     const GeometryType& rGeometry,
     const Vector& rSamplingPointShapeFunctions,
-    const int SamplePointIndex,
-    const int SamplePointValuesLength,
+    const std::size_t LocalSamplePointValuesOffset,
     const TVariableInfoTuplesList&... rVariableInfoTuplesList)
 {
     KRATOS_TRY
@@ -283,10 +271,10 @@ void InterpolateVariables(
         const double shape_function_value = rSamplingPointShapeFunctions[i_node];
 
         int dummy[sizeof...(rVariableInfoTuplesList)] = {(
-            AddInterpolationContributions(
-                rValuesList, r_node, shape_function_value, std::get<2>(rVariableInfoTuplesList),
-                std::get<0>(rVariableInfoTuplesList), std::get<1>(rVariableInfoTuplesList),
-                SamplePointIndex, SamplePointValuesLength),
+            AddInterpolationContributions(rValuesList, r_node, shape_function_value,
+                                          std::get<2>(rVariableInfoTuplesList),
+                                          std::get<0>(rVariableInfoTuplesList),
+                                          std::get<1>(rVariableInfoTuplesList), LocalSamplePointValuesOffset),
             0)...};
 
         *dummy = 0;
@@ -324,7 +312,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RansLineOutputProcess);
 
     using NodeType = ModelPart::NodeType;
-    using GeometryType = ModelPart::ElementType::GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -400,7 +387,6 @@ private:
 
     std::vector<int> mSamplePointLocalIndexList;
     std::vector<std::vector<int>> mSamplePointLocalIndexListMaster;
-    std::vector<int> mFoundGlobalPoints;
 
     template <class TDataType>
     using variables_vector_type = std::vector<const Variable<TDataType>*>;
@@ -464,17 +450,22 @@ private:
     }
 
     /**
-     * @brief Get the Output Variable Value
+     * @brief Get Variable value from process info
      *
      * This method checks output control variable is in TDataType variables, and if found it
      * returns the value corresponding from ProcessInfo, if not found it returns false and blank string
      *
+     * @tparam TOutputDataType                  Output data type
      * @tparam TDataType                        Data type of the output control variable
+     * @param rIsValueObtained                  True if value found, false if not
+     * @param rOutputValue                      Holding output variable value
      * @param rVariableName                     Output control variable
-     * @return std::tuple<bool, std::string>    if found true with Output control variable, else false with ""
+     * @return bool                             If variable found true otherwise false
      */
-    template <class TDataType>
-    std::tuple<bool, std::string> GetOutputVariableValue(
+    template <class TOutputDataType, class TDataType>
+    void GetVariableValueFromProcessInfo(
+        bool& rIsValueObtained,
+        TOutputDataType& rOutputValue,
         const std::string& rVariableName) const
     {
         KRATOS_TRY
@@ -486,16 +477,46 @@ private:
                 KratosComponents<Variable<TDataType>>::Get(rVariableName);
 
             if (r_process_info.Has(r_variable)) {
-                std::stringstream output_name;
-                output_name << r_process_info[r_variable];
-
-                return std::make_tuple<bool, std::string>(true, output_name.str());
-            } else {
-                return std::make_tuple<bool, std::string>(false, "");
+                rOutputValue = static_cast<TOutputDataType>(r_process_info[r_variable]);
+                rIsValueObtained = true;
             }
         }
 
-        return std::make_tuple<bool, std::string>(false, "");
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Checks and returns rVariableName from process info
+     *
+     * This method checks whether process info has rVariableName in the list of TDataTypes args list,
+     * if available, then value will be casted to double and then returned.
+     *
+     * @tparam TDataTypes           List of data types to be checked whether variable is available
+     * @param rVariableName         Name of the variable
+     * @return double               Variable value
+     */
+    template <class... TDataTypes>
+    double CheckAndGetOutputVariableValue(
+        const std::string& rVariableName) const
+    {
+        KRATOS_TRY
+
+        bool is_variable_found = false;
+        double value = 0.0;
+
+        int dummy[sizeof...(TDataTypes)] = {(
+            GetVariableValueFromProcessInfo<double, TDataTypes>(is_variable_found, value, rVariableName),
+            0)...};
+
+        *dummy = 0;
+
+        KRATOS_ERROR_IF(!is_variable_found)
+            << "Output step control variable name not found in variables list. "
+               "[ "
+               "output_step_control_variable_name = "
+            << rVariableName << " ].\n";
+
+        return value;
 
         KRATOS_CATCH("");
     }
