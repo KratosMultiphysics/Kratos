@@ -53,7 +53,7 @@ Element::Pointer CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Cl
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -61,7 +61,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocal
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -74,7 +74,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -87,7 +87,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+    EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -115,7 +115,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVect
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                 ProcessInfo& CurrentProcessInfo)
+                                                                 const ProcessInfo& CurrentProcessInfo) const
 {
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -142,7 +142,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(Dof
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     bool active = true;
     if ((this)->IsDefined(ACTIVE))
