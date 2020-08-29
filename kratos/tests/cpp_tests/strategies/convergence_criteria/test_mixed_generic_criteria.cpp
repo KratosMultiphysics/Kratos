@@ -133,25 +133,14 @@ namespace Testing
         }
 
         // Create the mixed generic criteria
-        Parameters parameters = Parameters(R"(
-        {
-            "convergence_variables_list" : {
-                "pressure" :
-                {
-                    "variable"           : "PRESSURE",
-                    "relative_tolerance" : 1.0e-3,
-                    "absolute_tolerance" : 1.0e-5
-                },
-                "velocity" :
-                {
-                    "variable"           : "VELOCITY",
-                    "relative_tolerance" : 1.0e-3,
-                    "absolute_tolerance" : 1.0e-5
-                }
-            }
-
-        })" );
-        auto mixed_generic_criteria = MixedGenericCriteriaType(parameters);
+        const double rel_tol = 1.0e-3;
+        const double abs_tol = 1.0e-5;
+        VariableData* p_pres = &PRESSURE;
+        VariableData* p_temp = &VELOCITY;
+        ConvergenceVariableListType convergence_settings;
+        convergence_settings.push_back(std::make_tuple(p_pres, rel_tol, abs_tol));
+        convergence_settings.push_back(std::make_tuple(p_temp, rel_tol, abs_tol));
+        auto mixed_generic_criteria = MixedGenericCriteriaType(convergence_settings);
 
         // Set the auxiliary arrays
         DofsArrayType aux_dof_set;
