@@ -38,9 +38,17 @@ template <>
 void LineOutputProcessUtilities::VariableDataCollector<double>::AddToValuesVector(
     std::vector<double>& rValuesVector,
     const double& rValue,
-    const std::size_t StartIndex)
+    const SizeType StartIndex)
 {
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(StartIndex >= rValuesVector.size())
+        << "StartIndex is greater than or equal to rValuesVector size. [ "
+        << StartIndex << " >= " << rValuesVector.size() << " ].\n";
+
     rValuesVector[StartIndex] += rValue;
+
+    KRATOS_CATCH("");
 }
 
 template <>
@@ -48,13 +56,21 @@ void LineOutputProcessUtilities::VariableDataCollector<double>::AddNamesToVector
     std::vector<std::string>& rNamesVector,
     const Variable<double>& rVariable,
     const double&,
-    const std::size_t StartIndex)
+    const SizeType StartIndex)
 {
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(StartIndex >= rNamesVector.size())
+        << "StartIndex is greater than or equal to rNamesVector size. [ "
+        << StartIndex << " >= " << rNamesVector.size() << " ].\n";
+
     rNamesVector[StartIndex] = rVariable.Name();
+
+    KRATOS_CATCH("");
 }
 
 template <>
-int LineOutputProcessUtilities::VariableDataCollector<double>::GetVariableDataLength(
+std::size_t LineOutputProcessUtilities::VariableDataCollector<double>::GetVariableDataLength(
     const double&)
 {
     return 1;
@@ -65,11 +81,21 @@ template <>
 void LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::AddToValuesVector(
     std::vector<double>& rValuesVector,
     const array_1d<double, 3>& rValue,
-    const std::size_t StartIndex)
+    const SizeType StartIndex)
 {
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(StartIndex >= rValuesVector.size() + 3)
+        << "rValuesVector size is not enough to allocate values. rValuesVector "
+           "vector should have atleast 3 elements from(including) StartIndex value. [ "
+           "StartIndex = "
+        << StartIndex << ", rValuesVector.size() = " << rValuesVector.size() << " ].\n";
+
     rValuesVector[StartIndex] += rValue[0];
     rValuesVector[StartIndex + 1] += rValue[1];
     rValuesVector[StartIndex + 2] += rValue[2];
+
+    KRATOS_CATCH("");
 }
 
 template <>
@@ -77,15 +103,25 @@ void LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::Add
     std::vector<std::string>& rNamesVector,
     const Variable<array_1d<double, 3>>& rVariable,
     const array_1d<double, 3>&,
-    const std::size_t StartIndex)
+    const SizeType StartIndex)
 {
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(StartIndex >= rNamesVector.size() + 3)
+        << "rNamesVector size is not enough to allocate values. rNamesVector "
+           "vector should have atleast 3 elements from(including) StartIndex "
+           "value. [ StartIndex = "
+        << StartIndex << ", rNamesVector.size() = " << rNamesVector.size() << " ].\n";
+
     rNamesVector[StartIndex] = rVariable.Name() + "_X";
     rNamesVector[StartIndex + 1] = rVariable.Name() + "_Y";
     rNamesVector[StartIndex + 2] = rVariable.Name() + "_Z";
+
+    KRATOS_CATCH("");
 }
 
 template <>
-int LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::GetVariableDataLength(
+std::size_t LineOutputProcessUtilities::VariableDataCollector<array_1d<double, 3>>::GetVariableDataLength(
     const array_1d<double, 3>&)
 {
     return 3;
@@ -96,14 +132,26 @@ template <>
 void LineOutputProcessUtilities::VariableDataCollector<Matrix>::AddToValuesVector(
     std::vector<double>& rValuesVector,
     const Matrix& rValue,
-    const std::size_t StartIndex)
+    const SizeType StartIndex)
 {
-    int local_index = 0;
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(StartIndex >=
+                          rValuesVector.size() + rValue.size1() * rValue.size2())
+        << "rValuesVector size is not enough to allocate values. "
+           "rValuesVector vector should have atleast "
+        << rValue.size1() * rValue.size2()
+        << " elements from(including) StartIndex value. [ StartIndex = " << StartIndex
+        << ", rValuesVector.size() = " << rValuesVector.size() << " ].\n";
+
+    SizeType local_index = 0;
     for (std::size_t i = 0; i < rValue.size1(); ++i) {
         for (std::size_t j = 0; j < rValue.size2(); ++j) {
             rValuesVector[StartIndex + local_index++] += rValue(i, j);
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 template <>
@@ -111,20 +159,32 @@ void LineOutputProcessUtilities::VariableDataCollector<Matrix>::AddNamesToVector
     std::vector<std::string>& rNamesVector,
     const Variable<Matrix>& rVariable,
     const Matrix& rValue,
-    const std::size_t StartIndex)
+    const SizeType StartIndex)
 {
-    int local_index = 0;
-    for (std::size_t i = 0; i < rValue.size1(); ++i) {
-        for (std::size_t j = 0; j < rValue.size2(); ++j) {
+    KRATOS_TRY
+
+    KRATOS_DEBUG_ERROR_IF(StartIndex >=
+                          rNamesVector.size() + rValue.size1() * rValue.size2())
+        << "rNamesVector size is not enough to allocate values. "
+           "rNamesVector vector should have atleast "
+        << rValue.size1() * rValue.size2()
+        << " elements from(including) StartIndex value. [ StartIndex = " << StartIndex
+        << ", rNamesVector.size() = " << rNamesVector.size() << " ].\n";
+
+    SizeType local_index = 0;
+    for (SizeType i = 0; i < rValue.size1(); ++i) {
+        for (SizeType j = 0; j < rValue.size2(); ++j) {
             rNamesVector[StartIndex + local_index++] =
                 rVariable.Name() + "(" + std::to_string(i + 1) + "|" +
                 std::to_string(j + 1) + ")";
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 template <>
-int LineOutputProcessUtilities::VariableDataCollector<Matrix>::GetVariableDataLength(
+std::size_t LineOutputProcessUtilities::VariableDataCollector<Matrix>::GetVariableDataLength(
     const Matrix& rValue)
 {
     return rValue.size1() * rValue.size2();
@@ -233,8 +293,8 @@ void RansLineOutputProcess::UpdateSamplePoints()
 
     // calculate the sampling points in the rank zero
     if (r_communicator.Rank() == 0) {
-        unsigned int local_index = 0;
-        for (int i = 0; i < mNumberOfSamplingPoints; ++i) {
+        SizeType local_index = 0;
+        for (SizeType i = 0; i < mNumberOfSamplingPoints; ++i) {
             const auto& current_point =
                 mStartPoint + r_direction_vector *
                                   (static_cast<double>(i) /
@@ -247,27 +307,25 @@ void RansLineOutputProcess::UpdateSamplePoints()
 
     r_communicator.Broadcast(mSamplingPoints, 0);
 
+    // MPI call to FindElement fails with OMP_NUM_THREADS > 1 in clang full
+    // debug. Therefore this is done without OMP.
     BruteForcePointLocator brute_force_point_locator(r_model_part);
-
-    IndexPartition<int>(mNumberOfSamplingPoints).for_each([&](const int i) {
+    for (SizeType i = 0; i < mNumberOfSamplingPoints; ++i) {
         Point current_point(mSamplingPoints[i * 3], mSamplingPoints[i * 3 + 1],
                             mSamplingPoints[i * 3 + 2]);
         mSamplingPointElementIds[i] = brute_force_point_locator.FindElement(
             current_point, mSamplingPointElementShapeFunctions[i]);
         if (mSamplingPointElementIds[i] > -1) {
-#pragma omp critical
-            {
-                mSamplePointLocalIndexList.push_back(i);
-            }
+            mSamplePointLocalIndexList.push_back(i);
         }
-    });
+    }
 
     mSamplePointLocalIndexListMaster =
         r_communicator.Gatherv(mSamplePointLocalIndexList, 0);
     if (r_communicator.Rank() == 0) {
         std::vector<int> found_global_points(mNumberOfSamplingPoints, -1);
         for (const auto& current_index_list : mSamplePointLocalIndexListMaster) {
-            for (const int sample_index : current_index_list) {
+            for (const auto sample_index : current_index_list) {
                 KRATOS_ERROR_IF(sample_index > mNumberOfSamplingPoints)
                     << "Sampling index error.\n";
                 KRATOS_ERROR_IF(found_global_points[sample_index] != -1)
@@ -279,7 +337,7 @@ void RansLineOutputProcess::UpdateSamplePoints()
                 found_global_points[sample_index] = 1;
             }
         }
-        for (int sample_index = 0; sample_index < mNumberOfSamplingPoints; ++sample_index) {
+        for (SizeType sample_index = 0; sample_index < mNumberOfSamplingPoints; ++sample_index) {
             KRATOS_WARNING_IF(this->Info(), found_global_points[sample_index] != 1)
                 << "Element not found for sample point at [ "
                 << mSamplingPoints[sample_index * 3] << ", "
@@ -343,7 +401,7 @@ void RansLineOutputProcess::WriteOutputFile() const
     const auto& r_communicator = r_model_part.GetCommunicator().GetDataCommunicator();
 
     const int my_pid = r_communicator.Rank();
-    const int number_of_local_points = mSamplePointLocalIndexList.size();
+    const SizeType number_of_local_points = mSamplePointLocalIndexList.size();
 
     // create getter methods
     const auto get_double = (mIsHistoricalValue) ? &GetHistoricalValue<double> : &GetNonHistoricalValue<double>;
@@ -356,14 +414,14 @@ void RansLineOutputProcess::WriteOutputFile() const
 
     // create and initialize variable start indices vectors
     const auto& r_node_begin = *(r_model_part.NodesBegin());
-    int total_doubles_length = 0;
-    const std::vector<int>& double_start_indices = GetVariableDataStartIndices<double>(r_node_begin, mDoubleVariablesList, get_double, total_doubles_length);
-    const std::vector<int>& array3_start_indices = GetVariableDataStartIndices<array_1d<double, 3>>(r_node_begin, mArray3VariablesList, get_array3, total_doubles_length);
-    const std::vector<int>& array4_start_indices = GetVariableDataStartIndices<array_1d<double, 4>>(r_node_begin, mArray4VariablesList, get_array4, total_doubles_length);
-    const std::vector<int>& array6_start_indices = GetVariableDataStartIndices<array_1d<double, 6>>(r_node_begin, mArray6VariablesList, get_array6, total_doubles_length);
-    const std::vector<int>& array9_start_indices = GetVariableDataStartIndices<array_1d<double, 9>>(r_node_begin, mArray9VariablesList, get_array9, total_doubles_length);
-    const std::vector<int>& vector_start_indices = GetVariableDataStartIndices<Vector>(r_node_begin, mVectorVariablesList, get_vector, total_doubles_length);
-    const std::vector<int>& matrix_start_indices = GetVariableDataStartIndices<Matrix>(r_node_begin, mMatrixVariablesList, get_matrix, total_doubles_length);
+    SizeType total_doubles_length = 0;
+    const IndicesVector& double_start_indices = GetVariableDataStartIndices<double>(r_node_begin, mDoubleVariablesList, get_double, total_doubles_length);
+    const IndicesVector& array3_start_indices = GetVariableDataStartIndices<array_1d<double, 3>>(r_node_begin, mArray3VariablesList, get_array3, total_doubles_length);
+    const IndicesVector& array4_start_indices = GetVariableDataStartIndices<array_1d<double, 4>>(r_node_begin, mArray4VariablesList, get_array4, total_doubles_length);
+    const IndicesVector& array6_start_indices = GetVariableDataStartIndices<array_1d<double, 6>>(r_node_begin, mArray6VariablesList, get_array6, total_doubles_length);
+    const IndicesVector& array9_start_indices = GetVariableDataStartIndices<array_1d<double, 9>>(r_node_begin, mArray9VariablesList, get_array9, total_doubles_length);
+    const IndicesVector& vector_start_indices = GetVariableDataStartIndices<Vector>(r_node_begin, mVectorVariablesList, get_vector, total_doubles_length);
+    const IndicesVector& matrix_start_indices = GetVariableDataStartIndices<Matrix>(r_node_begin, mMatrixVariablesList, get_matrix, total_doubles_length);
 
     // check sizes of dynamic variables in nodes
     const int number_of_vector_variables = mVectorVariablesList.size();
@@ -372,7 +430,7 @@ void RansLineOutputProcess::WriteOutputFile() const
     {
         // check for vector sizes
         const auto& r_node = *(r_model_part.NodesBegin() + iNode);
-        int local_index = vector_start_indices[0];
+        SizeType local_index = vector_start_indices[0];
         for (int i = 0; i < number_of_vector_variables; ++i) {
             const auto& r_variable = *(mVectorVariablesList[i]);
             const auto& r_value = (*get_vector)(r_node, r_variable);
@@ -399,11 +457,11 @@ void RansLineOutputProcess::WriteOutputFile() const
 
     // calculate local sampling point values
     IndexPartition<int>(number_of_local_points).for_each([&](const int SamplingIndex) {
-        const int global_index = mSamplePointLocalIndexList[SamplingIndex];
+        const SizeType global_index = mSamplePointLocalIndexList[SamplingIndex];
         const auto& r_geometry =
             r_model_part.GetElement(mSamplingPointElementIds[global_index]).GetGeometry();
         const Vector& r_shape_functions = mSamplingPointElementShapeFunctions[global_index];
-        const int local_sample_point_offset = SamplingIndex * total_doubles_length;
+        const SizeType local_sample_point_offset = static_cast<SizeType>(SamplingIndex) * total_doubles_length;
 
         InterpolateVariables(
             local_sampled_values, r_geometry, r_shape_functions, local_sample_point_offset,
@@ -428,9 +486,11 @@ void RansLineOutputProcess::WriteOutputFile() const
         for (int rank = 0; rank < number_of_processes; ++rank) {
             const auto& local_indices = mSamplePointLocalIndexListMaster[rank];
             IndexPartition<int>(local_indices.size()).for_each([&](const int i) {
-                for (int j = 0; j < total_doubles_length; ++j) {
-                    global_values[local_indices[i] * total_doubles_length + j] =
-                        global_sample_point_double_values[rank][i * total_doubles_length + j];
+                const SizeType global_offset = local_indices[i] * total_doubles_length;
+                const SizeType local_offset = static_cast<SizeType>(i) * total_doubles_length;
+                for (SizeType j = 0; j < total_doubles_length; ++j) {
+                    global_values[global_offset + j] =
+                        global_sample_point_double_values[rank][local_offset + j];
                 }
             });
         }
@@ -463,13 +523,13 @@ void RansLineOutputProcess::WriteOutputFile() const
         output_file << "\n";
 
         // writing the sample point data
-        int local_index = 0;
-        for (int i = 0; i < mNumberOfSamplingPoints; ++i) {
+        SizeType local_index = 0;
+        for (SizeType i = 0; i < mNumberOfSamplingPoints; ++i) {
             output_file << (i + 1) << "," << mSamplingPoints[i * 3] << ","
                         << mSamplingPoints[i * 3 + 1] << ","
                         << mSamplingPoints[i * 3 + 2];
 
-            for (int j = 0; j < total_doubles_length; ++j) {
+            for (SizeType j = 0; j < total_doubles_length; ++j) {
                 output_file << "," << global_values[local_index++];
             }
             output_file << "\n";

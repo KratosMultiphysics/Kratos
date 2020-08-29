@@ -29,8 +29,18 @@ namespace Kratos
 
 namespace LineOutputProcessUtilities
 {
+///@name Type Definitions
+///@{
+
 using NodeType = ModelPart::NodeType;
 using GeometryType = ModelPart::ElementType::GeometryType;
+using SizeType = std::size_t;
+using IndicesVector = std::vector<SizeType>;
+
+///@}
+
+///@name Kratos Classes
+///@{
 
 /**
  * @brief Class to get variable information
@@ -51,11 +61,22 @@ public:
     static void inline AddToValuesVector(
         std::vector<double>& rValuesVector,
         const TDataType& rValue,
-        const std::size_t StartIndex)
+        const SizeType StartIndex)
     {
-        for (std::size_t i = 0; i < rValue.size(); ++i) {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(StartIndex >= rValuesVector.size() + rValue.size())
+            << "rValuesVector size is not enough to allocate values. "
+               "rValuesVector vector should have atleast "
+            << rValue.size()
+            << " elements from(including) StartIndex value. [ StartIndex = " << StartIndex
+            << ", rValuesVector.size() = " << rValuesVector.size() << " ].\n";
+
+        for (SizeType i = 0; i < rValue.size(); ++i) {
             rValuesVector[StartIndex + i] += rValue[i];
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -70,26 +91,41 @@ public:
         std::vector<std::string>& rNamesVector,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue,
-        const std::size_t StartIndex)
+        const SizeType StartIndex)
     {
-        for (std::size_t i = 0; i < rValue.size(); ++i) {
+        KRATOS_TRY
+
+        KRATOS_DEBUG_ERROR_IF(StartIndex >= rNamesVector.size() + rValue.size())
+            << "rNamesVector size is not enough to allocate values. "
+               "rNamesVector vector should have atleast "
+            << rValue.size()
+            << " elements from(including) StartIndex value. [ StartIndex = " << StartIndex
+            << ", rNamesVector.size() = " << rNamesVector.size() << " ].\n";
+
+        for (SizeType i = 0; i < rValue.size(); ++i) {
             rNamesVector[StartIndex + i] =
                 rVariable.Name() + "_" + std::to_string(i + 1);
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
      * @brief Get the Variable Data Length
      *
      * @param rValue        Value to determin dynamic variable lengths
-     * @return int          Length of the rValue (in flattened number of doubles)
+     * @return SizeType     Length of the rValue (in flattened number of doubles)
      */
-    static int inline GetVariableDataLength(
+    static SizeType inline GetVariableDataLength(
         const TDataType& rValue)
     {
-        return static_cast<int>(rValue.size());
+        return rValue.size();
     }
 };
+
+///@}
+///@name Operations
+///@{
 
 /**
  * @brief Modifies names from list of variables
@@ -109,7 +145,7 @@ void inline AddVariablesListNamesToVector(
     std::vector<std::string>& rNamesList,
     const NodeType& rNode,
     const std::vector<const Variable<TDataType>*>& rVariablesList,
-    const std::vector<int>& rVariableValuesStartIndex,
+    const IndicesVector& rVariableValuesStartIndex,
     TValueGetterFunction* pValueGetterFunction)
 {
     for (std::size_t i = 0; i < rVariablesList.size(); ++i) {
@@ -165,26 +201,25 @@ TDataType inline GetNonHistoricalValue(
  * @param rVariablesList            List of variables to calculate start positions
  * @param pValueGetterFunction      Function pointer to read values from nodes
  * @param Offset                    Initial offset for flattned data. (This value will be overwritten by new offset)
- * @return std::vector<int>         Vector containing all start positions for each variable
+ * @return IndicesVector    Vector containing all start positions for each variable
  */
 template <class TDataType, class TValueGetterFunction>
-std::vector<int> GetVariableDataStartIndices(
+IndicesVector GetVariableDataStartIndices(
     const NodeType& rNode,
     const std::vector<const Variable<TDataType>*>& rVariablesList,
     TValueGetterFunction* pValueGetterFunction,
-    int& Offset)
+    SizeType& Offset)
 {
-    const int number_of_variables = rVariablesList.size();
-    std::vector<int> start_indices(number_of_variables + 1);
-    int start_index = Offset;
-    for (int i = 0; i < number_of_variables; ++i) {
-        start_indices[i] = start_index;
-        start_index += VariableDataCollector<TDataType>::GetVariableDataLength(
+    const auto number_of_variables = rVariablesList.size();
+    IndicesVector start_indices(number_of_variables + 1);
+
+    for (SizeType i = 0; i < number_of_variables; ++i) {
+        start_indices[i] = Offset;
+        Offset += VariableDataCollector<TDataType>::GetVariableDataLength(
             (*pValueGetterFunction)(rNode, *(rVariablesList[i])));
     }
 
-    start_indices[number_of_variables] = start_index;
-    Offset = start_index;
+    start_indices[number_of_variables] = Offset;
 
     return start_indices;
 }
@@ -219,14 +254,14 @@ void inline AddInterpolationContributions(
     const ModelPart::NodeType& rNode,
     const double ShapeFunctionValue,
     TValueGetterFunction* pValueGetterFunction,
-    const std::vector<int>& rVariableValuesStartIndex,
+    const IndicesVector& rVariableValuesStartIndex,
     const std::vector<const Variable<TDataType>*>& rVariablesList,
-    const std::size_t StartIndexOffset)
+    const SizeType StartIndexOffset)
 {
     using variable_data_collector =
         LineOutputProcessUtilities::VariableDataCollector<TDataType>;
 
-    for (std::size_t i = 0; i < rVariablesList.size(); ++i) {
+    for (SizeType i = 0; i < rVariablesList.size(); ++i) {
         variable_data_collector::AddToValuesVector(
             rValuesList, (*pValueGetterFunction)(rNode, *(rVariablesList[i])) * ShapeFunctionValue,
             StartIndexOffset + rVariableValuesStartIndex[i]);
@@ -240,7 +275,7 @@ void inline AddInterpolationContributions(
  * and shape function.
  *
  * TVariableInfoTuplesList is a tuple, which should contain 3 tuple_elements.
- *      1. std::vector<int> to hold start indices of each variable.
+ *      1. IndicesVector to hold start indices of each variable.
  *      2. std::vector<const Variable<TDataType>*> to hold list of variable pointers.
  *      3. Value getter function pointer returning TDataType and accepts const ModelPart::NodeType&, and const Variable<TDataType>& input args
  *
@@ -256,17 +291,17 @@ void InterpolateVariables(
     std::vector<double>& rValuesList,
     const GeometryType& rGeometry,
     const Vector& rSamplingPointShapeFunctions,
-    const std::size_t LocalSamplePointValuesOffset,
+    const SizeType LocalSamplePointValuesOffset,
     const TVariableInfoTuplesList&... rVariableInfoTuplesList)
 {
     KRATOS_TRY
 
-    const std::size_t number_of_nodes = rGeometry.PointsNumber();
+    const SizeType number_of_nodes = rGeometry.PointsNumber();
 
     KRATOS_DEBUG_ERROR_IF(number_of_nodes != rSamplingPointShapeFunctions.size())
         << "number_of_nodes != rSamplingPointShapeFunctions.size().";
 
-    for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
+    for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = rGeometry[i_node];
         const double shape_function_value = rSamplingPointShapeFunctions[i_node];
 
@@ -282,6 +317,8 @@ void InterpolateVariables(
 
     KRATOS_CATCH("");
 }
+
+///@}
 
 } // namespace LineOutputProcessUtilities
 
@@ -312,6 +349,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RansLineOutputProcess);
 
     using NodeType = ModelPart::NodeType;
+    using SizeType = std::size_t;
+    using IndicesVector = std::vector<SizeType>;
 
     ///@}
     ///@name Life Cycle
@@ -380,13 +419,13 @@ private:
     bool mIsHistoricalValue;
     bool mUpdatePointsEachStep;
 
-    int mNumberOfSamplingPoints;
+    SizeType mNumberOfSamplingPoints;
     std::vector<double> mSamplingPoints;
     std::vector<int> mSamplingPointElementIds;
     std::vector<Vector> mSamplingPointElementShapeFunctions;
 
-    std::vector<int> mSamplePointLocalIndexList;
-    std::vector<std::vector<int>> mSamplePointLocalIndexListMaster;
+    IndicesVector mSamplePointLocalIndexList;
+    std::vector<IndicesVector> mSamplePointLocalIndexListMaster;
 
     template <class TDataType>
     using variables_vector_type = std::vector<const Variable<TDataType>*>;

@@ -211,6 +211,7 @@ class CustomProcessTest(UnitTest.TestCase):
             v[0] = node.X
             v[1] = node.Y
             v[2] = node.GetValue(Kratos.DENSITY)
+            v[3] = node.GetValue(Kratos.DENSITY) * 1.1
             node.SetValue(Kratos.EXTERNAL_FORCES_VECTOR, v)
 
             m = Kratos.Matrix(2, 2)
