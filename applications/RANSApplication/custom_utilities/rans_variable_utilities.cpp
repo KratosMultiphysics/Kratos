@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "rans_application_variables.h"
@@ -42,48 +43,23 @@ std::tuple<unsigned int, unsigned int> ClipScalarVariable(
     auto& r_communicator = rModelPart.GetCommunicator();
     auto& r_nodes = r_communicator.LocalMesh().Nodes();
 
-    class ClippingReducer{
-        public:
-            typedef std::tuple<unsigned int,unsigned int> value_type;
-            unsigned int number_of_nodes_below_minimum = 0;
-            unsigned int number_of_nodes_above_maximum = 0;
-
-            value_type GetValue()
-            {
-                value_type values;
-                std::get<0>(values) = number_of_nodes_below_minimum;
-                std::get<1>(values) = number_of_nodes_above_maximum;
-                return values;
-            }
-
-            void LocalReduce(const std::tuple<unsigned int, unsigned int>& node_values){
-                number_of_nodes_below_minimum += std::get<0>(node_values);
-                number_of_nodes_above_maximum += std::get<1>(node_values);
-            }
-            void ThreadSafeReduce(ClippingReducer& rOther){
-                #pragma omp critical
-                {
-                    this->number_of_nodes_below_minimum += rOther.number_of_nodes_below_minimum;
-                    this->number_of_nodes_above_maximum += rOther.number_of_nodes_above_maximum;
-                }
-            }
-    };
-
     unsigned int number_of_nodes_below_minimum, number_of_nodes_above_maximum;
-    std::tie(number_of_nodes_below_minimum, number_of_nodes_above_maximum) = BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each<ClippingReducer>(
-        [&](ModelPart::NodeType& rNode) -> std::tuple<unsigned int, unsigned int> {
-            double& r_value = rNode.FastGetSolutionStepValue(rVariable);
+    std::tie(number_of_nodes_below_minimum, number_of_nodes_above_maximum) =
+        BlockPartition<ModelPart::NodesContainerType>(r_nodes)
+            .for_each<CombinedReduction<SumReduction<unsigned int>, SumReduction<unsigned int>>>(
+                [&](ModelPart::NodeType& rNode) -> std::tuple<unsigned int, unsigned int> {
+                    double& r_value = rNode.FastGetSolutionStepValue(rVariable);
 
-            if (r_value < MinimumValue) {
-                r_value = MinimumValue;
-                return std::tuple<unsigned int, unsigned int>(1, 0);
-            } else if (r_value > MaximumValue) {
-                r_value = MaximumValue;
-                return std::tuple<unsigned int, unsigned int>(0, 1);
-            }
+                    if (r_value < MinimumValue) {
+                        r_value = MinimumValue;
+                        return std::tuple<unsigned int, unsigned int>(1, 0);
+                    } else if (r_value > MaximumValue) {
+                        r_value = MaximumValue;
+                        return std::tuple<unsigned int, unsigned int>(0, 1);
+                    }
 
-            return std::tuple<unsigned int, unsigned int>(0, 0);
-        });
+                    return std::tuple<unsigned int, unsigned int>(0, 0);
+                });
 
     r_communicator.SynchronizeVariable(rVariable);
 
@@ -109,33 +85,11 @@ double GetMinimumScalarValue(
     const auto& r_communicator = rModelPart.GetCommunicator();
     const auto& r_nodes = r_communicator.LocalMesh().Nodes();
 
-    class MinReducer{
-        public:
-            typedef double value_type;
-            double min_value = std::numeric_limits<double>::max();
-
-            value_type GetValue()
-            {
-                return min_value;
-            }
-
-            void LocalReduce(const double min_value){
-                this->min_value = std::min(this->min_value, min_value);
-            }
-            void ThreadSafeReduce(MinReducer& rOther){
-                #pragma omp critical
-                {
-                    this->min_value = std::min(this->min_value, rOther.min_value);
-                }
-            }
-    };
-
     const int number_of_nodes = r_nodes.size();
     const double min_value =
-        IndexPartition<int>(number_of_nodes).for_each<MinReducer>(
-            [&](const int i) -> double {
-                return (r_nodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            });
+        IndexPartition<int>(number_of_nodes).for_each<MinReduction<double>>([&](const int i) -> double {
+            return (r_nodes.begin() + i)->FastGetSolutionStepValue(rVariable);
+        });
 
     return r_communicator.GetDataCommunicator().MinAll(min_value);
 
@@ -151,33 +105,11 @@ double GetMaximumScalarValue(
     const auto& r_communicator = rModelPart.GetCommunicator();
     const auto& r_nodes = r_communicator.LocalMesh().Nodes();
 
-    class MaxReducer{
-        public:
-            typedef double value_type;
-            double max_value = std::numeric_limits<double>::lowest();
-
-            value_type GetValue()
-            {
-                return max_value;
-            }
-
-            void LocalReduce(const double max_value){
-                this->max_value = std::max(this->max_value, max_value);
-            }
-            void ThreadSafeReduce(MaxReducer& rOther){
-                #pragma omp critical
-                {
-                    this->max_value = std::max(this->max_value, rOther.max_value);
-                }
-            }
-    };
-
     const int number_of_nodes = r_nodes.size();
     const double max_value =
-        IndexPartition<int>(number_of_nodes).for_each<MaxReducer>(
-            [&](const int i) -> double {
-                return (r_nodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            });
+        IndexPartition<int>(number_of_nodes).for_each<MaxReduction<double>>([&](const int i) -> double {
+            return (r_nodes.begin() + i)->FastGetSolutionStepValue(rVariable);
+        });
 
     return r_communicator.GetDataCommunicator().MaxAll(max_value);
 

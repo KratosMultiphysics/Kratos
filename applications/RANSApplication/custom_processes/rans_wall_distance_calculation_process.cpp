@@ -23,6 +23,7 @@
 #include "processes/variational_distance_calculation_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
@@ -220,32 +221,8 @@ void RansWallDistanceCalculationProcess::CorrectWallDistances()
             return gp->FastGetSolutionStepValue(DISTANCE);
         });
 
-    class CustomReducer
-    {
-    public:
-        typedef int value_type;
-        int number_of_modified_nodes;
-
-        value_type GetValue()
-        {
-            return number_of_modified_nodes;
-        }
-
-        void LocalReduce(int ModifiedNodesCount)
-        {
-            this->number_of_modified_nodes += ModifiedNodesCount;
-        }
-        void ThreadSafeReduce(CustomReducer& rOther)
-        {
-#pragma omp critical
-            {
-                this->number_of_modified_nodes += rOther.number_of_modified_nodes;
-            }
-        }
-    };
-
     int number_of_modified_nodes =
-        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each<CustomReducer>(
+        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each<SumReduction<int>>(
             [&](ModelPart::NodeType& rNode) -> int {
                 if (rNode.FastGetSolutionStepValue(DISTANCE) < 0.0) {
                     const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
