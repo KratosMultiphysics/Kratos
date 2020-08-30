@@ -46,7 +46,6 @@ RansNutKOmegaSSTUpdateProcess::RansNutKOmegaSSTUpdateProcess(
     mModelPartName = rParameters["model_part_name"].GetString();
     mMinValue = rParameters["min_value"].GetDouble();
     mA1 = rParameters["a1"].GetDouble();
-    mB1 = rParameters["b1"].GetDouble();
     mBetaStar = rParameters["beta_star"].GetDouble();
 
     KRATOS_CATCH("");
@@ -91,18 +90,6 @@ int RansNutKOmegaSSTUpdateProcess::Check()
     KRATOS_CATCH("");
 }
 
-void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
-{
-    KRATOS_TRY
-
-    if (!mIsInitialized) {
-        this->Execute();
-        mIsInitialized = true;
-    }
-
-    KRATOS_CATCH("");
-}
-
 void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
 {
     RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ElementsContainerType>(
@@ -112,7 +99,19 @@ void RansNutKOmegaSSTUpdateProcess::ExecuteInitialize()
         << "Calculated number of neighbour elements in " << mModelPartName << ".\n";
 }
 
-void RansNutKOmegaSSTUpdateProcess::Execute()
+void RansNutKOmegaSSTUpdateProcess::ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY
+
+    if (!mIsInitialized) {
+        this->ExecuteAfterCouplingSolveStep();
+        mIsInitialized = true;
+    }
+
+    KRATOS_CATCH("");
+}
+
+void RansNutKOmegaSSTUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
@@ -240,7 +239,6 @@ const Parameters RansNutKOmegaSSTUpdateProcess::GetDefaultParameters() const
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
             "a1"              : 0.31,
-            "b1"              : 1.0,
             "beta_star"       : 0.09,
             "min_value"       : 1e-15
         })");
