@@ -60,9 +60,6 @@ void RandomFillNodalHistoricalVariable(
     const double MaxValue = 1.0,
     const int Step = 0);
 
-template <class TContainerType>
-TContainerType& GetContainer(ModelPart& rModelPart);
-
 template <class TContainerType, class TDataType>
 void RandomFillContainerVariable(
     ModelPart& rModelPart,
