@@ -1,11 +1,7 @@
-# Import Python modules
-import math
-
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class CouetteFlowTest(KratosUnittest.TestCase):
