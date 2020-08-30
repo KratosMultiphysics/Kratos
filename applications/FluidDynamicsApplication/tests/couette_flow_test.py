@@ -20,6 +20,7 @@ class CouetteFlowTest(KratosUnittest.TestCase):
     def setUp(self):
         self.print_output = False
         self.check_tolerance = 1.0e-6
+        self.check_relative_tolerance = 1.0e-8
         self.print_reference_values = False
         self.work_folder = "CouetteFlowTest"
         settings_filename = "ProjectParameters.json"
@@ -29,11 +30,17 @@ class CouetteFlowTest(KratosUnittest.TestCase):
             with open(settings_filename,'r') as parameter_file:
                 self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        # If required, add the output process
+    def runTest(self):
+        # If required, add the output process to the test settings
         if self.print_output:
             self._AddOutput()
 
-    def runTest(self):
+        # If required, add the reference values output process to the test settings
+        if self.print_reference_values:
+            self._AddReferenceValuesOutput()
+        else:
+            self._AddReferenceValuesCheck()
+
         # Create the test simulation
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
@@ -43,39 +50,6 @@ class CouetteFlowTest(KratosUnittest.TestCase):
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             KratosUtilities.DeleteFileIfExisting('couette_flow_test.time')
-
-    def checkResults(self):
-        fluid_model_part = self.model.GetModelPart("FluidModelPart")
-        self.reference_file = "reference_couette_flow_test_" + self.element_type
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            if self.print_reference_values:
-                with open(self.reference_file + '.csv','w') as ref_file:
-                    ref_file.write("#ID, VELOCITY_X, VELOCITY_Y, PRESSURE\n")
-                    for node in fluid_model_part.Nodes:
-                        vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
-                        temp = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE,0)
-                        ref_file.write("{0}, {1}, {2}, {3}\n".format(node.Id, vel[0], vel[1], temp))
-            else:
-                with open(self.reference_file + '.csv','r') as reference_file:
-                    reference_file.readline() # skip header
-                    line = reference_file.readline()
-
-                    for node in fluid_model_part.Nodes:
-                        values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                        #node_id = values[0]
-                        reference_vel_x = values[1]
-                        reference_vel_y = values[2]
-                        reference_press = values[3]
-
-                        velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                        self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
-                        self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
-                        pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-                        self.assertAlmostEqual(reference_press, pressure, delta = self.check_tolerance)
-
-                        line = reference_file.readline()
-                    if line != '': # If we did not reach the end of the reference file
-                        self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
     def _CustomizeSimulationSettings(self):
         # Customize simulation settings
@@ -120,11 +94,48 @@ class CouetteFlowTest(KratosUnittest.TestCase):
         gid_output_settings["Parameters"]["output_name"].SetString(output_name)
         self.parameters["output_processes"]["gid_output"].Append(gid_output_settings)
 
+    def _AddReferenceValuesOutput(self):
+        json_output_settings = KratosMultiphysics.Parameters("""{
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["VELOCITY","PRESSURE"],
+                "output_file_name" : "reference_couette_flow_test",
+                "model_part_name"  : "FluidModelPart.FluidParts_Fluid",
+                "time_frequency"   : 10.0
+            }
+        }""")
+        output_file_name = json_output_settings["Parameters"]["output_file_name"].GetString()
+        output_file_name += "_" + self.element_type + ".json"
+        json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
+        self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
+    
+    def _AddReferenceValuesCheck(self):
+        json_check_settings = KratosMultiphysics.Parameters("""{
+            "python_module" : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "FromJsonCheckResultProcess",
+            "Parameters"    : {
+                "check_variables"      : ["VELOCITY_X","VELOCITY_Y","PRESSURE"],
+                "input_file_name"      : "reference_couette_flow_test",
+                "model_part_name"      : "FluidModelPart.FluidParts_Fluid",
+                "tolerance"            : 0.0,
+                "relative_tolerance"   : 0.0,
+                "time_frequency"       : 10.0
+            }
+        }""")
+        input_file_name = json_check_settings["Parameters"]["input_file_name"].GetString()
+        input_file_name += "_" + self.element_type + ".json"
+        json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
+        json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_tolerance)
+        json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)
+        self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
+
 if __name__ == '__main__':
     test = CouetteFlowTest()
     test.setUp()
     # test.testCouetteFlow2DSymbolicStokes()
     test.testCouetteFlow2DSymbolicNavierStokes()
     test.runTest()
-    test.checkResults()
     test.tearDown()

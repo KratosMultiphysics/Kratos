@@ -90,6 +90,7 @@
                 "direction"       : [0.0,-1.0,0.0]
             }
         }],
-        "auxiliar_process_list"            : []
+        "auxiliar_process_list"            : [],
+        "json_check_process_list"          : []
     }
 }
