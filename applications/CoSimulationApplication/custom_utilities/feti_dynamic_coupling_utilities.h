@@ -104,6 +104,12 @@ namespace Kratos
 
         void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);
 
+        void GetInterfaceQuantity(ModelPart& rInterface, const Variable< array_1d<double, 3> >& rVariable,
+            Vector& rContainer, const SizeType nDOFs);
+
+        void GetInterfaceQuantity(ModelPart& rInterface, const Variable<double>& rVariable,
+            Vector& rContainer, const SizeType nDOFs);
+
         void ComposeProjector(Matrix& rProjector, const bool IsOrigin);
 
         void DetermineInvertedEffectiveMassMatrix(const Matrix& rEffectiveK, Matrix& rEffInvMass,

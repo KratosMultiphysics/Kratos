@@ -67,7 +67,6 @@ namespace Kratos
         // 1 - calculate unbalanced interface free velocity
         Vector unbalanced_interface_free_velocity(origin_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
-        KRATOS_WATCH(unbalanced_interface_free_velocity);
 
 
         // 2 - Construct projection matrices
@@ -77,7 +76,7 @@ namespace Kratos
         ComposeProjector(projector_origin, true);
 
         const SizeType destination_dofs = mpKDestination->size1();
-        Matrix projector_destination = Matrix(destination_interface_dofs, destination_dofs,0.0);
+        Matrix projector_destination = Matrix(origin_interface_dofs, destination_dofs,0.0);
         ComposeProjector(projector_destination, false);
 
 
@@ -131,39 +130,42 @@ namespace Kratos
 	{
         KRATOS_TRY
 
+        // Get origin velocities
         auto origin_interface_nodes = mrOriginInterfaceModelPart.NodesArray();
-        auto destination_interface_nodes = mrDestinationInterfaceModelPart.NodesArray();
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, rUnbalancedVelocities, dim);
 
-        rUnbalancedVelocities.clear();
-        if (rUnbalancedVelocities.size() != origin_interface_nodes.size() * dim)
-            rUnbalancedVelocities.resize(origin_interface_nodes.size() * dim);
-
-        // TODO this will need to be mortar mapped in the future
-        Vector mapped_destination_interface_velocities(origin_interface_nodes.size() * dim);
-
-        // Fill unbalanced velocities with origin velocities
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(origin_interface_nodes.size()); ++i)
+        // Get destination velocities
+        auto destination_interface_nodes = mrDestinationInterfaceModelPart.NodesArray();
+        Vector dest_vel_component(destination_interface_nodes.size());
+        Vector dest_vel_component_mapped(origin_interface_nodes.size());
+        for (size_t dof_index = 0; dof_index < dim; dof_index++)
         {
-            KRATOS_ERROR_IF_NOT(origin_interface_nodes[i]->Has(INTERFACE_EQUATION_ID))
-                << "Error";
-            IndexType interface_id = origin_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+            Variable<double>* p_var;
+            switch (dof_index)
+            {
+                case 0:
+                    p_var = &VELOCITY_X;
+                    break;
+                case 1:
+                    p_var = &VELOCITY_Y;
+                    break;
+                case 2:
+                    p_var = &VELOCITY_Z;
+                    break;
+                default:
+                    KRATOS_ERROR << "DOF DIMENSION EXCEEDS 3!";
+            }
+            GetInterfaceQuantity(mrDestinationInterfaceModelPart, *p_var, dest_vel_component, dim);
+            dest_vel_component_mapped = prod(trans(*mpMappingMatrix), dest_vel_component);
 
-            array_1d<double, 3>& vel = origin_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY);
-            for (size_t dof = 0; dof < dim; dof++)  rUnbalancedVelocities[dim * interface_id+dof] = vel[dof];
-        }
-
-        // Subtract mapped destination velocities
-        KRATOS_ERROR_IF_NOT(mapped_destination_interface_velocities.size() == rUnbalancedVelocities.size())
-            << "Mapped destination interface velocities and origin interface velocities must have the same size";
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(destination_interface_nodes.size()); i++)
-        {
-            IndexType interface_id = destination_interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-
-            array_1d<double, 3>& vel = destination_interface_nodes[i]->FastGetSolutionStepValue(VELOCITY);
-            for (size_t dof = 0; dof < dim; dof++)  rUnbalancedVelocities[dim * interface_id + dof] -= vel[dof];
+            // Subtract mapped velocities from origin
+            KRATOS_ERROR_IF_NOT(dest_vel_component_mapped.size() == origin_interface_nodes.size())
+                << "Mapped destination interface velocities and origin interface velocities must have the same size";
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(dest_vel_component_mapped.size()); i++){
+                rUnbalancedVelocities[i * dim + dof_index] -= dest_vel_component_mapped[i];
+            }
         }
 
         KRATOS_CATCH("")
@@ -199,6 +201,12 @@ namespace Kratos
             {
                 rProjector(interface_equation_id*dim + dof_dim, domain_equation_id + dof_dim) = projector_entry;
             }
+        }
+
+        // Incorporate mapping matrix into projector if it is the destination
+        if (!IsOrigin)
+        {
+            //rProjector = prod(trans(*mpMappingMatrix), rProjector);
         }
 
         // Debug check
@@ -383,6 +391,62 @@ namespace Kratos
                 }
                 KRATOS_WATCH(lagrange);
             }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void FetiDynamicCouplingUtilities::GetInterfaceQuantity(
+        ModelPart& rInterface, const Variable<array_1d<double, 3>>& rVariable,
+        Vector& rContainer, const SizeType nDOFs)
+    {
+        KRATOS_TRY
+
+        auto interface_nodes = rInterface.NodesArray();
+
+        if (rContainer.size() != interface_nodes.size() * nDOFs)
+            rContainer.resize(interface_nodes.size() * nDOFs);
+        else rContainer.clear();
+
+        KRATOS_ERROR_IF_NOT(interface_nodes[0]->Has(INTERFACE_EQUATION_ID))
+            << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The interface nodes do not have an interface equation ID.\n"
+            << "This is created by the mapper.\n";
+
+        // Fill up container
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(interface_nodes.size()); ++i)
+        {
+            IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+
+            array_1d<double, 3>& r_quantity = interface_nodes[i]->FastGetSolutionStepValue(rVariable);
+            for (size_t dof = 0; dof < nDOFs; dof++)  rContainer[nDOFs * interface_id + dof] = r_quantity[dof];
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void FetiDynamicCouplingUtilities::GetInterfaceQuantity(
+        ModelPart& rInterface, const Variable<double>& rVariable,
+        Vector& rContainer, const SizeType nDOFs)
+    {
+        KRATOS_TRY
+
+        auto interface_nodes = rInterface.NodesArray();
+
+        if (rContainer.size() != interface_nodes.size())
+            rContainer.resize(interface_nodes.size());
+        else rContainer.clear();
+
+        KRATOS_ERROR_IF_NOT(interface_nodes[0]->Has(INTERFACE_EQUATION_ID))
+            << "FetiDynamicCouplingUtilities::GetInterfaceQuantity | The interface nodes do not have an interface equation ID.\n"
+            << "This is created by the mapper.\n";
+
+        // Fill up container
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(interface_nodes.size()); ++i)
+        {
+            IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+            rContainer[interface_id] = interface_nodes[i]->FastGetSolutionStepValue(rVariable);
         }
 
         KRATOS_CATCH("")
