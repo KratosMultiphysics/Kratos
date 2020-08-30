@@ -313,7 +313,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ModelPart& rInterfaceModelPart = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
         ModelPart* pDomainModelPart = (IsOrigin) ? mpOriginDomain : mpDestinationDomain;
         const double gamma = (IsOrigin) ? mOriginGamma : mDestinationGamma;
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
