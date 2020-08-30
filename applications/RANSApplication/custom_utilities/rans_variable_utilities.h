@@ -96,7 +96,8 @@ double GetVariableValueNorm(const TDataType& rValue);
 template <typename TDataType>
 KRATOS_API(RANS_APPLICATION)
 std::tuple<double, double> CalculateTransientVariableConvergence(
-    const ModelPart& rModelPart, const Variable<TDataType>& rVariable);
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable);
 
 void KRATOS_API(RANS_APPLICATION) SetNodalVariables(
     ModelPart::NodesContainerType& rNodes,

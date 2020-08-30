@@ -52,13 +52,13 @@ std::tuple<unsigned int, unsigned int> ClipScalarVariable(
 
                     if (r_value < MinimumValue) {
                         r_value = MinimumValue;
-                        return std::tuple<unsigned int, unsigned int>(1, 0);
+                        return std::make_tuple<unsigned int, unsigned int>(1, 0);
                     } else if (r_value > MaximumValue) {
                         r_value = MaximumValue;
-                        return std::tuple<unsigned int, unsigned int>(0, 1);
+                        return std::make_tuple<unsigned int, unsigned int>(0, 1);
                     }
 
-                    return std::tuple<unsigned int, unsigned int>(0, 0);
+                    return std::make_tuple<unsigned int, unsigned int>(0, 0);
                 });
 
     r_communicator.SynchronizeVariable(rVariable);
