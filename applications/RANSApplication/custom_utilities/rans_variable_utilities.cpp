@@ -179,38 +179,36 @@ void CopyNodalSolutionStepVariablesList(
 }
 
 template <typename TDataType>
-void AssignConditionVariableValuesToNodes(ModelPart& rModelPart,
-                                          const Variable<TDataType>& rVariable,
-                                          const Flags& rFlag,
-                                          const bool FlagValue)
+void AssignConditionVariableValuesToNodes(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const Flags& rFlag,
+    const bool FlagValue)
 {
     auto& r_nodes = rModelPart.Nodes();
     VariableUtils().SetHistoricalVariableToZero(rVariable, r_nodes);
 
-    const int number_of_conditions = rModelPart.NumberOfConditions();
-#pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
-        auto& r_cond = *(rModelPart.ConditionsBegin() + i_cond);
-        if (r_cond.Is(rFlag) == FlagValue)
-        {
-            const int number_of_nodes = r_cond.GetGeometry().PointsNumber();
-            const auto& r_normal = r_cond.GetValue(rVariable);
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-            {
-                auto& r_node = r_cond.GetGeometry()[i_node];
-                r_node.SetLock();
-                r_node.FastGetSolutionStepValue(rVariable) +=
-                    r_normal * (1.0 / static_cast<double>(number_of_nodes));
-                r_node.UnSetLock();
+    BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
+        .for_each([&](ModelPart::ConditionType& rCondition) {
+            if (rCondition.Is(rFlag) == FlagValue) {
+                const int number_of_nodes = rCondition.GetGeometry().PointsNumber();
+                const auto& r_normal = rCondition.GetValue(rVariable);
+                for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    auto& r_node = rCondition.GetGeometry()[i_node];
+                    r_node.SetLock();
+                    r_node.FastGetSolutionStepValue(rVariable) +=
+                        r_normal * (1.0 / static_cast<double>(number_of_nodes));
+                    r_node.UnSetLock();
+                }
             }
-        }
-    }
+        });
 
     rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
 }
 
-void AddAnalysisStep(ModelPart& rModelPart, const std::string& rStepName)
+void AddAnalysisStep(
+    ModelPart& rModelPart,
+    const std::string& rStepName)
 {
     auto& r_process_info = rModelPart.GetProcessInfo();
     if (!r_process_info.Has(ANALYSIS_STEPS))
@@ -220,7 +218,9 @@ void AddAnalysisStep(ModelPart& rModelPart, const std::string& rStepName)
     r_process_info[ANALYSIS_STEPS].push_back(rStepName);
 }
 
-bool IsAnalysisStepCompleted(const ModelPart& rModelPart, const std::string& rStepName)
+bool IsAnalysisStepCompleted(
+    const ModelPart& rModelPart,
+    const std::string& rStepName)
 {
     const auto& r_process_info = rModelPart.GetProcessInfo();
     if (r_process_info.Has(ANALYSIS_STEPS))
@@ -234,52 +234,26 @@ bool IsAnalysisStepCompleted(const ModelPart& rModelPart, const std::string& rSt
     }
 }
 
-void AssignBoundaryFlagsToGeometries(ModelPart& rModelPart)
+void AssignBoundaryFlagsToGeometries(
+    ModelPart& rModelPart)
 {
-    const int number_of_conditions = rModelPart.NumberOfConditions();
-#pragma omp parallel for
-    for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
-    {
-        Condition& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
-        r_condition.SetValue(RANS_IS_INLET, r_condition.Is(INLET));
-        r_condition.SetValue(RANS_IS_OUTLET, r_condition.Is(OUTLET));
-        r_condition.SetValue(RANS_IS_STRUCTURE, r_condition.Is(STRUCTURE));
-    }
+    BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
+        .for_each([&](ModelPart::ConditionType& rCondition) {
+            rCondition.SetValue(RANS_IS_INLET, rCondition.Is(INLET));
+            rCondition.SetValue(RANS_IS_OUTLET, rCondition.Is(OUTLET));
+            rCondition.SetValue(RANS_IS_STRUCTURE, rCondition.Is(STRUCTURE));
+        });
 }
 
-void FixFlaggedDofs(ModelPart& rModelPart,
-                    const Variable<double>& rFixingVariable,
-                    const Flags& rFlag,
-                    const bool CheckValue)
+void CalculateMagnitudeSquareForNodal3DVariable(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double, 3>>& r3DVariable,
+    const Variable<double>& rOutputVariable)
 {
-    KRATOS_TRY
-
-    const int number_of_nodes = rModelPart.NumberOfNodes();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        auto& r_node = *(rModelPart.NodesBegin() + i_node);
-        if (r_node.Is(rFlag) == CheckValue)
-        {
-            r_node.Fix(rFixingVariable);
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-void CalculateMagnitudeSquareForNodal3DVariable(ModelPart& rModelPart,
-                                                const Variable<array_1d<double, 3>>& r3DVariable,
-                                                const Variable<double>& rOutputVariable)
-{
-    const int number_of_nodes = rModelPart.NumberOfNodes();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        auto& r_node = *(rModelPart.NodesBegin() + i_node);
-        const double magnitude = norm_2(r_node.FastGetSolutionStepValue(r3DVariable));
-        r_node.FastGetSolutionStepValue(rOutputVariable) = std::pow(magnitude, 2);
-    }
+    BlockPartition<ModelPart::NodesContainerType>(rModelPart.Nodes()).for_each([&](ModelPart::NodeType& rNode) {
+        const double magnitude = norm_2(rNode.FastGetSolutionStepValue(r3DVariable));
+        rNode.FastGetSolutionStepValue(rOutputVariable) = std::pow(magnitude, 2);
+    });
 }
 
 template <>
@@ -297,8 +271,9 @@ double GetVariableValueNorm(const array_1d<double, 3>& rValue)
 }
 
 template <typename TDataType>
-std::tuple<double, double> CalculateTransientVariableConvergence(const ModelPart& rModelPart,
-                                                                 const Variable<TDataType>& rVariable)
+std::tuple<double, double> CalculateTransientVariableConvergence(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable)
 {
     KRATOS_TRY
 
@@ -311,20 +286,21 @@ std::tuple<double, double> CalculateTransientVariableConvergence(const ModelPart
         << rModelPart.GetBufferSize() << ". Buffer size of 2 or greater is required to calculate transient variable convergence for "
         << rVariable.Name() << ".\n";
 
-    double dx = 0.0;
-    double number_of_dofs = 0.0;
-    double solution = 0.0;
-#pragma omp parallel for reduction(+ : dx, number_of_dofs, solution)
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        const auto& r_node = *(r_nodes.begin() + i_node);
-        const auto& r_old_value = r_node.FastGetSolutionStepValue(rVariable, 1);
-        const auto& r_new_value = r_node.FastGetSolutionStepValue(rVariable);
-        dx += std::pow(GetVariableValueNorm<TDataType>(r_new_value - r_old_value), 2);
-        solution += std::pow(GetVariableValueNorm<TDataType>(r_new_value), 2);
-        number_of_dofs += ((r_node.HasDofFor(rVariable) && !r_node.IsFixed(rVariable)) ||
-                           !r_node.HasDofFor(rVariable));
-    }
+    double dx, solution, number_of_dofs;
+    std::tie(dx, solution, number_of_dofs) =
+        IndexPartition<int>(number_of_nodes)
+            .for_each<CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<double>>>(
+                [&](const int iNode) -> std::tuple<double, double, double> {
+                    const auto p_node = r_nodes.begin() + iNode;
+                    const auto& r_old_value =
+                        p_node->FastGetSolutionStepValue(rVariable, 1);
+                    const auto& r_new_value = p_node->FastGetSolutionStepValue(rVariable);
+                    return std::make_tuple<double, double, double>(
+                        std::pow(GetVariableValueNorm<TDataType>(r_new_value - r_old_value), 2),
+                        std::pow(GetVariableValueNorm<TDataType>(r_new_value), 2),
+                        ((p_node->HasDofFor(rVariable) && !p_node->IsFixed(rVariable)) ||
+                         !p_node->HasDofFor(rVariable)));
+                });
 
     // to improve mpi communication performance
     const std::vector<double> process_values = {dx, solution, number_of_dofs};

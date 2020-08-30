@@ -84,13 +84,6 @@ void AssignBoundaryFlagsToGeometries(
     ModelPart& rModelPart);
 
 KRATOS_API(RANS_APPLICATION)
-void FixFlaggedDofs(
-    ModelPart& rModelPart,
-    const Variable<double>& rFixingVariable,
-    const Flags& rFlag,
-    const bool CheckValue = true);
-
-KRATOS_API(RANS_APPLICATION)
 void CalculateMagnitudeSquareForNodal3DVariable(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& r3DVariable,

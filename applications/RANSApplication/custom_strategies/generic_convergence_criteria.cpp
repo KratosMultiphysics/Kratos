@@ -44,7 +44,7 @@ void GenericConvergenceCriteria<UblasSpace<double, CompressedMatrix, Vector>, Ub
     std::tie(solution_norm, increase_norm, dof_num) =
         BlockPartition<DofsArrayType>(rDofSet)
             .for_each<CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<int>>>(
-                [&](DofType& rDof) -> std::tuple<double, double, int> {
+                [&](const DofType& rDof) -> std::tuple<double, double, int> {
                     if (rDof.IsFree()) {
                         const auto dof_value = rDof.GetSolutionStepValue(0);
                         const auto dof_increment = rDx[rDof.EquationId()];
