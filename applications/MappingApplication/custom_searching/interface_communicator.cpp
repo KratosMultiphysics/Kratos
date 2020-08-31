@@ -298,8 +298,6 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
             }
         }
 
-        KRATOS_WATCH(mEchoLevel)
-
         if (mEchoLevel > 1) {
             const auto& r_data_comm = rComm.GetDataCommunicator();
             sum_num_results = r_data_comm.Sum(sum_num_results, 0);
@@ -308,6 +306,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
             const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
 
             KRATOS_INFO_IF("Mapper", mEchoLevel > 1) << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
+            KRATOS_WARNING_IF("Mapper", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
         }
     }
 }
