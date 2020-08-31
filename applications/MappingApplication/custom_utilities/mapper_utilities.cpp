@@ -86,6 +86,14 @@ double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
             << "through \"search_radius\" in the mapper-settings (~2*element-size)" << std::endl;
 
         const auto bounding_box = ComputeGlobalBoundingBox(rModelPart);
+        const double dx = bounding_box[0] - bounding_box[1];
+        const double dy = bounding_box[2] - bounding_box[3];
+        const double dz = bounding_box[4] - bounding_box[5];
+
+        const double nominator = std::sqrt((dx*dx) + (dy*dy) + (dz*dz));
+        const double denominator = std::sqrt(static_cast<double>(r_comm.GlobalNumberOfNodes())); // std::pow()
+
+        max_element_size = nominator / denominator;
     }
 
     max_element_size = r_comm.GetDataCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
