@@ -20,7 +20,9 @@
 
 // Project includes
 #include "containers/model.h"
-#include "processes/process.h"
+
+// Application includes
+#include "rans_formulation_process.h"
 
 namespace Kratos
 {
@@ -37,7 +39,8 @@ namespace Kratos
  *
  */
 
-class KRATOS_API(RANS_APPLICATION) RansClipScalarVariableProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansClipScalarVariableProcess
+: public RansFormulationProcess
 {
 public:
     ///@name Type Definitions
@@ -72,6 +75,11 @@ public:
     int Check() override;
 
     void Execute() override;
+
+    void ExecuteAfterCouplingSolveStep() override
+    {
+        Execute();
+    }
 
     const Parameters GetDefaultParameters() const override;
 

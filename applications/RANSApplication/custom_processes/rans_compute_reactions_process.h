@@ -113,9 +113,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculates reaction on condition nodes
+     *
+     * Calculates reaction based on condition FRICTION_VELOCITY and PRESSURE values
+     * where wall laws are activated.
+     *
+     * @param rCondition
+     */
     void CalculateReactionValues(
         ModelPart::ConditionType& rCondition);
 
+    /**
+     * @brief Corrects given variable for periodic conditions
+     *
+     * This method adds contributions from its periodic neighbour node's rVariable value
+     * to own rVariable value and averages them.
+     *
+     * @param rModelPart
+     * @param rVariable
+     */
     void CorrectPeriodicNodes(
         ModelPart& rModelPart,
         const Variable<array_1d<double, 3>>& rVariable);

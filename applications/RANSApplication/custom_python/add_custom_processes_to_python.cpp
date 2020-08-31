@@ -23,6 +23,7 @@
 #include "spaces/ublas_space.h"
 
 // Application includes
+#include "custom_processes/rans_formulation_process.h"
 #include "custom_processes/rans_wall_function_update_process.h"
 #include "custom_processes/rans_k_turbulent_intensity_inlet_process.h"
 #include "custom_processes/rans_nut_y_plus_wall_function_update_process.h"
@@ -49,74 +50,62 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
-    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
-
-    using RansWallFunctionUpdateProcessType = RansWallFunctionUpdateProcess;
-    py::class_<RansWallFunctionUpdateProcessType, RansWallFunctionUpdateProcessType::Pointer, Process>(m, "RansWallFunctionUpdateProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const int>());
-
-    using RansKTurbulentIntensityInletProcessType = RansKTurbulentIntensityInletProcess;
-    py::class_<RansKTurbulentIntensityInletProcessType, RansKTurbulentIntensityInletProcessType::Pointer, Process>(m, "RansKTurbulentIntensityInletProcess")
+    py::class_<RansKTurbulentIntensityInletProcess, RansKTurbulentIntensityInletProcess::Pointer, Process>(m, "RansKTurbulentIntensityInletProcess")
         .def(py::init<Model&, Parameters&>());
-
-    using RansNutYPlusWallFunctionUpdateProcessType = RansNutYPlusWallFunctionUpdateProcess;
-    py::class_<RansNutYPlusWallFunctionUpdateProcessType, RansNutYPlusWallFunctionUpdateProcessType::Pointer, Process>(m, "RansNutYPlusWallFunctionUpdateProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
     // k-epsilon specific processes
-    using RansEpsilonTurbulentMixingLengthInletProcessType = RansEpsilonTurbulentMixingLengthInletProcess;
-    py::class_<RansEpsilonTurbulentMixingLengthInletProcessType, RansEpsilonTurbulentMixingLengthInletProcessType::Pointer, Process>(m, "RansEpsilonTurbulentMixingLengthInletProcess")
+    py::class_<RansEpsilonTurbulentMixingLengthInletProcess, RansEpsilonTurbulentMixingLengthInletProcess::Pointer, Process>(m, "RansEpsilonTurbulentMixingLengthInletProcess")
         .def(py::init<Model&, Parameters&>());
 
-    using RansNutKEpsilonUpdateProcessType = RansNutKEpsilonUpdateProcess;
-    py::class_<RansNutKEpsilonUpdateProcessType, RansNutKEpsilonUpdateProcessType::Pointer, Process>(m, "RansNutKEpsilonUpdateProcess")
+    // k-omega specific processes
+    py::class_<RansOmegaTurbulentMixingLengthInletProcess, RansOmegaTurbulentMixingLengthInletProcess::Pointer, Process>(m, "RansOmegaTurbulentMixingLengthInletProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    // misc. processes
+    py::class_<RansApplyExactNodalPeriodicConditionProcess, RansApplyExactNodalPeriodicConditionProcess::Pointer, Process>(m, "RansApplyExactNodalPeriodicConditionProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansApplyFlagToSkinProcess, RansApplyFlagToSkinProcess::Pointer, Process>(m, "RansApplyFlagToSkinProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansLineOutputProcess, RansLineOutputProcess::Pointer, Process>(m, "RansLineOutputProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansComputeReactionsProcess, RansComputeReactionsProcess::Pointer, Process>(m, "RansComputeReactionsProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    // adding RansFormulationProcesses
+    py::class_<RansFormulationProcess, RansFormulationProcess::Pointer, Process>(m, "RansFormulationProcess")
+        .def(py::init<>())
+        .def("ExecuteBeforeCouplingSolveStep", &RansFormulationProcess::ExecuteBeforeCouplingSolveStep)
+        .def("ExecuteAfterCouplingSolveStep", &RansFormulationProcess::ExecuteAfterCouplingSolveStep);
+
+    py::class_<RansClipScalarVariableProcess, RansClipScalarVariableProcess::Pointer, RansFormulationProcess>(m, "RansClipScalarVariableProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansNutKEpsilonUpdateProcess, RansNutKEpsilonUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKEpsilonUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const int>());
 
-    // k-omega specific processes
-    using RansOmegaTurbulentMixingLengthInletProcessType = RansOmegaTurbulentMixingLengthInletProcess;
-    py::class_<RansOmegaTurbulentMixingLengthInletProcessType, RansOmegaTurbulentMixingLengthInletProcessType::Pointer, Process>(m, "RansOmegaTurbulentMixingLengthInletProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansNutKOmegaUpdateProcessType = RansNutKOmegaUpdateProcess;
-    py::class_<RansNutKOmegaUpdateProcessType, RansNutKOmegaUpdateProcessType::Pointer, Process>(m, "RansNutKOmegaUpdateProcess")
-        .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const double, const int>());
-
-    // k-omega-sst specific processes
-    using RansWallDistanceCalculationProcessType = RansWallDistanceCalculationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    py::class_<RansWallDistanceCalculationProcessType, RansWallDistanceCalculationProcessType::Pointer, Process>(m, "RansWallDistanceCalculationProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansNutKOmegaSSTUpdateProcessType = RansNutKOmegaSSTUpdateProcess;
-    py::class_<RansNutKOmegaSSTUpdateProcessType, RansNutKOmegaSSTUpdateProcessType::Pointer, Process>(m, "RansNutKOmegaSSTUpdateProcess")
+    py::class_<RansNutKOmegaSSTUpdateProcess, RansNutKOmegaSSTUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaSSTUpdateProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const double, const double, const double, const int>());
 
-    // misc. processes
-    using RansApplyExactNodalPeriodicConditionProcessType = RansApplyExactNodalPeriodicConditionProcess;
-    py::class_<RansApplyExactNodalPeriodicConditionProcessType, RansApplyExactNodalPeriodicConditionProcessType::Pointer, Process>(m, "RansApplyExactNodalPeriodicConditionProcess")
+    py::class_<RansNutKOmegaUpdateProcess, RansNutKOmegaUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutKOmegaUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const int>());
+
+    py::class_<RansNutYPlusWallFunctionUpdateProcess, RansNutYPlusWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansNutYPlusWallFunctionUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+
+    py::class_<RansWallFunctionUpdateProcess, RansWallFunctionUpdateProcess::Pointer, RansFormulationProcess>(m, "RansWallFunctionUpdateProcess")
+        .def(py::init<Model&, Parameters&>())
+        .def(py::init<Model&, const std::string&, const double, const double, const int>());
+
+    py::class_<RansWallDistanceCalculationProcess, RansWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 
-    using RansApplyFlagToSkinProcessType = RansApplyFlagToSkinProcess;
-    py::class_<RansApplyFlagToSkinProcessType, RansApplyFlagToSkinProcessType::Pointer, Process>(m, "RansApplyFlagToSkinProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansClipScalarVariableProcessType = RansClipScalarVariableProcess;
-    py::class_<RansClipScalarVariableProcessType, RansClipScalarVariableProcessType::Pointer, Process>(m, "RansClipScalarVariableProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansLineOutputProcessType = RansLineOutputProcess;
-    py::class_<RansLineOutputProcessType, RansLineOutputProcessType::Pointer, Process>(m, "RansLineOutputProcess")
-        .def(py::init<Model&, Parameters&>());
-
-    using RansComputeReactionsProcessType = RansComputeReactionsProcess;
-    py::class_<RansComputeReactionsProcessType, RansComputeReactionsProcessType::Pointer, Process>(m, "RansComputeReactionsProcess")
-        .def(py::init<Model&, Parameters&>());
 }
 } // namespace Python
 } // namespace Kratos

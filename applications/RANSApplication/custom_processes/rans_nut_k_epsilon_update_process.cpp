@@ -88,14 +88,14 @@ void RansNutKEpsilonUpdateProcess::ExecuteInitializeSolutionStep()
     KRATOS_TRY
 
     if (!mIsInitialized) {
-        this->Execute();
+        this->ExecuteAfterCouplingSolveStep();
         mIsInitialized = true;
     }
 
     KRATOS_CATCH("");
 }
 
-void RansNutKEpsilonUpdateProcess::Execute()
+void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 

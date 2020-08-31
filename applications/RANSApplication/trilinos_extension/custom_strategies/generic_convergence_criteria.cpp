@@ -17,7 +17,8 @@
 /* Project includes */
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 #include "Epetra_FEVector.h"
 #include "trilinos_space.h"
@@ -40,46 +41,30 @@ void GenericConvergenceCriteria<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVecto
 {
     KRATOS_TRY
 
-    int number_of_dofs = rDofSet.size();
-
-    double solution_norm{0.0}, increase_norm{0.0};
-    int dof_num{0};
-
-    // Set a partition for OpenMP
-    PartitionVector dof_partition;
-    const int number_of_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::DivideInPartitions(number_of_dofs, number_of_threads, dof_partition);
-
     const Communicator& r_communicator = rModelPart.GetCommunicator();
     const int my_pid = r_communicator.MyPID();
 
-    // Loop over Dofs
-#pragma omp parallel reduction(+ : solution_norm, increase_norm, dof_num)
-    {
-        const int k = OpenMPUtils::ThisThread();
-        typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_partition[k];
-        typename DofsArrayType::iterator dof_end = rDofSet.begin() + dof_partition[k + 1];
+    double solution_norm, increase_norm;
+    int dof_num;
 
-        std::size_t dof_id;
-        TDataType dof_value;
-        TDataType dof_increment;
+    std::tie(solution_norm, increase_norm, dof_num) =
+        BlockPartition<DofsArrayType>(rDofSet)
+            .for_each<CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<int>>>(
+                [&](const DofType& rDof) -> std::tuple<double, double, int> {
+                    if (rDof.IsFree() && rDof.GetSolutionStepValue(PARTITION_INDEX) == my_pid) {
+                        const auto dof_value = rDof.GetSolutionStepValue(0);
+                        const auto dof_increment =
+                            SparseSpaceType::GetValue(rDx, rDof.EquationId());
 
-        for (typename DofsArrayType::iterator itDof = dof_begin; itDof != dof_end; ++itDof) {
-            if (itDof->IsFree() && itDof->GetSolutionStepValue(PARTITION_INDEX) == my_pid) {
-                dof_id = itDof->EquationId();
-                dof_value = itDof->GetSolutionStepValue(0);
-                dof_increment = SparseSpaceType::GetValue(rDx, dof_id);
+                        return std::make_tuple<double, double, int>(
+                            dof_value * dof_value, dof_increment * dof_increment, 1);
+                    } else {
+                        return std::make_tuple<double, double, int>(0.0, 0.0, 0);
+                    }
+                });
 
-                solution_norm += dof_value * dof_value;
-                increase_norm += dof_increment * dof_increment;
-                dof_num += 1;
-            }
-        }
-    }
-
-    std::vector<double> residual_norms = {increase_norm, solution_norm,
-                                          static_cast<double>(dof_num)};
-    const std::vector<double>& total_residual_norms =
+    auto residual_norms = {increase_norm, solution_norm, static_cast<double>(dof_num)};
+    const auto& total_residual_norms =
         r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
     rSolutionNorm = std::sqrt(total_residual_norms[1]);

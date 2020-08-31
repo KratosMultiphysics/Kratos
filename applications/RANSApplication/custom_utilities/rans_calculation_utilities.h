@@ -202,6 +202,16 @@ bool IsInlet(
 template <class TContainerType>
 TContainerType& GetContainer(ModelPart& rModelPart);
 
+/**
+ * @brief Calculates number of neighbours
+ *
+ * Calculates number of neighbours for a given entities in given model part.
+ * The number of neighbours will be stored in rOutputVariable
+ *
+ * @tparam TContainerType       Entities type (ConditionsContainerType, ElementsContainerType)
+ * @param rModelPart            Model part to look for neighbours
+ * @param rOutputVariable       Variable to store number of neighbour entities.
+ */
 template<class TContainerType>
 void CalculateNumberOfNeighbourEntities(
     ModelPart& rModelPart,

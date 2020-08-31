@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "custom_strategies/relaxed_dof_updater.h"
@@ -28,6 +29,23 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Algebraic flux corrected scalar steady transport scheme.
+ *
+ * This scheme is based on following publication.
+ *
+ * D. Kuzmin, Algebraic flux correction for finite element discretizations of coupled systems,
+ * Computational Methods for Coupled Problems in Science and Engineering II, CIMNE,
+ * Barcelona, (2007), pp. 653–656.
+ *
+ * This scheme can only be used to solve steady state problems with with elements derrived
+ * from ConvectionDiffusionReactionElement.
+ *
+ * @tparam TSparseSpace                     Sparse space type
+ * @tparam TDenseSpace                      Dense space type
+ *
+ * @see ConvectionDiffusionReactionElement
+ */
 template <class TSparseSpace, class TDenseSpace>
 class AlgebraicFluxCorrectedSteadyScalarScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
@@ -101,37 +119,34 @@ public:
         BaseType::Initialize(rModelPart);
 
         if (mrPeriodicIdVar != Variable<int>::StaticObject()) {
-            const int number_of_conditions = rModelPart.NumberOfConditions();
+            BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
+                .for_each([&](const ModelPart::ConditionType& rCondition) {
+                    if (rCondition.Is(PERIODIC)) {
+                        // this only supports 2 noded periodic conditions
+                        KRATOS_ERROR_IF(rCondition.GetGeometry().PointsNumber() != 2)
+                            << this->Info() << " only supports two noded periodic conditions. Found "
+                            << rCondition.Info() << " with "
+                            << rCondition.GetGeometry().PointsNumber() << " nodes.\n";
 
-#pragma omp parallel for
-            for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-                const auto& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
-                if (r_condition.Is(PERIODIC)) {
-                    // this only supports 2 noded periodic conditions
-                    KRATOS_ERROR_IF(r_condition.GetGeometry().PointsNumber() != 2)
-                        << this->Info() << " only supports two noded periodic conditions. Found "
-                        << r_condition.Info() << " with "
-                        << r_condition.GetGeometry().PointsNumber() << " nodes.\n";
+                        const auto& r_node_0 = rCondition.GetGeometry()[0];
+                        const std::size_t r_node_0_pair_id =
+                            r_node_0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                    const auto& r_node_0 = r_condition.GetGeometry()[0];
-                    const std::size_t r_node_0_pair_id =
-                        r_node_0.FastGetSolutionStepValue(mrPeriodicIdVar);
+                        const auto& r_node_1 = rCondition.GetGeometry()[1];
+                        const std::size_t r_node_1_pair_id =
+                            r_node_1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                    const auto& r_node_1 = r_condition.GetGeometry()[1];
-                    const std::size_t r_node_1_pair_id =
-                        r_node_1.FastGetSolutionStepValue(mrPeriodicIdVar);
+                        KRATOS_ERROR_IF(r_node_0_pair_id != r_node_1.Id())
+                            << "Periodic condition pair id mismatch in "
+                            << mrPeriodicIdVar.Name() << ". [ " << r_node_0_pair_id
+                            << " != " << r_node_1.Id() << " ].\n";
 
-                    KRATOS_ERROR_IF(r_node_0_pair_id != r_node_1.Id())
-                        << "Periodic condition pair id mismatch in "
-                        << mrPeriodicIdVar.Name() << ". [ " << r_node_0_pair_id
-                        << " != " << r_node_1.Id() << " ].\n";
-
-                    KRATOS_ERROR_IF(r_node_1_pair_id != r_node_0.Id())
-                        << "Periodic condition pair id mismatch in "
-                        << mrPeriodicIdVar.Name() << ". [ " << r_node_1_pair_id
-                        << " != " << r_node_0.Id() << " ].\n";
-                }
-            }
+                        KRATOS_ERROR_IF(r_node_1_pair_id != r_node_0.Id())
+                            << "Periodic condition pair id mismatch in "
+                            << mrPeriodicIdVar.Name() << ". [ " << r_node_1_pair_id
+                            << " != " << r_node_0.Id() << " ].\n";
+                    }
+                });
         }
 
         // Allocate auxiliary memory.
@@ -153,16 +168,14 @@ public:
         KRATOS_TRY
 
         auto& r_nodes = rModelPart.Nodes();
-        const int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            auto& r_node = *(r_nodes.begin() + i_node);
-            r_node.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
-            r_node.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
-            r_node.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
-            r_node.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
-        }
+        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
+            [&](ModelPart::NodeType& rNode) {
+                rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+                rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+                rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+                rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+            });
 
         auto& r_elements = rModelPart.Elements();
         const int number_of_elements = r_elements.size();
@@ -226,39 +239,37 @@ public:
         }
 
         if (mrPeriodicIdVar != Variable<int>::StaticObject()) {
-            const int number_of_conditions = rModelPart.NumberOfConditions();
-#pragma omp parallel for
-            for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond) {
-                auto& r_condition = *(rModelPart.ConditionsBegin() + i_cond);
-                if (r_condition.Is(PERIODIC)) {
-                    auto& r_node_0 = r_condition.GetGeometry()[0];
-                    auto& r_node_1 = r_condition.GetGeometry()[1];
+            BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
+                .for_each([&](ModelPart::ConditionType& rCondition) {
+                    if (rCondition.Is(PERIODIC)) {
+                        auto& r_node_0 = rCondition.GetGeometry()[0];
+                        auto& r_node_1 = rCondition.GetGeometry()[1];
 
-                    double p_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-                    double q_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-                    double p_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
-                    double q_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                        double p_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                        double q_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                        double p_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                        double q_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
-                    p_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-                    q_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-                    p_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
-                    q_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                        p_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                        q_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                        p_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                        q_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
-                    r_node_0.SetLock();
-                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
-                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
-                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
-                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
-                    r_node_0.UnSetLock();
+                        r_node_0.SetLock();
+                        r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
+                        r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
+                        r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
+                        r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
+                        r_node_0.UnSetLock();
 
-                    r_node_1.SetLock();
-                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
-                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
-                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
-                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
-                    r_node_1.UnSetLock();
-                }
-            }
+                        r_node_1.SetLock();
+                        r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
+                        r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
+                        r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
+                        r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
+                        r_node_1.UnSetLock();
+                    }
+                });
         }
 
         Communicator& r_communicator = rModelPart.GetCommunicator();
@@ -390,6 +401,16 @@ private:
     std::vector<LocalSystemMatrixType> mAntiDiffusiveFlux;
     std::vector<LocalSystemVectorType> mValues;
 
+    /**
+     * @brief Common method to calculate Element and Condition system matrices
+     *
+     * @tparam TItem                Type of item (can be ElementType or ConditionType)
+     * @param rItem                 Item instance
+     * @param rLeftHandSide         Lefthandside matrix
+     * @param rRightHandSide        Righthandside vector
+     * @param rAuxMatrix            Auxiliary matrix
+     * @param rCurrentProcessInfo   Current process info
+     */
     template <typename TItem>
     void CalculateSystemMatrix(
         TItem& rItem,
@@ -410,6 +431,12 @@ private:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Calculates artificial diffusion matrix for given discretized matrix
+     *
+     * @param rOutput   Diffusion matrix
+     * @param rInput    Input matrix
+     */
     void CalculateArtificialDiffusionMatrix(
         Matrix& rOutput,
         const Matrix& rInput)
@@ -438,6 +465,19 @@ private:
         }
     }
 
+    /**
+     * @brief Calculates anti-diffusive terms
+     *
+     * Diffusion calculated by CalculateArtificialDiffusionMatrix alters original problem. Therefore
+     * anti-diffusion terms are calculated to cancel diffusion terms where they are not necessary for
+     * stabilization of the Convection-Diffusion-Reaction scalar equation.
+     *
+     * @tparam TItem                Item type (can be ElementType or ConditionType)
+     * @param rRHS                  Righthandside vector
+     * @param rLHS                  Lefthandside matrix
+     * @param rItem                 Item instance
+     * @param rArtificialDiffusion  Calculated artificial diffusion
+     */
     template <typename TItem>
     void AddAntiDiffusiveFluxes(
         Vector& rRHS,
@@ -450,9 +490,9 @@ private:
         const auto k = OpenMPUtils::ThisThread();
         const auto size = rRHS.size();
 
-        LocalSystemMatrixType& r_anti_diffusive_flux_coefficients = mAntiDiffusiveFluxCoefficients[k];
-        LocalSystemMatrixType& r_anti_diffusive_flux = mAntiDiffusiveFlux[k];
-        LocalSystemVectorType& r_values = mValues[k];
+        auto& r_anti_diffusive_flux_coefficients = mAntiDiffusiveFluxCoefficients[k];
+        auto& r_anti_diffusive_flux = mAntiDiffusiveFlux[k];
+        auto& r_values = mValues[k];
 
         rItem.GetValuesVector(r_values);
         if (r_anti_diffusive_flux_coefficients.size1() != size ||
@@ -502,6 +542,13 @@ private:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Calculates allowed artifical diffusive fluxes
+     *
+     * @param rRPlus        Allowed positive fluxes
+     * @param rRMinus       Allowed negative fluxes
+     * @param rNode         Node
+     */
     void CalculateAntiDiffusiveFluxR(
         double& rRPlus,
         double& rRMinus,

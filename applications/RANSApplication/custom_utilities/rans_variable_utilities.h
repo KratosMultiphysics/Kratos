@@ -27,6 +27,16 @@ namespace Kratos
 
 namespace RansVariableUtilities
 {
+
+/**
+ * @brief Clipping scalar variable for given lower and upper bounds
+ *
+ * @param MinimumValue                                  Lower bound of the scalar variable
+ * @param MaximumValue                                  Upper bound of the scalar variable
+ * @param rVariable                                     Scalar variable
+ * @param rModelPart                                    ModelPart to bound scalar variable
+ * @return std::tuple<unsigned int, unsigned int>       First argument will be number of nodes below lower bound, second argument will be number of nodes above upper bound
+ */
 std::tuple<unsigned int, unsigned int> KRATOS_API(RANS_APPLICATION) ClipScalarVariable(
     const double MinimumValue,
     const double MaximumValue,
@@ -74,13 +84,6 @@ void AssignBoundaryFlagsToGeometries(
     ModelPart& rModelPart);
 
 KRATOS_API(RANS_APPLICATION)
-void FixFlaggedDofs(
-    ModelPart& rModelPart,
-    const Variable<double>& rFixingVariable,
-    const Flags& rFlag,
-    const bool CheckValue = true);
-
-KRATOS_API(RANS_APPLICATION)
 void CalculateMagnitudeSquareForNodal3DVariable(
     ModelPart& rModelPart,
     const Variable<array_1d<double, 3>>& r3DVariable,
@@ -93,7 +96,8 @@ double GetVariableValueNorm(const TDataType& rValue);
 template <typename TDataType>
 KRATOS_API(RANS_APPLICATION)
 std::tuple<double, double> CalculateTransientVariableConvergence(
-    const ModelPart& rModelPart, const Variable<TDataType>& rVariable);
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable);
 
 void KRATOS_API(RANS_APPLICATION) SetNodalVariables(
     ModelPart::NodesContainerType& rNodes,
