@@ -139,18 +139,6 @@ namespace Kratos
             KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "LineSearchStrategy");
         }
 
-        /**
-         * Checks if the ExplicitStrategy performs correctly the Factory
-         */
-        KRATOS_TEST_CASE_IN_SUITE(ExplicitStrategyFactory, KratosCoreFastSuite)
-        {
-            Model this_model;
-            auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"name" : "explicit_strategy"})");
-            StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "ExplicitStrategy");
-        }
-
     } // namespace Testing
 }  // namespace Kratos.
 
