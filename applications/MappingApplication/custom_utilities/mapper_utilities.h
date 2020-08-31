@@ -18,6 +18,7 @@
 
 // System includes
 #include <array>
+#include <vector>
 
 // External includes
 
@@ -46,6 +47,7 @@ typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
 typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
 using BoundingBoxType = std::array<double, 6>;
+// using BoundingBoxContainerType = std::vector<BoundingBoxType>;
 
 
 template< class TVarType >
@@ -254,15 +256,15 @@ inline double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart&
 
 void CheckInterfaceModelParts(const int CommRank);
 
-std::vector<double> ComputeLocalBoundingBox(const ModelPart& rModelPart);
+BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
 void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
                                        const double Tolerance,
                                        std::vector<double>& rBoundingBoxesWithTolerance);
 
-std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
+std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox);
 
-bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
+bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
                               const array_1d<double, 3>& rCoords);
 
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,

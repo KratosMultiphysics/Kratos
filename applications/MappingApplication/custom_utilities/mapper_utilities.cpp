@@ -130,9 +130,9 @@ void CheckInterfaceModelParts(const int CommRank)
     // }
 }
 
-std::vector<double> ComputeLocalBoundingBox(const ModelPart& rModelPart)
+BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart)
 {
-    std::vector<double> local_bounding_box {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
+    BoundingBoxType local_bounding_box {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
     // loop over all nodes (local and ghost(necessary if conditions have only ghost nodes) )
@@ -170,7 +170,7 @@ void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes
     }
 }
 
-std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
+std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox)
 {
     // xmax, xmin,  ymax, ymin,  zmax, zmin
     std::stringstream buffer;
@@ -183,7 +183,7 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
     return buffer.str();
 }
 
-bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
+bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
                               const array_1d<double, 3>& rCoords)
 {   // The Bounding Box should have some tolerance already!
     if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])   // check x-direction
@@ -201,7 +201,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 {
     const SizeType comm_size = rSendBuffer.size();
 
-    std::vector<double> bounding_box(6);
+    BoundingBoxType bounding_box;
     KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(rBoundingBoxes.size(), 6) == 0)
         << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
