@@ -17,6 +17,7 @@
 #define  KRATOS_MAPPER_UTILITIES_H_INCLUDED
 
 // System includes
+#include <array>
 
 // External includes
 
@@ -43,6 +44,8 @@ typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterface
 typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
 typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
 typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
+
+using BoundingBoxType = std::array<double, 6>;
 
 
 template< class TVarType >
