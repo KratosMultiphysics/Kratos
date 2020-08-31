@@ -258,6 +258,8 @@ void CheckInterfaceModelParts(const int CommRank);
 
 BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
+BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart);
+
 void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
                                        const double Tolerance,
                                        std::vector<double>& rBoundingBoxesWithTolerance);

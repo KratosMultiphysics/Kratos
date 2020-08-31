@@ -147,6 +147,34 @@ BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart)
     return local_bounding_box;
 }
 
+BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart)
+{
+    BoundingBoxType local_bounding_box = ComputeLocalBoundingBox(rModelPart);
+
+    array_1d<double,3> max_vals;
+    array_1d<double,3> min_vals;
+
+    // fill buffers for MPI
+    for (std::size_t i=0; i<3; ++i) {
+        max_vals[i] = local_bounding_box[i*2];
+        min_vals[i] = local_bounding_box[i*2+1];
+    }
+
+    // compute global values
+    const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+    max_vals = r_data_comm.MaxAll(max_vals);
+    min_vals = r_data_comm.MinAll(min_vals);
+
+    BoundingBoxType global_bounding_box;
+    // extract information from buffers
+    for (std::size_t i=0; i<3; ++i) {
+        global_bounding_box[i*2] = max_vals[i];
+        global_bounding_box[i*2+1] = min_vals[i];
+    }
+
+    return global_bounding_box;
+}
+
 void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
                                        const double Tolerance,
                                        std::vector<double>& rBoundingBoxesWithTolerance)
