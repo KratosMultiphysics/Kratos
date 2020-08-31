@@ -201,7 +201,7 @@ void NormalCalculationUtils::CalculateOnSimplex(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NormalCalculationUtils::CalculateShapeDerivativesOnSimplexConditions(
+void NormalCalculationUtils::CalculateNormalShapeDerivativesOnSimplex(
     ConditionsArrayType& rConditions,
     const std::size_t Dimension
     )
@@ -215,7 +215,8 @@ void NormalCalculationUtils::CalculateShapeDerivativesOnSimplexConditions(
 
         // calculate condition normal shape derivatives
         BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
-            if (rCondition.GetGeometry().PointsNumber() == 2) {
+            if (rCondition.GetGeometry().GetGeometryType() ==
+                GeometryData::KratosGeometryType::Kratos_Line2D2) {
                 CalculateNormalShapeDerivative2D(rCondition);
             }
         });
@@ -226,7 +227,8 @@ void NormalCalculationUtils::CalculateShapeDerivativesOnSimplexConditions(
 
         // calculate condition normal shape derivatives
         BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
-            if (rCondition.GetGeometry().PointsNumber() == 3) {
+            if (rCondition.GetGeometry().GetGeometryType() ==
+                GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
                 CalculateNormalShapeDerivative3D(rCondition);
             }
         });

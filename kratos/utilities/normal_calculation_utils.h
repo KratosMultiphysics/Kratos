@@ -141,7 +141,7 @@ public:
      * @param rConditions   List of conditions where shape sensitivities need to be calculated.
      * @param Dimension     Dimensionality of the conditions
      */
-    void CalculateShapeDerivativesOnSimplexConditions(
+    void CalculateNormalShapeDerivativesOnSimplex(
         ConditionsArrayType& rConditions,
         const std::size_t Dimension
     );

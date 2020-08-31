@@ -53,7 +53,7 @@ def FiniteDifferenceNormalShapeSensitivityTest(UnitTestObject, model_part, check
     normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
 
     ## calculate analytical shape derivatives for all conditions
-    normal_calculation_utils.CalculateShapeDerivativesOnSimplexConditions(model_part.Conditions, dimensionality)
+    normal_calculation_utils.CalculateNormalShapeDerivativesOnSimplex(model_part.Conditions, dimensionality)
     def get_matrix_row(matrix, row):
         v = KratosMultiphysics.Array3(0.0)
         for i in range(matrix.Size2()):
