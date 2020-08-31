@@ -90,7 +90,7 @@ void RansWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
     KRATOS_TRY
 
     if (!mIsInitialized) {
-        this->Execute();
+        this->ExecuteAfterCouplingSolveStep();
         mIsInitialized = true;
     }
 
@@ -106,7 +106,7 @@ void RansWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
         << "Calculated number of neighbour conditions in " << mModelPartName << ".\n";
 }
 
-void RansWallFunctionUpdateProcess::Execute()
+void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
@@ -127,7 +127,7 @@ void RansWallFunctionUpdateProcess::Execute()
             gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const array_1d<double, 3>& r_normal = rCondition.GetValue(NORMAL);
+        const auto& r_normal = rCondition.GetValue(NORMAL);
         const double wall_height =
             RansCalculationUtilities::CalculateWallHeight(rCondition, r_normal);
 
@@ -136,7 +136,7 @@ void RansWallFunctionUpdateProcess::Execute()
         array_1d<double, 3> wall_velocity;
 
         for (size_t g = 0; g < num_gauss_points; ++g) {
-            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const auto& gauss_shape_functions = row(shape_functions, g);
 
             RansCalculationUtilities::EvaluateInPoint(
                 rCondition.GetGeometry(), gauss_shape_functions,
@@ -162,8 +162,7 @@ void RansWallFunctionUpdateProcess::Execute()
             }
         }
 
-        const double inv_number_of_gauss_points =
-            static_cast<double>(1.0 / num_gauss_points);
+        const double inv_number_of_gauss_points = 1.0 / num_gauss_points;
 
         rCondition.SetValue(RANS_Y_PLUS, condition_y_plus * inv_number_of_gauss_points);
         rCondition.SetValue(FRICTION_VELOCITY, condition_u_tau * inv_number_of_gauss_points);

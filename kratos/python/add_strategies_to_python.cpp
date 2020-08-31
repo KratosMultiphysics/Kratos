@@ -34,7 +34,6 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-#include "solving_strategies/strategies/explicit_strategy.h"
 //#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
 
 // Schemes
@@ -56,6 +55,7 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
+#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -410,6 +410,14 @@ namespace Kratos
                 .def(py::init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
                 ;
 
+            typedef typename MixedGenericCriteria<SparseSpaceType, LocalSpaceType>::ConvergenceVariableListType ConvergenceVariableListType;
+            py::class_<MixedGenericCriteria<SparseSpaceType, LocalSpaceType >,
+                typename MixedGenericCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
+                ConvergenceCriteriaType >
+                (m,"MixedGenericCriteria")
+                .def(py::init< const ConvergenceVariableListType& > ())
+                ;
+
             //********************************************************************
             //********************************************************************
             //********************************************************************
@@ -636,22 +644,6 @@ namespace Kratos
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
-
-            py::class_< ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-                typename ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                BaseSolvingStrategyType >(m,"Explicit_Strategy")
-                .def(py::init<ModelPart&, int, bool >() )
-                //AssembleLoop loops the elements calling AddExplicitContribution. Using processinfo the element is the one who "decides" which variable to modify.
-                .def("AssembleLoop",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssembleLoop)
-                //once the assembleloop has been performed, the variable must be normalized. (for example with the nodal mass or the nodal area). Loop on nodes.
-                .def("NormalizeVariable",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::NormalizeVariable)
-                //ExplicitUpdateLoop modifies a vectorial variable by adding another variable (the RHS, PRESS_PROJ,etc) multiplied by a user-given factor (ie delta_time)
-                .def("ExplicitUpdateLoop",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ExplicitUpdateLoop)
-                //initialize and finalize.
-                .def("InitializeSolutionStep",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
-                .def("FinalizeSolutionStep",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)
-                ;
-
         }
 
     } // namespace Python.

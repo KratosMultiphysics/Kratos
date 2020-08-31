@@ -54,6 +54,8 @@ public:
 
     using DofsArrayType = typename BaseType::DofsArrayType;
 
+    using DofType = typename DofsArrayType::value_type;
+
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     using TSystemVectorType = typename BaseType::TSystemVectorType;

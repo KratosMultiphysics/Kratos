@@ -19,7 +19,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(HarmonicAnalysisSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[HarmonicAnalysisSolver]:: ", "Construction finished")
 
     @classmethod
@@ -30,7 +30,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
                 "use_effective_material_damping" : false
             }
         }""")
-        this_defaults.AddMissingParameters(super(HarmonicAnalysisSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     #### Private functions ####
