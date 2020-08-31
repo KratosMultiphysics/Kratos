@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # Other imports
 import os
+from pathlib import Path
 
 class RestartUtility(object):
     """
@@ -192,21 +193,16 @@ class RestartUtility(object):
 
     def GetRestartFiles(self):
         """Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart files for each step."""
-        restart_files = {}
-        if os.path.isdir(self.__GetFolderPathSave()):
-            number_of_restart_files = 0
-
-            with os.scandir(path=self.__GetFolderPathSave()) as contents:
-                for entry in contents:
-                    if self.__IsRestartFile(entry):
-
-                        label = self.__ExtractFileLabel(entry.name) # Get thread ID and step ID
-                        if label[1] in restart_files:               # Check if this step has entries already
-                            restart_files[label[1]].append( entry.name )
-                        else:
-                            restart_files[label[1]] = [ entry.name ]
-
-                        number_of_restart_files += 1
+        restart_path    = Path( self.__GetFolderPathSave() )
+        restart_files   = {}
+        if restart_path.is_dir():
+            for entry in restart_path.glob("**/*"):
+                if entry.is_file() and self.__IsRestartFile( entry.name ):
+                    label = self.__ExtractFileLabel(entry.name) # Get thread ID and step ID
+                    if label[1] in restart_files:               # Check if this step has entries already
+                        restart_files[label[1]].append( entry.name )
+                    else:
+                        restart_files[label[1]] = [ entry.name ]
 
         return restart_files
 
@@ -279,23 +275,12 @@ class RestartUtility(object):
         pretty_time = float(pretty_time)
         return pretty_time
 
-    def __IsRestartFile(self, dir_entry):
-        """
-        Check whether the input os.DirEntry object refers to a file
-        and has an appropriate file name for a restart file.
-        """
-        if not isinstance( dir_entry, os.DirEntry ):
-            message =   "Expecting an "
-            message +=  type(os.DirEntry).__name__
-            message +=  ", got "
-            message +=  type(dir_entry).__name__
-            raise ValueError( message )
-
-        if dir_entry.is_file(follow_symlinks=False):
-            if dir_entry.name.endswith('.rest') and self.raw_file_name in os.path.basename(dir_entry.name):
-                # additional checks might have to be performed here if multiple simulations
-                # save their restart files in the same directory.
-                return True
+    def __IsRestartFile(self, file_name):
+        """Check whether the input file name is appropriate for a restart file."""
+        if file_name.endswith('.rest') and self.raw_file_name in os.path.basename(file_name):
+            # additional checks might have to be performed here if multiple simulations
+            # save their restart files in the same directory.
+            return True
         return False
 
     def __ExtractFileLabel(self, file_name):
