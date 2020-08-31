@@ -82,15 +82,18 @@ namespace Kratos
 
 
         // 3 - Determine domain response to unit loads
-        Matrix unit_response_origin;
+        Matrix unit_response_origin(projector_origin.size2(), projector_origin.size1());
         DetermineDomainUnitAccelerationResponse(*mpKOrigin, projector_origin, unit_response_origin);
+
+        Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
+        DetermineDomainUnitAccelerationResponse(*mpKDestination, projector_destination, unit_response_destination);
 
 
         // 3 - Invert effective mass matrices
-        Matrix inverted_origin_effective_mass_matrix;
+        //Matrix inverted_origin_effective_mass_matrix;
         //DetermineInvertedEffectiveMassMatrix(*mpKOrigin, inverted_origin_effective_mass_matrix, true);
 
-        Matrix inverted_destination_effective_mass_matrix;
+        //Matrix inverted_destination_effective_mass_matrix;
         //DetermineInvertedEffectiveMassMatrix(*mpKDestination, inverted_destination_effective_mass_matrix, false);
 
 
@@ -505,22 +508,64 @@ namespace Kratos
 
         rUnitResponse.clear();
 
-        for (size_t i = 0; i < system_dofs; ++i)
+        auto start = std::chrono::system_clock::now();
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
         {
-            Vector solution(interface_dofs);
-            Vector projector_transpose_column(interface_dofs);
-            for (size_t j = 0; j < interface_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
+            Vector solution(system_dofs);
+            Vector projector_transpose_column(system_dofs);
+            bool is_zero_rhs = true;
+            for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
 
-            KRATOS_WATCH(projector_transpose_column);
+            if (norm_2_square(projector_transpose_column) > 1e-12) is_zero_rhs = false;
 
-            mpSolver->Solve(rK, solution, projector_transpose_column);
+            if (is_zero_rhs)
+            {
+                solution.clear();
+            }
+            else
+            {
+                mpSolver->Solve(rK, solution, projector_transpose_column);
+                for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(i, j) = solution[j];
+            }
 
-            KRATOS_WATCH(solution);
-            KRATOS_WATCH(rUnitResponse);
-
-            for (size_t j = 0; j < interface_dofs; ++j) rUnitResponse(i, j) = solution[j];
-
-            KRATOS_WATCH(rUnitResponse);
         }
+        auto end = std::chrono::system_clock::now();
+        auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+
+        // reference answer - slow matrix inversion
+        const bool is_test_ref = false;
+        if (is_test_ref)
+        {
+            start = std::chrono::system_clock::now();
+            double det;
+            Matrix inv (rK.size1(),rK.size2());
+            MathUtils<double>::InvertMatrix(rK, inv, det);
+            Matrix ref = prod(inv, trans(rProjector));
+            end = std::chrono::system_clock::now();
+            auto elasped_invert = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+            std::cout << "solve time = " << elasped_solve.count() << "\n";
+            std::cout << "invert time = " << elasped_invert.count() << "\n";
+
+            double diff = 0.0;
+            for (size_t i = 0; i < ref.size1(); i++)
+            {
+                for (size_t j = 0; j < ref.size2(); j++)
+                {
+                    diff += ref(i, j)  - rUnitResponse(i, j) ;
+                }
+            }
+
+            if (diff > 1e-12)
+            {
+                KRATOS_WATCH(diff);
+                KRATOS_WATCH(rUnitResponse);
+                KRATOS_WATCH(ref);
+            }
+        }
+
+
     }
 } // namespace Kratos.
