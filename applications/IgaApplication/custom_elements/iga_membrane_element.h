@@ -103,6 +103,12 @@ protected:
         }
     };
 
+    /// Internal flags used for calculate reference or current kinematic
+    enum class ConfigurationType {
+        Current,
+        Reference
+    };
+
 public:
     ///@name Type Definitions
     ///@{
@@ -271,6 +277,36 @@ public:
     void Calculate(const Variable<Matrix>& rVariable,
         Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rValues: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rValues: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -309,10 +345,6 @@ public:
         Vector& rValues,
         int Step = 0) const override;
 
-    enum class ConfigurationType {
-        Current,
-        Reference
-    };
 
     ///@}
     ///@name Check
@@ -372,7 +404,7 @@ private:
     *  to the curvilinear system in voigt notation. */
     std::vector<Matrix> m_T_hat_vector;
 
-    /* */
+    // Contravatiant at reference configuration.
     std::vector<array_1d< array_1d<double, 3>,2>> m_reference_contravariant_base;
 
     /// The vector containing the constitutive laws for all integration points.
@@ -457,51 +489,19 @@ private:
         const Vector& rSD,
         const double IntegrationWeight);
     
-
     void CalculatePK2Stresses(
         IndexType IntegrationPointIndex,
-        Vector& rPK2Stresses,
+        array_1d<double, 3>& rPK2Stresses,
         KinematicVariables& rKinematicVariables,
         const Matrix& rShapeFunctionGradientValues,
         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateCauchyStresses(
         IndexType IntegrationPointIndex,
-        Vector& rCauchyStresses,
+        array_1d<double, 3>& rCauchyStresses,
         KinematicVariables& rKinematicVariables,
         const Matrix& rShapeFunctionGradientValues,
         const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-    * Calculate a double Variable on the Element Constitutive Law
-    * @param rVariable: The variable we want to get
-    * @param rValues: The values obtained int the integration points
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-    * Calculate a Vector Variable on the Element Constitutive Law
-    * @param rVariable: The variable we want to get
-    * @param rValues: The values obtained int the integration points
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
 
     ///@}
     ///@name Serialization
@@ -515,6 +515,8 @@ private:
         rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);
         rSerializer.save("dA_vector", m_dA_vector);
         rSerializer.save("T_vector", m_T_vector);
+        rSerializer.save("T_hat_vector", m_T_hat_vector);
+        rSerializer.save("reference_contravariant_base", m_reference_contravariant_base);
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
     }
 
@@ -524,6 +526,8 @@ private:
         rSerializer.load("A_ab_covariant_vector", m_A_ab_covariant_vector);
         rSerializer.load("dA_vector", m_dA_vector);
         rSerializer.load("T_vector", m_T_vector);
+        rSerializer.load("T_hat_vector", m_T_hat_vector);
+        rSerializer.load("reference_contravariant_base", m_reference_contravariant_base);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
 
