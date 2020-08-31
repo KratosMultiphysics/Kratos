@@ -118,7 +118,7 @@ namespace Kratos
             // green-lagrange strain
             const double e11_membrane = 0.5 * (inner_prod(actual_base_vector, actual_base_vector) - inner_prod(mReferenceBaseVector[point_number], mReferenceBaseVector[point_number]));
 
-            // normal forcereference_aa
+            // normal force reference_aa
             const double s11_membrane = prestress * A + e11_membrane * A * E / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
             for (IndexType r = 0; r < mat_size; r++)
@@ -239,6 +239,10 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    ///@}
+    ///@name Implicit
+    ///@{
+
     void IgaEdgeCableElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo
@@ -353,6 +357,10 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    ///@}
+    ///@name Postprocessing
+    ///@{
+
     void IgaEdgeCableElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
     {
@@ -380,7 +388,7 @@ namespace Kratos
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
 
-        if (rVariable == CABLE_STRESS)
+        if (rVariable == CABLE_FORCE)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
             {

@@ -25,6 +25,11 @@ class IgaEdgeCableElement
     : public Element
 {
 protected:
+    /// Internal flags used for calculate reference or current kinematic
+    enum class ConfigurationType {
+        Current,
+        Reference
+    };
 
 public:
     ///@name Type Definitions
@@ -172,6 +177,41 @@ public:
     }
 
     /**
+    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+    * @param rMassMatrix The elemental mass matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable: The variable we want to get
+    * @param rValues: The values obtained int the integration points
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
     * @param rCurrentProcessInfo The current process info instance
@@ -208,11 +248,6 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0) const override;
-
-    enum class ConfigurationType {
-      Current,
-      Reference
-    };
 
     ///@}
     ///@name Check
@@ -258,9 +293,7 @@ private:
     ///@{
 
     std::vector<array_1d<double, 3>> mReferenceBaseVector;
-
-    //Vector3 GetReferenceBaseVector() const;
-
+    
     array_1d<double, 3> GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration);
 
     ///@}
@@ -281,41 +314,6 @@ private:
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo
     );
-
-    /**
-    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
-    * @param rMassMatrix The elemental mass matrix
-    * @param rCurrentProcessInfo The current process info instance
-    */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
-    * @param rDampingMatrix The elemental damping matrix
-    * @param rCurrentProcessInfo The current process info instance
-    */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-    * Calculate a double Variable on the Element Constitutive Law
-    * @param rVariable: The variable we want to get
-    * @param rValues: The values obtained int the integration points
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
 
     ///@}
     ///@name Serialization
