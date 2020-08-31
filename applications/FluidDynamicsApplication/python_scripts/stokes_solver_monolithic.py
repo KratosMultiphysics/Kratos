@@ -7,9 +7,29 @@ from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolit
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
 
 class StabilizedStokesFormulation(StabilizedFormulation):
+    """
+    Helper class to define Stokes formulation parameters.
 
-    """Helper class to define stabilization-dependent parameters."""
+    Attributes:
+
+    element_name -- The registered element name for the chosen formulation
+    condition_neme  -- The registered condition name for the chosen formulation
+    element_integrates_in_time -- States if the time integration is wether done by the element or not
+    element_has_nodal_properties -- States if the material properties are wether stored in the nodes or not
+    process_data -- Auxiliary container to temporary store the elemental ProcessInfo data
+
+    """
+
     def __init__(self,settings):
+        """
+        Constructs the Stokes stabilized formulation auxiliary class
+
+        Arguments:
+
+        settings -- Kratos parameter object encapsulating the formulation settings
+
+        """
+
         self.element_name = None
         self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = False
@@ -45,6 +65,17 @@ def CreateSolver(main_model_part, custom_settings):
     return StokesSolverMonolithic(main_model_part, custom_settings)
 
 class StokesSolverMonolithic(NavierStokesSolverMonolithic):
+    """
+    Monolithic Stokes formulations solver.
+
+    This solver is an specialization of the Navier-Stokes monolithic solver
+    designed to be used in combination with elements implementing Stokes formulations.
+
+    The main differences with its base class are the possibility of forcing the steady
+    state by deactivating the time integration coefficients and the use of a linear
+    strategy by default. The non-linear Newton-Raphson strategy is also supported for
+    the non-newtonian material models case.
+    """
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -96,17 +127,17 @@ class StokesSolverMonolithic(NavierStokesSolverMonolithic):
         default_settings.AddMissingParameters(super(StokesSolverMonolithic, cls).GetDefaultSettings())
         return default_settings
 
-    """ Monolithic Stokes formulations solver.
-    
-    This solver is an specialization of the Navier-Stokes monolithic solver
-    designed to be used in combination with elements implementing Stokes formulations.
-
-    The main differences with its base class are the possibility of forcing the steady
-    state by deactivating the time integration coefficients and the use of a linear
-    strategy by default. The non-linear Newton-Raphson strategy is also supported for
-    the non-newtonian material models case.
-    """
     def __init__(self, model, custom_settings):
+        """
+        Constructs the Stokes monolithic solver
+
+        Arguments:
+
+        model -- The model container to be used
+        custom_settings -- Kratos parameter object encapsulating the solver settings
+
+        """
+
         self._validate_settings_in_baseclass = True # To be removed eventually
         super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of StokesSolverMonolithic finished.")
