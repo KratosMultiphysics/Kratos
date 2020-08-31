@@ -20,10 +20,6 @@
 #include "utilities/geometrical_transformation_utilities.h"
 #include "utilities/variable_utils.h"
 #include "containers/model.h"
-#ifdef KRATOS_USING_MPI
-    #include "custom_utilities/gather_modelpart_on_all_ranks.h"
-    #include "mpi/utilities/parallel_fill_communicator.h"
-#endif
 
 namespace Kratos
 {
@@ -85,14 +81,6 @@ template<int TDim>
 void SlidingInterfaceProcess<TDim>::ExecuteFinalizeSolutionStep()
 {
     mrMasterModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
-    #ifdef KRATOS_USING_MPI
-        const DataCommunicator &r_comm =
-            mrMasterModelPart.GetCommunicator().GetDataCommunicator();
-        Model& current_model = mrMasterModelPart.GetModel();
-
-        if (r_comm.IsDistributed())
-            current_model.DeleteModelPart("gathered_master");
-    #endif
 }
 
 
@@ -123,40 +111,9 @@ void SlidingInterfaceProcess<TDim>::PrintInfo(std::ostream& rOStream) const
 template<int TDim>
 void SlidingInterfaceProcess<TDim>::MakeSearchModelpart()
 {
-    #ifdef KRATOS_USING_MPI
-    const DataCommunicator &r_comm =
-        mrMasterModelPart.GetCommunicator().GetDataCommunicator();
-    Model& current_model = mrMasterModelPart.GetModel();
-    ModelPart &gathered_master = r_comm.IsDistributed() ? current_model.CreateModelPart("gathered_master") : mrMasterModelPart;
-    if (r_comm.IsDistributed()){
-         GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
-    }
-    typename BinBasedFastPointLocatorConditions<TDim>::Pointer new_ptr = Kratos::make_shared< BinBasedFastPointLocatorConditions<TDim> > (gathered_master);
+    typename BinBasedFastPointLocatorConditions<TDim>::Pointer new_ptr = Kratos::make_shared< BinBasedFastPointLocatorConditions<TDim> > (mrMasterModelPart);
     mpPointLocator.swap(new_ptr);
     mpPointLocator->UpdateSearchDatabase();
-    // ModelPart& root_modelpart = mrMasterModelPart.GetRootModelPart();
-    // // This is FUCKED UP why should there be a computational_modelpart !!
-    // ModelPart& comp_mp = root_modelpart.GetSubModelPart("fluid_computational_model_part");
-
-    // if (r_comm.IsDistributed()){
-    //     GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(mrMasterModelPart, gathered_master);
-    //     // Transfer the nodes and conditions to the root and comp modelparts.
-    //     root_modelpart.AddNodes(gathered_master.NodesBegin(), gathered_master.NodesEnd());
-    //     root_modelpart.Nodes().Unique();
-    //     mrMasterModelPart.AddNodes(gathered_master.NodesBegin(), gathered_master.NodesEnd());
-    //     mrMasterModelPart.Nodes().Unique();
-    //     mrMasterModelPart.AddConditions(gathered_master.ConditionsBegin(), gathered_master.ConditionsEnd());
-    //     mrMasterModelPart.Conditions().Unique();
-    //     comp_mp.AddNodes(gathered_master.NodesBegin(), gathered_master.NodesEnd());
-    //     comp_mp.Nodes().Unique();
-
-    //     // To synchronize the dofs automatically.
-    //     ParallelFillCommunicator(root_modelpart).Execute();
-    // }
-
-    // if (r_comm.IsDistributed())
-    //    current_model.DeleteModelPart("gathered_master");
-    #endif
 }
 
 template<int TDim>
@@ -227,7 +184,5 @@ void SlidingInterfaceProcess<TDim>::ConstraintSlaveNodeWithConditionForVariable(
 // Template declarations
 template class SlidingInterfaceProcess<2>;
 template class SlidingInterfaceProcess<3>;
-
-
 
 }
