@@ -26,6 +26,7 @@
 #include "co_simulation_application_variables.h"
 #include "includes/variables.h"
 
+#include "linear_solvers/linear_solver.h"
 
 
 namespace Kratos
@@ -47,9 +48,15 @@ namespace Kratos
         typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
         typedef Matrix DenseMappingMatrixType;
-        typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+        typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixSharedPointerType;
 
         typedef typename SparseSpaceType::MatrixType MappingMatrixType;
+
+        /// The dense space considered
+        typedef typename UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+        typedef typename LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+        typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
 
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin,
             ModelPart & rInterFaceDestination,
@@ -70,10 +77,15 @@ namespace Kratos
             else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, Index must be 0 or 1";
         };
 
-        void SetMappingMatrix(DenseMappingMatrixUniquePointerType pMappingMatrix)
+        void SetMappingMatrix(DenseMappingMatrixSharedPointerType pMappingMatrix)
         {
             mpMappingMatrix = pMappingMatrix;
         };
+
+        void SetLinearSolver(LinearSolverSharedPointerType pSolver)
+        {
+            mpSolver = pSolver;
+        }
 
         void EquilibrateDomains();
 
@@ -91,8 +103,10 @@ namespace Kratos
         SystemMatrixType* mpKOrigin = nullptr;
         SystemMatrixType* mpKDestination = nullptr;
 
-        DenseMappingMatrixUniquePointerType mpMappingMatrix = nullptr;
+        DenseMappingMatrixSharedPointerType mpMappingMatrix = nullptr;
         //MappingMatrixType* mpMappingMatrix = nullptr;
+
+        LinearSolverSharedPointerType mpSolver = nullptr;
 
         const double mOriginBeta;
         const double mOriginGamma;
@@ -116,6 +130,9 @@ namespace Kratos
 
         void DetermineInvertedEffectiveMassMatrix(const Matrix& rEffectiveK, Matrix& rEffInvMass,
             const bool IsOrigin);
+
+        void DetermineDomainUnitAccelerationResponse(SystemMatrixType& rK,
+            const Matrix& rProjector, Matrix& rUnitResponse);
 
         void CalculateCondensationMatrix(Matrix& rCondensationMatrix,
             const Matrix& rOriginInverseMass, const Matrix& rDestinationInverseMass,

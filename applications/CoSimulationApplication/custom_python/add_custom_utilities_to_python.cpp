@@ -41,6 +41,8 @@ namespace Python{
                 &FetiDynamicCouplingUtilities::EquilibrateDomains)
             .def("SetMappingMatrix",
                 &FetiDynamicCouplingUtilities::SetMappingMatrix)
+            .def("SetLinearSolver",
+                &FetiDynamicCouplingUtilities::SetLinearSolver)
             ;
     }
 

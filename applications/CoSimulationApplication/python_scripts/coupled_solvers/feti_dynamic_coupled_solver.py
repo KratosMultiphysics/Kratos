@@ -6,6 +6,10 @@ import KratosMultiphysics.CoSimulationApplication as CoSim
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
 
+# Other imports
+from KratosMultiphysics import auxiliary_solver_utilities
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+
 
 def Create(settings, models, solver_name):
     return FetiDynamicCoupledSolver(settings, models, solver_name)
@@ -79,6 +83,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         destination_newmark_gamma = self.settings["destination_newmark_gamma"].GetDouble()
 
 
+        # create the solver
+        linear_solver = self._CreateLinearSolver()
+
+
         # Create feti class instance
         self.feti_coupling = CoSim.FetiDynamicCouplingUtilities(
             self.modelpart_interface_origin_from_mapper,
@@ -94,6 +102,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.model_part_origin_interface,
             self.model_part_destination_interface)
 
+        self.feti_coupling.SetLinearSolver(linear_solver)
+
 
         # set the mapper
         if mapper_type == "coupling_geometry":
@@ -101,6 +111,15 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.feti_coupling.SetMappingMatrix(p_mapping_matrix)
 
         self.is_initialized = True
+
+    def _CreateLinearSolver(self):
+        return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+        #linear_solver_configuration = self.settings["linear_solver_settings"]
+        #if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+        #    return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        #else:
+        #    KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
+        #    return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     @classmethod
     def _GetDefaultSettings(cls):

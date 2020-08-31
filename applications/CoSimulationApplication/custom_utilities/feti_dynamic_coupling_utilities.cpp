@@ -52,6 +52,10 @@ namespace Kratos
         << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination domains have not been set.\n"
         << "Please call 'SetOriginAndDestinationDomainsWithInterfaceModelParts' from python before calling 'EquilibrateDomains'.\n";
 
+        KRATOS_ERROR_IF(mpSolver == nullptr)
+            << "FetiDynamicCouplingUtilities::EquilibrateDomains | The linear solver has not been set.\n"
+            << "Please call 'SetLinearSolver' from python before calling 'EquilibrateDomains'.\n";
+
         const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
         const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
 
@@ -76,12 +80,18 @@ namespace Kratos
         ComposeProjector(projector_destination, false);
 
 
+
+        // 3 - Determine domain response to unit loads
+        Matrix unit_response_origin;
+        DetermineDomainUnitAccelerationResponse(*mpKOrigin, projector_origin, unit_response_origin);
+
+
         // 3 - Invert effective mass matrices
         Matrix inverted_origin_effective_mass_matrix;
-        DetermineInvertedEffectiveMassMatrix(*mpKOrigin, inverted_origin_effective_mass_matrix, true);
+        //DetermineInvertedEffectiveMassMatrix(*mpKOrigin, inverted_origin_effective_mass_matrix, true);
 
         Matrix inverted_destination_effective_mass_matrix;
-        DetermineInvertedEffectiveMassMatrix(*mpKDestination, inverted_destination_effective_mass_matrix, false);
+        //DetermineInvertedEffectiveMassMatrix(*mpKDestination, inverted_destination_effective_mass_matrix, false);
 
 
         // 4 - Calculate condensation matrix
@@ -241,7 +251,10 @@ namespace Kratos
         if (effective_mass_matrix.size1() != rEffInvMass.size1() ||
             effective_mass_matrix.size2() != rEffInvMass.size2())
             rEffInvMass.resize(effective_mass_matrix.size1(), effective_mass_matrix.size2(), false);
-        else rEffInvMass.clear();
+
+        rEffInvMass.clear();
+
+
 
         double det;
         // TODO find faster way to invert
@@ -295,32 +308,26 @@ namespace Kratos
 
         if (rLagrangeVec.size() != rUnbalancedVelocities.size())
             rLagrangeVec.resize(rUnbalancedVelocities.size(), false);
-        else rLagrangeVec.clear();
 
-        bool is_slow_solve = true;
+        rLagrangeVec.clear();
+
+        const bool is_slow_solve = false;
 
         if (is_slow_solve)
         {
             double det;
-
             Matrix inv_condensation;
             MathUtils<double>::InvertMatrix(rCondensationMatrix, inv_condensation, det);
-
             rLagrangeVec = prod(inv_condensation, rUnbalancedVelocities);
         }
         else
         {
-            // TODO - use umpfpack
-            Vector b(rUnbalancedVelocities);
             CompressedMatrix A = CompressedMatrix(rCondensationMatrix);
-            LUSkylineFactorization<SparseSpaceType, DenseSpaceType> solver;
-            //UMFpackLUsolver<SparseSpaceType, DenseSpaceType> solver;
-            //solver.
-            //solver.Solve(A, rLagrangeVec, b);
+            Vector b(rUnbalancedVelocities);
+            mpSolver->Solve(A, rLagrangeVec, b);
         }
 
         KRATOS_WATCH(rLagrangeVec);
-
 
         KRATOS_CATCH("")
     }
@@ -467,7 +474,8 @@ namespace Kratos
         if (rExpandedMappingMat.size1() != mpMappingMatrix->size1() * nDOFs ||
             rExpandedMappingMat.size2() != mpMappingMatrix->size2() * nDOFs)
             rExpandedMappingMat.resize(mpMappingMatrix->size1() * nDOFs, mpMappingMatrix->size2() * nDOFs,false);
-        else rExpandedMappingMat.clear();
+
+        rExpandedMappingMat.clear();
 
         for (size_t dof = 0; dof < nDOFs; dof++)
         {
@@ -482,5 +490,37 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
+    }
+
+
+    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponse(
+        SystemMatrixType& rK, const Matrix& rProjector, Matrix& rUnitResponse)
+    {
+        const SizeType interface_dofs = rProjector.size1();
+        const SizeType system_dofs = rProjector.size2();
+
+        if (rUnitResponse.size1() != system_dofs ||
+            rUnitResponse.size2() != interface_dofs)
+            rUnitResponse.resize(system_dofs, interface_dofs, false);
+
+        rUnitResponse.clear();
+
+        for (size_t i = 0; i < system_dofs; ++i)
+        {
+            Vector solution(interface_dofs);
+            Vector projector_transpose_column(interface_dofs);
+            for (size_t j = 0; j < interface_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
+
+            KRATOS_WATCH(projector_transpose_column);
+
+            mpSolver->Solve(rK, solution, projector_transpose_column);
+
+            KRATOS_WATCH(solution);
+            KRATOS_WATCH(rUnitResponse);
+
+            for (size_t j = 0; j < interface_dofs; ++j) rUnitResponse(i, j) = solution[j];
+
+            KRATOS_WATCH(rUnitResponse);
+        }
     }
 } // namespace Kratos.
