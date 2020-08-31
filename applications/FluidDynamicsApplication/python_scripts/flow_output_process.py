@@ -12,6 +12,7 @@ def Factory(settings, Model):
     return FlowOutputProcess(Model, settings["Parameters"])
 
 class FlowOutputProcess(KratosMultiphysics.Process):
+
     """This process calculates(using c++ utilities) and writes the flow through a given list of (sub)model parts.
     In 3D use a surface eg. Inlet, Outlet
     In 2D use a line eg. Inlet, Outlet
