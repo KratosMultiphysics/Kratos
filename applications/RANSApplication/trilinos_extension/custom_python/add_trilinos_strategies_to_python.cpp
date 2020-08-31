@@ -26,13 +26,12 @@
 
 // RANS trilinos extensions
 // strategies
+#include "custom_strategies/rans_fractional_step_strategy.h"
+
+// schemes
 #include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
-#include "custom_strategies/generic_convergence_criteria.h"
 #include "custom_strategies/bossak_relaxation_scalar_scheme.h"
 #include "custom_strategies/steady_scalar_scheme.h"
-#include "custom_strategies/rans_fractional_step_strategy.h"
-#include "custom_utilities/solver_settings.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 
 // Include base h
 #include "add_trilinos_strategies_to_python.h"
@@ -49,7 +48,6 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseSchemeType = Scheme<MPISparseSpaceType, LocalSpaceType>;
-    using MPIBaseConvergenceCriteriaType = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseSolvingStrategyType = SolvingStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
 
     // strategies
@@ -72,10 +70,6 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     py::class_<MPIBossakRelaxationScalarSchemeType, typename MPIBossakRelaxationScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIBossakRelaxationScalarScheme")
         .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
 
-    // Convergence criteria
-    using MPIGenericConvergenceCriteriaType = GenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
-    py::class_<MPIGenericConvergenceCriteriaType, typename MPIGenericConvergenceCriteriaType::Pointer, MPIBaseConvergenceCriteriaType>(m, "MPIGenericScalarConvergenceCriteria")
-        .def(py::init<double, double>());
 }
 
 } // namespace Python
