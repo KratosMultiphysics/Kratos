@@ -159,6 +159,12 @@ public:
     ///@name Curve Properties
     ///@{
 
+    /// Returns number of points of NurbsCurve.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpNurbsCurve->PointsNumberInDirection(DirectionIndex);
+    }
+
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
      * @param vector of span intervals.
