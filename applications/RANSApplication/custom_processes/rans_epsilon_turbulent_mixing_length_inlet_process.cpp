@@ -72,11 +72,6 @@ void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitialize()
 
 void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitializeSolutionStep()
 {
-    Execute();
-}
-
-void RansEpsilonTurbulentMixingLengthInletProcess::Execute()
-{
     KRATOS_TRY
 
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();

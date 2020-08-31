@@ -27,7 +27,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
-        super(CustomScipyBaseSolver, self).__init__(main_model_part, custom_settings)
+        super().__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[CustomScipyBaseSolver]:: ", "Construction finished")
 
     @classmethod
@@ -35,7 +35,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic"
         }""")
-        this_defaults.AddMissingParameters(super(CustomScipyBaseSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     #### Private functions ####

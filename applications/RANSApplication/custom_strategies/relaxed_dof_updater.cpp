@@ -11,8 +11,11 @@
 //
 
 // Project includes
-#include "relaxed_dof_updater.h"
 #include "spaces/ublas_space.h"
+#include "utilities/parallel_utilities.h"
+
+// Include base h
+#include "relaxed_dof_updater.h"
 
 namespace Kratos
 {
@@ -33,16 +36,11 @@ void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::UpdateDofs
     DofsArrayType& rDofSet,
     const SystemVectorType& rDx)
 {
-    const int num_dof = static_cast<int>(rDofSet.size());
-
-#pragma omp parallel for
-    for (int i = 0; i < num_dof; ++i)
-    {
-        auto it_dof = rDofSet.begin() + i;
-
-        if (it_dof->IsFree())
-            it_dof->GetSolutionStepValue() += rDx[it_dof->EquationId()] * mRelaxationFactor;
-    }
+    BlockPartition<DofsArrayType>(rDofSet).for_each([&](DofType& rDof) {
+        if (rDof.IsFree()) {
+            rDof.GetSolutionStepValue() += rDx[rDof.EquationId()] * mRelaxationFactor;
+        }
+    });
 }
 
 template <>
@@ -50,15 +48,11 @@ void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::AssignDofs
     DofsArrayType& rDofSet,
     const SystemVectorType& rX)
 {
-    const int num_dof = static_cast<int>(rDofSet.size());
-
-#pragma omp parallel for
-    for (int i = 0; i < num_dof; ++i)
-    {
-        auto it_dof = rDofSet.begin() + i;
-        if (it_dof->IsFree())
-            it_dof->GetSolutionStepValue() = rX[it_dof->EquationId()];
-    }
+    BlockPartition<DofsArrayType>(rDofSet).for_each([&](DofType& rDof) {
+        if (rDof.IsFree()) {
+            rDof.GetSolutionStepValue() = rX[rDof.EquationId()];
+        }
+    });
 }
 
 template <>
