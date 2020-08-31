@@ -30,6 +30,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief This class is used to calculate difference norms of a given variable
+ *
+ * @tparam TDataType        Data type of the variable
+ */
 template <typename TDataType>
 class RansVariableDifferenceNormsCalculationUtility
 {

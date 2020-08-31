@@ -18,6 +18,8 @@
 
 // Project includes
 #include "includes/communicator.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 
@@ -43,11 +45,10 @@ void RansVariableDifferenceNormsCalculationUtility<TDataType>::InitializeCalcula
         mData.resize(number_of_nodes);
     }
 
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const auto p_node = r_nodes.begin() + i_node;
-        mData[i_node] = p_node->FastGetSolutionStepValue(mrVariable);
-    }
+    IndexPartition<int>(number_of_nodes).for_each([&](const int iNode) {
+        const auto p_node = r_nodes.begin() + iNode;
+        mData[iNode] = p_node->FastGetSolutionStepValue(mrVariable);
+    });
 
     KRATOS_CATCH("");
 }
@@ -65,19 +66,20 @@ std::tuple<double, double> RansVariableDifferenceNormsCalculationUtility<TDataTy
         << "Data is not properly initialized for " << mrVariable.Name() << " in "
         << mrModelPart.Name() << ". Please use \"InitializeCalculation\" first.\n";
 
-    double dx{0.0}, solution{0.0};
-#pragma omp parallel for reduction(+ : dx, solution)
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-        const auto& r_node = *(r_nodes.begin() + i_node);
-        const double value = r_node.FastGetSolutionStepValue(mrVariable);
-        dx += std::pow(value - mData[i_node], 2);
-        solution += std::pow(value, 2);
-    }
+    double dx, solution;
+    std::tie(dx, solution) =
+        IndexPartition<int>(number_of_nodes)
+            .for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>(
+                [&](const int iNode) -> std::tuple<double, double> {
+                    const auto& r_node = *(r_nodes.begin() + iNode);
+                    const double value = r_node.FastGetSolutionStepValue(mrVariable);
 
-    const std::vector<double> norm_values = {
-        dx, solution, static_cast<double>(number_of_nodes)};
-    const std::vector<double>& total_norm_values =
-        r_communicator.GetDataCommunicator().SumAll(norm_values);
+                    return std::make_tuple<double, double>(
+                        std::pow(value - mData[iNode], 2), std::pow(value, 2));
+                });
+
+    const auto norm_values = {dx, solution, static_cast<double>(number_of_nodes)};
+    const auto& total_norm_values = r_communicator.GetDataCommunicator().SumAll(norm_values);
 
     dx = std::sqrt(total_norm_values[0]);
     solution = std::sqrt(total_norm_values[1]);

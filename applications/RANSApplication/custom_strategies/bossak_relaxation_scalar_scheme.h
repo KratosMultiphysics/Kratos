@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/time_discretization.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "custom_strategies/steady_scalar_scheme.h"
@@ -255,6 +256,13 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculates required Bossak scheme constants
+     *
+     * @param rBossakConstants      Container to hold bossak scheme constants
+     * @param Alpha                 Alpha value
+     * @param DeltaTime             Time step value
+     */
     static void CalculateBossakConstants(
         BossakConstants& rBossakConstants,
         const double Alpha,
@@ -270,6 +278,14 @@ private:
         rBossakConstants.C3 = (1.0 - rBossakConstants.Gamma) / rBossakConstants.Gamma;
     }
 
+    /**
+     * @brief Adding mass matrix in dynamic problems
+     *
+     * @tparam TItemType            Item type (can be ElementType or ConditionType)
+     * @param rItem                 Item instance
+     * @param rRHS_Contribution     Righthandside vector
+     * @param ThreadId              Current thread id
+     */
     template <class TItemType>
     void AddMassMatrixToRHS(
         TItemType& rItem,
@@ -286,6 +302,16 @@ private:
             prod(mMassMatrix[ThreadId], mSecondDerivativeValuesVector[ThreadId]);
     }
 
+    /**
+     * @brief Calculates LHS and RHS
+     *
+     * @tparam TItemType                Item type (can be ElementType or ConditionType)
+     * @param rItem                     Item instance
+     * @param rLHS_Contribution         Left hand side matrix
+     * @param rRHS_Contribution         Right hand side vector
+     * @param rEquationIdVector         Equation id vector
+     * @param rCurrentProcessInfo       Process info
+     */
     template <class TItemType>
     void CalculateDynamicSystem(
         TItemType& rItem,
@@ -315,6 +341,15 @@ private:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Calculates RHS
+     *
+     * @tparam TItemType                Item type (can be ElementType or ConditionType)
+     * @param rItem                     Item instance
+     * @param rRHS_Contribution         Right hand side vector
+     * @param rEquationIdVector         Equation id vector
+     * @param rCurrentProcessInfo       Process info
+     */
     template <class TItemType>
     void CalculateDynamicRHS(
         TItemType& rItem,
@@ -343,25 +378,25 @@ private:
 
     void UpdateScalarRateVariables(ModelPart& rModelPart)
     {
-        const int number_of_nodes = rModelPart.NumberOfNodes();
+        BlockPartition<ModelPart::NodesContainerType>(rModelPart.Nodes())
+            .for_each([&](ModelPart::NodeType& rNode) {
+                double& r_current_rate =
+                    rNode.FastGetSolutionStepValue(mrScalarRateVariable);
+                const double old_rate =
+                    rNode.FastGetSolutionStepValue(mrScalarRateVariable, 1);
+                const double current_value =
+                    rNode.FastGetSolutionStepValue(mrScalarVariable);
+                const double old_value =
+                    rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-            auto& r_node = *(rModelPart.NodesBegin() + i_node);
-            double& r_current_rate = r_node.FastGetSolutionStepValue(mrScalarRateVariable);
-            const double old_rate =
-                r_node.FastGetSolutionStepValue(mrScalarRateVariable, 1);
-            const double current_value = r_node.FastGetSolutionStepValue(mrScalarVariable);
-            const double old_value =
-                r_node.FastGetSolutionStepValue(mrScalarVariable, 1);
+                // update scalar rate variable
+                r_current_rate =
+                    mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
 
-            // update scalar rate variable
-            r_current_rate = mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
-
-            // update relaxed scalar rate variable
-            r_node.FastGetSolutionStepValue(mrRelaxedScalarRateVariable) =
-                this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
-        }
+                // update relaxed scalar rate variable
+                rNode.FastGetSolutionStepValue(mrRelaxedScalarRateVariable) =
+                    this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
+            });
     }
 
     ///@}

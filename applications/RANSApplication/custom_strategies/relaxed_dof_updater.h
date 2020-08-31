@@ -35,7 +35,7 @@ namespace Kratos
 /// Utility class to update the values of degree of freedom (Dof) variables after solving the system.
 /** This class encapsulates the operation of updating nodal degrees of freedom after a system solution.
  *  In pseudo-code, the operation to be performed is
- *  for each dof: dof.variable += dx[dof.equation_id]
+ *  for each dof: dof.variable += dx[dof.equation_id] * Relaxation
  *  This operation is a simple loop in shared memory, but requires additional infrastructure in MPI,
  *  to obtain out-of-process update data. RelaxedDofUpdater takes care of both the operation and the eventual
  *  auxiliary infrastructure.
