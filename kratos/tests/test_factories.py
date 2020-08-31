@@ -238,14 +238,6 @@ class TestFactories(KratosUnittest.TestCase):
         """)
         self._auxiliary_test_function_Strategy(settings, "LineSearchStrategy")
 
-    def test_ExplicitStrategy(self):
-        settings = KM.Parameters("""
-        {
-            "name" : "explicit_strategy"
-        }
-        """)
-        self._auxiliary_test_function_Strategy(settings, "ExplicitStrategy")
-
     def _auxiliary_test_function_ExplicitStrategy(self, settings, name):
         this_model = KM.Model()
         model_part = this_model.CreateModelPart("Main")
