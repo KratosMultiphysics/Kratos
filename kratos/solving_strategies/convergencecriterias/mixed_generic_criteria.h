@@ -59,7 +59,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef std::vector<std::tuple<VariableData*, TDataType, TDataType>> ConvergenceVariableListType;
+    typedef std::vector<std::tuple<const VariableData*, TDataType, TDataType>> ConvergenceVariableListType;
 
     typedef std::size_t KeyType;
 
@@ -96,9 +96,9 @@ public:
     MixedGenericCriteria(const ConvergenceVariableListType& rConvergenceVariablesList)
         : BaseType()
         , mVariableSize([&] (const ConvergenceVariableListType& rList) -> int {return rList.size();} (rConvergenceVariablesList))
-        , mVariableDataVector([&] (const ConvergenceVariableListType& rList) -> std::vector<VariableData*> {
+        , mVariableDataVector([&] (const ConvergenceVariableListType& rList) -> std::vector<const VariableData*> {
             int i = 0;
-            std::vector<VariableData*> aux_vect(mVariableSize);
+            std::vector<const VariableData*> aux_vect(mVariableSize);
             for (const auto &r_tup : rList) {
                 aux_vect[i++] = std::get<0>(r_tup);
             }
@@ -284,7 +284,7 @@ protected:
      * Get the member vector that stores pointers to the variables to check
      * @return std::vector<VariableData*> Vector containing pointers to the variables to check
      */
-    std::vector<VariableData*> GetVariableDataVector() const
+    std::vector<const VariableData*> GetVariableDataVector() const
     {
         return mVariableDataVector;
     }
@@ -455,7 +455,7 @@ private:
     ///@{
 
     const int mVariableSize;
-    const std::vector<VariableData*> mVariableDataVector;
+    const std::vector<const VariableData*> mVariableDataVector;
     const std::vector<TDataType> mRatioToleranceVector;
     const std::vector<TDataType> mAbsToleranceVector;
     std::unordered_map<KeyType, KeyType> mLocalKeyMap;
@@ -552,16 +552,7 @@ private:
               const std::string& r_variable_name = param["variable"].GetString();
 
               // Variable pointer
-              VariableData* p_variable = nullptr;
-
-              // Options are double or array
-              if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-                  const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
-                  p_variable = &const_cast<Variable<double>&>(r_variable);
-              } else {
-                  const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-                  p_variable = &const_cast<Variable<array_1d<double, 3>>&>(r_variable);
-              }
+              const VariableData* p_variable = KratosComponents<Variable<double>>::Has(r_variable_name) ? dynamic_cast<const VariableData*>(&KratosComponents<Variable<double>>::Get(r_variable_name)) : dynamic_cast<const VariableData*>(&KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name));
 
               // Tolerances
               const double rel_tol = param.Has("relative_tolerance") ? param["relative_tolerance"].GetDouble() : 1.0e-4;
