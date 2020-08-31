@@ -208,51 +208,11 @@ inline double ComputeDistance(const T1& rCoords1,
 }
 
 template <typename T>
-inline double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
-{
-    double max_element_size = 0.0;
-    // Loop through each edge of a geometrical entity ONCE
-    for (const auto& r_entity : rEntityContainer) {
-        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
-            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
-                double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
-                                                        r_entity.GetGeometry()[j].Coordinates());
-                max_element_size = std::max(max_element_size, edge_length);
-            }
-        }
-    }
-    return max_element_size;
-}
-
-inline double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNodes)
-{
-    double max_element_size = 0.0;
-    // TODO modify loop such that it loop only once over the nodes
-    for (const auto& r_node_1 : rNodes) {
-        for (const auto& r_node_2 : rNodes) {
-            double edge_length = ComputeDistance(r_node_1.Coordinates(),
-                                                    r_node_2.Coordinates());
-            max_element_size = std::max(max_element_size, edge_length);
-        }
-    }
-    // TODO should be reated to mesh dim, check DOMAIN_SIZE! => should be divided by sqrt, sth in the direction what the conv crit does (check again why and what is done there, but I think it is to somehow account for the size of the problem).
-    KRATOS_WATCH(std::pow(static_cast<double>(rNodes.size()), 1/3));
-    KRATOS_WATCH(static_cast<double>(rNodes.size()));
-    return max_element_size;// / std::pow(static_cast<double>(rNodes.size()), 1/2);
-}
+double ComputeMaxEdgeLengthLocal(const T& rEntityContainer);
 
 double ComputeSearchRadius(const ModelPart& rModelPart, int EchoLevel);
 
-inline double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel)
-{
-    double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
-                                    ComputeSearchRadius(rModelPart2, EchoLevel));
-
-    KRATOS_INFO_IF("Mapper", EchoLevel > 0) << "Computed search-radius: "
-        << search_radius << std::endl;
-
-    return search_radius;
-}
+double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel);
 
 void CheckInterfaceModelParts(const int CommRank);
 

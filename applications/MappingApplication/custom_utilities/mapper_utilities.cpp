@@ -47,6 +47,23 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
+template <typename T>
+double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
+{
+    double max_element_size = 0.0;
+    // Loop through each edge of a geometrical entity ONCE
+    for (const auto& r_entity : rEntityContainer) {
+        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
+                double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
+                                                        r_entity.GetGeometry()[j].Coordinates());
+                max_element_size = std::max(max_element_size, edge_length);
+            }
+        }
+    }
+    return max_element_size;
+}
+
 double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
 {
     static constexpr double search_safety_factor = 1.2;
@@ -67,11 +84,23 @@ double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
             << "(less efficient, because search radius will be larger)\n"
             << "It is recommended to specify the search-radius manually\n"
             << "through \"search_radius\" in the mapper-settings (~2*element-size)" << std::endl;
-        max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
+
+        const auto bounding_box = ComputeGlobalBoundingBox(rModelPart);
     }
 
     max_element_size = r_comm.GetDataCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
     return max_element_size * search_safety_factor;
+}
+
+double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel)
+{
+    double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
+                                    ComputeSearchRadius(rModelPart2, EchoLevel));
+
+    KRATOS_INFO_IF("Mapper", EchoLevel > 0) << "Computed search-radius: "
+        << search_radius << std::endl;
+
+    return search_radius;
 }
 
 void CheckInterfaceModelParts(const int CommRank)
