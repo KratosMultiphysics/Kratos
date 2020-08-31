@@ -26,8 +26,8 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                        : "This process uses LinearMasterSlaveConstraint in order to impose a sliding interface condition on the given submodelparts. The process takes the first provided submodelpart as master and the second as slave.",
-            "first_model_part_name"       : "please_specify_model_part_name",
-            "second_model_part_name"      : "please_specify_model_part_name",
+            "first_model_part_name"       : "master_non_moving_mp",
+            "second_model_part_name"      : "slave_moving_mp",
             "model_part_name"             : "FluidModelPart",
             "computing_model_part_name"   : "fluid_computational_model_part",
             "interval"                    : [0.0, 1e30],
@@ -60,8 +60,8 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
-        master_model_part_name = main_model_part_name+"."+settings["first_model_part_name"].GetString()
-        slave_model_part_name = main_model_part_name+"."+settings["second_model_part_name"].GetString()
+        master_model_part_name = settings["first_model_part_name"].GetString()
+        slave_model_part_name = settings["second_model_part_name"].GetString()
         self.master_model_part = Model[master_model_part_name]
         self.slave_model_part = Model[slave_model_part_name]
 
@@ -69,10 +69,14 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
         sliding_parameters = KratosMultiphysics.Parameters()
         sliding_parameters.AddValue("variable_names", settings["variable_names"])
         sliding_parameters.AddValue("search_settings", settings["search_settings"])
-
+        nD = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         ## Here we create the c++ process with all the necessary parameters
-        self.sliding_interface_proc = KratosChimera.SlidingInterfaceProcess(self.master_model_part , self.slave_model_part , sliding_parameters)
-
+        if(nD == 2):
+            self.sliding_interface_proc = KratosChimera.SlidingInterfaceProcess2D(self.master_model_part , self.slave_model_part , sliding_parameters)
+        elif(nD == 3):
+            self.sliding_interface_proc = KratosChimera.SlidingInterfaceProcess3D(self.master_model_part , self.slave_model_part , sliding_parameters)
+        else:
+            raise Exception("SlidingInterfaceProcess is only for 2 and 3 dimension problems !! Check input.")
 
     def ExecuteInitializeSolutionStep(self):
         """
@@ -89,3 +93,9 @@ class ApplySlidingInterfaceProcess(KratosMultiphysics.Process):
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if (self.interval.IsInInterval(current_time)):
             self.sliding_interface_proc.ExecuteFinalizeSolutionStep()
+
+    def ExecuteInitialize(self):
+        self.sliding_interface_proc.ExecuteInitialize()
+
+    def ExecuteFinalize(self):
+        self.sliding_interface_proc.ExecuteFinalize()

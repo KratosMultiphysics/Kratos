@@ -23,10 +23,12 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator_conditions.h"
 
 namespace Kratos
 {
 
+template <int TDim>
 class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
 {
 
@@ -43,9 +45,11 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     typedef Geometry<NodeType>                              GeometryType;
 
     /**
-     * @brief Constructor of the process to apply periodic boundary condition
+     * @brief Constructor of the process to apply periodic boundary condition.
      * @param rMasterModelPart The master model part for the constraints. Constraints are added on here.
-     * @param rSlaveModelPart The slave model part for the constraints.
+     *                          This is assumed to be the stationary modelpart on the interface.
+     * @param rSlaveModelPart The slave model part for the constraints. This is the moving modelpart of
+     *                          the interface.
      * @param Settings parameters for the periodic condition to be applied
      */
     SlidingInterfaceProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
@@ -60,6 +64,11 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
      * @brief Function initializes the process
      */
     void ExecuteInitialize() override;
+
+    /**
+     * @brief Function finalizes the process
+     */
+    void ExecuteFinalize() override;
 
     /**
      * @brief Function initializes the solution step
@@ -92,12 +101,13 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
     Parameters mParameters;          // parameters
     double mSearchTolerance;
     IndexType mSearchMaxResults;
+    std::string mSearchModelPartName;
+    typename BinBasedFastPointLocatorConditions<TDim>::Pointer mpPointLocator;
 
     /**
      * @brief   The function to figure out how the master and slave model parts relate together and add master-slave constraints
      *          to the root modelpart of the mrMasterModelPart.
      */
-    template <int TDim>
     void ApplyConstraintsForSlidingInterface();
 
     /**
@@ -107,8 +117,14 @@ class KRATOS_API(CHIMERA_APPLICATION) SlidingInterfaceProcess : public Process
      * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
      * @param rVarName The name of the vector variable on which periodic boundary condition can be applied.
      */
-    template <int TDim>
     void ConstraintSlaveNodeWithConditionForVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
+
+    /**
+     * @brief   The function checks if this is a MPI run, in case it is, it returns a reference to gathered_modelpart  else
+     *          a reference to the mrMasterModelPart
+     */
+    void MakeSearchModelpart();
+
 }; // Class
 
 
