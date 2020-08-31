@@ -19,6 +19,8 @@
 
 //elements
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/iga_membrane_element.h"
+#include "custom_elements/iga_edge_cable_element.h"
 
 //conditions
 #include "custom_conditions/load_condition.h"
@@ -100,6 +102,8 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
+    const IgaMembraneElement mIgaMembraneElement;
+    const IgaEdgeCableElement mIgaEdgeCableElement;
 
     //Conditions
     const LoadCondition mLoadCondition;

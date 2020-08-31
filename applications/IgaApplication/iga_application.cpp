@@ -18,6 +18,10 @@ KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
     , mShell3pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mIgaMembraneElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mIgaEdgeCableElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mPenaltyCouplingCondition(0, Condition::GeometryType::Pointer(
@@ -37,6 +41,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
+    KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
+    KRATOS_REGISTER_ELEMENT("IgaEdgeCableElement", mIgaEdgeCableElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
