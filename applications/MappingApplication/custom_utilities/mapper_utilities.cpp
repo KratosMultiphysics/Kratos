@@ -47,18 +47,17 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
-double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
+double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
 {
-    double search_safety_factor = 1.2;
+    static constexpr double search_safety_factor = 1.2;
     double max_element_size = 0.0;
 
-    int num_conditions_global = ComputeNumberOfConditions(rModelPart);
-    int num_elements_global = ComputeNumberOfElements(rModelPart);
+    const auto r_comm = rModelPart.GetCommunicator();
 
-    if (num_conditions_global > 0) {
+    if (r_comm.GlobalNumberOfConditions() > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
     }
-    else if (num_elements_global > 0) {
+    else if (r_comm.GlobalNumberOfElements() > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
     }
     else {
@@ -71,7 +70,7 @@ double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
     }
 
-    max_element_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
+    max_element_size = r_comm.GetDataCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
     return max_element_size * search_safety_factor;
 }
 
@@ -131,7 +130,7 @@ void CheckInterfaceModelParts(const int CommRank)
     // }
 }
 
-std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart)
+std::vector<double> ComputeLocalBoundingBox(const ModelPart& rModelPart)
 {
     std::vector<double> local_bounding_box {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
     // xmax, xmin,  ymax, ymin,  zmax, zmin

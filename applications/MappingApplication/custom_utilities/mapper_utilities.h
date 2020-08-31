@@ -193,24 +193,6 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
         << "No mapper local systems were created" << std::endl;
 }
 
-inline int ComputeNumberOfNodes(ModelPart& rModelPart)
-{
-    int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
-}
-
-inline int ComputeNumberOfConditions(ModelPart& rModelPart)
-{
-    int num_conditions = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
-}
-
-inline int ComputeNumberOfElements(ModelPart& rModelPart)
-{
-    int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_elements); // Compute the sum among the partitions
-}
-
 template <class T1, class T2>
 inline double ComputeDistance(const T1& rCoords1,
                               const T2& rCoords2)
@@ -249,12 +231,14 @@ inline double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNo
         }
     }
     // TODO should be reated to mesh dim, check DOMAIN_SIZE! => should be divided by sqrt, sth in the direction what the conv crit does (check again why and what is done there, but I think it is to somehow account for the size of the problem).
-    return max_element_size / static_cast<double>(rNodes.size());
+    KRATOS_WATCH(std::pow(static_cast<double>(rNodes.size()), 1/3));
+    KRATOS_WATCH(static_cast<double>(rNodes.size()));
+    return max_element_size;// / std::pow(static_cast<double>(rNodes.size()), 1/2);
 }
 
-double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel);
+double ComputeSearchRadius(const ModelPart& rModelPart, int EchoLevel);
 
-inline double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2, const int EchoLevel)
+inline double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel)
 {
     double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
                                     ComputeSearchRadius(rModelPart2, EchoLevel));
@@ -267,7 +251,7 @@ inline double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2
 
 void CheckInterfaceModelParts(const int CommRank);
 
-std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart);
+std::vector<double> ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
 void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
                                        const double Tolerance,
