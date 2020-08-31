@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "custom_strategies/strategies/fractional_step_strategy.h"
 
 // Application includes
@@ -128,9 +129,7 @@ protected:
 
     std::tuple<bool, double> SolveStep() override
     {
-        ModelPart& r_model_part = BaseType::GetModelPart();
-        const int n_nodes = r_model_part.NumberOfNodes();
-
+        auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
 
         // 1. Fractional step momentum iteration
@@ -170,23 +169,21 @@ protected:
                                ? r_process_info[PRESSURE_COEFFICIENT]
                                : 1.0;
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
-            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -eta * old_press;
-        }
+        BlockPartition<ModelPart::NodesContainerType>(r_model_part.Nodes())
+            .for_each([&](ModelPart::NodeType& rNode) {
+                const double old_press = rNode.FastGetSolutionStepValue(PRESSURE);
+                rNode.FastGetSolutionStepValue(PRESSURE_OLD_IT) = -eta * old_press;
+            });
 
         KRATOS_INFO_IF("RansFractionalStepStrategy", BaseType::GetEchoLevel() > 0)
             << "Calculating Pressure." << std::endl;
         double norm_dp = this->mpPressureStrategy->Solve();
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) +=
-                it_node->FastGetSolutionStepValue(PRESSURE);
-        }
+        BlockPartition<ModelPart::NodesContainerType>(r_model_part.Nodes())
+            .for_each([&](ModelPart::NodeType& rNode) {
+                rNode.FastGetSolutionStepValue(PRESSURE_OLD_IT) +=
+                    rNode.FastGetSolutionStepValue(PRESSURE);
+            });
 
         // 3. Compute end-of-step velocity
         KRATOS_INFO_IF("RansFractionalStepStrategy", BaseType::GetEchoLevel() > 0)
