@@ -63,9 +63,9 @@ def FiniteDifferenceNormalShapeSensitivityTest(UnitTestObject, model_part, check
     ## calculate finite difference shape derivatives
     normal_calculation_utils.CalculateOnSimplex(model_part.Conditions, dimensionality)
     reference_normals = {}
-    for condition_id in check_condition_ids:
-        condition = model_part.GetCondition(condition_id)
-        reference_normals[condition_id] = condition.GetValue(KratosMultiphysics.NORMAL)
+    for condition in model_part.Conditions:
+        if (condition.Id in check_condition_ids):
+            reference_normals[condition.Id] = condition.GetValue(KratosMultiphysics.NORMAL)
 
     def check_normal_sensitivities(condition, row_index, analytical_normal_shape_sensitivities):
         normal_calculation_utils.CalculateOnSimplex(
@@ -75,26 +75,26 @@ def FiniteDifferenceNormalShapeSensitivityTest(UnitTestObject, model_part, check
         UnitTestObject.assertVectorAlmostEqual((perturbed_normal - reference_normals[condition.Id]) / delta, get_matrix_row(
             analytical_normal_shape_sensitivities, row_index), tolerance)
 
-    for condition_id in check_condition_ids:
-        condition = model_part.GetCondition(condition_id)
-        analytical_normal_shape_sensitivities = condition.GetValue(
-            KratosMultiphysics.NORMAL_SHAPE_DERIVATIVE)
-        for i, node in enumerate(condition.GetGeometry()):
-            node.X += delta
-            check_normal_sensitivities(
-                condition, i * dimensionality, analytical_normal_shape_sensitivities)
-            node.X -= delta
-
-            node.Y += delta
-            check_normal_sensitivities(
-                condition, i * dimensionality + 1, analytical_normal_shape_sensitivities)
-            node.Y -= delta
-
-            if dimensionality == 3:
-                node.Z += delta
+    for condition in model_part.Conditions:
+        if (condition.Id in check_condition_ids):
+            analytical_normal_shape_sensitivities = condition.GetValue(
+                KratosMultiphysics.NORMAL_SHAPE_DERIVATIVE)
+            for i, node in enumerate(condition.GetGeometry()):
+                node.X += delta
                 check_normal_sensitivities(
-                    condition, i * dimensionality + 2, analytical_normal_shape_sensitivities)
-                node.Z -= delta
+                    condition, i * dimensionality, analytical_normal_shape_sensitivities)
+                node.X -= delta
+
+                node.Y += delta
+                check_normal_sensitivities(
+                    condition, i * dimensionality + 1, analytical_normal_shape_sensitivities)
+                node.Y -= delta
+
+                if dimensionality == 3:
+                    node.Z += delta
+                    check_normal_sensitivities(
+                        condition, i * dimensionality + 2, analytical_normal_shape_sensitivities)
+                    node.Z -= delta
 
 
 class TestNormalUtilsCoarseSphere(KratosUnittest.TestCase):
