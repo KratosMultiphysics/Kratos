@@ -51,8 +51,8 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
     double min_h = 1.0/mesh_tolerance;
 
     #pragma omp parallel for
-    for (unsigned int k = 0; k < num_nodes; ++k) {
-        auto it_node = mrModelPart.NodesBegin() + k;
+    for (unsigned int j = 0; j < num_nodes; ++j) {
+        auto it_node = mrModelPart.NodesBegin() + j;
         const auto distance1 = it_node->FastGetSolutionStepValue(DISTANCE, 1);
         it_node->SetValue(AUX_DISTANCE, distance1);
         const auto distance = it_node->FastGetSolutionStepValue(DISTANCE);
@@ -64,6 +64,37 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         {
             #pragma omp critical
             min_h = nodal_h;
+        }
+
+        it_node -> Free(AUX_DISTANCE);  // Do not work with DISTANCE in order not to make any confusion in LS
+    }
+
+    const unsigned int num_elements = mrModelPart.NumberOfElements();
+    array_1d<double,TDim+1> distance_array;
+
+    #pragma omp parallel for firstprivate(distance_array)
+    for (unsigned int k = 0; k < num_elements; ++k) {
+        auto it_elem = mrModelPart.ElementsBegin() + k;
+        unsigned int n_neg = 0, n_pos = 0;
+        auto& elem_geometry = it_elem->GetGeometry();
+
+        for (unsigned int j = 0; j < elem_geometry.size(); j++) {
+            distance_array[j] = elem_geometry[j].FastGetSolutionStepValue(DISTANCE);
+            if (distance_array[j] > 0.0)
+                n_pos++;
+            else
+                n_neg++;
+        }
+
+        if (n_pos > 0 && n_neg > 0){
+            GeometryUtils::CalculateExactDistancesToPlane(elem_geometry, distance_array);
+
+            for (unsigned int j = 0; j < elem_geometry.size(); j++){
+                elem_geometry[j].FastGetSolutionStepValue(DISTANCE) = distance_array[j]; 
+
+                #pragma omp critical
+                elem_geometry[j].Fix(AUX_DISTANCE); // Do not work with DISTANCE in order not to make any confusion in LS
+            }
         }
     }
 
@@ -82,7 +113,7 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         outer_iteration++;
 
         // Updating distance gradient at nodes
-        //mpComputeGradient->Execute();
+        mpComputeGradient->Execute();
 
         Vector N(TDim + 1);
         const int max_results = 10000;
@@ -98,10 +129,14 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         #pragma omp parallel for firstprivate(results,N)
         for (unsigned int i = 0; i < num_nodes; i++)
         {
+            auto i_node = mrModelPart.NodesBegin() + i;
+
+            if (i_node->IsFixed(AUX_DISTANCE))
+                continue; // Do not work with DISTANCE in order not to make any confusion in LS
+
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
             Element::Pointer pelement;
 
-            auto i_node = mrModelPart.NodesBegin() + i;
             const array_1d<double,3> node_position = i_node->Coordinates();
             const auto dist0 = i_node->GetValue(DISTANCE);
             const auto dist = i_node->FastGetSolutionStepValue(DISTANCE);
@@ -187,6 +222,7 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
             it_node->GetValue(DISTANCE_GRADIENT);
         it_node->FastGetSolutionStepValue(DISTANCE, 1) =
             it_node->GetValue(AUX_DISTANCE);
+        it_node -> Free(AUX_DISTANCE);
     }
 
     KRATOS_CATCH("")

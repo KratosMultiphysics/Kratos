@@ -66,7 +66,7 @@ namespace Kratos
 
 /// Utility to due the redistancing based on the time-dependednt Eikonal equation
 
-    constexpr double mesh_tolerance = 1.0e-9;
+    constexpr double mesh_tolerance = 1.0e-12;
 
 template<std::size_t TDim>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) HyperbolicDistanceReinitialization : public Process
