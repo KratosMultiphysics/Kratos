@@ -201,6 +201,43 @@ void NormalCalculationUtils::CalculateOnSimplex(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NormalCalculationUtils::CalculateShapeDerivativesOnSimplexConditions(
+    ConditionsArrayType& rConditions,
+    const std::size_t Dimension
+    )
+{
+    KRATOS_TRY
+
+    if (Dimension == 2) {
+        // reset NORMAL_SHAPE_DERIVATIVE variable for all conditions
+        VariableUtils().SetNonHistoricalVariable(NORMAL_SHAPE_DERIVATIVE,
+                                                 ZeroMatrix(4, 2), rConditions);
+
+        // calculate condition normal shape derivatives
+        BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
+            if (rCondition.GetGeometry().PointsNumber() == 2) {
+                CalculateNormalShapeDerivative2D(rCondition);
+            }
+        });
+    } else {
+        // reset NORMAL_SHAPE_DERIVATIVE variable for all conditions
+        VariableUtils().SetNonHistoricalVariable(NORMAL_SHAPE_DERIVATIVE,
+                                                 ZeroMatrix(9, 3), rConditions);
+
+        // calculate condition normal shape derivatives
+        BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
+            if (rCondition.GetGeometry().PointsNumber() == 3) {
+                CalculateNormalShapeDerivative3D(rCondition);
+            }
+        });
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void NormalCalculationUtils::CalculateOnSimplex(
     ModelPart& rModelPart)
 {
@@ -295,6 +332,37 @@ void NormalCalculationUtils::CalculateNormal2D(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NormalCalculationUtils::CalculateNormalShapeDerivative2D(
+    ConditionType& rCondition
+    )
+{
+    KRATOS_TRY
+
+    // since this is a private static method (no external calls),
+    // this method assumes matrix is properly sized always before this call.
+    Matrix& r_normal_shape_derivatives = rCondition.GetValue(NORMAL_SHAPE_DERIVATIVE);
+
+    KRATOS_DEBUG_ERROR_IF(r_normal_shape_derivatives.size1() != 4 || r_normal_shape_derivatives.size2() != 2)
+        << "Condition (id: " << rCondition.Id() << ") does not have properly assigned \"NORMAL_SHAPE_DERIVATIVE\" "
+        << "variable. Please assigned this variable with proper matrix size (required matrix size: (4, 2) != given matrix size ("
+        << r_normal_shape_derivatives.size1() << ", " << r_normal_shape_derivatives.size2() << ")).";
+
+    r_normal_shape_derivatives(0, 0) = 0.0;  // n_x derivative w.r.t. node_0_x
+    r_normal_shape_derivatives(1, 0) = -1.0; // n_x derivative w.r.t. node_0_y
+    r_normal_shape_derivatives(2, 0) = 0.0;  // n_x derivative w.r.t. node_1_x
+    r_normal_shape_derivatives(3, 0) = 1.0;  // n_x derivative w.r.t. node_1_y
+
+    r_normal_shape_derivatives(0, 1) = 1.0;  // n_y derivative w.r.t. node_0_x
+    r_normal_shape_derivatives(1, 1) = 0.0;  // n_y derivative w.r.t. node_0_y
+    r_normal_shape_derivatives(2, 1) = -1.0; // n_y derivative w.r.t. node_1_x
+    r_normal_shape_derivatives(3, 1) = 0.0;  // n_y derivative w.r.t. node_1_y
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void NormalCalculationUtils::CalculateNormal3D(
     Condition& rCondition,
     array_1d<double,3>& rAn,
@@ -316,6 +384,61 @@ void NormalCalculationUtils::CalculateNormal3D(
     rAn *= 0.5;
 
     rCondition.SetValue(NORMAL, rAn);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NormalCalculationUtils::CalculateNormalShapeDerivative3D(
+    ConditionType& rCondition
+    )
+{
+    KRATOS_TRY
+
+    Geometry<Node<3>>& rGeometry = rCondition.GetGeometry();
+
+    // since this is a private static method (no external calls),
+    // this method assumes matrix is properly sized always before this call.
+    Matrix& r_normal_shape_derivatives = rCondition.GetValue(NORMAL_SHAPE_DERIVATIVE);
+
+    KRATOS_DEBUG_ERROR_IF(r_normal_shape_derivatives.size1() != 9 || r_normal_shape_derivatives.size2() != 3)
+        << "Condition (id: " << rCondition.Id() << ") does not have properly assigned \"NORMAL_SHAPE_DERIVATIVE\" "
+        << "variable. Please assigned this variable with proper matrix size (required matrix size: (9, 3) != given matrix size ("
+        << r_normal_shape_derivatives.size1() << ", " << r_normal_shape_derivatives.size2() << ")).";
+
+    r_normal_shape_derivatives(0, 0) = 0;                                    // normal_x derivative w.r.t. node_0_x
+    r_normal_shape_derivatives(1, 0) = rGeometry[1].Z() - rGeometry[2].Z();  // normal_x derivative w.r.t. node_0_y
+    r_normal_shape_derivatives(2, 0) = -rGeometry[1].Y() + rGeometry[2].Y(); // normal_x derivative w.r.t. node_0_z
+    r_normal_shape_derivatives(3, 0) = 0;                                    // normal_x derivative w.r.t. node_1_x
+    r_normal_shape_derivatives(4, 0) = -rGeometry[0].Z() + rGeometry[2].Z(); // normal_x derivative w.r.t. node_1_y
+    r_normal_shape_derivatives(5, 0) = rGeometry[0].Y() - rGeometry[2].Y();  // normal_x derivative w.r.t. node_1_z
+    r_normal_shape_derivatives(6, 0) = 0;                                    // normal_x derivative w.r.t. node_2_x
+    r_normal_shape_derivatives(7, 0) = rGeometry[0].Z() - rGeometry[1].Z();  // normal_x derivative w.r.t. node_2_y
+    r_normal_shape_derivatives(8, 0) = -rGeometry[0].Y() + rGeometry[1].Y(); // normal_x derivative w.r.t. node_2_z
+
+    r_normal_shape_derivatives(0, 1) = -rGeometry[1].Z() + rGeometry[2].Z(); // normal_y derivative w.r.t. node_0_x
+    r_normal_shape_derivatives(1, 1) = 0;                                    // normal_y derivative w.r.t. node_0_y
+    r_normal_shape_derivatives(2, 1) = rGeometry[1].X() - rGeometry[2].X();  // normal_y derivative w.r.t. node_0_z
+    r_normal_shape_derivatives(3, 1) = rGeometry[0].Z() - rGeometry[2].Z();  // normal_y derivative w.r.t. node_1_x
+    r_normal_shape_derivatives(4, 1) = 0;                                    // normal_y derivative w.r.t. node_1_y
+    r_normal_shape_derivatives(5, 1) = -rGeometry[0].X() + rGeometry[2].X(); // normal_y derivative w.r.t. node_1_z
+    r_normal_shape_derivatives(6, 1) = -rGeometry[0].Z() + rGeometry[1].Z(); // normal_y derivative w.r.t. node_2_x
+    r_normal_shape_derivatives(7, 1) = 0;                                    // normal_y derivative w.r.t. node_2_y
+    r_normal_shape_derivatives(8, 1) = rGeometry[0].X() - rGeometry[1].X();  // normal_y derivative w.r.t. node_2_z
+
+    r_normal_shape_derivatives(0, 2) = rGeometry[1].Y() - rGeometry[2].Y();  // normal_z derivative w.r.t. node_0_x
+    r_normal_shape_derivatives(1, 2) = -rGeometry[1].X() + rGeometry[2].X(); // normal_z derivative w.r.t. node_0_y
+    r_normal_shape_derivatives(2, 2) = 0;                                    // normal_z derivative w.r.t. node_0_z
+    r_normal_shape_derivatives(3, 2) = -rGeometry[0].Y() + rGeometry[2].Y(); // normal_z derivative w.r.t. node_1_x
+    r_normal_shape_derivatives(4, 2) = rGeometry[0].X() - rGeometry[2].X();  // normal_z derivative w.r.t. node_1_y
+    r_normal_shape_derivatives(5, 2) = 0;                                    // normal_z derivative w.r.t. node_1_z
+    r_normal_shape_derivatives(6, 2) = rGeometry[0].Y() - rGeometry[1].Y();  // normal_z derivative w.r.t. node_2_x
+    r_normal_shape_derivatives(7, 2) = -rGeometry[0].X() + rGeometry[1].X(); // normal_z derivative w.r.t. node_2_y
+    r_normal_shape_derivatives(8, 2) = 0;                                    // normal_z derivative w.r.t. node_2_z
+
+    noalias(r_normal_shape_derivatives) = r_normal_shape_derivatives * 0.5;
+
+    KRATOS_CATCH("");
 }
 
 template <>
