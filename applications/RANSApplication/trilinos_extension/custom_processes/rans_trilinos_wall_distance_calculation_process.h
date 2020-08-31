@@ -32,25 +32,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <
-    class TSparseSpace,
-    class TDenseSpace,
-    class TLinearSolver>
 class KRATOS_API(RANS_APPLICATION) TrilinosRansWallDistanceCalculationProcess
-    : public RansWallDistanceCalculationBaseProcess<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public RansWallDistanceCalculationProcess
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType =
-        RansWallDistanceCalculationBaseProcess<TSparseSpace, TDenseSpace, TLinearSolver>;
-    using NodeType = ModelPart::NodeType;
-    using SparseSpaceType = TSparseSpace;
-    using DenseSpaceType = TDenseSpace;
-    using LinearSolverType = TLinearSolver;
-    using BuilderSolverPointerType =
-        typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer;
+    using BaseType = RansWallDistanceCalculationProcess;
 
     /// Pointer definition of TrilinosRansWallDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosRansWallDistanceCalculationProcess);
@@ -94,9 +83,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateLinearSolver() override;
+    Process::Pointer GetWallDistanceCalculationProcess(
+        ModelPart& rModelPart,
+        Parameters LinearSolverParameters,
+        const int MaxIterations) override;
 
-    void CreateBuilderAndSolver() override;
 
     ///@}
 
@@ -107,10 +98,9 @@ private:
 ///@{
 
 /// output stream function
-template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const TrilinosRansWallDistanceCalculationProcess<TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
+    const TrilinosRansWallDistanceCalculationProcess& rThis);
 
 ///@}
 

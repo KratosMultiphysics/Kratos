@@ -148,7 +148,28 @@ class CustomProcessTest(UnitTest.TestCase):
                     "start_point"                       : [-0.09, 0.01, 0.0],
                     "end_point"                         : [0.19, 0.01, 0.0],
                     "number_of_sampling_points"         : 100,
-                    "output_file_name"                  : "process_tests_data/line_output_test_output",
+                    "output_file_name"                  : "process_tests_data/line_output_test_output_historical",
+                    "output_step_control_variable_name" : "STEP",
+                    "output_step_interval"              : 1,
+                    "write_header_information"          : false
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "LineOutputProcess",
+                "Parameters" : {
+                    "model_part_name"                   : "test",
+                    "variable_names_list"               : [
+                        "DENSITY",
+                        "VELOCITY",
+                        "EXTERNAL_FORCES_VECTOR",
+                        "GREEN_LAGRANGE_STRAIN_TENSOR"],
+                    "historical_value"                  : false,
+                    "start_point"                       : [-0.09, 0.01, 0.0],
+                    "end_point"                         : [0.19, 0.01, 0.0],
+                    "number_of_sampling_points"         : 100,
+                    "output_file_name"                  : "process_tests_data/line_output_test_output_non_historical",
                     "output_step_control_variable_name" : "STEP",
                     "output_step_interval"              : 1,
                     "write_header_information"          : false
@@ -158,8 +179,21 @@ class CustomProcessTest(UnitTest.TestCase):
                 "kratos_module" : "KratosMultiphysics",
                 "python_module" : "compare_two_files_check_process",
                 "Parameters" : {
-                    "reference_file_name"   : "process_tests_data/line_output_test_output_ref.csv",
-                    "output_file_name"      : "process_tests_data/line_output_test_output_1.csv",
+                    "reference_file_name"   : "process_tests_data/line_output_test_output_historical_ref.csv",
+                    "output_file_name"      : "process_tests_data/line_output_test_output_historical_1.000000.csv",
+                    "remove_output_file"    : true,
+                    "comparison_type"       : "csv_file",
+                    "tolerance"             : 1e-6,
+                    "relative_tolerance"    : 1e-9,
+                    "dimension"             : 3
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics",
+                "python_module" : "compare_two_files_check_process",
+                "Parameters" : {
+                    "reference_file_name"   : "process_tests_data/line_output_test_output_non_historical_ref.csv",
+                    "output_file_name"      : "process_tests_data/line_output_test_output_non_historical_1.000000.csv",
                     "remove_output_file"    : true,
                     "comparison_type"       : "csv_file",
                     "tolerance"             : 1e-6,
@@ -168,6 +202,24 @@ class CustomProcessTest(UnitTest.TestCase):
                 }
             }
         ]''')
+
+        KratosRANS.RansTestUtilities.RandomFillNodalNonHistoricalVariable(self.model_part, Kratos.DENSITY, 0.0, 50.0)
+        KratosRANS.RansTestUtilities.RandomFillNodalNonHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 50.0)
+
+        for node in self.model_part.Nodes:
+            v = Kratos.Vector(4)
+            v[0] = node.X
+            v[1] = node.Y
+            v[2] = node.GetValue(Kratos.DENSITY)
+            v[3] = node.GetValue(Kratos.DENSITY) * 1.1
+            node.SetValue(Kratos.EXTERNAL_FORCES_VECTOR, v)
+
+            m = Kratos.Matrix(2, 2)
+            m[0, 0] = node.GetValue(Kratos.DENSITY)
+            m[0, 1] = node.GetValue(Kratos.VELOCITY)[0]
+            m[1, 0] = node.GetValue(Kratos.VELOCITY)[1]
+            m[1, 1] = node.GetValue(Kratos.VELOCITY)[2]
+            node.SetValue(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, m)
 
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)
@@ -432,9 +484,15 @@ class CustomProcessTest(UnitTest.TestCase):
         for process in self.process_list:
             process.ExecuteInitializeSolutionStep()
         for process in self.process_list:
-            process.Execute()
+            if (hasattr(process, "ExecuteBeforeCouplingSolveStep")):
+                process.ExecuteBeforeCouplingSolveStep()
+        for process in self.process_list:
+            if (hasattr(process, "ExecuteAfterCouplingSolveStep")):
+                process.ExecuteAfterCouplingSolveStep()
         for process in self.process_list:
             process.ExecuteFinalizeSolutionStep()
+        for process in self.process_list:
+            process.ExecuteFinalize()
 
     @staticmethod
     def __AddJsonOutputProcess(settings, output_variables, output_model_part_name, output_file_name):

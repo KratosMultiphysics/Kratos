@@ -70,11 +70,6 @@ void RansKTurbulentIntensityInletProcess::ExecuteInitialize()
 
 void RansKTurbulentIntensityInletProcess::ExecuteInitializeSolutionStep()
 {
-    Execute();
-}
-
-void RansKTurbulentIntensityInletProcess::Execute()
-{
     KRATOS_TRY
 
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();

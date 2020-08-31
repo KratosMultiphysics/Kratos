@@ -69,7 +69,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : false,
