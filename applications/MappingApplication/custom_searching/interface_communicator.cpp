@@ -43,7 +43,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
                             const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
 
-    mSearchRadius = mSearchSettings["search_radius"].GetDouble();//*0.1;
+    mSearchRadius = mSearchSettings["search_radius"].GetDouble();
     const int max_search_iterations = mSearchSettings["search_iterations"].GetInt();
 
     KRATOS_WATCH(mSearchRadius)
@@ -254,8 +254,6 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
     KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!"
         << std::endl;
 
-    KRATOS_WATCH("SEARCHING")
-
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
         InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
         std::vector<double> neighbor_distances(num_interface_obj_bin);
@@ -284,8 +282,6 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
                     distance_itr, num_interface_obj_bin);
 
                 sum_num_results += number_of_results;
-
-                // std::cout << "Number of search results: " << number_of_results << std::endl;
 
                 for (IndexType j=0; j<number_of_results; ++j) {
                     r_interface_info->ProcessSearchResult(*(neighbor_results[j]), neighbor_distances[j]);
