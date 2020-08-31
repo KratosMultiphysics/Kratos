@@ -60,8 +60,6 @@ namespace Kratos
 
         const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
 
-
-        KRATOS_WATCH((*mpMappingMatrix))
         // 1 - calculate unbalanced interface free velocity
         Vector unbalanced_interface_free_velocity(origin_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
@@ -385,24 +383,20 @@ namespace Kratos
 
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-        for (size_t interface_index = 0; interface_index < 2; ++interface_index)
+        ModelPart& r_interface = mrDestinationInterfaceModelPart;
+        const double sign = -1.0;
+        auto interface_nodes = r_interface.NodesArray();
+        for (size_t i = 0; i < interface_nodes.size(); ++i)
         {
-            ModelPart& r_interface = (interface_index == 0)
-                ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
-            const double sign = (interface_index == 0) ? 1.0 : -1.0;
-            auto interface_nodes = r_interface.NodesArray();
-            for (size_t i = 0; i < interface_nodes.size(); ++i)
-            {
-                IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
+            IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
 
-                array_1d<double, 3>& lagrange = interface_nodes[i]->GetValue(VECTOR_LAGRANGE_MULTIPLIER);
-                lagrange.clear();
-                for (size_t dof = 0; dof < dim; dof++)
-                {
-                    lagrange[dof] = sign*rLagrange[interface_id * dim + dof];
-                }
-                KRATOS_WATCH(lagrange);
+            array_1d<double, 3>& lagrange = interface_nodes[i]->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+            lagrange.clear();
+            for (size_t dof = 0; dof < dim; dof++)
+            {
+                lagrange[dof] = sign*rLagrange[interface_id * dim + dof];
             }
+            KRATOS_WATCH(lagrange);
         }
 
         KRATOS_CATCH("")
