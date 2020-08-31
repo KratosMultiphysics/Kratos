@@ -110,6 +110,8 @@ namespace Kratos
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable<double>& rVariable,
             Vector& rContainer, const SizeType nDOFs);
 
+        void GetExpandedMappingMatrix(Matrix& rExpandedMappingMat, const SizeType nDOFs);
+
         void ComposeProjector(Matrix& rProjector, const bool IsOrigin);
 
         void DetermineInvertedEffectiveMassMatrix(const Matrix& rEffectiveK, Matrix& rEffInvMass,

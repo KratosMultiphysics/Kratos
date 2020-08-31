@@ -206,20 +206,26 @@ namespace Kratos
         // Incorporate mapping matrix into projector if it is the destination
         if (!IsOrigin)
         {
-            //rProjector = prod(trans(*mpMappingMatrix), rProjector);
+            // expand the mapping matrix to map all dofs at once
+            Matrix expanded_mapper(dim* mpMappingMatrix->size1(),dim*mpMappingMatrix->size2());
+            GetExpandedMappingMatrix(expanded_mapper, dim);
+            rProjector = prod(trans(expanded_mapper), rProjector);
         }
 
         // Debug check
+        double matrix_sum = 0.0;
         for (size_t i = 0; i < rProjector.size1(); i++)
         {
-            double row_sum = 0.0;
-            for (size_t j = 0; j < rProjector.size2(); j++) row_sum += rProjector(i, j);
-            row_sum = std::abs(row_sum);
-            KRATOS_ERROR_IF_NOT(std::abs(row_sum - 1.0) < 1e-12)
-                << "FetiDynamicCouplingUtilities::ComposeProjector | Row sum does not equal one\n"
-                << rProjector;
-
+            for (size_t j = 0; j < rProjector.size2(); j++) matrix_sum += rProjector(i, j);
         }
+        matrix_sum = std::abs(matrix_sum);
+        matrix_sum /= double(rProjector.size1());
+        KRATOS_ERROR_IF_NOT(std::abs(matrix_sum - 1.0) < 1e-12)
+            << "FetiDynamicCouplingUtilities::ComposeProjector | Mapping matrix does not sum to unity\n"
+            << "normalized matrix_sum = " << matrix_sum
+            << "\nrProjector = " << rProjector
+            << "\n Mapping matrix = " << *mpMappingMatrix;
+
         KRATOS_CATCH("")
     }
 
@@ -261,6 +267,12 @@ namespace Kratos
         Matrix h_destination_temp = prod(rDestinationProjector, rDestinationInverseMass);
         Matrix h_destination = prod(h_destination_temp, trans(rDestinationProjector));
         h_destination *= mDestinationGamma;
+
+        KRATOS_ERROR_IF_NOT(h_origin.size1() == h_destination.size1() &&
+            h_origin.size2() == h_destination.size2())
+            << "FetiDynamicCouplingUtilities::CalculateCondensationMatrix | Origin and destination parts of the condensation matrix do not have the same dimensions!\n"
+            << "h_origin = " << h_origin
+            << "\nh_destination = " << h_destination << "\n";
 
         if (rCondensationMatrix.size1() != h_origin.size1() ||
             rCondensationMatrix.size2() != h_origin.size2())
@@ -447,6 +459,31 @@ namespace Kratos
         {
             IndexType interface_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
             rContainer[interface_id] = interface_nodes[i]->FastGetSolutionStepValue(rVariable);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void FetiDynamicCouplingUtilities::GetExpandedMappingMatrix(
+        Matrix& rExpandedMappingMat, const SizeType nDOFs)
+    {
+        KRATOS_TRY
+
+        if (rExpandedMappingMat.size1() != mpMappingMatrix->size1() * nDOFs ||
+            rExpandedMappingMat.size2() != mpMappingMatrix->size2() * nDOFs)
+            rExpandedMappingMat.resize(mpMappingMatrix->size1() * nDOFs, mpMappingMatrix->size2() * nDOFs,false);
+        else rExpandedMappingMat.clear();
+
+        for (size_t dof = 0; dof < nDOFs; dof++)
+        {
+            for (size_t i = 0; i < mpMappingMatrix->size1(); i++)
+            {
+                const IndexType row = nDOFs * i + dof;
+                for (size_t j = 0; j < mpMappingMatrix->size2(); j++)
+                {
+                    rExpandedMappingMat(row, nDOFs * j + dof) = (*mpMappingMatrix)(i, j);
+                }
+            }
         }
 
         KRATOS_CATCH("")
