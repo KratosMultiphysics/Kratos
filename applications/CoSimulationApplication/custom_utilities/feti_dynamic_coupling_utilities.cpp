@@ -60,10 +60,8 @@ namespace Kratos
 
         const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
 
-        KRATOS_ERROR_IF_NOT(origin_interface_dofs == destination_interface_dofs)
-            << "Origin and Destination have different number of interface DOFS.";
 
-
+        KRATOS_WATCH((*mpMappingMatrix))
         // 1 - calculate unbalanced interface free velocity
         Vector unbalanced_interface_free_velocity(origin_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
@@ -76,7 +74,7 @@ namespace Kratos
         ComposeProjector(projector_origin, true);
 
         const SizeType destination_dofs = mpKDestination->size1();
-        Matrix projector_destination = Matrix(origin_interface_dofs, destination_dofs,0.0);
+        Matrix projector_destination = Matrix(destination_interface_dofs, destination_dofs,0.0);
         ComposeProjector(projector_destination, false);
 
 
@@ -190,7 +188,7 @@ namespace Kratos
         if (rProjector.size1() != interface_nodes.size() * dim ||
             rProjector.size2() != pK->size1())
             rProjector.resize(interface_nodes.size() * dim, pK->size1(), false);
-        else rProjector.clear();
+        rProjector.clear();
 
         for (size_t i = 0; i < interface_nodes.size(); i++)
         {
@@ -207,7 +205,7 @@ namespace Kratos
         if (!IsOrigin)
         {
             // expand the mapping matrix to map all dofs at once
-            Matrix expanded_mapper(dim* mpMappingMatrix->size1(),dim*mpMappingMatrix->size2());
+            Matrix expanded_mapper(dim* mpMappingMatrix->size1(),dim*mpMappingMatrix->size2(),0.0);
             GetExpandedMappingMatrix(expanded_mapper, dim);
             rProjector = prod(trans(expanded_mapper), rProjector);
         }
@@ -220,11 +218,11 @@ namespace Kratos
         }
         matrix_sum = std::abs(matrix_sum);
         matrix_sum /= double(rProjector.size1());
-        KRATOS_ERROR_IF_NOT(std::abs(matrix_sum - 1.0) < 1e-12)
-            << "FetiDynamicCouplingUtilities::ComposeProjector | Mapping matrix does not sum to unity\n"
-            << "normalized matrix_sum = " << matrix_sum
-            << "\nrProjector = " << rProjector
-            << "\n Mapping matrix = " << *mpMappingMatrix;
+        //KRATOS_ERROR_IF_NOT(std::abs(matrix_sum - 1.0) < 1e-12)
+        //    << "FetiDynamicCouplingUtilities::ComposeProjector | Mapping matrix does not sum to unity\n"
+        //    << "normalized matrix_sum = " << matrix_sum
+        //    << "\nrProjector = " << rProjector
+        //    << "\n Mapping matrix = " << *mpMappingMatrix;
 
         KRATOS_CATCH("")
     }
