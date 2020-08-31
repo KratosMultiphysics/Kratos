@@ -230,6 +230,7 @@ public:
             mpPrimalElement->CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
             noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
             KRATOS_CATCH("");
+            //TODO Flag to distinguish between static and transient computation (minus sign).
     }
 
     void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
