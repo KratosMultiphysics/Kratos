@@ -191,7 +191,7 @@ class RestartUtility(object):
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
     def GetRestartFiles(self):
-        """ Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart files for each step."""
+        """Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart files for each step."""
         restart_files = {}
         if os.path.isdir(self.__GetFolderPathSave()):
             number_of_restart_files = 0
@@ -208,20 +208,10 @@ class RestartUtility(object):
 
                         number_of_restart_files += 1
 
-            # Throw a warning if the number of restart files is too large
-            if ( number_of_restart_files > 1000 ):
-                message =   "Detected " + str(len(restart_files)) + " restart files. "
-                message +=  "Consider restricting the number of restart files to keep."
-                print( message )
-
         return restart_files
 
     def ClearObsoleteRestartFiles(self):
-        """
-        Collect all restart files from the current restart directory, sort them by date(time) modified
-        and delete the oldest ones such that only number_of_restart_files remain.
-        Note: a secondary sorting is performed based on the labels of the file names to resolve equalities.
-        """
+        """Delete restart files that are no longer needed."""
         if self.number_of_restart_files > -1:               # <-- number of restart files is limited
             number_of_obsolete_files = len(self.restart_files) - self.number_of_restart_files
             for _ in range(number_of_obsolete_files):
