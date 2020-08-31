@@ -1,4 +1,5 @@
 from KratosMultiphysics import *
+from KratosMultiphysics import mpi
 from KratosMultiphysics.MappingApplication import *
 
 def run():

@@ -46,8 +46,6 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     mSearchRadius = mSearchSettings["search_radius"].GetDouble();
     const int max_search_iterations = mSearchSettings["search_iterations"].GetInt();
 
-    KRATOS_WATCH(mSearchRadius)
-
     const double increase_factor = 4.0;
     int num_iteration = 1;
     InitializeSearch(rOptions, rpInterfaceInfo);
