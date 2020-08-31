@@ -92,7 +92,8 @@ class StructuralMechanicsAdjointDynamicAnalysis(AnalysisStage):
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
+            is_converged = self._GetSolver().SolveSolutionStep()
+            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
