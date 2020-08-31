@@ -91,7 +91,7 @@ double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
         const double dz = bounding_box[4] - bounding_box[5];
 
         const double nominator = std::sqrt((dx*dx) + (dy*dy) + (dz*dz));
-        const double denominator = std::sqrt(static_cast<double>(r_comm.GlobalNumberOfNodes())); // std::pow()
+        const double denominator = std::sqrt(static_cast<double>(r_comm.GlobalNumberOfNodes()));
 
         max_element_size = nominator / denominator;
     }
