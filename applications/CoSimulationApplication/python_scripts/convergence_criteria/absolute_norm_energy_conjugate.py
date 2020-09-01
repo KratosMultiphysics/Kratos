@@ -126,11 +126,14 @@ class AbsoluteNormResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "abs_tolerance" : 1e-5,
-            "criteria_composition" : "UNSPECIFIED",
-            "use_wrapper" : false,
+            "abs_tolerance"            : 1e-5,
+            "criteria_options"         : [],
+            "conjugate_data_name"      : "UNSPECIFIED",
+            "solver_domain_two"        : "UNSPECIFIED",
+            "criteria_composition"     : "UNSPECIFIED",
+            "use_wrapper"              : false,
             "ignore_first_convergence" : false,
-            "label"         : ""
+            "label"                    : ""
         }""")
         this_defaults.AddMissingParameters(super(AbsoluteNormResidualConvergenceCriteria, cls)._GetDefaultSettings())
         return this_defaults

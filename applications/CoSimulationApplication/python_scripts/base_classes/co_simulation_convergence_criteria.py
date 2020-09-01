@@ -58,8 +58,5 @@ class CoSimulationConvergenceCriteria(object):
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",
             "data_name"  : "UNSPECIFIED",
-            "criteria_options" : [],
-            "conjugate_data_name" : "UNSPECIFIED",
-            "solver_domain_two" : "UNSPECIFIED",
             "echo_level" : 0
         }""")
