@@ -159,16 +159,6 @@ public:
         return mPairingStatus;
     }
 
-    virtual void SetValue(const Variable<bool>& rVariable, const bool rValue)
-    {
-        KRATOS_ERROR << "Variable " << rVariable << " not availible in any mapper local system";
-    }
-
-    virtual bool GetValue(const Variable<bool>& rVariable)
-    {
-        KRATOS_ERROR << "Variable " << rVariable << " not availible in any mapper local system";
-    }
-
     ///@}
     ///@name Input and output
     ///@{
