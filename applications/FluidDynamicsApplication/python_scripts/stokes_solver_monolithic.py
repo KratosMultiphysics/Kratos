@@ -7,6 +7,7 @@ from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolit
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
 
 class StabilizedStokesFormulation(StabilizedFormulation):
+
     """
     Helper class to define Stokes formulation parameters.
 
