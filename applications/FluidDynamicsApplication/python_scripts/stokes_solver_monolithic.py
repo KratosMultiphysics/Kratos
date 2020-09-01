@@ -7,7 +7,6 @@ from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolit
 from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
 
 class StabilizedStokesFormulation(StabilizedFormulation):
-
     """
     Helper class to define Stokes formulation parameters.
 
@@ -18,7 +17,6 @@ class StabilizedStokesFormulation(StabilizedFormulation):
     element_integrates_in_time -- States if the time integration is wether done by the element or not
     element_has_nodal_properties -- States if the material properties are wether stored in the nodes or not
     process_data -- Auxiliary container to temporary store the elemental ProcessInfo data
-
     """
 
     def __init__(self,settings):
