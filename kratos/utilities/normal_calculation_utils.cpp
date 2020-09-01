@@ -397,7 +397,7 @@ void NormalCalculationUtils::CalculateNormalShapeDerivative3D(
 {
     KRATOS_TRY
 
-    Geometry<Node<3>>& rGeometry = rCondition.GetGeometry();
+    const auto& rGeometry = rCondition.GetGeometry();
 
     // since this is a private static method (no external calls),
     // this method assumes matrix is properly sized always before this call.
