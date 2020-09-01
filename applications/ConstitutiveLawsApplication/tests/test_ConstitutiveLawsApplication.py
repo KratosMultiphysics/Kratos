@@ -27,7 +27,7 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosConstitutiveLLawsGeneralTests('testSmallExample'))
+    smallSuite.addTest(KratosConstitutiveLawsGeneralTests('testSmallExample'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -42,7 +42,7 @@ def AssembleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosConstitutiveLLawsGeneralTests
+            KratosConstitutiveLawsGeneralTests
         ])
     )
 
