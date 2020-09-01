@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
@@ -276,6 +277,21 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const array_1d<double, 3>& rCoords);
+
+void KRATOS_API(MAPPING_APPLICATION) SaveCurrentConfiguration(ModelPart& rModelPart);
+void KRATOS_API(MAPPING_APPLICATION) RestoreCurrentConfiguration(ModelPart& rModelPart);
+
+template<class TDataType>
+void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.Data().Erase(rVariable);
+    });
+
+    KRATOS_CATCH("");
+}
 
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,

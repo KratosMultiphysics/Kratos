@@ -21,7 +21,7 @@ import test_parallel_environment
 # importing OpenMP tests in MPI scope.
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     from test_processes import TestProcesses
-
+    import test_normal_utils
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -54,6 +54,8 @@ def AssembleTestSuites():
     # adding non-mpi tests also as mpi tests
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursProcess"))
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursForConditionsProcess"))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsCoarseSphere]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_normal_utils.TestNormalUtilsQuadSphere]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']
