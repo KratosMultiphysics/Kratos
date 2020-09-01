@@ -128,9 +128,6 @@ namespace Kratos
 
         void ComposeProjector(Matrix& rProjector, const bool IsOrigin);
 
-        void DetermineInvertedEffectiveMassMatrix(const Matrix& rEffectiveK, Matrix& rEffInvMass,
-            const bool IsOrigin);
-
         void DetermineDomainUnitAccelerationResponse(SystemMatrixType& rK,
             const Matrix& rProjector, Matrix& rUnitResponse);
 

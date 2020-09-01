@@ -214,46 +214,6 @@ namespace Kratos
             rProjector = prod(expanded_mapper, rProjector);
         }
 
-        // Debug check
-        double matrix_sum = 0.0;
-        for (size_t i = 0; i < rProjector.size1(); i++)
-        {
-            for (size_t j = 0; j < rProjector.size2(); j++) matrix_sum += rProjector(i, j);
-        }
-        matrix_sum = std::abs(matrix_sum);
-        matrix_sum /= double(rProjector.size1());
-        //KRATOS_ERROR_IF_NOT(std::abs(matrix_sum - 1.0) < 1e-12)
-        //    << "FetiDynamicCouplingUtilities::ComposeProjector | Mapping matrix does not sum to unity\n"
-        //    << "normalized matrix_sum = " << matrix_sum
-        //    << "\nrProjector = " << rProjector
-        //    << "\n Mapping matrix = " << *mpMappingMatrix;
-
-        KRATOS_CATCH("")
-    }
-
-
-    void FetiDynamicCouplingUtilities::DetermineInvertedEffectiveMassMatrix(
-        const Matrix& rEffectiveK, Matrix& rEffInvMass, const bool IsOrigin)
-    {
-        KRATOS_TRY
-
-        //TODO This assumes average acceleration implicit
-        //TODO this assumes same timestep in each domain
-        const double dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
-        Matrix effective_mass_matrix = dt * dt / 4.0 * rEffectiveK;
-
-        if (effective_mass_matrix.size1() != rEffInvMass.size1() ||
-            effective_mass_matrix.size2() != rEffInvMass.size2())
-            rEffInvMass.resize(effective_mass_matrix.size1(), effective_mass_matrix.size2(), false);
-
-        rEffInvMass.clear();
-
-
-
-        double det;
-        // TODO find faster way to invert
-        MathUtils<double>::InvertMatrix(effective_mass_matrix, rEffInvMass, det);
-
         KRATOS_CATCH("")
     }
 
@@ -265,29 +225,15 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Matrix h_origin = prod(rOriginProjector, rOriginUnitResponse);
-        h_origin *= mOriginGamma;
+        rCondensationMatrix = prod(rOriginProjector, rOriginUnitResponse);
+        rCondensationMatrix *= mOriginGamma;
 
         Matrix h_destination = prod(rDestinationProjector, rDestinationUnitResponse);
         h_destination *= mDestinationGamma;
-
-        KRATOS_ERROR_IF_NOT(h_origin.size1() == h_destination.size1() &&
-            h_origin.size2() == h_destination.size2())
-            << "FetiDynamicCouplingUtilities::CalculateCondensationMatrix | Origin and destination parts of the condensation matrix do not have the same dimensions!\n"
-            << "h_origin = " << h_origin
-            << "\nh_destination = " << h_destination << "\n";
-
-        if (rCondensationMatrix.size1() != h_origin.size1() ||
-            rCondensationMatrix.size2() != h_origin.size2())
-            rCondensationMatrix.resize(h_origin.size1(), h_origin.size2(), false);
-        else rCondensationMatrix.clear();
+        rCondensationMatrix += h_destination;
 
         //TODO this assumes same timestep in each domain
         const double dt = mpOriginDomain->GetProcessInfo().GetValue(DELTA_TIME);
-
-        rCondensationMatrix = h_origin;
-        rCondensationMatrix += h_destination;
-
         rCondensationMatrix *= (-1.0*dt);
 
         KRATOS_CATCH("")
@@ -500,6 +446,7 @@ namespace Kratos
             Vector solution(system_dofs);
             Vector projector_transpose_column(system_dofs);
             bool is_zero_rhs = true;
+
             for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
 
             if (norm_2_square(projector_transpose_column) > 1e-12) is_zero_rhs = false;
@@ -507,6 +454,7 @@ namespace Kratos
             if (!is_zero_rhs)
             {
                 mpSolver->Solve(rK, solution, projector_transpose_column);
+
                 for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(j, i) = solution[j];
             }
 
