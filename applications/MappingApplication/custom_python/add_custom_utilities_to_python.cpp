@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -15,35 +16,26 @@
 
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
 
 // Project includes
 #include "includes/define_python.h"
-#include "mapping_application.h"
-#include "custom_python/add_custom_mappers_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/mapper_utilities.h"
 
 
 namespace Kratos {
 namespace Python {
 
-
-PYBIND11_MODULE(KratosMappingApplication, m)
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<KratosMappingApplication,
-        KratosMappingApplication::Pointer,
-        KratosApplication >(m,"KratosMappingApplication")
-        .def(py::init<>())
-        ;
+    auto m_mapper_utilities = m.def_submodule("MapperUtilities");
 
-    AddCustomMappersToPython(m);
-    AddCustomUtilitiesToPython(m);
+    m_mapper_utilities.def("SaveCurrentConfiguration", &MapperUtilities::SaveCurrentConfiguration);
+    m_mapper_utilities.def("RestoreCurrentConfiguration", &MapperUtilities::RestoreCurrentConfiguration);
 }
 
 }  // namespace Python.
-}  // namespace Kratos.
-
-#endif // KRATOS_PYTHON defined
+} // Namespace Kratos

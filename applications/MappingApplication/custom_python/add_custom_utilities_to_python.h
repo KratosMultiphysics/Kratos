@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -13,11 +14,23 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#include "mapping_application_variables.h"
+#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
-namespace Kratos
-{
-    KRATOS_CREATE_VARIABLE(int, INTERFACE_EQUATION_ID)
-    KRATOS_CREATE_VARIABLE(int, PAIRING_STATUS)
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CURRENT_COORDINATES)
-}
+// System includes
+
+// External includes
+#include <pybind11/pybind11.h>
+
+// Project includes
+
+
+namespace Kratos {
+namespace Python {
+
+void AddCustomUtilitiesToPython(pybind11::module& m);
+
+}  // namespace Python.
+}  // namespace Kratos.
+
+#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined
