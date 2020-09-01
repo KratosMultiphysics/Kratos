@@ -26,7 +26,6 @@
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
-#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -909,20 +908,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        // We compute the distance, if it is not in the pane we
-        const Point point_to_project(rPoint);
-        Point point_projected;
-        const double distance = GeometricalProjectionUtilities::FastProjectOnLine2D(*this, point_to_project, point_projected);
-
-        // We check if we are on the plane
-        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
-            if (std::abs(distance) > 1.0e-6 * Length()) {
-                KRATOS_WARNING_FIRST_N("Line2D2", 10) << "The point of coordinates X: " << rPoint[0] << "\tY: " << rPoint[1] << " it is in a distance: " << std::abs(distance) << std::endl;
-                return false;
-            }
-        }
-
-        PointLocalCoordinates( rResult, point_projected );
+        PointLocalCoordinates( rResult, rPoint );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
             return true;

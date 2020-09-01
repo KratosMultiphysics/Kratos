@@ -28,7 +28,6 @@
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
-#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -887,28 +886,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-        const auto center = this->Center();
-        const array_1d<double, 3> normal = this->UnitNormal(center);
-
-        // We compute the distance, if it is not in the plane we project
-        const Point point_to_project(rPoint);
-        double distance;
-        CoordinatesArrayType point_projected;
-        point_projected = GeometricalProjectionUtilities::FastProject( center, point_to_project, normal, distance);
-
-        // We check if we are on the plane
-        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
-            if (std::abs(distance) > 1.0e-6 * Length()) {
-                KRATOS_WARNING_FIRST_N("Triangle3D3", 10) << "The " << rPoint << " is in a distance: " << std::abs(distance) << std::endl;
-                return false;
-            }
-
-            // Not in the plane, but allowing certain distance, projecting
-            noalias(point_projected) = rPoint - normal * distance;
-        }
-
-        PointLocalCoordinates( rResult, point_projected );
+        PointLocalCoordinates( rResult, rPoint );
 
         if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
             if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
