@@ -58,6 +58,9 @@ namespace Kratos
         typedef typename LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
         typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
 
+        /// The definition of the numerical limit
+        static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
+
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin,
             ModelPart & rInterFaceDestination,
             double OriginNewmarkBeta, double OriginNewmarkGamma,
@@ -89,10 +92,6 @@ namespace Kratos
 
         void EquilibrateDomains();
 
-
-        //void KRATOS_API(CO_SIMULATION_APPLICATION) FindIntersection1DGeometries2D(
-
-
     private:
         ModelPart& mrOriginInterfaceModelPart;
         ModelPart& mrDestinationInterfaceModelPart;
@@ -104,7 +103,6 @@ namespace Kratos
         SystemMatrixType* mpKDestination = nullptr;
 
         DenseMappingMatrixSharedPointerType mpMappingMatrix = nullptr;
-        //MappingMatrixType* mpMappingMatrix = nullptr;
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 
@@ -114,7 +112,6 @@ namespace Kratos
         const double mDestinationGamma;
 
         const bool mIsCheckEquilibrium = true;
-
 
         void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);
 
@@ -128,8 +125,10 @@ namespace Kratos
 
         void ComposeProjector(Matrix& rProjector, const bool IsOrigin);
 
-        void DetermineDomainUnitAccelerationResponse(SystemMatrixType& rK,
-            const Matrix& rProjector, Matrix& rUnitResponse);
+        void DetermineDomainUnitAccelerationResponse(SystemMatrixType* pK,
+            const Matrix& rProjector, Matrix& rUnitResponse, const bool sOrigin);
+
+        void CreateExplicitDomainSystemMassMatrix(CompressedMatrix& rMass, ModelPart& rDomain);
 
         void CalculateCondensationMatrix(CompressedMatrix& rCondensationMatrix,
             const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
@@ -143,7 +142,7 @@ namespace Kratos
 
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,
-            const Vector& rCorrection);
+            const Vector& rCorrection, const bool IsImplicit);
 
         void WriteLagrangeMultiplierResults(const Vector& rLagrange);
 

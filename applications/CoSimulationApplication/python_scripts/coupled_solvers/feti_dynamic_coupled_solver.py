@@ -39,8 +39,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         for solver_name, solver in self.solver_wrappers.items():
             solver.SolveSolutionStep()
 
-            system_matrix = solver.GetSolverStrategy().GetSystemMatrix()
-            self.feti_coupling.SetEffectiveStiffnessMatrices(system_matrix,solver_index)
+            if self.is_implicit[solver_index]:
+                system_matrix = solver.GetSolverStrategy().GetSystemMatrix()
+                self.feti_coupling.SetEffectiveStiffnessMatrices(system_matrix,solver_index)
 
             solver_index += 1
 
@@ -81,6 +82,10 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         origin_newmark_gamma = self.settings["origin_newmark_gamma"].GetDouble()
         destination_newmark_beta = self.settings["destination_newmark_beta"].GetDouble()
         destination_newmark_gamma = self.settings["destination_newmark_gamma"].GetDouble()
+
+        self.is_implicit = [True, True]
+        if origin_newmark_beta == 0.0: self.is_implicit[0] = False
+        if destination_newmark_beta == 0.0: self.is_implicit[1] = False
 
 
         # create the solver

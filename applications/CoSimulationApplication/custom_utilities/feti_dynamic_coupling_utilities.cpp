@@ -79,26 +79,23 @@ namespace Kratos
         ComposeProjector(projector_destination, false);
 
 
-
         // 3 - Determine domain response to unit loads
         Matrix unit_response_origin(projector_origin.size2(), projector_origin.size1());
-        DetermineDomainUnitAccelerationResponse(*mpKOrigin, projector_origin, unit_response_origin);
+        DetermineDomainUnitAccelerationResponse(mpKOrigin, projector_origin, unit_response_origin,true);
 
         Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
-        DetermineDomainUnitAccelerationResponse(*mpKDestination, projector_destination, unit_response_destination);
+        DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination,false);
 
 
         // 4 - Calculate condensation matrix
         CompressedMatrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
         CalculateCondensationMatrix(condensation_matrix, unit_response_origin,
-            unit_response_destination, projector_origin,
-            projector_destination);
+            unit_response_destination, projector_origin, projector_destination);
 
 
         // 5 - Calculate lagrange mults
         Vector lagrange_vector(origin_interface_dofs);
         DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
-        KRATOS_WATCH(lagrange_vector);
 
 
         // 6 - Apply correction quantities
@@ -185,19 +182,43 @@ namespace Kratos
         auto interface_nodes = rMP.NodesArray();
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
+        const bool is_implicit = (pK != nullptr) ? true : false;
+
         IndexType interface_equation_id;
         IndexType domain_equation_id;
 
-        //TODO This may not work for explicit
+        SizeType domain_dofs = 0;
+        if (is_implicit)
+        {
+            // Implicit - we can use the system matrix size and equation ordering
+            domain_dofs = pK->size1();
+        }
+        else
+        {
+            // Explicit - we use the active nodes in the domain and ordering is just the node index in the model part
+            ModelPart& rDomain = (IsOrigin) ? *mpOriginDomain : *mpDestinationDomain;
+            for (auto node_it : rDomain.NodesArray())
+            {
+                const double nodal_mass = node_it->GetValue(NODAL_MASS);
+                if (nodal_mass > numerical_limit)
+                {
+                    node_it->SetValue(EXPLICIT_DOF_X_EQUATION_ID, domain_dofs);
+                    domain_dofs += dim;
+                }
+            }
+        }
+
         if (rProjector.size1() != interface_nodes.size() * dim ||
-            rProjector.size2() != pK->size1())
-            rProjector.resize(interface_nodes.size() * dim, pK->size1(), false);
+            rProjector.size2() != domain_dofs)
+            rProjector.resize(interface_nodes.size() * dim, domain_dofs, false);
         rProjector.clear();
 
         for (size_t i = 0; i < interface_nodes.size(); i++)
         {
             interface_equation_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
-            domain_equation_id = interface_nodes[i]->GetDof(DISPLACEMENT_X).EquationId();
+            domain_equation_id = (is_implicit)
+                ? interface_nodes[i]->GetDof(DISPLACEMENT_X).EquationId()
+                : interface_nodes[i]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
 
             for (size_t dof_dim = 0; dof_dim < dim; dof_dim++)
             {
@@ -275,26 +296,29 @@ namespace Kratos
 
         ModelPart* pDomainModelPart = (IsOrigin) ? mpOriginDomain : mpDestinationDomain;
         const double gamma = (IsOrigin) ? mOriginGamma : mDestinationGamma;
+        const double beta = (IsOrigin) ? mOriginBeta : mDestinationBeta;
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
+        const bool is_implicit = (beta > numerical_limit) ? true : false;
 
         // Apply acceleration correction
         Vector accel_corrections = prod(rUnitResponse, rLagrangeVec);
-        AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections);
+        AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections, is_implicit);
 
         // Apply velocity correction
         accel_corrections *= (gamma * dt);
-        AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections);
+        AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections, is_implicit);
 
         // Apply displacement correction
         accel_corrections *= (gamma * dt);
-        AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections);
+        AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
 
         KRATOS_CATCH("")
     }
 
 
     void FetiDynamicCouplingUtilities::AddCorrectionToDomain(ModelPart* pDomain,
-        const Variable<array_1d<double, 3>>& rVariable, const Vector& rCorrection)
+        const Variable<array_1d<double, 3>>& rVariable, const Vector& rCorrection,
+        const bool IsImplicit)
     {
         KRATOS_TRY
 
@@ -304,14 +328,34 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(rCorrection.size() == domain_nodes.size() * dim)
             << "AddCorrectionToDomain | Correction dof size does not match domain dofs";
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
+        if (IsImplicit)
         {
-            IndexType equation_id = domain_nodes[i]->GetDof(DISPLACEMENT_X).EquationId();
-            array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
-            for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
             {
-                r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                IndexType equation_id = domain_nodes[i]->GetDof(DISPLACEMENT_X).EquationId();
+                array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
+                for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                {
+                    r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                }
+            }
+        }
+        else
+        {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(domain_nodes.size()); i++)
+            {
+                const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
+                if (nodal_mass > numerical_limit)
+                {
+                    IndexType equation_id = domain_nodes[i]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
+                    array_1d<double, 3>& r_nodal_quantity = domain_nodes[i]->FastGetSolutionStepValue(rVariable);
+                    for (size_t dof_dim = 0; dof_dim < dim; ++dof_dim)
+                    {
+                        r_nodal_quantity[dof_dim] += rCorrection[equation_id + dof_dim];
+                    }
+                }
             }
         }
 
@@ -428,16 +472,31 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponse(
-        SystemMatrixType& rK, const Matrix& rProjector, Matrix& rUnitResponse)
+        SystemMatrixType* pK, const Matrix& rProjector, Matrix& rUnitResponse,
+        const bool isOrigin)
     {
+        KRATOS_TRY
+
         const SizeType interface_dofs = rProjector.size1();
         const SizeType system_dofs = rProjector.size2();
+        const bool is_implicit = (pK != nullptr) ? true : false;
 
         if (rUnitResponse.size1() != system_dofs ||
             rUnitResponse.size2() != interface_dofs)
             rUnitResponse.resize(system_dofs, interface_dofs, false);
 
         rUnitResponse.clear();
+
+        CompressedMatrix mass_matrix;
+        if (!is_implicit)
+        {
+            // Create the mass matrix we need
+            mass_matrix.resize(system_dofs, system_dofs);
+            mass_matrix.clear();
+            pK = &mass_matrix;
+            ModelPart& r_domain = (isOrigin) ? *mpOriginDomain : *mpDestinationDomain;
+            CreateExplicitDomainSystemMassMatrix(mass_matrix, r_domain);
+        }
 
         auto start = std::chrono::system_clock::now();
         #pragma omp parallel for
@@ -453,7 +512,7 @@ namespace Kratos
 
             if (!is_zero_rhs)
             {
-                mpSolver->Solve(rK, solution, projector_transpose_column);
+                mpSolver->Solve(*pK, solution, projector_transpose_column);
 
                 for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(j, i) = solution[j];
             }
@@ -463,8 +522,18 @@ namespace Kratos
         auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         // Convert system stiffness matrix to mass matrix
-        const double dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
-        rUnitResponse /= (dt * dt / 4.0);
+        const double gamma = (isOrigin) ? mOriginGamma : mDestinationGamma;
+        if (is_implicit)
+        {
+            const double dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
+            rUnitResponse /= (dt * dt * gamma * gamma);
+        }
+        else
+        {
+            rUnitResponse /= gamma;
+            pK = nullptr;
+        }
+
 
         // reference answer - slow matrix inversion
         const bool is_test_ref = false;
@@ -472,8 +541,8 @@ namespace Kratos
         {
             start = std::chrono::system_clock::now();
             double det;
-            Matrix inv (rK.size1(),rK.size2());
-            MathUtils<double>::InvertMatrix(rK, inv, det);
+            Matrix inv (pK->size1(),pK->size2());
+            MathUtils<double>::InvertMatrix(*pK, inv, det);
             Matrix ref = prod(inv, trans(rProjector));
             end = std::chrono::system_clock::now();
             auto elasped_invert = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -481,5 +550,32 @@ namespace Kratos
             std::cout << "solve time = " << elasped_solve.count() << "\n";
             std::cout << "invert time = " << elasped_invert.count() << "\n";
         }
+
+        KRATOS_CATCH("")
+    }
+
+    void FetiDynamicCouplingUtilities::CreateExplicitDomainSystemMassMatrix(
+        CompressedMatrix& rMass, ModelPart& rDomain)
+    {
+        KRATOS_TRY
+
+        auto domain_nodes = rDomain.NodesArray();
+        const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+        //#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(domain_nodes.size()); ++i)
+        {
+            const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
+            if (nodal_mass > numerical_limit)
+            {
+                IndexType domain_id = domain_nodes[i]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
+                for (size_t dof = 0; dof < dim; ++dof)
+                {
+                    rMass(domain_id + dof, domain_id + dof) = nodal_mass;
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
     }
 } // namespace Kratos.
