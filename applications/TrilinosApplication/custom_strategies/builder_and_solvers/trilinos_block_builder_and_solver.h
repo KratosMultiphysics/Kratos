@@ -438,9 +438,9 @@ public:
                   TSystemVectorType& rb) override
     {
         KRATOS_TRY
-        if (BaseType::GetEchoLevel() > 0)
+        if (BaseType::GetEchoLevel() > 0) {
             START_TIMER("BuildRHS ", 0)
-
+        }
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
