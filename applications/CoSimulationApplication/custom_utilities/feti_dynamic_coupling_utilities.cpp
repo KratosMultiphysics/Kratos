@@ -89,7 +89,7 @@ namespace Kratos
 
 
         // 4 - Calculate condensation matrix
-        Matrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
+        CompressedMatrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
         CalculateCondensationMatrix(condensation_matrix, unit_response_origin,
             unit_response_destination, projector_origin,
             projector_destination);
@@ -259,7 +259,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::CalculateCondensationMatrix(
-        Matrix& rCondensationMatrix,
+        CompressedMatrix& rCondensationMatrix,
         const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
         const Matrix& rOriginProjector, const Matrix& rDestinationProjector)
     {
@@ -295,7 +295,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::DetermineLagrangianMultipliers(Vector& rLagrangeVec,
-        const Matrix& rCondensationMatrix, const Vector& rUnbalancedVelocities)
+        CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedVelocities)
     {
         KRATOS_TRY
 
@@ -315,9 +315,7 @@ namespace Kratos
         }
         else
         {
-            CompressedMatrix A = CompressedMatrix(rCondensationMatrix);
-            Vector b(rUnbalancedVelocities);
-            mpSolver->Solve(A, rLagrangeVec, b);
+            mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedVelocities);
         }
 
         KRATOS_CATCH("")

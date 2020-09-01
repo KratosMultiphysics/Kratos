@@ -134,12 +134,12 @@ namespace Kratos
         void DetermineDomainUnitAccelerationResponse(SystemMatrixType& rK,
             const Matrix& rProjector, Matrix& rUnitResponse);
 
-        void CalculateCondensationMatrix(Matrix& rCondensationMatrix,
+        void CalculateCondensationMatrix(CompressedMatrix& rCondensationMatrix,
             const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
             const Matrix& rOriginProjector, const Matrix& rDestinationProjector);
 
         void DetermineLagrangianMultipliers(Vector& rLagrangeVec,
-            const Matrix& rCondensationMatrix, const Vector& rUnbalancedVelocities);
+            CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedVelocities);
 
         void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
             const Matrix& rOriginUnitResponse, const bool IsOrigin);
