@@ -477,9 +477,9 @@ public:
         // finalizing the assembly
         rb.GlobalAssemble();
 
-        if (BaseType::GetEchoLevel() > 0)
+        if (BaseType::GetEchoLevel() > 0) {
             STOP_TIMER("BuildRHS ", 0)
-
+        }
         KRATOS_CATCH("")
     }
 
