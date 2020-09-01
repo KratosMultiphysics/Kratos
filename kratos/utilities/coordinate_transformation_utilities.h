@@ -96,7 +96,307 @@ public:
 	///@name Operations
 	///@{
 
-	/// Rotate the local system contributions so that they are oriented with each node's normal.
+	/**
+	 * @brief Calculates rotation operator for given point
+	 *
+	 * This metod calculates rotation matrix for a given point. Nodal NORMAL variable should be
+	 * assigned properly since rotation is calculated based on it.
+	 *
+	 * @param rRotationMatrix 	Output rotation matrix
+	 * @param rThisPoint 		Current node
+	 */
+    virtual void CalculateRotationOperatorPure(
+		TLocalMatrixType& rRotationMatrix,
+        const GeometryType::PointType& rThisPoint) const
+    {
+        if (mDomainSize == 2) {
+            BoundedMatrix<double, 2, 2> local_matrix;
+            this->LocalRotationOperatorPure(local_matrix, rThisPoint);
+            if (rRotationMatrix.size1() != 2 || rRotationMatrix.size2() != 2) {
+                rRotationMatrix.resize(2, 2, false);
+            }
+            noalias(rRotationMatrix) = local_matrix;
+        } else {
+            BoundedMatrix<double, 3, 3> local_matrix;
+            this->LocalRotationOperatorPure(local_matrix, rThisPoint);
+            if (rRotationMatrix.size1() != 3 || rRotationMatrix.size2() != 3) {
+                rRotationMatrix.resize(3, 3, false);
+            }
+            noalias(rRotationMatrix) = local_matrix;
+        }
+    }
+
+	/**
+	 * @brief Calculates rotation nodal matrix shape sensitivities
+	 *
+	 * This method calculates shape sensitivities of rotation matrix for given node.
+	 * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+	 * should be properly initialized.
+	 *
+	 * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+	 * 		rows: number_of_nodes contributing to NORMAL * DOMAIN_SIZE, columns: DOMAIN_SIZE
+	 *
+	 * @param rRotationMatrixShapeDerivative 	Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+	 * @param DerivativeNodeIndex 				NodeIndex for which shape sensitivity matrix is computed
+	 * @param DerivativeDirectionIndex			Direction index of the node for which shape sensitivity matrix is computed
+	 * @param rThisPoint 						Current node where rotation matrix shape sensitivities are required
+	 */
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
+		TLocalMatrixType& rRotationMatrixShapeDerivative,
+        const int DerivativeNodeIndex,
+        const int DerivativeDirectionIndex,
+        const GeometryType::PointType& rThisPoint) const
+    {
+        if (mDomainSize == 2) {
+            BoundedMatrix<double, 2, 2> local_matrix;
+            this->CalculateRotationOperatorPureShapeSensitivities(
+                local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
+            if (rRotationMatrixShapeDerivative.size1() != 2 ||
+                rRotationMatrixShapeDerivative.size2() != 2) {
+                rRotationMatrixShapeDerivative.resize(2, 2, false);
+            }
+            noalias(rRotationMatrixShapeDerivative) = local_matrix;
+        } else {
+            BoundedMatrix<double, 3, 3> local_matrix;
+            this->CalculateRotationOperatorPureShapeSensitivities(
+                local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
+            if (rRotationMatrixShapeDerivative.size1() != 3 ||
+                rRotationMatrixShapeDerivative.size2() != 3) {
+                rRotationMatrixShapeDerivative.resize(3, 3, false);
+            }
+            noalias(rRotationMatrixShapeDerivative) = local_matrix;
+        }
+    }
+
+	/**
+	 * @brief Calculate 2d rotation nodal matrix shape sensitivities
+	 *
+	 * This method calculates shape sensitivities of 2D rotation matrix for given node.
+	 * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+	 * should be properly initialized.
+	 *
+	 * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+	 * 		rows: (number_of_neighbour_nodes + 1) * 2
+	 * 		cols: 2
+	 *
+	 * @param rOutput							Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+	 * @param DerivativeNodeIndex 				NodeIndex for which shape sensitivity matrix is computed
+	 * @param DerivativeDirectionIndex			Direction index of the node for which shape sensitivity matrix is computed
+	 * @param rThisPoint 						Current node where rotation matrix shape sensitivities are required
+	 */
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
+        BoundedMatrix<double, 2, 2>& rOutput,
+        const int DerivativeNodeIndex,
+        const int DerivativeDirectionIndex,
+        const GeometryType::PointType& rThisPoint) const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(NORMAL))
+            << "NORMAL is not found in node at " << rThisPoint.Coordinates() << ".";
+        KRATOS_ERROR_IF(!rThisPoint.Has(NORMAL_SHAPE_DERIVATIVE))
+            << "NORMAL_SHAPE_DERIVATIVE is not found in node at "
+            << rThisPoint.Coordinates() << ".";
+
+        const array_1d<double, 3>& r_nodal_normal =
+            rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+		const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 2)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of columns = 2, available number of columns = "
+            << r_sensitivity_values.size2() << " ].";
+
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < (DerivativeNodeIndex + 1) * 2)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of rows >= "
+            << (DerivativeNodeIndex + 1) * 2
+            << ", available number of rows = " << r_sensitivity_values.size1() << " ].";
+
+        const Vector& r_nodal_normal_derivatives =
+            row(r_sensitivity_values, DerivativeNodeIndex * 2 + DerivativeDirectionIndex);
+        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
+
+        rOutput(0, 0) = r_nodal_normal_derivatives[0] / nodal_normal_magnitude;
+        rOutput(0, 1) = r_nodal_normal_derivatives[1] / nodal_normal_magnitude;
+        rOutput(1, 0) = -r_nodal_normal_derivatives[1] / nodal_normal_magnitude;
+        rOutput(1, 1) = r_nodal_normal_derivatives[0] / nodal_normal_magnitude;
+
+        const double nodal_normal_magnitude_derivative =
+            (r_nodal_normal[0] * r_nodal_normal_derivatives[0] +
+             r_nodal_normal[1] * r_nodal_normal_derivatives[1]) /
+            nodal_normal_magnitude;
+
+        const double coeff = nodal_normal_magnitude_derivative /
+                             (std::pow(nodal_normal_magnitude, 2));
+
+        rOutput(0, 0) -= r_nodal_normal[0] * coeff;
+        rOutput(0, 1) -= r_nodal_normal[1] * coeff;
+        rOutput(1, 0) -= -r_nodal_normal[1] * coeff;
+        rOutput(1, 1) -= r_nodal_normal[0] * coeff;
+
+        KRATOS_CATCH("");
+    }
+
+	/**
+	 * @brief Calculate 3d rotation nodal matrix shape sensitivities
+	 *
+	 * This method calculates shape sensitivities of 3D rotation matrix for given node.
+	 * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+	 * should be properly initialized.
+	 *
+	 * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+	 * 		rows: (number_of_neighbour_nodes + 1) * 3
+	 * 		cols: 3
+	 *
+	 * @param rOutput						 	Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+	 * @param DerivativeNodeIndex 				NodeIndex for which shape sensitivity matrix is computed
+	 * @param DerivativeDirectionIndex			Direction index of the node for which shape sensitivity matrix is computed
+	 * @param rThisPoint 						Current node where rotation matrix shape sensitivities are required
+	 */
+    virtual void CalculateRotationOperatorPureShapeSensitivities(
+		BoundedMatrix<double, 3, 3>& rOutput,
+        const int DerivativeNodeIndex,
+        const int DerivativeDirectionIndex,
+		const GeometryType::PointType& rThisPoint) const
+	{
+		KRATOS_TRY
+
+        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(NORMAL))
+            << "NORMAL is not found in node at " << rThisPoint.Coordinates() << ".";
+        KRATOS_ERROR_IF(!rThisPoint.Has(NORMAL_SHAPE_DERIVATIVE))
+            << "NORMAL_SHAPE_DERIVATIVE is not found in node at "
+            << rThisPoint.Coordinates() << ".";
+
+        const array_1d<double, 3>& r_nodal_normal =
+            rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+		const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 3)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of columns = 3, available number of columns = "
+            << r_sensitivity_values.size2() << " ].";
+
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < (DerivativeNodeIndex + 1) * 3)
+            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of rows >= "
+            << (DerivativeNodeIndex + 1) * 3
+            << ", available number of rows = " << r_sensitivity_values.size1() << " ].";
+
+        const Vector& r_nodal_normal_derivative =
+            row(r_sensitivity_values, DerivativeNodeIndex * 3 + DerivativeDirectionIndex);
+        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
+
+        const double x0 = 1.0/nodal_normal_magnitude;
+        const double x1 = r_nodal_normal_derivative[0]*x0;
+        const double x2 = std::pow(nodal_normal_magnitude, -3);
+        const double x3 = r_nodal_normal[0]*r_nodal_normal_derivative[0];
+        const double x4 = r_nodal_normal[1]*r_nodal_normal_derivative[1];
+        const double x5 = r_nodal_normal[2]*r_nodal_normal_derivative[2];
+        const double x6 = x2*(-x3 - x4 - x5);
+        const double x7 = r_nodal_normal[0]*x6;
+        const double x8 = x1 + x7;
+        const double x9 = r_nodal_normal_derivative[1]*x0;
+        const double x10 = r_nodal_normal[1]*x6;
+        const double x11 = x10 + x9;
+        const double x12 = r_nodal_normal_derivative[2]*x0;
+        const double x13 = r_nodal_normal[2]*x6;
+        const double x14 = x12 + x13;
+        const double x15 = std::pow(nodal_normal_magnitude, -2);
+        const double x16 = 2*x3;
+        const double x17 = 2*x4;
+        const double x18 = -x16 - x17 - 2*x5;
+        const double x19 = std::pow(r_nodal_normal[0], 2);
+        const double x20 = std::pow(nodal_normal_magnitude, -4);
+        const double x21 = x19*x20;
+        const double x22 = x18*x21;
+        const double x23 = std::pow(r_nodal_normal[1], 2);
+        const double x24 = x21*x23;
+        const double x25 = std::pow(r_nodal_normal[2], 2);
+        const double x26 = -x15*x19 + 1;
+        const double x27 = x21*x25 + x24 + std::pow(x26, 2);
+        const double x28 = std::pow(x27, -1.0/2.0);
+        const double x29 = x28*(-x15*x16 - x22);
+        const double x30 = 4*x3;
+        const double x31 = x20*x25;
+        const double x32 = std::pow(nodal_normal_magnitude, -6);
+        const double x33 = 4*x4;
+        const double x34 = -x30 - x33 - 4*x5;
+        const double x35 = (1.0/2.0)*x19*x32*x34;
+        const double x36 = x20*x23;
+        const double x37 = -x21*x4 - x23*x35 - x3*x36;
+        const double x38 = (-x21*x5 - x25*x35 - 1.0/2.0*x26*(-x15*x30 - 2*x22) - x3*x31 + x37)/std::pow(x27, 3.0/2.0);
+        const double x39 = x26*x38;
+        const double x40 = x15*x28;
+        const double x41 = r_nodal_normal[0]*x40;
+        const double x42 = r_nodal_normal_derivative[0]*x40;
+        const double x43 = r_nodal_normal[0]*r_nodal_normal[1];
+        const double x44 = x18*x20;
+        const double x45 = x28*x44;
+        const double x46 = x15*x38;
+        const double x47 = r_nodal_normal[0]*r_nodal_normal[2];
+        const double x48 = r_nodal_normal_derivative[2]*x2;
+        const double x49 = x19*x28;
+        const double x50 = r_nodal_normal[2]*x2;
+        const double x51 = x16*x28;
+        const double x52 = x26*x28;
+        const double x53 = (-3*x3 - 3*x4 - 3*x5)/std::pow(nodal_normal_magnitude, 5);
+        const double x54 = x49*x53;
+        const double x55 = x0*x29;
+        const double x56 = x19*x38;
+        const double x57 = x0*x39;
+        const double x58 = r_nodal_normal[1]*x2;
+        const double x59 = -x15*x23 + 1;
+        const double x60 = x24 + x25*x36 + std::pow(x59, 2);
+        const double x61 = std::pow(x60, -1.0/2.0);
+        const double x62 = x15*x61;
+        const double x63 = r_nodal_normal_derivative[1]*x62;
+        const double x64 = r_nodal_normal[1]*x62;
+        const double x65 = x44*x61;
+        const double x66 = x18*x36;
+        const double x67 = (-1.0/2.0*x23*x25*x32*x34 - x31*x4 - x36*x5 + x37 - 1.0/2.0*x59*(-x15*x33 - 2*x66))/std::pow(x60, 3.0/2.0);
+        const double x68 = x15*x67;
+        const double x69 = x61*(-x15*x17 - x66);
+        const double x70 = x59*x67;
+        const double x71 = r_nodal_normal[1]*r_nodal_normal[2];
+        const double x72 = x17*x61;
+        const double x73 = x23*x61;
+        const double x74 = x59*x61;
+        const double x75 = x53*x73;
+        const double x76 = x0*x69;
+        const double x77 = x23*x67;
+        const double x78 = x0*x70;
+        const double x79 = r_nodal_normal[0]*x2;
+
+
+        if ((r_nodal_normal[0] / nodal_normal_magnitude) > 0.99) {
+            rOutput(0, 0) = x8;
+            rOutput(0, 1) = x11;
+            rOutput(0, 2) = x14;
+            rOutput(1, 0) = x29 + x39;
+            rOutput(1, 1) = -r_nodal_normal[1]*x42 - r_nodal_normal_derivative[1]*x41 - x43*x45 - x43*x46;
+            rOutput(1, 2) = -r_nodal_normal[2]*x42 - r_nodal_normal_derivative[2]*x41 - x45*x47 - x46*x47;
+            rOutput(2, 0) = 0;
+            rOutput(2, 1) = r_nodal_normal[2]*x54 + r_nodal_normal[2]*x55 + r_nodal_normal[2]*x57 + x12*x52 + x13*x52 + x48*x49 + x50*x51 + x50*x56;
+            rOutput(2, 2) = -r_nodal_normal[1]*x54 - r_nodal_normal[1]*x55 - r_nodal_normal[1]*x57 - r_nodal_normal_derivative[1]*x2*x49 - x10*x52 - x51*x58 - x52*x9 - x56*x58;
+        } else {
+            rOutput(0, 0) = x8;
+            rOutput(0, 1) = x11;
+            rOutput(0, 2) = x14;
+            rOutput(1, 0) = -r_nodal_normal[0]*x63 - r_nodal_normal_derivative[0]*x64 - x43*x65 - x43*x68;
+            rOutput(1, 1) = x69 + x70;
+            rOutput(1, 2) = -r_nodal_normal[2]*x63 - r_nodal_normal_derivative[2]*x64 - x65*x71 - x68*x71;
+            rOutput(2, 0) = -r_nodal_normal[2]*x75 - r_nodal_normal[2]*x76 - r_nodal_normal[2]*x78 - x12*x74 - x13*x74 - x48*x73 - x50*x72 - x50*x77;
+            rOutput(2, 1) = 0;
+            rOutput(2, 2) = r_nodal_normal[0]*x75 + r_nodal_normal[0]*x76 + r_nodal_normal[0]*x78 + r_nodal_normal_derivative[0]*x2*x73 + x1*x74 + x7*x74 + x72*x79 + x77*x79;
+        }
+
+        KRATOS_CATCH("");
+	}
+
+    /// Rotate the local system contributions so that they are oriented with each node's normal.
 	/**
 	 @param rLocalMatrix Local system matrix
 	 @param rLocalVector Local RHS vector
@@ -640,7 +940,7 @@ protected:
 
 
 	void LocalRotationOperatorPure(BoundedMatrix<double,3,3>& rRot,
-			GeometryType::PointType& rThisPoint) const
+			const GeometryType::PointType& rThisPoint) const
 	{
 
 		// Get the normal evaluated at the node
@@ -687,7 +987,7 @@ protected:
 	}
 
 	void LocalRotationOperatorPure(BoundedMatrix<double,2,2>& rRot,
-			GeometryType::PointType& rThisPoint) const
+			const GeometryType::PointType& rThisPoint) const
 	{
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);

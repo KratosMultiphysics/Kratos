@@ -46,6 +46,7 @@
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "utilities/properties_utilities.h"
+#include "utilities/coordinate_transformation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -492,6 +493,22 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
     mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
+
+    typedef CoordinateTransformationUtils<LocalSpaceType::MatrixType, LocalSpaceType::VectorType, double> CoordinateTransformationUtilsType;
+    py::class_<
+        CoordinateTransformationUtilsType,
+        CoordinateTransformationUtilsType::Pointer>
+        (m,"CoordinateTransformationUtils")
+        .def(py::init<const unsigned int, const unsigned int, const Kratos::Flags&>())
+        .def("Rotate", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::Rotate))
+        .def("Rotate", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::Rotate))
+        .def("ApplySlipCondition", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::ApplySlipCondition))
+        .def("ApplySlipCondition", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::VectorType&, ModelPart::GeometryType&)const)(&CoordinateTransformationUtilsType::ApplySlipCondition))
+        .def("RotateVelocities", &CoordinateTransformationUtilsType::RotateVelocities)
+        .def("RecoverVelocities", &CoordinateTransformationUtilsType::RecoverVelocities)
+        .def("CalculateRotationOperatorPure", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPure))
+        .def("CalculateRotationOperatorPureShapeSensitivities", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const int, const int, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPureShapeSensitivities))
+        ;
 }
 
 } // namespace Python.
