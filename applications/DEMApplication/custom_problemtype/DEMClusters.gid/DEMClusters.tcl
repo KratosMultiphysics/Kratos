@@ -10,7 +10,6 @@
 ## Extra features:
 ## - Lateral icons
 ## - Show progress onscreen while generating SPH via spheretree
-## - Cancel button to stop external execs
 ## - Remove finished calculate splash.( or modify with OBJ created succesfully)
 
 
@@ -21,21 +20,21 @@
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
 ##  Fixed Issues ##
 
-##- Are ALL calculated Vertex normals correct? verified manually with testcubev4
-##- Sphere tree paths with spaces
-##- Dependencies in prb.  each line for an algorithm, one parenthesis
-##- verify that your geometry have all the normals coherent. (should be as align normals has been added before meshing)
-##- add some info on the help based on the manual
-##- Calling external precompiled cpp, add criteria for negative radius when deleting line in sph
-##- plan on msh to clu functionaly design of precompiled executable. args, paths and location,
-##-     define arguments path and call exe from inside exec folder.
-##- add dummy .bat to avoid error showing both unix.bat and win.bat
-##- cluster visualizaton in GID pre
-##- add export gidmesh as generic.msh on calculate
-##- RECOMMENEDED MEDIAL - spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples
-## - Cluster visualization
+## - Are ALL calculated Vertex normals correct? verified manually with testcubev4
+## - Sphere tree paths with spaces
+## - Dependencies in prb.  each line for an algorithm, one parenthesis
+## - verify that your geometry have all the normals coherent. (should be as align normals has been added before meshing)
+## - add some info on the help based on the manual
+## - Calling external precompiled cpp, add criteria for negative radius when deleting line in sph
+## - plan on msh to clu functionaly design of precompiled executable. args, paths and location,
+## -     define arguments path and call exe from inside exec folder.
+## - add dummy .bat to avoid error showing both unix.bat and win.bat
+## - cluster visualizaton in GID pre
+## - add export gidmesh as generic.msh on calculate
+## - RECOMMENEDED MEDIAL - spheretree throws error if algorithm parameters are not quite good. example: small geom with high numsamples
+## - Cluster visualization for both sph and principal axis of inertia.
+## - Cancel button to stop external execs
 ##  --------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 ## GiD events --------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,8 +54,7 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in principal axis" ] 5 PRE [list ReadClusterFileintoMesh] "" ""
         GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize SPH file over mesh" ] 6 PRE [list ReadSPHFileintoMesh] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over mesh" ] 7 PRE [list DeleteSpheresMesh] "" ""
-
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Remove cluster visualization over mesh" ] 7 PRE [list DeleteSpheresMesh] "" ""
 
         GiDMenu::UpdateMenus
     }
@@ -569,6 +567,8 @@ proc GenerateClusterFile { } {
 
     set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
     set ouputpath [file join $::DEMClusters::ProblemPath generic_cluster.clu]
+    W "Cluster file generated in the following location:"
+    W $ouputpath
     # set genericMSHFilename "\"$genericMSHFilename\""
     set argv_number 3
     package require platform
