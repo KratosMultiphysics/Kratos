@@ -74,6 +74,9 @@ public:
     /// Definition of geometries
     typedef Geometry<NodeType> GeometryType;
 
+    /// Condition type definition
+    typedef ModelPart::ConditionType ConditionType;
+
     /// Conditions array definition
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
@@ -131,6 +134,17 @@ public:
         ConditionsArrayType& rConditions,
         const std::size_t Dimension
         );
+
+    /**
+     * @brief Calculates nodal area normal shape sensitivities w.r.t. nodal coordinates of the condition.
+     *
+     * @param rConditions   List of conditions where shape sensitivities need to be calculated.
+     * @param Dimension     Dimensionality of the conditions
+     */
+    void CalculateNormalShapeDerivativesOnSimplex(
+        ConditionsArrayType& rConditions,
+        const std::size_t Dimension
+    );
 
     /**
      * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
@@ -504,6 +518,15 @@ private:
         );
 
     /**
+     * @brief Calculates 2D condition area normals shape sensitivity
+     *
+     * @param rCondition    Reference to the targe condition
+     */
+    static void CalculateNormalShapeDerivative2D(
+        ConditionType& rCondition
+        );
+
+    /**
      * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
      * @param rCondition Reference to the target condition
      * @param rAn Area normal
@@ -515,6 +538,15 @@ private:
         array_1d<double,3>& rAn,
         array_1d<double,3>& rv1,
         array_1d<double,3>& rv2
+        );
+
+    /**
+     * @brief Calculates 3D condition area normals shape sensitivity
+     *
+     * @param rCondition    Reference to the targe condition
+     */
+    static void CalculateNormalShapeDerivative3D(
+        ConditionType& rCondition
         );
 
     template<class TContainerType>
