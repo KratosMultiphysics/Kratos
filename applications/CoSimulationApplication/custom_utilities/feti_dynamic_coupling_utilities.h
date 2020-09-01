@@ -135,15 +135,14 @@ namespace Kratos
             const Matrix& rProjector, Matrix& rUnitResponse);
 
         void CalculateCondensationMatrix(Matrix& rCondensationMatrix,
-            const Matrix& rOriginInverseMass, const Matrix& rDestinationInverseMass,
+            const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
             const Matrix& rOriginProjector, const Matrix& rDestinationProjector);
 
         void DetermineLagrangianMultipliers(Vector& rLagrangeVec,
             const Matrix& rCondensationMatrix, const Vector& rUnbalancedVelocities);
 
         void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-            const Matrix& rInvertedMassMatrix, const Matrix& rProjector,
-            const bool IsOrigin);
+            const Matrix& rOriginUnitResponse, const bool IsOrigin);
 
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,

@@ -70,7 +70,6 @@ namespace Kratos
 
 
         // 2 - Construct projection matrices
-        // TODO see if these matrices can be removed and just the correct entries projected out
         const SizeType origin_dofs = mpKOrigin->size1();
         Matrix projector_origin = Matrix(origin_interface_dofs, origin_dofs,0.0);
         ComposeProjector(projector_origin, true);
@@ -89,18 +88,10 @@ namespace Kratos
         DetermineDomainUnitAccelerationResponse(*mpKDestination, projector_destination, unit_response_destination);
 
 
-        // 3 - Invert effective mass matrices
-        //Matrix inverted_origin_effective_mass_matrix;
-        //DetermineInvertedEffectiveMassMatrix(*mpKOrigin, inverted_origin_effective_mass_matrix, true);
-
-        //Matrix inverted_destination_effective_mass_matrix;
-        //DetermineInvertedEffectiveMassMatrix(*mpKDestination, inverted_destination_effective_mass_matrix, false);
-
-
         // 4 - Calculate condensation matrix
         Matrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
-        CalculateCondensationMatrix(condensation_matrix, inverted_origin_effective_mass_matrix,
-            inverted_destination_effective_mass_matrix, projector_origin,
+        CalculateCondensationMatrix(condensation_matrix, unit_response_origin,
+            unit_response_destination, projector_origin,
             projector_destination);
 
 
@@ -111,8 +102,8 @@ namespace Kratos
 
 
         // 6 - Apply correction quantities
-        ApplyCorrectionQuantities(lagrange_vector, inverted_origin_effective_mass_matrix, projector_origin, true);
-        ApplyCorrectionQuantities(lagrange_vector, inverted_destination_effective_mass_matrix, projector_destination, false);
+        ApplyCorrectionQuantities(lagrange_vector, unit_response_origin, true);
+        ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
 
 
         // 7 - Optional check of equilibrium
@@ -269,17 +260,15 @@ namespace Kratos
 
     void FetiDynamicCouplingUtilities::CalculateCondensationMatrix(
         Matrix& rCondensationMatrix,
-        const Matrix& rOriginInverseMass, const Matrix& rDestinationInverseMass,
+        const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
         const Matrix& rOriginProjector, const Matrix& rDestinationProjector)
     {
         KRATOS_TRY
 
-        Matrix h_origin_temp = prod(rOriginProjector, rOriginInverseMass);
-        Matrix h_origin = prod(h_origin_temp, trans(rOriginProjector));
+        Matrix h_origin = prod(rOriginProjector, rOriginUnitResponse);
         h_origin *= mOriginGamma;
 
-        Matrix h_destination_temp = prod(rDestinationProjector, rDestinationInverseMass);
-        Matrix h_destination = prod(h_destination_temp, trans(rDestinationProjector));
+        Matrix h_destination = prod(rDestinationProjector, rDestinationUnitResponse);
         h_destination *= mDestinationGamma;
 
         KRATOS_ERROR_IF_NOT(h_origin.size1() == h_destination.size1() &&
@@ -300,6 +289,7 @@ namespace Kratos
         rCondensationMatrix += h_destination;
 
         rCondensationMatrix *= (-1.0*dt);
+
         KRATOS_CATCH("")
     }
 
@@ -330,14 +320,12 @@ namespace Kratos
             mpSolver->Solve(A, rLagrangeVec, b);
         }
 
-        KRATOS_WATCH(rLagrangeVec);
-
         KRATOS_CATCH("")
     }
 
 
     void FetiDynamicCouplingUtilities::ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-        const Matrix& rInvertedMassMatrix, const Matrix& rProjector, const bool IsOrigin)
+        const Matrix& rUnitResponse, const bool IsOrigin)
     {
         KRATOS_TRY
 
@@ -346,8 +334,7 @@ namespace Kratos
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
 
         // Apply acceleration correction
-        Matrix temp = prod(rInvertedMassMatrix, trans(rProjector));
-        Vector accel_corrections = prod(temp, rLagrangeVec);
+        Vector accel_corrections = prod(rUnitResponse, rLagrangeVec);
         AddCorrectionToDomain(pDomainModelPart, ACCELERATION, accel_corrections);
 
         // Apply velocity correction
@@ -519,20 +506,19 @@ namespace Kratos
 
             if (norm_2_square(projector_transpose_column) > 1e-12) is_zero_rhs = false;
 
-            if (is_zero_rhs)
-            {
-                solution.clear();
-            }
-            else
+            if (!is_zero_rhs)
             {
                 mpSolver->Solve(rK, solution, projector_transpose_column);
-                for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(i, j) = solution[j];
+                for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(j, i) = solution[j];
             }
 
         }
         auto end = std::chrono::system_clock::now();
         auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
+        // Convert system stiffness matrix to mass matrix
+        const double dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
+        rUnitResponse /= (dt * dt / 4.0);
 
         // reference answer - slow matrix inversion
         const bool is_test_ref = false;
@@ -548,24 +534,6 @@ namespace Kratos
 
             std::cout << "solve time = " << elasped_solve.count() << "\n";
             std::cout << "invert time = " << elasped_invert.count() << "\n";
-
-            double diff = 0.0;
-            for (size_t i = 0; i < ref.size1(); i++)
-            {
-                for (size_t j = 0; j < ref.size2(); j++)
-                {
-                    diff += ref(i, j)  - rUnitResponse(i, j) ;
-                }
-            }
-
-            if (diff > 1e-12)
-            {
-                KRATOS_WATCH(diff);
-                KRATOS_WATCH(rUnitResponse);
-                KRATOS_WATCH(ref);
-            }
         }
-
-
     }
 } // namespace Kratos.
