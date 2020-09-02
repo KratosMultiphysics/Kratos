@@ -264,20 +264,7 @@ namespace Kratos
             rLagrangeVec.resize(rUnbalancedVelocities.size(), false);
 
         rLagrangeVec.clear();
-
-        const bool is_slow_solve = false;
-
-        if (is_slow_solve)
-        {
-            double det;
-            Matrix inv_condensation;
-            MathUtils<double>::InvertMatrix(rCondensationMatrix, inv_condensation, det);
-            rLagrangeVec = prod(inv_condensation, rUnbalancedVelocities);
-        }
-        else
-        {
-            mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedVelocities);
-        }
+        mpSolver->Solve(rCondensationMatrix, rLagrangeVec, rUnbalancedVelocities);
 
         KRATOS_CATCH("")
     }
@@ -493,25 +480,20 @@ namespace Kratos
         }
 
         auto start = std::chrono::system_clock::now();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
+        #pragma omp parallel
         {
             Vector solution(system_dofs);
             Vector projector_transpose_column(system_dofs);
-            bool is_zero_rhs = true;
 
-            for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
-
-            if (norm_2_square(projector_transpose_column) > 1e-12) is_zero_rhs = false;
-
-            if (!is_zero_rhs)
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
             {
+                for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
                 mpSolver->Solve(*pK, solution, projector_transpose_column);
-
                 for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(j, i) = solution[j];
             }
-
         }
+
         auto end = std::chrono::system_clock::now();
         auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
