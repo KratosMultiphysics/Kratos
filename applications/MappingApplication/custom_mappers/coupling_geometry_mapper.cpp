@@ -33,22 +33,6 @@ void Assemble(
     const MapperLocalSystem::MatrixType& rLocalMappingMatrix,
     const MapperLocalSystem::EquationIdVectorType& rOriginIds,
     const MapperLocalSystem::EquationIdVectorType& rDestinationIds,
-    Matrix& rMappingMatrix)
-{
-    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size1() != rDestinationIds.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rLocalMappingMatrix.size1() << " | DestinationIDs-size: " << rDestinationIds.size() << std::endl;
-    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size2() != rOriginIds.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rLocalMappingMatrix.size2() << " | OriginIDs-size: " << rOriginIds.size() << std::endl;
-
-    for (IndexType i=0; i<rDestinationIds.size(); ++i) {
-        for (IndexType j=0; j<rOriginIds.size(); ++j) {
-            rMappingMatrix(rDestinationIds[i], rOriginIds[j]) += rLocalMappingMatrix(i,j);
-        }
-    }
-}
-
-void Assemble(
-    const MapperLocalSystem::MatrixType& rLocalMappingMatrix,
-    const MapperLocalSystem::EquationIdVectorType& rOriginIds,
-    const MapperLocalSystem::EquationIdVectorType& rDestinationIds,
     CompressedMatrix& rMappingMatrix)
 {
     KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size1() != rDestinationIds.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rLocalMappingMatrix.size1() << " | DestinationIDs-size: " << rDestinationIds.size() << std::endl;
