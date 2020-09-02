@@ -210,14 +210,14 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
 
     // get total interface mapping matrix
-    Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave, 0.0);
     if (mMapperSettings["dual_mortar"].GetBool()) {
         for (size_t i = 0; i < interface_matrix_slave.size1(); ++i) {
             if (interface_matrix_slave(i, i) > std::numeric_limits<double>::epsilon()) {
-                inv_interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
+                interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
             }
+            else interface_matrix_slave(i, i) = 0.0;
         }
-        mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
+        mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(interface_matrix_slave, interface_matrix_projector));
     }
     else {
         CalculateMappingMatrixWithSolver(interface_matrix_slave, interface_matrix_projector);
