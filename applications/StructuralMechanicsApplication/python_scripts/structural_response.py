@@ -4,6 +4,7 @@ from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_adjoint_dynamic_analysis import StructuralMechanicsAdjointDynamicAnalysis
 
 import time as timer
 
@@ -414,3 +415,96 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         }
         response_type = self.response_settings["response_type"].GetString()
         return "Adjoint" + type_labels[response_type] + "Response"
+
+# ==============================================================================
+class AdjointDynamicResponseFunction(ResponseFunctionInterface):
+    """
+    - runs the primal analysis (writes the primal results to an .h5 file)
+    - reads the primal results from the .h5 file into the adjoint model part
+    - uses primal results to calculate value
+    - uses primal results to calculate gradient by running the adjoint analysis
+
+    Attributes
+    ----------
+    primal_analysis : Primal analysis object of the response function
+    adjoint_analysis : Adjoint analysis object of the response function
+    """
+    def __init__(self, identifier, response_settings, model):
+        self.identifier = identifier
+        self.response_settings = response_settings
+
+        # Create the primal solver
+        with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
+            primal_parameters = Parameters( parameter_file.read() )
+
+        self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
+
+        self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
+
+        # Create the adjoint solver
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters = Parameters( parameter_file.read() )
+
+        adjoint_model = KratosMultiphysics.Model()
+        # TODO find out why it is not possible to use the same model_part
+        self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
+
+        self.adjoint_analysis = StructuralMechanicsAdjointDynamicAnalysis(adjoint_model, adjoint_parameters)
+
+        self.primal_state_variables = [KratosMultiphysics.DISPLACEMENT]
+        if primal_parameters["solver_settings"].Has("rotation_dofs"):
+            if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
+                self.primal_state_variables.append(KratosMultiphysics.ROTATION)
+
+    def Initialize(self):
+        self.primal_analysis.Initialize()
+        self.adjoint_analysis.Initialize()
+
+    def InitializeSolutionStep(self):
+        # Run the primal analysis.
+        Logger.PrintInfo(self._GetLabel(), "Starting primal analysis for response:", self.identifier)
+        startTime = timer.time()
+        self.primal_analysis.RunSolutionLoop()
+        Logger.PrintInfo(self._GetLabel(), "Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+
+    def CalculateValue(self):
+        startTime = timer.time()
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+        Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+
+    def CalculateGradient(self):
+        startTime = timer.time()
+        Logger.PrintInfo(self._GetLabel(), "Starting adjoint analysis for response:", self.identifier)
+        self.adjoint_analysis.RunSolutionLoop()
+        Logger.PrintInfo(self._GetLabel(), "Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+
+    def GetValue(self):
+        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+
+    def GetElementalGradient(self, variable):
+        gradient = {}
+        for element in self.adjoint_model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+        return gradient
+
+    def Finalize(self):
+        self.primal_analysis.Finalize()
+        self.adjoint_analysis.Finalize()
+
+    def _GetResponseFunctionUtility(self):
+        return self.adjoint_analysis._GetSolver().response_function
+
+    def _GetLabel(self):
+        type_labels = {
+            "adjoint_nodal_displacement" : "NodalDisplacement",
+            "adjoint_linear_strain_energy" : "StrainEnergy",
+            "adjoint_local_stress" : "LocalStress",
+            "adjoint_max_stress" : "MaxStress",
+            "adjoint_nodal_reaction" : "NodalReaction",
+            "adjoint_nodal_displacement_root_mean_square" : "NodalDisplacementRootMeanSquare"
+        }
+        response_type = self.response_settings["response_type"].GetString()
+        return "Adjoint" + type_labels[response_type] + "Response"
+
