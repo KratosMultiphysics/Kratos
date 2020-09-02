@@ -56,7 +56,6 @@ public:
 
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
-    typedef Variable<double> DoubleVariableType;
 
     ///@}
     ///@name Pointer Definitions
@@ -194,8 +193,8 @@ private:
 
     double mTimeDomain;
     std::string mTracedDofLabel;
-    PointTypePointer  mpTracedNode;
-    Element::Pointer mpNeighboringElement;
+    std::string mResponsePartName;
+    std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
     ///@}
     ///@name Private Operators
@@ -205,7 +204,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void GetNeighboringElementPointer();
+    void ComputeNeighboringElementNodeMap();
 
     ///@}
     ///@name Private  Access
