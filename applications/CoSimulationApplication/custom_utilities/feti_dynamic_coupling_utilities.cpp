@@ -67,57 +67,57 @@ namespace Kratos
         // 1 - calculate unbalanced interface free velocity
         Vector unbalanced_interface_free_velocity(origin_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
-
-
-        // 2 - Construct projection matrices
-        const SizeType origin_dofs = mpKOrigin->size1();
-        Matrix projector_origin = Matrix(origin_interface_dofs, origin_dofs,0.0);
-        ComposeProjector(projector_origin, true);
-
-        const SizeType destination_dofs = mpKDestination->size1();
-        Matrix projector_destination = Matrix(destination_interface_dofs, destination_dofs,0.0);
-        ComposeProjector(projector_destination, false);
-
-
-        // 3 - Determine domain response to unit loads
-        Matrix unit_response_origin(projector_origin.size2(), projector_origin.size1());
-        DetermineDomainUnitAccelerationResponse(mpKOrigin, projector_origin, unit_response_origin,true);
-
-        Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
-        DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination,false);
-
-
-        // 4 - Calculate condensation matrix
-        CompressedMatrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
-        CalculateCondensationMatrix(condensation_matrix, unit_response_origin,
-            unit_response_destination, projector_origin, projector_destination);
-
-
-        // 5 - Calculate lagrange mults
-        Vector lagrange_vector(origin_interface_dofs);
-        DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
-
-
-        // 6 - Apply correction quantities
-        ApplyCorrectionQuantities(lagrange_vector, unit_response_origin, true);
-        ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
-
-
-        // 7 - Optional check of equilibrium
-        if (mIsCheckEquilibrium)
+        if (norm_2(unbalanced_interface_free_velocity) > numerical_limit)
         {
-            unbalanced_interface_free_velocity.clear();
-            CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
-            const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
-            KRATOS_WATCH(equilibrium_norm);
-            KRATOS_ERROR_IF(equilibrium_norm > 1e-12)
-                << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
-                << unbalanced_interface_free_velocity << "\n";
-        }
+            // 2 - Construct projection matrices
+            const SizeType origin_dofs = mpKOrigin->size1();
+            Matrix projector_origin = Matrix(origin_interface_dofs, origin_dofs, 0.0);
+            ComposeProjector(projector_origin, true);
+
+            const SizeType destination_dofs = mpKDestination->size1();
+            Matrix projector_destination = Matrix(destination_interface_dofs, destination_dofs, 0.0);
+            ComposeProjector(projector_destination, false);
 
 
-        // 8 - Write nodal lagrange multipliers to interface
-        WriteLagrangeMultiplierResults(lagrange_vector);
+            // 3 - Determine domain response to unit loads
+            Matrix unit_response_origin(projector_origin.size2(), projector_origin.size1());
+            DetermineDomainUnitAccelerationResponse(mpKOrigin, projector_origin, unit_response_origin, true);
+
+            Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
+            DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination, false);
+
+
+            // 4 - Calculate condensation matrix
+            CompressedMatrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
+            CalculateCondensationMatrix(condensation_matrix, unit_response_origin,
+                unit_response_destination, projector_origin, projector_destination);
+
+
+            // 5 - Calculate lagrange mults
+            Vector lagrange_vector(origin_interface_dofs);
+            DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
+
+
+            // 6 - Apply correction quantities
+            ApplyCorrectionQuantities(lagrange_vector, unit_response_origin, true);
+            ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
+
+
+            // 7 - Optional check of equilibrium
+            if (mIsCheckEquilibrium)
+            {
+                unbalanced_interface_free_velocity.clear();
+                CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
+                const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
+                KRATOS_WATCH(equilibrium_norm);
+                KRATOS_ERROR_IF(equilibrium_norm > 1e-12)
+                    << "FetiDynamicCouplingUtilities::EquilibrateDomains | Corrected interface velocities are not in equilibrium!\n"
+                    << unbalanced_interface_free_velocity << "\n";
+            }
+
+            // 8 - Write nodal lagrange multipliers to interface
+            WriteLagrangeMultiplierResults(lagrange_vector);
+        } // end if correction needs to be applied
 
         KRATOS_CATCH("")
 	}
