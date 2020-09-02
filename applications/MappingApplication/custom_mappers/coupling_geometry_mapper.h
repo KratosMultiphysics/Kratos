@@ -27,6 +27,7 @@
 #include "custom_utilities/mapping_intersection_utilities.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "modeler/modeler_factory.h"
+#include "factories/linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -139,6 +140,8 @@ public:
         mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
 
         this->InitializeInterface();
+
+        auto p_lin_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
     }
 
     /// Destructor.
