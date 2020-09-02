@@ -63,9 +63,11 @@ class KOmegaOmegaFormulation(Formulation):
             solver_settings["linear_solver_settings"])
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
             linear_solver, self.IsPeriodic(), self.GetCommunicator())
-        convergence_criteria = CreateResidualCriteria(
-                                self.settings["relative_tolerance"].GetDouble(),
-                                self.settings["absolute_tolerance"].GetDouble())
+        convergence_criteria = CreateResidualCriteria([
+            (KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
+            self.settings["relative_tolerance"].GetDouble(),
+            self.settings["absolute_tolerance"].GetDouble())
+        ])
 
         if (self.is_steady_simulation):
             scheme = self.scheme_type(self.settings["relaxation_factor"].GetDouble())

@@ -23,11 +23,9 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import Initialize
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-    from KratosMultiphysics.TrilinosApplication import TrilinosUPCriteria as up_criteria
     from KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension import TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent as dynamic_scheme
     from KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension import TrilinosResidualBasedSimpleSteadyScheme as steady_scheme
 elif (not IsDistributedRun()):
-    from KratosMultiphysics.FluidDynamicsApplication import VelPrCriteria as up_criteria
     from KratosMultiphysics.FluidDynamicsApplication import ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent as dynamic_scheme
     from KratosMultiphysics.FluidDynamicsApplication import ResidualBasedSimpleSteadyScheme as steady_scheme
 else:
@@ -131,17 +129,15 @@ class MonolithicVelocityPressureFormulation(Formulation):
                                          self.monolithic_model_part,
                                          periodic_variables_list)
 
+        conv_criteria = CreateResidualCriteria(
+            [(Kratos.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+             (Kratos.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
+
         if self.is_steady_simulation:
-            conv_criteria = CreateResidualCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                   self.settings["absolute_velocity_tolerance"].GetDouble())
             scheme = steady_scheme(self.settings["velocity_relaxation"].GetDouble(),
                                    self.settings["pressure_relaxation"].GetDouble(),
                                    self.domain_size)
         else:
-            conv_criteria = up_criteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                        self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                        self.settings["relative_pressure_tolerance"].GetDouble(),
-                                        self.settings["absolute_pressure_tolerance"].GetDouble())
             scheme = dynamic_scheme(bossak_alpha,
                                     self.settings["move_mesh_strategy"].GetInt(),
                                     self.domain_size)
