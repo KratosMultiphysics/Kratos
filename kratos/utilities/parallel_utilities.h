@@ -62,8 +62,16 @@ public:
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
     {
-        int size_container = it_end-it_begin;
-        mNchunks = std::min(size_container, Nchunks);
+        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
+
+        ptrdiff_t size_container = it_end-it_begin;
+
+        if (size_container == 0) {
+            mNchunks = Nchunks;
+        } else {
+            // in case the container is smaller than the number of chunks
+            mNchunks = std::min(static_cast<int>(size_container), Nchunks);
+        }
         ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
@@ -159,7 +167,15 @@ public:
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
     {
-        mNchunks = std::min(static_cast<int>(Size), Nchunks);
+        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
+
+        if (Size == 0) {
+            mNchunks = Nchunks;
+        } else {
+            // in case the container is smaller than the number of chunks
+            mNchunks = std::min(static_cast<int>(Size), Nchunks);
+        }
+
         const int block_partition_size = Size / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = Size;
