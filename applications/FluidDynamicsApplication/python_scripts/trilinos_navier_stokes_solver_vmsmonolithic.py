@@ -117,7 +117,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         # Call the base solver to do the PrepareModelPart
         # Note that his also calls the PrepareModelPart of the turbulence model
         super(TrilinosNavierStokesSolverMonolithic, self).PrepareModelPart()
-        #self.distributed_model_part_importer.CreateCommunicators()
+        self.distributed_model_part_importer.CreateCommunicators()
 
 
     def Finalize(self):
