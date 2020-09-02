@@ -54,9 +54,9 @@ public:
     struct ElementData
     {
         double dt_inv;
-        double lumping_factor;
+        double lumped_mass_factor;
         double stab_factor;
-        double cross_wind;
+        double shock_stab_factor;
         double gravity;
         double irregularity;
 
@@ -312,7 +312,9 @@ protected:
     void AddInertiaTerms(
         MatrixType& rLHS,
         VectorType& rRHS,
-        const ElementData& rData);
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void AddGradientTerms(
         MatrixType& rLHS,
@@ -335,12 +337,16 @@ protected:
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
-        const ElementData& rData);
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void ComputeMassMatrix(
         BoundedMatrix<double,9,9>& rFlowMatrix,
         BoundedMatrix<double,9,9>& rHeightMatrix,
-        const ElementData& rData);
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void ComputeGradientMatrix(
         BoundedMatrix<double,9,9>& rMatrix,
@@ -355,6 +361,12 @@ protected:
         const BoundedMatrix<double,2,2>& rK1,
         const BoundedMatrix<double,2,2>& rK2,
         const BoundedMatrix<double,2,2>& rKh);
+
+    void ComputeGradientVector(
+        array_1d<double,9>& rVector,
+        const ElementData& rData,
+        const array_1d<double,3>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
     void ComputeCrossWindDiffusivityTensors(
         BoundedMatrix<double,2,2>& rK1,
@@ -379,13 +391,9 @@ protected:
         BoundedMatrix<double,2,2>& rTensor,
         const array_1d<double,3>& rVeector);
 
-    void StabilizationParameter(
-        double& rTau,
-        const ElementData& rData);
+    double StabilizationParameter(const ElementData& rData);
 
-    void StabilizationParameter(
-        BoundedMatrix<double,2,2>& rCharacteristicLength,
-        const ElementData& rData);
+    array_1d<double,3> CharacteristicLength(const ElementData& rData);
 
     ///@}
     ///@name Protected  Access

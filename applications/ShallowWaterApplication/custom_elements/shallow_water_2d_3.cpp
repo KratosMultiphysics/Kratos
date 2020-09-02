@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "shallow_water_2d_3.h"
@@ -42,18 +41,22 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(RAIN)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
     KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
+    KRATOS_CHECK_VARIABLE_KEY(ATMOSPHERIC_PRESSURE)
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
+    KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
+    KRATOS_CHECK_VARIABLE_KEY(SHOCK_STABILIZATION_FACTOR)
+    KRATOS_CHECK_VARIABLE_KEY(LUMPED_MASS_FACTOR)
+    KRATOS_CHECK_VARIABLE_KEY(GROUND_IRREGULARITY)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( unsigned int i = 0; i < 3; i++ )
+    for (auto& node : this->GetGeometry())
     {
-        Node<3>& node = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ATMOSPHERIC_PRESSURE, node)
 
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_X, node)
         KRATOS_CHECK_DOF_IN_NODE(MOMENTUM_Y, node)
@@ -129,7 +132,10 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     data.GetNodalData(GetGeometry(), DN_DX);
 
-    AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, data);
+    this->SetValue(MIU, data.wet_fraction);
+    this->SetValue(MANNING, data.manning2);
+
+    AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
@@ -147,11 +153,13 @@ void ShallowWater2D3::CalculateLocalSystem(
 void ShallowWater2D3::AddInertiaTerms(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const ElementData& rData)
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
 {
     BoundedMatrix<double,9,9> mass_matrix = ZeroMatrix(9,9);
-    ComputeMassMatrix(mass_matrix, rData);
-    rLHS += rData.dt_inv * (mass_matrix);
+    ComputeMassMatrix(mass_matrix, rData, rN, rDN_DX);
+    rLHS += rData.dt_inv * mass_matrix;
     rRHS += rData.dt_inv * prod(mass_matrix, rData.prev_unk);
 }
 
@@ -165,7 +173,6 @@ void ShallowWater2D3::AddGradientTerms(
     BoundedMatrix<double,9,9> gradient_matrix = ZeroMatrix(9,9);
     ComputeGradientMatrix(gradient_matrix, rData, rN, rDN_DX);
     rLHS += gradient_matrix;
-    rRHS += prod(gradient_matrix, rData.depth);
 }
 
 void ShallowWater2D3::AddSourceTerms(
@@ -177,11 +184,16 @@ void ShallowWater2D3::AddSourceTerms(
 {
     BoundedMatrix<double,9,9> flow_mass_matrix = ZeroMatrix(9,9);
     BoundedMatrix<double,9,9> height_mass_matrix = ZeroMatrix(9,9);
-    ComputeMassMatrix(flow_mass_matrix, height_mass_matrix, rData);
+    ComputeMassMatrix(flow_mass_matrix, height_mass_matrix, rData, rN, rDN_DX);
+
+    // Topography gradient and atmospheric pressure
+    array_1d<double,9> source_gradients = ZeroVector(9);
+    ComputeGradientVector(source_gradients, rData, rN, rDN_DX);
+    rRHS += source_gradients;
 
     // Friction term
     const double abs_vel = norm_2(rData.velocity);
-    const double height4_3 = pow(rData.effective_height, 1.33333333333) + rData.irregularity;
+    const double height4_3 = std::pow(rData.effective_height, 1.33333333333) + rData.irregularity;
     rLHS += rData.gravity * rData.manning2 * abs_vel / height4_3 * flow_mass_matrix;
 
     // Rain
@@ -228,10 +240,11 @@ void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentPro
 {
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
     dt_inv = 1.0 / delta_t;
-    lumping_factor = 1.0 / 3.0;;
-    stab_factor = rCurrentProcessInfo[DYNAMIC_TAU];
+    lumped_mass_factor = rCurrentProcessInfo[LUMPED_MASS_FACTOR]; // TODO: Get it from the ProcessInfo
+    stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR]; // TODO: Use the STABILIZATION_FACTOR variable
+    shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR]; // TODO: Get it from the ProcessInfo
     gravity = rCurrentProcessInfo[GRAVITY_Z];
-    irregularity = 1e-2; // TODO: Get value from the ProcessInfo
+    irregularity = rCurrentProcessInfo[GROUND_IRREGULARITY]; // TODO: Get value from the ProcessInfo
 }
 
 void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX)
@@ -252,7 +265,7 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         const auto v = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
         const auto hn = rGeometry[i].FastGetSolutionStepValue(HEIGHT, 1);
         const auto fn = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, 1);
-        const auto n = rGeometry[i].FastGetSolutionStepValue(EQUIVALENT_MANNING);
+        const auto n = rGeometry[i].FastGetSolutionStepValue(MANNING);
 
         height += h;
         flow_rate += f;
@@ -284,13 +297,16 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         wet_fraction += aux_wet_fraction;
         effective_height += aux_effective_height;
     }
+    const double lumping_factor = 1.0 / 3.0;
     height *= lumping_factor;
     flow_rate *= lumping_factor;
     velocity *= lumping_factor;
-    manning2 *= lumping_factor;
-    manning2 = pow(manning2, 2);
+    velocity_div *= lumping_factor;
     wet_fraction *= lumping_factor;
     effective_height *= lumping_factor;
+    manning2 *= lumping_factor;
+    manning2 = std::pow(manning2, 2);
+    manning2 += 10*(1.0 - std::exp(wet_fraction - 1.0));
 }
 
 void ShallowWater2D3::ElementData::PhaseFunctions(double Height, double& rWetFraction, double& rEffectiveHeight)
@@ -303,30 +319,81 @@ void ShallowWater2D3::ElementData::PhaseFunctions(double Height, double& rWetFra
 
 void ShallowWater2D3::ComputeMassMatrix(
     BoundedMatrix<double,9,9>& rMatrix,
-    const ElementData& rData)
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    // const double mu_q = 1.0;
+    const double mu_q = rData.wet_fraction;
+    const double mu_h = rData.wet_fraction;
+    const double lumping_factor = 1.0 / 3.0;
     for (size_t i = 0; i < 3; ++i)
     {
         const size_t block = 3 * i;
-        rMatrix(block, block) += rData.lumping_factor;
-        rMatrix(block+1, block+1) += rData.lumping_factor;
-        rMatrix(block+2, block+2) += rData.lumping_factor * rData.wet_fraction;
+        rMatrix(block, block) += rData.lumped_mass_factor * lumping_factor * mu_q;
+        rMatrix(block+1, block+1) += rData.lumped_mass_factor * lumping_factor * mu_q;
+        rMatrix(block+2, block+2) += rData.lumped_mass_factor * lumping_factor * mu_h;
+    }
 
-        // TODO: add consistent mass matrix with stabilization
+    const double cmm = 1 - rData.lumped_mass_factor;
+    const double one_twelve = 1.0 / 12.0;
+    using std::pow;
+    const double c2 = rData.gravity * rData.effective_height; // c=sqrt(gh)
+    const double u_1 = rData.velocity[0];
+    const double u_2 = rData.velocity[1];
+    const double l = StabilizationParameter(rData);
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++j)
+        {
+            const size_t j_block = 3 * j;
+
+            // Algebraic mass matrix
+            const double n = (i == j)? 2*one_twelve : one_twelve;
+            rMatrix(i_block,     j_block)     += cmm * mu_q * n;
+            rMatrix(i_block + 1, j_block + 1) += cmm * mu_q * n;
+            rMatrix(i_block + 2, j_block + 2) += cmm * mu_h * n;
+
+            /* Stabilization x
+             * A1*M
+             */
+            const double s1_ij = rN[j] * rDN_DX(i,0);
+            rMatrix(i_block,     j_block)     += l * cmm * mu_q * s1_ij * 2*u_1;
+            rMatrix(i_block,     j_block + 2) += l * cmm * mu_h * s1_ij * (-pow(u_1,2) + c2);
+            rMatrix(i_block + 1, j_block)     += l * cmm * mu_q * s1_ij * u_2;
+            rMatrix(i_block + 1, j_block + 1) += l * cmm * mu_q * s1_ij * u_1;
+            rMatrix(i_block + 1, j_block + 2) -= l * cmm * mu_h * s1_ij * u_1*u_2;
+            rMatrix(i_block + 2, j_block)     += l * cmm * mu_q * s1_ij;
+
+             /* Stabilization y
+              * A1*M
+              */
+            const double s2_ij = rN[j] * rDN_DX(i,1);
+            rMatrix(i_block,     j_block)     += l * cmm * mu_q * s2_ij * u_2;
+            rMatrix(i_block,     j_block + 1) += l * cmm * mu_q * s2_ij * u_1;
+            rMatrix(i_block,     j_block + 2) -= l * cmm * mu_h * s2_ij * u_1*u_2;
+            rMatrix(i_block + 1, j_block + 1) += l * cmm * mu_q * s2_ij * 2*u_2;
+            rMatrix(i_block + 1, j_block + 2) += l * cmm * mu_h * s2_ij * (-pow(u_2,2) + c2);
+            rMatrix(i_block + 2, j_block + 1) += l * cmm * mu_q * s2_ij;
+        }
     }
 }
 
 void ShallowWater2D3::ComputeMassMatrix(
     BoundedMatrix<double,9,9>& rFlowMatrix,
     BoundedMatrix<double,9,9>& rHeightMatrix,
-    const ElementData& rData)
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    const double lumping_factor = 1.0 / 3.0;
     for (size_t i = 0; i < 3; ++i)
     {
         const size_t block = 3 * i;
-        rFlowMatrix(block, block) += rData.lumping_factor;
-        rFlowMatrix(block+1, block+1) += rData.lumping_factor;
-        rHeightMatrix(block+2, block+2) += rData.lumping_factor * rData.wet_fraction;
+        rFlowMatrix(block, block) += lumping_factor;
+        rFlowMatrix(block+1, block+1) += lumping_factor;
+        rHeightMatrix(block+2, block+2) += lumping_factor * rData.wet_fraction;
 
         // TODO: add consistent mass matrix with stabilization
     }
@@ -338,11 +405,11 @@ void ShallowWater2D3::ComputeGradientMatrix(
     const array_1d<double,3>& rN,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    using std::pow;
     const double c2 = rData.gravity * rData.effective_height; // c=sqrt(gh)
     const double u_1 = rData.velocity[0];
     const double u_2 = rData.velocity[1];
-    BoundedMatrix<double,2,2> l;
-    StabilizationParameter(l, rData);
+    const double l = StabilizationParameter(rData);
 
     for (size_t i = 0; i < 3; ++i)
     {
@@ -356,12 +423,12 @@ void ShallowWater2D3::ComputeGradientMatrix(
              *        {  u_2    u_1   -u_1 * u_2},
              *        {   1      0        0     }}
              */
-            double g1_ij = rN[i] * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += g1_ij * 2 * u_1;
-            rMatrix(i_block,     j_block + 2) += g1_ij * (-pow(u_1,2) + c2);
+            const double g1_ij = rN[i] * rDN_DX(j,0);
+            rMatrix(i_block,     j_block)     += g1_ij * 2*u_1;
+            rMatrix(i_block,     j_block + 2) += g1_ij * (-u_1*u_1 + c2);
             rMatrix(i_block + 1, j_block)     += g1_ij * u_2;
             rMatrix(i_block + 1, j_block + 1) += g1_ij * u_1;
-            rMatrix(i_block + 1, j_block + 2) += -g1_ij * u_1 * u_2;
+            rMatrix(i_block + 1, j_block + 2) -= g1_ij * u_1*u_2;
             rMatrix(i_block + 2, j_block)     += g1_ij;
 
             /* Second component
@@ -369,66 +436,66 @@ void ShallowWater2D3::ComputeGradientMatrix(
              *        { 0   2 * u_2   -u_2^2 + gh},
              *        { 0      1            0    }}
              */
-            double g2_ij = rN[i] * rDN_DX(j,1);
+            const double g2_ij = rN[i] * rDN_DX(j,1);
             rMatrix(i_block,     j_block)     += g2_ij * u_2;
             rMatrix(i_block,     j_block + 1) += g2_ij * u_1;
-            rMatrix(i_block,     j_block + 2) += -g2_ij * u_1 * u_2;
-            rMatrix(i_block + 1, j_block + 1) += g2_ij * 2 * u_2;
-            rMatrix(i_block + 1, j_block + 2) += g2_ij * (-pow(u_2,2) + c2);
+            rMatrix(i_block,     j_block + 2) -= g2_ij * u_1*u_2;
+            rMatrix(i_block + 1, j_block + 1) += g2_ij * 2*u_2;
+            rMatrix(i_block + 1, j_block + 2) += g2_ij * (-u_2*u_2 + c2);
             rMatrix(i_block + 2, j_block + 1) += g2_ij;
 
             double d_ij;
             /* Stabilization x-x
              * A1*A1
              */
-            d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += l(0,0) * d_ij * (3*pow(u_1,2) + c2);
-            rMatrix(i_block,     j_block + 2) += l(0,0) * d_ij * (-2*pow(u_1,3) + 2*u_1*c2);
-            rMatrix(i_block + 1, j_block)     += l(0,0) * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 1) += l(0,0) * d_ij * pow(u_1,2);
-            rMatrix(i_block + 1, j_block + 2) += l(0,0) * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
-            rMatrix(i_block + 2, j_block)     += l(0,0) * d_ij * 2*u_1;
-            rMatrix(i_block + 2, j_block + 2) += l(0,0) * d_ij * (-pow(u_1,2) + c2);
+            d_ij = rDN_DX(j,0) * rDN_DX(i,0);
+            rMatrix(i_block,     j_block)     += l * d_ij * (3*pow(u_1,2) + c2);
+            rMatrix(i_block,     j_block + 2) += l * d_ij * (-2*pow(u_1,3) + 2*u_1*c2);
+            rMatrix(i_block + 1, j_block)     += l * d_ij * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 1) += l * d_ij * pow(u_1,2);
+            rMatrix(i_block + 1, j_block + 2) += l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
+            rMatrix(i_block + 2, j_block)     += l * d_ij * 2*u_1;
+            rMatrix(i_block + 2, j_block + 2) += l * d_ij * (-pow(u_1,2) + c2);
 
             /* Stabilization y-y
              * A2*A2
              */
-            d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += l(1,1) * d_ij * pow(u_2,2);
-            rMatrix(i_block,     j_block + 1) += l(1,1) * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 2) += l(1,1) * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
-            rMatrix(i_block + 1, j_block + 1) += l(1,1) * d_ij * (3*(pow(u_2,2) + c2));
-            rMatrix(i_block + 1, j_block + 2) += l(1,1) * d_ij * (-2*pow(u_2,3) + 2*u_2*c2);
-            rMatrix(i_block + 2, j_block + 1) += l(1,1) * d_ij * 2*u_2;
-            rMatrix(i_block + 2, j_block + 2) += l(1,1) * d_ij * (-pow(u_2,2) + c2);
+            d_ij = rDN_DX(j,1) * rDN_DX(i,1);
+            rMatrix(i_block,     j_block)     += l * d_ij * pow(u_2,2);
+            rMatrix(i_block,     j_block + 1) += l * d_ij * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 2) += l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
+            rMatrix(i_block + 1, j_block + 1) += l * d_ij * (3*(pow(u_2,2) + c2));
+            rMatrix(i_block + 1, j_block + 2) += l * d_ij * (-2*pow(u_2,3) + 2*u_2*c2);
+            rMatrix(i_block + 2, j_block + 1) += l * d_ij * 2*u_2;
+            rMatrix(i_block + 2, j_block + 2) += l * d_ij * (-pow(u_2,2) + c2);
 
             /* Stabilization x-y
              * A1*A2
              */
-            d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += l(0,1) * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 1) += l(0,1) * d_ij * (pow(u_1,2)+c2);
-            rMatrix(i_block,     j_block + 2) += -l(0,1) * d_ij * 2*pow(u_1,2)*u_2;
-            rMatrix(i_block + 1, j_block)     += l(0,1) * d_ij * pow(u_2,2);
-            rMatrix(i_block + 1, j_block + 1) += l(0,1) * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 2) += l(0,1) * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
-            rMatrix(i_block + 2, j_block)     += l(0,1) * d_ij * u_2;
-            rMatrix(i_block + 2, j_block)     += l(0,1) * d_ij * u_1;
-            rMatrix(i_block + 2, j_block)     += -l(0,1) * d_ij * u_1*u_2;
+            d_ij = rDN_DX(j,0) * rDN_DX(i,1);
+            rMatrix(i_block,     j_block)     += l * d_ij * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 1) += l * d_ij * (pow(u_1,2)+c2);
+            rMatrix(i_block,     j_block + 2) += -l * d_ij * 2*pow(u_1,2)*u_2;
+            rMatrix(i_block + 1, j_block)     += l * d_ij * pow(u_2,2);
+            rMatrix(i_block + 1, j_block + 1) += l * d_ij * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 2) += l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
+            rMatrix(i_block + 2, j_block)     += l * d_ij * u_2;
+            rMatrix(i_block + 2, j_block)     += l * d_ij * u_1;
+            rMatrix(i_block + 2, j_block)     += -l * d_ij * u_1*u_2;
 
             /* Stabilization y-x
              * A2*A1
              */
-            d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += l(1,0) * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 1) += l(1,0) * d_ij * pow(u_1,2);
-            rMatrix(i_block,     j_block + 2) += l(1,0) * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
-            rMatrix(i_block + 1, j_block)     += l(1,0) * d_ij * (pow(u_2,2) + c2);
-            rMatrix(i_block + 1, j_block + 1) += l(1,0) * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 2) += -l(1,0) * d_ij * 2*u_1*pow(u_2,2);
-            rMatrix(i_block + 2, j_block)     += l(1,0) * d_ij * u_2;
-            rMatrix(i_block + 2, j_block)     += l(1,0) * d_ij * u_1;
-            rMatrix(i_block + 2, j_block)     += -l(1,0) * d_ij * u_1*u_2;
+            d_ij = rDN_DX(j,1) * rDN_DX(i,0);
+            rMatrix(i_block,     j_block)     += l * d_ij * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 1) += l * d_ij * pow(u_1,2);
+            rMatrix(i_block,     j_block + 2) += l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
+            rMatrix(i_block + 1, j_block)     += l * d_ij * (pow(u_2,2) + c2);
+            rMatrix(i_block + 1, j_block + 1) += l * d_ij * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 2) += -l * d_ij * 2*u_1*pow(u_2,2);
+            rMatrix(i_block + 2, j_block)     += l * d_ij * u_2;
+            rMatrix(i_block + 2, j_block)     += l * d_ij * u_1;
+            rMatrix(i_block + 2, j_block)     += -l * d_ij * u_1*u_2;
         }
     }
 }
@@ -459,6 +526,46 @@ void ShallowWater2D3::ComputeDiffusionMatrix(
     }
 }
 
+void ShallowWater2D3::ComputeGradientVector(
+    array_1d<double,9>& rVector,
+    const ElementData& rData,
+    const array_1d<double,3>& rN,
+    const BoundedMatrix<double,3,2>& rDN_DX)
+{
+    const double c2 = rData.gravity * rData.effective_height; // c=sqrt(gh)
+    const double l = StabilizationParameter(rData);
+    const auto depth = rData.depth;
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const size_t i_block = 3 * i;
+        for (size_t j = 0; j < 3; ++j)
+        {
+            const size_t j_block = 3 * j;
+
+            /* First component */
+            rVector[i_block] -= c2 * rN[i] * rDN_DX(j,0) * depth[j_block + 2];
+
+            /* Second component */
+            rVector[i_block + 1] -= c2 * rN[i] * rDN_DX(j,1) * depth[j_block + 2];
+
+            /* Stabilization x-x
+             * H1*G1
+             */
+            rVector[i_block + 2] -= l * c2 * rDN_DX(i,0) * rDN_DX(j,0) * depth[j_block + 2];
+
+            /* Stabilization y-y
+             * H2*G2
+             */
+            rVector[i_block + 2] -= l * c2 * rDN_DX(i,1) * rDN_DX(j,1) * depth[j_block + 2];
+
+            /* Stabilization x-y and y-x
+             * H1*G2 = H2*G1 = 0
+             */
+        }
+    }
+}
+
 void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
     BoundedMatrix<double,2,2>& rK1,
     BoundedMatrix<double,2,2>& rK2,
@@ -466,9 +573,6 @@ void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
     const ElementData& rData,
     const BoundedMatrix<double,3,2>& rDN_DX)
 {
-    // Small number to prevent division by zero
-    const double epsilon = 1e-6;
-
     // Computation of the gradients
     array_1d<double,3> height_grad = ZeroVector(3);
     BoundedMatrix<double,3,3> flow_grad = ZeroMatrix(3,3);
@@ -495,18 +599,25 @@ void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
     double height_residual;
     AlgebraicResidual(flow_residual, height_residual, rData, flow_div, height_grad, flow_grad);
 
-    // Computation of the crosswind direction
+    // Computation of the gradient direction tensor
     BoundedMatrix<double,2,2> cross_wind;
-    CrossWindTensor(cross_wind, rData.flow_rate);
+    StreamLineTensor(cross_wind, height_grad);
 
     // Final assembly of the tensors
     const double length = this->GetGeometry().Length();
-    double f1_grad = std::max(std::sqrt(pow(flow_grad(0,0),2)+pow(flow_grad(1,0),2))+epsilon, rData.dt_inv);
-    double f2_grad = std::max(std::sqrt(pow(flow_grad(0,1),2)+pow(flow_grad(1,1),2))+epsilon, rData.dt_inv);
-    double h_grad = std::max(norm_2(height_grad)+epsilon, 1.0);
-    rK1 = 0.5 * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
-    rK2 = 0.5 * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
-    rKh = 0.5 * length * std::abs(height_residual) / h_grad * cross_wind;
+    double f1_grad = std::max(std::sqrt(std::pow(flow_grad(0,0),2)+std::pow(flow_grad(1,0),2)), rData.dt_inv);
+    double f2_grad = std::max(std::sqrt(std::pow(flow_grad(0,1),2)+std::pow(flow_grad(1,1),2)), rData.dt_inv);
+    double h_grad = std::max(norm_2(height_grad), 1.0);
+    rK1 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
+    rK2 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
+    // rKh = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad * cross_wind;
+    // rKh = 0.5 * rData.shock_stab_factor * length / std::sqrt(rData.gravity*rData.effective_height) * cross_wind;
+    double k = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad;
+    // k += 0.5 * rData.shock_stab_factor * length * (1-rData.wet_fraction);
+    rKh = k * cross_wind;
+
+    this->SetValue(RESIDUAL_NORM, std::abs(height_residual));
+    this->SetValue(SHOCK_STABILIZATION_FACTOR, k);
 }
 
 void ShallowWater2D3::AlgebraicResidual(
@@ -534,12 +645,13 @@ void ShallowWater2D3::AlgebraicResidual(
         height_acc += rData.unknown[block + 2] - rData.prev_unk[block + 2];
         rain += rData.rain[block + 2];
     }
-    flow_acc *= rData.dt_inv * rData.lumping_factor;
-    height_acc *= rData.dt_inv * rData.lumping_factor;
-    rain *= rData.lumping_factor;
+    const double lumping_factor = 1.0 / 3.0;
+    flow_acc *= rData.dt_inv * lumping_factor;
+    height_acc *= rData.dt_inv * lumping_factor;
+    rain *= lumping_factor;
 
     const double c2 = rData.gravity * rData.effective_height;
-    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / pow(rData.effective_height, 2.333333333333333);
+    const array_1d<double,3> friction = rData.gravity * rData.manning2 * norm_2(rData.flow_rate) * rData.flow_rate / std::pow(rData.effective_height, 2.333333333333333);
     const array_1d<double,3> adv = rData.velocity_div * rData.flow_rate;
 
     rFlowResidual = flow_acc + prod(rData.velocity, trans(rFlowGrad)) + c2 * rHeightGrad + friction + adv;
@@ -548,31 +660,32 @@ void ShallowWater2D3::AlgebraicResidual(
 
 void ShallowWater2D3::StreamLineTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
 {
-    const double epsilon = 1e-6; // small value to avoid division by zero
+    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
-    rTensor = outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + epsilon);
+    rTensor = outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + e);
 }
 
 void ShallowWater2D3::CrossWindTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
 {
-    const double epsilon = 1e-6; // small value to avoid division by zero
+    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
-    rTensor = IdentityMatrix(2) - outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + epsilon);
+    rTensor = IdentityMatrix(2) - outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + e);
 }
 
-void ShallowWater2D3::StabilizationParameter(double& rTau, const ElementData& rData)
+double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
 {
-    const double epsilon = 1e-6; // small value to avoid division by zero
+    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const double length = this->GetGeometry().Length();
-    rTau = length * rData.stab_factor / (norm_2(rData.velocity) + rData.gravity * rData.effective_height + epsilon);
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.effective_height);
+    return length * rData.stab_factor / (eigenvalue + e);
 }
 
-void ShallowWater2D3::StabilizationParameter(BoundedMatrix<double,2,2>& rCharacteristicLength, const ElementData& rData)
+array_1d<double,3> ShallowWater2D3::CharacteristicLength(const ElementData& rData)
 {
-    double length;
-    StabilizationParameter(length, rData);
-    StreamLineTensor(rCharacteristicLength, rData.flow_rate);
-    rCharacteristicLength *= length;
+    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
+    const double length = this->GetGeometry().Length();
+    const double char_length = 0.5 * length * rData.stab_factor;
+    return char_length * rData.flow_rate / (norm_2(rData.flow_rate) + e);
 }
 
 } // namespace kratos
