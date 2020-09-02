@@ -28,8 +28,6 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
   typedef ModelPart::ElementsContainerType ElementsContainerType;
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-  // GatherModelPartOnAllRanksUtility::TransferNodeGeometries(rModelPartToGather, rGatheredModelPart);
-
   const DataCommunicator &r_comm =
       rModelPartToGather.GetCommunicator().GetDataCommunicator();
   const int mpi_size = r_comm.Size();
@@ -60,7 +58,12 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
          it != RecvNodes[i].end(); ++it){
       // if (rGatheredModelPart.Nodes().find(it->Id()) ==
       //     rGatheredModelPart.Nodes().end())
-      // KRATOS_INFO("Received node is : ")<<*it<<std::endl;
+      (*it).FastGetSolutionStepValue(PARTITION_INDEX) = i;
+      (*it).GetDofs().clear();
+      (*it).AddDof(VELOCITY_X);
+      (*it).AddDof(VELOCITY_Y);
+      (*it).AddDof(VELOCITY_Z);
+      (*it).AddDof(PRESSURE);
       rGatheredModelPart.Nodes().push_back(*it.base());
     }
   }
@@ -252,56 +255,6 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
 #endif
 }
 
-void GatherModelPartOnAllRanksUtility::TransferNodeGeometries(
-    ModelPart &rModelPartToGather, ModelPart &rGatheredModelPart)
-    {
-        KRATOS_INFO_ALL_RANKS("Start TransferNodeGeometries : ")<<std::endl;
-        typedef ModelPart::NodesContainerType NodesContainerType;
-        typedef std::vector<int> IdsVectorType;
-        typedef std::vector<int> PidsVectorType;
-        typedef std::vector<double> CoordsVectorType;
-
-        const DataCommunicator &r_comm =
-            rModelPartToGather.GetCommunicator().GetDataCommunicator();
-        const int mpi_size = r_comm.Size();
-        const int mpi_rank = r_comm.Rank();
-
-        std::vector<IdsVectorType> NodesIds(mpi_size);
-        std::vector<PidsVectorType> NodesPids(mpi_size);
-        std::vector<CoordsVectorType> NodesCoords(mpi_size);
 
 
-        NodesIds[mpi_rank].reserve(rModelPartToGather.NumberOfNodes());
-        NodesPids[mpi_rank].reserve(rModelPartToGather.NumberOfNodes());
-        NodesCoords[mpi_rank].reserve(3*rModelPartToGather.NumberOfNodes());
-        for (NodesContainerType::iterator it = rModelPartToGather.NodesBegin();
-            it != rModelPartToGather.NodesEnd(); ++it) {
-                NodesIds[mpi_rank].push_back((*it).Id());
-                NodesCoords[mpi_rank].push_back((*it).X());
-                NodesCoords[mpi_rank].push_back((*it).Y());
-                NodesCoords[mpi_rank].push_back((*it).Z());
-                NodesPids[mpi_rank].push_back((*it).FastGetSolutionStepValue(PARTITION_INDEX));
-        }
-
-        for (int dest_rank = 0; dest_rank < mpi_size; ++dest_rank){
-            r_comm.Barrier();
-            r_comm.Broadcast(NodesIds[dest_rank], dest_rank);
-        }
-        r_comm.Barrier();
-        KRATOS_INFO_ALL_RANKS("End TransferNodeIds : ")<<std::endl;
-
-        for (int dest_rank = 0; dest_rank < mpi_size; ++dest_rank){
-            r_comm.Barrier();
-            r_comm.Broadcast(NodesPids[dest_rank], dest_rank);
-        }
-        r_comm.Barrier();
-        KRATOS_INFO_ALL_RANKS("End TransferNodePids : ")<<std::endl;
-
-        // for (int dest_rank = 0; dest_rank < mpi_size; ++dest_rank){
-        //     r_comm.Barrier();
-        //     r_comm.Broadcast(NodesCoords[dest_rank], dest_rank);
-        // }
-        // KRATOS_INFO_ALL_RANKS("End TransferNodeCoords : ")<<std::endl;
-        // r_comm.Barrier();
-    }
 }

@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/variable_utils.h"
+#include "input_output/vtk_output.h"
 
 namespace Kratos {
 
@@ -94,6 +95,8 @@ void ApplyChimera<TDim>::ExecuteFinalizeSolutionStep()
 
     if (mReformulateEveryStep) {
         mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+        for(const auto& remote_id : mRemoteNodes)
+            mrMainModelPart.RemoveNodeFromAllLevels(remote_id);
         mIsFormulated = false;
     }
 }
@@ -206,12 +209,14 @@ void ApplyChimera<TDim>::DoChimeraLoop()
     mNodeIdToConstraintIdsMap.clear();
     mPointLocatorsMap.clear();
 
+    auto& r_comm = mrMainModelPart.GetCommunicator().GetDataCommunicator();
+
     KRATOS_INFO_IF(
         "ApplyChimera : Chimera Initialization took               : ", mEchoLevel > 0)
         << do_chimera_loop_time.ElapsedSeconds() << " seconds" << std::endl;
     KRATOS_INFO_IF(
         "ApplyChimera : Number of constraints for Chimera         : ", mEchoLevel > 0)
-        << mrMainModelPart.NumberOfMasterSlaveConstraints() << std::endl;
+        << r_comm.SumAll( mrMainModelPart.NumberOfMasterSlaveConstraints() )<< std::endl;
     KRATOS_INFO("End of Formulate Chimera") << std::endl;
 }
 
@@ -290,10 +295,12 @@ void ApplyChimera<TDim>::FormulateChimera(const Parameters BackgroundParam,
     r_patch_model_part.RemoveSubModelPart(mModifiedName);
 
 #ifdef KRATOS_USING_MPI
+    if(r_comm.IsDistributed()){
         BuiltinTimer par_fill_comm;
         ParallelFillCommunicator(mrMainModelPart).Execute();
         double par_fill_time = par_fill_comm.ElapsedSeconds();
         KRATOS_INFO_IF("SynchronizeNodes : Time taken for parallel fill comm     : ", mEchoLevel > 1) << r_comm.Max(par_fill_time, 0) << std::endl;
+    }
 #endif
 }
 
@@ -340,8 +347,6 @@ void ApplyChimera<TDim>::AddMasterSlaveRelation(
         rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable,
                                 rSlaveNode, rSlaveVariable, Weight, Constant);
     p_new_constraint->Set(TO_ERASE);
-    if(rSlaveNode.SolutionStepsDataHas(PARTITION_INDEX))
-        p_new_constraint->SetValue(PARTITION_INDEX, rSlaveNode.GetSolutionStepValue(PARTITION_INDEX) );
     mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
     rMasterSlaveContainer.push_back(p_new_constraint);
 }
@@ -436,10 +441,46 @@ void ApplyChimera<TDim>::FormulateConstraints(
     MasterSlaveContainerVectorType& rVelocityMasterSlaveContainerVector,
     MasterSlaveContainerVectorType& rPressureMasterSlaveContainerVector)
 {
+    const DataCommunicator &r_comm = mrMainModelPart.GetCommunicator().GetDataCommunicator();
+    int mpi_rank = r_comm.Rank();
+    int mpi_size = r_comm.Size();
+    const bool is_comm_distributed = r_comm.IsDistributed();
+    std::vector<NodesContainerType> SendNodes(mpi_size);
+    Model &current_model = mrMainModelPart.GetModel();
+    auto& gathered_modelpart = is_comm_distributed ? current_model.CreateModelPart("GatheredBoundary") : rBoundaryModelPart;
+    if(is_comm_distributed)
+        GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rBoundaryModelPart, gathered_modelpart);
+    const int n_boundary_nodes = static_cast<int>(gathered_modelpart.Nodes().size());
+
+    // Here add non local nodes to the main modelpart and call par fill comm after this function calls.
+    #ifdef KRATOS_USING_MPI
+        if(r_comm.IsDistributed())
+            for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
+                ModelPart::NodesContainerType::ptr_iterator i_boundary_node =
+                    gathered_modelpart.Nodes().ptr_begin() + i_bn;
+                NodeType& r_boundary_node = *(*i_boundary_node);
+                const int node_p_index = r_boundary_node.GetSolutionStepValue(PARTITION_INDEX);
+                auto existing_node_it = mrMainModelPart.Nodes().find(r_boundary_node.Id());
+                if( existing_node_it == mrMainModelPart.NodesEnd()) //node did not exist
+                {
+                    if(node_p_index != mpi_rank){
+                        auto new_node = mrMainModelPart.CreateNewNode(r_boundary_node.Id(), r_boundary_node);
+                        new_node->FastGetSolutionStepValue(PARTITION_INDEX) = r_boundary_node.FastGetSolutionStepValue(PARTITION_INDEX);
+                        new_node->AddDof(VELOCITY_X);
+                        new_node->AddDof(VELOCITY_Y);
+                        new_node->AddDof(VELOCITY_Z);
+                        new_node->AddDof(PRESSURE);
+                        mRemoteNodes.push_back(new_node->Id());
+                    }
+                }
+            }
+    #endif
+
+    WriteModelPart(gathered_modelpart);
+
     std::vector<int> vector_of_non_found_nodes;
-    const int n_boundary_nodes = static_cast<int>(rBoundaryModelPart.Nodes().size());
     std::vector<int> constraints_id_vector;
-    int num_constraints_required = (TDim + 1) * (rBoundaryModelPart.Nodes().size());
+    int num_constraints_required = (TDim + 1) * (gathered_modelpart.Nodes().size());
     CreateConstraintIds(constraints_id_vector, num_constraints_required);
 
     IndexType found_counter = 0;
@@ -452,8 +493,9 @@ void ApplyChimera<TDim>::FormulateConstraints(
                                 rBinLocator) reduction(+ : found_counter)
     for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
         ModelPart::NodesContainerType::iterator i_boundary_node =
-            rBoundaryModelPart.NodesBegin() + i_bn;
+            gathered_modelpart.NodesBegin() + i_bn;
         NodeType& r_boundary_node = *(*(i_boundary_node.base()));
+        // const int node_p_index = is_comm_distributed ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX) : 0;
         unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
         Element::Pointer r_host_element;
         Vector weights;
@@ -464,32 +506,39 @@ void ApplyChimera<TDim>::FormulateConstraints(
             auto& ms_pressure_container =
                 rPressureMasterSlaveContainerVector[omp_get_thread_num()];
             removed_counter += RemoveExistingConstraintsForNode(r_boundary_node);
-            MakeConstraints(r_boundary_node, r_host_element, weights,
+            auto& actual_node = mrMainModelPart.Nodes()[r_boundary_node.Id()];
+            MakeConstraints(actual_node, r_host_element, weights,
                             ms_velocity_container, ms_pressure_container,
                             constraints_id_vector, start_constraint_id);
             found_counter += 1;
         }
     }
 
+    if (is_comm_distributed)
+    {
+        current_model.DeleteModelPart("GatheredBoundary");
+    }
+
     double loop_time = loop_over_b_nodes.ElapsedSeconds();
     KRATOS_INFO_IF(
         "ApplyChimera : Loop over boundary nodes took             : ", mEchoLevel > 0)
-        << loop_time << " seconds" << std::endl;
+        << r_comm.Max(loop_time,0) << " seconds" << std::endl;
     KRATOS_INFO_IF(
         "ApplyChimera : Number of Boundary nodes                  : ", mEchoLevel > 1)
         << n_boundary_nodes << std::endl;
+    auto total_num_nodes_found = r_comm.Sum(found_counter,0);
     KRATOS_INFO_IF(
         "ApplyChimera : Number of Boundary nodes found            : ", mEchoLevel > 1)
-        << found_counter << std::endl;
+        << total_num_nodes_found << std::endl;
     KRATOS_INFO_IF(
         "ApplyChimera : Number of Boundary nodes not found        : ", mEchoLevel > 1)
-        << n_boundary_nodes - found_counter << std::endl;
+        << (n_boundary_nodes - total_num_nodes_found) << std::endl;
     KRATOS_INFO_IF(
         "ApplyChimera : Number of constraints made                : ", mEchoLevel > 1)
-        << found_counter * 9 << std::endl;
+        << total_num_nodes_found * 9.0 << std::endl;
     KRATOS_INFO_IF(
         "ApplyChimera : Number of constraints removed             : ", mEchoLevel > 1)
-        << removed_counter << std::endl;
+        << r_comm.Sum(removed_counter,0) << std::endl;
 }
 
 template <int TDim>
@@ -594,7 +643,7 @@ bool ApplyChimera<TDim>::SearchNode(PointLocatorType& rBinLocator,
 
 template <int TDim>
 void ApplyChimera<TDim>::MakeConstraints(
-    NodeType& rNodeToFind,
+    NodeType& rBoundaryNode,
     Element::Pointer& rHostElement,
     Vector& rWeights,
     MasterSlaveConstraintContainerType& rVelocityMsConstraintsVector,
@@ -604,24 +653,51 @@ void ApplyChimera<TDim>::MakeConstraints(
 {
     Geometry<NodeType>& r_geom = rHostElement->GetGeometry();
     int init_index = 0;
-    ApplyContinuityWithElement(r_geom, rNodeToFind, rWeights, VELOCITY_X,
+    ApplyContinuityWithElement(r_geom, rBoundaryNode, rWeights, VELOCITY_X,
                                StartConstraintId + init_index,
                                rConstraintIdVector, rVelocityMsConstraintsVector);
     init_index += (TDim + 1);
-    ApplyContinuityWithElement(r_geom, rNodeToFind, rWeights, VELOCITY_Y,
+    ApplyContinuityWithElement(r_geom, rBoundaryNode, rWeights, VELOCITY_Y,
                                StartConstraintId + init_index,
                                rConstraintIdVector, rVelocityMsConstraintsVector);
     init_index += (TDim + 1);
     if (TDim == 3) {
-        ApplyContinuityWithElement(r_geom, rNodeToFind, rWeights, VELOCITY_Z,
+        ApplyContinuityWithElement(r_geom, rBoundaryNode, rWeights, VELOCITY_Z,
                                    StartConstraintId + init_index, rConstraintIdVector,
                                    rVelocityMsConstraintsVector);
         init_index += (TDim + 1);
     }
-    ApplyContinuityWithElement(r_geom, rNodeToFind, rWeights, PRESSURE,
+    ApplyContinuityWithElement(r_geom, rBoundaryNode, rWeights, PRESSURE,
                                StartConstraintId + init_index,
                                rConstraintIdVector, rPressureMsConstraintsVector);
 }
+
+
+template <int TDim>
+void ApplyChimera<TDim>::WriteModelPart(ModelPart &rModelPart)
+{
+    Parameters vtk_parameters(R"(
+            {
+                "output_control_type"                : "step",
+                "file_format"                        : "binary",
+                "output_precision"                   : 3,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "test_vtk_output",
+                "save_output_files_in_folder"        : false,
+                "nodal_solution_step_data_variables" : [],
+                "nodal_data_value_variables"         : [],
+                "element_flags"                      : [],
+                "nodal_flags"                        : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : [],
+                "write_ids"                          :true
+            }
+            )");
+
+    VtkOutput vtk_output(rModelPart, vtk_parameters);
+    vtk_output.PrintOutput();
+}
+
 
 // Template declarations
 template class ApplyChimera<2>;

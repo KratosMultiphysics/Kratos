@@ -44,21 +44,21 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
     typedef BuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseBuilderAndSolverType;
     typedef TrilinosBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverType;
-    typedef TrilinosChimeraBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosChimeraResidualBasedBuilderAndSolverType;
+    typedef TrilinosChimeraResidualBasedBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosChimeraResidualBasedBuilderAndSolverType;
 
     py::class_<
         TrilinosChimeraResidualBasedBuilderAndSolverType,
         typename TrilinosChimeraResidualBasedBuilderAndSolverType::Pointer,
         TrilinosBaseBuilderAndSolverType  >
-    (m, "TrilinosChimeraResidualBasedBuilderAndSolver").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
+    (m, "OldTrilinosChimeraResidualBasedBuilderAndSolver").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
 
-    typedef TrilinosBlockBuilderAndSolverWithConstraints< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverWithConstraintsType;
+    typedef TrilinosChimeraBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosChimeraBlockBuilderAndSolverType;
     py::class_<
-        TrilinosBlockBuilderAndSolverWithConstraintsType,
-        typename TrilinosBlockBuilderAndSolverWithConstraintsType::Pointer,
+        TrilinosChimeraBlockBuilderAndSolverType,
+        typename TrilinosChimeraBlockBuilderAndSolverType::Pointer,
         TrilinosBlockBuilderAndSolverType >
-    (m, "TrilinosChimeraBlockBuilderAndSolverWithConstraints").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
+    (m, "TrilinosChimeraBlockBuilderAndSolverType").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
 
 

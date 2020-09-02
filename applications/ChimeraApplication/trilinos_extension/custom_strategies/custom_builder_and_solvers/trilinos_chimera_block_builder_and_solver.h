@@ -70,7 +70,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class TrilinosChimeraBlockBuilderAndSolver
+ * @class TrilinosChimeraResidualBasedBlockBuilderAndSolver
  * @ingroup TrilinosApplication
  * @brief Current class provides an implementation for trilinos builder and
  * solving operations.
@@ -86,13 +86,13 @@ template <class TSparseSpace,
           class TDenseSpace,  //= DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class TrilinosChimeraBlockBuilderAndSolver
+class TrilinosChimeraResidualBasedBlockBuilderAndSolver
     : public BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(TrilinosChimeraBlockBuilderAndSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(TrilinosChimeraResidualBasedBlockBuilderAndSolver);
 
     /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -143,7 +143,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    TrilinosChimeraBlockBuilderAndSolver(EpetraCommunicatorType &rComm,
+    TrilinosChimeraResidualBasedBlockBuilderAndSolver(EpetraCommunicatorType &rComm,
                                          int GuessRowSize,
                                          typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
@@ -155,17 +155,17 @@ public:
     /**
      * @brief Default destructor.
      */
-    ~TrilinosChimeraBlockBuilderAndSolver() override = default;
+    ~TrilinosChimeraResidualBasedBlockBuilderAndSolver() override = default;
 
     /**
      * Copy constructor
      */
-    TrilinosChimeraBlockBuilderAndSolver(const TrilinosChimeraBlockBuilderAndSolver &rOther) = delete;
+    TrilinosChimeraResidualBasedBlockBuilderAndSolver(const TrilinosChimeraResidualBasedBlockBuilderAndSolver &rOther) = delete;
 
     /**
      * Assignment operator
      */
-    TrilinosChimeraBlockBuilderAndSolver &operator=(const TrilinosChimeraBlockBuilderAndSolver &rOther) = delete;
+    TrilinosChimeraResidualBasedBlockBuilderAndSolver &operator=(const TrilinosChimeraResidualBasedBlockBuilderAndSolver &rOther) = delete;
 
     ///@}
     ///@name Operators
@@ -685,7 +685,7 @@ public:
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
-        KRATOS_INFO_IF_ALL_RANKS("TrilinosChimeraBlockBuilderAndSolver", BaseType::GetEchoLevel() > 0)
+        KRATOS_INFO_IF_ALL_RANKS("TrilinosChimeraResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() > 0)
             << std::endl
             << current_rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize
             << std::endl
@@ -1101,7 +1101,7 @@ protected:
                 ++assembled_count;
             }
         }
-        KRATOS_CATCH("TrilinosChimeraBlockBuilderAndSolver::FormulateGlobalMasterSlaveRelations failed ..");
+        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::FormulateGlobalMasterSlaveRelations failed ..");
     }
 
     /**
@@ -1140,7 +1140,7 @@ protected:
             }
             slave_count++;
         }
-        KRATOS_CATCH("TrilinosChimeraBlockBuilderAndSolver::AssembleSlaves failed ...");
+        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::AssembleSlaves failed ...");
     }
 
     /**
@@ -1161,7 +1161,7 @@ protected:
 
             (it->second)->Reset();
         }
-        KRATOS_CATCH("TrilinosChimeraBlockBuilderAndSolver::ResetConstraintRelations failed to reset constraint relations..");
+        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::ResetConstraintRelations failed to reset constraint relations..");
     }
 
     /**
@@ -1199,7 +1199,7 @@ protected:
                 UpdateMasterSlaveConstraint(*it, r_current_process_info);
             }
         }
-        KRATOS_CATCH("TrilinosChimeraBlockBuilderAndSolver::UpdateConstraintsForBuilding failed ..");
+        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::UpdateConstraintsForBuilding failed ..");
     }
 
     /**
@@ -1239,7 +1239,7 @@ protected:
             global_constraint->second->UpdateRightHandSide(slave_value_calc);
             slave_index++;
         }
-        KRATOS_CATCH("TrilinosChimeraBlockBuilderAndSolver::UpdateMasterSlaveConstraint failed ..");
+        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::UpdateMasterSlaveConstraint failed ..");
     }
 
     /**
@@ -1333,7 +1333,7 @@ protected:
         ierr = rDx.GlobalAssemble(Insert); //Epetra_CombineMode mode=Add);
         KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
 
-        KRATOS_CATCH("TrilinosChimeraBlockBuilderAndSolver::ReconstructSlaveSolutionAfterSolve failed ..");
+        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::ReconstructSlaveSolutionAfterSolve failed ..");
     }
 
     ///@}
@@ -1418,7 +1418,7 @@ private:
     ///@{
 
     ///@}
-}; /* Class TrilinosChimeraBlockBuilderAndSolver */
+}; /* Class TrilinosChimeraResidualBasedBlockBuilderAndSolver */
 
 ///@}
 

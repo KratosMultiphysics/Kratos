@@ -77,8 +77,8 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
         * ,otherwise the modified patch boundary wont find any nodes on
         * background
         */
-        //if (is_elem_outside)
-        if(num_nodes_outside == geom.size())
+        if (is_elem_outside)
+        //if(num_nodes_outside == geom.size())
         {
             i_element.Set(ACTIVE, false);
             if (Side == ChimeraHoleCuttingUtility::SideToExtract::INSIDE){

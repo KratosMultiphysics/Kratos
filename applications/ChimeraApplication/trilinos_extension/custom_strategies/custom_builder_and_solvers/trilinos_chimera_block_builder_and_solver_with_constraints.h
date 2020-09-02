@@ -64,7 +64,7 @@ namespace Kratos {
 ///@{
 
 /**
- * @class TrilinosBlockBuilderAndSolverWithConstraints
+ * @class TrilinosChimeraBlockBuilderAndSolver
  * @ingroup TrilinosApplication
  * @brief Current class provides an extension to the trilinos b&s with constraints
  * @details
@@ -74,12 +74,12 @@ template <class TSparseSpace,
           class TDenseSpace,  //= DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class TrilinosBlockBuilderAndSolverWithConstraints
+class TrilinosChimeraBlockBuilderAndSolver
     : public TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(TrilinosBlockBuilderAndSolverWithConstraints);
+    KRATOS_CLASS_POINTER_DEFINITION(TrilinosChimeraBlockBuilderAndSolver);
 
     /// Definition of the base class
     typedef TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -121,7 +121,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    TrilinosBlockBuilderAndSolverWithConstraints(EpetraCommunicatorType& rComm,
+    TrilinosChimeraBlockBuilderAndSolver(EpetraCommunicatorType& rComm,
                                   int GuessRowSize,
                                   typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(rComm, GuessRowSize, pNewLinearSystemSolver)
@@ -131,17 +131,17 @@ public:
     /**
      * @brief Default destructor.
      */
-    ~TrilinosBlockBuilderAndSolverWithConstraints() override = default;
+    ~TrilinosChimeraBlockBuilderAndSolver() override = default;
 
     /**
      * Copy constructor
      */
-    TrilinosBlockBuilderAndSolverWithConstraints(const TrilinosBlockBuilderAndSolverWithConstraints& rOther) = delete;
+    TrilinosChimeraBlockBuilderAndSolver(const TrilinosChimeraBlockBuilderAndSolver& rOther) = delete;
 
     /**
      * Assignment operator
      */
-    TrilinosBlockBuilderAndSolverWithConstraints& operator=(const TrilinosBlockBuilderAndSolverWithConstraints& rOther) = delete;
+    TrilinosChimeraBlockBuilderAndSolver& operator=(const TrilinosChimeraBlockBuilderAndSolver& rOther) = delete;
 
     ///@}
     ///@name Operators
@@ -778,7 +778,7 @@ private:
     ///@{
 
     ///@}
-}; /* Class TrilinosBlockBuilderAndSolverWithConstraints */
+}; /* Class TrilinosChimeraBlockBuilderAndSolver */
 
 ///@}
 

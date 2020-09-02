@@ -135,8 +135,9 @@ public:
         auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
         p_distance_smoother->CalculateDistances(rVolumeModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
 
-        VariableUtils().CopyScalarVar(DISTANCE, CHIMERA_DISTANCE, rVolumeModelPart.Nodes());
-        current_model.DeleteModelPart("GatheredSkin");
+        VariableUtils().CopyVariable<double>(DISTANCE, CHIMERA_DISTANCE, rVolumeModelPart.Nodes());
+        if(r_comm.IsDistributed())
+            current_model.DeleteModelPart("GatheredSkin");
     }
 
     ///@}

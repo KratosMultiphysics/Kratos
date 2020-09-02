@@ -387,6 +387,9 @@ private:
                          MasterSlaveConstraintContainerType& rPressureMsConstraintsVector,
                          std::vector<int>& rConstraintIdVector,
                          const IndexType StartConstraintId);
+
+
+    void WriteModelPart(ModelPart& rModelPart);
     ///@}
     ///@name Private  Access
     ///@{

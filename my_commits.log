@@ -1,0 +1,1143 @@
+commit bf33a9886b194618b7fe605fcdc89093881549a2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 18:12:08 2020 +0200
+
+    add and adapt sliding interface to mpi
+
+commit 298b489f50ea8bedd2a0407b78a6a65b2b0b8667
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 18:11:45 2020 +0200
+
+    use constraint b&s in fluid vms monolithic trilinos
+
+commit 09ce3380357ce1c933e8087eb2a58876fc5d15e5
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 18:11:20 2020 +0200
+
+    add constraint b&s to trilinos app perfectly working
+
+commit 4f50c33d16356573a36be71f1fd97a79555b3b40
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 18:10:35 2020 +0200
+
+    rename chimera trilinos solver
+
+commit 93480c394a202d2d1aa2e98f880aaca9c7962dcd
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 10:40:14 2020 +0200
+
+    more compilation error fixes
+
+commit 9bb45c81410050ee60e0196b46a36cc7a5971f1c
+Merge: 01d260da0a fe70002a22
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 10:39:38 2020 +0200
+
+    Merge branch 'Chimera-sliding-interface-process' into ChimeraApplication-mpi
+
+commit 01d260da0ac155583db06ba3b84a26e130a83d7d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 10:39:05 2020 +0200
+
+    compilation errors solve
+
+commit 4e0ffa7c02688d5022b19a79d9c3498fb1bbb357
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 09:51:42 2020 +0200
+
+    add mpi par fill comm
+
+commit d4d11cec55eccca2f609888968064862175ef842
+Merge: 34a3bc7c15 e38d07ac33
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Jul 27 09:51:24 2020 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-mpi
+
+commit fe70002a225ef83fe465e66be5292301c90725bc
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Jul 26 16:51:28 2020 +0200
+
+    no return in 3d triangle
+
+commit 27c8061f1d4f55728d18f53845b90ce1fcbb3668
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Jul 24 09:28:29 2020 +0200
+
+    working implementation
+
+commit 15ad488d3b7e0b90ae7109bd25ec7591d8799e61
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Dec 3 14:07:40 2019 +0100
+
+    appvoyer error
+
+commit 7fe09b57fb30b6b4f670a1a12a9192f44cf82a8d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Dec 2 12:25:59 2019 +0100
+
+    change print location
+
+commit 7c80abfc34688dcf40bd144e66523821c6f2d8d1
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 15:27:05 2019 +0100
+
+    removing unnessary imports
+
+commit 9c680ee7c3c5d59598a460d608985037fb3ba5eb
+Merge: f91c38c698 54d929e281
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 14:09:25 2019 +0100
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit f91c38c698a5bb39b38876cdcd0d15761844415e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 13:45:55 2019 +0100
+
+    some major reformulating and using new functions
+
+commit ffedfff54774065a6dd5f5560e853acf37928930
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 13:44:08 2019 +0100
+
+    new variables 2
+
+commit 71ee1ebae5df23861c89a3c689520bf19072c2fe
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 13:43:56 2019 +0100
+
+    new variales and renaming
+
+commit d36ea6997e9eba63f88d0f72b84e0bd1b53180ec
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 13:43:33 2019 +0100
+
+    using the reformulated function in monolithic
+
+commit b431dca6c365bcd5f40fac933c5e9fd1b9b6ba87
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 13:43:08 2019 +0100
+
+    fragmenting and reformulation
+
+commit c00466a932d0b14f5abddce7cd2e88e47efe3ee4
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 13:41:44 2019 +0100
+
+    merge error
+
+commit ae5d3718f835aad49c3c4069cfa975fe4fc24228
+Merge: 8d8f501529 1b503d1868
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 10:33:20 2019 +0100
+
+    Merge branch 'meshmoving-super-imposing-on-existing-motion' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 8d8f501529b12157ecf8d23b1000e350af85e307
+Merge: 1f0a414b5e f1ad0e1971
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 10:30:50 2019 +0100
+
+    Merge branch 'ChimeraApplication-development_2.0' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 1f0a414b5e7500c521dfbcff6b8a514190631cac
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 31 10:30:01 2019 +0100
+
+    [skip cd] [skip ci] cleanup + using enums
+
+commit f79402a9a4e8e34b7385cfdafe926d1c44408f84
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 30 18:37:40 2019 +0100
+
+    [skip cd] [skip ci] tests updated to new format
+
+commit 58f15b5dfdd7ae7440dbad7f439c7aa0af3ebde3
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 30 17:19:27 2019 +0100
+
+    update test results
+
+commit 0fe192fce7de44ec1d363f496119db144384a36c
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 30 17:18:36 2019 +0100
+
+    specializing the template functions
+
+commit bf01e09f1dd7a06541b0abb1946792fb9d0f281a
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 30 17:18:21 2019 +0100
+
+    small
+
+commit a7e749d0202fc00abc0cf4c77c58c1f3bee84c61
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 30 17:18:08 2019 +0100
+
+    header only fs settings
+
+commit f276a92a7fce9496e2ea4f6fcac5d40822cb39f5
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 30 15:03:30 2019 +0100
+
+    [skip cd] [skip ci] upgrading the cmake lists
+
+commit 4459e4f66419b6e42c00e0240e8a3540ea650606
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 29 08:24:21 2019 +0100
+
+    [skip cd] [skip ci]
+
+commit 0c8edf93fd2be081455463fb018882de891554cf
+Merge: 66ac832e2c 450aad509b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 29 08:23:40 2019 +0100
+
+    Merge branch 'ChimeraApplication-development_2.0' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 66ac832e2ce8c116961cf31fc9668a16f474eb0c
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 29 08:22:48 2019 +0100
+
+    [skip cd] [skip ci]
+
+commit 1b503d186844ab5dc9d7ff4e20eb542dadf1487b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 17:06:28 2019 +0100
+
+    missing move mesh function call
+
+commit 8f8b67e0bd34acfc5a3a0f67b50398418666c67d
+Merge: 9d5869d58d 6bc6a85fc0
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 16:37:36 2019 +0100
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 902c4fc6eccdab0a1f5175c16cc2e4c88f552f96
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 16:30:50 2019 +0100
+
+    remove the overload of SetStrategy and making it pure virtual
+
+commit 853a5d47e78bb95a6eccef0b0395ada4532e0dda
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 13:21:18 2019 +0100
+
+    del move mesh from trilinos structural mesh motion strategies
+
+commit 72fa61328b2fa58f9ffba35daf63637fa0853c6e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 13:11:08 2019 +0100
+
+    removing leftovers.
+
+commit 11df4c9b257262fc39f9010c86ecf000075aa51a
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 13:02:52 2019 +0100
+
+    missing coma
+
+commit e678e55fdadc604a8b04fe25c7be1ee3b83dd52c
+Merge: b9484251b2 6bc6a85fc0
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 12:54:59 2019 +0100
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into meshmoving-super-imposing-on-existing-motion
+
+commit b9484251b2b8ec233b088d11453864b0249082c0
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 12:51:25 2019 +0100
+
+    adding superimpose_mesh_disp_with and using
+
+commit 6ad09e7109746a93ea9d2f51a26f8ec3ad9c298b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 12:51:03 2019 +0100
+
+    adding superimpose_mesh_velocity_with and using
+
+commit 2382737506990f2f5067a41dc6a992d57e21d658
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 10:18:47 2019 +0100
+
+    spliting superimpose to mesh disp and mesh vel
+
+commit 94bcfeb8cc3792b552565266949e80cb6a54aa20
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 10:18:11 2019 +0100
+
+    adding MoveMesh to ale_fluid_solver python layer
+
+commit 74cb7fa11e570a76bf953ca4aefeeec3abba7ecc
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 10:08:52 2019 +0100
+
+    removing MoveMesh  from Solve function of strategies
+
+commit 844c923fc835c4e51fdd68cf50b648cc78aef330
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 09:57:58 2019 +0100
+
+    small corrections
+
+commit f0cfd7f01ab027845780b496543fe5758879e41f
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 09:50:43 2019 +0100
+
+    adding impl of superimpose function
+
+commit f255603169808fc413d57c58b6f9cd0cb04179f2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 09:43:04 2019 +0100
+
+    exposing superimpose variables to python
+
+commit b3c35f811e9e713b706d09260e3f4b1cbd27c6ee
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 09:42:52 2019 +0100
+
+    adding superimpose variables function
+
+commit b519bd39204114a9a1501d5913b38656c4a49112
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 28 09:42:23 2019 +0100
+
+    removing aux vairables. Tobe moved to python
+
+commit b6050d41a63964ceb8fd534689c4f3348751f2b2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 24 17:16:50 2019 +0200
+
+    using aux variables for superimposition
+
+commit 09319b477e2556ac30565488a1b7439a0b4fd0fe
+Merge: 0f3d7a11c1 12c2daf25a
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 24 16:53:22 2019 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into meshmoving-super-imposing-on-existing-motion
+
+commit 0f3d7a11c1b013bb0a5d0cfcb4b870cbced4f824
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 11:24:12 2019 +0200
+
+    adding mesh_displacement  to existing displacement
+
+commit 8e72e3d4051f110579c58ed392cc17f0c1ebaea0
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 11:23:23 2019 +0200
+
+    adding calculated vel to exising vel +=
+
+commit ed296d69003d9c8e1f5090ac06a03604a0f8fcc6
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 11:10:43 2019 +0200
+
+    some pointer checks + new method for setting strategy with b and s
+
+commit bf4a7acf3eb7d1355089bc3daa60e76c9df4afcb
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 11:09:48 2019 +0200
+
+    making fs strategy methods virtual and moving members to protected
+
+commit 9d5869d58d9638dd64a2f967002895218ab68d30
+Merge: 34190df682 32a330b207
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 10:55:06 2019 +0200
+
+    Merge branch 'fluid-fs-step-residual-output' into ChimeraApplication-development_2.0
+
+commit 34190df68200a2aead992ccc8c644118d46a52cc
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 10:53:27 2019 +0200
+
+    [skip cd] [skip ci] activate tests
+
+commit 333ae6a44a127ae60eb9fba0ff0d1db01470fa10
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 10:50:43 2019 +0200
+
+    [skip cd] [skip ci] remove not required virtuals
+
+commit 32a330b20794ffe51fe26b21af37dc75c3eff198
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 10:37:56 2019 +0200
+
+    using info if
+
+commit cc675ee85dff1d0bf2c5447a48df67824a33ac6d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 10:35:04 2019 +0200
+
+    small correction + using info if
+
+commit 8172d4cc0e5ef0ec8716017efb9b118b5e6a9f70
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 23 10:24:40 2019 +0200
+
+    review changes
+
+commit 3bbd0e891c6eaf1b09779387e50d37dd859bdadb
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 22 17:24:11 2019 +0200
+
+    [skip ci] [skip cd] removing the shear force process
+
+commit dbf162ec23895b1844c2a4f3db86340ecd9c1c18
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 17:26:54 2019 +0200
+
+    [skip ci] [skip cd] more corrections
+
+commit e8ed92e3893a84a6abbe5f5833635aba5ba0c37e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 17:25:21 2019 +0200
+
+    [skip cd] [skip ci] small change
+
+commit 1b929d004aa7355b2144a48b66f899c86c4ad1aa
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 15:47:04 2019 +0200
+
+    [skip ci] [skip cd] adding parm validation and refractoring function
+
+commit 0f95af05d51cb87cdd4b7d45e031ba388322bc7a
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 15:45:31 2019 +0200
+
+    removing unused argument
+
+commit 9db3a26d25a20619882cf470b6af9d9fcc809242
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 14:21:23 2019 +0200
+
+    [skip ci] [skip cd] streamlining delete of constraints
+
+commit 25f2f1b77b2fea2f77c7bb5d48a299f8f1651072
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 14:05:54 2019 +0200
+
+    [skip cd] [skip ci] more optimizations
+
+commit 7b7d1fc1c9e87745ede2499050febcb28eb8e5cf
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 12:08:21 2019 +0200
+
+    [skip ci] [skip cd] some more debug info
+
+commit 31008178032d90749a851e43585b34a774b001ac
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 21 10:15:43 2019 +0200
+
+    [skip ci] [skip cd] some performance optimizations
+
+commit e1ddbe3ebbb20839ce0bd9a6f4c7b5346eeeb4b1
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Oct 20 15:51:37 2019 +0200
+
+    [skip ci] [skip cd] using model
+
+commit ba85843a84f60b84b319ecad6fbb6817a73c1d4b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Oct 20 15:26:09 2019 +0200
+
+    [skip ci] [skip cd] adding more optimization options
+
+commit e3d3b9ba40beb7d0c47cf392c8b6d02c699fadb1
+Merge: 88c7d054cc 504da716fe
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Oct 20 13:43:55 2019 +0200
+
+    Merge branch 'ChimeraApplication-development_2.0' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 88c7d054cca5b6a2749c4076dd30119e0c2a41c2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Oct 20 13:43:50 2019 +0200
+
+    small
+
+commit 9f393a98ede90b7e610cda8908c737f7a91a67ac
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 23:16:45 2019 +0200
+
+    [skip ci] [skip cd] reverting changes
+
+commit 43eb419f6feb4f33b1ca88462471fa2e05cbbb62
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 23:05:57 2019 +0200
+
+    [skip ci] [skip cd] small
+
+commit 0c4f2b5383c8c888b27687d13ba7b334128b7b8d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 23:03:33 2019 +0200
+
+    [skip ci] [skip cd] addind mTime for chimera
+
+commit 0ccadd29281afadb571a78ef842490f5d0fe9ef3
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 22:45:18 2019 +0200
+
+    [skip ci] [skip cd] adding disp to solution step data
+
+commit 1b7a24a823431d632ba0672a245dcb4ca92a378d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 22:42:55 2019 +0200
+
+    [skip ci] [skip cd] setting disp
+
+commit ebf470ae51d17cfdf3c0c8b10d6b29b0db059f37
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 22:29:41 2019 +0200
+
+    [skip ci] [skip cd ]adding mesh disp and disp
+
+commit 246d3ab11ea2a45fda80c6f722e3c6c273f2939d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 22:29:20 2019 +0200
+
+    [skip ci] [skip cd] resetting and setting disp
+
+commit 974fe17a96d9d5d15e2c01e2097bfa70dfb347f3
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 20:19:49 2019 +0200
+
+    [skip ci] [skip cd] small
+
+commit 33c9b2630c12d69e550dee8b85818da45a8b7edf
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 20:13:39 2019 +0200
+
+    [skip ci] [skip cd] reset mesh utils
+
+commit 6a88ae4c9732a6c6bb8abf7e411426ba83e73eb8
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 19:00:39 2019 +0200
+
+    [skip ci] [skip cd] new MoveMesh
+
+commit e8f81282f8bd60f6a006dec4e960e1d454a6c44b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 18:28:48 2019 +0200
+
+    [skip ci] [skip cd] using dtheta and X as coordinates
+
+commit 5ab178d0a1630e7967a79b96e54b1e1dd5a94050
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 18:27:50 2019 +0200
+
+    [skip ci] [skip cd] remove debug
+
+commit fdae6393441df96d231596e6bc8e309bb9324140
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 14:21:00 2019 +0200
+
+    [skip ci] [skip cd] small corrections
+
+commit fabddd78b5bbd86005e821cbcdadf0d3c50e0bcf
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 14:15:42 2019 +0200
+
+    [skip ci] [skip cd] add torque mp to cpp process
+
+commit 1af5aeae342b83361e85fe5f40099c31d4a0f431
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 14:11:50 2019 +0200
+
+    [skip ci] [skip cd] dynamic test for rotate region
+
+commit ea44e215075e611f2519ca994fdb4f4ee1290b5a
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 9 09:11:58 2019 +0200
+
+    [skip cd] [skip ci] using diff algo for rotation
+
+commit 45e470e770015c2f7b488296c88f5bd9b061d6e8
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 7 15:01:16 2019 +0200
+
+    [skip ci] [skip cd] test - superimposing mesh vel
+
+commit 32a92ce7ace5f1d81f62d5ce34ddaecd9835ec36
+Merge: d6a5845f44 18ba1e15ee
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 7 12:17:23 2019 +0200
+
+    Merge branch 'trilinos-cleaning-bs' of https://github.com/KratosMultiphysics/Kratos into trilinos-cleaning-bs
+
+commit d6a5845f446ac6ccdba37c47e46c1430748aeb8b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 7 11:40:33 2019 +0200
+
+    removing .base() for iterators
+
+commit 5096b0df0a1da4878b428932e111a183bbefa931
+Merge: 9db65fa67a 5f38d58d3b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 7 11:40:05 2019 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into trilinos-cleaning-bs
+
+commit c99184b8d4d54650474f27ca56ce36d1f6b3fdf5
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 7 11:25:48 2019 +0200
+
+    [skip ci][skip cd] more changes to avoid repetation
+
+commit c531c95a8ac52266836313d130e6dcd5aa52f936
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Oct 7 11:05:41 2019 +0200
+
+    [skip ci][skip cd] mod to not repeat rotation
+
+commit 19f40ae0f92a95f8f0cb50943e5d7f871ce512ad
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Oct 6 16:40:16 2019 +0200
+
+    [skip ci] [skip cd] for skipping
+
+commit c65378f0cddd4b3dab8845492605fcfdb381dde9
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Oct 6 16:39:50 2019 +0200
+
+    passing dt explicitly
+
+commit 799476bccb49640354fe07e54fc829a1f5909ac6
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Oct 4 16:33:15 2019 +0200
+
+    [skip ci] [skip cd] more corrections
+
+commit c5339b383adeea161c688209ce6e731937ba01a2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Oct 4 14:03:10 2019 +0200
+
+    [skip ci] [skip cd] correcting the impl
+
+commit 3d5c6c95ff313d57df1652de3f1d7b5b5f7e2a15
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Oct 4 14:02:49 2019 +0200
+
+    error corrections
+
+commit 003c2debb3b28e3f144dafa124a67319cce6b5ad
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 19:54:16 2019 +0200
+
+    [skip ci] [skip cd] corrections
+
+commit e0609ff80080d161a816b0cc2643bf28737cf924
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 19:37:34 2019 +0200
+
+    [skip ci] [skip cd] adding python wrapper for rotate region process
+
+commit a73483db10981bc5fbcc660a66ce4dae63505397
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 18:57:42 2019 +0200
+
+    [skip ci] [skip cd] omp parallel loop and cleanups
+
+commit 7f42742681e2f4b8a0c25fe8b9a03b55baa31223
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 17:15:27 2019 +0200
+
+    removing the iteration num output
+
+commit d94937382727ace3f718fe2d9a822f811259dcf2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 17:08:49 2019 +0200
+
+    removing debug output
+
+commit 82635267d6e6e96da4efcc726ea053791cd394b6
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 17:02:54 2019 +0200
+
+    making the tol variable const
+
+commit effef12aa971b42f07488141b538ef85523c306e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 17:02:28 2019 +0200
+
+    fancy output for velocity tolerence
+
+commit 7a2b25813b5028bf4f1210ce879b7dfb82c510e5
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 17:02:07 2019 +0200
+
+    time o/p and var for area tolerence an cleanup
+
+commit af217e4b40700599542bbcc27f82d177e699b56e
+Merge: 14b2f3b472 9f576c2241
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Oct 3 15:14:33 2019 +0200
+
+    Merge branch 'ChimeraApplication-development_2.0' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 14b2f3b472d81366f113dacc6d850f9c113a63c9
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 2 17:24:55 2019 +0200
+
+    setting the calc theta and omega to modelpart
+
+commit 814369ee22b769352ffe53bdac58ea7c70836899
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 2 17:24:37 2019 +0200
+
+    adding two variables for angle and omega
+
+commit f38687c4c65998765b18ffc1f9efe81e03ab5c2a
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 2 16:00:23 2019 +0200
+
+    variable name correction
+
+commit 9db65fa67a9b69acafb2bd6de21cd269b7791dcd
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 2 11:38:47 2019 +0200
+
+    removing includes
+
+commit b4c178cea2ed91457594e67c5b820926601350ac
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 2 10:51:57 2019 +0200
+
+    remove omp pragmas, iter on ptrs
+
+commit eb5b3fc7c6e3df37d027a85b8a679be823e8a3ac
+Merge: f975b01bd9 63b2050abd
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 2 09:51:24 2019 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into trilinos-cleaning-bs
+
+commit f975b01bd9eadd8165f210acaa9375a1a315fd76
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Oct 2 09:49:02 2019 +0200
+
+    small comment removed
+
+commit 63fccd0cc9d1a2cc36ff393bd1a35258ecce2003
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 1 14:48:42 2019 +0200
+
+    adjusting the chimera monolithic solver to base solver
+
+commit 77669f0c47e07e3df5e9096d7a2cc47b6d8db85d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 1 14:06:49 2019 +0200
+
+    [skip ci] [skip cd] adding some comments
+
+commit be8c7065bc6dc09ff9e4df4f85cb44fd5b9facca
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 1 14:03:43 2019 +0200
+
+    mod
+
+commit 82dd37d85e04bbf26549321ed1bce70e5e0d4a27
+Merge: 29982af139 30224c88fa
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 1 14:03:04 2019 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 29982af1390cdbc5cba283ae91ebfbe05bc7fd81
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 1 14:01:48 2019 +0200
+
+    printing time in chimera b and s
+
+commit 5b020d25a8d46e82fe7db4b870fb613d645b0261
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Oct 1 14:01:22 2019 +0200
+
+    correction in comment
+
+commit fa26c8ac89982164fb9cdca986db59d14f46320d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Sep 25 17:16:22 2019 +0200
+
+    resetting use of the sparse utilities
+
+commit d15ce2613782428c5d6d666f62811be6c9b4901f
+Merge: a15ad0ba50 a1271b8980
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Sep 25 13:53:28 2019 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit a15ad0ba50629d3002d256cd83241ae4d4430a7e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 24 16:47:24 2019 +0200
+
+    intermediate testing
+
+commit 274a19e87784ca72be45b732266f04349b2a9d7b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 24 15:21:53 2019 +0200
+
+    test with ublas axpy prod
+
+commit 1953ce021de6104e72c4c4e447ee08a5e2771431
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 24 14:04:42 2019 +0200
+
+    changes to co sim wrapper to fix errors
+
+commit ec74fd091546fae0132a0d805351cde58e1de23e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 24 14:03:22 2019 +0200
+
+    marking unformulated
+
+commit 0559a606af4d5fccb0f81c941dc8fef8656caecf
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 24 14:03:03 2019 +0200
+
+    adjusting test jsons to new format
+
+commit 796c82c048345e3a15a9831c72f71f34890900a2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 24 14:01:18 2019 +0200
+
+    using normal setting if there is no fluid_solver_settings
+
+commit 084dfb3b980740685ff545dd5eeee433a21faa69
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Sep 23 19:01:05 2019 +0200
+
+    adding initial co sim wrapper for chimera ale fluid solver
+
+commit 9a09030b723e16654d1005260dd8895a48de254b
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Sep 23 19:00:31 2019 +0200
+
+    adding ale chimera fluid solver
+
+commit 476716d75562052861335a10c2ab4fbffa28c184
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Sep 23 19:00:09 2019 +0200
+
+    adding ale_chimera_fluid solver to factory
+
+commit 310cae075e0ec8661ea0b7c58021176c04ff97c2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Sep 23 14:45:52 2019 +0200
+
+    new import syntax
+
+commit 79f184e6ab4f4884378ec1cc8b5e1b4cdb140db6
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Sep 23 14:41:24 2019 +0200
+
+    small syntax corrections
+
+commit 6bca1cdaa15e389ce3b455835e4156a9c862d1ed
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Sep 23 14:17:41 2019 +0200
+
+    updating the test jsons to new configurations
+
+commit c3d86a9d98c83f80423425953b7de216c8e3d581
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Mon Sep 23 14:16:50 2019 +0200
+
+    separating chimera_Settings in solver_settings
+
+commit c4734435035fcb6b7d0dc332547bb576a4ef2abc
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Sep 20 18:06:41 2019 +0200
+
+    using erase for map
+
+commit a475e5626f7d0535a0c8d69e55755ae0f37f0fd0
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Sep 20 18:04:08 2019 +0200
+
+    clearing un used bin locators
+
+commit a7cbcdede3564d7aab1de7f9c37913afd93d672c
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Sep 20 17:42:12 2019 +0200
+
+    small change
+
+commit 4922284251b877fa12f16ab4280ab1fa051c083e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Sep 20 17:40:19 2019 +0200
+
+    confirming with base builder and solver'S ApplyConstraints
+
+commit 5912900eaced1a7848d124d8b9ddd27eb70a283e
+Merge: 0f7a613857 6c1072408a
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Sep 20 17:18:52 2019 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into ChimeraApplication-development_2.0
+
+commit 0f7a61385773c4715b9b99e83e8ccf469f40fb44
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Fri Sep 20 17:16:52 2019 +0200
+
+    clearing maps with bin locators
+
+commit 4cef59b89786c5ab5ed59549b73f6530b077b96f
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Wed Sep 18 13:01:00 2019 +0200
+
+    converting remaining loops to use ptr iterators
+
+commit 2b0d6871ec5d4d45a7ae91af3f32faae530fb518
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 17 17:21:47 2019 +0200
+
+    iterating over the pointers
+
+commit 46f80f7358f1841060d5a3fb495d9210cb1b120d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 17 17:21:13 2019 +0200
+
+    adding omp pragmas and consts
+
+commit 94e8445ce0e24eadfd1e9fbb73233e56b361349e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 17 09:57:39 2019 +0200
+
+    review comments 1
+
+commit 60974be369aa9a9ee361bb9f43c8f8b662ec33b2
+Merge: 41820f6687 a47cfb7623
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Tue Sep 17 09:40:18 2019 +0200
+
+    Merge branch 'master' of https://github.com/KratosMultiphysics/Kratos into trilinos-cleaning-bs
+
+commit 4154702a3b6d7e15d3d18070ec50b7f96ca3e393
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Sep 8 17:03:21 2019 +0200
+
+    codecy suggestions and removing main kratos from test folder
+
+commit edcdf5facb2fbaede6be00917f19d2e714529c94
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Sep 8 15:40:31 2019 +0200
+
+    adding comments, headers and clean up
+
+commit 9f448fdfccc7d6ee231196fd12514c178eb32f48
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sun Sep 8 15:37:11 2019 +0200
+
+    making compiling of the ping pong unconditional
+
+commit 4896b6bfe7607b7f1bf45b8177375c2e6eee97ac
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 17:15:21 2019 +0200
+
+    adding ping pong test to test suite
+
+commit 81501e1828fec760129a5341e3bdbd0ad21fa666
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 17:15:02 2019 +0200
+
+    adding ping pong test
+
+commit 5157e0b1d6ef36343e0f3c36bbab740ae927d37f
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 17:14:39 2019 +0200
+
+    small corrections
+
+commit b4b0f2d08947602fb1aa5dd2d252c046663dffe2
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 16:56:55 2019 +0200
+
+    using ping pong io in the test case
+
+commit 36fac44bf05418b57f1b9d712762e8f9450797c4
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 16:56:42 2019 +0200
+
+    working ping pong io
+
+commit 9fddf9c869d00d9b96e8fb1179ea083af803d0d9
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 15:08:49 2019 +0200
+
+    formatting and more name chanes
+
+commit 246aa273c1cf488e1f7b3197ed434013aa400466
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:56:24 2019 +0200
+
+    change to ping pong wrapper
+
+commit 5259741c565fe405aeadf8cf9fe42901a4783f4d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:54:28 2019 +0200
+
+    another name change
+
+commit 519e369e79a93a7beb5d1b382e35c818a3ee49b6
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:37:20 2019 +0200
+
+    adjusting cmakelists for new names and using GLOB_RECURSE
+
+commit 9c1e616c63a88f519f1620ba29e0ca7743b3130d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:29:55 2019 +0200
+
+    folder and file name changes
+
+commit 282573fb361d6521dbed135899bcd45db85a8a57
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:26:13 2019 +0200
+
+    changing the json for new data field names
+
+commit b9fc296fe57e3f941b51d5bb4dd5c5f4b136e91d
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:25:51 2019 +0200
+
+    re ordering input output
+
+commit bc7734e586c1e51b12fc5e01788287bc802e475e
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:25:34 2019 +0200
+
+    re ordering input/output
+
+commit 0600cb2a2250cb59cc45a3588705f2ee45e53c7f
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Sat Sep 7 14:25:15 2019 +0200
+
+    creating fake node and adding default settings
+
+commit 7847b50734fbc0b8a4262f462f88ac242e452df1
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:46:11 2019 +0200
+
+    using relative paths in the test json
+
+commit 5b614a292eff1b30df63382692e3800364ecd653
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:45:53 2019 +0200
+
+    using ping pong param file
+
+commit 313af2ad642bd0415fbf1add04ce657fd75547bd
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:45:40 2019 +0200
+
+    making ping and pong
+
+commit ac1817156a34b912505366ea9127e6f540c5f9b1
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:39:49 2019 +0200
+
+    name change to ping pong
+
+commit e0b428cee9707751a22daa479a8eae407d0962e3
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:38:34 2019 +0200
+
+    adding the test for ping pong main file to be removed
+
+commit 261dec5a2307348c4fa9403c12d3b46344ded1a5
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:38:01 2019 +0200
+
+    adding cpp_test_wrapper
+
+commit 0788b5ee4601add95dc2fdee76707e62c42e6064
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:37:45 2019 +0200
+
+    compile ping and pong with cmake
+
+commit de10a3ba619bdcf12562e9bba9248403581636ed
+Author: adityaghantasala <aditya.ghantasala@gmail.com>
+Date:   Thu Sep 5 17:37:21 2019 +0200
+
+    adding ping and pong solvers
+
+commit 1bc45c80a52d240775195d89462bbcc78baf305e
+Merge: 5653a8b468 ec64ac251c
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Tue Nov 7 12:18:26 2017 +0100
+
+    Merge pull request #977 from KratosMultiphysics/multipoint_constraints
+    
+    Multipoint constraints : Removing erroneous recursive call of serializer in MpcData class
+
+commit 180778d842f14c970739bb39d95128ccfda81020
+Merge: 94f267fcf0 4032b59ada
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Mon Nov 6 15:30:04 2017 +0100
+
+    Merge pull request #972 from KratosMultiphysics/multipoint_constraints
+    
+    test for mpc correcting order of nodes and variables
+
+commit a796cb06f3c8aef820bb521139add4e5e9652249
+Merge: 6a0735a8b7 64e5c6a9af
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Mon Oct 23 15:15:46 2017 +0200
+
+    Merge pull request #867 from KratosMultiphysics/multipoint_constraints
+    
+    Changing  MPC_DATA_CONTAINER type to a boost shared pointer
+
+commit 849b0ab7642007b729064db2237e268ffd788ba2
+Merge: 2ef034b90e 9a281b74ac
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Fri Oct 20 13:27:42 2017 +0200
+
+    Merge branch 'master' into multipoint_constraints
+
+commit 2ef034b90eef8876dcd764c72de20fb29e61cbab
+Merge: 0ab45a4ecc 9a281b74ac
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Fri Oct 20 13:21:41 2017 +0200
+
+    Merge branch 'master' into multipoint_constraints
+
+commit 94e60113e9d335b2a2da272f61d54e529b45a4d4
+Merge: 73dd21306a cb6e8412bc
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Thu Oct 12 11:25:52 2017 +0200
+
+    Merge pull request #835 from KratosMultiphysics/multipoint_constraints
+    
+    Adding MPC tests to the test_StructuralMechanicsApplication file.
+
+commit 13d9d95373da3f70d05b1bd95270bf3182c5889a
+Merge: 16af7cc143 2528c9b498
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Sun Oct 8 18:33:15 2017 +0200
+
+    Merge pull request #283 from KratosMultiphysics/multipoint_constraints
+    
+    Multipoint constraints
+
+commit 2528c9b498296e7ee956f1614f4d3c807183a68b
+Merge: aa39f8f411 16af7cc143
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Sun Oct 8 18:30:06 2017 +0200
+
+    Merge branch 'master' into multipoint_constraints
+
+commit 558543645a310254ca6f0989856bcf62260f1b05
+Merge: cf34bbd094 159216309b
+Author: adityaghantasala <shine.aditya@gmail.com>
+Date:   Tue May 2 16:09:55 2017 +0200
+
+    Merge pull request #247 from KratosMultiphysics/scheme_usage_for_sparse_matrix
+    
+    using scheme's equationId function to make sparse matrix structure
