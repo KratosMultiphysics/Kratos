@@ -28,18 +28,16 @@ namespace Kratos
         double OriginNewmarkBeta, double OriginNewmarkGamma,
         double DestinationNewmarkBeta, double DestinationNewmarkGamma)
     :mrOriginInterfaceModelPart(rInterfaceOrigin), mrDestinationInterfaceModelPart(rInterFaceDestination),
-        mOriginBeta(OriginNewmarkBeta), mOriginGamma(OriginNewmarkGamma),
-        mDestinationBeta(DestinationNewmarkBeta), mDestinationGamma(DestinationNewmarkGamma)
+        mOriginGamma(OriginNewmarkGamma), mDestinationGamma(DestinationNewmarkGamma)
     {
         // Check newmark parameters are valid
-        KRATOS_ERROR_IF(mOriginBeta < 0.0 || mOriginBeta > 1.0)
-            << "FetiDynamicCouplingUtilities | Error, mOriginBeta has invalid value. It must be between 0 and 1.";
         KRATOS_ERROR_IF(mOriginGamma < 0.0 || mOriginGamma > 1.0)
             << "FetiDynamicCouplingUtilities | Error, mOriginGamma has invalid value. It must be between 0 and 1.";
-        KRATOS_ERROR_IF(mDestinationBeta < 0.0 || mDestinationBeta > 1.0)
-            << "FetiDynamicCouplingUtilities | Error, mDestinationBeta has invalid value. It must be between 0 and 1.";
         KRATOS_ERROR_IF(mDestinationGamma < 0.0 || mDestinationGamma > 1.0)
             << "FetiDynamicCouplingUtilities | Error, mDestinationGamma has invalid value. It must be between 0 and 1.";
+
+        mIsImplicitOrigin = (OriginNewmarkBeta > numerical_limit) ? true : false;
+        mIsImplicitDestination = (DestinationNewmarkBeta > numerical_limit) ? true : false;
     };
 
 
@@ -70,11 +68,11 @@ namespace Kratos
         if (norm_2(unbalanced_interface_free_velocity) > numerical_limit)
         {
             // 2 - Construct projection matrices
-            const SizeType origin_dofs = mpKOrigin->size1();
+            const SizeType origin_dofs = (mIsImplicitOrigin) ? mpKOrigin->size1() : 1;
             Matrix projector_origin = Matrix(origin_interface_dofs, origin_dofs, 0.0);
             ComposeProjector(projector_origin, true);
 
-            const SizeType destination_dofs = mpKDestination->size1();
+            const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
             Matrix projector_destination = Matrix(destination_interface_dofs, destination_dofs, 0.0);
             ComposeProjector(projector_destination, false);
 
@@ -178,14 +176,9 @@ namespace Kratos
         ModelPart& rMP = (IsOrigin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
         const SystemMatrixType* pK = (IsOrigin) ? mpKOrigin : mpKDestination;
         const double projector_entry = (IsOrigin) ? 1.0 : -1.0;
-
         auto interface_nodes = rMP.NodesArray();
         const SizeType dim = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
-        const bool is_implicit = (pK != nullptr) ? true : false;
-
-        IndexType interface_equation_id;
-        IndexType domain_equation_id;
+        const bool is_implicit = (IsOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         SizeType domain_dofs = 0;
         if (is_implicit)
@@ -195,7 +188,7 @@ namespace Kratos
         }
         else
         {
-            // Explicit - we use the active nodes in the domain and ordering is just the node index in the model part
+            // Explicit - we use the nodes with mass in the domain and ordering is just the node index in the model part
             ModelPart& rDomain = (IsOrigin) ? *mpOriginDomain : *mpDestinationDomain;
             for (auto node_it : rDomain.NodesArray())
             {
@@ -213,6 +206,9 @@ namespace Kratos
             rProjector.resize(interface_nodes.size() * dim, domain_dofs, false);
         rProjector.clear();
 
+        IndexType interface_equation_id;
+        IndexType domain_equation_id;
+
         for (size_t i = 0; i < interface_nodes.size(); i++)
         {
             interface_equation_id = interface_nodes[i]->GetValue(INTERFACE_EQUATION_ID);
@@ -227,6 +223,8 @@ namespace Kratos
         }
 
         // Incorporate force mapping matrix into projector if it is the origin
+        // since the lagrangian multipliers are defined on the destination and need
+        // to be mapped back later
         if (IsOrigin) ApplyMappingMatrixToProjector(rProjector, dim);
 
         KRATOS_CATCH("")
@@ -277,9 +275,8 @@ namespace Kratos
 
         ModelPart* pDomainModelPart = (IsOrigin) ? mpOriginDomain : mpDestinationDomain;
         const double gamma = (IsOrigin) ? mOriginGamma : mDestinationGamma;
-        const double beta = (IsOrigin) ? mOriginBeta : mDestinationBeta;
         const double dt = pDomainModelPart->GetProcessInfo().GetValue(DELTA_TIME);
-        const bool is_implicit = (beta > numerical_limit) ? true : false;
+        const bool is_implicit = (IsOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         // Apply acceleration correction
         Vector accel_corrections = prod(rUnitResponse, rLagrangeVec);
@@ -378,7 +375,6 @@ namespace Kratos
 
         if (rContainer.size() != interface_nodes.size() * nDOFs)
             rContainer.resize(interface_nodes.size() * nDOFs);
-
         rContainer.clear();
 
         KRATOS_ERROR_IF_NOT(interface_nodes[0]->Has(INTERFACE_EQUATION_ID))
@@ -460,7 +456,7 @@ namespace Kratos
 
         const SizeType interface_dofs = rProjector.size1();
         const SizeType system_dofs = rProjector.size2();
-        const bool is_implicit = (pK != nullptr) ? true : false;
+        const bool is_implicit = (isOrigin) ? mIsImplicitOrigin : mIsImplicitDestination;
 
         if (rUnitResponse.size1() != system_dofs ||
             rUnitResponse.size2() != interface_dofs)
@@ -538,7 +534,7 @@ namespace Kratos
         auto domain_nodes = rDomain.NodesArray();
         const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(domain_nodes.size()); ++i)
         {
             const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
