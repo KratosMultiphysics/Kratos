@@ -114,13 +114,14 @@ namespace Kratos
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 
+
         const double mOriginGamma;
         const double mDestinationGamma;
-
-        const bool mIsCheckEquilibrium = true;
-
         bool mIsImplicitOrigin;
         bool mIsImplicitDestination;
+
+        const bool mIsCheckEquilibrium = true; // normally true
+        const bool mIsDisableLagrange = false; // normally false
 
         void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);
 

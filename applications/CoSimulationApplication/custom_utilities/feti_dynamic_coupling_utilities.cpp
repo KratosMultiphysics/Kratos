@@ -65,7 +65,7 @@ namespace Kratos
         // 1 - calculate unbalanced interface free velocity
         Vector unbalanced_interface_free_velocity(origin_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
-        if (norm_2(unbalanced_interface_free_velocity) > numerical_limit)
+        if (norm_2_square(unbalanced_interface_free_velocity) > numerical_limit)
         {
             // 2 - Construct projection matrices
             const SizeType origin_dofs = (mIsImplicitOrigin) ? mpKOrigin->size1() : 1;
@@ -94,7 +94,8 @@ namespace Kratos
             // 5 - Calculate lagrange mults
             Vector lagrange_vector(origin_interface_dofs);
             DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
-
+            if (mIsDisableLagrange) lagrange_vector.clear();
+            if (mIsDisableLagrange) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
 
             // 6 - Apply correction quantities
             ApplyCorrectionQuantities(lagrange_vector, unit_response_origin, true);
@@ -102,7 +103,7 @@ namespace Kratos
 
 
             // 7 - Optional check of equilibrium
-            if (mIsCheckEquilibrium)
+            if (mIsCheckEquilibrium && !mIsDisableLagrange)
             {
                 unbalanced_interface_free_velocity.clear();
                 CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
@@ -286,9 +287,36 @@ namespace Kratos
         accel_corrections *= (gamma * dt);
         AddCorrectionToDomain(pDomainModelPart, VELOCITY, accel_corrections, is_implicit);
 
-        // Apply displacement correction
-        accel_corrections *= (gamma * dt);
-        AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+        if (is_implicit)
+        {
+            // Newmark average acceleration correction
+            // gamma = 0.5
+            // beta = 0.25 = gamma*gamma
+            // deltaAccel = accel_correction
+            // deltaVelocity = 0.5 * dt * accel_correction
+            // deltaDisplacement = dt * dt * gamma * gamma * accel_correction
+            accel_corrections *= (gamma * dt);
+            AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+        }
+        else
+        {
+            bool is_fem_central_difference = true;
+            if (is_fem_central_difference)
+            {
+                // FEM central difference correction:
+                // gamma = 0.5
+                // beta = 0.0
+                // deltaAccel = accel_correction
+                // deltaVelocity = 0.5 * dt * accel_correction
+                // deltaVelocityMiddle = dt * accel_correction
+                // deltaDisplacement = dt * dt * accel_correction
+                accel_corrections *= 2.0;
+                AddCorrectionToDomain(pDomainModelPart, MIDDLE_VELOCITY, accel_corrections, is_implicit);
+                // Apply displacement correction
+                accel_corrections *= dt;
+                AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
+            }
+        }
 
         KRATOS_CATCH("")
     }
@@ -359,7 +387,7 @@ namespace Kratos
             {
                 lagrange[dof] = sign*rLagrange[interface_id * dim + dof];
             }
-            KRATOS_WATCH(lagrange);
+            //KRATOS_WATCH(lagrange);
         }
 
         KRATOS_CATCH("")
@@ -534,9 +562,6 @@ namespace Kratos
                 }
             }
         }
-
-        const double gamma = (isOrigin) ? mOriginGamma : mDestinationGamma;
-        rUnitResponse /= gamma;
 
         KRATOS_CATCH("")
     }
