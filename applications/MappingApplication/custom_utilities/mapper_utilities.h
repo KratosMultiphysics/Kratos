@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "mapping_application_variables.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
@@ -192,6 +193,36 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
 
     KRATOS_ERROR_IF_NOT(num_local_systems > 0)
         << "No mapper local systems were created" << std::endl;
+}
+
+template<class TMapperLocalSystem>
+void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommunicator,
+                                            std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
+{
+    // @tteschemachen here kann man zwischen Elementen & Conditions wählen
+    // hab doch conditions genommen weil das in meinm MDPA so war :)
+    const std::size_t num_elements = rModelPartCommunicator.LocalMesh().NumberOfConditions();
+    const auto elems_ptr_begin = rModelPartCommunicator.LocalMesh().Conditions().ptr_begin();
+
+    // set to 2x the number of systems. First block is projected systems, second block is slave systems
+    if (rLocalSystems.size() != 2*num_elements) rLocalSystems.resize(2*num_elements);
+
+    const bool is_dual_mortar = (rModelPartCommunicator.LocalMesh().Has(IS_DUAL_MORTAR))
+        ? rModelPartCommunicator.LocalMesh().GetValue(IS_DUAL_MORTAR) : false;
+
+    // Compose local systems
+    #pragma omp parallel for
+    for (int i = 0; i< static_cast<int>(num_elements); ++i) {
+        auto it_elem = elems_ptr_begin + i;
+        Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
+        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom, true, is_dual_mortar);
+
+        rLocalSystems[num_elements+i] = Kratos::make_unique<TMapperLocalSystem>(p_geom, false, is_dual_mortar);
+    }
+
+    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+
+    KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
 }
 
 inline int ComputeNumberOfNodes(ModelPart& rModelPart)
