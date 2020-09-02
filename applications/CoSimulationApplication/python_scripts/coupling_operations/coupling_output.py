@@ -4,8 +4,6 @@ import KratosMultiphysics as KM
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
-import os
-
 def Create(*args):
     return CouplingOutput(*args)
 

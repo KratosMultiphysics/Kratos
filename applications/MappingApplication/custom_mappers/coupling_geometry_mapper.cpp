@@ -104,7 +104,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
     auto sf_values_master = r_geometry_master.ShapeFunctionsValues();
     auto sf_values_slave = r_geometry_slave.ShapeFunctionsValues();
-    auto integration_point_values_slave = r_geometry_slave.IntegrationPoints();
     Vector det_jacobian;
     r_geometry_slave.DeterminantOfJacobian(det_jacobian);
     KRATOS_ERROR_IF(det_jacobian.size() != 1)
@@ -297,12 +296,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     const double scalingLimit)
 {
     // Performs scaling of projected mapping entries as per eqn25 Wang2016
-    double row_sum_slave;
-    double row_sum_projector;
-
     for (IndexType i = 0; i < rInterfaceMatrixSlave.size1(); ++i) {
-        row_sum_slave = 0.0;
-        row_sum_projector = 0.0;
+        double row_sum_slave = 0.0;
+        double row_sum_projector = 0.0;
 
         for (IndexType j = 0; j < rInterfaceMatrixSlave.size2(); ++j)
             row_sum_slave += rInterfaceMatrixSlave(i, j);

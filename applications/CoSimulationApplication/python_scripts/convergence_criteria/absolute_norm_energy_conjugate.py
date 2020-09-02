@@ -9,7 +9,6 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
-import numpy as np
 from numpy import linalg as la
 
 def Create(settings, solvers):
