@@ -64,7 +64,7 @@ public:
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
-        ptrdiff_t size_container = it_end-it_begin;
+        const ptrdiff_t size_container = it_end-it_begin;
 
         if (size_container == 0) {
             mNchunks = Nchunks;
@@ -72,7 +72,7 @@ public:
             // in case the container is smaller than the number of chunks
             mNchunks = std::min(static_cast<int>(size_container), Nchunks);
         }
-        ptrdiff_t block_partition_size = size_container / mNchunks;
+        const ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
         for (int i=1; i<mNchunks; i++) {
