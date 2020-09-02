@@ -226,14 +226,8 @@ namespace Kratos
             }
         }
 
-        // Incorporate mapping matrix into projector if it is the destination
-        if (IsOrigin)
-        {
-            // expand the mapping matrix to map all dofs at once
-            Matrix expanded_mapper(dim* mpMappingMatrix->size1(),dim*mpMappingMatrix->size2(),0.0);
-            GetExpandedMappingMatrix(expanded_mapper, dim);
-            rProjector = prod(expanded_mapper, rProjector);
-        }
+        // Incorporate force mapping matrix into projector if it is the origin
+        if (IsOrigin) ApplyMappingMatrixToProjector(rProjector, dim);
 
         KRATOS_CATCH("")
     }
@@ -574,6 +568,34 @@ namespace Kratos
                     rMass(domain_id + dof, domain_id + dof) = nodal_mass;
                 }
             }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void FetiDynamicCouplingUtilities::ApplyMappingMatrixToProjector(
+        Matrix& rProjector, const SizeType DOFs)
+    {
+        KRATOS_TRY
+
+        // expand the mapping matrix to map all dofs at once
+        if (mpMappingMatrixForce == nullptr)
+        {
+            // No force map specified, we use the transpose of the displacement mapper
+            // This corresponds to conservation mapping (energy conserved, but approximate force mapping)
+            // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
+            Matrix expanded_mapper(DOFs * mpMappingMatrix->size1(), DOFs * mpMappingMatrix->size2(), 0.0);
+            GetExpandedMappingMatrix(expanded_mapper, DOFs);
+            rProjector = prod(expanded_mapper, rProjector);
+        }
+        else
+        {
+            // Force map has been specified, and we use this.
+            // This corresponds to consistent mapping (energy not conserved, but proper force mapping)
+            // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
+            Matrix expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
+            GetExpandedMappingMatrix(expanded_mapper, DOFs);
+            rProjector = prod(expanded_mapper, rProjector);
         }
 
         KRATOS_CATCH("")

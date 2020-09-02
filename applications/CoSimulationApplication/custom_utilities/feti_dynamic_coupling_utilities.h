@@ -80,9 +80,16 @@ namespace Kratos
             else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, Index must be 0 or 1";
         };
 
-        void SetMappingMatrix(DenseMappingMatrixSharedPointerType pMappingMatrix)
+        void SetMappingMatrix(DenseMappingMatrixSharedPointerType pMappingMatrix,
+            DenseMappingMatrixSharedPointerType pMappingMatrixForce)
         {
             mpMappingMatrix = pMappingMatrix;
+            mpMappingMatrixForce = pMappingMatrixForce;
+        };
+
+        void SetMappingMatrix(DenseMappingMatrixSharedPointerType pMappingMatrix)
+        {
+            this->SetMappingMatrix(pMappingMatrix, nullptr);
         };
 
         void SetLinearSolver(LinearSolverSharedPointerType pSolver)
@@ -103,6 +110,7 @@ namespace Kratos
         SystemMatrixType* mpKDestination = nullptr;
 
         DenseMappingMatrixSharedPointerType mpMappingMatrix = nullptr;
+        DenseMappingMatrixSharedPointerType mpMappingMatrixForce = nullptr;
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 
@@ -145,6 +153,8 @@ namespace Kratos
             const Vector& rCorrection, const bool IsImplicit);
 
         void WriteLagrangeMultiplierResults(const Vector& rLagrange);
+
+        void ApplyMappingMatrixToProjector(Matrix& rProjector, const SizeType DOFs);
 
         // Printing method for debugging
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const bool IsOrigin)

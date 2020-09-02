@@ -27,6 +27,9 @@
 
 
 namespace Kratos{
+    typedef Matrix DenseMappingMatrixType;
+    typedef Kratos::shared_ptr<DenseMappingMatrixType> DenseMappingMatrixSharedPointerType;
+
 namespace Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
@@ -40,7 +43,9 @@ namespace Python{
             .def("EquilibrateDomains",
                 &FetiDynamicCouplingUtilities::EquilibrateDomains)
             .def("SetMappingMatrix",
-                &FetiDynamicCouplingUtilities::SetMappingMatrix)
+                pybind11::overload_cast<DenseMappingMatrixSharedPointerType, DenseMappingMatrixSharedPointerType>(&FetiDynamicCouplingUtilities::SetMappingMatrix))
+            .def("SetMappingMatrix",
+                pybind11::overload_cast<DenseMappingMatrixSharedPointerType>(&FetiDynamicCouplingUtilities::SetMappingMatrix))
             .def("SetLinearSolver",
                 &FetiDynamicCouplingUtilities::SetLinearSolver)
             ;
