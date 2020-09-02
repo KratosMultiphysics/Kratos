@@ -130,24 +130,28 @@ namespace Kratos
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable<double>& rVariable,
             Vector& rContainer, const SizeType nDOFs);
 
-        void GetExpandedMappingMatrix(Matrix& rExpandedMappingMat, const SizeType nDOFs);
+        void GetExpandedMappingMatrix(CompressedMatrix& rExpandedMappingMat, const SizeType nDOFs);
 
-        void ComposeProjector(Matrix& rProjector, const bool IsOrigin);
+        void ComposeProjector(CompressedMatrix& rProjector, const bool IsOrigin);
 
         void DetermineDomainUnitAccelerationResponse(SystemMatrixType* pK,
-            const Matrix& rProjector, Matrix& rUnitResponse, const bool sOrigin);
+            const CompressedMatrix& rProjector, Matrix& rUnitResponse, const bool sOrigin);
 
-        void CreateExplicitDomainSystemMassMatrix(CompressedMatrix& rMass, ModelPart& rDomain);
+        void DetermineDomainUnitAccelerationResponseExplicit(Matrix& rUnitResponse,
+            const CompressedMatrix& rProjector, ModelPart& rDomain, const bool IsOrigin);
+
+        void DetermineDomainUnitAccelerationResponseImplicit(Matrix& rUnitResponse,
+            const CompressedMatrix& rProjector, SystemMatrixType* pK, const bool IsOrigin);
 
         void CalculateCondensationMatrix(CompressedMatrix& rCondensationMatrix,
             const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
-            const Matrix& rOriginProjector, const Matrix& rDestinationProjector);
+            const CompressedMatrix& rOriginProjector, const CompressedMatrix& rDestinationProjector);
 
         void DetermineLagrangianMultipliers(Vector& rLagrangeVec,
             CompressedMatrix& rCondensationMatrix, Vector& rUnbalancedVelocities);
 
         void ApplyCorrectionQuantities(const Vector& rLagrangeVec,
-            const Matrix& rOriginUnitResponse, const bool IsOrigin);
+            const Matrix& rUnitResponse, const bool IsOrigin);
 
         void AddCorrectionToDomain(ModelPart* pDomain,
             const Variable< array_1d<double, 3> >& rVariable,
@@ -155,7 +159,7 @@ namespace Kratos
 
         void WriteLagrangeMultiplierResults(const Vector& rLagrange);
 
-        void ApplyMappingMatrixToProjector(Matrix& rProjector, const SizeType DOFs);
+        void ApplyMappingMatrixToProjector(CompressedMatrix& rProjector, const SizeType DOFs);
 
         // Printing method for debugging
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const bool IsOrigin)

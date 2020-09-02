@@ -69,11 +69,11 @@ namespace Kratos
         {
             // 2 - Construct projection matrices
             const SizeType origin_dofs = (mIsImplicitOrigin) ? mpKOrigin->size1() : 1;
-            Matrix projector_origin = Matrix(origin_interface_dofs, origin_dofs, 0.0);
+            CompressedMatrix projector_origin = CompressedMatrix(origin_interface_dofs, origin_dofs, 0.0);
             ComposeProjector(projector_origin, true);
 
             const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
-            Matrix projector_destination = Matrix(destination_interface_dofs, destination_dofs, 0.0);
+            CompressedMatrix projector_destination = CompressedMatrix(destination_interface_dofs, destination_dofs, 0.0);
             ComposeProjector(projector_destination, false);
 
 
@@ -169,7 +169,7 @@ namespace Kratos
 	}
 
 
-    void FetiDynamicCouplingUtilities::ComposeProjector(Matrix& rProjector, const bool IsOrigin)
+    void FetiDynamicCouplingUtilities::ComposeProjector(CompressedMatrix& rProjector, const bool IsOrigin)
     {
         KRATOS_TRY
 
@@ -234,7 +234,7 @@ namespace Kratos
     void FetiDynamicCouplingUtilities::CalculateCondensationMatrix(
         CompressedMatrix& rCondensationMatrix,
         const Matrix& rOriginUnitResponse, const Matrix& rDestinationUnitResponse,
-        const Matrix& rOriginProjector, const Matrix& rDestinationProjector)
+        const CompressedMatrix& rOriginProjector, const CompressedMatrix& rDestinationProjector)
     {
         KRATOS_TRY
 
@@ -422,7 +422,7 @@ namespace Kratos
     }
 
     void FetiDynamicCouplingUtilities::GetExpandedMappingMatrix(
-        Matrix& rExpandedMappingMat, const SizeType nDOFs)
+        CompressedMatrix& rExpandedMappingMat, const SizeType nDOFs)
     {
         KRATOS_TRY
 
@@ -449,7 +449,7 @@ namespace Kratos
 
 
     void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponse(
-        SystemMatrixType* pK, const Matrix& rProjector, Matrix& rUnitResponse,
+        SystemMatrixType* pK, const CompressedMatrix& rProjector, Matrix& rUnitResponse,
         const bool isOrigin)
     {
         KRATOS_TRY
@@ -464,16 +464,91 @@ namespace Kratos
 
         rUnitResponse.clear();
 
-        CompressedMatrix mass_matrix;
-        if (!is_implicit)
+        if (is_implicit)
         {
-            // Create the mass matrix we need
-            mass_matrix.resize(system_dofs, system_dofs);
-            mass_matrix.clear();
-            pK = &mass_matrix;
-            ModelPart& r_domain = (isOrigin) ? *mpOriginDomain : *mpDestinationDomain;
-            CreateExplicitDomainSystemMassMatrix(mass_matrix, r_domain);
+            DetermineDomainUnitAccelerationResponseImplicit(rUnitResponse, rProjector, pK, isOrigin);
         }
+        else
+        {
+            ModelPart& r_domain = (isOrigin) ? *mpOriginDomain : *mpDestinationDomain;
+            DetermineDomainUnitAccelerationResponseExplicit(rUnitResponse, rProjector, r_domain, isOrigin);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+
+    void FetiDynamicCouplingUtilities::ApplyMappingMatrixToProjector(
+        CompressedMatrix& rProjector, const SizeType DOFs)
+    {
+        KRATOS_TRY
+
+        // expand the mapping matrix to map all dofs at once
+        if (mpMappingMatrixForce == nullptr)
+        {
+            // No force map specified, we use the transpose of the displacement mapper
+            // This corresponds to conservation mapping (energy conserved, but approximate force mapping)
+            // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
+            CompressedMatrix expanded_mapper(DOFs * mpMappingMatrix->size1(), DOFs * mpMappingMatrix->size2(), 0.0);
+            GetExpandedMappingMatrix(expanded_mapper, DOFs);
+            rProjector = prod(expanded_mapper, rProjector);
+        }
+        else
+        {
+            // Force map has been specified, and we use this.
+            // This corresponds to consistent mapping (energy not conserved, but proper force mapping)
+            // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
+            CompressedMatrix expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
+            GetExpandedMappingMatrix(expanded_mapper, DOFs);
+            rProjector = prod(expanded_mapper, rProjector);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+
+    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseExplicit(Matrix& rUnitResponse,
+        const CompressedMatrix& rProjector, ModelPart& rDomain, const bool isOrigin)
+    {
+        KRATOS_TRY
+
+        const SizeType interface_dofs = rProjector.size1();
+        const SizeType system_dofs = rProjector.size2();
+        const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+        auto domain_nodes = rDomain.NodesArray();
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
+        {
+            for (size_t j = 0; j < domain_nodes.size(); ++j)
+            {
+                const double nodal_mass = domain_nodes[j]->GetValue(NODAL_MASS);
+                if (nodal_mass > numerical_limit)
+                {
+                    IndexType domain_id = domain_nodes[j]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
+                    for (size_t dof = 0; dof < dim; ++dof)
+                    {
+                        rUnitResponse(domain_id + dof, i) = rProjector(i, domain_id + dof) / nodal_mass;
+                    }
+                }
+            }
+        }
+
+        const double gamma = (isOrigin) ? mOriginGamma : mDestinationGamma;
+        rUnitResponse /= gamma;
+
+        KRATOS_CATCH("")
+    }
+
+
+    void FetiDynamicCouplingUtilities::DetermineDomainUnitAccelerationResponseImplicit(Matrix& rUnitResponse,
+        const CompressedMatrix& rProjector, SystemMatrixType* pK, const bool isOrigin)
+    {
+        KRATOS_TRY
+
+        const SizeType interface_dofs = rProjector.size1();
+        const SizeType system_dofs = rProjector.size2();
 
         auto start = std::chrono::system_clock::now();
         #pragma omp parallel
@@ -481,7 +556,7 @@ namespace Kratos
             Vector solution(system_dofs);
             Vector projector_transpose_column(system_dofs);
 
-            #pragma omp parallel for
+            #pragma omp for
             for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
             {
                 for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
@@ -495,25 +570,17 @@ namespace Kratos
 
         // Convert system stiffness matrix to mass matrix
         const double gamma = (isOrigin) ? mOriginGamma : mDestinationGamma;
-        if (is_implicit)
-        {
-            const double dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
-            rUnitResponse /= (dt * dt * gamma * gamma);
-        }
-        else
-        {
-            rUnitResponse /= gamma;
-            pK = nullptr;
-        }
+        const double dt = (isOrigin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
+            : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
+        rUnitResponse /= (dt * dt * gamma * gamma);
 
-
-        // reference answer - slow matrix inversion
+        // reference answer for testing - slow matrix inversion
         const bool is_test_ref = false;
         if (is_test_ref)
         {
             start = std::chrono::system_clock::now();
             double det;
-            Matrix inv (pK->size1(),pK->size2());
+            Matrix inv(pK->size1(), pK->size2());
             MathUtils<double>::InvertMatrix(*pK, inv, det);
             Matrix ref = prod(inv, trans(rProjector));
             end = std::chrono::system_clock::now();
@@ -521,59 +588,6 @@ namespace Kratos
 
             std::cout << "solve time = " << elasped_solve.count() << "\n";
             std::cout << "invert time = " << elasped_invert.count() << "\n";
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void FetiDynamicCouplingUtilities::CreateExplicitDomainSystemMassMatrix(
-        CompressedMatrix& rMass, ModelPart& rDomain)
-    {
-        KRATOS_TRY
-
-        auto domain_nodes = rDomain.NodesArray();
-        const SizeType dim = rDomain.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(domain_nodes.size()); ++i)
-        {
-            const double nodal_mass = domain_nodes[i]->GetValue(NODAL_MASS);
-            if (nodal_mass > numerical_limit)
-            {
-                IndexType domain_id = domain_nodes[i]->GetValue(EXPLICIT_DOF_X_EQUATION_ID);
-                for (size_t dof = 0; dof < dim; ++dof)
-                {
-                    rMass(domain_id + dof, domain_id + dof) = nodal_mass;
-                }
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void FetiDynamicCouplingUtilities::ApplyMappingMatrixToProjector(
-        Matrix& rProjector, const SizeType DOFs)
-    {
-        KRATOS_TRY
-
-        // expand the mapping matrix to map all dofs at once
-        if (mpMappingMatrixForce == nullptr)
-        {
-            // No force map specified, we use the transpose of the displacement mapper
-            // This corresponds to conservation mapping (energy conserved, but approximate force mapping)
-            // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
-            Matrix expanded_mapper(DOFs * mpMappingMatrix->size1(), DOFs * mpMappingMatrix->size2(), 0.0);
-            GetExpandedMappingMatrix(expanded_mapper, DOFs);
-            rProjector = prod(expanded_mapper, rProjector);
-        }
-        else
-        {
-            // Force map has been specified, and we use this.
-            // This corresponds to consistent mapping (energy not conserved, but proper force mapping)
-            // Note - the combined projector is transposed later, so now we submit trans(trans(M)) = M
-            Matrix expanded_mapper(DOFs * mpMappingMatrixForce->size2(), DOFs * mpMappingMatrixForce->size1(), 0.0);
-            GetExpandedMappingMatrix(expanded_mapper, DOFs);
-            rProjector = prod(expanded_mapper, rProjector);
         }
 
         KRATOS_CATCH("")
