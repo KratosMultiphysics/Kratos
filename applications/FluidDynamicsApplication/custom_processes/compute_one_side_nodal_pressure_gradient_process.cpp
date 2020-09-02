@@ -77,7 +77,6 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
         // Current geometry information
         const unsigned number_of_nodes = r_geometry.PointsNumber();
 
-        Vector distances( number_of_nodes );
         for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
             distances(i_node) = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
         }

@@ -118,10 +118,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
                 const unsigned int number_of_gauss_points = gauss_weights.size();
                 array_1d<double, NumNodes> Ncenter;
-                for (unsigned int i = 0; i < NumNodes; i++){
+                for (unsigned int i = 0; i < NumNodes; ++i){
                     Ncenter[i] = 1.0/NumNodes;
                 }
-                for (unsigned int g = 0; g < number_of_gauss_points; g++){
+                for (unsigned int g = 0; g < number_of_gauss_points; ++g){
                     UpdateIntegrationPointData(
                         data,
                         g,
@@ -136,7 +136,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 MatrixType Kee_tot = ZeroMatrix(NumNodes, NumNodes);
                 VectorType rhs_ee_tot = ZeroVector(NumNodes);
 
-                for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); g_pos++){
+                for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos){
                     UpdateIntegrationPointData(
                         data,
                         g_pos,
@@ -150,7 +150,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
 
-                for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); g_neg++){
+                for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); ++g_neg){
                     UpdateIntegrationPointData(
                         data,
                         g_neg,
@@ -219,7 +219,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
             const unsigned int number_of_gauss_points = gauss_weights.size();
             // Iterate over integration points to evaluate local contribution
-            for (unsigned int g = 0; g < number_of_gauss_points; g++){
+            for (unsigned int g = 0; g < number_of_gauss_points; ++g){
                 UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
                 this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
             }
@@ -276,6 +276,53 @@ void TwoFluidNavierStokes<TElementData>::PrintInfo(
     if (this->GetConstitutiveLaw() != nullptr){
         rOStream << "with constitutive law " << std::endl;
         this->GetConstitutiveLaw()->PrintInfo(rOStream);
+    }
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::Calculate(
+    const Variable<Vector >& rVariable,
+    Vector& rOutput,
+    const ProcessInfo& rCurrentProcessInfo )
+{
+    noalias( rOutput ) = ZeroVector( StrainSize );
+    
+    if (rVariable == FLUID_STRESS) {
+
+        // creating a new data container that goes out of scope after the function is left
+        TElementData dataLocal;
+        
+        // transferring the velocity (among other variables)
+        dataLocal.Initialize(*this, rCurrentProcessInfo);
+
+        Vector gauss_weights;
+        Matrix shape_functions;
+        ShapeFunctionDerivativesArrayType shape_derivatives;
+
+        // computing DN_DX values for the strain rate         
+        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+        const unsigned int number_of_gauss_points = gauss_weights.size();
+
+        double sumOfGaussWeights = 0.0;
+
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g){
+
+            UpdateIntegrationPointData(dataLocal, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+
+            const Vector gauss_point_contribution = dataLocal.ShearStress;
+
+            noalias( rOutput ) += gauss_point_contribution * gauss_weights[g];
+            sumOfGaussWeights += gauss_weights[g];
+        }
+
+        for (unsigned int i = 0; i < StrainSize; ++i){
+            rOutput[i] = ( 1.0 / sumOfGaussWeights ) * rOutput[i];
+        }
+
+    } else {
+
+        Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+
     }
 }
 
@@ -1893,7 +1940,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
 
-    for (unsigned int i = 0; i < NumNodes; i++){
+    for (unsigned int i = 0; i < NumNodes; ++i){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
         } else{
@@ -1931,11 +1978,11 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
     rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
 
-    for (unsigned int i = 0; i < rShapeDerivativesPos.size(); i++){
+    for (unsigned int i = 0; i < rShapeDerivativesPos.size(); ++i){
         rEnrichedShapeDerivativesPos[i] = prod(enr_pos_interp, rShapeDerivativesPos[i]);
     }
 
-    for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); i++){
+    for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); ++i){
         rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]);
     }
 
@@ -1955,7 +2002,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
 
-    for (unsigned int i = 0; i < NumNodes; i++){
+    for (unsigned int i = 0; i < NumNodes; ++i){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
         } else{
@@ -1983,7 +2030,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
         rInterfaceNormalsNeg,
         GeometryData::GI_GAUSS_2);
 
-    for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); gp++){
+    for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); ++gp){
         const double normal_norm = norm_2(rInterfaceNormalsNeg[gp]);
         rInterfaceNormalsNeg[gp] /= normal_norm;
     }
@@ -2003,9 +2050,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
 
     rInterfaceCurvature.resize(n_gpt, false);
 
-    for (unsigned int gpt = 0; gpt < n_gpt; gpt++){
+    for (unsigned int gpt = 0; gpt < n_gpt; ++gpt){
         double curvature = 0.0;
-        for (unsigned int i = 0; i < NumNodes; i++){
+        for (unsigned int i = 0; i < NumNodes; ++i){
             curvature += rInterfaceShapeFunctions(gpt,i) * (*p_geom)[i].FastGetSolutionStepValue(CURVATURE);
         }
         rInterfaceCurvature[gpt] = curvature;
@@ -2023,9 +2070,9 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 {
     VectorType rhs = ZeroVector(NumNodes*NumNodes); //Size is NumNodes x (NumDim+1)
 
-    for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); intgp++){
-        for (unsigned int j = 0; j < NumNodes; j++){
-            for (unsigned int dim = 0; dim < NumNodes-1; dim++){
+    for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); ++intgp){
+        for (unsigned int j = 0; j < NumNodes; ++j){
+            for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
                 rhs[ j*(NumNodes) + dim ] -= coefficient*(rInterfaceNormalsNeg[intgp])[dim]
                     *rCurvature(intgp)*rInterfaceWeights(intgp)*rInterfaceShapeFunctions(intgp,j);
             }
@@ -2056,7 +2103,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     double positive_viscosity = 0.0;
     double negative_viscosity = 0.0;
 
-    for (unsigned int i = 0; i < NumNodes; i++){
+    for (unsigned int i = 0; i < NumNodes; ++i){
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
             positive_density = rData.NodalDensity[i];
@@ -2071,11 +2118,11 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesPos = rInterfaceShapeDerivatives;
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesNeg = rInterfaceShapeDerivatives;
 
-    for (unsigned int i = 0; i < rInterfaceShapeDerivatives.size(); i++){
+    for (unsigned int i = 0; i < rInterfaceShapeDerivatives.size(); ++i){
         EnrichedInterfaceShapeDerivativesPos[i] = prod(enr_pos_interp, rInterfaceShapeDerivatives[i]);
     }
 
-    for (unsigned int i = 0; i < rInterfaceShapeDerivatives.size(); i++){
+    for (unsigned int i = 0; i < rInterfaceShapeDerivatives.size(); ++i){
         EnrichedInterfaceShapeDerivativesNeg[i] = prod(enr_neg_interp, rInterfaceShapeDerivatives[i]);
     }
 
@@ -2094,7 +2141,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     const double h_elem = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(*p_geom);
 
     double cut_area = 0.0;
-    for (unsigned int gp = 0; gp < rInterfaceWeights.size(); gp++){
+    for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
         cut_area += rInterfaceWeights[gp];
     }
 
@@ -2102,7 +2149,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     const double viscosity = 1.0/(1.0/positive_viscosity + 1.0/negative_viscosity);
 
     // Stabilization parameters
-    const double coefficient = 1.0e0;
+    const double coefficient = 1.0;
     const double stab_c1 = 4.0;
     const double stab_c2 = 2.0;
     const double dyn_tau = rData.DynamicTau;
@@ -2111,14 +2158,14 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
 
     const auto v_convection = rData.Velocity - rData.MeshVelocity;
 
-    for (unsigned int gp = 0; gp < rInterfaceWeights.size(); gp++){
+    for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
 
         Vector vconv = ZeroVector(Dim);
         double positive_weight = 0.0;
         double negative_weight = 0.0;
 
-        for (unsigned int j = 0; j < NumNodes; j++){
-            for (unsigned int dim = 0; dim < Dim; dim++){
+        for (unsigned int j = 0; j < NumNodes; ++j){
+            for (unsigned int dim = 0; dim < Dim; ++dim){
                 vconv[dim] += (rEnrInterfaceShapeFunctionNeg(gp, j) + rEnrInterfaceShapeFunctionPos(gp, j))
                     *v_convection(j,dim);
             }
@@ -2132,13 +2179,13 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
             density * 1.0 / (dyn_tau * density / dt + stab_c1 * viscosity / h_elem / h_elem +
                                 stab_c2 * density * v_conv_norm / h_elem) * element_volume / cut_area;
 
-        for (unsigned int i = 0; i < NumNodes; i++){
+        for (unsigned int i = 0; i < NumNodes; ++i){
 
-            for (unsigned int j = 0; j < NumNodes; j++){
+            for (unsigned int j = 0; j < NumNodes; ++j){
 
                 const array_1d<double, 3> pressure_gradient_j = (*p_geom)[j].FastGetSolutionStepValue(PRESSURE_GRADIENT);
 
-                for (unsigned int dim = 0; dim < Dim; dim++){
+                for (unsigned int dim = 0; dim < Dim; ++dim){
                     kee(i, j) += penalty_coefficient * rInterfaceWeights[gp] *
                         ( (EnrichedInterfaceShapeDerivativesPos[gp])(i,dim) - (EnrichedInterfaceShapeDerivativesNeg[gp])(i,dim) )*
                         ( (EnrichedInterfaceShapeDerivativesPos[gp])(j,dim) - (EnrichedInterfaceShapeDerivativesNeg[gp])(j,dim) );
@@ -2196,7 +2243,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
         // "weakly" impose continuity
         for (unsigned int i = 0; i < Dim; ++i){
             const double di = std::abs(rData.Distance[i]);
-            for (unsigned int j = i + 1; j < NumNodes; j++){
+            for (unsigned int j = i + 1; j < NumNodes; ++j){
                 const double dj = std::abs(rData.Distance[j]);
                 // Check if the edge is cut, if it is, set the penalty constraint
                 if (rData.Distance[i] * rData.Distance[j] < 0.0){
@@ -2280,15 +2327,15 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
         GeometryData::ShapeFunctionsGradientsType DN_DX;
         rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
 
-        for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
+        for (unsigned int i_gauss = 0; i_gauss < num_gauss; ++i_gauss){
 
             const Matrix gp_DN_DX = DN_DX[i_gauss];
             double DVi_DXi = 0.0;
 
-            for(unsigned int nnode = 0; nnode < NumNodes; nnode++){
+            for(unsigned int nnode = 0; nnode < NumNodes; ++nnode){
 
                 const array_1d<double,3> vel = rGeom[nnode].GetSolutionStepValue(VELOCITY);
-                for(unsigned int ndim = 0; ndim < Dim; ndim++){
+                for(unsigned int ndim = 0; ndim < Dim; ++ndim){
                     DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
                 }
             }
