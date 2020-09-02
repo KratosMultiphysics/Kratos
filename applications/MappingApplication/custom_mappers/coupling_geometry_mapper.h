@@ -27,7 +27,10 @@
 #include "custom_utilities/mapping_intersection_utilities.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "modeler/modeler_factory.h"
+
 #include "factories/linear_solver_factory.h"
+#include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -100,6 +103,10 @@ public:
     typedef Matrix DenseMappingMatrixType;
     typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
 
+    typedef typename UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef typename LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -139,9 +146,8 @@ public:
 
         mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
 
+        this->CreateLinearSolver();
         this->InitializeInterface();
-
-        auto p_lin_solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
     }
 
     /// Destructor.
@@ -292,6 +298,8 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
+    LinearSolverSharedPointerType mpLinearSolver = nullptr;
+
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
@@ -326,8 +334,8 @@ private:
             rLocalSystems);
     }
 
-    void EnforceConsistencyWithScaling(const Matrix& rInterfaceMatrixSlave,
-        Matrix& rInterfaceMatrixProjected,
+    void EnforceConsistencyWithScaling(const CompressedMatrix& rInterfaceMatrixSlave,
+        CompressedMatrix& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
 
     void CheckMappingMatrixConsistency()
@@ -342,6 +350,28 @@ private:
             }
         }
     }
+
+    void CreateLinearSolver()
+    {
+        bool is_linear_solver_specified = false;
+        if (mMapperSettings.Has("linear_solver_settings"))
+        {
+            if (mMapperSettings["linear_solver_settings"].Has("solver_type"))
+            {
+                is_linear_solver_specified = true;
+                mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
+            }
+        }
+        if (!is_linear_solver_specified)
+        {
+            // TODO - replicate 'get fastest solver'
+            mMapperSettings.AddString("solver_type", "skyline_lu_factorization");
+            mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);
+
+        }
+    }
+
+    void CalculateMappingMatrixWithSolver(CompressedMatrix& rConsistentInterfaceMatrix, CompressedMatrix& rProjectedInterfaceMatrix);
 
     Parameters GetMapperDefaultSettings() const
     {

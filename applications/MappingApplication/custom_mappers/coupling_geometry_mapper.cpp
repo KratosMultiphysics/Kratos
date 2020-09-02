@@ -45,6 +45,22 @@ void Assemble(
     }
 }
 
+void Assemble(
+    const MapperLocalSystem::MatrixType& rLocalMappingMatrix,
+    const MapperLocalSystem::EquationIdVectorType& rOriginIds,
+    const MapperLocalSystem::EquationIdVectorType& rDestinationIds,
+    CompressedMatrix& rMappingMatrix)
+{
+    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size1() != rDestinationIds.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rLocalMappingMatrix.size1() << " | DestinationIDs-size: " << rDestinationIds.size() << std::endl;
+    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size2() != rOriginIds.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rLocalMappingMatrix.size2() << " | OriginIDs-size: " << rOriginIds.size() << std::endl;
+
+    for (IndexType i=0; i<rDestinationIds.size(); ++i) {
+        for (IndexType j=0; j<rOriginIds.size(); ++j) {
+            rMappingMatrix(rDestinationIds[i], rOriginIds[j]) += rLocalMappingMatrix(i,j);
+        }
+    }
+}
+
 // dirty copy-paste from "mapping_matrix_utilities.cpp"
 void InitializeSystemVector(Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
                             const SizeType VectorSize)
@@ -166,7 +182,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // assemble projector interface mass matrix - interface_matrix_projector
     const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
     const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
-    Matrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
+    CompressedMatrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
 
     MapperLocalSystem::MatrixType local_mapping_matrix;
     MapperLocalSystem::EquationIdVectorType origin_ids;
@@ -181,7 +197,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // assemble slave interface mass matrix - interface_matrix_slave
     // TODO for dual mortar this should be a vector not a matrix
-    Matrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
+    CompressedMatrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
     for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
         local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
     {
@@ -202,12 +218,12 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
                 inv_interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
             }
         }
+        mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
     }
     else {
-        double aux_det_slave = 0;
-        MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
+        CalculateMappingMatrixWithSolver(interface_matrix_slave, interface_matrix_projector);
     }
-    mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
+
     CheckMappingMatrixConsistency();
 
     Internals::InitializeSystemVector(mpInterfaceVectorContainerOrigin->pGetVector(), num_nodes_interface_master);
@@ -276,8 +292,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithScaling(
-    const Matrix& rInterfaceMatrixSlave,
-    Matrix& rInterfaceMatrixProjected,
+    const CompressedMatrix& rInterfaceMatrixSlave,
+    CompressedMatrix& rInterfaceMatrixProjected,
     const double scalingLimit)
 {
     // Performs scaling of projected mapping entries as per eqn25 Wang2016
@@ -298,6 +314,29 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
             ? row_sum_slave / row_sum_projector : scalingLimit;
         for (IndexType j = 0; j < rInterfaceMatrixProjected.size2(); ++j)
                 rInterfaceMatrixProjected(i, j) *= alpha;
+    }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
+    CompressedMatrix& rConsistentInterfaceMatrix, CompressedMatrix& rProjectedInterfaceMatrix)
+{
+    mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(DenseMappingMatrixType(
+        rConsistentInterfaceMatrix.size1(), rProjectedInterfaceMatrix.size2()));
+
+    const size_t n_rows = mpMappingMatrix->size1();
+    #pragma omp parallel
+    {
+        Vector solution(n_rows);
+        Vector projector_column(n_rows);
+
+        #pragma omp for
+        for (int i = 0; i < static_cast<int>(mpMappingMatrix->size2()); ++i)
+        {
+            for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i);
+            mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
+            for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix)(j, i) = solution[j];
+        }
     }
 }
 
