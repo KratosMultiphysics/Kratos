@@ -23,6 +23,7 @@
 #include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/scaling_solver.h"
+#include "linear_solvers/monotonicity_preserving_solver.h"
 
 namespace Kratos
 {
@@ -77,13 +78,23 @@ protected:
      */
     typename LinearSolverType::Pointer CreateSolver(Kratos::Parameters settings) const override
     {
+        auto pinner_solver = typename LinearSolverType::Pointer(new TLinearSolverType(settings));
         if(settings.Has("scaling") && settings["scaling"].GetBool()) {
-            auto pinner_solver = typename LinearSolverType::Pointer(new TLinearSolverType(settings));
+            auto pscaling_solver = typename LinearSolverType::Pointer(new ScalingSolver<TSparseSpace,TLocalSpace>(pinner_solver, true));
+            if (settings.Has("monotonicity_preserving") && settings["monotonicity_preserving"].GetBool()) {
+                return typename LinearSolverType::Pointer(new MonotonicityPreservingSolver<TSparseSpace,TLocalSpace>(pscaling_solver));
+            } else {
+                return pscaling_solver;
+            }
 
-            return typename LinearSolverType::Pointer(new ScalingSolver<TSparseSpace,TLocalSpace>(pinner_solver, true));
+        } else {
+            if (settings.Has("monotonicity_preserving") && settings["monotonicity_preserving"].GetBool()) {
+                return typename LinearSolverType::Pointer(new MonotonicityPreservingSolver<TSparseSpace,TLocalSpace>(pinner_solver));
+            } else {
+                return pinner_solver;
+            }
+        }
 
-        } else
-            return typename LinearSolverType::Pointer(new TLinearSolverType(settings));
     }
     ///@}
 };
