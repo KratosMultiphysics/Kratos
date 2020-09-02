@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Custom "__init__.py" for the "KratosMultiphysics" module for the python-only version of the CoSimulationApplication
 # pyKratos is used to emulate the functionalities that are implemented in C++ in the Core
 

@@ -19,7 +19,6 @@
 
 //elements
 #include "custom_elements/shell_3p_element.h"
-#include "custom_elements/iga_truss_element.h"
 
 //conditions
 #include "custom_conditions/load_condition.h"
@@ -101,7 +100,6 @@ private:
     ///@{
 
     const Shell3pElement mShell3pElement;
-    const IgaTrussElement mIgaTrussElement;
 
     //Conditions
     const LoadCondition mLoadCondition;
