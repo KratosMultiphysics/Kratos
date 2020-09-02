@@ -441,6 +441,9 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, primal_parameters)
 
+        # Get Delta time
+        self.delta_time = primal_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+
         # Create the adjoint solver
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
                 adjoint_parameters = Parameters( parameter_file.read() )
@@ -464,15 +467,22 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
         # Run the primal analysis.
         Logger.PrintInfo(self._GetLabel(), "Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
-        self.primal_analysis.RunSolutionLoop()
+
+        while self.primal_analysis.KeepAdvancingSolutionLoop():
+            self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
+            self.primal_analysis.InitializeSolutionStep()
+            self.primal_analysis._GetSolver().Predict()
+            self.primal_analysis._GetSolver().SolveSolutionStep()
+            self.CalculateValue()
+            self.primal_analysis.FinalizeSolutionStep()
+            self.primal_analysis.OutputSolutionStep()
+
         Logger.PrintInfo(self._GetLabel(), "Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
     def CalculateValue(self):
-        startTime = timer.time()
+        
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
-
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] += value * self.delta_time
 
     def CalculateGradient(self):
         startTime = timer.time()
