@@ -215,7 +215,7 @@ public:
             for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
                 const double value = values_vector[k];
                 if (value > 0.0) {
-                    const std::size_t j = index2_vector[k];
+                    const int = index2_vector[k];
                     if (j > i) {
                         rA(i,i) += value;
                         rA(i,j) -= value;
