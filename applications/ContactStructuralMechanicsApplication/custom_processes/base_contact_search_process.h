@@ -138,6 +138,7 @@ public:
      *                       - The size of the bucket
      *                       - The proportion increased of the Radius/Bounding-box volume for the search
      *                       - TypeSearch: 0 means search in radius, 1 means search in box
+     * @param pPairedProperties Properties of the pair
      * @todo Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @note Use an InterfacePreprocess object to create such a model part from a regular one:
      *          -# InterfaceMapper = InterfacePreprocess()
@@ -145,7 +146,8 @@ public:
      */
     BaseContactSearchProcess(
         ModelPart& rMainModelPart,
-        Parameters ThisParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})"),
+        Properties::Pointer pPairedProperties = nullptr
         );
 
     /// Destructor.
@@ -277,12 +279,14 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrMainModelPart;        /// The main model part
-    Parameters mThisParameters;        /// The configuration parameters
-    CheckGap mCheckGap;                /// If the gap is checked during the search
-    TypeSolution mTypeSolution;        /// The solution type
-    std::string mConditionName;        /// The name of the condition to be created
-    PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
+    ModelPart& mrMainModelPart;                       /// The main model part
+    Parameters mThisParameters;                       /// The configuration parameters
+    CheckGap mCheckGap;                               /// If the gap is checked during the search
+    TypeSolution mTypeSolution;                       /// The solution type
+    std::string mConditionName;                       /// The name of the condition to be created
+    PointVector mPointListDestination;                /// A list that contents the all the points (from nodes) from the modelpart
+
+    Properties::Pointer mpPairedProperties = nullptr; /// This is the paired properties (unique for the given potential pair)
 
     ///@}
     ///@name Protected Operators

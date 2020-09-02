@@ -100,7 +100,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHS, CompressiblePoten
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::vector<double> reference({0.615561780, 0.0, -0.615561780});
 
@@ -132,7 +133,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHS, CompressiblePoten
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::array<double, 9> reference{0.615556466, -0.615561780, 5.314318652e-06, -0.615561780, 1.231123561, -0.615561780, 5.314318652e-06, -0.615561780, 0.615556466};
 
@@ -164,7 +166,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::vector<double> reference{0.125625, 0.0, -0.125625};
 
@@ -191,7 +194,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocal
     Vector RHS = ZeroVector(3);
     Matrix LHS = ZeroMatrix(3, 3);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::array<double, 9> reference_array{0.251249, -0.25125, 1.08455e-06, -0.25125, 0.502499, -0.25125, 1.08455e-06, -0.25125, 0.251249};
     // Copying to a 3x3 matrix to check against LHS
@@ -247,7 +251,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementRHSWake, CompressibleP
     Vector RHS = ZeroVector(6);
     Matrix LHS = ZeroMatrix(6, 6);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     std::array<double, 6> reference{0.615561780, 0.0, 0.0, 0.0, 0.0, -0.615561780};
 
@@ -298,7 +303,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementLHSWake, CompressibleP
     Vector RHS = ZeroVector(6);
     Matrix LHS = ZeroMatrix(6, 6);
 
-    pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -331,14 +337,15 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementEquationIdVector, Comp
     }
 
     Element::DofsVectorType ElementalDofList;
-    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->GetDofList(ElementalDofList, r_current_process_info);
 
     for (int i = 0; i < 3; i++) {
         ElementalDofList[i]->SetEquationId(i);
     }
 
     Element::EquationIdVectorType EquationIdVector;
-    pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+    pElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
     // Check the EquationIdVector values
     for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -369,14 +376,15 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElementEquationIdVectorWake, 
     }
 
     Element::DofsVectorType ElementalDofList;
-    pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    pElement->GetDofList(ElementalDofList, r_current_process_info);
 
     for (int i = 0; i < 6; i++) {
         ElementalDofList[i]->SetEquationId(i);
     }
 
     Element::EquationIdVectorType EquationIdVector;
-    pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
+    pElement->EquationIdVector(EquationIdVector, r_current_process_info);
 
     // Check the EquationIdVector values
     for (unsigned int i = 0; i < EquationIdVector.size(); i++) {

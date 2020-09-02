@@ -178,6 +178,10 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
 
+        #VARIABLES FOR FRICTIONAL VISCOPLASTIC MODEL
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FRICTION_ANGLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
+
         #VARIABLES FOR MU-I RHEOLOGY MODEL
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
@@ -200,9 +204,11 @@ class PfemFluidSolver(PythonSolver):
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
 
         # Pfem Extra Vars
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
@@ -226,13 +232,9 @@ class PfemFluidSolver(PythonSolver):
         for node in self.main_model_part.Nodes:
             # adding dofs
             node.AddDof(KratosMultiphysics.PRESSURE)
-            node.AddDof(KratosMultiphysics.DENSITY)
             node.AddDof(KratosMultiphysics.VELOCITY_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
         print("::[Pfem Fluid Solver]:: DOF's ADDED")
 
     def ImportModelPart(self):
