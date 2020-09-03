@@ -43,7 +43,7 @@ namespace Internals {
  *  @param Nchunks - number of threads to be used in the loop
  *  @param Size    - the size of the partition
  */
-int ComputeNumberOfChunks(
+inline int ComputeNumberOfChunks(
     const int Nchunks,
     const int Size)
 {
@@ -59,13 +59,62 @@ int ComputeNumberOfChunks(
 
 }
 
-template<class TIndexType=std::size_t, class TIteratorType>
-std::vector<TIndexType> CreatePartition(
-    TIteratorType it_begin,
-    TIteratorType it_end)
-{
 
-}
+template<class PartitionType, int TMaxThreads=Globals::MaxAllowedThreads>
+class Partitioner
+{
+public:
+    using PartitionsType = std::array<PartitionType, TMaxThreads>;
+
+    template<class TIndexType=std::size_t>
+    PartitionsType CreatePartition(
+        const TIndexType Size,
+        int Nchunks = omp_get_max_threads())
+    {
+        Nchunks = Internals::ComputeNumberOfChunks(Nchunks, Size);
+
+        PartitionsType partitions;
+
+        const int block_partition_size = Size / Nchunks;
+        partitions[0] = 0;
+        partitions[Nchunks] = Size;
+        for (int i=1; i<Nchunks; i++) {
+            partitions[i] = partitions[i-1] + block_partition_size;
+        }
+
+        return partitions;
+    }
+
+    template<class TIteratorType>
+    PartitionsType CreatePartition(
+        TIteratorType it_begin,
+        TIteratorType it_end,
+        int Nchunks = omp_get_max_threads())
+    {
+        const ptrdiff_t size = it_end-it_begin;
+
+        Nchunks = Internals::ComputeNumberOfChunks(Nchunks, size);
+
+        PartitionsType partitions;
+
+        const std::ptrdiff_t block_partition_size = size / Nchunks;
+        partitions[0] = it_begin;
+        partitions[Nchunks] = it_end;
+        for (int i=1; i<Nchunks; i++) {
+            partitions[i] = partitions[i-1] + block_partition_size;
+        }
+
+        return partitions;
+    }
+
+    template<class TContainerType>
+    PartitionsType CreatePartition(
+        const TContainerType& rContainer,
+        int Nchunks = omp_get_max_threads())
+    {
+        return CreatePartition(rContainer.begin(), rContainer.end(), Nchunks);
+    }
+};
 
 //***********************************************************************************
 //***********************************************************************************
