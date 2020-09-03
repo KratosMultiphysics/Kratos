@@ -215,7 +215,7 @@ typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &
 template <class TContainerType, class TThreadLocalStorage, class TFunctionType>
 void block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
 {
-    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(tls, std::forward<TFunctionType>(func));
+    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::move(tls), std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
@@ -228,7 +228,7 @@ template <class TReducer, class TContainerType, class TThreadLocalStorage, class
 typename TReducer::value_type block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
 {
     return BlockPartition<typename std::decay<TContainerType>::type>
-        (std::forward<TContainerType>(v)).template for_each<TReducer>(tls, std::forward<TFunctionType>(func));
+        (std::forward<TContainerType>(v)).template for_each<TReducer>(std::move(tls), std::forward<TFunctionType>(func));
 }
 
 //***********************************************************************************
