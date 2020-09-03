@@ -150,7 +150,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         (self.solver).Initialize()
 
-        KM.Logger.PrintInfo("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
+        KM.Logger.PrintInfo(self.__class__.__name__, "Mesh stage solver initialization finished")
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
