@@ -8,12 +8,12 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Manuel Messmer
-//
+// This is a temporary solution, will be substitued by mpm_mpi_search.cpp
 
 // External includes
 #include "mpi.h"
-
 // Project includes
+#include "includes/ublas_interface.h"
 #include "element_communicator_mpi.h"
 #include "particle_mechanics_application_variables.h"
 #include "../mpm_search_element_utility.h"
@@ -72,14 +72,11 @@ void ElementCommunicatorMPI::CreateMPIDataType(MPI_Datatype& type, bool conditio
         MPI_Type_create_struct(number_of_elements,blocklens,indices,old_types,&type);
         MPI_Type_commit(&type);
     }
-    else {
-        KRATOS_INFO("ElementCommunicator") << "Element 'MPI-Type' is not yet implemented!" << std::endl;
-    }
 }
-
 void ElementCommunicatorMPI::MPI_Search(ModelPart& rMPMModelPart,
                                         ModelPart& rBackgroundGridModelPart,
-                                        std::vector<typename Condition::Pointer>& rMissingConditions,
+                                        std::vector<Element::Pointer>& rMissingElements,
+                                        std::vector<Condition::Pointer>& rMissingConditions,
                                         const std::size_t MaxNumberOfResults, const double Tolerance){
     // Get current rank and size
     int rank;
@@ -91,13 +88,25 @@ void ElementCommunicatorMPI::MPI_Search(ModelPart& rMPMModelPart,
     int receiver = (rank + 1) % size;
     int sender = (rank - 1);
     if( sender == -1) {sender = size-1;}
+
+    ElementCommunicatorMPI::SearchConditions(rMPMModelPart,rBackgroundGridModelPart,
+                                             rMissingConditions, MaxNumberOfResults, Tolerance,
+                                             rank, size, sender, receiver, 0);
+}
+
+void ElementCommunicatorMPI::SearchConditions(ModelPart& rMPMModelPart,
+                                              ModelPart& rBackgroundGridModelPart,
+                                              std::vector<Condition::Pointer>& rMissingConditions,
+                                              const std::size_t MaxNumberOfResults, const double Tolerance,
+                                              int rank, int size, int sender, int receiver, int tag)
+{
     // Construct MPI message_type
     MPI_Datatype message_type;
     CreateMPIDataType(message_type, true); // true -> condition, false -> element/particle
 
-    // Construct local arrays
-    std::vector<typename Element::Pointer> missing_elements = {};
+    // Construct local array
     std::vector<typename Condition::Pointer> missing_conditions = {};
+    std::vector<typename Element::Pointer> missing_elements = {};
 
     // Check if rMissingConditions is empty or not
     bool empty = false;
@@ -142,8 +151,8 @@ void ElementCommunicatorMPI::MPI_Search(ModelPart& rMPMModelPart,
         }
         // Only for debugging
         if( missing_conditions.size() == 0 && !recieved_message_is_empty){
-            // std::cout << "Rank: " << rank << " found condition " << current_id
-            //     << " after " << condition_send_counter << " mpi send operations!!" << std::endl;
+            std::cout << "Rank: " << rank << " found condition " << current_id
+                << " after " << condition_send_counter << " mpi send operations!!" << std::endl;
         }
         // If condition was not found add to vector
         if( missing_conditions.size() != 0){

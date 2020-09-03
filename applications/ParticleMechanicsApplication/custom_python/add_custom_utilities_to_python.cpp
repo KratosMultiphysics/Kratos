@@ -65,7 +65,6 @@ namespace Python{
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         m.def("CopyMPICommunicator",&MPM_MPI_Utility::CopyMPICommunicator);
-        m.def("MPI_InitialSearch",&ElementCommunicatorMPI::MPI_InitialSearch);
 #endif
     }
 
