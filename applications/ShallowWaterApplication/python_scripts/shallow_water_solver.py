@@ -32,10 +32,10 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
 
     def FinalizeSolutionStep(self):
         super(ShallowWaterSolver, self).FinalizeSolutionStep()
-        epsilon = max(self.advection_epsilon, self.main_model_part.ProcessInfo[SW.DRY_HEIGHT])
-        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.main_model_part)
-        SW.ComputeVelocityProcess(self.main_model_part, 1e-3).Execute()
-        SW.ShallowWaterUtilities().ComputeAccelerations(self.main_model_part)
+        epsilon = max(self.advection_epsilon, self.GetComputingModelPart().ProcessInfo[SW.DRY_HEIGHT])
+        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.GetComputingModelPart())
+        SW.ComputeVelocityProcess(self.GetComputingModelPart(), epsilon).Execute()
+        SW.ShallowWaterUtilities().ComputeAccelerations(self.GetComputingModelPart())
 
     @classmethod
     def GetDefaultSettings(cls):
