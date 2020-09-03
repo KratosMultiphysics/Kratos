@@ -124,9 +124,9 @@ public:
         {
             const double eigenfrequency = std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
             resp_function_value += mWeightingFactors[i] * eigenfrequency;
-            KRATOS_INFO("") << std::setw(5)  << mTracedEigenfrequencyIds[i]
-                      << std::setw(23) << eigenfrequency
-                      << std::setw(20) << mWeightingFactors[i]<< std::endl;
+            KRATOS_INFO("") << std::setw(5) << mTracedEigenfrequencyIds[i]
+                      <<"|"<< std::setw(23) << eigenfrequency
+                      <<"|"<< std::setw(20) << mWeightingFactors[i]<< std::endl;
         }
 
         return resp_function_value;
