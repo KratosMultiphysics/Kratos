@@ -104,8 +104,8 @@ public:
     typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-    typedef typename UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef typename LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
 
     ///@}
