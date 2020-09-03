@@ -52,9 +52,7 @@ namespace Kratos
 
         typedef typename SparseSpaceType::MatrixType MappingMatrixType;
 
-        /// The dense space considered
         typedef typename UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
         typedef typename LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
         typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
 
