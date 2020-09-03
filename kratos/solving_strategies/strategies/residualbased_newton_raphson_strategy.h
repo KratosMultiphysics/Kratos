@@ -260,8 +260,6 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY
 
-        KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
-
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
 
@@ -396,8 +394,6 @@ class ResidualBasedNewtonRaphsonStrategy
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, Settings)
     {
         KRATOS_TRY
-
-        KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
 
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
@@ -1200,7 +1196,7 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@}
     ///@name Member Variables
     ///@{
-
+    
     typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the time scheme employed
     typename TBuilderAndSolverType::Pointer mpBuilderAndSolver = nullptr; /// The pointer to the builder and solver employed
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr; /// The pointer to the convergence criteria employed

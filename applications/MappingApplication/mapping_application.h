@@ -192,7 +192,7 @@ private:
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
 
-    const MappingGeometriesModeler  mMappingGeometriesModeler;
+    const MappingGeometriesModeler  mMappingGeometriesModeler; //@teschemachen, not sure if we need this
 
     ///@}
     ///@name Private Operators

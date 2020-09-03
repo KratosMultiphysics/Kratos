@@ -150,11 +150,6 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( TURBULENCE_RANS_BETA_2 )
     KRATOS_REGISTER_VARIABLE( WALL_VON_KARMAN )
 
-    // formulation specific variables
-    KRATOS_REGISTER_VARIABLE( ANALYSIS_STEPS )
-    KRATOS_REGISTER_VARIABLE( WALL_MODEL_PART_NAME )
-    KRATOS_REGISTER_VARIABLE( NUMBER_OF_NEIGHBOUR_CONDITIONS )
-
     // registering elements
     // registering fractional step elements
     KRATOS_REGISTER_ELEMENT("RansFractionalStep2D3N", mRansFractionalStep2D);

@@ -18,7 +18,7 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "utilities/parallel_utilities.h"
+#include "utilities/openmp_utils.h"
 
 // Include base h
 #include "rans_variable_utilities.h"
@@ -27,7 +27,10 @@ namespace Kratos
 {
 namespace RansVariableUtilities
 {
-std::tuple<unsigned int, unsigned int> ClipScalarVariable(
+void ClipScalarVariable(
+    unsigned int& rNumberOfNodesBelowMinimum,
+    unsigned int& rNumberOfNodesAboveMaximum,
+    unsigned int& rNumberOfSelectedNodes,
     const double MinimumValue,
     const double MaximumValue,
     const Variable<double>& rVariable,
@@ -35,63 +38,45 @@ std::tuple<unsigned int, unsigned int> ClipScalarVariable(
 {
     KRATOS_TRY
 
-    auto& r_communicator = rModelPart.GetCommunicator();
-    auto& r_nodes = r_communicator.LocalMesh().Nodes();
+    Communicator& r_communicator = rModelPart.GetCommunicator();
+    ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
 
-    class ClippingReducer{
-        public:
-            typedef std::tuple<unsigned int,unsigned int> value_type;
-            unsigned int number_of_nodes_below_minimum = 0;
-            unsigned int number_of_nodes_above_maximum = 0;
+    const int number_of_nodes = r_nodes.size();
 
-            value_type GetValue()
-            {
-                value_type values;
-                std::get<0>(values) = number_of_nodes_below_minimum;
-                std::get<1>(values) = number_of_nodes_above_maximum;
-                return values;
-            }
+    unsigned int number_of_nodes_below_minimum = 0;
+    unsigned int number_of_nodes_above_maximum = 0;
+    unsigned int number_of_nodes_selected = 0;
 
-            void LocalReduce(const std::tuple<unsigned int, unsigned int>& node_values){
-                number_of_nodes_below_minimum += std::get<0>(node_values);
-                number_of_nodes_above_maximum += std::get<1>(node_values);
-            }
-            void ThreadSafeReduce(ClippingReducer& rOther){
-                #pragma omp critical
-                {
-                    this->number_of_nodes_below_minimum += rOther.number_of_nodes_below_minimum;
-                    this->number_of_nodes_above_maximum += rOther.number_of_nodes_above_maximum;
-                }
-            }
-    };
+#pragma omp parallel for reduction( +: number_of_nodes_below_minimum, number_of_nodes_above_maximum, number_of_nodes_selected)
+    for (int i = 0; i < number_of_nodes; ++i) {
+        ModelPart::NodeType& r_node = *(r_nodes.begin() + i);
+        double& r_value = r_node.FastGetSolutionStepValue(rVariable);
 
-    unsigned int number_of_nodes_below_minimum, number_of_nodes_above_maximum;
-    std::tie(number_of_nodes_below_minimum, number_of_nodes_above_maximum) = BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each<ClippingReducer>(
-        [&](ModelPart::NodeType& rNode) -> std::tuple<unsigned int, unsigned int> {
-            double& r_value = rNode.FastGetSolutionStepValue(rVariable);
-
-            if (r_value < MinimumValue) {
-                r_value = MinimumValue;
-                return std::tuple<unsigned int, unsigned int>(1, 0);
-            } else if (r_value > MaximumValue) {
-                r_value = MaximumValue;
-                return std::tuple<unsigned int, unsigned int>(0, 1);
-            }
-
-            return std::tuple<unsigned int, unsigned int>(0, 0);
-        });
+        if (r_value < MinimumValue) {
+            number_of_nodes_below_minimum++;
+            r_value = MinimumValue;
+        } else if (r_value > MaximumValue) {
+            number_of_nodes_above_maximum++;
+            r_value = MaximumValue;
+        }
+        number_of_nodes_selected++;
+    }
 
     r_communicator.SynchronizeVariable(rVariable);
 
     // Stores followings
     // index - 0 : number_of_nodes_below_minimum
     // index - 1 : number_of_nodes_above_maximum
+    // index - 2 : number_of_nodes_selected
     std::vector<unsigned int> nodes_count = {number_of_nodes_below_minimum,
-                                             number_of_nodes_above_maximum};
+                                             number_of_nodes_above_maximum,
+                                             number_of_nodes_selected};
     const std::vector<unsigned int>& total_nodes_count =
         r_communicator.GetDataCommunicator().SumAll(nodes_count);
 
-    return std::tuple<unsigned int, unsigned int>(total_nodes_count[0], total_nodes_count[1]);
+    rNumberOfNodesBelowMinimum = total_nodes_count[0];
+    rNumberOfNodesAboveMaximum = total_nodes_count[1];
+    rNumberOfSelectedNodes = total_nodes_count[2];
 
     KRATOS_CATCH("")
 }
@@ -102,36 +87,37 @@ double GetMinimumScalarValue(
 {
     KRATOS_TRY
 
-    const auto& r_communicator = rModelPart.GetCommunicator();
-    const auto& r_nodes = r_communicator.LocalMesh().Nodes();
+    double min_value = std::numeric_limits<double>::max();
 
-    class MinReducer{
-        public:
-            typedef double value_type;
-            double min_value = std::numeric_limits<double>::max();
+    const Communicator& r_communicator = rModelPart.GetCommunicator();
 
-            value_type GetValue()
-            {
-                return min_value;
-            }
-
-            void LocalReduce(const double min_value){
-                this->min_value = std::min(this->min_value, min_value);
-            }
-            void ThreadSafeReduce(MinReducer& rOther){
-                #pragma omp critical
-                {
-                    this->min_value = std::min(this->min_value, rOther.min_value);
-                }
-            }
-    };
+    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
 
     const int number_of_nodes = r_nodes.size();
-    const double min_value =
-        IndexPartition<int>(number_of_nodes).for_each<MinReducer>(
-            [&](const int i) -> double {
-                return (r_nodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            });
+
+    if (number_of_nodes != 0) {
+        const int number_of_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector node_partition;
+        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+        Vector min_values(number_of_threads, min_value);
+
+#pragma omp parallel
+        {
+            const int k = OpenMPUtils::ThisThread();
+
+            auto nodes_begin = r_nodes.begin() + node_partition[k];
+            auto nodes_end = r_nodes.begin() + node_partition[k + 1];
+
+            for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode) {
+                const double value = itNode->FastGetSolutionStepValue(rVariable);
+                min_values[k] = std::min(min_values[k], value);
+            }
+        }
+
+        for (int i = 0; i < number_of_threads; ++i) {
+            min_value = std::min(min_value, min_values[i]);
+        }
+    }
 
     return r_communicator.GetDataCommunicator().MinAll(min_value);
 
@@ -144,36 +130,37 @@ double GetMaximumScalarValue(
 {
     KRATOS_TRY
 
-    const auto& r_communicator = rModelPart.GetCommunicator();
-    const auto& r_nodes = r_communicator.LocalMesh().Nodes();
+    double max_value = std::numeric_limits<double>::lowest();
 
-    class MaxReducer{
-        public:
-            typedef double value_type;
-            double max_value = std::numeric_limits<double>::lowest();
+    const Communicator& r_communicator = rModelPart.GetCommunicator();
 
-            value_type GetValue()
-            {
-                return max_value;
-            }
-
-            void LocalReduce(const double max_value){
-                this->max_value = std::max(this->max_value, max_value);
-            }
-            void ThreadSafeReduce(MaxReducer& rOther){
-                #pragma omp critical
-                {
-                    this->max_value = std::max(this->max_value, rOther.max_value);
-                }
-            }
-    };
+    const ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
 
     const int number_of_nodes = r_nodes.size();
-    const double max_value =
-        IndexPartition<int>(number_of_nodes).for_each<MaxReducer>(
-            [&](const int i) -> double {
-                return (r_nodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            });
+
+    if (number_of_nodes != 0) {
+        const int number_of_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector node_partition;
+        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+        Vector max_values(number_of_threads, max_value);
+
+#pragma omp parallel
+        {
+            const int k = OpenMPUtils::ThisThread();
+
+            auto nodes_begin = r_nodes.begin() + node_partition[k];
+            auto nodes_end = r_nodes.begin() + node_partition[k + 1];
+
+            for (auto itNode = nodes_begin; itNode != nodes_end; ++itNode) {
+                const double value = itNode->FastGetSolutionStepValue(rVariable);
+                max_values[k] = std::max(max_values[k], value);
+            }
+        }
+
+        for (int i = 0; i < number_of_threads; ++i) {
+            max_value = std::max(max_value, max_values[i]);
+        }
+    }
 
     return r_communicator.GetDataCommunicator().MaxAll(max_value);
 
@@ -191,9 +178,10 @@ void GetNodalVariablesVector(
         rValues.resize(number_of_nodes);
     }
 
-    IndexPartition<int>(number_of_nodes).for_each([&](const int i_node) {
+#pragma omp parallel for
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         rValues[i_node] = (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable);
-    });
+    }
 }
 
 void GetNodalArray(
@@ -202,7 +190,7 @@ void GetNodalArray(
     const Variable<double>& rVariable)
 {
     const Geometry<ModelPart::NodeType>& r_geometry = rElement.GetGeometry();
-    const std::size_t number_of_nodes = r_geometry.PointsNumber();
+    std::size_t number_of_nodes = r_geometry.PointsNumber();
 
     if (rNodalValues.size() != number_of_nodes) {
         rNodalValues.resize(number_of_nodes);
@@ -225,9 +213,10 @@ void SetNodalVariables(
            "SetNodalVariables. [ rValues.size = "
         << rValues.size() << ", rNodes.size = " << rNodes.size() << " ]\n";
 
-    IndexPartition<int>(number_of_nodes).for_each([&](const int i_node) {
+#pragma omp parallel for
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable) = rValues[i_node];
-    });
+    }
 }
 
 void CopyNodalSolutionStepVariablesList(

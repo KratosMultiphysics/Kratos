@@ -172,7 +172,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "compute_reactions": false,
-            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": true,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
@@ -251,11 +250,25 @@ class NavierStokesSolverMonolithic(FluidSolver):
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
-        # Set up the auxiliary class with the formulation settings
-        self._SetFormulation()
+        self.formulation = StabilizedFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
+        self.element_integrates_in_time = self.formulation.element_integrates_in_time
+        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
 
-        # Update the default buffer size according to the selected time scheme
-        self._SetTimeSchemeBufferSize()
+        scheme_type = self.settings["time_scheme"].GetString()
+        if scheme_type == "bossak":
+            self.min_buffer_size = 2
+        elif scheme_type == "bdf2":
+            self.min_buffer_size = 3
+        elif scheme_type == "steady":
+            self.min_buffer_size = 1
+            self._SetUpSteadySimulation()
+        else:
+            msg  = "Unknown time_scheme option found in project parameters:\n"
+            msg += "\"" + scheme_type + "\"\n"
+            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
+            raise Exception(msg)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverMonolithic finished.")
 
@@ -309,28 +322,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
             self._GetSolutionStrategy().InitializeSolutionStep()
-
-    def _SetFormulation(self):
-        self.formulation = StabilizedFormulation(self.settings["formulation"])
-        self.element_name = self.formulation.element_name
-        self.condition_name = self.formulation.condition_name
-        self.element_integrates_in_time = self.formulation.element_integrates_in_time
-        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
-
-    def _SetTimeSchemeBufferSize(self):
-        scheme_type = self.settings["time_scheme"].GetString()
-        if scheme_type == "bossak":
-            self.min_buffer_size = 2
-        elif scheme_type == "bdf2":
-            self.min_buffer_size = 3
-        elif scheme_type == "steady":
-            self.min_buffer_size = 1
-            self._SetUpSteadySimulation()
-        else:
-            msg  = "Unknown time_scheme option found in project parameters:\n"
-            msg += "\"" + scheme_type + "\"\n"
-            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
-            raise Exception(msg)
 
     def _SetUpSteadySimulation(self):
         '''Overwrite time stepping parameters so that they do not interfere with steady state simulations.'''

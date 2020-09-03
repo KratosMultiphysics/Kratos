@@ -49,8 +49,6 @@ public:
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-    typedef MixedGenericCriteria< TSparseSpace, TDenseSpace > ClassType;
-
     typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -59,7 +57,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef std::vector<std::tuple<const VariableData*, TDataType, TDataType>> ConvergenceVariableListType;
+    typedef std::vector<std::tuple<VariableData*, TDataType, TDataType>> ConvergenceVariableListType;
 
     typedef std::size_t KeyType;
 
@@ -69,21 +67,6 @@ public:
 
     /// Constructor.
 
-    explicit MixedGenericCriteria()
-        : BaseType(),
-          mVariableSize(0)
-    {
-    }
-
-    /**
-     * @brief Default constructor. (with parameters)
-     * @param ThisParameters The configuration parameters
-     */
-    explicit MixedGenericCriteria(Kratos::Parameters ThisParameters)
-        : MixedGenericCriteria(GenerateConvergenceVariableListFromParameters(ThisParameters))
-    {
-    }
-
     /**
      * @brief Construct a new Mixed Generic Criteria object
      * Construct the mixed generic convergence criteria from a convergence variables list.
@@ -91,11 +74,11 @@ public:
      * @param rConvergenceVariablesList List containing tuples with the convergence variables to be checked. The tuples are set as <Variable, relative tolerance, absolute tolerance>
      */
     MixedGenericCriteria(const ConvergenceVariableListType& rConvergenceVariablesList)
-        : BaseType()
+        : ConvergenceCriteria<TSparseSpace, TDenseSpace>()
         , mVariableSize([&] (const ConvergenceVariableListType& rList) -> int {return rList.size();} (rConvergenceVariablesList))
-        , mVariableDataVector([&] (const ConvergenceVariableListType& rList) -> std::vector<const VariableData*> {
+        , mVariableDataVector([&] (const ConvergenceVariableListType& rList) -> std::vector<VariableData*> {
             int i = 0;
-            std::vector<const VariableData*> aux_vect(mVariableSize);
+            std::vector<VariableData*> aux_vect(mVariableSize);
             for (const auto &r_tup : rList) {
                 aux_vect[i++] = std::get<0>(r_tup);
             }
@@ -146,15 +129,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Create method
-     * @param ThisParameters The configuration parameters
-     */
-    typename BaseType::Pointer Create(Parameters ThisParameters) const override
-    {
-        return Kratos::make_shared<ClassType>(ThisParameters);
-    }
-
     /// Compute relative and absoute error.
     /**
      * @param rModelPart Reference to the ModelPart containing the fluid problem.
@@ -187,15 +161,6 @@ public:
         }
     }
 
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        return "mixed_generic_criteria";
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -210,23 +175,6 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "MixedGenericCriteria";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
 
     ///@}
 protected:
@@ -263,7 +211,7 @@ protected:
      * Get the member vector that stores pointers to the variables to check
      * @return std::vector<VariableData*> Vector containing pointers to the variables to check
      */
-    std::vector<const VariableData*> GetVariableDataVector() const
+    std::vector<VariableData*> GetVariableDataVector() const
     {
         return mVariableDataVector;
     }
@@ -277,7 +225,7 @@ protected:
     {
         return mRatioToleranceVector;
     }
-
+    
     /**
      * @brief Get the Abs Tolerance Vector object
      * Get the member vector containing the absolute tolerances for each variable to check
@@ -425,7 +373,7 @@ private:
     ///@{
 
     const int mVariableSize;
-    const std::vector<const VariableData*> mVariableDataVector;
+    const std::vector<VariableData*> mVariableDataVector;
     const std::vector<TDataType> mRatioToleranceVector;
     const std::vector<TDataType> mAbsToleranceVector;
     std::unordered_map<KeyType, KeyType> mLocalKeyMap;
@@ -504,36 +452,6 @@ private:
                 }
             }
         }
-    }
-
-    /**
-     * @brief This method generates the list of variables from Parameters
-     * @param ThisParameters Input parameters
-     * @return List of variables considered as input
-     */
-    static ConvergenceVariableListType GenerateConvergenceVariableListFromParameters(Kratos::Parameters ThisParameters)
-    {
-      // Iterate over variables
-      ConvergenceVariableListType aux_list;
-      if (!ThisParameters.Has("convergence_variables_list")) return aux_list;
-      Kratos::Parameters convergence_variables_list = ThisParameters["convergence_variables_list"];
-      for (auto param : convergence_variables_list) {
-          if (param.Has("variable")) {
-              const std::string& r_variable_name = param["variable"].GetString();
-
-              // Variable pointer
-              const VariableData* p_variable = KratosComponents<Variable<double>>::Has(r_variable_name) ? dynamic_cast<const VariableData*>(&KratosComponents<Variable<double>>::Get(r_variable_name)) : dynamic_cast<const VariableData*>(&KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name));
-
-              // Tolerances
-              const double rel_tol = param.Has("relative_tolerance") ? param["relative_tolerance"].GetDouble() : 1.0e-4;
-              const double abs_tol = param.Has("absolute_tolerance") ? param["absolute_tolerance"].GetDouble() : 1.0e-9;
-
-              // Push back list
-              aux_list.push_back(std::make_tuple(p_variable, rel_tol, abs_tol));
-          }
-      }
-
-      return aux_list;
     }
 
     ///@}

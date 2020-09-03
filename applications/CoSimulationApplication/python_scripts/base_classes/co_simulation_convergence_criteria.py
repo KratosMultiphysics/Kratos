@@ -15,6 +15,12 @@ class CoSimulationConvergenceCriteria(object):
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
+    def SetSolvers(self, settings, solver_wrapper):
+        pass
+
+    def SetInterfaceData(self, settings, solver_wrapper):
+        pass
+
     def Initialize(self):
         pass
 

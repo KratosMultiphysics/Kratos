@@ -7,6 +7,7 @@ from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterionWithoutWrapper
 from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
 
 
@@ -38,8 +39,8 @@ def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, pare
     convergence_criteria = []
     for conv_crit_settings in convergence_criterion_settings_list:
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        if conv_crit_settings.Has("use_wrapper") and not conv_crit_settings["use_wrapper"].GetBool():
-            convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solvers))
+        if conv_crit_settings.Has("use_wrapper") and conv_crit_settings["use_wrapper"].GetBool() == False:
+            convergence_criteria.append(CreateConvergenceCriterionWithoutWrapper(conv_crit_settings, solvers))
         else:
             solver = solvers[conv_crit_settings["solver"].GetString()]
             convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))

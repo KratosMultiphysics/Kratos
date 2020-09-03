@@ -220,8 +220,6 @@ void ComputeNodesMeanNormalModelPart(
         }
     }
 
-    rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
-
     #pragma omp parallel for
     for (int i = 0; i < num_nodes; ++i) {
         auto it_node = it_node_begin + i;

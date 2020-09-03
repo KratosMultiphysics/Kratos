@@ -22,7 +22,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "utilities/parallel_utilities.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -215,9 +214,12 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
     for (int i = 0; i< static_cast<int>(num_elements); ++i) {
         auto it_elem = elems_ptr_begin + i;
         Geometry<Node<3>>* p_geom(&((*it_elem)->GetGeometry()));
-        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom, true, is_dual_mortar);
+        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+        rLocalSystems[i]->SetValue(IS_PROJECTED_LOCAL_SYSTEM, true);
 
-        rLocalSystems[num_elements+i] = Kratos::make_unique<TMapperLocalSystem>(p_geom, false, is_dual_mortar);
+        rLocalSystems[num_elements+i] = Kratos::make_unique<TMapperLocalSystem>(p_geom);
+        rLocalSystems[num_elements+i]->SetValue(IS_PROJECTED_LOCAL_SYSTEM, false);
+        rLocalSystems[num_elements+i]->SetValue(IS_DUAL_MORTAR, is_dual_mortar);
     }
 
     int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
@@ -308,21 +310,6 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const array_1d<double, 3>& rCoords);
-
-void KRATOS_API(MAPPING_APPLICATION) SaveCurrentConfiguration(ModelPart& rModelPart);
-void KRATOS_API(MAPPING_APPLICATION) RestoreCurrentConfiguration(ModelPart& rModelPart);
-
-template<class TDataType>
-void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
-{
-    KRATOS_TRY;
-
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
-        rNode.Data().Erase(rVariable);
-    });
-
-    KRATOS_CATCH("");
-}
 
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,

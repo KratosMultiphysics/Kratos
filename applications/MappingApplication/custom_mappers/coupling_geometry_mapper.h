@@ -37,14 +37,7 @@ class CouplingGeometryLocalSystem : public MapperLocalSystem
 {
 public:
 
-    explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom,
-                                         const bool IsProjection,
-                                         const bool IsDualMortar
-                                         )
-        : mpGeom(pGeom),
-          mIsProjection(IsProjection),
-          mIsDualMortar(IsDualMortar)
-        {}
+    explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom) : mpGeom(pGeom) {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
@@ -60,6 +53,20 @@ public:
 
     /// Turn back information as a string.
     std::string PairingInfo(const int EchoLevel) const override;
+
+    void SetValue(const Variable<bool>& rVariable, const bool rValue) override
+    {
+        if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) mIsProjection = rValue;
+        else if (rVariable == IS_DUAL_MORTAR) mIsDualMortar = rValue;
+        else MapperLocalSystem::SetValue(rVariable, rValue);
+    }
+
+    bool GetValue(const Variable<bool>& rVariable) override
+    {
+        if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) return mIsProjection;
+        else if (rVariable == IS_DUAL_MORTAR) return mIsDualMortar;
+        else return MapperLocalSystem::GetValue(rVariable);
+    }
 
 private:
     GeometryPointerType mpGeom;
@@ -125,9 +132,10 @@ public:
 
         // adds destination model part
         mpModeler->GenerateNodes(rModelPartDestination);
+        mLastInterfaceUpdateTime = rModelPartOrigin.GetProcessInfo().GetValue(TIME);
 
         mpModeler->SetupGeometryModel();
-        mpModeler->PrepareGeometryModel();
+        // mpModeler->PrepareGeometryModel(); // @tobi, I propose this only be used for the 'update' geometry function eg. every timestep
 
         // here use whatever ModelPart(s) was created by the Modeler
         mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
@@ -155,9 +163,14 @@ public:
     {
         mpModeler->PrepareGeometryModel();
 
-        AssignInterfaceEquationIds();
+        mMapperLocalSystems.clear();
 
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+
+        this->InitializeInterface();
+        //AssignInterfaceEquationIds();
+
+
+        //KRATOS_ERROR << "Not implemented!" << std::endl;
     }
 
     void Map(
@@ -290,6 +303,8 @@ private:
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
     ModelPart* mpCouplingInterfaceDestination = nullptr;
+
+    double mLastInterfaceUpdateTime = -1.0;
 
     Parameters mMapperSettings;
 

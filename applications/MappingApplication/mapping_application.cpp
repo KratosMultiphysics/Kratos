@@ -91,6 +91,7 @@ void KratosMappingApplication::Register()
                     << "                            /_/     /_/                 /____/\n"
                     << "Initializing KratosMappingApplication..." << std::endl;
 
+    // registering the mappers using the registration-macro
     KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
     KRATOS_REGISTER_MAPPER_SERIAL(CouplingGeometryMapper,  "coupling_geometry");
@@ -98,7 +99,6 @@ void KratosMappingApplication::Register()
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
     KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )
-    KRATOS_REGISTER_VARIABLE( CURRENT_COORDINATES )
     KRATOS_REGISTER_VARIABLE( IS_PROJECTED_LOCAL_SYSTEM)
     KRATOS_REGISTER_VARIABLE( IS_DUAL_MORTAR)
 }

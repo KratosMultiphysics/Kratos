@@ -39,7 +39,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "compute_reactions": false,
-            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "relative_velocity_tolerance": 1e-5,
             "absolute_velocity_tolerance": 1e-7,
