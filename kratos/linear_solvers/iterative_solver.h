@@ -294,7 +294,7 @@ public:
         mIterationsNumber = NewIterationNumber;
     }
 
-    virtual unsigned int GetIterationsNumber()
+    virtual unsigned int GetIterationsNumber() override
     {
         return mIterationsNumber;
     }

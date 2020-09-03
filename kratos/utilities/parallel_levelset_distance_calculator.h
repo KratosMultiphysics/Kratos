@@ -412,7 +412,7 @@ protected:
 
         for(unsigned int i=0; i<TDim+1; i++)
         {
-            if(dist[i] >= 0)
+            if(dist[i] >= 0) /////////////////////////////////// Should be revised
                 positive++;
             else
                 negative++;

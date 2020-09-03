@@ -90,7 +90,7 @@ public:
         Variable<array_1d<double, 3 > >& rConvectVar,
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer plinear_solver,
-        const double dt_factor = 1.0,
+        const double dt_factor = 1.0,   //This factor is used for splitting schemes (does not run LS for the whole dt)
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)

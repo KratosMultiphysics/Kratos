@@ -70,16 +70,19 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
     }
 
     const unsigned int num_elements = mrModelPart.NumberOfElements();
-    array_1d<double,TDim+1> distance_array;
+    //array_1d<double,TDim+1> distance_array;
 
-    #pragma omp parallel for firstprivate(distance_array)
+    #pragma omp parallel for //private(distance_array)
     for (unsigned int k = 0; k < num_elements; ++k) {
         auto it_elem = mrModelPart.ElementsBegin() + k;
-        unsigned int n_neg = 0, n_pos = 0;
+        unsigned int n_neg = 0;
+        unsigned int n_pos = 0;
         auto& elem_geometry = it_elem->GetGeometry();
 
+        array_1d<double,TDim+1> distance_array;
+
         for (unsigned int j = 0; j < elem_geometry.size(); j++) {
-            distance_array[j] = elem_geometry[j].FastGetSolutionStepValue(DISTANCE);
+            distance_array[j] = elem_geometry[j].GetValue(DISTANCE);//FastGetSolutionStepValue(DISTANCE);
             if (distance_array[j] > 0.0)
                 n_pos++;
             else
@@ -87,10 +90,11 @@ void HyperbolicDistanceReinitialization<TDim>::Execute(){
         }
 
         if (n_pos > 0 && n_neg > 0){
+            /* GeometryUtils::CalculateTetrahedraDistances */
             GeometryUtils::CalculateExactDistancesToPlane(elem_geometry, distance_array);
 
             for (unsigned int j = 0; j < elem_geometry.size(); j++){
-                elem_geometry[j].FastGetSolutionStepValue(DISTANCE) = distance_array[j]; 
+                elem_geometry[j].FastGetSolutionStepValue(DISTANCE) = distance_array[j];
 
                 #pragma omp critical
                 elem_geometry[j].Fix(AUX_DISTANCE); // Do not work with DISTANCE in order not to make any confusion in LS

@@ -268,6 +268,12 @@ public:
         return 0;
     }
 
+    virtual unsigned int GetIterationsNumber()
+    {
+        std::cout << "WARNING: Accessed base function Kratos::LinearSolver::GetIterationsNumber(). Iterations number is only defined for AMGCL and IterativeSolver." << std::endl;
+        return 0;
+    }
+
 
     ///@}
     ///@name Inquiry

@@ -171,6 +171,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init<LinearSolverType::Pointer>())
     .def(py::init<LinearSolverType::Pointer, bool >())
     .def(py::init<Parameters >())
+    .def("GetIterationsNumber",&ScalingSolverType::GetIterationsNumber)
     ;
 
     py::class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, LinearSolverType>(m,"PowerIterationEigenvalueSolver")

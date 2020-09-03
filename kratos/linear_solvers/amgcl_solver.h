@@ -491,9 +491,9 @@ public:
      * @brief This method returns the current iteration number
      * @return mIterationsNumber The current iteration number
      */
-    virtual IndexType GetIterationsNumber()
+    virtual unsigned int GetIterationsNumber() override
     {
-        return mIterationsNumber;
+        return static_cast<unsigned int>( mIterationsNumber );
     }
 
     /**
