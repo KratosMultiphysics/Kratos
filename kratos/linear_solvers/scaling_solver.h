@@ -260,6 +260,11 @@ public:
     ///@name Access
     ///@{
 
+    virtual unsigned int GetIterationsNumber() override
+    {
+        return mpLinearSolver->GetIterationsNumber();
+    }
+
 
     ///@}
     ///@name Inquiry
