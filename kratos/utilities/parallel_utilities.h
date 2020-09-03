@@ -66,9 +66,8 @@ class Partitioner
 public:
     using PartitionsType = std::array<PartitionType, TMaxThreads>;
 
-    template<class TIndexType=std::size_t>
     PartitionsType CreatePartition(
-        const TIndexType Size,
+        const PartitionType Size,
         int Nchunks = omp_get_max_threads())
     {
         Nchunks = Internals::ComputeNumberOfChunks(Nchunks, Size);
@@ -85,10 +84,9 @@ public:
         return partitions;
     }
 
-    template<class TIteratorType>
     PartitionsType CreatePartition(
-        TIteratorType it_begin,
-        TIteratorType it_end,
+        PartitionType it_begin,
+        PartitionType it_end,
         int Nchunks = omp_get_max_threads())
     {
         const ptrdiff_t size = it_end-it_begin;
@@ -105,14 +103,6 @@ public:
         }
 
         return partitions;
-    }
-
-    template<class TContainerType>
-    PartitionsType CreatePartition(
-        const TContainerType& rContainer,
-        int Nchunks = omp_get_max_threads())
-    {
-        return CreatePartition(rContainer.begin(), rContainer.end(), Nchunks);
     }
 };
 
@@ -141,16 +131,7 @@ public:
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
     {
-        const ptrdiff_t size_container = it_end-it_begin;
-
-        mNchunks = Internals::ComputeNumberOfChunks(Nchunks, size_container);
-
-        const ptrdiff_t block_partition_size = size_container / mNchunks;
-        mBlockPartition[0] = it_begin;
-        mBlockPartition[mNchunks] = it_end;
-        for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
-        }
+        mBlockPartition = Paritioner<TIteratorType, TMaxThreads>.CreatePartition(it_begin, it_end, Nchunks);
     }
 
     /** @param rData - the continer to be iterated upon
@@ -240,15 +221,7 @@ public:
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
     {
-        mNchunks = Internals::ComputeNumberOfChunks(Nchunks, Size);
-
-        const int block_partition_size = Size / mNchunks;
-        mBlockPartition[0] = 0;
-        mBlockPartition[mNchunks] = Size;
-        for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
-        }
-
+        mBlockPartition = Paritioner<TIndexType, TMaxThreads>.CreatePartition(Size, Nchunks);
     }
 
     virtual ~IndexPartition() = default;
