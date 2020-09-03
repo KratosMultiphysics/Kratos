@@ -37,6 +37,28 @@ namespace Kratos
 {
 ///@addtogroup KratosCore
 
+namespace Internals {
+
+/** @brief compute the number of threads to use, accounting for corner cases
+ *  @param Nchunks - number of threads to be used in the loop
+ *  @param Size    - the size of the partition
+ */
+int ComputeNumberOfChunks(
+    const int Nchunks,
+    const int Size)
+{
+    KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
+
+    if (Size == 0) {
+        return Nchunks;
+    }
+
+    // in case the container is smaller than the number of chunks
+    return std::min(static_cast<int>(Size), Nchunks);
+}
+
+}
+
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
@@ -62,16 +84,10 @@ public:
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
     {
-        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
-
         const ptrdiff_t size_container = it_end-it_begin;
 
-        if (size_container == 0) {
-            mNchunks = Nchunks;
-        } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(size_container), Nchunks);
-        }
+        mNchunks = ComputeNumberOfChunks(Nchunks, size_container);
+
         const ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
@@ -167,14 +183,7 @@ public:
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
     {
-        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
-
-        if (Size == 0) {
-            mNchunks = Nchunks;
-        } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(Size), Nchunks);
-        }
+        mNchunks = ComputeNumberOfChunks(Nchunks, Size);
 
         const int block_partition_size = Size / mNchunks;
         mBlockPartition[0] = 0;
