@@ -15,7 +15,7 @@ have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamics
 have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
-have_fem_fem_dependencies_without_linear_solvers = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
+have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
 
 using_pykratos = UsingPyKratos()
 
@@ -44,7 +44,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self.skipTest("Numpy not available")
         if using_pykratos:
             self.skipTest("This test cannot be run with pyKratos!")
-        if not have_fem_fem_dependencies_without_linear_solvers:
+        if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
         self.name = "test_FEM_FEM_small_2d_plate_dual_mortar"
@@ -57,7 +57,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self.skipTest("Numpy not available")
         if using_pykratos:
             self.skipTest("This test cannot be run with pyKratos!")
-        if not have_fem_fem_dependencies_without_linear_solvers:
+        if not have_fem_fem_dependencies:
             self.skipTest("FEM-FEM dependencies are not available!")
 
         self.name = "test_FEM_FEM_small_2d_plate_full_mortar"

@@ -71,7 +71,9 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
     const auto& r_geometry_slave = mpGeom->GetGeometryPart(1);
 
-    const bool is_dual_mortar = (!mIsProjection && mIsDualMortar) ? true : false;
+    const bool is_dual_mortar = (!mIsProjection && mIsDualMortar)
+        ? true
+        : false;
 
     const std::size_t number_of_nodes_master = r_geometry_master.size();
     const std::size_t number_of_nodes_slave = r_geometry_slave.size();
@@ -102,8 +104,7 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                 rLocalMappingMatrix(i, i) = sf_values_slave(integration_point_itr, i)
                     * det_jacobian[integration_point_itr];
                 KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
-                    << "SHAPE FUNCTIONS LESS THAN ZERO\n\t"
-                    << sf_values_master(integration_point_itr, i) << std::endl;
+                    << "SHAPE FUNCTIONS LESS THAN ZERO" << std::endl;
             }
         }
     }
@@ -115,10 +116,10 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                         * sf_values_master(integration_point_itr, j)
                         * det_jacobian[integration_point_itr];
 
-                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, j) < 0.0)
-                        << "MASTER SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
-                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, i) < 0.0)
-                        << "SLAVE SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_master(integration_point_itr, i) < 0.0)
+                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_master << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(sf_values_slave(integration_point_itr, j) < 0.0)
+                        << "SHAPE FUNCTIONS LESS THAN ZERO\n" << sf_values_slave << std::endl;
                 }
             }
         }
@@ -207,15 +208,13 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     }
     else {
         double aux_det_slave = 0;
-        MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave); //TODO problem: s-1 * s != identity. Find another inverse method for full mortar.
+        MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
     }
     mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
     CheckMappingMatrixConsistency();
 
     Internals::InitializeSystemVector(mpInterfaceVectorContainerOrigin->pGetVector(), num_nodes_interface_master);
     Internals::InitializeSystemVector(mpInterfaceVectorContainerDestination->pGetVector(), num_nodes_interface_slave);
-
-    mLastInterfaceUpdateTime = mrModelPartOrigin.GetProcessInfo().GetValue(TIME);
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -226,23 +225,12 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
 {
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    //std::cout << "\n================ Map ===================="
-    //    << "\n\tBEFORE MAPPING"
-    //    << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-    //    << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-    //    << "\n";
-
     TSparseSpace::Mult(
         *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
     mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
-
-    std::cout << "\n\tAFTER MAPPING"
-        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-        << "\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -253,23 +241,12 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 {
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
-    //std::cout << "\n================ Inverse Map ===================="
-    //    << "\n\tBEFORE MAPPING"
-    //    << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-    //    << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-    //    << "\n";
-
     TSparseSpace::TransposeMult(
         *mpMappingMatrix,
         mpInterfaceVectorContainerDestination->GetVector(),
         mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
-
-    std::cout << "\n\tAFTER INVERSE MAPPING"
-        << "\n\t\tOrigin " << rOriginVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerOrigin->GetVector()
-        << "\n\t\tDest " << rDestinationVariable.Name() << ":\n\t\t" << mpInterfaceVectorContainerDestination->GetVector()
-        << "\n";
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -278,8 +255,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
-    if (mLastInterfaceUpdateTime != mrModelPartOrigin.GetProcessInfo().GetValue(TIME)) this->UpdateInterface(MappingOptions, 0.0);
-
     for (const auto var_ext : {"_X", "_Y", "_Z"}) {
         const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
         const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
