@@ -275,7 +275,7 @@ public:
 
     virtual unsigned int GetIterationsNumber()
     {
-        std::cout << "WARNING: Accessed base function Kratos::LinearSolver::GetIterationsNumber(). Iterations number is only defined for AMGCL and IterativeSolver." << std::endl;
+        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::GetTolerance(), returning 0 !" << std::endl;
         return 0;
     }
 
