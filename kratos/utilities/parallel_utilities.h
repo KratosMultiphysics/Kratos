@@ -66,25 +66,7 @@ class Partitioner
 public:
     using PartitionsType = std::array<PartitionType, TMaxThreads>;
 
-    PartitionsType CreatePartition(
-        const PartitionType Size,
-        int Nchunks = omp_get_max_threads())
-    {
-        Nchunks = Internals::ComputeNumberOfChunks(Nchunks, Size);
-
-        PartitionsType partitions;
-
-        const std::ptrdiff_t block_partition_size = Size / Nchunks;
-        partitions[0] = 0;
-        partitions[Nchunks] = Size;
-        for (int i=1; i<Nchunks; i++) {
-            partitions[i] = partitions[i-1] + block_partition_size;
-        }
-
-        return partitions;
-    }
-
-    PartitionsType CreatePartition(
+    PartitionsType CreateBlockPartition(
         PartitionType it_begin,
         PartitionType it_end,
         int Nchunks = omp_get_max_threads())
@@ -98,6 +80,24 @@ public:
         const std::ptrdiff_t block_partition_size = size / Nchunks;
         partitions[0] = it_begin;
         partitions[Nchunks] = it_end;
+        for (int i=1; i<Nchunks; i++) {
+            partitions[i] = partitions[i-1] + block_partition_size;
+        }
+
+        return partitions;
+    }
+
+    PartitionsType CreateIndexPartition(
+        const PartitionType Size,
+        int Nchunks = omp_get_max_threads())
+    {
+        Nchunks = Internals::ComputeNumberOfChunks(Nchunks, Size);
+
+        PartitionsType partitions;
+
+        const std::ptrdiff_t block_partition_size = Size / Nchunks;
+        partitions[0] = 0;
+        partitions[Nchunks] = Size;
         for (int i=1; i<Nchunks; i++) {
             partitions[i] = partitions[i-1] + block_partition_size;
         }
@@ -131,7 +131,7 @@ public:
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
     {
-        mBlockPartition = Paritioner<TIteratorType, TMaxThreads>.CreatePartition(it_begin, it_end, Nchunks);
+        mBlockPartition = Partitioner<TIteratorType, TMaxThreads>().CreateBlockPartition(it_begin, it_end, Nchunks);
     }
 
     /** @param rData - the continer to be iterated upon
@@ -221,7 +221,7 @@ public:
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
     {
-        mBlockPartition = Paritioner<TIndexType, TMaxThreads>.CreatePartition(Size, Nchunks);
+        mBlockPartition = Partitioner<TIndexType, TMaxThreads>().CreateIndexPartition(Size, Nchunks);
     }
 
     virtual ~IndexPartition() = default;
