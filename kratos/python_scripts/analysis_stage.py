@@ -177,8 +177,10 @@ class AnalysisStage(object):
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
+        print('analysis_stage.py OutputSolutionStep~')
         execute_was_called = False
         for output_process in self._GetListOfOutputProcesses():
+            print(output_process)
             if output_process.IsOutputStep():
                 if not execute_was_called:
                     for process in self._GetListOfProcesses():
@@ -190,6 +192,8 @@ class AnalysisStage(object):
         if execute_was_called:
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
+
+        
 
     def Check(self):
         """This function checks the AnalysisStage

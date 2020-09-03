@@ -5,6 +5,7 @@ import KratosMultiphysics as Kratos
 
 # import required applications
 import KratosMultiphysics.RANSApplication as KratosRANS
+from KratosMultiphysics.RANSApplication import RansVariableUtilities
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
@@ -56,7 +57,8 @@ class ConstantEnergySpectralFormulation(Formulation):
             solver_settings["linear_solver_settings"])
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
             linear_solver, self.IsPeriodic(), self.GetCommunicator())
-        convergence_criteria = Kratos.ResidualCriteria(
+        #convergence_criteria = Kratos.ResidualCriteria(
+        convergence_criteria = CreateResidualCriteria(
             self.settings["relative_tolerance"].GetDouble(),
             self.settings["absolute_tolerance"].GetDouble())
 
@@ -113,6 +115,23 @@ class ConstantEnergySpectralFormulation(Formulation):
         else:
             raise Exception(
                 "\"scheme_type\" is missing in time scheme settings")
+
+    def IsConverged(self):
+        for formulation in self.list_of_formulations:
+            if (not formulation.IsConverged()):
+                return False
+
+        if (self.GetStrategy() is not None):
+            if RansVariableUtilities.IsAnalysisStepCompleted(self.GetBaseModelPart(), "FOURIER_SERIES_VARIABLES_CALCULATION"):
+                Kratos.Logger.PrintInfo(" *** ENERGY SPECTRUM CONSTANTS ARE NOT CALCULAZED AFTER FIRST STEP ***")
+                return True
+            else:
+                is_converged = self.GetStrategy().IsConverged()
+                if (is_converged):
+                    Kratos.Logger.PrintInfo(self.GetName(), " *** CONVERGENCE ACHIEVED ***")
+                return is_converged
+
+        return True
 
     def GetMaxCouplingIterations(self):
         return "N/A"

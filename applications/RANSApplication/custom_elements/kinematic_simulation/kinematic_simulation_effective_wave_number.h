@@ -272,6 +272,19 @@ public:
         double dk = (std::log(kN) - std::log(k1))/(TotalWaveNumber-1);
         double kn = k1;
         double kn_pre = 0.0; 
+
+        //KRATOS_WATCH("effective wave number calculation");
+        //KRATOS_WATCH(TurbulentKineticEnergy);
+        //KRATOS_WATCH(TurbulentEnergyDissipationRate);
+        //KRATOS_WATCH(EffectiveWaveNumber);
+        //KRATOS_WATCH(SpectralConstantU);
+        //KRATOS_WATCH(SpectralConstantV);
+        //KRATOS_WATCH(SpectralConstantW);
+        //KRATOS_WATCH(TurbulentKineticEnergyU);
+        //KRATOS_WATCH(TurbulentKineticEnergyV);
+        //KRATOS_WATCH(TurbulentKineticEnergyW);
+        //KRATOS_WATCH(TotalWaveNumber);
+
         for (int i = 0; i < TotalWaveNumber; ++i)
         {
             output += (2*std::pow(kn,2)/(std::pow(EffectiveWaveNumber,2))) * (kn-kn_pre) * std::exp(-2*std::pow((kn/kN), 2))
@@ -304,7 +317,7 @@ public:
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
         //const double total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
-        const int total_wave_number = rCurrentProcessInfo[ACTIVATION_LEVEL];
+        const int total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
 
         // Get Shape function data
         Vector gauss_weights;
@@ -335,6 +348,18 @@ public:
                                                   spectral_constant_u, spectral_constant_v, spectral_constant_w,
                                                   turbulent_kinetic_energy_u, turbulent_kinetic_energy_v, turbulent_kinetic_energy_w);
 
+            //KRATOS_WATCH("effective wave number");
+            //KRATOS_WATCH(turbulent_kinetic_energy);
+            //KRATOS_WATCH(turbulent_energy_dissipation_rate);
+            //KRATOS_WATCH(effective_wave_number);
+            //KRATOS_WATCH(spectral_constant_u);
+            //KRATOS_WATCH(spectral_constant_v);
+            //KRATOS_WATCH(spectral_constant_w);
+            //KRATOS_WATCH(turbulent_kinetic_energy_u);
+            //KRATOS_WATCH(turbulent_kinetic_energy_v);
+            //KRATOS_WATCH(turbulent_kinetic_energy_w);
+            //KRATOS_WATCH(kinematic_viscosity);
+            //KRATOS_WATCH(total_wave_number);
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {

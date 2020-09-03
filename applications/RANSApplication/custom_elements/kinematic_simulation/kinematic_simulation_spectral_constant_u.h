@@ -226,6 +226,13 @@ public:
         double dk = (std::log(kN) - std::log(k1))/(TotalWaveNumber-1);
         double kn = k1;
         double kn_pre = 0.0; 
+
+        //KRATOS_WATCH("constant u");
+        //KRATOS_WATCH(TurbulentKineticEnergy);
+        //KRATOS_WATCH(TurbulentEnergyDissipationRate);
+        //KRATOS_WATCH(EffectiveWaveNumber);
+        //KRATOS_WATCH(TotalWaveNumber);
+
         for (int i = 0; i < TotalWaveNumber; ++i)
         {
             output += (2/EffectiveWaveNumber) * (kn-kn_pre) * std::exp(-2*std::pow((kn/kN), 2)) / (std::pow(1+std::pow((kn/EffectiveWaveNumber), 2), 0.8333333333));

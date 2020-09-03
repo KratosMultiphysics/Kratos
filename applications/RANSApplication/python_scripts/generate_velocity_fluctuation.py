@@ -85,6 +85,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
         self.model_part.HasNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         self.model_part.HasNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
         self.model_part.HasNodalSolutionStepVariable(KratosMultiphysics.KINEMATIC_VISCOSITY)
+        self.model_part.HasNodalSolutionStepVariable(KratosMultiphysics.LAGRANGE_DISPLACEMENT_X)
 
     def _CalculateFourierVariables(self):
         k_n = {}
@@ -126,7 +127,6 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
             print('aaaaaaaaa')
             RansVariableUtilities.AddAnalysisStep(self.model_part, "PERIOD_EXCEEDS_ENDTIME")
 
-        i = 0
         for node in self.model_part.Nodes:
             u_fluc = self._FouerierSummation(node, self.k_n[node.Id], self.k_n_unitvector, self.a_n[node.Id], self.b_n[node.Id], self.omega_n[node.Id], current_time)
             # U should be the last step if results of URANS are used!
@@ -136,8 +136,7 @@ class GenerateVelocityFluctuationProcess(KratosMultiphysics.Process):
             node.SetSolutionStepValue(KratosMultiphysics.LAGRANGE_DISPLACEMENT_X, 0, u_x)
             node.SetSolutionStepValue(KratosMultiphysics.LAGRANGE_DISPLACEMENT_Y, 0, u_y)
             node.SetSolutionStepValue(KratosMultiphysics.LAGRANGE_DISPLACEMENT_Z, 0, u_z)
-            i += 1
-        
+
         print('~generate_velocity_fluctuation.py ExecuteFinalizeSolutionStep')
     
     '''

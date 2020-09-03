@@ -388,6 +388,13 @@ public:
         double dk = (std::log(kN) - std::log(k1))/(TotalWaveNumber-1);
         double kn = k1;
         double kn_pre = 0.0;
+
+        //KRATOS_WATCH("constant v,w");
+        //KRATOS_WATCH(TurbulentKineticEnergy);
+        //KRATOS_WATCH(TurbulentEnergyDissipationRate);
+        //KRATOS_WATCH(EffectiveWaveNumber);
+        //KRATOS_WATCH(TotalWaveNumber);
+
         for (int i = 0; i < TotalWaveNumber; ++i)
         {
             output += (2/EffectiveWaveNumber) * (kn-kn_pre) * std::pow((kn/EffectiveWaveNumber),2) * std::exp(-2*std::pow((kn/kN), 2)) / (std::pow(1+std::pow((kn/EffectiveWaveNumber), 2), 1.833333333));
@@ -412,7 +419,6 @@ public:
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
 
         const int total_wave_number = rCurrentProcessInfo[TOTAL_WAVE_NUMBER];
-        //const int total_wave_number = TOTAL_WAVE_NUMBER[0];
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
@@ -424,7 +430,6 @@ public:
         const IndexType num_gauss_points = gauss_weights.size();
 
         const GeometryType& r_geometry = this->GetGeometry();
-
 
         for (IndexType g = 0; g < num_gauss_points; ++g)
         {
@@ -439,6 +444,12 @@ public:
                                                   0, 0, 0,
                                                   0, 0, 0);
 
+            //KRATOS_WATCH("CalculateLHS_baseelement")
+            //KRATOS_WATCH(turbulent_kinetic_energy)
+            //KRATOS_WATCH(turbulent_energy_dissipation_rate)
+            //KRATOS_WATCH(effective_wave_number)
+            //KRATOS_WATCH(kinematic_viscosity)
+            //KRATOS_WATCH(r_wavenumber_integration)
 
             for (IndexType a = 0; a < TNumNodes; ++a)
             {

@@ -357,6 +357,10 @@ class FractionalStepVelocityPressureFormulation(Formulation):
         absolute_tolerance = settings["absolute_tolerance"].GetDouble()
 
         info = GetConvergenceInfo(variable, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
+        print("+++++++")
+        print(variable)
+        print(relative_error)
+        print(absolute_error)
         Kratos.Logger.PrintInfo(self.GetName(), info)
 
         return (relative_error <= relative_tolerance or absolute_error <= absolute_tolerance)

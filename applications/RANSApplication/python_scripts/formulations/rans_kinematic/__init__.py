@@ -63,8 +63,6 @@ class RANSKinematicFormulation(Formulation):
         self.effective_wave_number_convergence_utility = ScalarVariableDifferenceNormCalculationUtility(self.GetBaseModelPart(), KratosRANS.EFFECTIVE_WAVE_NUMBER)
         self.SetMaxCouplingIterations(self.settings["coupling_settings"]["max_iterations"].GetInt())
 
-        self.IsFirstStep = 1 # flag for spectral constant calculation
-
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
@@ -153,8 +151,9 @@ class RANSKinematicFormulation(Formulation):
 
     def SolveCouplingStep(self):
 
-        if self.IsFirstStep == 1:
-            self.IsFirstStep = 0 # the spectral constants are calculated only at the first step!
+        if (not RansVariableUtilities.IsAnalysisStepCompleted(self.GetBaseModelPart(), "FOURIER_SERIES_VARIABLES_CALCULATION")):
+        #current_step = self.GetBaseModelPart().ProcessInfo[Kratos.STEP]
+        #if current_step == 1:
             relative_tolerance = self.settings["coupling_settings"]["relative_tolerance"].GetDouble()
             absolute_tolerance = self.settings["coupling_settings"]["absolute_tolerance"].GetDouble()
             max_iterations = self.GetMaxCouplingIterations()
