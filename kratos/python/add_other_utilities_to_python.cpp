@@ -137,13 +137,14 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
 }
 
 template <class TContainerType>
-void SensitivityBuilderAssignEntityDerivativesToNodes(ModelPart& rModelPart,
-                                                      const int DerivativeDimension,
-                                                      const Variable<Matrix>& rDerivativeVariable,
-                                                      const pybind11::dict& rNeighbourNodeIdsMap,
-                                                      const double Weight,
-                                                      const Flags& rFlag,
-                                                      const bool CheckValue)
+void SensitivityBuilderAssignEntityDerivativesToNodes(
+    ModelPart& rModelPart,
+    const int DerivativeDimension,
+    const Variable<Matrix>& rDerivativeVariable,
+    const pybind11::dict& rNeighbourNodeIdsMap,
+    const double Weight,
+    const Flags& rFlag,
+    const bool CheckValue)
 {
     KRATOS_TRY
 
