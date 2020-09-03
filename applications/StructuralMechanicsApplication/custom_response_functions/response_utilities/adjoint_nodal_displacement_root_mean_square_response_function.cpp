@@ -176,8 +176,8 @@ namespace Kratos
         double value = 0;
         double x_i;
         for(auto& node_i : response_part.Nodes()){
-            x_i = 1/ mTimeDomain * rModelPart.GetNode(node_i.Id()).FastGetSolutionStepValue(*p_traced_dof , 0);
-            value += x_i * x_i;
+            x_i = rModelPart.GetNode(node_i.Id()).FastGetSolutionStepValue(*p_traced_dof , 0);
+            value += x_i * x_i * 1/ mTimeDomain;
         }
 
         return value;
