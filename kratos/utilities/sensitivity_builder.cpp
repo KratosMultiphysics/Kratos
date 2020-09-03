@@ -904,7 +904,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
 }
 
 // template instantiations
-template void SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>
+template KRATOS_API(KRATOS_CORE) void SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>
     (
         ModelPart&,
         const IndexType,
@@ -915,7 +915,7 @@ template void SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::Elem
         const bool
     );
 
-template void SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>
+template KRATOS_API(KRATOS_CORE) void SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>
     (
         ModelPart&,
         const IndexType,
