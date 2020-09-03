@@ -74,7 +74,7 @@ public:
 
         PartitionsType partitions;
 
-        const int block_partition_size = Size / Nchunks;
+        const std::ptrdiff_t block_partition_size = Size / Nchunks;
         partitions[0] = 0;
         partitions[Nchunks] = Size;
         for (int i=1; i<Nchunks; i++) {
