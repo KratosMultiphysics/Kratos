@@ -12,8 +12,6 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 from KratosMultiphysics.ParticleMechanicsApplication import TrilinosExtension as TrilinosExtension
 
-#Other imports (Exchange this!!!)
-from KratosMultiphysics.StructuralMechanicsApplication import trilinos_convergence_criteria_factory as convergence_criteria_factory
 # Importing the base class
 from KratosMultiphysics.ParticleMechanicsApplication.mpm_solver import MPMSolver
 
@@ -81,8 +79,13 @@ class TrilinosMPMSolver(MPMSolver):
         return TrilinosApplication.CreateCommunicator()
 
     def _CreateConvergenceCriteria(self):
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._GetConvergenceCriterionSettings())
-        return convergence_criterion.mechanical_convergence_criterion
+        #TODO: All missing criteria
+        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
+        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
+        convergence_criterion = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
+        convergence_criterion.SetEchoLevel(1)
+        #convergence_criterion = convergence_criteria_factory.convergence_criterion(self._GetConvergenceCriterionSettings())
+        return convergence_criterion
 
     def _CreateLinearSolver(self):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
