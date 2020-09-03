@@ -54,7 +54,7 @@ int ComputeNumberOfChunks(
     }
 
     // in case the container is smaller than the number of chunks
-    return std::min(static_cast<int>(Size), Nchunks);
+    return std::min(Size, Nchunks);
 }
 
 }
