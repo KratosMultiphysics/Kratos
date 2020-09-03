@@ -147,6 +147,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     py::class_<IterativeSolverType, IterativeSolverType::Pointer, LinearSolverType>(m,"IterativeSolver")
     .def(py::init< >() )
     .def("__str__", PrintObject<IterativeSolverType>)
+    .def("GetIterationsNumber",&IterativeSolverType::GetIterationsNumber)
     ;
 
     py::class_<CGSolverType, CGSolverType::Pointer,IterativeSolverType>(m,"CGSolver")
