@@ -260,7 +260,7 @@ public:
      */
     virtual void SetTolerance(double NewTolerance)
     {
-        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::SetTolerance(double). This does nothing !" << std::endl;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function Kratos::LinearSolver::SetTolerance(double). This does nothing !" << std::endl;
     }
     
     /**
@@ -269,13 +269,13 @@ public:
      */
     virtual double GetTolerance()
     {
-        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::GetTolerance(). No tolerance defined, returning 0 !" << std::endl ;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function Kratos::LinearSolver::GetTolerance(). No tolerance defined, returning 0 !" << std::endl ;
         return 0;
     }
 
     virtual unsigned int GetIterationsNumber()
     {
-        KRATOS_WARNING("LinearSolver") << "WARNING: Accessed base function Kratos::LinearSolver::GetTolerance(), returning 0 !" << std::endl;
+        KRATOS_WARNING("LinearSolver") << "Accessed base function Kratos::LinearSolver::GetTolerance(), returning 0 !" << std::endl;
         return 0;
     }
 
