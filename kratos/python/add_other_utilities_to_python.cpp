@@ -13,6 +13,8 @@
 
 
 // System includes
+#include <unordered_map>
+#include <vector>
 
 // External includes
 
@@ -132,6 +134,36 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     std::string name;
     CompareElementsAndConditionsUtility::GetRegisteredName(rCondition, name);
     return name;
+}
+
+template <class TContainerType>
+void SensitivityBuilderAssignEntityDerivativesToNodes(ModelPart& rModelPart,
+                                                      const int DerivativeDimension,
+                                                      const Variable<Matrix>& rDerivativeVariable,
+                                                      const pybind11::dict& rNeighbourNodeIdsMap,
+                                                      const double Weight,
+                                                      const Flags& rFlag,
+                                                      const bool CheckValue)
+{
+    KRATOS_TRY
+
+    namespace py = pybind11;
+
+    std::unordered_map<IndexType, std::vector<IndexType>> neighbours_map;
+
+    for (const auto& item : rNeighbourNodeIdsMap) {
+        std::vector<IndexType> indices_list;
+        for (const auto& list_item : item.second) {
+            indices_list.push_back(py::cast<IndexType>(list_item));
+        }
+        neighbours_map[py::cast<IndexType>(item.first)] = indices_list;
+    }
+
+    SensitivityBuilder::AssignEntityDerivativesToNodes<TContainerType>(
+        rModelPart, DerivativeDimension, rDerivativeVariable, neighbours_map,
+        Weight, rFlag, CheckValue);
+
+    KRATOS_CATCH("");
 }
 
 void AddOtherUtilitiesToPython(pybind11::module &m)
@@ -460,7 +492,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
-        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
+        .def("AssignConditionDerivativesToNodes", &SensitivityBuilderAssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
+        .def("AssignElementDerivativesToNodes", &SensitivityBuilderAssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
+        ;
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
