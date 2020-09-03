@@ -20,6 +20,29 @@
 namespace Kratos {
 namespace Testing {
 
+namespace { // internals used for testing
+
+template< std::size_t TSize>
+class RHSElement
+{
+    public:
+    explicit RHSElement(const double Val) : mRHSVal(Val) {}
+    void CalculateRHS(std::vector<double>& rVector)
+    {
+        if (rVector.size() != TSize) { rVector.resize(TSize); }
+        std::fill(rVector.begin(), rVector.end(), mRHSVal);
+    }
+    double GetAccumRHSValue() {return mAccumRHSValue;}
+    void SetAccumRHSValue(double Value) {mAccumRHSValue = Value;}
+
+    private:
+    double mRHSVal;
+    double mAccumRHSValue = 0.0;
+};
+
+} // namespace Internals
+
+
 // Basic Type
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
 {
@@ -83,134 +106,34 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
         KRATOS_CHECK_EQUAL(output[i], -2.0 );
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuite)
-{
-    // In this example we use a non thread safe search structure
-    //In order to use in a parallel context we need to create a search structure
-    //for each thread. This is done with the use of TLS
-    struct LocalSearch
-    {
-      public:
-        explicit LocalSearch(const std::vector<double>& rPoints) : mPoints(rPoints) {}
-
-        // the TLS is created using the copy constructor
-        // hence we implement the initialization of the
-        // search structure in the copy constructor
-        LocalSearch(const LocalSearch& rSearchPrototype) : mPoints(rSearchPrototype.mPoints)
-        {
-            // here we initalize the search structure
-            // this is a potentially expensive operation!
-            // e.g.
-            // mBins = BinsDynamicSearch(...)
-            // as this is a very basic example we don't do anything
-        }
-
-        double GetIndexOfClosestPoint(const double Coord)
-        {
-            // alternatively the initialization of the search structure
-            // could be done the first time this function is called
-
-            std::size_t closest_index = 0;
-            double closest_distance = std::abs(mPoints[0] - Coord);
-
-            for (std::size_t i=1; i<mPoints.size(); ++i) {
-                double cur_dist = std::abs(mPoints[i] - Coord);
-                if (std::abs(mPoints[i] - Coord) < closest_distance) {
-                    closest_index = i;
-                    closest_distance = cur_dist;
-                }
-            }
-            return closest_index;
-        }
-
-      private:
-        std::vector<double> mPoints;
-    };
-
-    std::vector<double> point_coords {0.0, 1.0, 2.0, 3.0, 4.0, 5.0};
-
-    constexpr std::size_t n_seach_points = 10e2;
-
-    std::vector<double> search_point_coords (n_seach_points);
-    std::vector<std::size_t> exp_results (n_seach_points);
-
-    for (std::size_t i=0; i<n_seach_points; ++i) {
-        search_point_coords[i] = i%6 + 0.2;
-        exp_results[i] = i%6;
-    }
-
-    std::vector<std::size_t> results(search_point_coords.size());
-
-    IndexPartition<unsigned int>(search_point_coords.size()).for_each(LocalSearch(point_coords),
-        [&search_point_coords, &results](unsigned int i, LocalSearch& rLocalSearch){
-            results[i] = rLocalSearch.GetIndexOfClosestPoint(search_point_coords[i]);
-        }
-    );
-
-    KRATOS_CHECK_EQUAL(results.size(), exp_results.size());
-    for (std::size_t i=0; i<results.size(); ++i) {
-        KRATOS_CHECK_EQUAL(results[i], exp_results[i]);
-    }
-}
-
-KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorageAndReduction, KratosCoreFastSuite)
-{
-    constexpr int nsize = 1e3;
-    std::vector<double> data_vector(nsize);
-    for(auto& it : data_vector)
-        it = -1.0;
-
-    double final_sum = IndexPartition<unsigned int>(data_vector.size()).for_each<SumReduction<double>>(std::vector<int>(), [&](unsigned int i, std::vector<int>& rVec){
-            return 2.0*data_vector[i];
-            }
-        );
-
-    KRATOS_CHECK_DOUBLE_EQUAL(final_sum, (nsize*(-2.0)));
-}
-
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
 {
     constexpr std::size_t vec_size = 6;
     constexpr std::size_t n_elems = 10e2;
     constexpr double tol = 1e-8;
 
-    class RHSElement
-    {
-      public:
-        explicit RHSElement(const double Val) : mRHSVal(Val) {}
-        void CalculateRHS(std::vector<double>& rVector)
-        {
-            if (rVector.size() != vec_size) { rVector.resize(vec_size); }
-            std::fill(rVector.begin(), rVector.end(), mRHSVal);
-        }
-        double GetAccumRHSValue() {return mAccumRHSValue;}
-        void SetAccumRHSValue(double Value) {mAccumRHSValue = Value;}
-
-      private:
-        double mRHSVal;
-        double mAccumRHSValue = 0.0;
-    };
+    using RHSElementType = RHSElement<vec_size>;
 
     std::vector<double> rhs_vals(n_elems);
     for (std::size_t i=0; i<n_elems; ++i) {
         rhs_vals[i] = (i%12) * 1.889;
     }
 
-    std::vector<RHSElement> elements;
+    std::vector<RHSElementType> elements;
     for (std::size_t i=0; i<rhs_vals.size(); ++i) {
-        elements.push_back(RHSElement(rhs_vals[i]));
+        elements.push_back(RHSElementType(rhs_vals[i]));
     }
 
     const double exp_sum = (std::accumulate(rhs_vals.begin(), rhs_vals.end(), 0.0)) * vec_size;
 
-    auto tls_lambda_manual_reduction = [](RHSElement& rElem, std::vector<double>& rTLS)
+    auto tls_lambda_manual_reduction = [](RHSElementType& rElem, std::vector<double>& rTLS)
     {
         rElem.CalculateRHS(rTLS);
         double rhs_sum = std::accumulate(rTLS.begin(), rTLS.end(), 0.0);
         rElem.SetAccumRHSValue(rhs_sum);
     };
 
-    auto tls_lambda_reduction = [](RHSElement& rElem, std::vector<double>& rTLS)
+    auto tls_lambda_reduction = [](RHSElementType& rElem, std::vector<double>& rTLS)
     {
         rElem.CalculateRHS(rTLS);
         return std::accumulate(rTLS.begin(), rTLS.end(), 0.0);
@@ -220,9 +143,9 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     // Manual Reduction, long form
     // here the TLS is constructed on the fly. This is the "private" approach of OpenMP
     // the result is checked with a "manual reduction"
-    BlockPartition<std::vector<RHSElement>>(elements).for_each(std::vector<double>(), tls_lambda_manual_reduction);
+    BlockPartition<std::vector<RHSElementType>>(elements).for_each(std::vector<double>(), tls_lambda_manual_reduction);
 
-    const double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElement& rElem){
+    const double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
         return acc + rElem.GetAccumRHSValue();
     });
 
@@ -234,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     // the result is checked with a "manual reduction"
     block_for_each(elements, std::vector<double>(), tls_lambda_manual_reduction);
 
-    const double sum_elem_rhs_vals_short = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElement& rElem){
+    const double sum_elem_rhs_vals_short = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
         return acc + rElem.GetAccumRHSValue();
     });
 
@@ -245,7 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     // here the TLS is constructed beforehand. This is the "firstprivate" approach of OpenMP
     // checking the results using reduction
     std::vector<double> tls(6);
-    const double final_sum = BlockPartition<std::vector<RHSElement>>(elements).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
+    const double final_sum = BlockPartition<std::vector<RHSElementType>>(elements).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
 
     KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 
@@ -257,6 +180,67 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     const double final_sum_short = block_for_each<SumReduction<double>>(elements, tls_short, tls_lambda_reduction);
 
     KRATOS_CHECK_NEAR(final_sum_short, exp_sum, tol);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuite)
+{
+    constexpr std::size_t vec_size = 6;
+    constexpr std::size_t n_elems = 10e2;
+    constexpr double tol = 1e-8;
+
+    using RHSElementType = RHSElement<vec_size>;
+
+    std::vector<double> rhs_vals(n_elems);
+    for (std::size_t i=0; i<n_elems; ++i) {
+        rhs_vals[i] = (i%12) * 1.889;
+    }
+
+    std::vector<RHSElementType> elements;
+    for (std::size_t i=0; i<rhs_vals.size(); ++i) {
+        elements.push_back(RHSElementType(rhs_vals[i]));
+    }
+
+    const double exp_sum = (std::accumulate(rhs_vals.begin(), rhs_vals.end(), 0.0)) * vec_size;
+
+    auto tls_lambda_manual_reduction = [&elements](std::size_t i, std::vector<double>& rTLS)
+    {
+        elements[i].CalculateRHS(rTLS);
+        double rhs_sum = std::accumulate(rTLS.begin(), rTLS.end(), 0.0);
+        elements[i].SetAccumRHSValue(rhs_sum);
+    };
+
+    auto tls_lambda_reduction = [&elements](std::size_t i, std::vector<double>& rTLS)
+    {
+        elements[i].CalculateRHS(rTLS);
+        return std::accumulate(rTLS.begin(), rTLS.end(), 0.0);
+    };
+
+
+    // Manual Reduction, long form
+    // here the TLS is constructed on the fly. This is the "private" approach of OpenMP
+    // the result is checked with a "manual reduction"
+    IndexPartition<std::size_t>(elements.size()).for_each(std::vector<double>(), tls_lambda_manual_reduction);
+
+    const double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
+        return acc + rElem.GetAccumRHSValue();
+    });
+
+    KRATOS_CHECK_NEAR(sum_elem_rhs_vals, exp_sum, tol);
+
+    const double sum_elem_rhs_vals_short = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
+        return acc + rElem.GetAccumRHSValue();
+    });
+
+    KRATOS_CHECK_NEAR(sum_elem_rhs_vals_short, exp_sum, tol);
+
+
+    // Reduction, long form
+    // here the TLS is constructed beforehand. This is the "firstprivate" approach of OpenMP
+    // checking the results using reduction
+    std::vector<double> tls(6);
+    const double final_sum = IndexPartition<std::size_t>(elements.size()).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
+
+    KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
