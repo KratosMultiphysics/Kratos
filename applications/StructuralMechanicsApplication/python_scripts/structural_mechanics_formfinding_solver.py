@@ -18,10 +18,6 @@ class FormfindingMechanicalSolver(MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        if not custom_settings.Has("use_computing_model_part"):
-            custom_settings.AddEmptyValue("use_computing_model_part")
-        custom_settings["use_computing_model_part"].SetBool(False) # must be False for FormFinding!
-
         # Construct the base solver.
         super().__init__(main_model_part, custom_settings)
         custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["projection_settings"])
