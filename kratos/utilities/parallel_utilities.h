@@ -59,6 +59,14 @@ int ComputeNumberOfChunks(
 
 }
 
+template<class TIndexType=std::size_t, class TIteratorType>
+std::vector<TIndexType> CreatePartition(
+    TIteratorType it_begin,
+    TIteratorType it_end)
+{
+
+}
+
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
@@ -86,7 +94,7 @@ public:
     {
         const ptrdiff_t size_container = it_end-it_begin;
 
-        mNchunks = ComputeNumberOfChunks(Nchunks, size_container);
+        mNchunks = Internals::ComputeNumberOfChunks(Nchunks, size_container);
 
         const ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
@@ -183,7 +191,7 @@ public:
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
     {
-        mNchunks = ComputeNumberOfChunks(Nchunks, Size);
+        mNchunks = Internals::ComputeNumberOfChunks(Nchunks, Size);
 
         const int block_partition_size = Size / mNchunks;
         mBlockPartition[0] = 0;
