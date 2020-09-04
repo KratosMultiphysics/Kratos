@@ -112,10 +112,53 @@ public:
     }
 
     /**
+     * @brief Constructor for creating a component of other variable
+     * @param rNewName The name to be assigned to the compoenent
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero)
+    {
+    }
+
+    /**
+     * @brief Constructor for creating a component of other variable
+     * @param rNewName The name to be assigned to the compoenent
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const VariableType* pTimeDerivativeVariable,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+    {
+    }
+
+    /**
+     * Copy constructor.
      * @brief Copy constructor.
      * @param rOtherVariable The old variable to be copied
      */
-    explicit Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
+    explicit Variable(const VariableType& rOtherVariable) :
+        VariableData(rOtherVariable),
+        mZero(rOtherVariable.mZero),
+        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+    {
+    }
 
     /// Destructor.
     ~Variable() override {}
@@ -125,15 +168,9 @@ public:
     ///@{
 
     /**
-     * @brief Assignment operator.
-     * @param rOtherVariable The old variable to be assigned
+     * @brief Assignment operator, deleted to avoid misuse which can lead to memory problems
      */
-    VariableType& operator=(const VariableType& rOtherVariable)
-    {
-        VariableData::operator=(rOtherVariable);
-        mZero = rOtherVariable.mZero;
-        return *this;
-    }
+    VariableType& operator=(const VariableType& rOtherVariable) = delete;
 
     ///@}
     ///@name Operations
@@ -213,7 +250,12 @@ public:
      */
     void Print(const void* pSource, std::ostream& rOStream) const override
     {
-        rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        if(IsComponent()) {
+            rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable : " <<  *static_cast<const TDataType* >(pSource) ;
+        }
+        else {
+            rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        }
     }
 
     /**
@@ -263,7 +305,18 @@ public:
      */
     static const VariableType& StaticObject()
     {
-        return msStaticObject;
+        const static Variable<TDataType> static_object("NONE");
+        return static_object;
+    }
+
+    TDataType& GetValue(void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
+    }
+
+    const TDataType& GetValue(const void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
     }
 
     ///@}
@@ -289,6 +342,10 @@ public:
         return mZero;
     }
 
+    const void* pZero() const override {
+       return &mZero;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -305,6 +362,12 @@ public:
     {
         std::stringstream buffer;
         buffer << Name() << " variable" <<" #" << static_cast<unsigned int>(Key());
+        if(IsComponent()){
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key()) << " component " << GetComponentIndex() << " of " <<  GetSourceVariable().Name();
+        }
+        else {
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key());
+        }
         return buffer.str();
     }
 
@@ -314,7 +377,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Name() << " variable";
+        rOStream << Info();
     }
 
     /// Print object's data.
@@ -389,6 +452,21 @@ private:
     ///@name Private Operations
     ///@{
 
+    /// This is the default function for getting a value by index considering continuous memory indexing
+    /** It is templated so one can create specialized version of this for types with different structure
+    **/
+    template<typename TValueType>
+    TDataType& GetValueByIndex(TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<TDataType*>(pValue + index);
+    }
+
+    template<typename TValueType>
+    const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<const TDataType*>(pValue + index);
+    }
+
     ///@}
     ///@name Serialization
     ///@{
@@ -441,9 +519,6 @@ private:
 
 ///@}
 
-template<class TDataType>
-const Variable<TDataType> Variable<TDataType>::msStaticObject("NONE");
-
 ///@name Type Definitions
 ///@{
 
@@ -470,9 +545,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIABLE_H_INCLUDED  defined
-
-

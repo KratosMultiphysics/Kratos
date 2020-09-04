@@ -212,6 +212,19 @@ public:
     }
 
     ///@}
+    ///@name  Geometry Shape Function Container
+    ///@{
+
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     */
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rGeometryShapeFunctionContainer) override
+    {
+        mGeometryData.SetGeometryShapeFunctionContainer(rGeometryShapeFunctionContainer);
+    }
+
+    ///@}
     ///@name Parent
     ///@{
 
@@ -233,7 +246,7 @@ public:
     double DomainSize() const override
     {
         Vector temp;
-        temp = this->DeterminantOfJacobian(temp, GeometryData::GI_GAUSS_1);
+        temp = this->DeterminantOfJacobian(temp);
         const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
         double domain_size = 0.0;
 

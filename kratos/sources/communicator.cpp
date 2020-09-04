@@ -93,6 +93,21 @@ int Communicator::TotalProcesses() const
     return mrDataCommunicator.Size();
 }
 
+Communicator::SizeType Communicator::GlobalNumberOfNodes() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfNodes()));
+}
+
+Communicator::SizeType Communicator::GlobalNumberOfElements() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfElements()));
+}
+
+Communicator::SizeType Communicator::GlobalNumberOfConditions() const
+{
+    return mrDataCommunicator.SumAll(static_cast<unsigned int>(mpLocalMesh->NumberOfConditions()));
+}
+
 Communicator::SizeType Communicator::GetNumberOfColors() const
 {
     return mNumberOfColors;
@@ -111,6 +126,22 @@ void Communicator::SetNumberOfColors(SizeType NewNumberOfColors)
     mInterfaceMeshes.clear();
 
     for (IndexType i = 0; i < mNumberOfColors; i++)
+    {
+        mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    }
+}
+
+void Communicator::AddColors(SizeType NumberOfAddedColors)
+{
+    if (NumberOfAddedColors < 1)
+        return;
+
+    mNumberOfColors += NumberOfAddedColors;
+    MeshType mesh;
+
+    for (IndexType i = 0; i < NumberOfAddedColors; i++)
     {
         mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
         mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));

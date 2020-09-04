@@ -74,7 +74,15 @@ HenckyElasticPlastic3DLaw::~HenckyElasticPlastic3DLaw()
 
 bool HenckyElasticPlastic3DLaw::Has( const Variable<double>& rThisVariable )
 {
-    return false;
+    if (rThisVariable == MP_DELTA_PLASTIC_STRAIN
+        || rThisVariable == MP_EQUIVALENT_PLASTIC_STRAIN
+        || rThisVariable == MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+        || rThisVariable == MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+        || rThisVariable == MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+        || rThisVariable == MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+        || rThisVariable == MIU)
+        return true;
+    else return false;
 }
 
 bool HenckyElasticPlastic3DLaw::Has( const Variable<Vector>& rThisVariable )

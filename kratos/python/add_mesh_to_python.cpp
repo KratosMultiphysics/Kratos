@@ -146,57 +146,17 @@ py::list GetIntegrationPointsFromElement( Element& dummy )
 ///@name Calculate on Integration Points
 ///@{
 
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsDouble(
-    TObject& dummy, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo )
+template< class TObject, class TDataType >
+pybind11::list CalculateOnIntegrationPoints(
+    TObject& dummy, const Variable<TDataType>& rVariable, const ProcessInfo& rProcessInfo)
 {
-    std::vector<double> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    std::vector<TDataType> Output;
+    dummy.CalculateOnIntegrationPoints(rVariable, Output, rProcessInfo);
     pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
+    for (unsigned int j = 0; j < Output.size(); j++)
     {
-        result.append( Output[j] );
+        result.append(Output[j]);
     }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsArray1d(
-    TObject& dummy, const Variable<array_1d<double, 3>>& rVariable, const ProcessInfo& rProcessInfo )
-{
-    std::vector<array_1d<double, 3>> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
-    }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsVector(
-    TObject& dummy, const Variable<Vector>& rVariable, const ProcessInfo& rProcessInfo )
-{
-    std::vector<Vector> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-    {
-        result.append( Output[j] );
-    }
-    return result;
-}
-
-template< class TObject >
-pybind11::list CalculateOnIntegrationPointsMatrix(
-    TObject& dummy, const Variable<Matrix>& rVariable, const ProcessInfo& rProcessInfo )
-{
-    std::vector<Matrix> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
-    pybind11::list result;
-    for( unsigned int j=0; j<Output.size(); j++ )
-        result.append( Output[j] );
     return result;
 }
 
@@ -217,16 +177,15 @@ void GetValuesOnIntegrationPoints(
 ///@name Set Values on Integration Points
 ///@{
 
-template< class TObject >
-void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, std::vector<double> values,  const ProcessInfo& rCurrentProcessInfo )
+template< class TObject, class TDataType >
+void SetValuesOnIntegrationPoints(
+    TObject& dummy, const Variable<TDataType>& rVariable, std::vector<TDataType> values, const ProcessInfo& rCurrentProcessInfo)
 {
-    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
-                dummy.GetIntegrationMethod() );
+    KRATOS_ERROR_IF(values.size() != dummy.GetGeometry().IntegrationPointsNumber())
+        << "Sizes do not match. Size of values vector is: " << values.size() << ". The number of integration points is: "
+        << dummy.GetGeometry().IntegrationPointsNumber() << std::endl;
 
-    if(values.size() != integration_points.size())
-        KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
-
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    dummy.SetValuesOnIntegrationPoints(rVariable, values, rCurrentProcessInfo);
 }
 
 template< class TObject >
@@ -490,16 +449,18 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
     // CalculateOnIntegrationPoints
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Element>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Element>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, int>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, double>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, array_1d<double, 3>>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Element, Matrix>)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Element>)
     // SetValuesOnIntegrationPoints
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, int>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
     .def("Calculate", &ElementCalculateInterface<double>)
@@ -518,23 +479,17 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector2)
     .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<double>)
     .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<array_1d<double,3> >)
-    //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
-    //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
-    //.def("SetValue", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
-    //.def("GetValue", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
 
 //     .def(VariableIndexingPython<Element, Variable<int> >())
 //     .def(VariableIndexingPython<Element, Variable<double> >())
 //     .def(VariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
 //     .def(VariableIndexingPython<Element, Variable< Vector > >())
 //     .def(VariableIndexingPython<Element, Variable< Matrix > >())
-//     .def(VariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<int> >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<double> >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
-//     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &ElementInitialize)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("__str__", PrintObject<Element>)
@@ -618,14 +573,16 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNodes", GetNodesFromCondition )
 
     // CalculateOnIntegrationPoints
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector<Condition>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix<Condition>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, int>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, double>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, array_1d<double, 3>>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPoints<Condition, Matrix>)
     // GetValuesOnIntegrationPoints
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPoints<Condition>)
     // SetValuesOnIntegrationPoints
-    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, int>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Condition, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
@@ -637,13 +594,11 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(VariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
 //     .def(VariableIndexingPython<Condition, Variable< Vector > >())
 //     .def(VariableIndexingPython<Condition, Variable< Matrix > >())
-//     .def(VariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<int> >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<double> >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
-//     .def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 
 
     .def("Initialize", &ConditionInitialize)

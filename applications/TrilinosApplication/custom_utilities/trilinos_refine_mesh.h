@@ -988,7 +988,7 @@ protected:
                                       const ProcessInfo& rCurrentProcessInfo)
     {
         std::vector<Vector> values;
-        father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
         /* /// WARNING =  Calculando la longitud ponderada de fractura del elemento. Solo valido para isotropic_damage
          Element::GeometryType& geom_father = father_elem->GetGeometry();
          Element::GeometryType& geom_child  = child_elem->GetGeometry();

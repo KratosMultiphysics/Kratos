@@ -6,6 +6,7 @@ from KratosMultiphysics.CoSimulationApplication.factories.coupling_operation_fac
 from KratosMultiphysics.CoSimulationApplication.factories.data_transfer_operator_factory import CreateDataTransferOperator
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_criterion_factory import CreateConvergenceCriterion
 from KratosMultiphysics.CoSimulationApplication.factories.predictor_factory import CreatePredictor
 
 
@@ -36,17 +37,20 @@ def CreateConvergenceAccelerators(convergence_accelerator_settings_list, solvers
 def CreateConvergenceCriteria(convergence_criterion_settings_list, solvers, parent_echo_level):
     convergence_criteria = []
     for conv_crit_settings in convergence_criterion_settings_list:
-        solver = solvers[conv_crit_settings["solver"].GetString()]
         AddEchoLevelToSettings(conv_crit_settings, parent_echo_level)
-        convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
+        if conv_crit_settings.Has("use_wrapper") and not conv_crit_settings["use_wrapper"].GetBool():
+            convergence_criteria.append(CreateConvergenceCriterion(conv_crit_settings, solvers))
+        else:
+            solver = solvers[conv_crit_settings["solver"].GetString()]
+            convergence_criteria.append(ConvergenceCriteriaWrapper(conv_crit_settings, solver))
 
     return convergence_criteria
 
-def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_echo_level):
+def CreateCouplingOperations(coupling_operations_settings_dict, solvers, parent_coupled_solver_process_info, parent_echo_level):
     coupling_operations = {}
     for coupling_operation_name, coupling_operation_settings in coupling_operations_settings_dict.items():
         AddEchoLevelToSettings(coupling_operation_settings, parent_echo_level)
-        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_settings, solvers)
+        coupling_operations[coupling_operation_name] = CreateCouplingOperation(coupling_operation_settings, solvers, parent_coupled_solver_process_info)
 
     return coupling_operations
 

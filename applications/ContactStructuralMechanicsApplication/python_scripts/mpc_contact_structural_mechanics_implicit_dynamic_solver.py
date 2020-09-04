@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -38,7 +36,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         self._validate_settings_in_baseclass=True # To be removed eventually
 
         # Construct the base solver.
-        super(MPCContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         self.mpc_contact_settings = self.settings["mpc_contact_settings"]
         self.mpc_contact_settings.RecursivelyAddMissingParameters(GetDefaults()["mpc_contact_settings"])
@@ -56,7 +54,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
     def AddVariables(self):
 
-        super(MPCContactImplicitMechanicalSolver, self).AddVariables()
+        super().AddVariables()
 
         # We add the contact related variables
         contact_type = self.mpc_contact_settings["contact_type"].GetString()
@@ -65,7 +63,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactImplicitMechanicalSolver]:: ", "Initializing ...")
 
-        super(MPCContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+        super().Initialize() # The mechanical solver is created here.
 
         # We set the flag INTERACTION
         if self.mpc_contact_settings["simplified_semi_smooth_newton"].GetBool():

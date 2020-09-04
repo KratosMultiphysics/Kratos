@@ -41,11 +41,18 @@
             }
         },
         "output" : {
-            "design_output_mode" : "WriteDesignSurface",
-            "nodal_results"      : [ "SHAPE_UPDATE",
-                                     "SHAPE_CHANGE" ],
+            "design_output_mode" : "none",
+            "nodal_results"      : [
+                "SHAPE_UPDATE",
+                "SHAPE_CHANGE",
+                "DF1DX",
+                "DF1DX_MAPPED",
+                "SEARCH_DIRECTION",
+                "CONTROL_POINT_UPDATE",
+                "CONTROL_POINT_CHANGE"
+            ],
             "output_format" : {
-                "name": "gid"
+                "name": "vtk"
             }
         }
     }
