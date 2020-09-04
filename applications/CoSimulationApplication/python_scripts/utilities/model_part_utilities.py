@@ -1,17 +1,24 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
+# CoSimulation imports
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
+from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
+
 def AllocateHistoricalVariablesFromCouplingDataSettings(data_settings_list, model, solver_name):
     '''This function retrieves the historical variables that are needed for the ModelParts from the
     specified CouplingInterfaceData-settings and allocates them on the ModelParts
     Note that it can only be called after the (Main-)ModelParts are created
     '''
-    data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
+    # data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
 
-    for data in data_list:
-        hist_var_dict = data.GetHistoricalVariableDict()
-        for full_model_part_name, variable in hist_var_dict.items():
-            main_model_part_name = full_model_part_name.split(".")[0]
+    for data_settings in data_settings_list.values():
+        CouplingInterfaceData.GetDefaultSettings()
+        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultSettings())
+
+        if data_settings["location"].GetString() == "node_historical":
+            variable = KM.KratosGlobals.GetVariable(data_settings["variable_name"].GetString())
+            main_model_part_name = data_settings["model_part_name"].GetString().split(".")[0]
             if not model.HasModelPart(main_model_part_name):
                 raise Exception('ModelPart "{}" does not exist in solver "{}"!'.format(main_model_part_name, solver_name))
             main_model_part = model[main_model_part_name]
