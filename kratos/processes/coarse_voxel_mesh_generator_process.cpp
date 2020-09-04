@@ -155,19 +155,42 @@ namespace Kratos
 			std::vector<double> y_key_planes;
 			std::vector<double> z_key_planes;
 
+			std::vector<std::size_t> min_i;
+			std::vector<std::size_t> min_j;
+			std::vector<std::size_t> min_k;
+
+			std::vector<std::size_t> max_i;
+			std::vector<std::size_t> max_j;
+			std::vector<std::size_t> max_k;
+
 			for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
-				if(x_cell_coarse[i])
+				if(x_cell_coarse[i]){
 					x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
+					min_i.push_back(i);
+				}
+				if(x_cell_coarse[i+1]){
+					max_i.push_back(i);
+				}
 			}
 
 			for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
-				if(y_cell_coarse[i])
+				if(y_cell_coarse[i]){
 					y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
+					min_j.push_back(i);
+				}
+				if(y_cell_coarse[i+1]){
+					max_j.push_back(i);
+				}
 			}
 
 			for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
-				if(z_cell_coarse[i])
+				if(z_cell_coarse[i]){
 					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
+					min_k.push_back(i);
+				}
+				if(z_cell_coarse[i+1]){
+					max_k.push_back(i);
+				}
 			}
 
 			x_key_planes.push_back(mMaxPoint[0]);
@@ -176,48 +199,28 @@ namespace Kratos
 
 		mCoarseMeshColors.SetCoordinates(x_key_planes, y_key_planes, z_key_planes);
 
-		const std::size_t coarse_last_x = x_key_planes.size() - 2;
-		const std::size_t coarse_last_y = y_key_planes.size() - 2;
-		const std::size_t coarse_last_z = z_key_planes.size() - 2;
+		auto coarse_x_size=x_key_planes.size() - 1;
+		auto coarse_y_size=y_key_planes.size() - 1;
+		auto coarse_z_size=z_key_planes.size() - 1;
 
-		std::size_t coarse_i = 0;
-		std::size_t coarse_j = 0;
-		std::size_t coarse_k = 0;
-		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-			if(z_cell_coarse[k]){
-				coarse_j = 0;
-				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
-					if(y_cell_coarse[j]){
-						coarse_i = 0;
-						for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-							if(x_cell_coarse[i]){
-								mCoarseMeshColors.GetElementalColor(coarse_i, coarse_j, coarse_k) = mColors.GetElementalColor(i,j,k);
-								mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k) =  mColors.GetElementalFaceColor(i,j,k);
-								if(coarse_i > 0){
-									mCoarseMeshColors.GetElementalFaceColor(coarse_i - 1, coarse_j, coarse_k)[3] = mColors.GetElementalFaceColor(i-1,j,k)[3];
-								}
-								if(coarse_j > 0){
-									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j - 1, coarse_k)[4] = mColors.GetElementalFaceColor(i,j-1,k)[4];
-								}
-								if(coarse_k > 0){
-									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k-1)[5] = mColors.GetElementalFaceColor(i,j,k-1)[5];
-								}
-								if(coarse_i == coarse_last_x){
-									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k)[3] = mColors.GetElementalFaceColor(mNumberOfDivisions[0]-1,j,k)[3];
-								}
-								if(coarse_j == coarse_last_y){
-									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k)[4] = mColors.GetElementalFaceColor(i,mNumberOfDivisions[1]-1,k)[4];
-								}
-								if(coarse_k == coarse_last_z){
-									mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k)[5] = mColors.GetElementalFaceColor(i,j,mNumberOfDivisions[2]-1)[5];
-								}
-								coarse_i++;
-							}
-						}
-						coarse_j++;
-					}
+		for (std::size_t coarse_k = 0; coarse_k < coarse_z_size; coarse_k++) {
+			auto k = min_k[coarse_k];
+			for (std::size_t coarse_j = 0; coarse_j < coarse_y_size; coarse_j++) {
+				auto j = min_j[coarse_j];
+				for (std::size_t coarse_i = 0; coarse_i < coarse_x_size; coarse_i++) {
+					auto i = min_i[coarse_i];
+					mCoarseMeshColors.GetElementalColor(coarse_i, coarse_j, coarse_k) = mColors.GetElementalColor(i,j,k);
+					auto& coarse_face_color = mCoarseMeshColors.GetElementalFaceColor(coarse_i, coarse_j, coarse_k);
+					auto min_face_color = mColors.GetElementalFaceColor(i,j,k);
+					auto max_face_color = mColors.GetElementalFaceColor(max_i[coarse_i],max_j[coarse_j],max_k[coarse_k]);
+					coarse_face_color[0] =  min_face_color[0];
+					coarse_face_color[1] =  min_face_color[1];
+					coarse_face_color[2] =  min_face_color[2];
+					coarse_face_color[3] =  max_face_color[3];
+					coarse_face_color[4] =  max_face_color[4];
+					coarse_face_color[5] =  max_face_color[5];
+
 				}
-				coarse_k++;
 			}
 		}
 
