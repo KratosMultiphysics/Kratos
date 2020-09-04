@@ -662,11 +662,7 @@ public:
     {
         KRATOS_TRY
 
-        Timer::Start("BuildRHS");
-
         BuildRHS(pScheme, rModelPart, rb);
-
-        Timer::Stop("BuildRHS");
 
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             Timer::Start("ApplyRHSConstraints");
@@ -705,6 +701,8 @@ public:
     {
         KRATOS_TRY
 
+        Timer::Start("BuildRHS");
+
         BuildRHSNoDirichlet(pScheme,rModelPart,b);
 
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
@@ -719,6 +717,8 @@ public:
             if (dof_iterator->IsFixed())
                 b[i] = 0.0;
         }
+
+        Timer::Stop("BuildRHS");
 
         KRATOS_CATCH("")
     }

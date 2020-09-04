@@ -873,7 +873,7 @@ public:
     /**@name Access */
     /*@{ */
 
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 

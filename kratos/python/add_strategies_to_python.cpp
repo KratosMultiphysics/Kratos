@@ -561,6 +561,9 @@ namespace Kratos
                     .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
                     .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
                     .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                    .def("GetSystemMatrix", &BaseSolvingStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
+                    .def("GetSystemVector", &BaseSolvingStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
+                    .def("GetSolutionVector", &BaseSolvingStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
                     .def("Info", &BaseSolvingStrategyType::Info)
                     ;
@@ -607,9 +610,6 @@ namespace Kratos
                 .def("GetScheme", &ResidualBasedLinearStrategyType::GetScheme)
                 .def("GetResidualNorm", &ResidualBasedLinearStrategyType::GetResidualNorm)
                 .def("SetBuilderAndSolver", &ResidualBasedLinearStrategyType::SetBuilderAndSolver)
-                .def("GetSystemMatrix", &ResidualBasedLinearStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
-                .def("GetSystemVector", &ResidualBasedLinearStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
-                .def("GetSolutionVector", &ResidualBasedLinearStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
                 ;
 
             typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
@@ -629,13 +629,8 @@ namespace Kratos
                 .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
                 .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
                 .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
-                .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
-                .def("GetSystemVector", &ResidualBasedNewtonRaphsonStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
-                .def("GetSolutionVector", &ResidualBasedNewtonRaphsonStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
-                .def("SetUseOldStiffnessInFirstIterationFlag",
-                     &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
-                .def("GetUseOldStiffnessInFirstIterationFlag",
-                     &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+                .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
