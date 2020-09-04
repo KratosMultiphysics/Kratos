@@ -1573,6 +1573,8 @@ protected:
             mT(eq_id, eq_id) = 1.0;
         }
 
+        TSparseSpace::WriteMatrixMarketMatrix("T_serial.mm", mT, false);
+
         KRATOS_CATCH("")
     }
 

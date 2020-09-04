@@ -495,6 +495,7 @@ void ApplyChimera<TDim>::FormulateConstraints(
         ModelPart::NodesContainerType::iterator i_boundary_node =
             gathered_modelpart.NodesBegin() + i_bn;
         NodeType& r_boundary_node = *(*(i_boundary_node.base()));
+        auto& actual_node = mrMainModelPart.Nodes()[r_boundary_node.Id()];
         // const int node_p_index = is_comm_distributed ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX) : 0;
         unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
         Element::Pointer r_host_element;
@@ -506,12 +507,17 @@ void ApplyChimera<TDim>::FormulateConstraints(
             auto& ms_pressure_container =
                 rPressureMasterSlaveContainerVector[omp_get_thread_num()];
             removed_counter += RemoveExistingConstraintsForNode(r_boundary_node);
-            auto& actual_node = mrMainModelPart.Nodes()[r_boundary_node.Id()];
+            actual_node.Set(SLAVE, true);
             MakeConstraints(actual_node, r_host_element, weights,
                             ms_velocity_container, ms_pressure_container,
                             constraints_id_vector, start_constraint_id);
             found_counter += 1;
         }
+        else
+        {
+            actual_node.Set(SLAVE, false);
+        }
+        
     }
 
     if (is_comm_distributed)

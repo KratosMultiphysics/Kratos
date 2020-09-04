@@ -10,8 +10,9 @@
 //  Main authors:    Aditya Ghantasala
 //
 //
-#if !defined(KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS)
-#define KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS
+
+#if !defined(TRILINOS_CHIMERA_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS)
+#define TRILINOS_CHIMERA_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS
 
 /* System includes */
 #include <set>
@@ -274,32 +275,26 @@ public:
                        TSystemVectorType& rb) override
     {
         KRATOS_TRY
-
-        TSystemVectorPointerType p_Dx; /// The increment in the solution
-        TSystemVectorPointerType p_b; /// The RHS vector of the system of equations
-        TSystemMatrixPointerType p_A; /// The LHS matrix of the system of equations
-
-        BaseType::ResizeAndInitializeVectors(pScheme, p_A, p_Dx, p_b, rModelPart);
-        TSparseSpace::Copy(*p_A, rA);
-        TSparseSpace::Copy(*p_Dx, rDx);
-        TSparseSpace::Copy(*p_b, rb);
-        TSparseSpace::Clear(p_Dx);
-        TSparseSpace::Clear(p_b);
-        TSparseSpace::Clear(p_A);
-
-        if (BaseType::GetEchoLevel() > 0)
-            START_TIMER("Build", 0)
-
-        Build(pScheme, rModelPart, rA, rb);
-
-        if (BaseType::GetEchoLevel() > 0)
-            STOP_TIMER("Build", 0)
-
         const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
+        const Epetra_CrsGraph a_graph = rA.Graph();
+
+        auto start_build_time = std::chrono::steady_clock::now();
+        Build(pScheme, rModelPart, rA, rb);
+        auto end_build_time = std::chrono::steady_clock::now();
+        KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                <<"Build time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_time - start_build_time).count()/1000.0 <<"s"<<std::endl;
         if(global_num_constraints > 0) {
-            if (BaseType::GetEchoLevel() > 0) START_TIMER("ApplyConstraints", 0);
-            ApplyConstraints(pScheme, rModelPart, rA, rb);
-            if (BaseType::GetEchoLevel() > 0) STOP_TIMER("ApplyConstraints", 0);
+            auto start_build_ms_time = std::chrono::steady_clock::now();
+            BuildMasterSlaveConstraints(rModelPart);
+            auto end_build_ms_time = std::chrono::steady_clock::now();
+            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                    <<"Build Master-Slave constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_build_ms_time - start_build_ms_time).count()/1000.0 <<" s"<<std::endl;
+
+            auto start_ac_time = std::chrono::steady_clock::now();
+            // ApplyConstraints(pScheme, rModelPart, rA, rb);
+            auto end_ac_time = std::chrono::steady_clock::now();
+            KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                    <<"Apply constraints time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_ac_time - start_ac_time).count()/1000.0 <<"s"<<std::endl;
         }
 
         // apply dirichlet conditions
@@ -310,18 +305,23 @@ public:
             << "\nSystem Matrix = " << rA << "\nunknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
 
-        if (BaseType::GetEchoLevel() > 0)
-            START_TIMER("System solve time ", 0)
 
+        auto start_solve_time = std::chrono::steady_clock::now();
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
-
-        if (BaseType::GetEchoLevel() > 0)
-            STOP_TIMER("System solve time ", 0)
+        auto end_solve_time = std::chrono::steady_clock::now();
+        KRATOS_INFO_IF("TrilinosBuilderAndSolverWithConstraints",BaseType::GetEchoLevel() > 0)
+                <<"Solve time : "<< std::chrono::duration_cast<std::chrono::milliseconds>(end_solve_time - start_solve_time).count()/1000.0 <<" s"<<std::endl;
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nAfter the solution of the system"
             << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
+
+        if(global_num_constraints > 0) {
+            TSystemMatrixType new_a(Copy, a_graph);
+            TSparseSpace::SetToZero(rA);
+            TSparseSpace::Copy(new_a, rA);
+        }
         KRATOS_CATCH("")
     }
 
@@ -332,14 +332,15 @@ public:
         ModelPart& rModelPart
     )
     {
-        const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
+        const int global_num_constraints =  GetGlobalNumberOfConstraints(rModelPart);
         if(global_num_constraints > 0) {
             TSparseSpace::SetToZero(rDx);
             TSystemVectorType dx_mod(rb.Map());
             InternalSystemSolveWithPhysics(rA, dx_mod, rb, rModelPart);
             //recover solution of the original problem
             // TODO: Sparse matrix vector multiplication to get Dx
-            TSparseSpace::Mult(*mpT, dx_mod, rDx);
+            // TSparseSpace::Mult(*mpT, dx_mod, rDx);
+            rDx = dx_mod;
         } else {
             InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
@@ -462,11 +463,11 @@ protected:
     {
         const int step_num = rModelPart.GetProcessInfo().GetValue(STEP);
         const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
+
         if (global_num_constraints > 0) {
-            // We make T and L matrices and C vector
-            BuildMasterSlaveConstraints(rModelPart);
             {// To be able to clear res_b automatically.
-                TSystemVectorType res_b(rb.Map());
+                auto& map_b = rb.Map();
+                TSystemVectorType res_b(map_b);
                 const double zero = 0.0;
                 TSparseSpace::TransposeMult(*mpL, rb, res_b);
                 res_b.GlobalAssemble();
@@ -576,9 +577,10 @@ protected:
             mpL->ReplaceGlobalValues(1, &inactive_id, 1, &inactive_id, &value);
         }
 
-
         mpT->GlobalAssemble();
         mpL->GlobalAssemble();
+
+        TSparseSpace::WriteMatrixMarketMatrix("T_parallel.mm", *mpT, false);
 
         KRATOS_CATCH("")
     }
@@ -587,6 +589,7 @@ protected:
     {
         const int global_num_constraints = GetGlobalNumberOfConstraints(rModelPart);
         if (global_num_constraints > 0) {
+            const int my_rank = rModelPart.GetCommunicator().MyPID();
             TSparseSpace::Clear(mpL);
             TSparseSpace::Clear(mpT);
             TSparseSpace::Clear(mpConstantVector);
@@ -594,10 +597,24 @@ protected:
             std::vector<int> local_eq_ids;
             local_eq_ids.reserve(number_of_local_dofs);
             // generate map - use the "temp" array here
-            for (IndexType i = 0; i != number_of_local_dofs; i++)
-                local_eq_ids.push_back( BaseType::mFirstMyId + i );
+            // for (IndexType i = 0; i != number_of_local_dofs; i++)
+            //     local_eq_ids.push_back( BaseType::mFirstMyId + i );
+            for(const auto& dof : BaseType::mDofSet){
+                const auto& node = rModelPart.Nodes()[dof.Id()];
+                const bool is_bound = node.IsDefined(SLAVE);
+                const bool is_slave =  node.IsDefined(SLAVE) ? node.Is(SLAVE) : false;
+                const bool is_local = node.GetSolutionStepValue(PARTITION_INDEX) == my_rank;
+
+                const bool is_bound_slave = is_bound && is_slave;
+                const bool is_local_not_bound = is_local && !is_bound;
+
+                if(is_bound_slave || is_local_not_bound)
+                   local_eq_ids.push_back( dof.EquationId() );
+            }
 
             std::sort(local_eq_ids.begin(), local_eq_ids.end());
+
+            KRATOS_INFO_ALL_RANKS("T global num ")<<rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_eq_ids.size())<<std::endl;
 
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -616,7 +633,6 @@ protected:
                 bool constraint_is_active = it_const->IsDefined(ACTIVE) ? it_const->Is(ACTIVE) : true;
                 if(constraint_is_active) {
                     it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
                     // Slave DoFs
                     for (auto &id_i : slave_ids) {
                         indices[id_i].insert(master_ids.begin(), master_ids.end());
@@ -624,12 +640,14 @@ protected:
                     mMasterIds.insert(mMasterIds.end(), master_ids.begin(), master_ids.end());
                 }
             }
+
             mSlaveIds.clear();
             std::sort( mMasterIds.begin(), mMasterIds.end() );
             mMasterIds.erase( unique( mMasterIds.begin(), mMasterIds.end() ), mMasterIds.end() );
             for(const auto& slave_masters_pair : indices){
                 mSlaveIds.push_back(slave_masters_pair.first);
             }
+            // Diagonal values
             for(const auto& local_eq_id:local_eq_ids)
                 indices[local_eq_id].insert(local_eq_id);
 
@@ -656,13 +674,12 @@ protected:
                 std::vector<int> master_eq_ids(slave_masters_pair.second.begin(), slave_masters_pair.second.end());
 
                 int ierr = t_graph.InsertGlobalIndices(1, &slave_eq_id, master_eq_ids.size(), master_eq_ids.data());
-                KRATOS_ERROR_IF(ierr < 0)
+                KRATOS_ERROR_IF(ierr != 0)
                     << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
                     << std::endl;
 
                 slave_masters_pair.second.clear(); //deallocating the memory
             }
-
 
             // The diagonal values everywhere except at the slaves
             for(const auto& eq_id : local_eq_ids)
@@ -670,14 +687,14 @@ protected:
                 if(indices.count(eq_id) == 0)
                 {
                     int ierr = t_graph.InsertGlobalIndices(1, &eq_id, 1, &eq_id);
-                    KRATOS_ERROR_IF(ierr < 0)
+                    KRATOS_ERROR_IF(ierr != 0)
                         << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
                         << std::endl;
                 }
             }
 
             int ierr = t_graph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0)
+            KRATOS_ERROR_IF(ierr != 0)
                 << ": Epetra failure in Graph.GlobalAssemble. Error code: " << ierr
                 << std::endl;
 
@@ -789,4 +806,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS  defined */
+#endif /* TRILINOS_CHIMERA_BLOCK_BUILDER_AND_SOLVER_WITH_CONSTRAINTS  defined */

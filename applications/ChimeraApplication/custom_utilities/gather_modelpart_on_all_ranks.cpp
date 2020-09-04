@@ -59,11 +59,6 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
       // if (rGatheredModelPart.Nodes().find(it->Id()) ==
       //     rGatheredModelPart.Nodes().end())
       (*it).FastGetSolutionStepValue(PARTITION_INDEX) = i;
-      (*it).GetDofs().clear();
-      (*it).AddDof(VELOCITY_X);
-      (*it).AddDof(VELOCITY_Y);
-      (*it).AddDof(VELOCITY_Z);
-      (*it).AddDof(PRESSURE);
       rGatheredModelPart.Nodes().push_back(*it.base());
     }
   }

@@ -28,6 +28,7 @@
 
 // Chimera trilinos extensions
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_with_constraints.h"
 #include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver_with_constraints.h"
 #include "custom_utilities/solver_settings.h"
@@ -44,14 +45,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
     typedef BuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseBuilderAndSolverType;
     typedef TrilinosBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverType;
-    typedef TrilinosChimeraResidualBasedBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosChimeraResidualBasedBuilderAndSolverType;
-
-    py::class_<
-        TrilinosChimeraResidualBasedBuilderAndSolverType,
-        typename TrilinosChimeraResidualBasedBuilderAndSolverType::Pointer,
-        TrilinosBaseBuilderAndSolverType  >
-    (m, "OldTrilinosChimeraResidualBasedBuilderAndSolver").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
-    ;
+    typedef TrilinosBlockBuilderAndSolverWithConstraints< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverWithConstraintsType;
 
     typedef TrilinosChimeraBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosChimeraBlockBuilderAndSolverType;
     py::class_<

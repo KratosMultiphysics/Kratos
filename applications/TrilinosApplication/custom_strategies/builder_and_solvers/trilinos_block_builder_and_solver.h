@@ -530,8 +530,6 @@ public:
             for (typename DofsVectorType::iterator i_dof = second_dof_list.begin();
                 i_dof != second_dof_list.end(); ++i_dof)
                 temp_dofs_array.push_back(*i_dof);
-            // temp_dofs_array.insert(dof_list.begin(), dof_list.end());
-            // temp_dofs_array.insert(second_dof_list.begin(), second_dof_list.end());
         }
 
         temp_dofs_array.Unique();
@@ -599,7 +597,7 @@ public:
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
-        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 1)
+        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 0)
             << std::endl
             << current_rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize
             << std::endl

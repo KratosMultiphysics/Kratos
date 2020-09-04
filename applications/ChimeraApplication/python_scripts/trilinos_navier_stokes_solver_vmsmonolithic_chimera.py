@@ -22,7 +22,6 @@ class TrilinosChimeraNavierStokesSolverMonolithic(TrilinosNavierStokesSolverMono
         # custom_settings.RemoveValue("chimera_settings")
         [self.chimera_settings, self.chimera_internal_parts, custom_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
 
-        print(custom_settings)
         super(TrilinosChimeraNavierStokesSolverMonolithic,self).__init__(model,custom_settings)
         KratosMultiphysics.Logger.PrintInfo("TrilinosChimeraNavierStokesSolverMonolithic", "Construction of NavierStokesSolverMonolithic finished.")
 
@@ -50,6 +49,14 @@ class TrilinosChimeraNavierStokesSolverMonolithic(TrilinosNavierStokesSolverMono
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", " Import of all chimera modelparts completed.")
         else:# we can use the default implementation in the base class
             super(TrilinosChimeraNavierStokesSolverMonolithic,self).ImportModelPart()
+
+    def PrepareModelPart(self):
+        if( not self.settings["model_import_settings"]["input_type"].GetString() == "chimera"):
+            # Call the base solver to do the PrepareModelPart
+            # Note that his also calls the PrepareModelPart of the turbulence model
+            super(TrilinosChimeraNavierStokesSolverMonolithic, self).PrepareModelPart()
+        else :
+            super(TrilinosNavierStokesSolverMonolithic,self).PrepareModelPart()
 
 
     def Initialize(self):
