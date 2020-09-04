@@ -105,7 +105,7 @@ public:
     template <class TContainerType>
     static void AssignEntityDerivativesToNodes(
         ModelPart& rModelPart,
-        const IndexType DerivativeDimension,
+        const int DerivativeDimension,
         const Variable<Matrix>& rDerivativeVariable,
         const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
         const double Weight,

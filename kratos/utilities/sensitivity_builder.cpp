@@ -456,30 +456,30 @@ TContainerType& GetContainer(ModelPart& rModelPart);
 void AddMatrixSubBlock(
     Matrix& rOutput,
     const Matrix& rInput,
-    const std::size_t RowOffset,
-    const std::size_t ColOffset)
+    const int RowOffset,
+    const int ColOffset)
 {
     KRATOS_TRY
 
-    const std::size_t rows = rInput.size1();
-    const std::size_t cols = rInput.size2();
+    const int rows = rInput.size1();
+    const int cols = rInput.size2();
 
-    KRATOS_DEBUG_ERROR_IF(rOutput.size1() < RowOffset + rows)
+    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rOutput.size1()) < RowOffset + rows)
         << "Output matrix number of rows is smaller than input matrix "
            "number of rows with offset. [ Output Matrix size = ( "
         << rOutput.size1() << ", " << rOutput.size2()
         << " ), Input matrix size = ( " << rows << ", " << cols
         << " ), Offsets = ( " << RowOffset << ", " << ColOffset << " ) ].";
 
-    KRATOS_DEBUG_ERROR_IF(rOutput.size2() < ColOffset + cols)
+    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rOutput.size2()) < ColOffset + cols)
         << "Output matrix number of cols is smaller than input matrix "
            "number of cols with offset. [ Output Matrix size = ( "
         << rOutput.size1() << ", " << rOutput.size2()
         << " ), Input matrix size = ( " << rows << ", " << cols
         << " ), Offsets = ( " << RowOffset << ", " << ColOffset << " ) ].";
 
-    for (std::size_t i = 0; i < rows; ++i) {
-        for (std::size_t j = 0; j < cols; ++j) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
             rOutput(i + RowOffset, j + ColOffset) += rInput(i, j);
         }
     }
@@ -490,34 +490,34 @@ void AddMatrixSubBlock(
 void GetMatrixSubBlock(
     Matrix& rOutput,
     const Matrix& rInput,
-    const std::size_t RowOffset,
-    const std::size_t Rows,
-    const std::size_t ColOffset,
-    const std::size_t Cols)
+    const int RowOffset,
+    const int Rows,
+    const int ColOffset,
+    const int Cols)
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(rInput.size1() < RowOffset + Rows)
+    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rInput.size1()) < RowOffset + Rows)
         << "rInput matrix number of rows is smaller than number of rows "
            "with offset. [ Input Matrix size = ( "
         << rInput.size1() << ", " << rInput.size2() << " ), SubBlock size = ( "
         << Rows << ", " << Cols << " ), Offsets = ( " << RowOffset << ", "
         << ColOffset << " ) ].";
 
-    KRATOS_DEBUG_ERROR_IF(rInput.size2() < ColOffset + Cols)
+    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rInput.size2()) < ColOffset + Cols)
         << "rInput matrix number of cols is smaller than number of cols "
            "with offset. [ Input Matrix size = ( "
         << rInput.size1() << ", " << rInput.size2() << " ), SubBlock size = ( "
         << Rows << ", " << Cols << " ), Offsets = ( " << RowOffset << ", "
         << ColOffset << " ) ].";
 
-    KRATOS_DEBUG_ERROR_IF(rOutput.size1() != Rows || rOutput.size2() != Cols)
+    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rOutput.size1()) != Rows || static_cast<int>(rOutput.size2()) != Cols)
         << "Output matrix type mismatch. [ Output matrix size = ( "
         << rOutput.size1() << ", " << rOutput.size2() << " ), SubBlockSize = ( "
         << Rows << ", " << Cols << " ) ].";
 
-    for (std::size_t i = 0; i < Rows; ++i) {
-        for (std::size_t j = 0; j < Cols; ++j) {
+    for (int i = 0; i < Rows; ++i) {
+        for (int j = 0; j < Cols; ++j) {
             rOutput(i, j) = rInput(RowOffset + i, ColOffset + j);
         }
     }
@@ -737,7 +737,7 @@ void SensitivityBuilder::ClearSensitivities()
 template <class TContainerType>
 void SensitivityBuilder::AssignEntityDerivativesToNodes(
     ModelPart& rModelPart,
-    const IndexType DerivativeDimension,
+    const int DerivativeDimension,
     const Variable<Matrix>& rDerivativeVariable,
     const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
     const double Weight,
@@ -755,7 +755,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
     if (entity_container.size() != 0) {
         auto& r_nodes = rModelPart.Nodes();
 
-        const IndexType value_dimension =
+        const int value_dimension =
             entity_container.begin()->GetValue(rDerivativeVariable).size2();
 
         KRATOS_ERROR_IF(value_dimension == 0)
@@ -777,7 +777,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
 
                 const Matrix& r_value = rEntity.GetValue(rDerivativeVariable);
 
-                KRATOS_ERROR_IF(value_dimension != r_value.size2())
+                KRATOS_ERROR_IF(value_dimension != static_cast<int>(r_value.size2()))
                     << rDerivativeVariable.Name()
                     << " matrix value second dimension is not consistent at "
                     << rEntity.Info() << " [ required dimension size: " << value_dimension
@@ -799,7 +799,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
         // resizing matrices
         block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
             if (rNode.Is(VISITED)) {
-                const IndexType node_id = rNode.Id();
+                const int node_id = rNode.Id();
 
                 const auto p_itr = rNeighbourNodeIdsMap.find(node_id);
                 KRATOS_ERROR_IF(p_itr == rNeighbourNodeIdsMap.end())
@@ -825,20 +825,20 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
         block_for_each(entity_container, [&](typename TContainerType::value_type& rEntity) {
             if (rEntity.Is(rFlag) == CheckValue) {
                 auto& r_geometry = rEntity.GetGeometry();
-                const IndexType number_of_nodes = r_geometry.PointsNumber();
+                const int number_of_nodes = r_geometry.PointsNumber();
 
-                std::unordered_map<IndexType, std::unordered_map<IndexType, IndexType>> derivative_nodes_map;
+                std::unordered_map<int, std::unordered_map<int, int>> derivative_nodes_map;
 
                 // calculate the node mapping
-                for (IndexType i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
+                for (int i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
                     const auto& r_base_node = r_geometry[i_base_node];
 
                     if (r_base_node.Is(rFlag) == CheckValue) {
-                        const IndexType base_node_id = r_base_node.Id();
+                        const int base_node_id = r_base_node.Id();
 
-                        std::unordered_map<IndexType, IndexType> derivative_node_map;
-                        for (IndexType i_deriv_node = 0; i_deriv_node < number_of_nodes; ++i_deriv_node) {
-                            const IndexType deriv_node_id = r_geometry[i_deriv_node].Id();
+                        std::unordered_map<int, int> derivative_node_map;
+                        for (int i_deriv_node = 0; i_deriv_node < number_of_nodes; ++i_deriv_node) {
+                            const int deriv_node_id = r_geometry[i_deriv_node].Id();
 
                             if (base_node_id == deriv_node_id) {
                                 derivative_node_map[i_deriv_node] = 0;
@@ -847,7 +847,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
                                 const auto& r_neighbour_node_indices = p_itr->second;
 
                                 derivative_node_map[i_deriv_node] = r_neighbour_node_indices.size() + 2;
-                                for (IndexType j = 0; j < r_neighbour_node_indices.size(); ++j) {
+                                for (int j = 0; j < static_cast<int>(r_neighbour_node_indices.size()); ++j) {
                                     if (r_neighbour_node_indices[j] == deriv_node_id) {
                                         derivative_node_map[i_deriv_node] = j + 1;
                                         break;
@@ -855,7 +855,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
                                 }
 
                                 KRATOS_ERROR_IF(derivative_node_map[i_deriv_node] ==
-                                                r_neighbour_node_indices.size() + 2)
+                                                static_cast<int>(r_neighbour_node_indices.size() + 2))
                                     << "Derivative node id "
                                     << deriv_node_id << " not found in neighbour nodes list in node with id "
                                     << base_node_id << ".";
@@ -873,14 +873,14 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
                 Matrix nodal_derivative(DerivativeDimension, value_dimension);
 
                 // placing derivatives correctly
-                for (IndexType i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
+                for (int i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
                     auto& r_base_node = r_geometry[i_base_node];
 
                     if (r_base_node.Is(rFlag) == CheckValue) {
                         const auto& r_derivative_nodes_map =
                             derivative_nodes_map.find(i_base_node)->second;
 
-                        for (IndexType i_deriv_node = 0; i_deriv_node < number_of_nodes; ++i_deriv_node) {
+                        for (int i_deriv_node = 0; i_deriv_node < number_of_nodes; ++i_deriv_node) {
                             GetMatrixSubBlock(nodal_derivative, r_entity_derivatives,
                                               i_deriv_node * DerivativeDimension,
                                               DerivativeDimension, 0, value_dimension);
@@ -907,7 +907,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
 template KRATOS_API(KRATOS_CORE) void SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>
     (
         ModelPart&,
-        const IndexType,
+        const int,
         const Variable<Matrix>&,
         const std::unordered_map<int, std::vector<int>>&,
         const double,
@@ -918,7 +918,7 @@ template KRATOS_API(KRATOS_CORE) void SensitivityBuilder::AssignEntityDerivative
 template KRATOS_API(KRATOS_CORE) void SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>
     (
         ModelPart&,
-        const IndexType,
+        const int,
         const Variable<Matrix>&,
         const std::unordered_map<int, std::vector<int>>&,
         const double,
