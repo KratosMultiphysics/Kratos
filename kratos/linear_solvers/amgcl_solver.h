@@ -489,7 +489,7 @@ public:
      * @brief This method returns the current iteration number
      * @return mIterationsNumber The current iteration number
      */
-    virtual unsigned int GetIterationsNumber() override
+    unsigned int GetIterationsNumber() override
     {
         return static_cast<unsigned int>( mIterationsNumber );
     }
