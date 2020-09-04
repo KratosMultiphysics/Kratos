@@ -256,7 +256,7 @@ protected:
                 double& r_u_0 = it_dof->GetSolutionStepValue(0);
                 const double& r_u_1 = it_dof->GetSolutionStepValue(1);
                 if (it_dof->IsFixed()) {
-                    u_n(i_dof) = r_u_1;
+                    u_n(i_dof) = r_u_0;
                 }
                 r_u_0 = r_u_1;
             }

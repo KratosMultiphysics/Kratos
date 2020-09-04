@@ -256,6 +256,8 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_WARNING("ResidualBasedLinearStrategy") << "This constructor is deprecated, please use the constructor without linear solver" << std::endl;
+
         // We check if the linear solver considered for the builder and solver is consistent
         auto p_linear_solver = pNewBuilderAndSolver->GetLinearSystemSolver();
         KRATOS_ERROR_IF(p_linear_solver != pNewLinearSolver) << "Inconsistent linear solver in strategy and builder and solver. Considering the linear solver assigned to builder and solver :\n" << p_linear_solver->Info() << "\n instead of:\n" << pNewLinearSolver->Info() << std::endl;
@@ -709,7 +711,7 @@ public:
      * @brief This method returns the LHS matrix
      * @return The LHS matrix
      */
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 
@@ -720,7 +722,7 @@ public:
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
-    TSystemVectorType& GetSystemVector()
+    TSystemVectorType& GetSystemVector() override
     {
         TSystemVectorType& mb = *mpb;
 
@@ -731,7 +733,7 @@ public:
      * @brief This method returns the solution vector
      * @return The Dx vector
      */
-    TSystemVectorType& GetSolutionVector()
+    TSystemVectorType& GetSolutionVector() override
     {
         TSystemVectorType& mDx = *mpDx;
 
