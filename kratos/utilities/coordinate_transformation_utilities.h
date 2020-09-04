@@ -143,8 +143,8 @@ public:
 	 */
     virtual void CalculateRotationOperatorPureShapeSensitivities(
 		TLocalMatrixType& rRotationMatrixShapeDerivative,
-        const int DerivativeNodeIndex,
-        const int DerivativeDirectionIndex,
+        const std::size_t DerivativeNodeIndex,
+        const std::size_t DerivativeDirectionIndex,
         const GeometryType::PointType& rThisPoint) const
     {
         if (mDomainSize == 2) {
@@ -186,8 +186,8 @@ public:
 	 */
     virtual void CalculateRotationOperatorPureShapeSensitivities(
         BoundedMatrix<double, 2, 2>& rOutput,
-        const int DerivativeNodeIndex,
-        const int DerivativeDirectionIndex,
+        const std::size_t DerivativeNodeIndex,
+        const std::size_t DerivativeDirectionIndex,
         const GeometryType::PointType& rThisPoint) const
     {
         KRATOS_TRY
@@ -200,23 +200,28 @@ public:
 
         const array_1d<double, 3>& r_nodal_normal =
             rThisPoint.FastGetSolutionStepValue(NORMAL);
+		const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
-		const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+        KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
+            << "NORMAL at node " << rThisPoint.Coordinates()
+            << " is not properly initialized.";
+
+        const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
 
         KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 2)
             << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
             << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of columns = 2, available number of columns = "
             << r_sensitivity_values.size2() << " ].";
 
-        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < (DerivativeNodeIndex + 1) * 2)
+        const std::size_t require_rows = (DerivativeNodeIndex + 1) * 2;
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < require_rows)
             << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
             << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of rows >= "
-            << (DerivativeNodeIndex + 1) * 2
+            << require_rows
             << ", available number of rows = " << r_sensitivity_values.size1() << " ].";
 
         const Vector& r_nodal_normal_derivatives =
             row(r_sensitivity_values, DerivativeNodeIndex * 2 + DerivativeDirectionIndex);
-        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
         rOutput(0, 0) = r_nodal_normal_derivatives[0] / nodal_normal_magnitude;
         rOutput(0, 1) = r_nodal_normal_derivatives[1] / nodal_normal_magnitude;
@@ -257,8 +262,8 @@ public:
 	 */
     virtual void CalculateRotationOperatorPureShapeSensitivities(
 		BoundedMatrix<double, 3, 3>& rOutput,
-        const int DerivativeNodeIndex,
-        const int DerivativeDirectionIndex,
+        const std::size_t DerivativeNodeIndex,
+        const std::size_t DerivativeDirectionIndex,
 		const GeometryType::PointType& rThisPoint) const
 	{
 		KRATOS_TRY
@@ -271,23 +276,28 @@ public:
 
         const array_1d<double, 3>& r_nodal_normal =
             rThisPoint.FastGetSolutionStepValue(NORMAL);
+		const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
-		const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+        KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
+            << "NORMAL at node " << rThisPoint.Coordinates()
+            << " is not properly initialized.";
+
+        const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
 
         KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 3)
             << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
             << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of columns = 3, available number of columns = "
             << r_sensitivity_values.size2() << " ].";
 
-        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < (DerivativeNodeIndex + 1) * 3)
+		const std::size_t require_rows = (DerivativeNodeIndex + 1) * 3;
+        KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < require_rows)
             << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
             << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of rows >= "
-            << (DerivativeNodeIndex + 1) * 3
+            << require_rows
             << ", available number of rows = " << r_sensitivity_values.size1() << " ].";
 
         const Vector& r_nodal_normal_derivative =
             row(r_sensitivity_values, DerivativeNodeIndex * 3 + DerivativeDirectionIndex);
-        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
         const double x0 = 1.0/nodal_normal_magnitude;
         const double x1 = r_nodal_normal_derivative[0]*x0;

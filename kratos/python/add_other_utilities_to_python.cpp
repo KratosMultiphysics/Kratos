@@ -494,6 +494,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
     mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
 
+    // coordinate transformation utilities
     typedef CoordinateTransformationUtils<LocalSpaceType::MatrixType, LocalSpaceType::VectorType, double> CoordinateTransformationUtilsType;
     py::class_<
         CoordinateTransformationUtilsType,
@@ -507,7 +508,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RotateVelocities", &CoordinateTransformationUtilsType::RotateVelocities)
         .def("RecoverVelocities", &CoordinateTransformationUtilsType::RecoverVelocities)
         .def("CalculateRotationOperatorPure", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPure))
-        .def("CalculateRotationOperatorPureShapeSensitivities", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const int, const int, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPureShapeSensitivities))
+        .def("CalculateRotationOperatorPureShapeSensitivities", (void(CoordinateTransformationUtilsType::*)(LocalSpaceType::MatrixType&, const std::size_t, const std::size_t, const ModelPart::GeometryType::PointType&)const)(&CoordinateTransformationUtilsType::CalculateRotationOperatorPureShapeSensitivities))
         ;
 }
 
