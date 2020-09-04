@@ -370,6 +370,10 @@ namespace Kratos
         }
 
         void CalculateElementalFaceColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int FaceColor, int OutsideColor, int VolumeColor){
+            if(FaceColor == OutsideColor)
+                return; // Nothing to do!
+
+
             std::vector<double> colors;
             const std::size_t size_x = mElementCenterCoordinates[0].size();
             const std::size_t size_y = mElementCenterCoordinates[1].size();
@@ -379,9 +383,9 @@ namespace Kratos
             std::vector<double> y_coordinates(size_y + 2);
             std::vector<double> z_coordinates(size_z + 2);
 
-            x_coordinates.front() = mNodalCoordinates[0].front();
-            y_coordinates.front() = mNodalCoordinates[1].front();
-            z_coordinates.front() = mNodalCoordinates[2].front();
+            x_coordinates.front() = mMinPoint[0];
+            y_coordinates.front() = mMinPoint[1];
+            z_coordinates.front() = mMinPoint[2];
 
             for(std::size_t i = 0 ; i < size_x ; i++){
                 x_coordinates[i+1] = mElementCenterCoordinates[0][i];
@@ -395,9 +399,9 @@ namespace Kratos
                 z_coordinates[i+1] = mElementCenterCoordinates[2][i];
             }
 
-            x_coordinates.back() = mNodalCoordinates[0].back();
-            y_coordinates.back() = mNodalCoordinates[1].back();
-            z_coordinates.back() = mNodalCoordinates[2].back();
+            x_coordinates.back() = mMaxPoint[0];
+            y_coordinates.back() = mMaxPoint[1];
+            z_coordinates.back() = mMaxPoint[2];
 
             #pragma omp parallel for private(colors)
             for(int i = MinRayPosition[0] ; i < static_cast<int>(MaxRayPosition[0]) ; i++){
@@ -490,7 +494,7 @@ namespace Kratos
                             }
                             else{
                                 GetElementalFaceColor(i,j,k)[0] = -FaceColor;   // Error color is the -FaceColor
-                                KRATOS_ERROR << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
+                                KRATOS_WARNING("VoxelMesher") << "The given interface is not in the interface of the volume for cell [" << i << "," << j << "," << k << "]" << std::endl;
                             }
                         }
                         previous_center_color = next_center_color;
