@@ -135,7 +135,6 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         self.solver = KM.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                             self.time_scheme,
-                                                            self.linear_solver,
                                                             self.conv_criteria,
                                                             self.builder_and_solver,
                                                             self.settings["maximum_iterations"].GetInt(),
