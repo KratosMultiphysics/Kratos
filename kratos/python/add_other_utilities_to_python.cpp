@@ -13,8 +13,6 @@
 
 
 // System includes
-#include <unordered_map>
-#include <vector>
 #include <pybind11/stl.h>
 
 // External includes
