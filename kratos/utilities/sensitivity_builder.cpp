@@ -869,6 +869,9 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
                 const Matrix& r_entity_derivatives =
                     rEntity.GetValue(rDerivativeVariable) * Weight;
 
+                // move this variable also to TLS storage
+                Matrix nodal_derivative(DerivativeDimension, value_dimension);
+
                 // placing derivatives correctly
                 for (IndexType i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
                     auto& r_base_node = r_geometry[i_base_node];
@@ -878,9 +881,6 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
                             derivative_nodes_map.find(i_base_node)->second;
 
                         for (IndexType i_deriv_node = 0; i_deriv_node < number_of_nodes; ++i_deriv_node) {
-                            // move this variable also to TLS storage
-                            Matrix nodal_derivative(DerivativeDimension, value_dimension);
-
                             GetMatrixSubBlock(nodal_derivative, r_entity_derivatives,
                                               i_deriv_node * DerivativeDimension,
                                               DerivativeDimension, 0, value_dimension);
