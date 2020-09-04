@@ -94,6 +94,7 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
     KRATOS_REGISTER_MAPPER_SERIAL(CouplingGeometryMapper,  "coupling_geometry");
+
     KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
