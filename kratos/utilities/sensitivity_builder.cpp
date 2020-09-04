@@ -739,7 +739,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
     ModelPart& rModelPart,
     const IndexType DerivativeDimension,
     const Variable<Matrix>& rDerivativeVariable,
-    const std::unordered_map<IndexType, std::vector<IndexType>>& rNeighbourNodeIdsMap,
+    const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
     const double Weight,
     const Flags& rFlag,
     const bool CheckValue)
@@ -909,7 +909,7 @@ template KRATOS_API(KRATOS_CORE) void SensitivityBuilder::AssignEntityDerivative
         ModelPart&,
         const IndexType,
         const Variable<Matrix>&,
-        const std::unordered_map<IndexType, std::vector<IndexType>>&,
+        const std::unordered_map<int, std::vector<int>>&,
         const double,
         const Flags&,
         const bool
@@ -920,7 +920,7 @@ template KRATOS_API(KRATOS_CORE) void SensitivityBuilder::AssignEntityDerivative
         ModelPart&,
         const IndexType,
         const Variable<Matrix>&,
-        const std::unordered_map<IndexType, std::vector<IndexType>>&,
+        const std::unordered_map<int, std::vector<int>>&,
         const double,
         const Flags&,
         const bool

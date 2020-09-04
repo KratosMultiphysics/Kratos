@@ -107,7 +107,7 @@ public:
         ModelPart& rModelPart,
         const IndexType DerivativeDimension,
         const Variable<Matrix>& rDerivativeVariable,
-        const std::unordered_map<IndexType, std::vector<IndexType>>& rNeighbourNodeIdsMap,
+        const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
         const double Weight,
         const Flags& rFlag,
         const bool CheckValue = true);
