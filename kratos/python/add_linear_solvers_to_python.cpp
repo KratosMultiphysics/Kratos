@@ -125,6 +125,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("Solve",pointer_to_solve_eigen)
     .def("Clear",&LinearSolverType::Clear)
     .def("__str__", PrintObject<LinearSolverType>)
+    .def( "GetIterationsNumber",&LinearSolverType::GetIterationsNumber)
     ;
 
     py::class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer>(m,"ComplexLinearSolver")
@@ -147,7 +148,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     py::class_<IterativeSolverType, IterativeSolverType::Pointer, LinearSolverType>(m,"IterativeSolver")
     .def(py::init< >() )
     .def("__str__", PrintObject<IterativeSolverType>)
-    .def("GetIterationsNumber",&IterativeSolverType::GetIterationsNumber)
     ;
 
     py::class_<CGSolverType, CGSolverType::Pointer,IterativeSolverType>(m,"CGSolver")
@@ -179,7 +179,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init<LinearSolverType::Pointer>())
     .def(py::init<LinearSolverType::Pointer, bool >())
     .def(py::init<Parameters >())
-    .def("GetIterationsNumber",&ScalingSolverType::GetIterationsNumber)
     ;
 
     py::class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, LinearSolverType>(m,"PowerIterationEigenvalueSolver")
