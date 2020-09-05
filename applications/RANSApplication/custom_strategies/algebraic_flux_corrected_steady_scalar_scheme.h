@@ -119,34 +119,33 @@ public:
         BaseType::Initialize(rModelPart);
 
         if (mrPeriodicIdVar != Variable<int>::StaticObject()) {
-            BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
-                .for_each([&](const ModelPart::ConditionType& rCondition) {
-                    if (rCondition.Is(PERIODIC)) {
-                        // this only supports 2 noded periodic conditions
-                        KRATOS_ERROR_IF(rCondition.GetGeometry().PointsNumber() != 2)
-                            << this->Info() << " only supports two noded periodic conditions. Found "
-                            << rCondition.Info() << " with "
-                            << rCondition.GetGeometry().PointsNumber() << " nodes.\n";
+            block_for_each(rModelPart.Conditions(), [&](const ModelPart::ConditionType& rCondition) {
+                if (rCondition.Is(PERIODIC)) {
+                    // this only supports 2 noded periodic conditions
+                    KRATOS_ERROR_IF(rCondition.GetGeometry().PointsNumber() != 2)
+                        << this->Info() << " only supports two noded periodic conditions. Found "
+                        << rCondition.Info() << " with "
+                        << rCondition.GetGeometry().PointsNumber() << " nodes.\n";
 
-                        const auto& r_node_0 = rCondition.GetGeometry()[0];
-                        const std::size_t r_node_0_pair_id =
-                            r_node_0.FastGetSolutionStepValue(mrPeriodicIdVar);
+                    const auto& r_node_0 = rCondition.GetGeometry()[0];
+                    const std::size_t r_node_0_pair_id =
+                        r_node_0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                        const auto& r_node_1 = rCondition.GetGeometry()[1];
-                        const std::size_t r_node_1_pair_id =
-                            r_node_1.FastGetSolutionStepValue(mrPeriodicIdVar);
+                    const auto& r_node_1 = rCondition.GetGeometry()[1];
+                    const std::size_t r_node_1_pair_id =
+                        r_node_1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                        KRATOS_ERROR_IF(r_node_0_pair_id != r_node_1.Id())
-                            << "Periodic condition pair id mismatch in "
-                            << mrPeriodicIdVar.Name() << ". [ " << r_node_0_pair_id
-                            << " != " << r_node_1.Id() << " ].\n";
+                    KRATOS_ERROR_IF(r_node_0_pair_id != r_node_1.Id())
+                        << "Periodic condition pair id mismatch in "
+                        << mrPeriodicIdVar.Name() << ". [ " << r_node_0_pair_id
+                        << " != " << r_node_1.Id() << " ].\n";
 
-                        KRATOS_ERROR_IF(r_node_1_pair_id != r_node_0.Id())
-                            << "Periodic condition pair id mismatch in "
-                            << mrPeriodicIdVar.Name() << ". [ " << r_node_1_pair_id
-                            << " != " << r_node_0.Id() << " ].\n";
-                    }
-                });
+                    KRATOS_ERROR_IF(r_node_1_pair_id != r_node_0.Id())
+                        << "Periodic condition pair id mismatch in "
+                        << mrPeriodicIdVar.Name() << ". [ " << r_node_1_pair_id
+                        << " != " << r_node_0.Id() << " ].\n";
+                }
+            });
         }
 
         // Allocate auxiliary memory.
@@ -169,13 +168,12 @@ public:
 
         auto& r_nodes = rModelPart.Nodes();
 
-        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
-            [&](ModelPart::NodeType& rNode) {
-                rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
-                rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
-                rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
-                rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
-            });
+        block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+            rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+            rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+            rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+            rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+        });
 
         auto& r_elements = rModelPart.Elements();
         const int number_of_elements = r_elements.size();
@@ -239,37 +237,36 @@ public:
         }
 
         if (mrPeriodicIdVar != Variable<int>::StaticObject()) {
-            BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
-                .for_each([&](ModelPart::ConditionType& rCondition) {
-                    if (rCondition.Is(PERIODIC)) {
-                        auto& r_node_0 = rCondition.GetGeometry()[0];
-                        auto& r_node_1 = rCondition.GetGeometry()[1];
+            block_for_each(rModelPart.Conditions(), [&](ModelPart::ConditionType& rCondition) {
+                if (rCondition.Is(PERIODIC)) {
+                    auto& r_node_0 = rCondition.GetGeometry()[0];
+                    auto& r_node_1 = rCondition.GetGeometry()[1];
 
-                        double p_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-                        double q_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-                        double p_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
-                        double q_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    double p_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                    double q_plus = r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    double p_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                    double q_minus = r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
-                        p_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
-                        q_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
-                        p_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
-                        q_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    p_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX);
+                    q_plus += r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
+                    p_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX);
+                    q_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
-                        r_node_0.SetLock();
-                        r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
-                        r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
-                        r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
-                        r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
-                        r_node_0.UnSetLock();
+                    r_node_0.SetLock();
+                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
+                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
+                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
+                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
+                    r_node_0.UnSetLock();
 
-                        r_node_1.SetLock();
-                        r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
-                        r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
-                        r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
-                        r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
-                        r_node_1.UnSetLock();
-                    }
-                });
+                    r_node_1.SetLock();
+                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
+                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
+                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
+                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
+                    r_node_1.UnSetLock();
+                }
+            });
         }
 
         Communicator& r_communicator = rModelPart.GetCommunicator();

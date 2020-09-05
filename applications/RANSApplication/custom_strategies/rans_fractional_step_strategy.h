@@ -169,21 +169,19 @@ protected:
                                ? r_process_info[PRESSURE_COEFFICIENT]
                                : 1.0;
 
-        BlockPartition<ModelPart::NodesContainerType>(r_model_part.Nodes())
-            .for_each([&](ModelPart::NodeType& rNode) {
-                const double old_press = rNode.FastGetSolutionStepValue(PRESSURE);
-                rNode.FastGetSolutionStepValue(PRESSURE_OLD_IT) = -eta * old_press;
-            });
+        block_for_each(r_model_part.Nodes(), [&](ModelPart::NodeType& rNode) {
+            const double old_press = rNode.FastGetSolutionStepValue(PRESSURE);
+            rNode.FastGetSolutionStepValue(PRESSURE_OLD_IT) = -eta * old_press;
+        });
 
         KRATOS_INFO_IF("RansFractionalStepStrategy", BaseType::GetEchoLevel() > 0)
             << "Calculating Pressure." << std::endl;
         double norm_dp = this->mpPressureStrategy->Solve();
 
-        BlockPartition<ModelPart::NodesContainerType>(r_model_part.Nodes())
-            .for_each([&](ModelPart::NodeType& rNode) {
-                rNode.FastGetSolutionStepValue(PRESSURE_OLD_IT) +=
-                    rNode.FastGetSolutionStepValue(PRESSURE);
-            });
+        block_for_each(r_model_part.Nodes(), [&](ModelPart::NodeType& rNode) {
+            rNode.FastGetSolutionStepValue(PRESSURE_OLD_IT) +=
+                rNode.FastGetSolutionStepValue(PRESSURE);
+        });
 
         // 3. Compute end-of-step velocity
         KRATOS_INFO_IF("RansFractionalStepStrategy", BaseType::GetEchoLevel() > 0)

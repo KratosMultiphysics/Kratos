@@ -29,9 +29,6 @@
 #include "custom_strategies/steady_scalar_scheme.h"
 #include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
 
-// convergence criterians
-#include "custom_strategies/generic_convergence_criteria.h"
-
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -50,7 +47,6 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
     using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
     using BaseSchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
-    using BaseConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
     using BaseSolvingStrategyType = SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     // strategies
@@ -72,12 +68,6 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using BossakRelaxationScalarSchemeType = BossakRelaxationScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<BossakRelaxationScalarSchemeType, typename BossakRelaxationScalarSchemeType::Pointer, BaseSchemeType>(m, "BossakRelaxationScalarScheme")
         .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
-
-    // Convergence criteria
-    using GenericConvergenceCriteriaType = GenericConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
-    py::class_<GenericConvergenceCriteriaType, typename GenericConvergenceCriteriaType::Pointer, BaseConvergenceCriteriaType>(m, "GenericScalarConvergenceCriteria")
-        .def(py::init<double, double>());
-
 
 }
 
