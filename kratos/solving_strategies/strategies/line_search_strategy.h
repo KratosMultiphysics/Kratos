@@ -298,6 +298,29 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                       : "line_search_strategy",
+            "max_line_search_iterations" : 5,
+            "first_alpha_value"          : 0.5,
+            "second_alpha_value"         : 1.0,
+            "min_alpha"                  : 0.1,
+            "max_alpha"                  : 2.0,
+            "line_search_tolerance"      : 0.5
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
