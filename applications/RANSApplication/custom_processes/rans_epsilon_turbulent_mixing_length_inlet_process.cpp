@@ -76,7 +76,7 @@ void RansEpsilonTurbulentMixingLengthInletProcess::ExecuteInitializeSolutionStep
 
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const double tke = rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
         rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE) = std::max(
             mCmu_75 * std::pow(std::max(tke, 0.0), 1.5) / mTurbulentMixingLength, mMinValue);
