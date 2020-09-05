@@ -40,6 +40,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             "time_order": 2,
             "time_scheme": "bdf2",
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,
@@ -143,11 +144,9 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         return trilinos_linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion =  KratosTrilinos.TrilinosUPCriteria(
-            self.settings["relative_velocity_tolerance"].GetDouble(),
-            self.settings["absolute_velocity_tolerance"].GetDouble(),
-            self.settings["relative_pressure_tolerance"].GetDouble(),
-            self.settings["absolute_pressure_tolerance"].GetDouble())
+        convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+            [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+            (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 

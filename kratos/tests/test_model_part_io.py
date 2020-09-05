@@ -140,6 +140,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         #Bools
         self.assertTrue(properties_1[KratosMultiphysics.IS_RESTARTED])
         self.assertFalse(properties_1[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT])
+        self.assertFalse(properties_1[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX])
         #Double
         self.assertEqual(properties_1[KratosMultiphysics.DENSITY], 3.4E-5)
         #Array3
@@ -159,6 +160,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         #SubModelPartData
         self.assertTrue(inlets_model_part[KratosMultiphysics.IS_RESTARTED])
+        self.assertTrue(inlets_model_part[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX])
         self.assertFalse(inlets_model_part[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT])
 
     def test_model_part_io_read_model_part_mesh_only(self):

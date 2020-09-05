@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -26,7 +24,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(TrilinosMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
@@ -37,11 +35,11 @@ class TrilinosMechanicalSolver(MechanicalSolver):
                 "amesos_solver_type" : "Amesos_Klu"
             }
         }""")
-        this_defaults.AddMissingParameters(super(TrilinosMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):
-        super(TrilinosMechanicalSolver, self).AddVariables()
+        super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
@@ -52,13 +50,13 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
-        super(TrilinosMechanicalSolver, self).PrepareModelPart()
+        super().PrepareModelPart()
         # Construct the mpi-communicator
         self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def Finalize(self):
-        super(TrilinosMechanicalSolver, self).Finalize()
+        super().Finalize()
         self.get_mechanical_solution_strategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####

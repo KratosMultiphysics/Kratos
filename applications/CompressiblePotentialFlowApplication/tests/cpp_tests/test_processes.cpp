@@ -49,14 +49,45 @@ namespace Kratos {
       MoveModelPartProcess MoveModelPartProcess(model_part, moving_parameters);
       MoveModelPartProcess.Execute();
 
-      Matrix reference = ZeroMatrix(3,3);
-      reference(0,0) = 5.0; reference(0,1) = 5.0;
-      reference(1,0) = 5.0; reference(1,1) = 7.0;
-      reference(2,0) = 5.0; reference(2,1) = 3.0;
+      std::array<double, 6> reference{5.0, 5.0, 5.0, 7.0, 5.0, 3.0};
 
-      for (std::size_t i_node = 0; i_node<reference.size1(); i_node++){
-        for (std::size_t i_dim = 0; i_dim<reference.size2(); i_dim++){
-          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference(i_node,i_dim), 1e-6);
+      for (std::size_t i_node = 0; i_node<3; i_node++){
+        for (std::size_t i_dim = 0; i_dim<2; i_dim++){
+          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
+        }
+      }
+    }
+
+      KRATOS_TEST_CASE_IN_SUITE(MoveModelModelPartProcessOnlyRotation, CompressiblePotentialApplicationFastSuite)
+    {
+
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      // Nodes creation
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, -1.0, 0.0, 0.0);
+
+      // Process parameters
+      Parameters moving_parameters = Parameters(R"(
+        {
+            "origin"                        : [0.0,0.0,0.0],
+            "sizing_multiplier"             : 1.0
+
+        })" );
+
+      moving_parameters.AddEmptyValue("rotation_angle");
+      moving_parameters["rotation_angle"].SetDouble(Globals::Pi/6);
+
+      MoveModelPartProcess MoveModelPartProcess(model_part, moving_parameters);
+      MoveModelPartProcess.Execute();
+
+      std::array<double, 6> reference{0.0, 0.0, cos(Globals::Pi/6), sin(Globals::Pi/6) , -cos(Globals::Pi/6), -sin(Globals::Pi/6)};
+
+      for (std::size_t i_node = 0; i_node<3; i_node++){
+        for (std::size_t i_dim = 0; i_dim<2; i_dim++){
+          KRATOS_CHECK_NEAR(model_part.GetNode(i_node+1).Coordinates()[i_dim], reference[i_node*2+i_dim], 1e-6);
         }
       }
     }

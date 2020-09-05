@@ -262,4 +262,14 @@ void FEMDEMCouplingUtilities::IdentifyFreeParticles(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+int FEMDEMCouplingUtilities::GetNumberOfNodes(
+    ModelPart& rModelPart
+    )
+{
+      return rModelPart.NumberOfNodes();
+}
+
 } // namespace Kratos

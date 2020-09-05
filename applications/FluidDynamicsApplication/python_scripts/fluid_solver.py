@@ -211,11 +211,7 @@ class FluidSolver(PythonSolver):
         prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
-        if (self.settings.Has("assign_neighbour_elements_to_conditions")):
-            prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
-        else:
-            warn_msg = "\"assign_neighbour_elements_to_conditions\" should be added to defaults of " + self.__class__.__name__
-            KratosMultiphysics.Logger.PrintWarning('\n\x1b[1;31mDEPRECATION-WARNING\x1b[0m', warn_msg)
+        prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
 
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
@@ -248,21 +244,9 @@ class FluidSolver(PythonSolver):
         return materials_imported
 
     def _SetNodalProperties(self):
-        # Get density and dynamic viscostity from the properties of the first element
-        for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            kin_viscosity = dyn_viscosity / rho
-            break
-        else:
-            raise Exception("No fluid elements found in the main model part.")
-        # Transfer the obtained properties to the nodes
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        err_msg = "Calling base FluidSolver \'_SetNodalProperties\' method.\n"
+        err_msg += "This must be implemented in the derived solver in accordance with the element formulation."
+        raise Exception(err_msg)
 
     # TODO: I THINK THIS SHOULD BE MOVED TO THE BASE PYTHON SOLVER
     def is_restarted(self):
@@ -332,50 +316,32 @@ class FluidSolver(PythonSolver):
                 raise Exception(err_msg)
         # Cases in which a time scheme manages the time integration
         else:
-            # Time scheme without turbulence modelling
-            if not hasattr(self, "_turbulence_model_solver"):
-                # Bossak time integration scheme
-                if self.settings["time_scheme"].GetString() == "bossak":
-                    if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            domain_size,
-                            KratosCFD.PATCH_INDEX)
-                    else:
-                        scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                            self.settings["alpha"].GetDouble(),
-                            self.settings["move_mesh_strategy"].GetInt(),
-                            domain_size)
-                # BDF2 time integration scheme
-                elif self.settings["time_scheme"].GetString() == "bdf2":
-                    scheme = KratosCFD.GearScheme()
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            domain_size)
-                else:
-                    err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
-                    err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
-                    raise Exception(err_msg)
-            # Time scheme with turbulence modelling
-            else:
-                self._turbulence_model_solver.Initialize()
-                if self.settings["time_scheme"].GetString() == "bossak":
+            # Bossak time integration scheme
+            if self.settings["time_scheme"].GetString() == "bossak":
+                if self.settings["consider_periodic_conditions"].GetBool() == True:
                     scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                                self.settings["alpha"].GetDouble(),
-                                self.settings["move_mesh_strategy"].GetInt(),
-                                domain_size,
-                                self.settings["turbulence_model_solver_settings"]["velocity_pressure_relaxation_factor"].GetDouble(),
-                                self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-                # Time scheme for steady state fluid solver
-                elif self.settings["time_scheme"].GetString() == "steady":
-                    scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
-                            self.settings["velocity_relaxation"].GetDouble(),
-                            self.settings["pressure_relaxation"].GetDouble(),
-                            domain_size,
-                            self._turbulence_model_solver.GetTurbulenceSolvingProcess())
+                        self.settings["alpha"].GetDouble(),
+                        domain_size,
+                        KratosCFD.PATCH_INDEX)
+                else:
+                    scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        self.settings["move_mesh_strategy"].GetInt(),
+                        domain_size)
+            # BDF2 time integration scheme
+            elif self.settings["time_scheme"].GetString() == "bdf2":
+                scheme = KratosCFD.BDF2TurbulentScheme()
+            # Time scheme for steady state fluid solver
+            elif self.settings["time_scheme"].GetString() == "steady":
+                scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                        self.settings["velocity_relaxation"].GetDouble(),
+                        self.settings["pressure_relaxation"].GetDouble(),
+                        domain_size)
+            else:
+                err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
+                raise Exception(err_msg)
+
         return scheme
 
     def _CreateLinearSolver(self):
@@ -388,11 +354,9 @@ class FluidSolver(PythonSolver):
                 self.settings["relative_velocity_tolerance"].GetDouble(),
                 self.settings["absolute_velocity_tolerance"].GetDouble())
         else:
-            convergence_criterion = KratosCFD.VelPrCriteria(
-                self.settings["relative_velocity_tolerance"].GetDouble(),
-                self.settings["absolute_velocity_tolerance"].GetDouble(),
-                self.settings["relative_pressure_tolerance"].GetDouble(),
-                self.settings["absolute_pressure_tolerance"].GetDouble())
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+                [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+                (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
@@ -407,6 +371,34 @@ class FluidSolver(PythonSolver):
         return builder_and_solver
 
     def _CreateSolutionStrategy(self):
+        analysis_type = self.settings["analysis_type"].GetString()
+        if analysis_type == "linear":
+            solution_strategy = self._CreateLinearStrategy()
+        elif analysis_type == "non_linear":
+            solution_strategy = self._CreateNewtonRaphsonStrategy()
+        else:
+            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+            err_msg += "Available options are: \"linear\", \"non_linear\""
+            raise Exception(err_msg)
+        return solution_strategy
+
+    def _CreateLinearStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
+        calculate_norm_dx = False
+        return KratosMultiphysics.ResidualBasedLinearStrategy(
+            computing_model_part,
+            time_scheme,
+            linear_solver,
+            builder_and_solver,
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            calculate_norm_dx,
+            self.settings["move_mesh_flag"].GetBool())
+
+    def _CreateNewtonRaphsonStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
         linear_solver = self._GetLinearSolver()

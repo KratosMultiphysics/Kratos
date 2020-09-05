@@ -559,7 +559,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
                                             sensitivity_matrix.size2(), false);
     Vector R, R_perturb, semi_analytic_sensitivity_vector, acceleration;
     Matrix mass_matrix;
-    auto get_res = [&p_elem, &test_model_part, &mass_matrix, &acceleration, &r_process_info](Vector& rRes) {
+    auto get_res = [&p_elem, &mass_matrix, &acceleration, &r_process_info](Vector& rRes) {
         p_elem->CalculateRightHandSide(rRes, r_process_info);
         p_elem->CalculateMassMatrix(mass_matrix, r_process_info);
         p_elem->GetSecondDerivativesVector(acceleration);

@@ -243,7 +243,7 @@
         }]
     },
     "_json_output_process": [{
-        "python_module" : "from_json_output_process",
+        "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
             "output_variables"     : ["VELOCITY_X","VELOCITY_Y", "VELOCITY_Z"],

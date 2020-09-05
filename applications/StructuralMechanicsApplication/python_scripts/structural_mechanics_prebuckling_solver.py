@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -24,7 +22,7 @@ class PrebucklingSolver(MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
-        super(PrebucklingSolver, self).__init__(main_model_part, custom_settings)
+        super().__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[PrebucklingSolver]:: ", "Construction finished")
 
     @classmethod
@@ -45,7 +43,7 @@ class PrebucklingSolver(MechanicalSolver):
                 "echo_level"            : 1
             }
         }""")
-        this_defaults.AddMissingParameters(super(PrebucklingSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     #### Private functions ####

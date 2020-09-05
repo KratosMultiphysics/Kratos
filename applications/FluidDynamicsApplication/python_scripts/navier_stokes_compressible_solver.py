@@ -30,6 +30,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "time_order": 2,
             "time_scheme": "bdf2",
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step" : true,
             "relative_tolerance" : 1e-3,
             "absolute_tolerance" : 1e-5,
@@ -46,7 +47,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
-            "assign_neighbour_elements_to_conditions": false,
+            "assign_neighbour_elements_to_conditions": true,
             "no_skin_parts":[""],
             "time_stepping"                : {
                 "automatic_time_step" : true,
