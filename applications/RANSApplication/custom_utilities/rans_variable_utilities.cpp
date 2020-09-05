@@ -242,17 +242,6 @@ void AssignBoundaryFlagsToGeometries(
     });
 }
 
-void CalculateMagnitudeSquareForNodal3DVariable(
-    ModelPart& rModelPart,
-    const Variable<array_1d<double, 3>>& r3DVariable,
-    const Variable<double>& rOutputVariable)
-{
-    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
-        const double magnitude = norm_2(rNode.FastGetSolutionStepValue(r3DVariable));
-        rNode.FastGetSolutionStepValue(rOutputVariable) = std::pow(magnitude, 2);
-    });
-}
-
 template <>
 KRATOS_API(RANS_APPLICATION)
 double GetVariableValueNorm(const double& rValue)

@@ -112,10 +112,6 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         Kratos.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
             Kratos.VELOCITY, self.velocity_model_part, self.velocity_model_part, Kratos.INLET, True, 0)
 
-        RansVariableUtilities.CalculateMagnitudeSquareForNodal3DVariable(
-            self.velocity_model_part, Kratos.VELOCITY,
-            KratosRANS.VELOCITY_POTENTIAL)
-
     def FinializeSolutionStep(self):
         self.velocity_strategy.FinializeSolutionStep()
 
