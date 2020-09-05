@@ -8,8 +8,8 @@ from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSo
 class RANSAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
-    def __init__(self,model,parameters):
-        super(RANSAnalysis,self).__init__(model, parameters)
+    def __init__(self, model,parameters):
+        super().__init__(model, parameters)
 
     def _CreateSolver(self):
         return CoupledRANSSolver(self.model, self.project_parameters["solver_settings"])

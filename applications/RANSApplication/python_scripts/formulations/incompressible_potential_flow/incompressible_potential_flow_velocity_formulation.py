@@ -51,8 +51,9 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         solver_settings = self.settings
         linear_solver = CreateLinearSolver(solver_settings["linear_solver_settings"])
         builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(linear_solver, self.IsPeriodic(), self.GetCommunicator())
-        convergence_criteria = CreateResidualCriteria(solver_settings["relative_tolerance"].GetDouble(),
-                                                      solver_settings["absolute_tolerance"].GetDouble())
+        convergence_criteria = CreateResidualCriteria(
+            [(KratosRANS.VELOCITY_POTENTIAL, solver_settings["relative_tolerance"].GetDouble(
+            ), solver_settings["absolute_tolerance"].GetDouble())])
         self.velocity_strategy = CreateResidualBasedNewtonRaphsonStrategy(
                     self.velocity_model_part, CreateIncrementalUpdateScheme(), linear_solver,
                     convergence_criteria, builder_and_solver, 2, False, False, False)
@@ -71,9 +72,8 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         if (not hasattr(self, "is_initialized")):
             self.is_initialized = True
 
-            RansVariableUtilities.FixFlaggedDofs(self.velocity_model_part,
-                                                 KratosRANS.VELOCITY_POTENTIAL,
-                                                 Kratos.OUTLET)
+            Kratos.VariableUtils().ApplyFixity(KratosRANS.VELOCITY_POTENTIAL,
+                                               True, self.velocity_model_part.Nodes, Kratos.OUTLET, True)
 
             self.velocity_strategy.InitializeSolutionStep()
 

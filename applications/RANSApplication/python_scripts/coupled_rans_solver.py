@@ -58,13 +58,12 @@ class CoupledRANSSolver(PythonSolver):
             "constants": {}
         }""")
 
-        default_settings.AddMissingParameters(
-            super(CoupledRANSSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super().GetDefaultSettings())
         return default_settings
 
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass = True  # To be removed eventually
-        super(CoupledRANSSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
         if model_part_name == "":
