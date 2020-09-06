@@ -802,6 +802,30 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                               : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
+            "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
+            "silent_warnings"                                    : false,
+            "lagrange_multiplier_settings"                       : {
+                "consider_lagrange_multiplier_constraint_resolution" : "Double",
+                "constraint_scale_factor"                            : "use_mean_diagonal",
+                "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
