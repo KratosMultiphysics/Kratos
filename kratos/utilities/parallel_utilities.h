@@ -37,6 +37,75 @@ namespace Kratos
 {
 ///@addtogroup KratosCore
 
+namespace Internals {
+
+/** @brief compute the number of threads to use, accounting for corner cases
+ *  @param Nchunks - number of threads to be used in the loop
+ *  @param Size    - the size of the partition
+ */
+inline int ComputeNumberOfChunks(
+    const int Nchunks,
+    const int Size)
+{
+    KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
+
+    if (Size == 0) {
+        return Nchunks;
+    }
+
+    // in case the container is smaller than the number of chunks
+    return std::min(Size, Nchunks);
+}
+
+}
+
+
+template<class PartitionType, int TMaxThreads=Globals::MaxAllowedThreads>
+class Partitioner
+{
+public:
+    using PartitionsType = std::array<PartitionType, TMaxThreads>;
+
+    PartitionsType CreateBlockPartition(
+        PartitionType it_begin,
+        PartitionType it_end,
+        int Nchunks = omp_get_max_threads())
+    {
+        const ptrdiff_t size = it_end-it_begin;
+
+        Nchunks = Internals::ComputeNumberOfChunks(Nchunks, size);
+
+        PartitionsType partitions;
+
+        const std::ptrdiff_t block_partition_size = size / Nchunks;
+        partitions[0] = it_begin;
+        partitions[Nchunks] = it_end;
+        for (int i=1; i<Nchunks; i++) {
+            partitions[i] = partitions[i-1] + block_partition_size;
+        }
+
+        return partitions;
+    }
+
+    PartitionsType CreateIndexPartition(
+        const PartitionType Size,
+        int Nchunks = omp_get_max_threads())
+    {
+        Nchunks = Internals::ComputeNumberOfChunks(Nchunks, Size);
+
+        PartitionsType partitions;
+
+        const std::ptrdiff_t block_partition_size = Size / Nchunks;
+        partitions[0] = 0;
+        partitions[Nchunks] = Size;
+        for (int i=1; i<Nchunks; i++) {
+            partitions[i] = partitions[i-1] + block_partition_size;
+        }
+
+        return partitions;
+    }
+};
+
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
@@ -62,22 +131,7 @@ public:
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
     {
-        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
-
-        const ptrdiff_t size_container = it_end-it_begin;
-
-        if (size_container == 0) {
-            mNchunks = Nchunks;
-        } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(size_container), Nchunks);
-        }
-        const ptrdiff_t block_partition_size = size_container / mNchunks;
-        mBlockPartition[0] = it_begin;
-        mBlockPartition[mNchunks] = it_end;
-        for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
-        }
+        mBlockPartition = Partitioner<TIteratorType, TMaxThreads>().CreateBlockPartition(it_begin, it_end, Nchunks);
     }
 
     /** @param rData - the continer to be iterated upon
@@ -167,22 +221,7 @@ public:
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
     {
-        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
-
-        if (Size == 0) {
-            mNchunks = Nchunks;
-        } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(Size), Nchunks);
-        }
-
-        const int block_partition_size = Size / mNchunks;
-        mBlockPartition[0] = 0;
-        mBlockPartition[mNchunks] = Size;
-        for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
-        }
-
+        mBlockPartition = Partitioner<TIndexType, TMaxThreads>().CreateIndexPartition(Size, Nchunks);
     }
 
     virtual ~IndexPartition() = default;
