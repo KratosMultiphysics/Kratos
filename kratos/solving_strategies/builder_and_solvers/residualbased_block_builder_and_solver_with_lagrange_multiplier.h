@@ -1000,6 +1000,20 @@ protected:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const override
+    {
+        ThisParameters.RecursivelyValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
 
     /**
      * @brief This method assigns settings to member variables
