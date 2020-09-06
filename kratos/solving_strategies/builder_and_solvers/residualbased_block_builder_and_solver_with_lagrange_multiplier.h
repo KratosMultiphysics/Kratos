@@ -801,6 +801,15 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "block_builder_and_solver_with_lagrange_multiplier";
+    }
+
     ///@}
     ///@name Access
     ///@{
