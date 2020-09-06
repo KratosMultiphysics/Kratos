@@ -11,6 +11,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics import auxiliary_solver_utilities
+from KratosMultiphysics import kratos_utilities
 
 # Other imports
 from importlib import import_module
@@ -58,7 +59,7 @@ class MechanicalSolver(PythonSolver):
         settings_have_use_block_builder = custom_settings.Has("block_builder")
 
         if settings_have_use_block_builder:
-            kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
             if not custom_settings.Has("builder_and_solver_settings"):
                 custom_settings.AddEmptyValue("builder_and_solver_settings")
 
