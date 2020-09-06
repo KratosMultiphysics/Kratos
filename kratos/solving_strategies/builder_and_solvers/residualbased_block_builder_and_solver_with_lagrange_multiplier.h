@@ -724,7 +724,7 @@ public:
             "name"                                               : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
             "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
             "silent_warnings"                                    : false,
-            "advanced_builder_and_solver_settings"                       : {
+            "advanced_builder_and_solver_settings"                   : {
                 "consider_lagrange_multiplier_constraint_resolution" : "Double",
                 "constraint_scale_factor"                            : "use_mean_diagonal",
                 "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
