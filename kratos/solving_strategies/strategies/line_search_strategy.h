@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
+
 namespace Kratos
 {
 
@@ -273,7 +274,7 @@ public:
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
-
+    
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
