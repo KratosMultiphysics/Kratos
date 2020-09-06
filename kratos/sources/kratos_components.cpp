@@ -26,6 +26,10 @@
 /* Utilities */
 #include "utilities/quaternion.h"
 
+/* Strategies */
+#include "solving_strategies/strategies/explicit_solving_strategy.h"
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
+
 /* Factories */
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
@@ -183,6 +187,8 @@ using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::comp
 template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<ExplicitSolvingStrategy<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
