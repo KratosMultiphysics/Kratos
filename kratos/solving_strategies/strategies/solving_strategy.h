@@ -145,10 +145,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~SolvingStrategy()
-    {
-        mpModelPart =  nullptr;
-    }
+    virtual ~SolvingStrategy(){}
 
     ///@}
     ///@name Operators
@@ -500,7 +497,7 @@ protected:
     ///@{
 
     // Level of echo for the solving strategy
-    int mEchoLevel = 1;
+    int mEchoLevel;
 
     // Settings for the rebuilding of the stiffness matrix
     int mRebuildLevel;
