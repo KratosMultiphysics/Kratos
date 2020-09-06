@@ -339,33 +339,6 @@ public:
     };
 
     /**
-     * @brief This method return the linear solver used
-     * @return mpLinearSystemSolver The linear solver used
-     */
-    typename TLinearSolver::Pointer GetLinearSystemSolver()
-    {
-        if (mpBuilderAndSolver != nullptr) {
-            return mpBuilderAndSolver->GetLinearSystemSolver();
-        } else {
-            KRATOS_WARNING("ResidualBasedLinearStrategy") << "BuilderAndSolver is not initialized. Please assign one before accesing the linear solver" << std::endl;
-            return nullptr;
-        }
-    }
-
-    /**
-     * @brief This method sets the linear solver to be used
-     * @param pLinearSystemSolver The linear solver to be used
-     */
-    void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
-    {
-        if (mpBuilderAndSolver != nullptr) {
-            mpBuilderAndSolver->SetLinearSystemSolver(pLinearSystemSolver);
-        } else {
-            KRATOS_WARNING("ResidualBasedLinearStrategy") << "BuilderAndSolver is not initialized. Please assign one before accesing the linear solver" << std::endl;
-        }
-    }
-
-    /**
      * @brief This method sets the flag mCalculateReactionsFlag
      * @param CalculateReactionsFlag The flag that tells if the reactions are computed
      */
