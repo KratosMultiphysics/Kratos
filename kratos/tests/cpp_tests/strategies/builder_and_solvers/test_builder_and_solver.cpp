@@ -390,7 +390,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "lagrange_multiplier_settings": {
+                "advanced_builder_and_solver_settings": {
                     "consider_lagrange_multiplier_constraint_resolution" : "Single"
                 }
             })" );
@@ -434,7 +434,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "lagrange_multiplier_settings": {
+                "advanced_builder_and_solver_settings": {
                     "consider_lagrange_multiplier_constraint_resolution" : "Double"
                 }
             })" );
@@ -848,7 +848,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "lagrange_multiplier_settings": {
+                "advanced_builder_and_solver_settings": {
                     "consider_lagrange_multiplier_constraint_resolution" : "Single"
                 }
             })" );
@@ -998,7 +998,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "lagrange_multiplier_settings": {
+                "advanced_builder_and_solver_settings": {
                     "consider_lagrange_multiplier_constraint_resolution" : "Double"
                 }
             })" );
