@@ -1088,6 +1088,69 @@ protected:
         KRATOS_CATCH("")
     }
 
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Auxiliar set for constraints
+        std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","defined_in_process_info"};
+
+        // Definition of the constraint scale factor
+        const std::string& r_constraint_scale_factor = ThisParameters["lagrange_multiplier_settings"]["constraint_scale_factor"].GetString();
+
+        // Check the values
+        if (available_options_for_constraints_scale.find(r_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed constraint scale factor : " << r_constraint_scale_factor << "\n";
+            msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // This case will consider the mean value in the diagonal as a scaling value
+        if (r_constraint_scale_factor == "use_mean_diagonal") {
+            mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
+        } else if (r_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
+        } else { // Otherwise we will assume we impose a numerical value
+            mConstraintFactorConsidered = CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
+        }
+
+        // Definition of the auxiliar constraint scale factor
+        const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["lagrange_multiplier_settings"]["auxiliar_constraint_scale_factor"].GetString();
+
+        // Check the values
+        if (available_options_for_constraints_scale.find(r_auxiliar_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed constraint scale factor : " << r_auxiliar_constraint_scale_factor << "\n";
+            msg << "Admissible values for the constraint scale factor are : use_mean_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // This case will consider the mean value in the diagonal as a scaling value
+        if (r_auxiliar_constraint_scale_factor == "use_mean_diagonal") {
+            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_MEAN_DIAGONAL_CONSTRAINT_FACTOR;
+        } else if (r_auxiliar_constraint_scale_factor == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_NORM_DIAGONAL_CONSTRAINT_FACTOR;
+        } else { // Otherwise we will assume we impose a numerical value
+            mAuxiliarConstraintFactorConsidered = AUXILIAR_CONSTRAINT_FACTOR::CONSIDER_PRESCRIBED_CONSTRAINT_FACTOR;
+        }
+
+        // Type of LM
+        if (ThisParameters["lagrange_multiplier_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
+            BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
+        } else {
+            BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, false);
+        }
+
+        // Initialize flag
+        BaseType::mOptions.Set(TRANSFORMATION_MATRIX_COMPUTED, false);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
