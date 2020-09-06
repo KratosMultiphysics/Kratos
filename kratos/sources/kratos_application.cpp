@@ -28,6 +28,7 @@
 #include "includes/master_slave_constraint.h"
 
 /* Factories */
+#include "factories/base_factory.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
 
@@ -112,6 +113,10 @@ void KratosApplication::RegisterKratosCore() {
     RegisterLinearSolvers();
     RegisterPreconditioners();
 
+    // Register of solving strategies
+    RegisterExplicitBuilders();
+    RegisterExplicitStrategies();
+
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
     Serializer::Register("Dof", Dof<double>());
@@ -181,7 +186,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register general geometries:
     // Point register:
     Serializer::Register("Point", mPointPrototype);
-    
+
     // Register + KratosComponents
     KRATOS_REGISTER_GEOMETRY("Point2D", mPoint2DPrototype);
     KRATOS_REGISTER_GEOMETRY("Point3D", mPoint3DPrototype);
