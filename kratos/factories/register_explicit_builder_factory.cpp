@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-void RegisterExplicitBuilders()
+void RegisterExplicitBuildersFactories()
 {
     typedef TUblasSparseSpace<double> SpaceType;
     typedef TUblasDenseSpace<double> LocalSpaceType;

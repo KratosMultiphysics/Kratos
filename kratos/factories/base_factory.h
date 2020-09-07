@@ -246,7 +246,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 void RegisterStrategiesFactories();
 void RegisterExplicitStrategiesFactories();
 void RegisterBuilderAndSolversFactories();
-void RegisterExplicitBuilders();
+void RegisterExplicitBuildersFactories();
 void RegisterSchemes();
 void RegisterConvergenceCriterias();
 
