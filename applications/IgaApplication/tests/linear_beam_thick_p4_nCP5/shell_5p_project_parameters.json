@@ -17,7 +17,7 @@
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "materials_5p.json"
+            "materials_filename": "linear_beam_thick_p4_nCP5/materials_5p.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -48,13 +48,12 @@
         "auxiliary_reaction_list": [],
         "multi_point_constraints_used": false
     },
-    "modelers": [
-        {
+    "modelers": [{
             "modeler_name": "CadIoModeler",
             "Parameters": {
                 "echo_level": 0,
                 "cad_model_part_name": "IgaModelPart",
-                "geometry_file_name": "geometry.cad.json"
+                "geometry_file_name": "linear_beam_thick_p4_nCP5/geometry.cad.json"
             }
         },
         {
@@ -63,21 +62,20 @@
                 "echo_level": 0,
                 "cad_model_part_name": "IgaModelPart",
                 "analysis_model_part_name": "IgaModelPart",
-                "physics_file_name": "physics_5p.iga.json"
+                "physics_file_name": "linear_beam_thick_p4_nCP5/physics_5p.iga.json"
             }
         }
     ],
     "processes": {
-        "dirichlet_process_list": [
-            {
+        "dirichlet_process_list": [{
                 "kratos_module": "KratosMultiphysics",
                 "python_module": "assign_vector_variable_process",
                 "Parameters": {
                     "mesh_id": 0,
                     "model_part_name": "IgaModelPart.Support_3",
                     "variable_name": "DISPLACEMENT",
-                    "value": [ 0, 0, 0 ],
-                    "interval": [ 0, "End" ]
+                    "value": [0, 0, 0],
+                    "interval": [0, "End"]
                 }
             },
             {
@@ -87,22 +85,31 @@
                     "mesh_id": 0,
                     "model_part_name": "IgaModelPart.Support_4",
                     "variable_name": "DISPLACEMENT",
-                    "value": [ null, 0, 0 ],
-                    "interval": [ 0, "End" ]
+                    "value": [null, 0, 0],
+                    "interval": [0, "End"]
                 }
             }
         ],
-        "neumann_process_list": [
-            {
-                "kratos_module": "KratosMultiphysics",
-                "python_module": "assign_vector_variable_to_conditions_process",
-                "Parameters": {
-                    "mesh_id": 0,
-                    "model_part_name": "IgaModelPart.Load_5",
-                    "variable_name": "SURFACE_LOAD",
-                    "value": [ 0, 0, "1000*t" ],
-                    "interval": [ 0, "End" ]
-                }
-            }]
+        "neumann_process_list": [{
+            "kratos_module": "KratosMultiphysics",
+            "python_module": "assign_vector_variable_to_conditions_process",
+            "Parameters": {
+                "mesh_id": 0,
+                "model_part_name": "IgaModelPart.Load_5",
+                "variable_name": "SURFACE_LOAD",
+                "value": [0, 0, "1000*t"],
+                "interval": [0, "End"]
+            }
+        }],
+        "json_check_process": [{
+            "python_module": "from_json_check_result_process",
+            "kratos_module": "KratosMultiphysics",
+            "Parameters": {
+                "check_variables": [ "DISPLACEMENT", "ROTATION" ],
+                "input_file_name": "linear_beam_thick_p4_nCP5/linear_beam_thick_p4_nCP5_test_results.json",
+                "model_part_name": "IgaModelPart",
+                "time_frequency": 0.0
+            }
+        }]
     }
 }

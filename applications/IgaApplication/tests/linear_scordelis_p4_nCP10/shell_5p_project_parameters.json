@@ -17,7 +17,7 @@
         },
         "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
-            "materials_filename": "materials_5p.json"
+            "materials_filename": "linear_scordelis_p4_nCP10/materials_5p.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -53,7 +53,7 @@
             "Parameters": {
                 "echo_level": 0,
                 "cad_model_part_name": "IgaModelPart",
-                "geometry_file_name": "geometry.cad.json"
+                "geometry_file_name": "linear_scordelis_p4_nCP10/geometry.cad.json"
             }
         },
         {
@@ -62,7 +62,7 @@
                 "echo_level": 0,
                 "cad_model_part_name": "IgaModelPart",
                 "analysis_model_part_name": "IgaModelPart",
-                "physics_file_name": "physics_5p.iga.json"
+                "physics_file_name": "linear_scordelis_p4_nCP10/physics_5p.iga.json"
             }
         }
     ],
@@ -100,6 +100,18 @@
                 "value": [0, 0, -90],
                 "interval": [0, "End"]
             }
-        }]
+        }],
+        "json_check_process": [
+            {
+                "python_module": "from_json_check_result_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "check_variables": [ "DISPLACEMENT_X", "DISPLACEMENT_Z", "ROTATION" ],
+                    "input_file_name": "linear_scordelis_p4_nCP10/linear_scordelis_p4_nCP10_test_results.json",
+                    "model_part_name": "IgaModelPart",
+                    "time_frequency": 0.0
+                }
+            }
+        ]
     }
 }
