@@ -29,7 +29,7 @@
 
 namespace Kratos
 {
-void RegisterConvergenceCriterias()
+void RegisterConvergenceCriteriasFactories()
 {
     typedef TUblasSparseSpace<double> SpaceType;
     typedef TUblasDenseSpace<double> LocalSpaceType;
