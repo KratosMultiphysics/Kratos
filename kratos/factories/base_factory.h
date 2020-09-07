@@ -83,7 +83,7 @@ public:
      */
     virtual bool Has(const std::string& rClassName) const
     {
-        KRATOS_ERROR << "Methods must be implemented in the base class" << std::endl;
+        KRATOS_ERROR << "Methods must be implemented in the derived class" << std::endl;
         return false;
     }
 
