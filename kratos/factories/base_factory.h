@@ -140,7 +140,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~BaseFactory() = default
+    virtual ~BaseFactory() = default;
 
     ///@}
     ///@name Operators
