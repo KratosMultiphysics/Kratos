@@ -237,7 +237,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@}
 
-void RegisterExplicitStrategies();
+void RegisterExplicitStrategiesFactories();
 void RegisterExplicitBuilders();
 
 typedef ExplicitSolvingStrategy<SparseSpaceType, LocalSpaceType> ExplicitSolvingStrategyType;
