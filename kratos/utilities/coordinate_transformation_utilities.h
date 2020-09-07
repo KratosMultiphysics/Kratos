@@ -299,109 +299,59 @@ public:
         const Vector& r_nodal_normal_derivative =
             row(r_sensitivity_values, DerivativeNodeIndex * 3 + DerivativeDirectionIndex);
 
-        const double x0 = 1.0/nodal_normal_magnitude;
-        const double x1 = r_nodal_normal_derivative[0]*x0;
-        const double x2 = std::pow(nodal_normal_magnitude, -3);
-        const double x3 = r_nodal_normal[0]*r_nodal_normal_derivative[0];
-        const double x4 = r_nodal_normal[1]*r_nodal_normal_derivative[1];
-        const double x5 = r_nodal_normal[2]*r_nodal_normal_derivative[2];
-        const double x6 = x2*(-x3 - x4 - x5);
-        const double x7 = r_nodal_normal[0]*x6;
-        const double x8 = x1 + x7;
-        const double x9 = r_nodal_normal_derivative[1]*x0;
-        const double x10 = r_nodal_normal[1]*x6;
-        const double x11 = x10 + x9;
-        const double x12 = r_nodal_normal_derivative[2]*x0;
-        const double x13 = r_nodal_normal[2]*x6;
-        const double x14 = x12 + x13;
-        const double x15 = std::pow(nodal_normal_magnitude, -2);
-        const double x16 = 2*x3;
-        const double x17 = 2*x4;
-        const double x18 = -x16 - x17 - 2*x5;
-        const double x19 = std::pow(r_nodal_normal[0], 2);
-        const double x20 = std::pow(nodal_normal_magnitude, -4);
-        const double x21 = x19*x20;
-        const double x22 = x18*x21;
-        const double x23 = std::pow(r_nodal_normal[1], 2);
-        const double x24 = x21*x23;
-        const double x25 = std::pow(r_nodal_normal[2], 2);
-        const double x26 = -x15*x19 + 1;
-        const double x27 = x21*x25 + x24 + std::pow(x26, 2);
-        const double x28 = std::pow(x27, -1.0/2.0);
-        const double x29 = x28*(-x15*x16 - x22);
-        const double x30 = 4*x3;
-        const double x31 = x20*x25;
-        const double x32 = std::pow(nodal_normal_magnitude, -6);
-        const double x33 = 4*x4;
-        const double x34 = -x30 - x33 - 4*x5;
-        const double x35 = (1.0/2.0)*x19*x32*x34;
-        const double x36 = x20*x23;
-        const double x37 = -x21*x4 - x23*x35 - x3*x36;
-        const double x38 = (-x21*x5 - x25*x35 - 1.0/2.0*x26*(-x15*x30 - 2*x22) - x3*x31 + x37)/std::pow(x27, 3.0/2.0);
-        const double x39 = x26*x38;
-        const double x40 = x15*x28;
-        const double x41 = r_nodal_normal[0]*x40;
-        const double x42 = r_nodal_normal_derivative[0]*x40;
-        const double x43 = r_nodal_normal[0]*r_nodal_normal[1];
-        const double x44 = x18*x20;
-        const double x45 = x28*x44;
-        const double x46 = x15*x38;
-        const double x47 = r_nodal_normal[0]*r_nodal_normal[2];
-        const double x48 = r_nodal_normal_derivative[2]*x2;
-        const double x49 = x19*x28;
-        const double x50 = r_nodal_normal[2]*x2;
-        const double x51 = x16*x28;
-        const double x52 = x26*x28;
-        const double x53 = (-3*x3 - 3*x4 - 3*x5)/std::pow(nodal_normal_magnitude, 5);
-        const double x54 = x49*x53;
-        const double x55 = x0*x29;
-        const double x56 = x19*x38;
-        const double x57 = x0*x39;
-        const double x58 = r_nodal_normal[1]*x2;
-        const double x59 = -x15*x23 + 1;
-        const double x60 = x24 + x25*x36 + std::pow(x59, 2);
-        const double x61 = std::pow(x60, -1.0/2.0);
-        const double x62 = x15*x61;
-        const double x63 = r_nodal_normal_derivative[1]*x62;
-        const double x64 = r_nodal_normal[1]*x62;
-        const double x65 = x44*x61;
-        const double x66 = x18*x36;
-        const double x67 = (-1.0/2.0*x23*x25*x32*x34 - x31*x4 - x36*x5 + x37 - 1.0/2.0*x59*(-x15*x33 - 2*x66))/std::pow(x60, 3.0/2.0);
-        const double x68 = x15*x67;
-        const double x69 = x61*(-x15*x17 - x66);
-        const double x70 = x59*x67;
-        const double x71 = r_nodal_normal[1]*r_nodal_normal[2];
-        const double x72 = x17*x61;
-        const double x73 = x23*x61;
-        const double x74 = x59*x61;
-        const double x75 = x53*x73;
-        const double x76 = x0*x69;
-        const double x77 = x23*x67;
-        const double x78 = x0*x70;
-        const double x79 = r_nodal_normal[0]*x2;
+        const double nodal_normal_magnitude_derivative = VectorNormDerivative(nodal_normal_magnitude, r_nodal_normal, r_nodal_normal_derivative);
+        const array_1d<double, 3>& unit_normal = r_nodal_normal / nodal_normal_magnitude;
+        const array_1d<double, 3>& unit_normal_derivative = UnitVectorDerivative(nodal_normal_magnitude, nodal_normal_magnitude_derivative, r_nodal_normal, r_nodal_normal_derivative);
 
+        rOutput(0, 0) = unit_normal_derivative[0];
+        rOutput(0, 1) = unit_normal_derivative[1];
+        rOutput(0, 2) = unit_normal_derivative[2];
 
-        if ((r_nodal_normal[0] / nodal_normal_magnitude) > 0.99) {
-            rOutput(0, 0) = x8;
-            rOutput(0, 1) = x11;
-            rOutput(0, 2) = x14;
-            rOutput(1, 0) = x29 + x39;
-            rOutput(1, 1) = -r_nodal_normal[1]*x42 - r_nodal_normal_derivative[1]*x41 - x43*x45 - x43*x46;
-            rOutput(1, 2) = -r_nodal_normal[2]*x42 - r_nodal_normal_derivative[2]*x41 - x45*x47 - x46*x47;
-            rOutput(2, 0) = 0;
-            rOutput(2, 1) = r_nodal_normal[2]*x54 + r_nodal_normal[2]*x55 + r_nodal_normal[2]*x57 + x12*x52 + x13*x52 + x48*x49 + x50*x51 + x50*x56;
-            rOutput(2, 2) = -r_nodal_normal[1]*x54 - r_nodal_normal[1]*x55 - r_nodal_normal[1]*x57 - r_nodal_normal_derivative[1]*x2*x49 - x10*x52 - x51*x58 - x52*x9 - x56*x58;
-        } else {
-            rOutput(0, 0) = x8;
-            rOutput(0, 1) = x11;
-            rOutput(0, 2) = x14;
-            rOutput(1, 0) = -r_nodal_normal[0]*x63 - r_nodal_normal_derivative[0]*x64 - x43*x65 - x43*x68;
-            rOutput(1, 1) = x69 + x70;
-            rOutput(1, 2) = -r_nodal_normal[2]*x63 - r_nodal_normal_derivative[2]*x64 - x65*x71 - x68*x71;
-            rOutput(2, 0) = -r_nodal_normal[2]*x75 - r_nodal_normal[2]*x76 - r_nodal_normal[2]*x78 - x12*x74 - x13*x74 - x48*x73 - x50*x72 - x50*x77;
-            rOutput(2, 1) = 0;
-            rOutput(2, 2) = r_nodal_normal[0]*x75 + r_nodal_normal[0]*x76 + r_nodal_normal[0]*x78 + r_nodal_normal_derivative[0]*x2*x73 + x1*x74 + x7*x74 + x72*x79 + x77*x79;
+        array_1d<double, 3> rT1(0.0);
+        rT1[0] = 1.0;
+        double dot = unit_normal[0];
+        double dot_derivative = unit_normal_derivative[0];
+
+        if (std::abs(dot) > 0.99) {
+            rT1[0] = 0.0;
+            rT1[1] = 1.0;
+            dot = unit_normal[1];
+            dot_derivative = unit_normal_derivative[1];
         }
+
+        // calculate rT1
+        noalias(rT1) -=  unit_normal * dot;
+        const double rT1_norm = norm_2(rT1);
+        const array_1d<double, 3>& unit_rT1 = rT1 / rT1_norm;
+
+        // calculate rT1 derivative
+        const array_1d<double, 3>& rT1_derivative = (unit_normal_derivative * dot + unit_normal * dot_derivative) * -1.0;
+
+        // calculate rT1 norm derivative
+        const double rT1_norm_derivative = VectorNormDerivative(rT1_norm, rT1, rT1_derivative);
+
+        const array_1d<double, 3>& unit_rT1_derivative =
+            UnitVectorDerivative(rT1_norm, rT1_norm_derivative, rT1, rT1_derivative);
+
+        rOutput(1, 0) = unit_rT1_derivative[0];
+        rOutput(1, 1) = unit_rT1_derivative[1];
+        rOutput(1, 2) = unit_rT1_derivative[2];
+
+        rOutput(2, 0) = unit_normal_derivative[1] * unit_rT1[2]
+                        + unit_normal[1] * unit_rT1_derivative[2]
+                        - unit_normal_derivative[2] * unit_rT1[1]
+                        - unit_normal[2] * unit_rT1_derivative[1];
+
+
+        rOutput(2, 1) = unit_normal_derivative[2] * unit_rT1[0]
+                        + unit_normal[2] * unit_rT1_derivative[0]
+                        - unit_normal_derivative[0] * unit_rT1[2]
+                        - unit_normal[0] * unit_rT1_derivative[2];
+
+        rOutput(2, 2) = unit_normal_derivative[0] * unit_rT1[1]
+                        + unit_normal[0] * unit_rT1_derivative[1]
+                        - unit_normal_derivative[1] * unit_rT1[0]
+                        - unit_normal[1] * unit_rT1_derivative[0];
 
         KRATOS_CATCH("");
 	}
@@ -1167,7 +1117,25 @@ private:
 		return dot;
 	}
 
-	/// Transform a local contribution from cartesian coordinates to rotated ones
+    inline double VectorNormDerivative(
+        const double ValueNorm,
+        const array_1d<double, 3>& rValue,
+        const array_1d<double, 3>& rValueDerivative) const
+    {
+        return inner_prod(rValue, rValueDerivative) / ValueNorm;
+    }
+
+    inline array_1d<double, 3> UnitVectorDerivative(
+        const double VectorNorm,
+        const double VectorNormDerivative,
+        const array_1d<double, 3>& rVector,
+        const array_1d<double, 3>& rVectorDerivative) const
+    {
+        return (rVectorDerivative * VectorNorm - rVector * VectorNormDerivative) /
+               std::pow(VectorNorm, 2);
+    }
+
+    /// Transform a local contribution from cartesian coordinates to rotated ones
 //     void ApplyRotation(TLocalMatrixType& rMatrix,
 //                        const TLocalMatrixType& rRotation) const
 //     {
