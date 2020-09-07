@@ -351,10 +351,10 @@ public:
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
-        (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-        (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentCondition)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
-        (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
@@ -730,5 +730,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME  defined */
-
-
