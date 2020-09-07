@@ -198,7 +198,7 @@ class RestartUtility(object):
         if restart_path.is_dir():
             for entry in restart_path.glob("**/*"):
                 if entry.is_file() and self.__IsRestartFile( entry.name ):
-                    label = self.__ExtractFileLabel(entry.name) # Get thread ID and step ID
+                    label = self.__ExtractFileLabel(entry.name) # Get process ID and step ID
                     if label[1] in restart_files:               # Check if this step has entries already
                         restart_files[label[1]].append( entry.name )
                     else:
@@ -218,15 +218,7 @@ class RestartUtility(object):
                 # Try to delete every file in the set
                 for file_name in oldest_file_set:
                     file_path = os.path.join( self.__GetFolderPathSave(), file_name )
-                    try:
-                        if os.path.isfile( file_path ):
-                            os.remove( file_path )
-                    except OSError:
-                        message =   'Failed to delete restart file "'
-                        message +=  file_path
-                        message += '"'
-                        print( message )                # <-- TODO: decide whether to throw a non-blocking exception or display a warning
-                        #raise Exception(message)       #
+                    KratosMultiphysics.kratos_utilities.DeleteFileIfExisting( file_path )
 
                 # Update stored dictionary
                 del self.restart_files[oldest_step_id]
@@ -288,15 +280,11 @@ class RestartUtility(object):
         Return a list of labels attached to a file name (list entries separated by '_').
         Expecting one of two possible file name formats:
             1) serial execution     : <file_base_name>_<step_id>.rest
-            2) parallel execution   : <file_base_name>_<thread_id>_<step_id>.rest
+            2) parallel execution   : <file_base_name>_<process_id>_<step_id>.rest
         The returned list always has 2 entries, but the first component will be '' for
         serial execution.
         """
         label_begin = file_name.find(self.raw_file_name + '_') + len(self.raw_file_name + '_')
         label_end   = file_name.find('.rest')
-
-        labels      = file_name[label_begin:label_end].split("_")
-        if len(labels) < 2:
-            labels = [""] + labels
-
+        labels      = [ '' ] + file_name[label_begin:label_end].split('_')      # <-- no process_id in serial
         return labels

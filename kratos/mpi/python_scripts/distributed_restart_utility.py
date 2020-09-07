@@ -33,3 +33,9 @@ class DistributedRestartUtility(RestartUtility):
     def _ExecuteAfterLoad(self):
         if self.set_mpi_communicator:
             KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
+
+    def __ExtractFileLabel(self, file_name):
+        label_begin = file_name.find(self.raw_file_name + '_') + len(self.raw_file_name + '_')
+        label_end   = file_name.find('.rest')
+        labels      = file_name[label_begin:label_end].split('_')
+        return labels
