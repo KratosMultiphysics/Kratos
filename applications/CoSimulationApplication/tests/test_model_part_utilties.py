@@ -64,18 +64,15 @@ class TestModelPartUtiliites(KratosUnittest.TestCase):
         self.assertFalse(self.model.HasModelPart("subinterface"))
 
     def test_RecursiveCreateModelParts(self):
-        mp_structure = self.model.CreateModelPart("for_test")
+        model_part = self.model.CreateModelPart("for_test")
 
-        self.assertFalse(mp_structure.HasSubModelPart("sub_model_part"))
-
+        self.assertFalse(model_part.HasSubModelPart("sub_model_part"))
         model_part_utilities.RecursiveCreateModelParts(model_part, "sub_model_part")
+        self.assertTrue(model_part.HasSubModelPart("sub_model_part"))
 
-        self.assertTrue(mp_structure.HasSubModelPart("sub_model_part"))
-        self.assertFalse(mp_structure.GetSubModelPart("sub_model_part").HasSubModelPart("subsub"))
-
+        self.assertFalse(model_part.GetSubModelPart("sub_model_part").HasSubModelPart("subsub"))
         model_part_utilities.RecursiveCreateModelParts(model_part, "sub_model_part.subsub")
-
-        self.assertTrue(mp_structure.GetSubModelPart("sub_model_part").HasSubModelPart("subsub"))
+        self.assertTrue(model_part.GetSubModelPart("sub_model_part").HasSubModelPart("subsub"))
 
     def test_CreateModelPartsFromCouplingDataSettings(self):
         model_part_utilities.CreateModelPartsFromCouplingDataSettings(self.data_settings, self.model, "dummy_solver_name")
