@@ -141,7 +141,7 @@ AxisymmetricUpdatedLagrangianUPElement::~AxisymmetricUpdatedLagrangianUPElement(
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymmetricUpdatedLagrangianUPElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -160,7 +160,7 @@ void AxisymmetricUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const 
   }
   else{
 
-    LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 

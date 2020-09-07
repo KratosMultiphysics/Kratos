@@ -14,6 +14,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         ## Material model part definition
         material_point_model_part = current_model.CreateModelPart("dummy_name")
         material_point_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
+        self.process_info = material_point_model_part.ProcessInfo
 
         ## Initial material model part definition
         initial_mesh_model_part = current_model.CreateModelPart("Initial_dummy_name")
@@ -46,7 +47,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mesh_model_part.Elements)
 
         # Generate MP Elements
-        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
 
     def _create_nodes_structured(self, model_part, dimension, geometry_element):
@@ -129,34 +130,34 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
     def _create_elements(self, model_part, dimension, geometry_element):
         if geometry_element == "Triangle":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D3N", 1, [1,2,3], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
             if (dimension == 3):
-                model_part.CreateNewElement("UpdatedLagrangian3D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element3D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
         elif geometry_element == "Quadrilateral":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D4N", 1, [1,2,3,4], model_part.GetProperties()[1])
             if (dimension == 3):
-                model_part.CreateNewElement("UpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element3D8N", 1, [1,2,3,4,5,6,7,8], model_part.GetProperties()[1])
 
 
     def _create_background_elements(self, model_part, dimension, geometry_element, is_structured):
         self._create_elements(model_part, dimension, geometry_element)
         if geometry_element == "Triangle":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D3N", 2, [2,3,5], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D3N", 2, [2,3,5], model_part.GetProperties()[1])
             if (dimension == 3):
                 if (is_structured):
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 2, [2,8,4,6], model_part.GetProperties()[1])
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 3, [4,8,3,7], model_part.GetProperties()[1])
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 4, [2,5,3,8], model_part.GetProperties()[1])
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 5, [8,3,2,4], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 2, [2,8,4,6], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 3, [4,8,3,7], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 4, [2,5,3,8], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 5, [8,3,2,4], model_part.GetProperties()[1])
                 else:
-                    model_part.CreateNewElement("UpdatedLagrangian3D4N", 2, [2,3,5,4], model_part.GetProperties()[1])
+                    model_part.CreateNewElement("Element3D4N", 2, [2,3,5,4], model_part.GetProperties()[1])
         elif geometry_element == "Quadrilateral":
             if (dimension == 2):
-                model_part.CreateNewElement("UpdatedLagrangian2D4N", 2, [2,9,10,3], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element2D4N", 2, [2,9,10,3], model_part.GetProperties()[1])
             if (dimension == 3):
-                model_part.CreateNewElement("UpdatedLagrangian3D8N", 2, [2,9,10,3,6,11,12,7], model_part.GetProperties()[1])
+                model_part.CreateNewElement("Element3D8N", 2, [2,9,10,3,6,11,12,7], model_part.GetProperties()[1])
 
 
     def _move_and_search_element(self, current_model, new_coordinate, max_num_results = 1000, specific_tolerance = 1.e-5):
@@ -164,9 +165,9 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         material_point_model_part = current_model.GetModelPart("dummy_name")
         grid_model_part           = current_model.GetModelPart("Background_Grid")
 
-        # Apply  before search
+        # Apply before search
         for mpm in material_point_model_part.Elements:
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+            mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, [new_coordinate], self.process_info)
 
         # Search element
         KratosParticle.SearchElement(grid_model_part, material_point_model_part, max_num_results, specific_tolerance)
@@ -285,7 +286,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False)
 
-        new_coordinate = [1.31967, 1.85246, 1.0]
+        new_coordinate = [1.31967, 1.85246, 0.1]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
@@ -349,7 +350,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False, is_fine=True)
 
-        new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-7]
+        new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-8]
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 

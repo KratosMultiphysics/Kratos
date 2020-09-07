@@ -40,19 +40,19 @@ set_target_properties(KratosChimeraApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set_target_properties(KratosChimeraApplicationApplication PROPERTIES SUFFIX .pyd)
+    set_target_properties(KratosChimeraApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so (OS X)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(KratosChimeraApplicationApplication PROPERTIES SUFFIX .so)
+    set_target_properties(KratosChimeraApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 # Cotire
 if(USE_COTIRE MATCHES ON)
     cotire(KratosChimeraApplicationCore)
-    cotire(KratosChimeraApplicationApplication)
+    cotire(KratosChimeraApplication)
 endif(USE_COTIRE MATCHES ON)
 
 

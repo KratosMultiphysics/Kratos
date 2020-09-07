@@ -86,8 +86,11 @@ protected:
         double DamageThreshold;
         double YieldStress;
         double YoungModulus;
+        double PoissonCoefficient;
         double FrictionCoefficient;
         double PenaltyStiffness;
+        double MaxTensileStress;
+        double MaxCompresiveStress;
 
         Matrix CompressionMatrix;
         Matrix WeightMatrix;

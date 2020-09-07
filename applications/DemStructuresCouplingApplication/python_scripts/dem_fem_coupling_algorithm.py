@@ -54,9 +54,6 @@ class Algorithm(object):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.TARGET_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.REACTION_STRESS)
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.LOADING_VELOCITY)
 
     def Run(self):
         self.Initialize()
@@ -88,7 +85,7 @@ class Algorithm(object):
                             mixed_mp
                             )
 
-        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION","TARGET_STRESS","REACTION_STRESS","LOADING_VELOCITY"]
+        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION"]
         dem_nodal_results = ["IS_STICKY", "DEM_STRESS_TENSOR"]
         clusters_nodal_results = []
         rigid_faces_nodal_results = []

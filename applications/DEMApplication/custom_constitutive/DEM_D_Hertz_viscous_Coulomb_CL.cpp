@@ -231,15 +231,20 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        const double my_tg_of_friction_angle        = element->GetTgOfFrictionAngle();
-        const double neighbour_tg_of_friction_angle = neighbour->GetProperties()[FRICTION];
-        const double equiv_tg_of_fri_ang            = 0.5 * (my_tg_of_friction_angle + neighbour_tg_of_friction_angle);
+        const double my_tg_of_static_friction_angle        = element->GetTgOfStaticFrictionAngle();
+        const double neighbour_tg_of_static_friction_angle = neighbour->GetProperties()[STATIC_FRICTION];
+        const double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
 
-        if(equiv_tg_of_fri_ang < 0.0) {
+        const double my_tg_of_dynamic_friction_angle        = element->GetTgOfDynamicFrictionAngle();
+        const double neighbour_tg_of_dynamic_friction_angle = neighbour->GetProperties()[DYNAMIC_FRICTION];
+        const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
+
+        if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
             KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element->Id()<<std::endl;
         }
 
-        MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
+        MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_static_fri_ang;
+        if (AuxElasticShearForce > MaximumAdmisibleShearForce) MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_dynamic_fri_ang;
 
         const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
         const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];

@@ -388,7 +388,7 @@ Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, GeometryType::Po
     return Kratos::make_intrusive< ShellThickElement3D4N >(NewId, pGeom, pProperties, mpCoordinateTransformation->Create(pGeom));
 }
 
-void ShellThickElement3D4N::Initialize()
+void ShellThickElement3D4N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -401,7 +401,7 @@ void ShellThickElement3D4N::Initialize()
     KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes"
                                             << points_number << std::endl;
 
-    BaseShellElement::Initialize();
+    BaseShellElement::Initialize(rCurrentProcessInfo);
 
     mpCoordinateTransformation->Initialize();
 

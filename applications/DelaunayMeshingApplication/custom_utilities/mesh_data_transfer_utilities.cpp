@@ -409,7 +409,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
 
     }
 
@@ -442,7 +442,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
 
     }
 
@@ -478,7 +478,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
 
     }
 
@@ -517,7 +517,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
 
     }
 
@@ -641,7 +641,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
 
         //std::cout<<" transfer ["<<i_elem.Id()<<"] "<<NodesDoubleVariableArray[0]<<" element "<<ElementDoubleVariableArray[0]<<std::endl;
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
 
       }
 
@@ -672,7 +672,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
 
       }
 
@@ -707,7 +707,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
 
       }
 
@@ -744,7 +744,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
 
       }
 
@@ -1345,6 +1345,13 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
         //}
         Properties::Pointer p_new_property = rModelPart.pGetProperties(property_id);
         new_element->SetProperties(p_new_property);
+    }
+
+    // Clone the constitutive law
+    const PropertiesType& rProperties = new_element->GetProperties();
+    if (rProperties.Has(CONSTITUTIVE_LAW)) {
+        const ConstitutiveLaw::Pointer& pConstitutiveLaw = rProperties[CONSTITUTIVE_LAW];
+        new_element->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw->Clone());
     }
 
     //check

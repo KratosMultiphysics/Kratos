@@ -90,8 +90,6 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
 
 void KratosSwimmingDEMApplication::Register()
 {
-  // calling base class register to register Kratos components
-  KratosApplication::Register();
   std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
 
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)

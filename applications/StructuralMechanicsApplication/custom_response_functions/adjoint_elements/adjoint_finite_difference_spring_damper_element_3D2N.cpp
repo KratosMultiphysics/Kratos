@@ -66,14 +66,13 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         // reset original stiffness parameters before computing the derivatives
         this->pGetPrimalElement()->SetValue(rDesignVariable, rDesignVariable.Zero());
 
-        ProcessInfo process_info = rCurrentProcessInfo;
         Vector RHS;
         for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
             // The following approach assumes a linear dependency between RHS and spring stiffness
             array_1d<double, 3> perturbed_nodal_stiffness = ZeroVector(3);
             perturbed_nodal_stiffness[dir_i] = 1.0;
             this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_stiffness);
-            this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+            this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
             KRATOS_ERROR_IF_NOT(RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
             for(IndexType i = 0; i < RHS.size(); ++i) {
@@ -95,7 +94,7 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const ProcessInfo& rCurrentProcessInfo )
+int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -126,7 +125,7 @@ int AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::Check( const Pro
     // Verify that the dofs exist
     for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ ) {
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        NodeType& rnode = this->GetGeometry()[i];
+        const NodeType& rnode = this->GetGeometry()[i];
 
         // The displacement terms
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT,rnode)

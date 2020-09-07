@@ -116,6 +116,11 @@ public:
         this->Execute();
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Operations
     ///@{

@@ -81,7 +81,7 @@ void ZStrainDriven2p5DSmallDisplacement::Initialize(const ProcessInfo& rCurrentP
 {
     KRATOS_TRY
 
-    BaseType::Initialize();
+    BaseType::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
@@ -130,7 +130,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ZStrainDriven2p5DSmallDisplacement::SetValueOnIntegrationPoints(
+void ZStrainDriven2p5DSmallDisplacement::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -142,14 +142,14 @@ void ZStrainDriven2p5DSmallDisplacement::SetValueOnIntegrationPoints(
             mImposedZStrainVector[point_number] = rValues[point_number];
         }
     } else {
-        BaseType::SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        BaseType::SetValuesOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  ZStrainDriven2p5DSmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

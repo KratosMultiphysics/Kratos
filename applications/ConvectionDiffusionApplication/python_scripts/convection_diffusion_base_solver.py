@@ -162,8 +162,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : [],
-            "buffer_size" : -1
+            "auxiliary_variables_list" : []
         }
         """)
         default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultSettings())
@@ -598,11 +597,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               convection_diffusion_scheme,
-                                                              linear_solver,
                                                               builder_and_solver,
                                                               self.settings["compute_reactions"].GetBool(),
                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -612,12 +609,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                         convection_diffusion_scheme,
-                                        linear_solver,
                                         convection_diffusion_convergence_criterion,
                                         builder_and_solver,
                                         self.settings["max_iteration"].GetInt(),
@@ -628,12 +623,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.LineSearchStrategy(computing_model_part,
                             convection_diffusion_scheme,
-                            linear_solver,
                             convection_diffusion_convergence_criterion,
                             builder_and_solver,
                             self.settings["max_iteration"].GetInt(),

@@ -19,7 +19,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
     def __init__(self, model, custom_settings):
         [self.chimera_settings, self.chimera_internal_parts, custom_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
         super(NavierStokesSolverFractionalStepForChimera,self).__init__(model,custom_settings)
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Construction of NavierStokesSolverFractionalStepForChimera finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverFractionalStepForChimera finished.")
 
     def AddVariables(self):
         super(NavierStokesSolverFractionalStepForChimera,self).AddVariables()
@@ -31,9 +31,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.ROTATION_MESH_VELOCITY)
 
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Fluid solver variables added correctly.")
-
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid chimera solver variables added correctly.")
 
     def ImportModelPart(self):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "chimera"):
@@ -45,63 +43,25 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
             material_file_name = self.settings["material_import_settings"]["materials_filename"].GetString()
             import KratosMultiphysics.ChimeraApplication.chimera_modelpart_import as chim_mp_imp
             chim_mp_imp.ImportChimeraModelparts(self.main_model_part, chimera_mp_import_settings, material_file=material_file_name, parallel_type="OpenMP")
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", " Import of all chimera modelparts completed.")
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, " Import of all chimera modelparts completed.")
         else:# we can use the default implementation in the base class
             super(NavierStokesSolverFractionalStepForChimera,self).ImportModelPart()
 
     def Initialize(self):
-        self.chimera_process = chimera_setup_utils.GetApplyChimeraProcess(self.model, self.chimera_settings, self.settings)
-        self.computing_model_part =self.main_model_part
-        # If needed, create the estimate time step utility
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
+        # Call the base solver to create the solution strategy
+        super(NavierStokesSolverFractionalStepForChimera,self).Initialize()
 
-        #TODO: next part would be much cleaner if we passed directly the parameters to the c++
-        if self.settings["consider_periodic_conditions"] == True:
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera Periodic conditions are not implemented in this case .")
-            raise NotImplementedError
-        else:
-            self.solver_settings = KratosChimera.FractionalStepSettings(self.computing_model_part,
-                                                                    self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                    self.settings["time_order"].GetInt(),
-                                                                    self.settings["use_slip_conditions"].GetBool(),
-                                                                    self.settings["move_mesh_flag"].GetBool(),
-                                                                    self.settings["reform_dofs_at_each_step"].GetBool())
+        # Chimera utilities initialization
+        self.chimera_process = chimera_setup_utils.GetApplyChimeraProcess(
+            self.model,
+            self.chimera_settings,
+            self.settings)
+        chimera_setup_utils.SetChimeraInternalPartsFlag(
+            self.model,
+            self.chimera_internal_parts)
 
-        self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,
-                                         self.velocity_linear_solver,
-                                         self.settings["velocity_tolerance"].GetDouble(),
-                                         self.settings["maximum_velocity_iterations"].GetInt())
-
-        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Pressure,
-                                         self.pressure_linear_solver,
-                                         self.settings["pressure_tolerance"].GetDouble(),
-                                         self.settings["maximum_pressure_iterations"].GetInt())
-
-
-        if self.settings["consider_periodic_conditions"].GetBool() == True:
-            self.solver = KratosCFD.FSStrategy(self.computing_model_part,
-                                               self.solver_settings,
-                                               self.settings["predictor_corrector"].GetBool(),
-                                               KratosCFD.PATCH_INDEX)
-        else:
-            self.solver = KratosChimera.FSStrategyForChimera(self.computing_model_part,
-                                               self.solver_settings,
-                                               self.settings["predictor_corrector"].GetBool())
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-
-        (self.solver).Initialize()
-
-        self.solver.Check()
-
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Solver initialization finished.")
-
-        chimera_setup_utils.SetChimeraInternalPartsFlag(self.model, self.chimera_internal_parts)
-
+    def GetComputingModelPart(self):
+        return self.main_model_part
 
     def InitializeSolutionStep(self):
         self.chimera_process.ExecuteInitializeSolutionStep()
@@ -111,3 +71,53 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         super(NavierStokesSolverFractionalStepForChimera,self).FinalizeSolutionStep()
         ## Depending on the setting this will clear the created constraints
         self.chimera_process.ExecuteFinalizeSolutionStep()
+
+    def _CreateSolutionStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        # Create the pressure and velocity linear solvers
+        # Note that linear_solvers is a tuple. The first item is the pressure
+        # linear solver. The second item is the velocity linear solver.
+        linear_solvers = self._GetLinearSolver()
+
+        # Create the fractional step settings instance
+        # TODO: next part would be much cleaner if we passed directly the parameters to the c++
+        if self.settings["consider_periodic_conditions"].GetBool():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera Periodic conditions are not implemented in this case .")
+            raise NotImplementedError
+        else:
+            fractional_step_settings = KratosChimera.FractionalStepSettingsChimera(
+                computing_model_part,
+                domain_size,
+                self.settings["time_order"].GetInt(),
+                self.settings["use_slip_conditions"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool())
+
+        # Set the strategy echo level
+        fractional_step_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        # Set the velocity and pressure fractional step strategy settings
+        fractional_step_settings.SetStrategy(KratosCFD.StrategyLabel.Pressure,
+            linear_solvers[0],
+            self.settings["pressure_tolerance"].GetDouble(),
+            self.settings["maximum_pressure_iterations"].GetInt())
+
+        fractional_step_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,
+            linear_solvers[1],
+            self.settings["velocity_tolerance"].GetDouble(),
+            self.settings["maximum_velocity_iterations"].GetInt())
+
+        # Create the fractional step strategy
+        if self.settings["consider_periodic_conditions"].GetBool() == True:
+            KratosMultiphysics.Logger.PrintInfo("FractionalStepStrategyForChimera Periodic conditions are not implemented in this case .")
+            raise NotImplementedError
+        else:
+            solution_strategy = KratosChimera.FractionalStepStrategyForChimera(
+                computing_model_part,
+                fractional_step_settings,
+                self.settings["predictor_corrector"].GetBool(),
+                self.settings["compute_reactions"].GetBool())
+
+        return solution_strategy

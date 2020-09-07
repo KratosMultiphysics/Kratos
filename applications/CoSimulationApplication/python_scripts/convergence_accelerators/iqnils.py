@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 ## @module iqnils
 # This module contains the class IQNILSConvergenceAccelerator
 # Author: Wei He
@@ -31,7 +29,7 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
     def __init__( self, settings, solver_wrapper):
-        super(IQNILSConvergenceAccelerator, self).__init__(settings, solver_wrapper)
+        super().__init__(settings, solver_wrapper)
         if "iteration_horizon" in self.settings:
             iteration_horizon = self.settings["iteration_horizon"]
         else:

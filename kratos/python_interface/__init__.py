@@ -1,7 +1,9 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import sys
 from . import kratos_globals
+
+if sys.version_info < (3, 5):
+    raise Exception("Kratos only supports Python version 3.5 and above")
 
 class KratosPaths(object):
     kratos_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -58,6 +60,14 @@ def __ModuleInitDetail():
 KratosGlobals = __ModuleInitDetail()
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
+    Kernel = KratosGlobals.Kernel
+    Logger.PrintInfo("", "Importing    " + application_name)
+    Logger.PrintWarning('DEPRECATION-Warning', 'For importing "{}": "_ImportApplicationAsModule" is deprecated, please use "_ImportApplication"'.format(application_name))
+
+    # Add application to kernel
+    Kernel.ImportApplication(application)
+
+def _ImportApplication(application, application_name):
     Kernel = KratosGlobals.Kernel
     Logger.PrintInfo("", "Importing    " + application_name)
 

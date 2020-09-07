@@ -22,10 +22,6 @@
 #include "includes/ublas_complex_interface.h"
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
-// #include "python/matrix_python_interface.h"
-// #include "python/matrix_scalar_operator_python.h"
-// #include "python/matrix_scalar_assignment_operator_python.h"
-// #include "python/matrix_matrix_operator_python.h"
 
 namespace Kratos
 {
@@ -37,6 +33,7 @@ namespace Python
     {
         py::class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str(),py::buffer_protocol());
         binder.def(py::init<>());
+        binder.def(py::init<const TMatrixType&>());
 
         //binder.def(py::init<std::TMatrixType& >())
         binder.def("Size1", [](const TMatrixType& self){return self.size1();} );
@@ -66,7 +63,6 @@ namespace Python
         //inplace versions
         binder.def("__imul__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1*=value; return m1;}, py::is_operator());
         binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value; return m1;}, py::is_operator());
-
         binder.def("__str__", PrintObject<TMatrixType>);
         return std::move(binder);
     }
@@ -101,6 +97,7 @@ namespace Python
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
         matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { noalias(self) = DenseMatrix<double>(self.size1(),self.size2(),value); });
         matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { noalias(self) = IdentityMatrix(self.size1()); });
+        matrix_binder.def("transpose", [](DenseMatrix<double>& self) { return Matrix(trans(self)); });
       #endif // KRATOS_USE_AMATRIX
         matrix_binder.def(py::init<const DenseMatrix<double>& >());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, py::is_operator());

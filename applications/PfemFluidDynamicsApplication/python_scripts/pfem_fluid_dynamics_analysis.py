@@ -6,7 +6,6 @@ from importlib import import_module
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
@@ -28,7 +27,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # Time control starts
         self.KratosPrintInfo(timer.ctime())
         # Measure process time
-        self.t0p = timer.clock()
+        self.t0p = timer.process_time()
         # Measure wall time
         self.t0w = timer.time()
         #### TIME MONITORING END ####
@@ -146,6 +145,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()
 
+        self._solver.InitializeSolutionStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        self.GraphicalOutputPrintOutput()
+
         # Set time settings
         self.step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -224,7 +228,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### END SOLUTION ####
 
         # Measure process time
-        tfp = timer.clock()
+        tfp = timer.process_time()
         # Measure wall time
         tfw = timer.time()
 
@@ -311,14 +315,14 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """This function starts time calculation
         """
         # Measure process time
-        time_ip = timer.clock()
+        time_ip = timer.process_time()
         return time_ip
 
     def StopTimeMeasuring(self, time_ip, process, report):
         """This function ends time calculation
         """
         # Measure process time
-        time_fp = timer.clock()
+        time_fp = timer.process_time()
         if report:
             used_time = time_fp - time_ip
             print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")

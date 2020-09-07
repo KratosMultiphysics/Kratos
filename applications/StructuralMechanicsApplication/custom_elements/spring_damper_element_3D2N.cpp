@@ -105,7 +105,7 @@ SpringDamperElement3D2N::~SpringDamperElement3D2N()
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
 
@@ -127,7 +127,7 @@ void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, Pro
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     if ( rResult.size() != msElementSize )
@@ -150,7 +150,7 @@ void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, P
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     if ( rValues.size() != msElementSize )
@@ -177,7 +177,7 @@ void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     if ( rValues.size() != msElementSize )
@@ -202,7 +202,7 @@ void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int St
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     if ( rValues.size() != msElementSize )
@@ -224,18 +224,6 @@ void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int S
     }
 }
 
-//************* STARTING - ENDING  METHODS
-//************************************************************************************
-//************************************************************************************
-
-void SpringDamperElement3D2N::Initialize()
-{
-    KRATOS_TRY;
-
-    // NOTE: Add something if necessary
-
-    KRATOS_CATCH( "" );
-}
 
 //************* COMPUTING  METHODS
 //************************************************************************************
@@ -415,7 +403,7 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
 //************************************************************************************
 //************************************************************************************
 
-int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
+int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -442,7 +430,7 @@ int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
     // Verify that the dofs exist
     for ( std::size_t i = 0; i < this->GetGeometry().size(); i++ ) {
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        NodeType& rnode = this->GetGeometry()[i];
+        const NodeType& rnode = this->GetGeometry()[i];
 
         // The displacement terms
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)

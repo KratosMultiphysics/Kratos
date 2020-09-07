@@ -129,8 +129,24 @@ void  WrinklingLinear2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parame
         material_tangent_modulus_modified_1 /= temp_double;
         material_tangent_modulus_modified_1 = material_tangent_modulus - material_tangent_modulus_modified_1;
 
+
         noalias(stress_vector) = prod(material_tangent_modulus_modified_1,strain_vector);
+        
+        if (MathUtils<double>::Norm(pre_stress_vector) > 0.0) {
+            // Pre-stress is added in the element
+            // Make sure no pre_stress is added in the wrinkling direction
+            Matrix inverse_constitutive_matrix = ZeroMatrix(3);
+            double constitutive_matrix_det(0.0);
+            MathUtils<double>::InvertMatrix( material_tangent_modulus, inverse_constitutive_matrix, constitutive_matrix_det);
+
+            Vector strains_pre_stress_unmodified = prod(inverse_constitutive_matrix,pre_stress_vector);
+            Vector modified_pre_stress = prod(material_tangent_modulus_modified_1,strains_pre_stress_unmodified);
+            stress_vector -= pre_stress_vector;
+            stress_vector += modified_pre_stress;
+        }
+
         noalias(material_tangent_modulus) = material_tangent_modulus_modified_1;
+
     }
     else {
         // Else: taut, do nothing special

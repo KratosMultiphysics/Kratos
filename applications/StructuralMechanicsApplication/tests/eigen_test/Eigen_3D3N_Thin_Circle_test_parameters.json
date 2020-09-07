@@ -24,15 +24,10 @@
         },
         "eigensolver_settings":{
             "solver_type": "feast",
-            "print_feast_output": false,
-            "perform_stochastic_estimate": false,
-            "solve_eigenvalue_problem": true,
-            "lambda_min": 0.0,
-            "lambda_max": 4.0e5,
-            "search_dimension": 15,
-            "linear_solver_settings":{
-                "solver_type": "skyline_lu_complex"
-            }
+            "symmetric": true,
+            "e_min": 0.0,
+            "e_max": 4.0e5,
+            "subspace_size": 15
         },
         "rotation_dofs"                      : true
     },

@@ -901,7 +901,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     Condition::Pointer p_base_condition = nullptr;
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+            if(mEchoLevel > 1) {
+                KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+            }
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -962,7 +964,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
 
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+            if(mEchoLevel > 1) {
+                KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+            }
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -1021,7 +1025,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+        if(mEchoLevel > 1) {
+            KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+        }
         return p_condition;
     }
 
@@ -1083,7 +1089,9 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
+        if(mEchoLevel > 1) {
+            KRATOS_WARNING_FIRST_N("MmgUtilities", 10) << "Condition. Null pointer returned. This happens when MMG generates an auxiliary skin around the remeshed body, when in the original problem did not exist" << std::endl;
+        }
         return p_condition;
     }
 
@@ -3737,7 +3745,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "LineCondition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "LineCondition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, it_cond_begin->GetGeometry(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
         rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3746,11 +3754,19 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     // Now we add the reference elements and conditions
     for (auto& ref_cond : rColorMapCondition) {
         Condition::Pointer p_cond = rModelPart.pGetCondition(ref_cond.second);
-        rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+        if (p_cond->GetGeometry().size() > 0) {
+            rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+        } else {
+            rRefCondition[ref_cond.first] = p_cond->Create(0, rRefCondition[0]->GetGeometry(), p_cond->pGetProperties());
+        }
     }
     for (auto& ref_elem : rColorMapElement) {
         Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
-        rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+        if (p_elem->GetGeometry().size() > 0) {
+            rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+        } else {
+            rRefElement[ref_elem.first] = p_elem->Create(0, rRefElement[0]->GetGeometry(), p_elem->pGetProperties());
+        }
     }
 
     // The ISOSURFACE has some reserved Ids. We reassign
@@ -3896,7 +3912,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
 
     /* CONDITIONS */ // TODO: ADD OMP
     if (rMapPointersRefCondition.size() > 0) {
-        IndexType cond_id = 1;
+        IndexType cond_id = rModelPart.NumberOfConditions() + 1;
 
         IndexType counter_first_cond = 0;
         const IndexVectorType first_condition_to_remove = CheckFirstTypeConditions();
@@ -3942,7 +3958,7 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
 
     /* ELEMENTS */ // TODO: ADD OMP
     if (rMapPointersRefElement.size() > 0) {
-        IndexType elem_id = 1;
+        IndexType elem_id = rModelPart.NumberOfElements() + 1;
 
         IndexType counter_first_elem = 0;
         const IndexVectorType first_elements_to_remove = CheckFirstTypeElements();
@@ -4083,7 +4099,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         TensorArrayType metric = ZeroVector(3 * (Dimension - 1));
 
-        #pragma omp parallel for firstprivate(metric)
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -4096,7 +4112,7 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
         // Auxilia metric
         double metric = 0.0;
 
-        #pragma omp parallel for firstprivate(metric)
+        // WARNING: This loop cannot be perfomed in parallel as the MMG library call in mmg_utilities.GetMetric() is not threadsafe
         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
@@ -4129,9 +4145,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     /* Elements */
     std::ifstream elem_infile(rFilename + ".elem.ref.json");
     KRATOS_ERROR_IF_NOT(elem_infile.good()) << "References elements file: " << rFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream elem_buffer;
-    elem_buffer << elem_infile.rdbuf();
-    Parameters elem_ref_json(elem_buffer.str());
+    Parameters elem_ref_json(elem_infile);
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
@@ -4141,9 +4155,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     /* Conditions */
     std::ifstream cond_infile(rFilename + ".cond.ref.json");
     KRATOS_ERROR_IF_NOT(cond_infile.good()) << "References conditions file: " << rFilename  + ".json" << " cannot be found" << std::endl;
-    std::stringstream cond_buffer;
-    cond_buffer << cond_infile.rdbuf();
-    Parameters cond_ref_json(cond_buffer.str());
+    Parameters cond_ref_json(cond_infile);
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());

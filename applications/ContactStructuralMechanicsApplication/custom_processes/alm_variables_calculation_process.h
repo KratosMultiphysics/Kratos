@@ -88,13 +88,7 @@ public:
     {
         KRATOS_TRY
 
-        Parameters default_parameters = Parameters(R"(
-        {
-            "stiffness_factor"                     : 10.0,
-            "penalty_scale_factor"                 : 1.0
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
         mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
         mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
@@ -138,6 +132,20 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "stiffness_factor"                     : 10.0,
+            "penalty_scale_factor"                 : 1.0
+        })" );
+
+        return default_parameters;
+    }
 
     ///@}
     ///@name Access

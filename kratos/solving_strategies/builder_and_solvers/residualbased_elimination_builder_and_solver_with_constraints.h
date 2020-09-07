@@ -97,7 +97,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedEliminationBuilderAndSolverWithConstraints);
 
     /// Definition of the base class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BuilderAndSolverBaseType;
+
+    /// Definition of the base class
     typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    /// The definition of the current class
+    typedef ResidualBasedEliminationBuilderAndSolverWithConstraints<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     // The size_t types
     typedef std::size_t SizeType;
@@ -149,6 +155,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverWithConstraints() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
@@ -156,17 +169,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                                 : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
-            "check_constraint_relation"            : true,
-            "reset_relation_matrix_each_iteration" : true
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
-        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -187,6 +192,19 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
      */
     ~ResidualBasedEliminationBuilderAndSolverWithConstraints() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BuilderAndSolverBaseType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     ///@}
@@ -554,7 +572,7 @@ protected:
 
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set, dof_temp_slave_set;
@@ -569,7 +587,7 @@ protected:
                 auto it_elem = r_elements_array.begin() + i;
 
                 // Gets list of Dof involved on every element
-                pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
@@ -581,7 +599,7 @@ protected:
                 auto it_cond = r_conditions_array.begin() + i;
 
                 // Gets list of Dof involved on every element
-                pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
+                pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
 
@@ -752,7 +770,7 @@ protected:
         #pragma omp parallel firstprivate(ids, second_ids)
         {
             // The process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
             std::vector<IndexSetType> temp_indexes(equation_size);
@@ -771,7 +789,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
                 auto it_elem = el_begin + i_elem;
-                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_elem, ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
@@ -795,7 +813,7 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = cond_begin + i_cond;
-                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                pScheme->EquationId(*it_cond, ids, r_current_process_info);
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
@@ -936,7 +954,7 @@ protected:
         }
 
         // The process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
@@ -1415,6 +1433,17 @@ protected:
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
     }
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mCheckConstraintRelation = ThisParameters["check_constraint_relation"].GetBool();
+        mResetRelationMatrixEachIteration = ThisParameters["reset_relation_matrix_each_iteration"].GetBool();
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1462,7 +1491,7 @@ private:
         /// First we detect the master fixed DoFs ///
 
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Vector containing the localization in the system of the different terms
         DofsVectorType slave_dof_list, master_dof_list;
@@ -1723,7 +1752,7 @@ private:
         )
     {
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Getting the array of elements
         ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -1754,13 +1783,13 @@ private:
 
                 if (element_is_active) {
                     // Calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it_elem.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
 
                     // Clean local elemental memory
-                    pScheme->CleanMemory(*(it_elem.base()));
+                    pScheme->CleanMemory(*it_elem);
                 }
             }
 
@@ -1777,13 +1806,13 @@ private:
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it_cond.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
 
                     // Clean local elemental memory
-                    pScheme->CleanMemory(*(it_cond.base()));
+                    pScheme->CleanMemory(*it_cond);
                 }
             }
         }
@@ -1803,7 +1832,7 @@ private:
         )
     {
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Getting the array of elements
         ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -1833,7 +1862,7 @@ private:
 
                 if (element_is_active) {
                     // Calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*(it_elem.base()), rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateRHSContribution(*it_elem, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
@@ -1853,7 +1882,7 @@ private:
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*(it_cond.base()), rhs_contribution, equation_id, r_current_process_info);
+                    pScheme->CalculateRHSContribution(*it_cond, rhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
@@ -2061,7 +2090,7 @@ private:
         }
 
         // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Initialize the constant vector
         double aux_constant_value = 0.0;
