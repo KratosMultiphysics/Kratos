@@ -310,6 +310,43 @@ public:
         KRATOS_CATCH("ResidualBasedImplicitTimeScheme.InitializeSolutionStep");
     }
 
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * on the input provided.
+     * @details Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart The model part of the problem to solve
+     * @return Zero means  all ok
+     */
+    int Check(const ModelPart& rModelPart) const override
+    {
+        KRATOS_TRY;
+
+        const int err = BaseType::Check(rModelPart);
+        if(err!=0) return err;
+
+        return 0;
+
+        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Check");
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "residualbased_implicit_time_scheme"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
     ///@}
     ///@name Access
     ///@{

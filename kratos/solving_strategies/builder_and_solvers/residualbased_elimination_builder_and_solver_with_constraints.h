@@ -308,6 +308,34 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             BaseType::SetUpDofSet(pScheme, rModelPart);
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                 : "elimination_builder_and_solver_with_constraints",
+            "check_constraint_relation"            : true,
+            "reset_relation_matrix_each_iteration" : true
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "elimination_builder_and_solver_with_constraints";
+    }
+
     ///@}
     ///@name Access
     ///@{
