@@ -135,7 +135,7 @@ void ComputeNodalValueProcess::AddElementsContribution(const Variable<TValueType
         const Matrix& rNmatrix = r_geometry.ShapeFunctionsValues(r_integration_method);
 
         std::vector<TValueType> element_values(number_of_integration_points);
-        it_elem->GetValueOnIntegrationPoints(rVariable, element_values, r_current_process_info);
+        it_elem->CalculateOnIntegrationPoints(rVariable, element_values, r_current_process_info);
 
         for ( IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss ) {
             // Getting the shape functions

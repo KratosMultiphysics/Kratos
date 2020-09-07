@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -20,12 +18,8 @@ class FormfindingMechanicalSolver(MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        if not custom_settings.Has("use_computing_model_part"):
-            custom_settings.AddEmptyValue("use_computing_model_part")
-        custom_settings["use_computing_model_part"].SetBool(False) # must be False for FormFinding!
-
         # Construct the base solver.
-        super(FormfindingMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super().__init__(main_model_part, custom_settings)
         custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["projection_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolver]:: ", "Construction finished")
@@ -48,13 +42,13 @@ class FormfindingMechanicalSolver(MechanicalSolver):
                 "check_local_space_dimension" : false
             }
         }""")
-        this_defaults.AddMissingParameters(super(FormfindingMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
 
 
     def Finalize(self):
-        super(FormfindingMechanicalSolver, self).Finalize()
+        super().Finalize()
         if (self.settings["write_formfound_geometry_file"].GetBool()):
             StructuralMechanicsApplication.FormfindingStrategy.WriteFormFoundMdpa(self.GetComputingModelPart())
 

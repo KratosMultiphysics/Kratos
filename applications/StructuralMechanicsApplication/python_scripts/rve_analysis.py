@@ -1,6 +1,3 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
@@ -25,11 +22,11 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         # Pseudo time to be used for output
         self.time = 0.0
 
-        super(RVEAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
     # Here populate the submodelparts to be used for periodicity
     def ModifyInitialGeometry(self):
-        super(RVEAnalysis, self).ModifyInitialGeometry()
+        super().ModifyInitialGeometry()
 
         boundary_mp = self.model[self.boundary_mp_name]
         averaging_mp = self.model[self.averaging_mp_name]

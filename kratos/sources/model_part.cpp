@@ -400,38 +400,61 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
 
 void ModelPart::RemoveNodes(Flags IdentifierFlag)
 {
-    // This method is optimized to free the memory
-    //loop over all the meshes
-    ModelPart::MeshesContainerType& meshes = this->GetMeshes();
-    for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
-    {
+    // Lambda to remove nodes from a mesh
+    auto remove_nodes_from_mesh = [&](ModelPart::MeshType& r_mesh) {
         //count the nodes to be erase
-        const unsigned int nnodes = i_mesh->Nodes().size();
+        const unsigned int nnodes = r_mesh.Nodes().size();
         unsigned int erase_count = 0;
         #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nnodes); ++i)
-        {
-            ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
+        for(int i=0; i<static_cast<int>(nnodes); ++i) {
+            ModelPart::NodesContainerType::iterator i_node = r_mesh.NodesBegin() + i;
 
             if( i_node->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
         ModelPart::NodesContainerType temp_nodes_container;
-        temp_nodes_container.reserve(i_mesh->Nodes().size() - erase_count);
+        temp_nodes_container.reserve(r_mesh.Nodes().size() - erase_count);
 
-        temp_nodes_container.swap(i_mesh->Nodes());
+        temp_nodes_container.swap(r_mesh.Nodes());
 
-        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
-        {
+        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; ++i_node) {
             if( i_node->IsNot(IdentifierFlag) )
-                (i_mesh->Nodes()).push_back(std::move(*(i_node.base())));
+                (r_mesh.Nodes()).push_back(std::move(*(i_node.base())));
+        }
+    };
+
+    // This method is optimized to free the memory
+    // Loop over all the local meshes (Is this still necessary with Submodelparts?)
+    for(auto& r_mesh: this->GetMeshes()) {
+        remove_nodes_from_mesh(r_mesh);
+    }
+
+    if (IsDistributed()) {
+        // Mark the IdentifierFlag across partitions coherently
+        this->GetCommunicator().SynchronizeOrNodalFlags(IdentifierFlag);
+
+        // Remove the nodes from the mpi-interfaces in case there is any
+        remove_nodes_from_mesh(this->GetCommunicator().LocalMesh());
+        for(auto& r_mesh: this->GetCommunicator().LocalMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
+        }
+
+        remove_nodes_from_mesh(this->GetCommunicator().GhostMesh());
+        for(auto& r_mesh: this->GetCommunicator().GhostMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
+        }
+
+        remove_nodes_from_mesh(this->GetCommunicator().InterfaceMesh());
+        for(auto& r_mesh: this->GetCommunicator().InterfaceMeshes()) {
+            remove_nodes_from_mesh(r_mesh);
         }
     }
 
-    //now recursively remove the nodes in the submodelparts
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveNodes(IdentifierFlag);
+    // Now recursively remove the nodes in the submodelparts
+    for (auto& r_sub_model_part : SubModelParts()) {
+        r_sub_model_part.RemoveNodes(IdentifierFlag);
+    }
 }
 
 void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
@@ -955,6 +978,36 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     KRATOS_CATCH("")
 }
 
+/** Inserts an element in the mesh with ThisIndex.
+*/
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName, 
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry, 
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, pGeometry, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_element);
+        return p_new_element;
+    }
+
+    auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
+    KRATOS_ERROR_IF(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
+        << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
+
+
+    //create the new element
+    ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
+    Element::Pointer p_element = r_clone_element.Create(Id, pGeometry, pProperties);
+
+    //add the new element
+    GetMesh(ThisIndex).AddElement(p_element);
+
+    return p_element;
+    KRATOS_CATCH("")
+}
+
 /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
 void ModelPart::RemoveElement(ModelPart::IndexType ElementId, ModelPart::IndexType ThisIndex)
@@ -1428,6 +1481,35 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     //get the condition
     ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(ConditionName);
     ConditionType::Pointer p_condition = r_clone_condition.Create(Id, pConditionNodes, pProperties);
+
+    //add the new element
+    GetMesh(ThisIndex).AddCondition(p_condition);
+
+    return p_condition;
+    KRATOS_CATCH("")
+}
+
+/** Inserts a condition in the mesh with ThisIndex.
+*/
+ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string ConditionName,
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        ConditionType::Pointer p_new_condition = mpParentModelPart->CreateNewCondition(ConditionName, Id, pGeometry, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddCondition(p_new_condition);
+        return p_new_condition;
+    }
+
+    auto existing_condition_iterator = GetMesh(ThisIndex).Conditions().find(Id);
+    KRATOS_ERROR_IF(existing_condition_iterator != GetMesh(ThisIndex).ConditionsEnd() )
+        << "trying to construct a condition with ID " << Id << " however a condition with the same Id already exists";
+
+    //get the condition
+    ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(ConditionName);
+    ConditionType::Pointer p_condition = r_clone_condition.Create(Id, pGeometry, pProperties);
 
     //add the new element
     GetMesh(ThisIndex).AddCondition(p_condition);

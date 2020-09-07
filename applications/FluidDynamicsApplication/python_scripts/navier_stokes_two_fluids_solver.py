@@ -42,6 +42,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "time_order": 2,
             "time_scheme": "bdf2",
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,
@@ -82,7 +83,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
+        self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 

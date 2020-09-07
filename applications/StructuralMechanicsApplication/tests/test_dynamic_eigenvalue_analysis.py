@@ -1,14 +1,12 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics import kratos_utilities
 
-try:
-    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
-    eigen_solvers_is_available = True
-except ImportError:
-    eigen_solvers_is_available = False
+
+if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
+    from KratosMultiphysics import LinearSolversApplication
 
 #Test of eigenvalue analysis and modal decomposition with beam elements according to:
 #C. Petersen, Dynamic der Baukonstruktionen, Viehweg Verlag, 2000, p. 252
@@ -94,7 +92,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         }
         """)
 
-        eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
+        eigen_solver = LinearSolversApplication.EigensystemSolver(eigensolver_settings)
         if use_block_builder:
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
         else:
@@ -153,7 +151,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         self.assertAlmostEqual(modal_stiffness[0,1], 0.0, 4)
 
 
-@KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestDynamicEigenvalueAnalysis(BaseTestDynamicEigenvalueAnalysis):
 
     def test_dynamic_eigenvalue_analysis_block_builder(self):
