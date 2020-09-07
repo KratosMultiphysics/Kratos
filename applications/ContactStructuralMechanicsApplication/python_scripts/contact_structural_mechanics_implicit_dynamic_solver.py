@@ -137,7 +137,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def _create_builder_and_solver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self.get_linear_solver()
-            if self.settings["block_builder"].GetBool():
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                     # We use the elimination builder and solver

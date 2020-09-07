@@ -1224,10 +1224,10 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                               : "block_builder_and_solver",
-            "block_builder"                      : true,
-            "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-            "silent_warnings"                    : false
+            "name"                                 : "block_builder_and_solver",
+            "block_builder"                        : true,
+            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
+            "silent_warnings"                      : false
         })");
 
         // Getting base class default parameters
