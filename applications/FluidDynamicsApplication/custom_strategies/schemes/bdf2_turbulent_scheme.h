@@ -303,9 +303,6 @@ public:
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
 
-        // Initialize element
-        rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // Get Equation Id
         rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
@@ -335,9 +332,6 @@ public:
 
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
-
-        // Initialize element
-        rCurrentElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
         rCurrentElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
@@ -369,9 +363,6 @@ public:
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
 
-        // Initialize element
-        rCurrentCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // Get Equation Id
         rCurrentCondition.EquationIdVector(rEquationId,rCurrentProcessInfo);
 
@@ -401,9 +392,6 @@ public:
 
         LocalSystemMatrixType Mass;
         LocalSystemMatrixType Damp;
-
-        // Initialize element
-        rCurrentCondition.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Get Equation Id
         rCurrentCondition.EquationIdVector(rEquationId,rCurrentProcessInfo);
