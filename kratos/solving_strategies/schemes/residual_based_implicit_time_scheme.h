@@ -166,7 +166,7 @@ public:
 
         const IndexType this_thread = OpenMPUtils::ThisThread();
 
-        pCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
 
         rCurrentElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
