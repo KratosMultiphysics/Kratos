@@ -390,9 +390,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "advanced_builder_and_solver_settings": {
-                    "consider_lagrange_multiplier_constraint_resolution" : "Single"
-                }
+                "consider_lagrange_multiplier_constraint_resolution" : "single"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -434,9 +432,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "advanced_builder_and_solver_settings": {
-                    "consider_lagrange_multiplier_constraint_resolution" : "Double"
-                }
+                "consider_lagrange_multiplier_constraint_resolution" : "double"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -848,9 +844,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "advanced_builder_and_solver_settings": {
-                    "consider_lagrange_multiplier_constraint_resolution" : "Single"
-                }
+                "consider_lagrange_multiplier_constraint_resolution" : "single"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
@@ -998,9 +992,7 @@ namespace Kratos
             Parameters parameters = Parameters(R"(
             {
                 "silent_warnings"                                    : false,
-                "advanced_builder_and_solver_settings": {
-                    "consider_lagrange_multiplier_constraint_resolution" : "Double"
-                }
+                "consider_lagrange_multiplier_constraint_resolution" : "double"
             })" );
             BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType(p_solver, parameters) );
 
