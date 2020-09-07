@@ -24,11 +24,10 @@
 namespace Kratos
 {
     FetiDynamicCouplingUtilities::FetiDynamicCouplingUtilities(ModelPart& rInterfaceOrigin,
-        ModelPart& rInterFaceDestination,
-        double OriginNewmarkBeta, double OriginNewmarkGamma,
-        double DestinationNewmarkBeta, double DestinationNewmarkGamma)
+        ModelPart& rInterFaceDestination, double OriginNewmarkBeta, double OriginNewmarkGamma,
+        double DestinationNewmarkBeta, double DestinationNewmarkGamma, IndexType TimestepRatio)
     :mrOriginInterfaceModelPart(rInterfaceOrigin), mrDestinationInterfaceModelPart(rInterFaceDestination),
-        mOriginGamma(OriginNewmarkGamma), mDestinationGamma(DestinationNewmarkGamma)
+        mOriginGamma(OriginNewmarkGamma), mDestinationGamma(DestinationNewmarkGamma), mTimestepRatio(TimestepRatio)
     {
         // Check newmark parameters are valid
         KRATOS_ERROR_IF(mOriginGamma < 0.0 || mOriginGamma > 1.0)
@@ -46,6 +45,9 @@ namespace Kratos
         KRATOS_TRY
 
         // 0 - Setup and checks
+        KRATOS_ERROR_IF(mSubTimestepIndex > mTimestepRatio)
+        << "FetiDynamicCouplingUtilities::EquilibrateDomains | SubTimestep index incorrectly exceeds timestep ratio.\n";
+
         KRATOS_ERROR_IF(mpOriginDomain == nullptr || mpDestinationDomain == nullptr)
         << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination domains have not been set.\n"
         << "Please call 'SetOriginAndDestinationDomainsWithInterfaceModelParts' from python before calling 'EquilibrateDomains'.\n";
@@ -63,33 +65,25 @@ namespace Kratos
         const SizeType destination_interface_dofs = dim_origin * mrDestinationInterfaceModelPart.NumberOfNodes();
 
         // 1 - calculate unbalanced interface free velocity
-        Vector unbalanced_interface_free_velocity(origin_interface_dofs);
+        Vector unbalanced_interface_free_velocity(destination_interface_dofs);
         CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
-        if (norm_2_square(unbalanced_interface_free_velocity) > numerical_limit)
+        if (norm_2(unbalanced_interface_free_velocity) > 1e-9)
         {
             // 2 - Construct projection matrices
-            const SizeType origin_dofs = (mIsImplicitOrigin) ? mpKOrigin->size1() : 1;
-            CompressedMatrix projector_origin = CompressedMatrix(origin_interface_dofs, origin_dofs, 0.0);
-            ComposeProjector(projector_origin, true);
-
+            if(mSubTimestepIndex == 1) ComposeProjector(mProjectorOrigin, true);
             const SizeType destination_dofs = (mIsImplicitDestination) ? mpKDestination->size1() : 1;
-            CompressedMatrix projector_destination = CompressedMatrix(destination_interface_dofs, destination_dofs, 0.0);
+            CompressedMatrix projector_destination(destination_interface_dofs, destination_dofs, 0.0);
             ComposeProjector(projector_destination, false);
 
-
             // 3 - Determine domain response to unit loads
-            Matrix unit_response_origin(projector_origin.size2(), projector_origin.size1());
-            DetermineDomainUnitAccelerationResponse(mpKOrigin, projector_origin, unit_response_origin, true);
-
+            if (mSubTimestepIndex == 1) DetermineDomainUnitAccelerationResponse(mpKOrigin, mProjectorOrigin, mUnitResponseOrigin, true);
             Matrix unit_response_destination(projector_destination.size2(), projector_destination.size1());
             DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination, false);
 
-
             // 4 - Calculate condensation matrix
             CompressedMatrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
-            CalculateCondensationMatrix(condensation_matrix, unit_response_origin,
-                unit_response_destination, projector_origin, projector_destination);
-
+            CalculateCondensationMatrix(condensation_matrix, mUnitResponseOrigin,
+                unit_response_destination, mProjectorOrigin, projector_destination);
 
             // 5 - Calculate lagrange mults
             Vector lagrange_vector(origin_interface_dofs);
@@ -98,12 +92,13 @@ namespace Kratos
             if (mIsDisableLagrange) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
 
             // 6 - Apply correction quantities
-            ApplyCorrectionQuantities(lagrange_vector, unit_response_origin, true);
+            if (mSubTimestepIndex == mTimestepRatio) {
+                ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
+            }
             ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
 
-
             // 7 - Optional check of equilibrium
-            if (mIsCheckEquilibrium && !mIsDisableLagrange)
+            if (mIsCheckEquilibrium && !mIsDisableLagrange && mSubTimestepIndex == mTimestepRatio)
             {
                 unbalanced_interface_free_velocity.clear();
                 CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
@@ -116,6 +111,9 @@ namespace Kratos
 
             // 8 - Write nodal lagrange multipliers to interface
             WriteLagrangeMultiplierResults(lagrange_vector);
+
+            // 9 - Advance subtimestep counter
+            mSubTimestepIndex += 1;
         } // end if correction needs to be applied
 
         KRATOS_CATCH("")
@@ -134,37 +132,18 @@ namespace Kratos
         GetInterfaceQuantity(mrDestinationInterfaceModelPart, VELOCITY, rUnbalancedVelocities, dim);
         rUnbalancedVelocities *= -1.0;
 
-        // Get destination velocities
-        Vector origin_vel_component(origin_interface_nodes.size());
-        Vector origin_vel_component_mapped(destination_interface_nodes.size());
-        for (size_t dof_index = 0; dof_index < dim; dof_index++)
-        {
-            Variable<double>* p_var;
-            switch (dof_index)
-            {
-                case 0:
-                    p_var = &VELOCITY_X;
-                    break;
-                case 1:
-                    p_var = &VELOCITY_Y;
-                    break;
-                case 2:
-                    p_var = &VELOCITY_Z;
-                    break;
-                default:
-                    KRATOS_ERROR << "DOF DIMENSION EXCEEDS 3!";
-            }
-            GetInterfaceQuantity(mrOriginInterfaceModelPart, *p_var, origin_vel_component, dim);
-            origin_vel_component_mapped = prod(*mpMappingMatrix, origin_vel_component);
+        // Get final predicted origin velocities
+        if (mSubTimestepIndex == 1) GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, mFinalOriginInterfaceVelocities, dim);
 
-            // Subtract mapped velocities from origin
-            KRATOS_ERROR_IF_NOT(origin_vel_component_mapped.size() == destination_interface_nodes.size())
-                << "Mapped destination interface velocities and origin interface velocities must have the same size";
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(origin_vel_component_mapped.size()); i++){
-                rUnbalancedVelocities[i * dim + dof_index] += origin_vel_component_mapped[i];
-            }
-        }
+        // Interpolate origin velocities to the current sub-timestep
+        Vector interpolated_origin_velocities = mSubTimestepIndex / mTimestepRatio * mFinalOriginInterfaceVelocities +
+            (1.0 - mSubTimestepIndex / mTimestepRatio) * mInitialOriginInterfaceVelocities;
+        CompressedMatrix expanded_mapper(mpMappingMatrix->size1() * dim, mpMappingMatrix->size2() * dim, 0.0);
+        GetExpandedMappingMatrix(expanded_mapper, dim);
+        Vector mapped_interpolated_origin_velocities = prod(expanded_mapper, interpolated_origin_velocities);
+
+        // Determine velocity difference
+        rUnbalancedVelocities += mapped_interpolated_origin_velocities;
 
         KRATOS_CATCH("")
 	}
@@ -239,16 +218,17 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        const double origin_dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
+        const double dest_dt = mpDestinationDomain->GetProcessInfo().GetValue(DELTA_TIME);
+
         rCondensationMatrix = prod(rOriginProjector, rOriginUnitResponse);
-        rCondensationMatrix *= mOriginGamma;
+        rCondensationMatrix *= mOriginGamma* origin_dt;
 
         Matrix h_destination = prod(rDestinationProjector, rDestinationUnitResponse);
-        h_destination *= mDestinationGamma;
+        h_destination *= mDestinationGamma* dest_dt;
         rCondensationMatrix += h_destination;
 
-        //TODO this assumes same timestep in each domain
-        const double dt = mpOriginDomain->GetProcessInfo().GetValue(DELTA_TIME);
-        rCondensationMatrix *= (-1.0*dt);
+        rCondensationMatrix *= -1.0;
 
         KRATOS_CATCH("")
     }
@@ -614,6 +594,29 @@ namespace Kratos
             std::cout << "solve time = " << elasped_solve.count() << "\n";
             std::cout << "invert time = " << elasped_invert.count() << "\n";
         }
+
+        KRATOS_CATCH("")
+    }
+
+
+    void FetiDynamicCouplingUtilities::SetOriginInitialVelocities()
+    {
+        KRATOS_TRY
+
+        // Initial checks
+        KRATOS_ERROR_IF(mpOriginDomain == nullptr || mpDestinationDomain == nullptr)
+        << "FetiDynamicCouplingUtilities::EquilibrateDomains | Origin and destination domains have not been set.\n"
+        << "Please call 'SetOriginAndDestinationDomainsWithInterfaceModelParts' from python before calling 'EquilibrateDomains'.\n";
+
+        // Store the initial origin interface velocities
+        const SizeType dim_origin = mpOriginDomain->ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+        const SizeType origin_interface_dofs = dim_origin * mrOriginInterfaceModelPart.NumberOfNodes();
+
+        if (mInitialOriginInterfaceVelocities.size() != origin_interface_dofs)
+            mInitialOriginInterfaceVelocities.resize(origin_interface_dofs);
+        mInitialOriginInterfaceVelocities.clear();
+
+        GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, mInitialOriginInterfaceVelocities, dim_origin);
 
         KRATOS_CATCH("")
     }

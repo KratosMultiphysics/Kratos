@@ -62,20 +62,38 @@ namespace Kratos
         FetiDynamicCouplingUtilities(ModelPart & rInterfaceOrigin,
             ModelPart & rInterFaceDestination,
             double OriginNewmarkBeta, double OriginNewmarkGamma,
-            double DestinationNewmarkBeta, double DestinationNewmarkGamma);
+            double DestinationNewmarkBeta, double DestinationNewmarkGamma, IndexType TimestepRatio);
 
         void SetOriginAndDestinationDomainsWithInterfaceModelParts(ModelPart & rInterfaceOrigin,
             ModelPart & rInterFaceDestination)
         {
             mpOriginDomain = &(rInterfaceOrigin.GetModel().GetModelPart("Structure"));
             mpDestinationDomain = &(rInterFaceDestination.GetModel().GetModelPart("Structure"));
+
+            // Check the timesteps and timestep ratio line up
+            const double dt_origin = mpOriginDomain->GetProcessInfo().GetValue(DELTA_TIME);
+            const double dt_destination = mpDestinationDomain->GetProcessInfo().GetValue(DELTA_TIME);
+            const double actual_timestep_ratio = dt_origin / dt_destination;
+            KRATOS_ERROR_IF(std::abs(mTimestepRatio - actual_timestep_ratio) > 1e-9)
+                << "The timesteps of each domain does not correspond to the timestep ratio specified in the CoSim parameters file."
+                << "\nSpecified ratio = " << mTimestepRatio
+                << "\nActual ratio = " << actual_timestep_ratio
+                << "\n\tOrigin timestep = " << dt_origin
+                << "\n\tDestination timestep = " << dt_destination << std::endl;
         }
 
-        void SetEffectiveStiffnessMatrices(SystemMatrixType& rK, IndexType SolverIndex)
+        void SetEffectiveStiffnessMatrix(SystemMatrixType& rK, IndexType SolverIndex)
         {
             if (SolverIndex == 0) mpKOrigin = &rK;
             else if (SolverIndex == 1) mpKDestination = &rK;
             else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, Index must be 0 or 1";
+
+            this->SetEffectiveStiffnessMatrix(SolverIndex);
+        };
+
+        void SetEffectiveStiffnessMatrix(IndexType SolverIndex)
+        {
+            if (SolverIndex == 0) mSubTimestepIndex = 1;
         };
 
         void SetMappingMatrix(DenseMappingMatrixSharedPointerType pMappingMatrix,
@@ -95,6 +113,8 @@ namespace Kratos
             mpSolver = pSolver;
         }
 
+        void SetOriginInitialVelocities();
+
         void EquilibrateDomains();
 
     private:
@@ -110,6 +130,13 @@ namespace Kratos
         DenseMappingMatrixSharedPointerType mpMappingMatrix = nullptr;
         DenseMappingMatrixSharedPointerType mpMappingMatrixForce = nullptr;
 
+        // Origin quantities
+        Vector mInitialOriginInterfaceVelocities; //TODO compressedVector
+        Vector mFinalOriginInterfaceVelocities; //TODO compressedVector
+        CompressedMatrix mProjectorOrigin;
+        Matrix mUnitResponseOrigin;  //TODO CompressedMatrix
+
+
         LinearSolverSharedPointerType mpSolver = nullptr;
 
 
@@ -117,6 +144,9 @@ namespace Kratos
         const double mDestinationGamma;
         bool mIsImplicitOrigin;
         bool mIsImplicitDestination;
+
+        IndexType mSubTimestepIndex = 1;
+        IndexType mTimestepRatio;
 
         const bool mIsCheckEquilibrium = true; // normally true
         const bool mIsDisableLagrange = false; // normally false

@@ -25,27 +25,71 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             structure = solver.model.GetModelPart("Structure")
             structure.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)
 
+        # get timestep ratio early, we need to have it before advanceInTime
+        self.timestep_ratio = self.settings["timestep_ratio"].GetDouble()
+        if int(self.timestep_ratio) != self.timestep_ratio:
+            raise Exception("An integer timestep_ratio must be specified in the CoSim parameters file.")
+        self.timestep_ratio = int(self.timestep_ratio)
+        self.sub_timestep_index = 1
+
         self.is_initialized = False
+
+    def AdvanceInTime(self, current_time):
+        # not all solvers provide time (e.g. external solvers or steady solvers)
+        # hence we have to check first if they return time (i.e. time != 0.0)
+        # and then if the times are matching, since currently no interpolation in time is possible
+
+        self.time = 0.0
+        self.solverB_time = self.solver_wrappers_vector[1].AdvanceInTime(current_time)
+        solver_time = self.solver_wrappers_vector[0].AdvanceInTime(current_time)
+        if solver_time != 0.0: # solver provides time
+            if self.time == 0.0: # first time a solver returns a time different from 0.0
+                self.time = solver_time
+
+
+        return self.time
+
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+
+        if self.is_initialized == False:
+            self.__InitializeFetiMethod()
+
+        # initialize sln step of origin and store initial velocities
+        #self.solver_wrappers_vector[0].InitializeSolutionStep()
+        self.feti_coupling.SetOriginInitialVelocities()
+
+        #self.solver_wrappers_vector[1].InitializeSolutionStep()
 
 
     def SolveSolutionStep(self):
-        if self.is_initialized == False:
-            self.__InitializeFetiMethod()
+        self.sub_timestep_index = 1
 
         for coupling_op in self.coupling_operations_dict.values():
             coupling_op.InitializeCouplingIteration()
 
-        solver_index = 0
-        for solver_name, solver in self.solver_wrappers.items():
-            solver.SolveSolutionStep()
+        # solve domain A
+        self.solver_wrappers_vector[0].SolveSolutionStep()
+        self.__SendStiffnessMatrixToUtility(0)
 
-            if self.is_implicit[solver_index]:
-                system_matrix = solver.GetSolverStrategy().GetSystemMatrix()
-                self.feti_coupling.SetEffectiveStiffnessMatrices(system_matrix,solver_index)
+        # solve domain B
+        solverB = self.solver_wrappers_vector[1]
+        for sub_timestep in range(1,self.timestep_ratio+1):
+            print('Sub timestep ',sub_timestep,' of ',self.timestep_ratio)
+            if sub_timestep > 1:
+                self.solverB_time = solverB.AdvanceInTime(self.solverB_time)
+                solverB.InitializeSolutionStep()
+                solverB.Predict()
 
-            solver_index += 1
+            solverB.SolveSolutionStep()
+            self.__SendStiffnessMatrixToUtility(1)
 
-        self.feti_coupling.EquilibrateDomains()
+            # apply the coupling method
+            self.feti_coupling.EquilibrateDomains()
+
+            if sub_timestep < self.timestep_ratio+1:
+                solverB.FinalizeSolutionStep()
 
         for coupling_op in self.coupling_operations_dict.values():
             coupling_op.FinalizeCouplingIteration()
@@ -53,8 +97,6 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         return True
 
     def __InitializeFetiMethod(self):
-        print('\n\n\n ========= __InitializeFetiMethod \n\n\n')
-
         # get mapper parameters
         self.mapper_parameters = self.data_transfer_operators_dict["mapper"].settings["mapper_settings"]
         mapper_type = self.mapper_parameters["mapper_type"].GetString()
@@ -83,9 +125,15 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         destination_newmark_beta = self.settings["destination_newmark_beta"].GetDouble()
         destination_newmark_gamma = self.settings["destination_newmark_gamma"].GetDouble()
 
+
+
+
         self.is_implicit = [True, True]
         if origin_newmark_beta == 0.0: self.is_implicit[0] = False
         if destination_newmark_beta == 0.0: self.is_implicit[1] = False
+
+        # check timestep ratio and individual domain timesteps match up
+
 
 
         # create the solver
@@ -97,7 +145,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             self.modelpart_interface_origin_from_mapper,
             self.modelpart_interface_destination_from_mapper,
             origin_newmark_beta, origin_newmark_gamma,
-            destination_newmark_beta, destination_newmark_gamma)
+            destination_newmark_beta, destination_newmark_gamma,self.timestep_ratio)
 
         # The origin and destination interfaces from the mapper submitted above are both
         # stored within the origin modelpart. Now we submit the 'original' origin and destination
@@ -117,6 +165,15 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         self.is_initialized = True
 
+
+    def __SendStiffnessMatrixToUtility(self, solverIndex):
+        if self.is_implicit[solverIndex]:
+                system_matrix = self.solver_wrappers_vector[solverIndex].GetSolverStrategy().GetSystemMatrix()
+                self.feti_coupling.SetEffectiveStiffnessMatrix(system_matrix,solverIndex)
+        else:
+            self.feti_coupling.SetEffectiveStiffnessMatrix(solverIndex)
+
+
     def _CreateLinearSolver(self):
         return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
         #linear_solver_configuration = self.settings["linear_solver_settings"]
@@ -132,7 +189,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "origin_newmark_beta" : -1.0,
             "origin_newmark_gamma" : -1.0,
             "destination_newmark_beta" : -1.0,
-            "destination_newmark_gamma" : -1.0
+            "destination_newmark_gamma" : -1.0,
+            "timestep_ratio" : 1.0
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultSettings())
 
