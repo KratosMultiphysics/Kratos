@@ -1135,19 +1135,6 @@ void Parameters::ValidateAndAssignDefaults(const Parameters& rDefaultParameters)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::ValidateAndAssignDefaultsSkipSubParameters(const Parameters& rDefaultParameters)
-{
-    KRATOS_TRY
-
-    this->ValidateDefaultsSkipSubParameters(rDefaultParameters);
-    this->AddMissingParameters(rDefaultParameters);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void Parameters::ValidateDefaults(const Parameters& rDefaultParameters) const
 {
     KRATOS_TRY
@@ -1177,57 +1164,6 @@ void Parameters::ValidateDefaults(const Parameters& rDefaultParameters) const
         if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
         if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
         if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
-
-        if(type_coincides == false) {
-            std::stringstream msg;
-            msg << "******************************************************************************************************" << std::endl;
-            msg << "The item with name :\"" << r_item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
-            msg << "******************************************************************************************************" << std::endl;
-            msg << "Parameters being validated are : " << std::endl;
-            msg << this->PrettyPrintJsonString() << std::endl;
-            msg << "Defaults against which the current parameters are validated are :" << std::endl;
-            msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
-
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Parameters::ValidateDefaultsSkipSubParameters(const Parameters& rDefaultParameters) const
-{
-    KRATOS_TRY
-
-    // Verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
-    // If it is not the case throw an error
-    for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-        const std::string& r_item_name = itr.key();
-        if(itr->is_object()) {
-            continue; // Skip
-        } else if(!rDefaultParameters.Has(r_item_name) ) {
-            std::stringstream msg;
-            msg << "The item with name \"" << r_item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
-            msg << "Hence Validation fails" << std::endl;
-            msg << "Parameters being validated are : " << std::endl;
-            msg << this->PrettyPrintJsonString() << std::endl;
-            msg << "Defaults against which the current parameters are validated are :" << std::endl;
-            msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
-
-        bool type_coincides = false;
-        auto value_defaults = (rDefaultParameters[r_item_name]).GetUnderlyingStorage();
-        if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
-//         if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
-//         if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
-        if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
-        if(itr->is_null() && value_defaults->is_null()) type_coincides = true;
-        if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
-        if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
 
         if(type_coincides == false) {
             std::stringstream msg;

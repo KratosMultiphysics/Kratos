@@ -815,15 +815,7 @@ public:
     void ValidateAndAssignDefaults(const Parameters& rDefaultParameters);
 
     /**
-     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
-     * @details If the parameters contain values that do not appear in the rDefaultParameters, an error is thrown, whereas if a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
-     * This version of the function only walks one level, without descending in the branches
-     * @param rDefaultParameters Parameters of reference which we use to check
-     */
-    void ValidateAndAssignDefaultsSkipSubParameters(const Parameters& rDefaultParameters);
-
-    /**
-     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults  skipping subproperties
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults.
      * @details If the parameters contain values that do not appear in the defaults, an error is thrown, whereas if a parameter is found in the defaults but not in the Parameters been tested, it is copied to the parameters.
      * This version walks and validates the entire json tree below the point at which the function is called
      * @param rDefaultParameters Parameters of reference which we use to check
@@ -853,14 +845,6 @@ public:
      * @param rDefaultParameters Parameters of reference which we use to check
      */
     void ValidateDefaults(const Parameters& rDefaultParameters) const;
-
-    /**
-     * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters skipping subproperties
-     * @details If the parameters contain values that do not appear in the defaults, an error is thrown.
-     * This version of the function only walks one level, without descending in the branches
-     * @param rDefaultParameters Parameters of reference which we use to check
-     */
-    void ValidateDefaultsSkipSubParameters(const Parameters& rDefaultParameters) const;
 
     /**
      * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters.
