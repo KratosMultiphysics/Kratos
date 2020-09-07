@@ -114,7 +114,7 @@ void KratosApplication::RegisterKratosCore() {
     RegisterPreconditioners();
 
     // Register of solving strategies
-    RegisterBuilderAndSolvers();
+    RegisterBuilderAndSolversFactories();
     RegisterExplicitBuilders();
     RegisterConvergenceCriterias();
     RegisterStrategiesFactories();

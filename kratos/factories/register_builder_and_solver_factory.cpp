@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-void RegisterBuilderAndSolvers()
+void RegisterBuilderAndSolversFactories()
 {
     typedef TUblasSparseSpace<double> SpaceType;
     typedef TUblasDenseSpace<double> LocalSpaceType;
