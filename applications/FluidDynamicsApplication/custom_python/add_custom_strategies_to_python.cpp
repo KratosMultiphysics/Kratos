@@ -113,13 +113,6 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
 
-    // Convergence criteria
-    py::class_<
-        VelPrCriteria<SparseSpaceType, LocalSpaceType>,
-        typename VelPrCriteria<SparseSpaceType, LocalSpaceType>::Pointer,
-        ConvergenceCriteria<SparseSpaceType, LocalSpaceType>>(m, "VelPrCriteria")
-    .def(py::init<double, double, double, double>())
-    .def("SetEchoLevel", &VelPrCriteria<SparseSpaceType, LocalSpaceType>::SetEchoLevel);
 }
 
 } // namespace Python.
