@@ -37,9 +37,6 @@
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
-// convergence criteria
-#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
-
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
