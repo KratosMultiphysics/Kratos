@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-void RegisterExplicitStrategies()
+void RegisterExplicitStrategiesFactories()
 {
     typedef TUblasSparseSpace<double> SpaceType;
     typedef TUblasDenseSpace<double> LocalSpaceType;

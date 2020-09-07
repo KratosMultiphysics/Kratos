@@ -118,7 +118,7 @@ void KratosApplication::RegisterKratosCore() {
     RegisterExplicitBuilders();
     RegisterConvergenceCriterias();
     RegisterStrategiesFactories();
-    RegisterExplicitStrategies();
+    RegisterExplicitStrategiesFactories();
     RegisterSchemes();
 
     //Register objects with general definition
