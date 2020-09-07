@@ -110,43 +110,6 @@ void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Upda
 }
 
 template <>
-void RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::AssignDofs(
-    DofsArrayType& rDofSet,
-    const SystemVectorType& rX)
-{
-    KRATOS_TRY;
-
-    if (!this->mImportIsInitialized)
-        this->Initialize(rDofSet, rX);
-
-    int system_size = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::Size(rX);
-
-    // defining a temporary vector to gather all of the values needed
-    Epetra_Vector local_dx(this->mpDofImport->TargetMap());
-
-    // importing in the new temp vector the values
-    int ierr = local_dx.Import(rX, *this->mpDofImport, Insert);
-    KRATOS_ERROR_IF(ierr != 0)
-        << "Epetra failure found while trying to import Dx." << std::endl;
-
-    int num_dof = rDofSet.size();
-
-    for (int i = 0; i < num_dof; ++i) {
-        auto it_dof = rDofSet.begin() + i;
-
-        if (it_dof->IsFree()) {
-            int global_id = it_dof->EquationId();
-            if (global_id < system_size) {
-                double dx_i = local_dx[this->mpDofImport->TargetMap().LID(global_id)];
-                it_dof->GetSolutionStepValue() = dx_i;
-            }
-        }
-    }
-
-    KRATOS_CATCH("");
-}
-
-template <>
 std::string RelaxedDofUpdater<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>::Info() const
 {
     std::stringstream buffer;
