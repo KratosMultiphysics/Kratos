@@ -22,6 +22,7 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "custom_utilities/mapping_intersection_utilities.h"
 
 
 namespace Kratos {
@@ -32,9 +33,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     auto m_mapper_utilities = m.def_submodule("MapperUtilities");
+    auto m_mapping_intersection_utils = m.def_submodule("MappingIntersectionUtilities");
 
     m_mapper_utilities.def("SaveCurrentConfiguration", &MapperUtilities::SaveCurrentConfiguration);
     m_mapper_utilities.def("RestoreCurrentConfiguration", &MapperUtilities::RestoreCurrentConfiguration);
+    m_mapping_intersection_utils.def("FindIntersection1DGeometries2D", &MappingIntersectionUtilities::FindIntersection1DGeometries2D);
+    m_mapping_intersection_utils.def("CreateQuadraturePointsCoupling1DGeometries2D", &MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D);
 }
 
 }  // namespace Python.

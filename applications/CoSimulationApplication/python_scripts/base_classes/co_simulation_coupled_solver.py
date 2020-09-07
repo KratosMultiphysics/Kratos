@@ -20,7 +20,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     - holds DataTransferOperators
     - holds CouplingOperations
     - initialization of IOs of solvers
-    - Snychronization of Input and Output
+    - Synchronization of Input and Output
     - Handles the coupling sequence
     """
     def __init__(self, settings, models, solver_name):
@@ -56,7 +56,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         self.solver_wrappers = self.__CreateSolverWrappers(models)
 
-        # overwritting the Model created in the BaseClass
+        # overwriting the Model created in the BaseClass
         # CoupledSolvers only forward calls to its solvers
         # this is done with the ModelAccessor
         self.model = ModelAccessor(self.solver_wrappers)

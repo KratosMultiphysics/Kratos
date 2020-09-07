@@ -14,8 +14,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_MAPPING_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_MAPPING_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
 // System includes
 
@@ -33,4 +33,4 @@ void AddCustomUtilitiesToPython(pybind11::module& m);
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined
+#endif // KRATOS_MAPPING_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined

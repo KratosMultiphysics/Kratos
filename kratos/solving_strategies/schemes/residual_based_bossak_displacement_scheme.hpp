@@ -102,17 +102,16 @@ public:
      * @param ThisParameters The parameters containing the configuration
      */
     explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
-        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3,
-                                                ThisParameters.Has("newmark_beta") ? ThisParameters["newmark_beta"].GetDouble() : 0.25)
+        : ImplicitBaseType()
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"          : "ResidualBasedBossakDisplacementScheme",
-            "damp_factor_m" : -0.3,
-            "newmark_beta"  : 0.25
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // For pure Newmark Scheme
+        mNewmark.gamma = 0.5;
+
+        AuxiliarInitializeBossak();
     }
 
     /**
@@ -140,16 +139,7 @@ public:
         mNewmark.beta = NewmarkBeta;
         mNewmark.gamma = 0.5;
 
-        CalculateBossakCoefficients();
-
-        // Allocate auxiliary memory
-        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
-
-        mVector.v.resize(num_threads);
-        mVector.a.resize(num_threads);
-        mVector.ap.resize(num_threads);
-
-        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+        AuxiliarInitializeBossak();
     }
 
     /**
@@ -480,6 +470,25 @@ public:
         this->mpDofUpdater->Clear();
     }
 
+        /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "bossak_scheme",
+            "damp_factor_m" : -0.3,
+            "newmark_beta"  : 0.25
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = ImplicitBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
@@ -711,6 +720,17 @@ protected:
         }
     }
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        ImplicitBaseType::AssignSettings(ThisParameters);
+        mBossak.alpha = ThisParameters["damp_factor_m"].GetDouble();
+        mNewmark.beta = ThisParameters["newmark_beta"].GetDouble();
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -739,6 +759,24 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method does an auziliar initialization of some member variables of the class
+     */
+    void AuxiliarInitializeBossak()
+    {
+        // Initialize Bossak coefficients
+        CalculateBossakCoefficients();
+
+        // Allocate auxiliary memory
+        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+
+        mVector.v.resize(num_threads);
+        mVector.a.resize(num_threads);
+        mVector.ap.resize(num_threads);
+
+        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+    }
 
     ///@}
     ///@name Private  Access
