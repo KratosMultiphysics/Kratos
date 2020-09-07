@@ -106,6 +106,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
+//         rOStream << this->Info() << std::endl;
     }
 };
 
@@ -216,6 +217,11 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
+//         rOStream << this->Info() << std::endl;
+//         const auto factory_components = KratosComponents<ClassType>::GetComponents();
+//         for (const auto& r_comp : factory_components) {
+//             rOStream << "\t" << r_comp.first << std::endl;
+//         }
     }
 
     ///@}
