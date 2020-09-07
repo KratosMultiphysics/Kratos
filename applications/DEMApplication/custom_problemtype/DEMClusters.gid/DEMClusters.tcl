@@ -179,6 +179,11 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 
     set modelname [GiD_Info Project ModelName]
     set export_msh [file join ${modelname}.gid generic.msh]
+
+    set projectpath $modelname
+    append projectpath .gid
+    set ::DEMClusters::ProblemPath $projectpath
+
     GiD_Process Mescape Files WriteMesh $export_msh
 }
 
