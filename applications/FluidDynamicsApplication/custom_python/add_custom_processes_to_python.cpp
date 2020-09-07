@@ -35,7 +35,6 @@
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/integration_point_statistics_process.h"
-#include "custom_processes/mass_conservation_check_process.h"
 #include "custom_processes/shock_detection_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/distance_smoothing_process.h"
@@ -119,18 +118,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
     (m, "IntegrationPointStatisticsProcess")
     .def(py::init<Model&, Parameters::Pointer>())
-    ;
-
-    py::class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
-    (m,"MassConservationCheckProcess")
-    .def(py::init < ModelPart&, const bool, const int, const bool, const std::string >())
-    .def(py::init< ModelPart&, Parameters& >())
-    .def("Initialize", &MassConservationCheckProcess::Initialize)
-    .def("ExecuteInTimeStep", &MassConservationCheckProcess::ExecuteInTimeStep)
-    .def("ComputePositiveVolume", &MassConservationCheckProcess::ComputePositiveVolume)
-    .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
-    .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
-    .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
     ;
 
     py::class_<ShockDetectionProcess, ShockDetectionProcess::Pointer, Process>
