@@ -11,6 +11,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics import auxiliary_solver_utilities
+from KratosMultiphysics import kratos_utilities
 
 # Other imports
 from importlib import import_module
@@ -54,6 +55,16 @@ class MechanicalSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
                 custom_settings.RemoveValue(old_setting)
 
+
+        settings_have_use_block_builder = custom_settings.Has("block_builder")
+
+        if settings_have_use_block_builder:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
+            if not custom_settings.Has("builder_and_solver_settings"):
+                custom_settings.AddEmptyValue("builder_and_solver_settings")
+
+            custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
+            custom_settings.RemoveValue("block_builder")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
@@ -105,10 +116,10 @@ class MechanicalSolver(PythonSolver):
             "line_search": false,
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
-            "block_builder" : true,
             "builder_and_solver_settings" : {
-                "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-                "silent_warnings"                    : false
+                "use_block_builder" : true,
+                "use_lagrange_BS"   : false,
+                "advanced_settings" : { }
             },
             "clear_storage": false,
             "move_mesh_flag": true,
@@ -126,6 +137,14 @@ class MechanicalSolver(PythonSolver):
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        super().ValidateSettings()
+
+        # Validate some subparameters
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["builder_and_solver_settings"])
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -410,9 +429,12 @@ class MechanicalSolver(PythonSolver):
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
-        if self.settings["block_builder"].GetBool():
-            bs_params = self.settings["builder_and_solver_settings"]
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+            bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            if not self.settings["builder_and_solver_settings"]["use_lagrange_BS"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver, bs_params)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(linear_solver, bs_params)
         else:
             if self.settings["multi_point_constraints_used"].GetBool():
                 builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
