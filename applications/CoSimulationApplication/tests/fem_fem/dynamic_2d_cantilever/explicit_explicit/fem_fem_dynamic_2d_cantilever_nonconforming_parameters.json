@@ -1,0 +1,105 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "echo_level" : 0,
+        "print_colors" : false,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.feti_dynamic_coupled_solver",
+		"origin_newmark_beta" : 0.0,
+		"origin_newmark_gamma" : 0.5,
+		"destination_newmark_beta" : 0.0,
+		"destination_newmark_gamma" : 0.5,
+        "echo_level" : 0,
+        "coupling_operations" : {
+            "coupling_output_A" : {
+                "type" : "coupling_output",
+                "solver"           : "femA",
+                "execution_point"  : "finalize_solution_step",
+                "output_format"    : "vtk",
+                "output_parameters" : {
+                    "model_part_name"                    : "Structure",
+                    "output_control_type"                : "time",
+                    "output_interval"                   : 0.001,
+                    "file_format"                        : "binary",
+                    "output_precision"                   : 7,
+                    "output_sub_model_parts"             : false,
+                    "folder_name"                        : "nonconforming_coupling_outputE-E",
+                    "save_output_files_in_folder"        : true,
+                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","VELOCITY","VECTOR_LAGRANGE_MULTIPLIER"]
+                }
+            },
+            "coupling_output_B" : {
+                "type" : "coupling_output",
+                "solver"           : "femB",
+                "execution_point"  : "finalize_solution_step",
+                "output_format"    : "vtk",
+                "output_parameters" : {
+                    "model_part_name"                    : "Structure",
+                    "output_control_type"                : "time",
+                    "output_interval"                   : 0.001,
+                    "file_format"                        : "binary",
+                    "output_precision"                   : 7,
+                    "output_sub_model_parts"             : false,
+                    "folder_name"                        : "nonconforming_coupling_outputE-E",
+                    "save_output_files_in_folder"        : true,
+                    "nodal_solution_step_data_variables" : ["DISPLACEMENT","VELOCITY","VECTOR_LAGRANGE_MULTIPLIER"]
+                }
+            }
+        },
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+					"mapper_settings" : {
+					"mapper_type": "coupling_geometry",
+					"echo_level" : 5,
+                    "dual_mortar": false,
+                    "consistent_mortar": false,
+					"consistency_scaling" : true,
+					"modeler_name" : "MappingGeometriesModeler",
+					"modeler_parameters":{
+						"origin_model_part_name" : "origin",
+						"destination_model_part_name" : "destination",
+						"is_interface_sub_model_parts_specified" : true,
+						"origin_interface_sub_model_part_name" : "Structure.LineLoad2D_right_edge",
+						"destination_interface_sub_model_part_name" : "Structure.DISPLACEMENT_left_edge"
+					}
+				}
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "femA",
+                "input_data_list"  : [],
+                "output_data_list" : []
+            },
+            {
+                "name": "femB",
+                "input_data_list": [],
+                "output_data_list": []
+            }
+        ],
+        "solvers" :
+        {
+            "femB":
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fem_fem/dynamic_2d_cantilever/explicit_explicit/ProjectParametersBnonconforming"
+                }
+            },
+            "femA" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fem_fem/dynamic_2d_cantilever/explicit_explicit/ProjectParametersA"
+                }
+            }
+        }
+    }
+}

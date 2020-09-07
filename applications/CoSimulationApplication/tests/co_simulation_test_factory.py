@@ -65,6 +65,85 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fem_fem/small_2d_plate", "cosim_fem_fem_small_2d_plate_full_mortar")
             self._runTest()
 
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if using_pykratos:
+    #        self.skipTest("This test cannot be run with pyKratos!")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_implicit", "fem_fem_dynamic_2d_cantilever")
+    #        self._runTest()
+    #
+    #def test_FEM_FEM_dynamic_2d_cantilever_explicit_explicit(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if using_pykratos:
+    #        self.skipTest("This test cannot be run with pyKratos!")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_explicit_explicit"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/explicit_explicit", "fem_fem_dynamic_2d_cantilever")
+    #        self._runTest()
+
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_explicit(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if using_pykratos:
+    #        self.skipTest("This test cannot be run with pyKratos!")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_explicit"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_explicit", "fem_fem_dynamic_2d_cantilever")
+    #        self._runTest()
+    #
+    #
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_nonconforming(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if using_pykratos:
+    #        self.skipTest("This test cannot be run with pyKratos!")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit_nonconforming"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_implicit", "fem_fem_dynamic_2d_cantilever_nonconforming")
+    #        self._runTest()
+
+    def test_FEM_FEM_dynamic_2d_cantilever_explicit_explicit_nonconforming(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_FEM_FEM_dynamic_2d_cantilever_explicit_explicit_nonconforming"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fem_fem/dynamic_2d_cantilever/explicit_explicit", "fem_fem_dynamic_2d_cantilever_nonconforming")
+            self._runTest()
+
+    #def test_FEM_FEM_dynamic_2d_cantilever_implicit_explicit_nonconforming(self):
+    #    if not numpy_available:
+    #        self.skipTest("Numpy not available")
+    #    if using_pykratos:
+    #        self.skipTest("This test cannot be run with pyKratos!")
+    #    if not have_fem_fem_dependencies:
+    #        self.skipTest("FEM-FEM dependencies are not available!")
+    #
+    #    self.name = "test_FEM_FEM_dynamic_2d_cantilever_implicit_explicit_nonconforming"
+    #    with KratosUnittest.WorkFolderScope(".", __file__):
+    #        self._createTest("fem_fem/dynamic_2d_cantilever/implicit_explicit", "fem_fem_dynamic_2d_cantilever_nonconforming")
+    #        self._runTest()
+
 class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "full" CoSimulation-Cases, too large for the nightly suite and therefore
     have to be in the validation-suite
