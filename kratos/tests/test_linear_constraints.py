@@ -83,18 +83,14 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             params = KM.Parameters("""{
                 "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
                 "silent_warnings"                                    : false,
-                "advanced_builder_and_solver_settings"               : {
-                    "consider_lagrange_multiplier_constraint_resolution" : "Single"
-                }
+                "consider_lagrange_multiplier_constraint_resolution" : "single"
             }""")
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, params)
         elif solving_with == "DoubleLM":
             params = KM.Parameters("""{
                 "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
                 "silent_warnings"                                    : false,
-                "advanced_builder_and_solver_settings"               : {
-                    "consider_lagrange_multiplier_constraint_resolution" : "Double"
-                }
+                "consider_lagrange_multiplier_constraint_resolution" : "double"
             }""")
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, params)
         else: # Block default
