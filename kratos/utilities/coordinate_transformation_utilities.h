@@ -96,17 +96,17 @@ public:
 	///@name Operations
 	///@{
 
-	/**
-	 * @brief Calculates rotation operator for given point
-	 *
-	 * This metod calculates rotation matrix for a given point. Nodal NORMAL variable should be
-	 * assigned properly since rotation is calculated based on it.
-	 *
-	 * @param rRotationMatrix 	Output rotation matrix
-	 * @param rThisPoint 		Current node
-	 */
+    /**
+     * @brief Calculates rotation operator for given point
+     *
+     * This metod calculates rotation matrix for a given point. Nodal NORMAL variable should be
+     * assigned properly since rotation is calculated based on it.
+     *
+     * @param rRotationMatrix   Output rotation matrix
+     * @param rThisPoint        Current node
+     */
     virtual void CalculateRotationOperatorPure(
-		TLocalMatrixType& rRotationMatrix,
+        TLocalMatrixType& rRotationMatrix,
         const GeometryType::PointType& rThisPoint) const
     {
         if (mDomainSize == 2) {
@@ -126,23 +126,23 @@ public:
         }
     }
 
-	/**
-	 * @brief Calculates rotation nodal matrix shape sensitivities
-	 *
-	 * This method calculates shape sensitivities of rotation matrix for given node.
-	 * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
-	 * should be properly initialized.
-	 *
-	 * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
-	 * 		rows: number_of_nodes contributing to NORMAL * DOMAIN_SIZE, columns: DOMAIN_SIZE
-	 *
-	 * @param rRotationMatrixShapeDerivative 	Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
-	 * @param DerivativeNodeIndex 				NodeIndex for which shape sensitivity matrix is computed
-	 * @param DerivativeDirectionIndex			Direction index of the node for which shape sensitivity matrix is computed
-	 * @param rThisPoint 						Current node where rotation matrix shape sensitivities are required
-	 */
+    /**
+     * @brief Calculates rotation nodal matrix shape sensitivities
+     *
+     * This method calculates shape sensitivities of rotation matrix for given node.
+     * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+     * should be properly initialized.
+     *
+     * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+     * 		rows: number_of_nodes contributing to NORMAL * DOMAIN_SIZE, columns: DOMAIN_SIZE
+     *
+     * @param rRotationMatrixShapeDerivative    Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+     * @param DerivativeNodeIndex               NodeIndex for which shape sensitivity matrix is computed
+     * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
+     * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
+     */
     virtual void CalculateRotationOperatorPureShapeSensitivities(
-		TLocalMatrixType& rRotationMatrixShapeDerivative,
+        TLocalMatrixType& rRotationMatrixShapeDerivative,
         const std::size_t DerivativeNodeIndex,
         const std::size_t DerivativeDirectionIndex,
         const GeometryType::PointType& rThisPoint) const
@@ -168,22 +168,22 @@ public:
         }
     }
 
-	/**
-	 * @brief Calculate 2d rotation nodal matrix shape sensitivities
-	 *
-	 * This method calculates shape sensitivities of 2D rotation matrix for given node.
-	 * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
-	 * should be properly initialized.
-	 *
-	 * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
-	 * 		rows: (number_of_neighbour_nodes + 1) * 2
-	 * 		cols: 2
-	 *
-	 * @param rOutput							Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
-	 * @param DerivativeNodeIndex 				NodeIndex for which shape sensitivity matrix is computed
-	 * @param DerivativeDirectionIndex			Direction index of the node for which shape sensitivity matrix is computed
-	 * @param rThisPoint 						Current node where rotation matrix shape sensitivities are required
-	 */
+    /**
+     * @brief Calculate 2d rotation nodal matrix shape sensitivities
+     *
+     * This method calculates shape sensitivities of 2D rotation matrix for given node.
+     * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+     * should be properly initialized.
+     *
+     * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+     * 		rows: (number_of_neighbour_nodes + 1) * 2
+     * 		cols: 2
+     *
+     * @param rOutput                           Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+     * @param DerivativeNodeIndex               NodeIndex for which shape sensitivity matrix is computed
+     * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
+     * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
+     */
     virtual void CalculateRotationOperatorPureShapeSensitivities(
         BoundedMatrix<double, 2, 2>& rOutput,
         const std::size_t DerivativeNodeIndex,
@@ -200,7 +200,7 @@ public:
 
         const array_1d<double, 3>& r_nodal_normal =
             rThisPoint.FastGetSolutionStepValue(NORMAL);
-		const double nodal_normal_magnitude = norm_2(r_nodal_normal);
+        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
         KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
             << "NORMAL at node " << rThisPoint.Coordinates()
@@ -244,29 +244,29 @@ public:
         KRATOS_CATCH("");
     }
 
-	/**
-	 * @brief Calculate 3d rotation nodal matrix shape sensitivities
-	 *
-	 * This method calculates shape sensitivities of 3D rotation matrix for given node.
-	 * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
-	 * should be properly initialized.
-	 *
-	 * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
-	 * 		rows: (number_of_neighbour_nodes + 1) * 3
-	 * 		cols: 3
-	 *
-	 * @param rOutput						 	Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
-	 * @param DerivativeNodeIndex 				NodeIndex for which shape sensitivity matrix is computed
-	 * @param DerivativeDirectionIndex			Direction index of the node for which shape sensitivity matrix is computed
-	 * @param rThisPoint 						Current node where rotation matrix shape sensitivities are required
-	 */
+    /**
+     * @brief Calculate 3d rotation nodal matrix shape sensitivities
+     *
+     * This method calculates shape sensitivities of 3D rotation matrix for given node.
+     * Nodal NORMAL(historical data container) and NORMAL_SHAPE_SENSITIVITY(non-historical data contaienr) variables
+     * should be properly initialized.
+     *
+     * NORMAL_SHAPE_SENSITIVITY matrix should be properly sized and initialized with proper shape sensitivity values
+     * 		rows: (number_of_neighbour_nodes + 1) * 3
+     * 		cols: 3
+     *
+     * @param rOutput                           Output shape sensitivities matrix w.r.t. NodeIndex and DerivativeIndex
+     * @param DerivativeNodeIndex               NodeIndex for which shape sensitivity matrix is computed
+     * @param DerivativeDirectionIndex          Direction index of the node for which shape sensitivity matrix is computed
+     * @param rThisPoint                        Current node where rotation matrix shape sensitivities are required
+     */
     virtual void CalculateRotationOperatorPureShapeSensitivities(
-		BoundedMatrix<double, 3, 3>& rOutput,
+        BoundedMatrix<double, 3, 3>& rOutput,
         const std::size_t DerivativeNodeIndex,
         const std::size_t DerivativeDirectionIndex,
-		const GeometryType::PointType& rThisPoint) const
-	{
-		KRATOS_TRY
+        const GeometryType::PointType& rThisPoint) const
+    {
+        KRATOS_TRY
 
         KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(NORMAL))
             << "NORMAL is not found in node at " << rThisPoint.Coordinates() << ".";
@@ -276,7 +276,7 @@ public:
 
         const array_1d<double, 3>& r_nodal_normal =
             rThisPoint.FastGetSolutionStepValue(NORMAL);
-		const double nodal_normal_magnitude = norm_2(r_nodal_normal);
+        const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
         KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
             << "NORMAL at node " << rThisPoint.Coordinates()
@@ -289,7 +289,7 @@ public:
             << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of columns = 3, available number of columns = "
             << r_sensitivity_values.size2() << " ].";
 
-		const std::size_t require_rows = (DerivativeNodeIndex + 1) * 3;
+        const std::size_t require_rows = (DerivativeNodeIndex + 1) * 3;
         KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < require_rows)
             << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
             << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of rows >= "
@@ -354,7 +354,7 @@ public:
                         - unit_normal[1] * unit_rT1_derivative[0];
 
         KRATOS_CATCH("");
-	}
+    }
 
     /// Rotate the local system contributions so that they are oriented with each node's normal.
 	/**
@@ -899,8 +899,9 @@ protected:
 	}
 
 
-	void LocalRotationOperatorPure(BoundedMatrix<double,3,3>& rRot,
-			const GeometryType::PointType& rThisPoint) const
+    void LocalRotationOperatorPure(
+        BoundedMatrix<double,3,3>& rRot,
+        const GeometryType::PointType& rThisPoint) const
 	{
 
 		// Get the normal evaluated at the node
@@ -946,8 +947,9 @@ protected:
 		rRot(2,2) = rRot(0,0)*rT1[1] - rRot(0,1)*rT1[0];
 	}
 
-	void LocalRotationOperatorPure(BoundedMatrix<double,2,2>& rRot,
-			const GeometryType::PointType& rThisPoint) const
+    void LocalRotationOperatorPure(
+        BoundedMatrix<double,2,2>& rRot,
+        const GeometryType::PointType& rThisPoint) const
 	{
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
@@ -1132,7 +1134,7 @@ private:
         const array_1d<double, 3>& rVectorDerivative) const
     {
         return (rVectorDerivative * VectorNorm - rVector * VectorNormDerivative) /
-               std::pow(VectorNorm, 2);
+                std::pow(VectorNorm, 2);
     }
 
     /// Transform a local contribution from cartesian coordinates to rotated ones
