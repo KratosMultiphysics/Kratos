@@ -74,14 +74,6 @@ wrong_type = """{
     "string_value": "hello"
 }"""
 
-empty_level = """{
-    "bool_value": true,
-    "double_value": 2.0,
-    "int_value": 10,
-    "level1": {},
-    "string_value": "hello"
-}"""
-
 # int value is badly spelt
 wrong_spelling = """{
     "bool_value": true,
@@ -100,15 +92,6 @@ wrong_lev2 = """{
     "level1": { "a":0.0 },
     "string_value": "hello"
 }"""
-
-defaults_without_subparameters = """
-{
-    "bool_value": false,
-    "double_value": 2.0,
-    "int_value": 10,
-    "string_value": "hello"
-}
-"""
 
 defaults = """
 {
@@ -322,12 +305,6 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             kp.ValidateAndAssignDefaults(defaults_params)
 
-    def test_validation_does_not_fail_skip_sublevel(self):
-        kp = Parameters(empty_level)
-        defaults_params = Parameters(defaults_without_subparameters)
-
-        kp.ValidateAndAssignDefaultsSkipSubParameters(defaults_params)
-
     def test_validation_fails_due_to_wrong_spelling(self):
         kp = Parameters(wrong_spelling)
         defaults_params = Parameters(defaults)
@@ -409,17 +386,6 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertFalse(kp.Has("double_value"))
         self.assertTrue(kp.Has("level1"))
 
-    def test_validate_defaults_skip_subparameters(self):
-        # only parameters from defaults are validated, no new values are added
-        kp = Parameters(incomplete_with_extra_parameter)
-        tmp = Parameters(defaults)
-
-        kp.ValidateDefaultsSkipSubParameters(tmp)
-
-        self.assertFalse(kp.Has("bool_value"))
-        self.assertFalse(kp.Has("double_value"))
-        self.assertTrue(kp.Has("level1"))
-
     def test_recursively_validate_defaults(self):
         # only parameters from defaults are validated, no new values are added
         kp = Parameters(incomplete)
@@ -430,6 +396,7 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertFalse(kp.Has("bool_value"))
         self.assertFalse(kp.Has("double_value"))
         self.assertTrue(kp.Has("level1"))
+
 
     def test_recursively_validate_defaults_fails(self):
         # only parameters from defaults are validated, no new values are added
