@@ -202,7 +202,7 @@ public:
                 Vector q_plus = ZeroVector(size);
                 Vector q_minus = ZeroVector(size);
 
-                Element::GeometryType& r_geometry = r_element.GetGeometry();
+                auto& r_geometry = r_element.GetGeometry();
                 for (int i = 0; i < size; ++i) {
                     for (int j = 0; j < size; j++) {
                         if (i != j) {
@@ -422,8 +422,9 @@ private:
         rItem.CalculateLocalSystem(rLeftHandSide, rRightHandSide, rCurrentProcessInfo);
         rItem.CalculateLocalVelocityContribution(rAuxMatrix, rRightHandSide, rCurrentProcessInfo);
 
-        if (rAuxMatrix.size1() != 0)
+        if (rAuxMatrix.size1() != 0) {
             noalias(rLeftHandSide) += rAuxMatrix;
+        }
 
         KRATOS_CATCH("");
     }

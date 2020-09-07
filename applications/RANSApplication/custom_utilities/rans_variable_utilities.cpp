@@ -190,12 +190,12 @@ void AssignConditionVariableValuesToNodes(
     block_for_each(rModelPart.Conditions(), [&](ModelPart::ConditionType& rCondition) {
         if (rCondition.Is(rFlag) == FlagValue) {
             const int number_of_nodes = rCondition.GetGeometry().PointsNumber();
-            const auto& r_normal = rCondition.GetValue(rVariable);
+            const auto& r_value = rCondition.GetValue(rVariable);
             for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
                 auto& r_node = rCondition.GetGeometry()[i_node];
                 r_node.SetLock();
                 r_node.FastGetSolutionStepValue(rVariable) +=
-                    r_normal * (1.0 / static_cast<double>(number_of_nodes));
+                    r_value * (1.0 / static_cast<double>(number_of_nodes));
                 r_node.UnSetLock();
             }
         }
@@ -239,17 +239,6 @@ void AssignBoundaryFlagsToGeometries(
         rCondition.SetValue(RANS_IS_INLET, rCondition.Is(INLET));
         rCondition.SetValue(RANS_IS_OUTLET, rCondition.Is(OUTLET));
         rCondition.SetValue(RANS_IS_STRUCTURE, rCondition.Is(STRUCTURE));
-    });
-}
-
-void CalculateMagnitudeSquareForNodal3DVariable(
-    ModelPart& rModelPart,
-    const Variable<array_1d<double, 3>>& r3DVariable,
-    const Variable<double>& rOutputVariable)
-{
-    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
-        const double magnitude = norm_2(rNode.FastGetSolutionStepValue(r3DVariable));
-        rNode.FastGetSolutionStepValue(rOutputVariable) = std::pow(magnitude, 2);
     });
 }
 

@@ -120,10 +120,7 @@ public:
         BossakRelaxationScalarScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
 
-#pragma omp critical
-        {
-            rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
-        }
+        rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
 
         KRATOS_CATCH("");
     }
