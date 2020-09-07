@@ -119,15 +119,7 @@ class MechanicalSolver(PythonSolver):
             "builder_and_solver_settings" : {
                 "use_block_builder" : true,
                 "use_lagrange_BS"   : false,
-                "advanced_settings"                      : {
-                    "diagonal_values_for_dirichlet_dofs" : "use_max_diagonal",
-                    "silent_warnings"                    : false,
-                    "advanced_builder_and_solver_settings"                   : {
-                        "consider_lagrange_multiplier_constraint_resolution" : "none",
-                        "constraint_scale_factor"                            : "use_mean_diagonal",
-                        "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
-                    }
-                }
+                "advanced_settings" : { }
             },
             "clear_storage": false,
             "move_mesh_flag": true,
@@ -151,8 +143,8 @@ class MechanicalSolver(PythonSolver):
         """
         super().ValidateSettings()
 
-        # Recursively validate some subparameters
-        self.settings["builder_and_solver_settings"].RecursivelyValidateAndAssignDefaults(default_settings["builder_and_solver_settings"])
+        # Validate some subparameters
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["builder_and_solver_settings"])
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already

@@ -722,13 +722,9 @@ public:
         Parameters default_parameters = Parameters(R"(
         {
             "name"                                               : "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier",
-            "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
-            "silent_warnings"                                    : false,
-            "advanced_builder_and_solver_settings"                   : {
-                "consider_lagrange_multiplier_constraint_resolution" : "Double",
-                "constraint_scale_factor"                            : "use_mean_diagonal",
-                "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
-            }
+            "consider_lagrange_multiplier_constraint_resolution" : "double",
+            "constraint_scale_factor"                            : "use_mean_diagonal",
+            "auxiliar_constraint_scale_factor"                   : "use_mean_diagonal"
         })");
 
         // Getting base class default parameters
@@ -1028,7 +1024,7 @@ protected:
         std::set<std::string> available_options_for_constraints_scale = {"use_mean_diagonal","use_diagonal_norm","defined_in_process_info"};
 
         // Definition of the constraint scale factor
-        const std::string& r_constraint_scale_factor = ThisParameters["advanced_builder_and_solver_settings"]["constraint_scale_factor"].GetString();
+        const std::string& r_constraint_scale_factor = ThisParameters["constraint_scale_factor"].GetString();
 
         // Check the values
         if (available_options_for_constraints_scale.find(r_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
@@ -1048,7 +1044,7 @@ protected:
         }
 
         // Definition of the auxiliar constraint scale factor
-        const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["advanced_builder_and_solver_settings"]["auxiliar_constraint_scale_factor"].GetString();
+        const std::string& r_auxiliar_constraint_scale_factor = ThisParameters["auxiliar_constraint_scale_factor"].GetString();
 
         // Check the values
         if (available_options_for_constraints_scale.find(r_auxiliar_constraint_scale_factor) == available_options_for_constraints_scale.end()) {
@@ -1068,7 +1064,7 @@ protected:
         }
 
         // Type of LM
-        if (ThisParameters["advanced_builder_and_solver_settings"]["consider_lagrange_multiplier_constraint_resolution"].GetString() == "Double") {
+        if (ThisParameters["consider_lagrange_multiplier_constraint_resolution"].GetString() == "double") {
             BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, true);
         } else {
             BaseType::mOptions.Set(DOUBLE_LAGRANGE_MULTIPLIER, false);
