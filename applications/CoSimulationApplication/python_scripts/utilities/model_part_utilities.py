@@ -10,7 +10,7 @@ def AllocateHistoricalVariablesFromCouplingDataSettings(data_settings_list, mode
     specified CouplingInterfaceData-settings and allocates them on the ModelParts
     Note that it can only be called after the (Main-)ModelParts are created
     '''
-    # data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
+    data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
 
     for data_settings in data_settings_list.values():
         CouplingInterfaceData.GetDefaultSettings()
@@ -31,8 +31,11 @@ def CreateMainModelPartsFromCouplingDataSettings(data_settings_list, model, solv
     '''
     data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
 
-    for data in data_list:
-        main_model_part_name = data.model_part_name.split(".")[0]
+    for data_settings in data_settings_list.values():
+        CouplingInterfaceData.GetDefaultSettings()
+        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultSettings())
+
+        main_model_part_name = data_settings["model_part_name"].GetString().split(".")[0]
         if not model.HasModelPart(main_model_part_name):
             model.CreateModelPart(main_model_part_name)
             cs_print_info("CoSimTools", 'Created ModelPart "{}" for solver "{}"'.format(main_model_part_name, solver_name))
@@ -41,7 +44,9 @@ def RecursiveCreateModelParts(model_part, model_part_name):
     '''This function creates a hierarchy of SubModelParts on a given ModelPart
     '''
     model_part_name, *sub_model_part_names = model_part_name.split(".")
-    if not model_part.HasSubModelPart(model_part_name):
+    if model_part.HasSubModelPart(model_part_name):
+        model_part = model_part.GetSubModelPart(model_part_name)
+    else:
         cs_print_info("CoSimTools", 'Created "{}" as SubModelPart of "{}"'.format(model_part_name, model_part.Name))
         model_part = model_part.CreateSubModelPart(model_part_name)
     if len(sub_model_part_names) > 0:
@@ -52,8 +57,11 @@ def CreateModelPartsFromCouplingDataSettings(data_settings_list, model, solver_n
     '''
     data_settings_list = data_settings_list.Clone() # clone to not mess with the following validation
 
-    for data in data_list:
-        splitted_name = data.model_part_name.split(".")
+    for data_settings in data_settings_list.values():
+        CouplingInterfaceData.GetDefaultSettings()
+        data_settings.ValidateAndAssignDefaults(CouplingInterfaceData.GetDefaultSettings())
+
+        splitted_name = data_settings["model_part_name"].GetString().split(".")
         main_model_part_name = splitted_name[0]
         sub_model_part_names = splitted_name[1:]
         if model.HasModelPart(main_model_part_name):
