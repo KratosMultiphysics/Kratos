@@ -149,8 +149,7 @@ class MechanicalSolver(PythonSolver):
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        default_settings = self.GetDefaultSettings()
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        super().ValidateSettings()
 
         # Recursively validate some subparameters
         self.settings["builder_and_solver_settings"].RecursivelyValidateAndAssignDefaults(default_settings["builder_and_solver_settings"])
