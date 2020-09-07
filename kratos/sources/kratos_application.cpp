@@ -119,7 +119,7 @@ void KratosApplication::RegisterKratosCore() {
     RegisterConvergenceCriterias();
     RegisterStrategiesFactories();
     RegisterExplicitStrategiesFactories();
-    RegisterSchemes();
+    RegisterSchemesFactories();
 
     //Register objects with general definition
     Serializer::Register("Node", NodeType());

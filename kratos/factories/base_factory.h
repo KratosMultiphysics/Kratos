@@ -247,7 +247,7 @@ void RegisterStrategiesFactories();
 void RegisterExplicitStrategiesFactories();
 void RegisterBuilderAndSolversFactories();
 void RegisterExplicitBuildersFactories();
-void RegisterSchemes();
+void RegisterSchemesFactories();
 void RegisterConvergenceCriterias();
 
 typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
