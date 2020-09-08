@@ -437,16 +437,8 @@ class MmgProcess(KratosMultiphysics.Process):
             for sub_model_part_name in sub_model_part_names_to_remove:
                 if self.main_model_part.HasSubModelPart(sub_model_part_name):
                     self.main_model_part.RemoveSubModelPart(sub_model_part_name)
-            if self.output_final_mesh:
-                KratosMultiphysics.ModelPartIO(output_mesh_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
-
-    def _compute_average_quantity(self):
-        """ This method is executed in order to compute the average of a generic quantity, between consecutives time steps
-        
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
+        if self.output_final_mesh:
+            KratosMultiphysics.ModelPartIO(output_mesh_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -454,10 +446,6 @@ class MmgProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        self.average_remeshing = self.settings["remesh_post_process"].GetBool()
-        if self.average_remeshing:
-            self._compute_average_quantity()
-
         if self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if self.interval.IsInInterval(current_time):
