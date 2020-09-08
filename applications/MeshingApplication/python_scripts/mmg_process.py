@@ -432,10 +432,10 @@ class MmgProcess(KratosMultiphysics.Process):
         output_mesh_file_name = self.settings["output_mesh_file_name"].GetString()
         sub_model_part_names_to_remove = self.settings["sub_model_part_names_to_remove"].GetStringArray()
         if self.remesh_at_finalize:
-            self._ExecuteRefinement()
             for sub_model_part_name in sub_model_part_names_to_remove:
                 if self.main_model_part.HasSubModelPart(sub_model_part_name):
                     self.main_model_part.RemoveSubModelPart(sub_model_part_name)
+            self._ExecuteRefinement()
         if self.output_final_mesh:
             KratosMultiphysics.ModelPartIO(output_mesh_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
 
