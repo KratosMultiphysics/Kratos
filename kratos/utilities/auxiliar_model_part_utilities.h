@@ -282,45 +282,253 @@ public:
      */
     void RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
-    template<class TDataType>
-    std::vector<TDataType> GetVariableData(
-        const Variable<TDataType>& rVariable,
-        const DataLocation) const
-    {
-        std::vector<TDataType> data;
-        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
 
+    //To export a Scalar data (Double)
+    std::vector<double> GetVariableData(
+        const Variable<double>& rVariable,
+        const DataLocation DataLoc) const
+    {
+        std::vector<double> data;
+        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
+        
+        switch (DataLoc)
+        {
+        case (DataLocation::NodeHistorical):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfNodes());
+            for(const auto& r_node : mrModelPart.Nodes()){
+                data[counter++] = r_node.FastGetSolutionStepValue(rVariable);
+            }
+            break;
+        }
+        case (DataLocation::NodeNonHistorical):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfNodes());
+            for(const auto& r_node : mrModelPart.Nodes()){
+                data[counter++] = r_node.GetValue(rVariable);
+            }
+            break;
+        }
+        case (DataLocation::Element):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfElements());
+            for(const auto& r_elem : mrModelPart.Elements()){
+                data[counter++] = r_elem.GetValue(rVariable);
+            }
+            break;
+        }
+        case (DataLocation::Condition):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfConditions());
+            for(const auto& r_cond : mrModelPart.Conditions()){
+                data[counter++] = r_cond.GetValue(rVariable);
+            }
+            break;
+        }
+        case (DataLocation::ModelPart):{
+            data.resize(1);
+            data[0] = mrModelPart[rVariable];
+            break;
+        }
+        default:
+            //Throw an error about invalid DataLocation
+            break;
+        }
+        //Need to do something related to ProcessInfo ??
         return data;
     }
 
+
+    //To export a Vector data
     template<std::size_t TSize>
     std::vector<double> GetVariableData(
         const Variable<array_1d<double, TSize>>& rVariable,
-        const DataLocation) const
+        const DataLocation DataLoc) const
     {
         std::vector<double> data;
         // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
 
+        switch (DataLoc)
+        {
+        case (DataLocation::NodeHistorical):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfNodes()*TSize);
+            for(const auto& r_node : mrModelPart.Nodes()){
+                const array_1d<double, TSize>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    data[counter++] = r_val[dim];
+                }
+            }
+            break;
+        }
+        case (DataLocation::NodeNonHistorical):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfNodes()*TSize);
+            for(const auto& r_node : mrModelPart.Nodes()){
+                const array_1d<double, TSize>& r_val = r_node.GetValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    data[counter++] = r_val[dim];
+                }
+            }
+            break;
+        }
+        case (DataLocation::Element):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfElements()*TSize);
+            for(const auto& r_node : mrModelPart.Elements()){
+                const array_1d<double, TSize>& r_val = r_node.GetValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    data[counter++] = r_val[dim];
+                }
+            }
+            break;
+        }
+        case (DataLocation::Condition):{
+            IndexType counter = 0;
+            data.resize(mrModelPart.NumberOfConditions()*TSize);
+            for(const auto& r_node : mrModelPart.Conditions()){
+                const array_1d<double, TSize>& r_val = r_node.GetValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    data[counter++] = r_val[dim];
+                }
+            }
+            break;
+        }
+        case (DataLocation::ModelPart):{
+            data.resize(TSize);
+            auto& r_val = mrModelPart[rVariable];
+            for(int dim = 0 ; dim < TSize ; dim++){
+                    data[counter++] = r_val[dim];
+                }
+            break;
+        }
+        default:
+            //Throw an error about invalid DataLocation
+            break;
+        }
+
+        //Need to do something related to ProcessInfo ??
         return data;
     }
 
-    template<class TDataType>
+    /// To Import a Scalar data (Double)
     void SetVariableData(
-        const Variable<TDataType>& rVariable,
-        const DataLocation,
-        const std::vector<TDataType>& rData)
-    {
-        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
-    }
-
-    template<std::size_t TSize>
-    void SetVariableData(
-        const Variable<array_1d<double, TSize>>& rVariable,
-        const DataLocation,
+        const Variable<double>& rVariable,
+        const DataLocation DataLoc,
         const std::vector<double>& rData)
     {
         // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
+
+        switch (DataLoc)
+        {
+        case (DataLocation::NodeHistorical):{
+            //ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
+            IndexType counter = 0;
+            for(auto& r_node : mrModelPart.Nodes()){
+                r_node.FastGetSolutionStepValue(rVariable) = rData[counter++];
+            }
+            break;
+        }
+        case (DataLocation::NodeNonHistorical):{
+            IndexType counter = 0;
+            for(auto& r_node : mrModelPart.Nodes()){
+                r_node.GetValue(rVariable) = rData[counter++];
+            }
+            break;
+        }
+        case (DataLocation::Element):{
+            IndexType counter = 0;
+            for(auto& r_elem : mrModelPart.Elements()){
+                r_elem.GetValue(rVariable) = rData[counter++];
+            }
+            break;
+        }
+        case (DataLocation::Condition):{
+            IndexType counter = 0;
+            for(auto& r_cond : mrModelPart.Condions()){
+                r_cond.GetValue(rVariable) = rData[counter++];
+            }
+            break;
+        }
+        case (DataLocation::ModelPart):{
+            mrModelPart[rVariable]= rData[0];
+            break;
+        }
+        default:
+            //Throw an error about invalid DataLocation
+            break;
+        }
+
+        //Need to do something related to ProcessInfo ??
+
     }
+
+    /// To Import a Vector data
+    template<std::size_t TSize>
+    void SetVariableData(
+        const Variable<array_1d<double, TSize>>& rVariable,
+        const DataLocation DataLoc,
+        const std::vector<double>& rData)
+    {
+        // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
+        switch (DataLoc)
+        {
+        case (DataLocation::NodeHistorical):{
+            IndexType counter = 0;
+            for(auto& r_node : mrModelPart.Nodes()){
+                array_1d<double, TSize>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    r_val[dim] = rData[counter++];
+                }
+            }
+            break;
+        }
+        case (DataLocation::NodeNonHistorical):{
+            IndexType counter = 0;
+            for(auto& r_node : mrModelPart.Nodes()){
+                array_1d<double, TSize>& r_val = r_node.GetValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    r_val[dim] = rData[counter++];
+                }
+            }
+            break;
+        }
+        case (DataLocation::Element):{
+            IndexType counter = 0;
+            for(auto& r_elem : mrModelPart.Elements()){
+                array_1d<double, TSize>& r_val = r_elem.GetValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    r_val[dim] = rData[counter++];
+                }
+            }
+            break;
+        }
+        case (DataLocation::Condition):{
+            IndexType counter = 0;
+            for(auto& r_cond : mrModelPart.Conditions()){
+                array_1d<double, TSize>& r_val = r_elem.GetValue(rVariable);
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    r_val[dim] = rData[counter++];
+                }
+            }
+            break;
+        }
+        case (DataLocation::ModelPart):{
+            auto& r_val = mrModelPart[rVariable];
+                for(int dim = 0 ; dim < TSize ; dim++){
+                    r_val[dim] = data[counter++];
+                }
+            }
+            break;
+        }
+        default:
+            //Throw an error about invalid DataLocation
+            break;
+        }
+
+        //Need to do something related to ProcessInfo ??
+    }
+
 
     /// Turn back information as a string.
     virtual std::string Info() const
