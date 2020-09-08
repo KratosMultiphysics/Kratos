@@ -102,13 +102,11 @@ public:
      * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
      */
     explicit ResidualBasedBDFCustomScheme(Parameters ThisParameters)
+        :BDFBaseType()
     {
-        // Getting default parameters
-        Parameters default_parameters = GetDefaultParameters();
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        // Now here call the base class constructor
-        BDFBaseType( ThisParameters["integration_order"].GetInt());
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         // Creating variables list
         CreateVariablesList(ThisParameters);
@@ -126,9 +124,9 @@ public:
         )
         :BDFBaseType(Order)
     {
-        // Getting default parameters
-        Parameters default_parameters = GetDefaultParameters();
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         // Creating variables list
         CreateVariablesList(ThisParameters);
@@ -376,6 +374,26 @@ public:
         return 0;
     }
 
+        /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "bdf_scheme",
+            "domain_size"        : 3,
+            "integration_order"  : 2,
+            "solution_variables" : ["DISPLACEMENT"]
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BDFBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
@@ -592,23 +610,6 @@ private:
                 KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
             }
         }
-    }
-
-    /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-    Parameters GetDefaultParameters()
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                  : "ResidualBasedBDFCustomScheme",
-            "domain_size"           : 3,
-            "integration_order"     : 2,
-            "solution_variables"    : ["DISPLACEMENT"]
-        })" );
-
-        return default_parameters;
     }
 
     ///@}
