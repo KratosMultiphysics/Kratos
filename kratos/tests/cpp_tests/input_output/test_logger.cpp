@@ -440,15 +440,13 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-
             for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_ONCE_ALL_RANKS("TestInfo") << "Test info message - " << i;
             }
 
             std::stringstream out;
 #ifdef KRATOS_DEBUG
-            out << "Rank " << r_comm.Rank() << ": TestInfo: Test info message - 0";
+            out << "Rank " << DataCommunicator::GetDefault().Rank() << ": TestInfo: Test info message - 0";
 #else
             out << "";
 #endif
@@ -462,15 +460,13 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-
             for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_FIRST_N_ALL_RANKS("TestInfo", 4) << ".";
             }
 
             std::stringstream out;
 #ifdef KRATOS_DEBUG
-            int rank = r_comm.Rank();
+            int rank = DataCommunicator::GetDefault().Rank();
             for(std::size_t i = 0; i < 4; i++) {
                 out << "Rank " << rank << ": TestInfo: .";
             }
