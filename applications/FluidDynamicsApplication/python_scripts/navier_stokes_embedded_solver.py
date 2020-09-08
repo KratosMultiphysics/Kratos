@@ -234,6 +234,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "time_order": 2,
             "time_scheme": "bdf2",
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
             "relative_velocity_tolerance": 1e-3,

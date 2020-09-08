@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -15,13 +13,7 @@ class CouplingInterfaceData(object):
     """
     def __init__(self, custom_settings, model, name="default", solver_name="default_solver"):
 
-        default_config = KM.Parameters("""{
-            "model_part_name" : "",
-            "variable_name"   : "",
-            "location"        : "node_historical",
-            "dimension"       : -1
-        }""")
-        custom_settings.ValidateAndAssignDefaults(default_config)
+        custom_settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
 
         self.settings = custom_settings
         self.model = model
@@ -95,6 +87,15 @@ class CouplingInterfaceData(object):
             self.__RaiseException('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.model_part_name))
 
         self.is_initialized = True
+
+    @staticmethod
+    def GetDefaultSettings():
+        return KM.Parameters("""{
+            "model_part_name" : "",
+            "variable_name"   : "",
+            "location"        : "node_historical",
+            "dimension"       : -1
+        }""")
 
     def _RequiresInitialization(fct_ptr):
         # to be used as a decorator for functions that require the

@@ -128,13 +128,9 @@ public:
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "ResidualBasedEliminationBuilderAndSolver"
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -811,23 +807,24 @@ public:
         ) override
     {
         KRATOS_TRY
-        if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+
+        if (pA == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
             pA.swap(pNewA);
         }
-        if (pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+        if (pDx == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
             pDx.swap(pNewDx);
         }
-        if (pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+        if (pb == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
             pb.swap(pNewb);
         }
-        if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
+        if (BaseType::mpReactionsVector == nullptr) { // If the pointer is not initialized initialize it to an empty matrix
+
             TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
@@ -950,6 +947,23 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "elimination_builder_and_solver"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -1035,17 +1049,15 @@ protected:
 #endif
         )
     {
-        unsigned int local_size = rLHSContribution.size1();
+        const SizeType local_size = rLHSContribution.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = rEquationId[i_local];
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = rEquationId[i_local];
 
-            if (i_global < BaseType::mEquationSystemSize)
-            {
+            if (i_global < BaseType::mEquationSystemSize) {
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&rLockArray[i_global]);
-                b[i_global] += rRHSContribution(i_local);
+                rb[i_global] += rRHSContribution(i_local);
 #else
                 double& r_a = rb[i_global];
                 const double& v_a = rRHSContribution(i_local);
@@ -1074,12 +1086,12 @@ protected:
         ModelPart& rModelPart
         )
     {
-        //filling with zero the matrix (creating the structure)
+        // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        const std::size_t equation_size = BaseType::mEquationSystemSize;
+        const SizeType equation_size = BaseType::mEquationSystemSize;
 
-        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
+        std::vector<std::unordered_set<IndexType> > indices(equation_size);
 
         #pragma omp parallel for firstprivate(equation_size)
         for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
@@ -1094,7 +1106,7 @@ protected:
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We repeat the same declaration for each thead
-            std::vector<std::unordered_set<std::size_t> > temp_indexes(equation_size);
+            std::vector<std::unordered_set<IndexType> > temp_indexes(equation_size);
 
             #pragma omp for
             for (int index = 0; index < static_cast<int>(equation_size); ++index)
@@ -1104,13 +1116,13 @@ protected:
             const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
 
             // Element initial iterator
-            const auto el_begin = rModelPart.ElementsBegin();
+            const auto it_elem_begin = rModelPart.ElementsBegin();
 
             // We iterate over the elements
             #pragma omp for schedule(guided, 512) nowait
             for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
-                auto it_elem = el_begin + i_elem;
-                pScheme->EquationId(*it_elem, ids, r_current_process_info);
+                auto it_elem = it_elem_begin + i_elem;
+                pScheme->EquationId( *it_elem, ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
@@ -1126,13 +1138,14 @@ protected:
             const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
             // Condition initial iterator
-            const auto cond_begin = rModelPart.ConditionsBegin();
+            const auto it_cond_begin = rModelPart.ConditionsBegin();
 
             // We iterate over the conditions
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
-                auto it_cond = cond_begin + i_cond;
-                pScheme->EquationId(*it_cond, ids, r_current_process_info);
+                auto it_cond = it_cond_begin + i_cond;
+                pScheme->EquationId( *it_cond, ids, r_current_process_info);
+
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
@@ -1152,39 +1165,34 @@ protected:
             }
         }
 
-        //count the row sizes
-        unsigned int nnz = 0;
-        for (unsigned int i = 0; i < indices.size(); i++)
+        // Count the row sizes
+        SizeType nnz = 0;
+        for (IndexType i = 0; i < indices.size(); ++i)
             nnz += indices[i].size();
 
-        rA = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+        rA = TSystemMatrixType(indices.size(), indices.size(), nnz);
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
         std::size_t* Acol_indices = rA.index2_data().begin();
 
-        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        for (IndexType i = 0; i < rA.size1(); ++i)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
-
-
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
-        {
-            const unsigned int row_begin = Arow_indices[i];
-            const unsigned int row_end = Arow_indices[i + 1];
-            unsigned int k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); it++)
-            {
-            Acol_indices[k] = *it;
-            Avalues[k] = 0.0;
-            k++;
+        for (int i = 0; i < static_cast<int>(rA.size1()); ++i) {
+            const IndexType row_begin = Arow_indices[i];
+            const IndexType row_end = Arow_indices[i + 1];
+            IndexType k = row_begin;
+            for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
+                Acol_indices[k] = *it;
+                Avalues[k] = 0.0;
+                ++k;
             }
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
-
         }
 
         rA.set_filled(indices.size() + 1, nnz);
@@ -1202,29 +1210,27 @@ protected:
         TSystemMatrixType& rA,
         LocalSystemMatrixType& rLHSContribution,
         EquationIdVectorType& rEquationId
-    )
+        )
     {
-        unsigned int local_size = rLHSContribution.size1();
+        const SizeType local_size = rLHSContribution.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = rEquationId[i_local];
-            if (i_global < BaseType::mEquationSystemSize)
-            {
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = rEquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize)
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = rEquationId[i_local];
+            if (i_global < BaseType::mEquationSystemSize) {
+                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
+                    const IndexType j_global = rEquationId[j_local];
+                    if (j_global < BaseType::mEquationSystemSize) {
                         rA(i_global, j_global) += rLHSContribution(i_local, j_local);
+                    }
                 }
             }
         }
     }
 
     /**
-    * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
-    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
-    */
+     * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
+     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
+     */
     inline void AssembleRowContributionFreeDofs(
         TSystemMatrixType& rA,
         const Matrix& rALocal,

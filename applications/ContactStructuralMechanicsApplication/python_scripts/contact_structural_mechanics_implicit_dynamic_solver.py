@@ -32,7 +32,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         self._validate_settings_in_baseclass=True # To be removed eventually
 
         # Construct the base solver.
-        super(ContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         self.contact_settings = self.settings["contact_settings"]
 
@@ -63,7 +63,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
     def AddVariables(self):
 
-        super(ContactImplicitMechanicalSolver, self).AddVariables()
+        super().AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddVariables(self.main_model_part, mortar_type)
@@ -72,7 +72,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
     def AddDofs(self):
 
-        super(ContactImplicitMechanicalSolver, self).AddDofs()
+        super().AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         auxiliar_methods_solvers.AuxiliarAddDofs(self.main_model_part, mortar_type)
@@ -80,7 +80,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         KM.Logger.PrintInfo("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
-        super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+        super().Initialize() # The mechanical solver is created here.
 
         # No verbosity from strategy
         if self.contact_settings["silent_strategy"].GetBool():
@@ -106,7 +106,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         return is_converged
 
     def ExecuteFinalizeSolutionStep(self):
-        super(ContactImplicitMechanicalSolver, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
         if self.contact_settings["ensure_contact"].GetBool():
             computing_model_part = self.GetComputingModelPart()
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
@@ -131,13 +131,13 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        linear_solver = super(ContactImplicitMechanicalSolver, self)._create_linear_solver()
+        linear_solver = super()._create_linear_solver()
         return auxiliar_methods_solvers.AuxiliarCreateLinearSolver(self.main_model_part, self.settings, self.contact_settings, self.linear_solver_settings, linear_solver)
 
     def _create_builder_and_solver(self):
         if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self.get_linear_solver()
-            if self.settings["block_builder"].GetBool():
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
                 builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                     # We use the elimination builder and solver
@@ -148,7 +148,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                     else:
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
-            builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
+            builder_and_solver = super()._create_builder_and_solver()
 
         return builder_and_solver
 
@@ -162,7 +162,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 else:
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         else:
-            mechanical_solution_strategy = super(ContactImplicitMechanicalSolver, self)._create_mechanical_solution_strategy()
+            mechanical_solution_strategy = super()._create_mechanical_solution_strategy()
 
         return mechanical_solution_strategy
 

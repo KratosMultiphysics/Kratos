@@ -15,6 +15,16 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+//elements
+#include "custom_elements/shell_3p_element.h"
+
+//conditions
+#include "custom_conditions/load_condition.h"
+#include "custom_conditions/penalty_coupling_condition.h"
+
+//modelers
+#include "custom_modelers/iga_modeler.h"
+
 namespace Kratos {
 
 ///@name Kratos Classes
@@ -82,12 +92,6 @@ private:
     ///@name Member Variables
     ///@{
 
-<<<<<<< HEAD
-=======
-    const Shell3pElement mShell3pElement;
-    const IgaTrussElement mIgaTrussElement;
-    const ShellKLDiscreteElement mShellKLDiscreteElement;
-
     //Conditions
     const LoadCondition mLoadCondition;
     const PenaltyCouplingCondition mPenaltyCouplingCondition;
@@ -95,10 +99,8 @@ private:
     // Modelers
     const IgaModeler mIgaModeler;
 
->>>>>>> origin/master
     ///@}
     ///@name Private methods
-    ///@{
 
     /// Assignment operator.
     KratosIgaApplication& operator=(KratosIgaApplication const& rOther);

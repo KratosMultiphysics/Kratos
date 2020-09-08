@@ -477,6 +477,7 @@ message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kra
 message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
 message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
 message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
+message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

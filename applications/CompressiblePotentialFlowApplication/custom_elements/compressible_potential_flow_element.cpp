@@ -53,7 +53,7 @@ Element::Pointer CompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -68,7 +68,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO: improve speed
     Matrix tmp;
@@ -77,7 +77,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO: improve speed
     VectorType tmp;
@@ -86,7 +86,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+    EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -114,7 +114,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
 
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                 ProcessInfo& CurrentProcessInfo)
+                                                                 const ProcessInfo& CurrentProcessInfo) const
 {
     const CompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -141,7 +141,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType&
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void CompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     bool active = true;
     if ((this)->IsDefined(ACTIVE))
@@ -188,7 +188,7 @@ int CompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rC
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -218,7 +218,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -238,7 +238,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)

@@ -31,6 +31,7 @@ if numpy_available:
     from test_co_simulation_coupled_solver import TestCoupledSolverModelAccess
     from test_co_simulation_coupled_solver import TestCoupledSolverPassingModel
     from test_co_simulation_coupled_solver import TestCoupledSolverCouplingInterfaceDataAccess
+    from test_model_part_utilties import TestModelPartUtiliites
 
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
@@ -68,6 +69,7 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverModelAccess]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverPassingModel]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoupledSolverCouplingInterfaceDataAccess]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartUtiliites]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure_aux_tests]))

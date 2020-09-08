@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
@@ -16,14 +14,18 @@ def Create(settings, model, solver_name):
 class SdofSolverWrapper(CoSimulationSolverWrapper):
     """ This class implements a wrapper for an SDof solver to be used in CoSimulation
     """
-    def __init__(self, settings, model, solver_name):
-        super(SdofSolverWrapper, self).__init__(settings, model, solver_name)
+    def __init__(self, settings, model, solver_name, model_part_name="Sdof"):
+        super().__init__(settings, model, solver_name)
+
+        self.mp = self.model.CreateModelPart(model_part_name)
+        self.mp.ProcessInfo[KM.DOMAIN_SIZE] = 1
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
+        self._sdof_solver = self._CreateSDofSolver(input_file_name)
 
-        self.mp = self.model.CreateModelPart("Sdof")
-        self.mp.ProcessInfo[KM.DOMAIN_SIZE] = 1
-        self._sdof_solver = SDoFSolver(input_file_name)
+    @classmethod
+    def _CreateSDofSolver(cls, input_file_name):
+        return SDoFSolver(input_file_name)
 
     def Initialize(self):
         self._sdof_solver.Initialize()
