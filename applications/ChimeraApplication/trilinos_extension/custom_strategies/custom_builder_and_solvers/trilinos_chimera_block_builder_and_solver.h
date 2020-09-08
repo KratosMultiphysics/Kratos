@@ -184,7 +184,7 @@ public:
         TSystemVectorType &rDx,
         TSystemVectorType &rb) override
     {
-        KRATOS_TRY
+
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
@@ -200,7 +200,7 @@ public:
             it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation slave_ids.
         }
 
-        KRATOS_CATCH("")
+
     }
 
     //**************************************************************************
@@ -241,7 +241,7 @@ public:
                   ModelPart &rModelPart,
                   TSystemMatrixType &rA) override
     {
-        KRATOS_TRY
+
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
@@ -281,7 +281,7 @@ public:
 
         // finalizing the assembly
         rA.GlobalAssemble();
-        KRATOS_CATCH("")
+
     }
 
     /**
@@ -315,7 +315,7 @@ public:
                                 TSystemVectorType &rb,
                                 ModelPart &rModelPart)
     {
-        KRATOS_TRY
+
 
         double norm_b;
         if (TSparseSpace::Size(rb) != 0)
@@ -343,7 +343,7 @@ public:
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
             << *(BaseType::mpLinearSystemSolver) << std::endl;
 
-        KRATOS_CATCH("")
+
     }
 
     /**
@@ -363,7 +363,7 @@ public:
         TSystemVectorType &rDx,
         TSystemVectorType &rb) override
     {
-        KRATOS_TRY
+
 
         if (BaseType::GetEchoLevel() > 0)
             START_TIMER("UpdateConstraints", 0)
@@ -402,7 +402,7 @@ public:
         if (BaseType::GetEchoLevel() > 0)
             STOP_TIMER("System solve time ", 0);
 
-        KRATOS_CATCH("")
+
     }
 
     /*
@@ -504,12 +504,12 @@ public:
                           TSystemVectorType &rDx,
                           TSystemVectorType &rb) override
     {
-        KRATOS_TRY
+
 
         BuildRHS(pScheme, rModelPart, rb);
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
-        KRATOS_CATCH("")
+
     }
 
     /**
@@ -523,7 +523,7 @@ public:
                   ModelPart &rModelPart,
                   TSystemVectorType &rb) override
     {
-        KRATOS_TRY
+
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
@@ -562,7 +562,7 @@ public:
         // finalizing the assembly
         rb.GlobalAssemble();
 
-        KRATOS_CATCH("")
+
     }
 
     /**
@@ -575,7 +575,7 @@ public:
      */
     void SetUpDofSet(typename TSchemeType::Pointer pScheme, ModelPart &rModelPart) override
     {
-        KRATOS_TRY
+
         typedef Element::DofsVectorType DofsVectorType;
         // Gets the array of elements from the modeler
         ElementsArrayType &r_elements_array =
@@ -644,7 +644,7 @@ public:
 #endif
         BaseType::mDofSetIsInitialized = true;
 
-        KRATOS_CATCH("")
+
     }
 
     /**
@@ -962,7 +962,7 @@ public:
                                   TSystemVectorType &rDx,
                                   TSystemVectorType &rb) override
     {
-        KRATOS_TRY
+
 
         // loop over all dofs to find the fixed ones
         std::vector<int> global_ids(BaseType::mDofSet.size());
@@ -1025,7 +1025,7 @@ public:
             }
         }
 
-        KRATOS_CATCH("");
+;
     }
 
     ///@}
@@ -1071,7 +1071,7 @@ protected:
      */
     void FormulateGlobalMasterSlaveRelations(ModelPart &rModelPart)
     {
-        KRATOS_TRY
+
         MasterSlaveConstraintType::DofPointerVectorType slave_dofs_vector;
         MasterSlaveConstraintType::DofPointerVectorType master_dofs_vector;
         // First delete the existing ones
@@ -1101,7 +1101,6 @@ protected:
                 ++assembled_count;
             }
         }
-        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::FormulateGlobalMasterSlaveRelations failed ..");
     }
 
     /**
@@ -1111,7 +1110,7 @@ protected:
      */
     void AssembleConstraint(ModelPart::MasterSlaveConstraintType &rMasterSlaveConstraint, ProcessInfo &rCurrentProcessInfo)
     {
-        KRATOS_TRY
+
         int slave_count = 0;
         LocalSystemMatrixType relation_matrix(0, 0);
         LocalSystemVectorType constant_vector(0);
@@ -1140,7 +1139,6 @@ protected:
             }
             slave_count++;
         }
-        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::AssembleSlaves failed ...");
     }
 
     /**
@@ -1148,7 +1146,7 @@ protected:
      */
     void ResetConstraintRelations()
     {
-        KRATOS_TRY
+
         const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
 
         // Getting the beginning iterator
@@ -1161,7 +1159,6 @@ protected:
 
             (it->second)->Reset();
         }
-        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::ResetConstraintRelations failed to reset constraint relations..");
     }
 
     /**
@@ -1171,7 +1168,7 @@ protected:
      */
     void UpdateConstraintsForBuilding(ModelPart &rModelPart)
     {
-        KRATOS_TRY
+
         Communicator& r_comm = rModelPart.GetCommunicator();
         r_comm.SynchronizeNodalSolutionStepsData();
         // Reset the constraint equations
@@ -1199,7 +1196,6 @@ protected:
                 UpdateMasterSlaveConstraint(*it, r_current_process_info);
             }
         }
-        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::UpdateConstraintsForBuilding failed ..");
     }
 
     /**
@@ -1209,7 +1205,7 @@ protected:
      */
     void UpdateMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType &rMasterSlaveConstraint, ProcessInfo &rCurrentProcessInfo)
     {
-        KRATOS_TRY
+
         //contributions to the system
         LocalSystemMatrixType relation_matrix(0, 0);
         LocalSystemVectorType constant_vector(0);
@@ -1239,7 +1235,6 @@ protected:
             global_constraint->second->UpdateRightHandSide(slave_value_calc);
             slave_index++;
         }
-        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::UpdateMasterSlaveConstraint failed ..");
     }
 
     /**
@@ -1255,7 +1250,7 @@ protected:
         TSystemVectorType &rDx,
         TSystemVectorType &rb)
     {
-        KRATOS_TRY
+
         const int number_of_global_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
         // Getting the beginning iterator
 
@@ -1333,7 +1328,6 @@ protected:
         ierr = rDx.GlobalAssemble(Insert); //Epetra_CombineMode mode=Add);
         KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
 
-        KRATOS_CATCH("TrilinosChimeraResidualBasedBlockBuilderAndSolver::ReconstructSlaveSolutionAfterSolve failed ..");
     }
 
     ///@}
