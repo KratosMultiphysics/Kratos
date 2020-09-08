@@ -7,14 +7,15 @@ import KratosMultiphysics
 import KratosMultiphysics.profiler as KratosProfiler
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import line_profiler
+
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+def ExtProfileTracer(frame, event, arg):
+    print("External")
 
 class TestProfiler(KratosUnittest.TestCase):
-
-    def add_once(input):
-            input[0] += 1
 
     def setUp(self):
         def add_once(input):
@@ -29,15 +30,21 @@ class TestProfiler(KratosUnittest.TestCase):
         sys.modules['VirtualModule'] = virtual_module
         self.virtual_module = virtual_module
 
-    def test_virtual_module(self):
-        p = KratosProfiler.Profiler()
-        p.ProfileAllModule(self.virtual_module)
+    # def test_virtual_module(self):
+    #     p = KratosProfiler.Profiler()
+    #     p.ProfileAllModule(self.virtual_module)
 
-        a = [0]
-        self.virtual_module.add_once(a)
-        self.assertEqual(a[0], 1)
+    #     a = [0]
+    #     self.virtual_module.add_once(a)
+    #     self.assertEqual(a[0], 1)
 
-        p.PrintResults()
+    #     p.PrintResults()
+
+    def test_context_manager(self):
+        with KratosProfiler.Profiler() as p:
+            a = [0]
+            self.virtual_module.add_once(a)
+            self.assertEqual(a[0], 1)
 
     def tearDown(self):
         pass
