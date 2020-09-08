@@ -33,6 +33,14 @@ class TestFactories(KratosUnittest.TestCase):
         """)
         self._auxiliary_test_function_BuilderAndSolver(settings, "ResidualBasedBlockBuilderAndSolver")
 
+    def test_ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self):
+        settings = KM.Parameters("""
+        {
+            "name" : "block_builder_and_solver_with_lagrange_multiplier"
+        }
+        """)
+        self._auxiliary_test_function_BuilderAndSolver(settings, "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier")
+
     def _auxiliary_test_function_ExplicitBuilder(self, settings, name):
         builder_and_solver = KM.ExplicitBuilderFactory().Create(settings)
         self.assertTrue(KM.ExplicitBuilderFactory().Has(settings["name"].GetString()))
