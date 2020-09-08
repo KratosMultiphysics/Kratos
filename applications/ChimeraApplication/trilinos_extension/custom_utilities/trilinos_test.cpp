@@ -248,18 +248,18 @@ int main(int argc, char *argv[])
     /// New TEST
 
     {
-      int total_rows = 5;
+      int total_rows = 10;
 
       if(mpi_rank == 0){
           int ierr = 0;
-          int total_rows = 3;
+          int local_rows = 3;
           std::vector<int> row_indices{0,1,2,3,4};
           std::vector<int> col_indices{0,1,2,3,4};
 
+          const Epetra_Map row_map_n(-1, local_rows, 0, comm);
           // const Epetra_Map row_map_n(-1, row_indices.size(),row_indices.data(), 0, comm);
-          // const Epetra_Map col_map_n(-1, col_indices.size(),col_indices.data(), 0, comm);
-          const Epetra_Map row_map_n(-1, total_rows, 0, comm);
-          const Epetra_Map col_map_n(-1, total_rows, 0, comm);
+          const Epetra_Map col_map_n(-1, col_indices.size(),col_indices.data(), 0, comm);
+
           // Epetra_FECrsGraph n_graph(Copy, row_map_n, col_map_n, 10);
 
           // std::vector<int> test_row_indices{0,1,2,5,6};
@@ -278,16 +278,17 @@ int main(int argc, char *argv[])
 
           // Epetra_FECrsMatrix mat_b(Copy,n_graph);
           Epetra_FECrsMatrix mat_b(Copy, row_map_n, 10);
+          // Epetra_FECrsMatrix mat_b(Copy, row_map_n, col_map_n, 10);
 
           std::vector<double> values{3.3, 1.50, 5.111};
-          std::vector<int> input_col_indices{1,2,6};
-          int global_row = 5;
+          std::vector<int> input_col_indices{1,2,7};
+          int global_row = 2;
           int index = 0;
           for(const auto col : input_col_indices){
               ierr = mat_b.InsertGlobalValues(global_row, 1, &values[index], &col);
               ++index;
               if(ierr != 0)
-                  std::cout << ": Epetra failure in matrix.InsertGlobalValues. Error code: " << ierr
+                  PRINT() << ": Epetra failure in matrix.InsertGlobalValues. Error code: " << ierr
                   << std::endl;
           }
           mat_b.FillComplete();
@@ -299,14 +300,14 @@ int main(int argc, char *argv[])
 
       if(mpi_rank == 1){
           int ierr = 0;
-          int total_rows = 7;
-          std::vector<int> row_indices{5,6,7,8,9};
-          std::vector<int> col_indices{5,6,7,8,9};
+          int local_rows = 7;
+          std::vector<int> row_indices{2,5,6,7,8,9};
+          std::vector<int> col_indices{2,5,6,7,8,9};
 
+          const Epetra_Map row_map_n(-1, local_rows, 0, comm);
           // const Epetra_Map row_map_n(-1, row_indices.size(),row_indices.data(), 0, comm);
-          // const Epetra_Map col_map_n(-1, col_indices.size(),col_indices.data(), 0, comm);
-          const Epetra_Map row_map_n(-1, total_rows, 0, comm);
-          const Epetra_Map col_map_n(-1, total_rows, 0, comm);
+          const Epetra_Map col_map_n(-1, col_indices.size(),col_indices.data(), 0, comm);
+
           // Epetra_FECrsGraph n_graph(Copy, row_map_n, col_map_n, 10);
 
           // std::vector<int> test_row_indices{7,8,2,5,6};
@@ -324,17 +325,18 @@ int main(int argc, char *argv[])
           //     << std::endl;
 
           // Epetra_FECrsMatrix mat_b(Copy,n_graph);
+          // Epetra_FECrsMatrix mat_b(Copy, row_map_n, col_map_n, 10);
           Epetra_FECrsMatrix mat_b(Copy, row_map_n, 10);
 
           std::vector<double> values{-1.3, 12.50, 0.147};
-          std::vector<int> input_col_indices{2,5,6};
-          int global_row = 2;
+          std::vector<int> input_col_indices{5,6,2};
+          int global_row = 7;
           int index = 0;
           for(const auto col : input_col_indices){
               ierr = mat_b.InsertGlobalValues(global_row, 1, &values[index], &col);
               ++index;
               if(ierr != 0)
-                  std::cout << ": Epetra failure in matrix.InsertGlobalValues. Error code: " << ierr
+                  PRINT() << ": Epetra failure in matrix.InsertGlobalValues. Error code: " << ierr
                   << std::endl;
           }
           mat_b.FillComplete();
