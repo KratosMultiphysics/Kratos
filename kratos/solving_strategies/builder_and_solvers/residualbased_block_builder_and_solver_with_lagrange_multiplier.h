@@ -118,6 +118,13 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(
