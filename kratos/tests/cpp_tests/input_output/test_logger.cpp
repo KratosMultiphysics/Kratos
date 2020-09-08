@@ -441,7 +441,6 @@ namespace Kratos {
             Logger::AddOutput(p_output);
 
             const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-            int rank = r_comm.Rank();
 
             for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_ONCE_ALL_RANKS("TestInfo") << "Test info message - " << i;
@@ -449,7 +448,7 @@ namespace Kratos {
 
             std::stringstream out;
 #ifdef KRATOS_DEBUG
-            out << "Rank " << rank << ": TestInfo: Test info message - 0";
+            out << "Rank " << r_comm.Rank() << ": TestInfo: Test info message - 0";
 #else
             out << "";
 #endif
@@ -464,7 +463,6 @@ namespace Kratos {
             Logger::AddOutput(p_output);
 
             const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-            int rank = r_comm.Rank();
 
             for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_FIRST_N_ALL_RANKS("TestInfo", 4) << ".";
@@ -472,6 +470,7 @@ namespace Kratos {
 
             std::stringstream out;
 #ifdef KRATOS_DEBUG
+            int rank = r_comm.Rank();
             for(std::size_t i = 0; i < 4; i++) {
                 out << "Rank " << rank << ": TestInfo: .";
             }
