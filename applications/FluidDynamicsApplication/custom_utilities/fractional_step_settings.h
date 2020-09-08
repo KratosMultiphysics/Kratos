@@ -83,8 +83,10 @@ public:
                    const unsigned int ThisTimeOrder,
                    const bool UseSlip,
                    const bool MoveMeshFlag,
-                   const bool ReformDofSet):
-        BaseType(rModelPart,ThisDomainSize,ThisTimeOrder,UseSlip,MoveMeshFlag,ReformDofSet)
+                   const bool ReformDofSet,
+                   const double PressureGradientRelaxationFactor = 1.0):
+        BaseType(rModelPart,ThisDomainSize,ThisTimeOrder,UseSlip,MoveMeshFlag,ReformDofSet),
+        mPressureGradientRelaxationFactor(PressureGradientRelaxationFactor)
     {}
 
     /// Destructor.
@@ -102,6 +104,11 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    void double GetPressureGradientRelaxationFactor() const
+    {
+        return mPressureGradientRelaxationFactor;
+    }
 
     void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
@@ -283,6 +290,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    const double mPressureGradientRelaxationFactor;
 
     ///@}
     ///@name Private Operators

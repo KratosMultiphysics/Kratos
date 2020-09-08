@@ -409,6 +409,8 @@ protected:
 
     double mPressureTolerance;
 
+    double mPressureGradientRelaxationFactor;
+
     unsigned int mMaxVelocityIter;
 
     unsigned int mMaxPressureIter;
@@ -535,7 +537,7 @@ protected:
         for (int i_node = 0; i_node < n_nodes; ++i_node) {
             auto it_node = rModelPart.NodesBegin() + i_node;
             const double old_press = it_node->FastGetSolutionStepValue(PRESSURE);
-            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -old_press;
+            it_node->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -mPressureGradientRelaxationFactor * old_press;
         }
 
         KRATOS_INFO_IF("FractionalStepStrategy", BaseType::GetEchoLevel() > 0) << "Calculating Pressure." << std::endl;
@@ -955,6 +957,12 @@ private:
         mUseSlipConditions = rSolverConfig.UseSlipConditions();
 
         mReformDofSet = rSolverConfig.GetReformDofSet();
+
+        mPressureGradientRelaxationFactor = rSolverConfig.GetPressureGradientRelaxationFactor();
+
+        auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        // this is required since this factor is required by the elements.
+        r_process_info.SetValue(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR, mPressureGradientRelaxationFactor)
 
         BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
 
