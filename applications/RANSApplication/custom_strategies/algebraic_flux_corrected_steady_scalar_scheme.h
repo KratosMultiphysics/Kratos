@@ -118,6 +118,13 @@ public:
 
         BaseType::Initialize(rModelPart);
 
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+            rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
+            rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+            rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+        });
+
         if (mrPeriodicIdVar != Variable<int>::StaticObject()) {
             block_for_each(rModelPart.Conditions(), [&](const ModelPart::ConditionType& rCondition) {
                 if (rCondition.Is(PERIODIC)) {
@@ -169,10 +176,10 @@ public:
         auto& r_nodes = rModelPart.Nodes();
 
         block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-            rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
-            rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, 0.0);
-            rNode.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
-            rNode.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, 0.0);
+            rNode.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) = 0.0;
+            rNode.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) = 0.0;
+            rNode.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = 0.0;
+            rNode.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = 0.0;
         });
 
         auto& r_elements = rModelPart.Elements();
@@ -253,17 +260,17 @@ public:
                     q_minus += r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT);
 
                     r_node_0.SetLock();
-                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
-                    r_node_0.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
-                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
-                    r_node_0.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
+                    r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) = p_plus;
+                    r_node_0.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_plus;
+                    r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) = p_minus;
+                    r_node_0.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_minus;
                     r_node_0.UnSetLock();
 
                     r_node_1.SetLock();
-                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX, p_plus);
-                    r_node_1.SetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_plus);
-                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX, p_minus);
-                    r_node_1.SetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT, q_minus);
+                    r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX) = p_plus;
+                    r_node_1.GetValue(AFC_POSITIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_plus;
+                    r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX) = p_minus;
+                    r_node_1.GetValue(AFC_NEGATIVE_ANTI_DIFFUSIVE_FLUX_LIMIT) = q_minus;
                     r_node_1.UnSetLock();
                 }
             });
