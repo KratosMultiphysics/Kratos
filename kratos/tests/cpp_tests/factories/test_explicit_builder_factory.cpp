@@ -40,7 +40,7 @@ namespace Kratos
         using ExplicitBuilderType = ExplicitBuilder<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the factory
-        using ExplicitBuilderFactoryType = BaseFactory<ExplicitBuilderType>;
+        using ExplicitBuilderFactoryType = Factory<ExplicitBuilderType>;
 
         /**
          * Checks if the ExplicitBuilder performs correctly the Factory

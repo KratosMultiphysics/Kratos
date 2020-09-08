@@ -33,20 +33,20 @@ namespace Kratos
 ///@{
 
 /**
- * @class BaseFactoryMethods
+ * @class FactoryMethods
  * @ingroup KratosCore
  * @brief Here we define some common methods
  * @details Defines the base class factory methods
  * @author Vicente Mataix Ferrandiz
  */
-class BaseFactoryMethods
+class FactoryMethods
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of BaseFactoryMethods
-    KRATOS_CLASS_POINTER_DEFINITION(BaseFactoryMethods);
+    /// Pointer definition of FactoryMethods
+    KRATOS_CLASS_POINTER_DEFINITION(FactoryMethods);
 
     ///@}
     ///@name Life Cycle
@@ -54,11 +54,11 @@ public:
 
     /** Constructor.
      */
-    explicit BaseFactoryMethods(){}
+    explicit FactoryMethods(){}
 
     /** Destructor.
      */
-    virtual ~BaseFactoryMethods(){}
+    virtual ~FactoryMethods(){}
 
     ///@}
     ///@name Operations
@@ -82,7 +82,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "BaseFactoryMethods";
+        return "FactoryMethods";
     }
 
     /// Print information about this object.
@@ -98,7 +98,7 @@ public:
 };
 
 /**
- * @class BaseFactory
+ * @class Factory
  * @ingroup KratosCore
  * @brief Here we add the functions needed for the registration of class
  * @details Defines the base class factory
@@ -107,8 +107,8 @@ public:
  * @tparam TAuxiliarClass The auxiliar class to create the factory
  */
 template<typename TClass, typename TAuxiliarClass = TClass>
-class BaseFactory
-    : public BaseFactoryMethods
+class Factory
+    : public FactoryMethods
 {
 public:
     ///@name Type Definitions
@@ -120,8 +120,8 @@ public:
     /// The definition of the auxiliar class
     typedef TAuxiliarClass AuxiliarClassType;
 
-    /// Pointer definition of BaseFactory
-    KRATOS_CLASS_POINTER_DEFINITION(BaseFactory);
+    /// Pointer definition of Factory
+    KRATOS_CLASS_POINTER_DEFINITION(Factory);
 
     ///@}
     ///@name Life Cycle
@@ -129,11 +129,11 @@ public:
 
     /** Constructor.
      */
-    explicit BaseFactory(){}
+    explicit Factory(){}
 
     /** Destructor.
      */
-    virtual ~BaseFactory() = default;
+    virtual ~Factory() = default;
 
     ///@}
     ///@name Operators
@@ -188,7 +188,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "BaseFactory";
+        return "Factory";
     }
 
     /// Print information about this object.
@@ -220,7 +220,7 @@ public:
 /// output stream function
 template<class TClass, typename TAuxiliarClass>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const BaseFactory<TClass, TAuxiliarClass>& rThis)
+                                  const Factory<TClass, TAuxiliarClass>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

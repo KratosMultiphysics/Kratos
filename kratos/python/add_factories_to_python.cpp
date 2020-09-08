@@ -39,9 +39,9 @@ typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType
 typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
 typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
 typedef ExplicitBuilder< SpaceType, LocalSpaceType > ExplicitBuilderType;
-typedef BaseFactory< ExplicitBuilderType > ExplicitBuilderFactoryType;
+typedef Factory< ExplicitBuilderType > ExplicitBuilderFactoryType;
 typedef ExplicitSolvingStrategy< SpaceType, LocalSpaceType > ExplicitSolvingStrategyType;
-typedef BaseFactory< ExplicitSolvingStrategyType, ModelPart > ExplicitStrategyFactoryType;
+typedef Factory< ExplicitSolvingStrategyType, ModelPart > ExplicitStrategyFactoryType;
 
 void  AddFactoriesToPython(pybind11::module& m)
 {
@@ -69,14 +69,14 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE WE REGISTER SOME COMMON METHODS
-    py::class_<BaseFactoryMethods, BaseFactoryMethods::Pointer >(m, "BaseFactoryMethods")
+    py::class_<FactoryMethods, FactoryMethods::Pointer >(m, "FactoryMethods")
      .def( py::init< >() )
-     .def("Has",&BaseFactoryMethods::Has)
+     .def("Has",&FactoryMethods::Has)
     ;
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER EXPLICIT BUILDER
-    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, BaseFactoryMethods>(m, "ExplicitBuilderFactory")
+    py::class_<ExplicitBuilderFactoryType, ExplicitBuilderFactoryType::Pointer, FactoryMethods>(m, "ExplicitBuilderFactory")
      .def( py::init< >() )
      .def("Create",[](ExplicitBuilderFactoryType& rExplicitBuilderFactory, Kratos::Parameters Settings) {return rExplicitBuilderFactory.Create(Settings);})
      .def("__str__", PrintObject<ExplicitBuilderFactoryType>)
@@ -84,7 +84,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     //////////////////////////////////////////////////////////////
     //HERE THE TOOLS TO REGISTER EXPLICIT STRATEGIES
-    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, BaseFactoryMethods>(m, "ExplicitStrategyFactory")
+    py::class_<ExplicitStrategyFactoryType, ExplicitStrategyFactoryType::Pointer, FactoryMethods>(m, "ExplicitStrategyFactory")
      .def( py::init< >() )
      .def("Create",[](ExplicitStrategyFactoryType& rExplicitStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings) {return rExplicitStrategyFactory.Create(rModelPart, Settings);})
      .def("__str__", PrintObject<ExplicitStrategyFactoryType>)
