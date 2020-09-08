@@ -28,7 +28,7 @@
 #include "includes/master_slave_constraint.h"
 
 /* Factories */
-#include "factories/base_factory.h"
+#include "factories/factory.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
 

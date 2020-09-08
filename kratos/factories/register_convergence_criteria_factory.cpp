@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "factories/base_factory.h"
+#include "factories/factory.h"
 #include "spaces/ublas_space.h"
 
 // Convergence criterias

@@ -22,7 +22,7 @@
 // Utility includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "factories/base_factory.h"
+#include "factories/factory.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos

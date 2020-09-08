@@ -10,8 +10,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_FACTORY_H_INCLUDED )
-#define  KRATOS_BASE_FACTORY_H_INCLUDED
+#if !defined(KRATOS_FACTORY_H_INCLUDED )
+#define  KRATOS_FACTORY_H_INCLUDED
 
 // System includes
 
@@ -307,4 +307,4 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Conver
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BASE_FACTORY_H_INCLUDED  defined
+#endif // KRATOS_FACTORY_H_INCLUDED  defined
