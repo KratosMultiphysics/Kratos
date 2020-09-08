@@ -51,9 +51,18 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     py::class_<
         TrilinosChimeraBlockBuilderAndSolverType,
         typename TrilinosChimeraBlockBuilderAndSolverType::Pointer,
-        TrilinosBlockBuilderAndSolverType >
-    (m, "TrilinosChimeraBlockBuilderAndSolverType").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
+        TrilinosBlockBuilderAndSolverWithConstraintsType >
+    (m, "TrilinosChimeraBlockBuilderAndSolver").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
+
+    typedef TrilinosChimeraResidualBasedBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > OldTrilinosChimeraBlockBuilderAndSolverType;
+    py::class_<
+        OldTrilinosChimeraBlockBuilderAndSolverType,
+        typename OldTrilinosChimeraBlockBuilderAndSolverType::Pointer,
+        TrilinosBaseBuilderAndSolverType >
+    (m, "OldTrilinosChimeraBlockBuilderAndSolver").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
+    ;
+
 
 
 }
