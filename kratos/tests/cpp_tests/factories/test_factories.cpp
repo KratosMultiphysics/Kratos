@@ -106,6 +106,17 @@ namespace Kratos
         }
 
         /**
+         * Checks if the ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier performs correctly the Factory
+         */
+        KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierFactory, KratosCoreFastSuite)
+        {
+            LinearSolverType::Pointer p_solver = nullptr;
+            Parameters this_parameters = Parameters(R"({"name" : "block_builder_and_solver_with_lagrange_multiplier"})");
+            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverFactoryType().Create(p_solver, this_parameters);
+            KRATOS_CHECK_STRING_EQUAL(p_builder_and_solver->Info(), "ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier");
+        }
+
+        /**
          * Checks if the ExplicitBuilder performs correctly the Factory
          */
         KRATOS_TEST_CASE_IN_SUITE(ExplicitBuilderFactory, KratosCoreFastSuite)
