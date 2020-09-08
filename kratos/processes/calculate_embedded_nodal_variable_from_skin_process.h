@@ -599,7 +599,6 @@ protected:
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
             r_aux_model_part,
             p_scheme,
-            mpLinearSolver,
             p_builder_and_solver,
             calculate_reactions,
             reform_dof_at_each_iteration,
