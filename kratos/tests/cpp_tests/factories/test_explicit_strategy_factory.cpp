@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "factories/base_factory.h"
+#include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
