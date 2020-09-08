@@ -111,6 +111,8 @@ namespace Kratos
         void SetLinearSolver(LinearSolverSharedPointerType pSolver)
         {
             mpSolver = pSolver;
+            KRATOS_WATCH(mpSolver->Info());
+            KRATOS_WATCH("111");
         }
 
         void SetOriginInitialVelocities();

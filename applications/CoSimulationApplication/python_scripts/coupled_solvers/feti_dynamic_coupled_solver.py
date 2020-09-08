@@ -175,13 +175,12 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
 
     def _CreateLinearSolver(self):
-        return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
-        #linear_solver_configuration = self.settings["linear_solver_settings"]
-        #if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-        #    return linear_solver_factory.ConstructSolver(linear_solver_configuration)
-        #else:
-        #    KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
-        #    return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        else:
+            KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
+            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     @classmethod
     def _GetDefaultSettings(cls):
@@ -190,7 +189,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
             "origin_newmark_gamma" : -1.0,
             "destination_newmark_beta" : -1.0,
             "destination_newmark_gamma" : -1.0,
-            "timestep_ratio" : 1.0
+            "timestep_ratio" : 1.0,
+            "linear_solver_settings" : {}
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultSettings())
 
