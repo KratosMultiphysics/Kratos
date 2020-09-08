@@ -41,7 +41,7 @@ typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactory
 typedef ExplicitBuilder< SpaceType, LocalSpaceType > ExplicitBuilderType;
 typedef Factory< ExplicitBuilderType > ExplicitBuilderFactoryType;
 typedef ExplicitSolvingStrategy< SpaceType, LocalSpaceType > ExplicitSolvingStrategyType;
-typedef Factory< ExplicitSolvingStrategyType, ModelPart > ExplicitStrategyFactoryType;
+typedef Factory< ExplicitSolvingStrategyType > ExplicitStrategyFactoryType;
 
 void  AddFactoriesToPython(pybind11::module& m)
 {
@@ -70,7 +70,6 @@ void  AddFactoriesToPython(pybind11::module& m)
     //////////////////////////////////////////////////////////////
     //HERE WE REGISTER SOME COMMON METHODS
     py::class_<FactoryMethods, FactoryMethods::Pointer >(m, "FactoryMethods")
-     .def( py::init< >() )
      .def("Has",&FactoryMethods::Has)
     ;
 

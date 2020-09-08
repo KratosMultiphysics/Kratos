@@ -21,7 +21,6 @@
 
 // Utility includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "factories/factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
@@ -41,7 +40,7 @@ namespace Kratos
         using ExplicitSolvingStrategyType = ExplicitSolvingStrategy<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the factory
-        using ExplicitStrategyFactoryType = Factory<ExplicitSolvingStrategyType, ModelPart>;
+        using ExplicitStrategyFactoryType = Factory<ExplicitSolvingStrategyType>;
 
         /// The definition of the explicit builder
         using ExplicitBuilderType = ExplicitBuilder<SparseSpaceType,LocalSpaceType>;
