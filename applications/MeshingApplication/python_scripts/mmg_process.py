@@ -156,7 +156,6 @@ class MmgProcess(KratosMultiphysics.Process):
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
             "remesh_at_finalize"               : true,
-            "remesh_post_process"              : true,
             "output_final_mesh"                : true,
             "sub_model_part_names_to_remove"   : [],
             "output_mesh_file_name"            : "final_refined_mesh",
