@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "factories/base_factory.h"
+#include "factories/factory.h"
 #include "includes/kratos_components.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
