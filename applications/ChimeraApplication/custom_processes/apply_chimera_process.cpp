@@ -75,14 +75,12 @@ void ApplyChimera<TDim>::SetReformulateEveryStep(bool Reformulate)
 template <int TDim>
 void ApplyChimera<TDim>::ExecuteInitializeSolutionStep()
 {
-    KRATOS_TRY;
     VariableUtils().SetFlag(ACTIVE, true, mrMainModelPart.Elements());
     // Actual execution of the functionality of this class
     if (mReformulateEveryStep || !mIsFormulated) {
         DoChimeraLoop();
         mIsFormulated = true;
     }
-    KRATOS_CATCH("");
 }
 
 template <int TDim>
@@ -164,21 +162,22 @@ void ApplyChimera<TDim>::DoChimeraLoop()
             ModelPart& r_background_model_part = current_model.GetModelPart(
                 background_patch_param["model_part_name"].GetString());
             // compute the outerboundary of the background to save
-            if (!r_background_model_part.HasSubModelPart(mBoundaryName)) {
-                auto& r_boundary_model_part =
-                    r_background_model_part.CreateSubModelPart(mBoundaryName);
-                BuiltinTimer extraction_time;
-                if (i_current_level == 0)
-                    ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(
-                        r_background_model_part, r_boundary_model_part);
-                else
-                    ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part, ChimeraHoleCuttingUtility::SideToExtract::INSIDE);
-                KRATOS_INFO_IF(
-                    "ApplyChimera : Extraction of background boundary took "
-                    "   : ",
-                    mEchoLevel > 1)
-                    << extraction_time.ElapsedSeconds() << " seconds" << std::endl;
-            }
+            if (i_current_level == 0)
+                if (!r_background_model_part.HasSubModelPart(mBoundaryName)) {
+                    auto& r_boundary_model_part =
+                        r_background_model_part.CreateSubModelPart(mBoundaryName);
+                    BuiltinTimer extraction_time;
+                    if (i_current_level == 0)
+                        ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(
+                            r_background_model_part, r_boundary_model_part);
+                    else
+                        ChimeraHoleCuttingUtility().ExtractBoundaryMesh<TDim>(r_background_model_part, r_boundary_model_part, ChimeraHoleCuttingUtility::SideToExtract::INSIDE);
+                    KRATOS_INFO_IF(
+                        "ApplyChimera : Extraction of background boundary took "
+                        "   : ",
+                        mEchoLevel > 1)
+                        << extraction_time.ElapsedSeconds() << " seconds" << std::endl;
+                }
 
 
             for (int i_slave_level = i_current_level + 1;
@@ -213,7 +212,7 @@ void ApplyChimera<TDim>::DoChimeraLoop()
 
     KRATOS_INFO_IF(
         "ApplyChimera : Chimera Initialization took               : ", mEchoLevel > 0)
-        << do_chimera_loop_time.ElapsedSeconds() << " seconds" << std::endl;
+        << r_comm.Max( do_chimera_loop_time.ElapsedSeconds(), 0 ) << " seconds" << std::endl;
     KRATOS_INFO_IF(
         "ApplyChimera : Number of constraints for Chimera         : ", mEchoLevel > 0)
         << r_comm.SumAll( mrMainModelPart.NumberOfMasterSlaveConstraints() )<< std::endl;
@@ -299,7 +298,7 @@ void ApplyChimera<TDim>::FormulateChimera(const Parameters BackgroundParam,
         BuiltinTimer par_fill_comm;
         ParallelFillCommunicator(mrMainModelPart).Execute();
         double par_fill_time = par_fill_comm.ElapsedSeconds();
-        KRATOS_INFO_IF("SynchronizeNodes : Time taken for parallel fill comm     : ", mEchoLevel > 1) << r_comm.Max(par_fill_time, 0) << std::endl;
+        KRATOS_INFO_IF("FormulateChimera : Time taken for parallel fill comm     : ", mEchoLevel > 1) << r_comm.Max(par_fill_time, 0) << std::endl;
     }
 #endif
 }
@@ -347,6 +346,8 @@ void ApplyChimera<TDim>::AddMasterSlaveRelation(
         rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable,
                                 rSlaveNode, rSlaveVariable, Weight, Constant);
     p_new_constraint->Set(TO_ERASE);
+    if(rSlaveNode.SolutionStepsDataHas(PARTITION_INDEX))
+        p_new_constraint->SetValue(PARTITION_INDEX, rSlaveNode.GetSolutionStepValue(PARTITION_INDEX) );
     mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
     rMasterSlaveContainer.push_back(p_new_constraint);
 }
@@ -444,39 +445,14 @@ void ApplyChimera<TDim>::FormulateConstraints(
     const DataCommunicator &r_comm = mrMainModelPart.GetCommunicator().GetDataCommunicator();
     int mpi_rank = r_comm.Rank();
     int mpi_size = r_comm.Size();
-    const bool is_comm_distributed = r_comm.IsDistributed();
     std::vector<NodesContainerType> SendNodes(mpi_size);
+    const bool is_comm_distributed = r_comm.IsDistributed();
     Model &current_model = mrMainModelPart.GetModel();
     auto& gathered_modelpart = is_comm_distributed ? current_model.CreateModelPart("GatheredBoundary") : rBoundaryModelPart;
     if(is_comm_distributed)
         GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rBoundaryModelPart, gathered_modelpart);
     const int n_boundary_nodes = static_cast<int>(gathered_modelpart.Nodes().size());
-
-    // Here add non local nodes to the main modelpart and call par fill comm after this function calls.
-    #ifdef KRATOS_USING_MPI
-        if(r_comm.IsDistributed())
-            for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
-                ModelPart::NodesContainerType::ptr_iterator i_boundary_node =
-                    gathered_modelpart.Nodes().ptr_begin() + i_bn;
-                NodeType& r_boundary_node = *(*i_boundary_node);
-                const int node_p_index = r_boundary_node.GetSolutionStepValue(PARTITION_INDEX);
-                auto existing_node_it = mrMainModelPart.Nodes().find(r_boundary_node.Id());
-                if( existing_node_it == mrMainModelPart.NodesEnd()) //node did not exist
-                {
-                    if(node_p_index != mpi_rank){
-                        auto new_node = mrMainModelPart.CreateNewNode(r_boundary_node.Id(), r_boundary_node);
-                        new_node->FastGetSolutionStepValue(PARTITION_INDEX) = r_boundary_node.FastGetSolutionStepValue(PARTITION_INDEX);
-                        new_node->AddDof(VELOCITY_X);
-                        new_node->AddDof(VELOCITY_Y);
-                        new_node->AddDof(VELOCITY_Z);
-                        new_node->AddDof(PRESSURE);
-                        mRemoteNodes.push_back(new_node->Id());
-                    }
-                }
-            }
-    #endif
-
-    WriteModelPart(gathered_modelpart);
+    WriteModelPart(gathered_modelpart, rBoundaryModelPart.FullName()+std::to_string(mpi_rank));
 
     std::vector<int> vector_of_non_found_nodes;
     std::vector<int> constraints_id_vector;
@@ -485,6 +461,7 @@ void ApplyChimera<TDim>::FormulateConstraints(
 
     IndexType found_counter = 0;
     IndexType removed_counter = 0;
+    IndexType sync_counter = 0;
 
     BuiltinTimer loop_over_b_nodes;
 #pragma omp parallel for shared(constraints_id_vector,               \
@@ -495,8 +472,7 @@ void ApplyChimera<TDim>::FormulateConstraints(
         ModelPart::NodesContainerType::iterator i_boundary_node =
             gathered_modelpart.NodesBegin() + i_bn;
         NodeType& r_boundary_node = *(*(i_boundary_node.base()));
-        auto& actual_node = mrMainModelPart.Nodes()[r_boundary_node.Id()];
-        // const int node_p_index = is_comm_distributed ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX) : 0;
+        const int node_p_index = is_comm_distributed ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX) : 0;
         unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
         Element::Pointer r_host_element;
         Vector weights;
@@ -507,23 +483,30 @@ void ApplyChimera<TDim>::FormulateConstraints(
             auto& ms_pressure_container =
                 rPressureMasterSlaveContainerVector[omp_get_thread_num()];
             removed_counter += RemoveExistingConstraintsForNode(r_boundary_node);
-            actual_node.Set(SLAVE, true);
-            MakeConstraints(actual_node, r_host_element, weights,
+            r_boundary_node.Set(SLAVE, true);
+            MakeConstraints(r_boundary_node, r_host_element, weights,
                             ms_velocity_container, ms_pressure_container,
                             constraints_id_vector, start_constraint_id);
             found_counter += 1;
+            // KRATOS_INFO_ALL_RANKS("Slave Node ")<<r_boundary_node.Id()<<"  Host Element : "<<r_host_element->Id()<<std::endl;
+
+            if(node_p_index != mpi_rank){ 
+                ++sync_counter;
+                auto p_geom = r_host_element->GetGeometry();
+                for(auto p_node=p_geom.ptr_begin(); p_node != p_geom.ptr_end(); ++p_node)
+                    SendNodes[node_p_index].push_back(*p_node);
+            }
         }
-        else
-        {
-            actual_node.Set(SLAVE, false);
-        }
-        
     }
 
     if (is_comm_distributed)
     {
+        SynchronizeNodes(mrMainModelPart, SendNodes);
+        SynchronizeConstraints(rVelocityMasterSlaveContainerVector);
+        SynchronizeConstraints(rPressureMasterSlaveContainerVector);
         current_model.DeleteModelPart("GatheredBoundary");
     }
+
 
     double loop_time = loop_over_b_nodes.ElapsedSeconds();
     KRATOS_INFO_IF(
@@ -680,7 +663,7 @@ void ApplyChimera<TDim>::MakeConstraints(
 
 
 template <int TDim>
-void ApplyChimera<TDim>::WriteModelPart(ModelPart &rModelPart)
+void ApplyChimera<TDim>::WriteModelPart(ModelPart &rModelPart, std::string Name)
 {
     Parameters vtk_parameters(R"(
             {
@@ -690,7 +673,7 @@ void ApplyChimera<TDim>::WriteModelPart(ModelPart &rModelPart)
                 "output_sub_model_parts"             : false,
                 "folder_name"                        : "test_vtk_output",
                 "save_output_files_in_folder"        : false,
-                "nodal_solution_step_data_variables" : [],
+                "nodal_solution_step_data_variables" : [""],
                 "nodal_data_value_variables"         : [],
                 "element_flags"                      : [],
                 "nodal_flags"                        : [],
@@ -701,8 +684,135 @@ void ApplyChimera<TDim>::WriteModelPart(ModelPart &rModelPart)
             )");
 
     VtkOutput vtk_output(rModelPart, vtk_parameters);
-    vtk_output.PrintOutput();
+    vtk_output.PrintOutput(Name);
 }
+
+
+
+template <int TDim>
+void ApplyChimera<TDim>::SynchronizeConstraints(MasterSlaveContainerVectorType& rConstraintsContainterVector)
+{
+#ifdef KRATOS_USING_MPI
+    ProcessInfo &r_current_process_info = mrMainModelPart.GetProcessInfo();
+    const DataCommunicator &r_comm = mrMainModelPart.GetCommunicator().GetDataCommunicator();
+    auto& r_nodes = mrMainModelPart.Nodes();
+    int mpi_size = r_comm.Size();
+    int mpi_rank = r_comm.Rank();
+    MasterSlaveContainerVectorType send_constraints(mpi_size);
+    MasterSlaveContainerVectorType recv_constraints(mpi_size);
+    for(auto& constraints_container : rConstraintsContainterVector){
+        for(auto p_constraint=constraints_container.ptr_begin(); p_constraint!=constraints_container.ptr_end(); ++p_constraint){
+            int const_rank = (*p_constraint)->GetValue(PARTITION_INDEX);
+            if(const_rank != mpi_rank){
+                send_constraints[const_rank].push_back(*p_constraint);
+            }
+        }
+    }
+    mrMainModelPart.GetCommunicator().TransferObjects(send_constraints, recv_constraints);
+
+    for(auto& constraints_container : send_constraints){
+        for(auto p_constraint=constraints_container.ptr_begin(); p_constraint!=constraints_container.ptr_end(); ++p_constraint){
+            rConstraintsContainterVector[0].erase((*p_constraint)->Id()); // IMPORTANT: This means no hybrid parallism
+        }
+    }
+    typedef Element::DofsVectorType DofsVectorType;
+
+    auto& constraints_container = rConstraintsContainterVector[0]; // This does not matter for OMP and MPI hybrid parallism
+    for(auto& recv_constraints_container : recv_constraints)
+    {
+        for(auto p_constraint=recv_constraints_container.ptr_begin(); p_constraint!=recv_constraints_container.ptr_end(); ++p_constraint){
+            DofsVectorType slave_dof_list, master_dof_list, new_master_dof_list, new_slave_dof_list;
+            (*p_constraint)->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
+            for(auto master_dof : master_dof_list){
+                const int master_node_id = master_dof->Id();
+                auto it_master_node = r_nodes.find(master_node_id);
+                if( it_master_node != r_nodes.end()){
+                    if((*it_master_node).GetSolutionStepValue(PARTITION_INDEX) != mpi_rank){
+                        auto& r_master_variable = master_dof->GetVariable();
+                        auto p_new_master = (*it_master_node).pGetDof(r_master_variable);
+                        new_master_dof_list.push_back(p_new_master);
+                    }else{
+                        new_master_dof_list.push_back(master_dof);
+                    }
+                }
+            }
+            (*p_constraint)->SetMasterDofsVector(new_master_dof_list);
+
+            for(auto slave_dof : slave_dof_list){
+                const int slave_node_id = slave_dof->Id();
+                auto it_slave_node = r_nodes.find(slave_node_id);
+                if( it_slave_node != r_nodes.end()){
+                    if((*it_slave_node).GetSolutionStepValue(PARTITION_INDEX) != mpi_rank){
+                        KRATOS_ERROR<<"A slave which do not belong to this partition "<<mpi_rank<<" is received !"<<std::endl;
+                    }else{
+                        auto& r_slave_variable = slave_dof->GetVariable();
+                        auto p_new_slave = (*it_slave_node).pGetDof(r_slave_variable);
+                        (*it_slave_node).Set(SLAVE);
+                        new_slave_dof_list.push_back(p_new_slave);
+                    }
+                } else {
+                    KRATOS_ERROR<<"A slave which do not belong to this partition "<<mpi_rank<<" is received !"<<std::endl;
+                }
+            }
+            (*p_constraint)->SetSlaveDofsVector(new_slave_dof_list);
+
+
+            constraints_container.push_back(*p_constraint);
+        }
+    }
+#endif
+}
+
+
+template <int TDim>
+void ApplyChimera<TDim>::SynchronizeNodes(ModelPart& rModelpart, std::vector<NodesContainerType>& rSendNodes)
+{
+#ifdef KRATOS_USING_MPI
+    const DataCommunicator &r_comm = rModelpart.GetCommunicator().GetDataCommunicator();
+    const int mpi_size = r_comm.Size();
+    const int mpi_rank = r_comm.Rank();
+    auto& r_nodes = mrMainModelPart.Nodes();
+    std::vector<NodesContainerType> RecvNodes(mpi_size);
+    BuiltinTimer send_recv_nodes;
+    rModelpart.GetCommunicator().TransferObjects(rSendNodes, RecvNodes);
+    double time_send_recv = send_recv_nodes.ElapsedSeconds();
+    KRATOS_INFO_IF("SynchronizeNodes : Time taken to send recv nodes         : ", mEchoLevel > 1) << r_comm.Max(time_send_recv, 0) << std::endl;
+
+    BuiltinTimer add_nodes;
+    for (unsigned int i = 0; i < RecvNodes.size(); i++)
+    {
+        for (NodesContainerType::iterator it = RecvNodes[i].begin();
+              it != RecvNodes[i].end(); ++it){
+                auto p_node = *it.base();
+                auto it_node = r_nodes.find(p_node->Id());
+                if( it_node == r_nodes.end()){
+                    rModelpart.Nodes().push_back(p_node);
+                }
+              }
+    }
+    double time_add_nodes = add_nodes.ElapsedSeconds();
+    KRATOS_INFO_IF("SynchronizeNodes : Time taken to add nodes               : ", mEchoLevel > 1) << r_comm.Max(time_add_nodes, 0)  << std::endl;
+
+    BuiltinTimer unique_nodes;
+    rModelpart.Nodes().Unique();
+    double time_unique_nodes = add_nodes.ElapsedSeconds();
+    KRATOS_INFO_IF("SynchronizeNodes : Time taken to unique nodes            : ", mEchoLevel > 1) << r_comm.Max(time_unique_nodes, 0) << std::endl;
+
+    int temp = rModelpart.Nodes().size();
+    KRATOS_ERROR_IF(temp != int(rModelpart.Nodes().size()))
+        << "the rModelpart has repeated nodes";
+    rSendNodes.clear();
+    RecvNodes.clear();
+
+
+    //BuiltinTimer par_fill_comm;
+    //ParallelFillCommunicator(rModelpart).Execute();
+    //double par_fill_time = par_fill_comm.ElapsedSeconds();
+    //KRATOS_INFO_IF("SynchronizeNodes : Time taken for parallel fill comm     : ", mEchoLevel > 1) << r_comm.Max(par_fill_time, 0) << std::endl;
+#endif
+}
+
+
 
 
 // Template declarations

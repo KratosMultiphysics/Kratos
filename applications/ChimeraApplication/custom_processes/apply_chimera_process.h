@@ -389,7 +389,11 @@ private:
                          const IndexType StartConstraintId);
 
 
-    void WriteModelPart(ModelPart& rModelPart);
+    void SynchronizeNodes(ModelPart& rModelpart, std::vector<NodesContainerType>& rSendNodes);
+
+    void SynchronizeConstraints(MasterSlaveContainerVectorType& rConstraintsContainterVector);
+
+    void WriteModelPart(ModelPart& rModelPart, std::string name_of_file);
     ///@}
     ///@name Private  Access
     ///@{
