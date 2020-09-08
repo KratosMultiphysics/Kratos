@@ -100,5 +100,5 @@ class TrilinosChimeraNavierStokesSolverMonolithic(TrilinosNavierStokesSolverMono
             raise NotImplementedError
         else:
             # TODO: This should be trilinos version
-            builder_and_solver =  TrilinosChimera.TrilinosChimeraBlockBuilderAndSolverType(epetra_communicator,guess_row_size,trilinos_linear_solver)
+            builder_and_solver =  TrilinosChimera.TrilinosChimeraBlockBuilderAndSolver(epetra_communicator,guess_row_size,trilinos_linear_solver)
             return builder_and_solver
