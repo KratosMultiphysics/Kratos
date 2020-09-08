@@ -39,7 +39,7 @@ namespace Kratos
         using ExplicitSolvingStrategyType = ExplicitSolvingStrategy<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the factory
-        using ExplicitStrategyFactoryType = BaseFactory<ExplicitSolvingStrategyType, ModelPart>;
+        using ExplicitStrategyFactoryType = Factory<ExplicitSolvingStrategyType, ModelPart>;
 
         /**
          * Checks if the ExplicitSolvingStrategyRungeKutta4 performs correctly the Factory

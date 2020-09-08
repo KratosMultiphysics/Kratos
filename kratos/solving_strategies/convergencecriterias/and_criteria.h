@@ -84,7 +84,7 @@ public:
 
     typedef typename BaseType::Pointer ConvergenceCriteriaPointerType;
 
-    typedef BaseFactory< BaseType > ConvergenceCriteriaFactoryType;
+    typedef Factory< BaseType > ConvergenceCriteriaFactoryType;
 
     ///@}
     ///@name Life Cycle

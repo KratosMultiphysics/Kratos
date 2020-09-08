@@ -39,7 +39,7 @@ namespace Kratos
         using SchemeType = Scheme<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the factory
-        using SchemeFactoryType = BaseFactory<SchemeType>;
+        using SchemeFactoryType = Factory<SchemeType>;
 
         /**
          * Checks if the ResidualBasedIncrementalUpdateStaticScheme performs correctly the Factory

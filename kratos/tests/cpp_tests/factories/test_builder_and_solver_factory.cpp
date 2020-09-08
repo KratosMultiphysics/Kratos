@@ -40,7 +40,7 @@ namespace Kratos
         using BuilderAndSolverType = BuilderAndSolver<SparseSpaceType,LocalSpaceType, LinearSolverType>;
 
         /// The definition of the factory
-        using BuilderAndSolverFactoryType = BaseFactory<BuilderAndSolverType, LinearSolverType>;
+        using BuilderAndSolverFactoryType = Factory<BuilderAndSolverType, LinearSolverType>;
 
         /**
          * Checks if the ResidualBasedEliminationBuilderAndSolver performs correctly the Factory

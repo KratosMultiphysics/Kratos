@@ -106,10 +106,10 @@ class ResidualBasedNewtonRaphsonStrategy
     typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
 
     /// Convergence criteria factory
-    typedef BaseFactory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+    typedef Factory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
 
     /// Scheme factory
-    typedef BaseFactory<TSchemeType> SchemeFactoryType;
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle

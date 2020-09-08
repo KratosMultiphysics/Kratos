@@ -102,7 +102,7 @@ public:
     typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
 
     /// Scheme factory
-    typedef BaseFactory<TSchemeType> SchemeFactoryType;
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle

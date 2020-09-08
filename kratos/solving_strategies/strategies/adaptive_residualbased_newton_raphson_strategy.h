@@ -128,13 +128,13 @@ public:
     typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
 
     /// Convergence criteria factory
-    typedef BaseFactory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+    typedef Factory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
 
     /// Scheme factory
-    typedef BaseFactory<TSchemeType> SchemeFactoryType;
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     /// Builder and solver factory
-    typedef BaseFactory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
+    typedef Factory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
 
     /*@} */
     /**@name Life Cycle

@@ -39,7 +39,7 @@ namespace Kratos
         using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the custom class
-        using ConvergenceCriteriaFactoryType = BaseFactory<ConvergenceCriteriaType>;
+        using ConvergenceCriteriaFactoryType = Factory<ConvergenceCriteriaType>;
 
         /**
          * Checks if the DisplacementCriteria performs correctly the Factory
