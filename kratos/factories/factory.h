@@ -10,8 +10,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_FACTORY_H_INCLUDED )
-#define  KRATOS_BASE_FACTORY_H_INCLUDED
+#if !defined(KRATOS_FACTORY_H_INCLUDED )
+#define  KRATOS_FACTORY_H_INCLUDED
 
 // System includes
 
@@ -104,9 +104,8 @@ public:
  * @details Defines the base class factory
  * @author Vicente Mataix Ferrandiz
  * @tparam TClass The class to create the factory
- * @tparam TAuxiliarClass The auxiliar class to create the factory
  */
-template<typename TClass, typename TAuxiliarClass = TClass>
+template<typename TClass>
 class Factory
     : public FactoryMethods
 {
@@ -116,9 +115,6 @@ public:
 
     /// The definition of the class
     typedef TClass ClassType;
-
-    /// The definition of the auxiliar class
-    typedef TAuxiliarClass AuxiliarClassType;
 
     /// Pointer definition of Factory
     KRATOS_CLASS_POINTER_DEFINITION(Factory);
@@ -218,9 +214,9 @@ public:
 ///@{
 
 /// output stream function
-template<class TClass, typename TAuxiliarClass>
+template<class TClass>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Factory<TClass, TAuxiliarClass>& rThis)
+                                  const Factory<TClass>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -233,4 +229,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BASE_FACTORY_H_INCLUDED  defined
+#endif // KRATOS_FACTORY_H_INCLUDED  defined
