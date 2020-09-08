@@ -21,7 +21,7 @@
 #include "python/add_factories_to_python.h"
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
-#include "factories/base_factory.h"
+#include "factories/register_factories.h"
 
 namespace Kratos
 {
