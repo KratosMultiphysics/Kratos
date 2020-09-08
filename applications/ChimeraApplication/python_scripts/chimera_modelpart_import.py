@@ -93,7 +93,7 @@ def AddModelPart(model_part_1,
             raise Exception("input is expected to be provided as a Kratos ModelPart object")
 
     comm = model_part_1.GetCommunicator().GetDataCommunicator()
-    num_nodes_self = model_part_1.NumberOfNodes()
+    num_nodes_self = model_part_1.GetCommunicator().LocalMesh().NumberOfNodes()
     total_num_nodes_self = comm.SumAll(num_nodes_self)
     num_elements_self = model_part_1.NumberOfElements()
     total_num_elements_self = comm.SumAll(num_elements_self)
