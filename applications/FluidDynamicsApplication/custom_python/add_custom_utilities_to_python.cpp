@@ -124,7 +124,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_< FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>,BaseSettingsType>
         (m,"FractionalStepSettings")
         .def(py::init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
-        .def(py::init<ModelPart&,unsigned int,unsigned int,bool,bool,bool, double>())
         .def("SetStrategy",ThisSetStrategyOverload)
         .def("SetTurbulenceModel",SetTurbModel_Build)
         .def("SetTurbulenceModel",SetTurbModel_Pass)

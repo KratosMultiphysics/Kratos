@@ -27,6 +27,7 @@
 
 // Application includes
 #include "custom_utilities/solver_settings.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
 
@@ -958,11 +959,15 @@ private:
 
         mReformDofSet = rSolverConfig.GetReformDofSet();
 
-        mPressureGradientRelaxationFactor = rSolverConfig.GetPressureGradientRelaxationFactor();
-
-        auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        // this is required since this factor is required by the elements.
-        r_process_info.SetValue(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR, mPressureGradientRelaxationFactor)
+        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        if (r_process_info.Has(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)) {
+            mPressureGradientRelaxationFactor = r_process_info[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
+            KRATOS_INFO(this->Info()) << "Using fractional step strategy with "
+                                         "pressure gradient relaxation = "
+                                      << mPressureGradientRelaxationFactor << ".";
+        } else {
+            mPressureGradientRelaxationFactor = 1.0;
+        }
 
         BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
 
