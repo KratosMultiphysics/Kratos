@@ -103,7 +103,6 @@ class ConvectionDiffusionSolver(object):
             self.strategy = ResidualBasedLinearStrategy(
                 self.model_part,
                 scheme,
-                self.linear_solver,
                 builder_and_solver,
                 self.calculate_reactions,
                 self.reform_dofs_at_each_step,
