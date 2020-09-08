@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "factories/factory.h"
+#include "factories/register_factories.h"
 #include "spaces/ublas_space.h"
 
 // Strategies

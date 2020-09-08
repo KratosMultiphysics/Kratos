@@ -27,7 +27,7 @@
 
 /* Factories */
 #include "factories/linear_solver_factory.h"
-#include "factories/factory.h"
+#include "factories/register_factories.h"
 
 namespace Kratos
 {

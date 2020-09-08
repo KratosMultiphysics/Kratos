@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "trilinos_space.h"
-#include "factories/factory.h"
+#include "factories/register_factories.h"
 
 namespace Kratos
 {
