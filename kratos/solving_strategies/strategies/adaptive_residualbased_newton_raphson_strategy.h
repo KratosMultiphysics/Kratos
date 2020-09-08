@@ -134,7 +134,7 @@ public:
     typedef Factory<TSchemeType> SchemeFactoryType;
 
     /// Builder and solver factory
-    typedef Factory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
+    typedef Factory< TBuilderAndSolverType> BuilderAndSolverFactoryType;
 
     /*@} */
     /**@name Life Cycle

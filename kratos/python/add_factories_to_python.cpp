@@ -43,13 +43,13 @@ typedef Factory< ConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
 typedef Scheme< SpaceType, LocalSpaceType > SchemeType;
 typedef Factory< SchemeType > SchemeFactoryType;
 typedef BuilderAndSolver< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-typedef Factory< BuilderAndSolverType, LinearSolverType > BuilderAndSolverFactoryType;
+typedef Factory< BuilderAndSolverType > BuilderAndSolverFactoryType;
 typedef ExplicitBuilder< SpaceType, LocalSpaceType > ExplicitBuilderType;
 typedef Factory< ExplicitBuilderType > ExplicitBuilderFactoryType;
 typedef SolvingStrategy< SpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
-typedef Factory< SolvingStrategyType, ModelPart > StrategyFactoryType;
+typedef Factory< SolvingStrategyType > StrategyFactoryType;
 typedef ExplicitSolvingStrategy< SpaceType, LocalSpaceType > ExplicitSolvingStrategyType;
-typedef Factory< ExplicitSolvingStrategyType, ModelPart > ExplicitStrategyFactoryType;
+typedef Factory< ExplicitSolvingStrategyType> ExplicitStrategyFactoryType;
 
 void  AddFactoriesToPython(pybind11::module& m)
 {

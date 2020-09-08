@@ -110,7 +110,7 @@ public:
  * @tparam TClass The class to create the factory
  * @tparam TAuxiliarClass The auxiliar class to create the factory
  */
-template<typename TClass, typename TAuxiliarClass = TClass>
+template<typename TClass>
 class Factory
     : public FactoryMethods
 {
@@ -120,9 +120,6 @@ public:
 
     /// The definition of the class
     typedef TClass ClassType;
-
-    /// The definition of the auxiliar class
-    typedef TAuxiliarClass AuxiliarClassType;
 
     /// Pointer definition of Factory
     KRATOS_CLASS_POINTER_DEFINITION(Factory);
@@ -222,9 +219,9 @@ public:
 ///@{
 
 /// output stream function
-template<class TClass, typename TAuxiliarClass>
+template<class TClass>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Factory<TClass, TAuxiliarClass>& rThis)
+                                  const Factory<TClass>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

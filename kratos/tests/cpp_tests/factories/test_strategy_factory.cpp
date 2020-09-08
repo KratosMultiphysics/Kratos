@@ -40,7 +40,7 @@ namespace Kratos
         using StrategyType = SolvingStrategy<SparseSpaceType,LocalSpaceType, LinearSolverType>;
 
         /// The definition of the factory
-        using StrategyFactoryType = Factory<StrategyType, ModelPart>;
+        using StrategyFactoryType = Factory<StrategyType>;
 
         /**
          * Checks if the ResidualBasedLinearStrategy performs correctly the Factory
