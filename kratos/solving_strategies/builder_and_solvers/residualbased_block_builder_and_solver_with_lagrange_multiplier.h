@@ -85,6 +85,9 @@ public:
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>   BaseBuilderAndSolverType;
     typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// The definition of the current class
+    typedef ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     // The size_t types
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
@@ -156,6 +159,19 @@ public:
      */
     ~ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier() override
     {
+    }
+
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseBuilderAndSolverType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
     }
 
     /**
