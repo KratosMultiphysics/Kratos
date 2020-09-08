@@ -58,7 +58,7 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
          it != RecvNodes[i].end(); ++it){
       // if (rGatheredModelPart.Nodes().find(it->Id()) ==
       //     rGatheredModelPart.Nodes().end())
-      (*it).FastGetSolutionStepValue(PARTITION_INDEX) = i;
+      // (*it).FastGetSolutionStepValue(PARTITION_INDEX) = i;
       rGatheredModelPart.Nodes().push_back(*it.base());
     }
   }
@@ -245,7 +245,7 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
         &rModelPartToGather.GetNodalSolutionStepVariablesList(),
         r_root_mp.GetCommunicator().GetDataCommunicator());
     rGatheredModelPart.SetCommunicator(p_new_comm);
-    // ParallelFillCommunicator(rGatheredModelPart).Execute();
+    ParallelFillCommunicator(rGatheredModelPart).Execute();
   }
 #endif
 }
