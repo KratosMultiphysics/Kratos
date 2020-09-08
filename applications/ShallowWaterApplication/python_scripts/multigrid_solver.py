@@ -26,7 +26,7 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = "EulerPrimVarElement"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
 
         # Initialize the multigrid process. It creates the model part

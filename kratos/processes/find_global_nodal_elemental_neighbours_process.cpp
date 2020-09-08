@@ -78,13 +78,13 @@ namespace Kratos
                 if(color >= 0)
                 {
                     //recev the global neighbours as computed on color
-                    recv_map[color] = SendRecv(non_local_map[color], color, color );
+                    recv_map[color] = mrComm.SendRecv(non_local_map[color], color, color );
 
-                    for(auto& item : recv_map[color])
+                    for(auto& r_item : recv_map[color])
                     {
-                        auto& recv_node = mr_model_part.Nodes()[item.first]; 
+                        auto& recv_node = mr_model_part.Nodes()[r_item.first]; 
                         auto& neighbours = recv_node.GetValue(NEIGHBOUR_ELEMENTS);
-                        for(auto& gp : item.second.GetContainer())
+                        for(auto& gp : r_item.second.GetContainer())
                             neighbours.push_back(gp);
                     }
                 }
@@ -95,22 +95,22 @@ namespace Kratos
             {
                 if(color >= 0)
                 {
-                    for(auto& item : recv_map[color])
+                    for(auto& r_item : recv_map[color])
                     {
-                        //item.first contains the id of the node
-                        //item.second contains the list of neighbours
-                        auto& recv_node = mr_model_part.Nodes()[item.first]; 
-                        item.second = recv_node.GetValue(NEIGHBOUR_ELEMENTS);
+                        //r_item.first contains the id of the node
+                        //r_item.second contains the list of neighbours
+                        auto& recv_node = mr_model_part.Nodes()[r_item.first]; 
+                        r_item.second = recv_node.GetValue(NEIGHBOUR_ELEMENTS);
                     }
 
                     //obtain the final list of neighbours for nodes owned on color
-                    auto final_gp_map = SendRecv(recv_map[color], color, color );
+                    auto final_gp_map = mrComm.SendRecv(recv_map[color], color, color );
 
                     //update the local database
-                    for(auto& item : final_gp_map)
+                    for(auto& r_item : final_gp_map)
                     {
-                        auto& recv_node = mr_model_part.Nodes()[item.first]; 
-                        recv_node.GetValue(NEIGHBOUR_ELEMENTS) = item.second;
+                        auto& recv_node = mr_model_part.Nodes()[r_item.first]; 
+                        recv_node.GetValue(NEIGHBOUR_ELEMENTS) = r_item.second;
                     }
                 }
             }

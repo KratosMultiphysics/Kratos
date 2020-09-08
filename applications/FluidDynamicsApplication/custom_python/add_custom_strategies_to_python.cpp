@@ -30,12 +30,12 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/fs_strategy.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_simple_steady_scheme.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
-#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
-#include "custom_strategies/strategies/gear_scheme.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
+
+//schemes
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
@@ -69,15 +69,18 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<LinearSolverType::Pointer, const Variable<int> &>());
 
     py::class_<
-        FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
-        typename FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
-        BaseSolvingStrategyType>(m, "FSStrategy")
-    .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, bool, double, double, int, int, unsigned int, unsigned int, bool>())
+        FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+        typename FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m, "FractionalStepStrategy")
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool>())
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool>())
     .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, const Kratos::Variable<int> &>())
-    .def("CalculateReactions", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::CalculateReactions)
-    .def("AddIterationStep", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::AddIterationStep)
-    .def("ClearExtraIterationSteps", &FSStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
+    .def(py::init<ModelPart &, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType> &, bool, bool, const Kratos::Variable<int> &>())
+    .def("CalculateReactions", [](FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>& self) {
+        KRATOS_WARNING("FractionalStepStrategy") << "\'CalculateReactions()\' exposure is deprecated. Use the constructor with the \'CalculateReactionsFlag\' instead." << std::endl;
+        self.CalculateReactions();})
+    .def("AddIterationStep", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::AddIterationStep)
+    .def("ClearExtraIterationSteps", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
 
     py::class_<
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>,
@@ -103,28 +106,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     ;
 
     py::class_<
-        ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>,
-        typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>::Pointer,
-        BaseSchemeType>(m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulent")
-    .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                  // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
-    ;
-
-    py::class_<
-        ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>,
-        typename ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>::Pointer,
-        ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>>
-        (m, "ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction")
-    .def(py::init<unsigned int, Process::Pointer>())
-    .def(py::init<unsigned int>())                  // constructor without a turbulence model
-    .def(py::init<unsigned int, Kratos::Flags &>()) // constructor with a non-default flag for slip conditions
-    ;
-
-    py::class_<
-        GearScheme<SparseSpaceType, LocalSpaceType>,
-        typename GearScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-        BaseSchemeType>(m, "GearScheme")
+        BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2TurbulentScheme")
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;

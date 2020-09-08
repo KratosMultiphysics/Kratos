@@ -30,7 +30,7 @@ GenerateInitialSkinDEMProcess::GenerateInitialSkinDEMProcess(
 
 void GenerateInitialSkinDEMProcess::Execute()
 {
-    auto nodal_neigh_process = FindNodalNeighboursProcess(mrModelPart, 5, 5);
+    FindNodalNeighboursProcess nodal_neigh_process (mrModelPart);
     nodal_neigh_process.Execute();
     auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 
@@ -80,9 +80,9 @@ void GenerateInitialSkinDEMProcess::Execute()
             const int id = this->GetMaximumDEMId() + 1;
 
             if (mrDEMModelPart.Elements().size() == 0)
-                this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.6*radius, it_node);
+                this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             else
-                this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 0.6*radius, it_node);
+                this->CreateDEMParticle(id, r_coordinates, p_DEM_properties, 0.8*radius, it_node);
             num_DEM++;
         }
     }

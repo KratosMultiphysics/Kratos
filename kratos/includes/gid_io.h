@@ -61,12 +61,28 @@ enum MultiFileFlag {SingleFile, MultipleFiles};
 
 class KRATOS_API(KRATOS_CORE) GidIOBase : public IO {
 
-    protected:
+protected:
     /**
      * Counter of live GidIO instances
      * (to ensure GiD_PostInit and GiD_PostDone are properly called)
      */
-    static int msLiveInstances;
+    int data;
+
+    // Private constructor so that no objects can be created.
+    GidIOBase() {
+        data = 0;
+    }
+
+public:
+    static GidIOBase& GetInstance();
+
+    int GetData();
+    void SetData(int data);
+
+private:
+    static void Create();
+
+    static GidIOBase* mpInstance;
 };
 
 /**
@@ -110,11 +126,13 @@ public:
         SetUpMeshContainers();
         SetUpGaussPointContainers();
 
-        if (GidIOBase::msLiveInstances == 0)
-        {
+        GidIOBase & gid_io_base = GidIOBase::GetInstance();
+
+        if (gid_io_base.GetData() == 0) {
           GiD_PostInit();
         }
-        GidIOBase::msLiveInstances += 1;
+
+        gid_io_base.SetData(gid_io_base.GetData() + 1);
     }
 
     ///Destructor.
@@ -128,9 +146,11 @@ public:
             mResultFileOpen = false;
         }
 
-        GidIOBase::msLiveInstances -= 1;
-        if (GidIOBase::msLiveInstances == 0)
-        {
+        GidIOBase & gid_io_base = GidIOBase::GetInstance();
+
+        gid_io_base.SetData(gid_io_base.GetData() - 1);
+
+        if (gid_io_base.GetData() == 0) {
           GiD_PostDone();
         }
     }

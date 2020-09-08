@@ -18,7 +18,6 @@
 #include "../custom_conditions/dem_wall.h"
 #include "../custom_strategies/schemes/dem_integration_scheme.h"
 #include "includes/kratos_export_api.h"
-//#include "../kratos_DEMApplication_export_dll.h"
 #include "../custom_utilities/properties_proxies.h"
 #include "includes/kratos_flags.h"
 
@@ -203,8 +202,10 @@ virtual double GetRollingFrictionWithWalls();
 void   SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 virtual double GetPoisson();
 void   SetPoissonFromProperties(double* poisson);
-virtual double GetTgOfFrictionAngle();
-void   SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
+virtual double GetTgOfStaticFrictionAngle();
+void   SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle);
+virtual double GetTgOfDynamicFrictionAngle();
+void   SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle);
 virtual double GetCoefficientOfRestitution();
 void   SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution);
 virtual double GetLnOfRestitCoeff();
@@ -230,15 +231,16 @@ PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);
 void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
 
-double SlowGetYoung();
-double SlowGetRollingFriction();
-double SlowGetRollingFrictionWithWalls();
-double SlowGetPoisson();
-double SlowGetTgOfFrictionAngle();
-double SlowGetCoefficientOfRestitution();
-double SlowGetDensity();
-double SlowGetParticleCohesion();
-int    SlowGetParticleMaterial();
+double SlowGetYoung() const;
+double SlowGetRollingFriction() const;
+double SlowGetRollingFrictionWithWalls() const;
+double SlowGetPoisson() const;
+double SlowGetTgOfStaticFrictionAngle() const;
+double SlowGetTgOfDynamicFrictionAngle() const;
+double SlowGetCoefficientOfRestitution() const;
+double SlowGetDensity() const;
+double SlowGetParticleCohesion() const;
+int    SlowGetParticleMaterial() const;
 
 /// Turn back information as a string.
 virtual std::string Info() const override

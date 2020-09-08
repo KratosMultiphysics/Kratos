@@ -121,15 +121,16 @@ public:
      */
 
     VariationalDistanceCalculationProcess(
-        ModelPart& base_model_part,
-        typename TLinearSolver::Pointer plinear_solver,
-        unsigned int max_iterations = 10,
-        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        ModelPart& rBaseModelPart,
+        typename TLinearSolver::Pointer pLinearSolver,
+        unsigned int MaxIterations = 10,
+        Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
         std::string AuxPartName = "RedistanceCalculationPart" )
     :
-        mdistance_part_is_initialized(false),
-        mmax_iterations(max_iterations),
-        mr_base_model_part( base_model_part ),
+        mDistancePartIsInitialized(false),
+        mMaxIterations(MaxIterations),
+        mrModel( rBaseModelPart.GetModel() ),
+        mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
         mAuxModelPartName( AuxPartName )
     {
@@ -138,11 +139,11 @@ public:
         ValidateInput();
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
-        ReGenerateDistanceModelPart(base_model_part);
+        ReGenerateDistanceModelPart(rBaseModelPart);
 
-        auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
+        auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
 
-        InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+        InitializeSolutionStrategy(pLinearSolver, p_builder_solver);
 
         KRATOS_CATCH("")
     }
@@ -161,12 +162,13 @@ public:
         typename TLinearSolver::Pointer pLinearSolver,
         BuilderSolverPointerType pBuilderAndSolver,
         unsigned int MaxIterations = 10,
-        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
         std::string AuxPartName = "RedistanceCalculationPart" )
     :
-        mdistance_part_is_initialized(false),
-        mmax_iterations(MaxIterations),
-        mr_base_model_part( rBaseModelPart ),
+        mDistancePartIsInitialized(false),
+        mMaxIterations(MaxIterations),
+        mrModel( rBaseModelPart.GetModel() ),
+        mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
         mAuxModelPartName( AuxPartName )
     {
@@ -185,10 +187,7 @@ public:
     /// Destructor.
     ~VariationalDistanceCalculationProcess() override
     {
-
-        Model& current_model = mr_base_model_part.GetModel();
-        if(current_model.HasModelPart( mAuxModelPartName ))
-            current_model.DeleteModelPart( mAuxModelPartName );
+        Clear();
     };
 
     ///@}
@@ -208,12 +207,11 @@ public:
     {
         KRATOS_TRY;
 
-        if(mdistance_part_is_initialized == false){
-            ReGenerateDistanceModelPart(mr_base_model_part);
+        if(mDistancePartIsInitialized == false){
+            ReGenerateDistanceModelPart(mrBaseModelPart);
         }
 
-        Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
         // TODO: check flag    PERFORM_STEP1
         // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
@@ -337,12 +335,12 @@ public:
             }
         }
 
-        mp_solving_strategy->Solve();
+        mpSolvingStrategy->Solve();
 
         // Step2 - minimize the target residual
         r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
-        for(unsigned int it = 0; it<mmax_iterations; it++){
-             mp_solving_strategy->Solve();
+        for(unsigned int it = 0; it<mMaxIterations; it++){
+             mpSolvingStrategy->Solve();
         }
 
         // Unfix the distances
@@ -355,17 +353,13 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear()
+    void Clear() override
     {
-        Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
-        r_distance_model_part.Nodes().clear();
-        r_distance_model_part.Conditions().clear();
-        r_distance_model_part.Elements().clear();
-        // r_distance_model_part.GetProcessInfo().clear();
-        mdistance_part_is_initialized = false;
+        if(mrModel.HasModelPart( mAuxModelPartName ))
+            mrModel.DeleteModelPart( mAuxModelPartName );
+        mDistancePartIsInitialized = false;
 
-        mp_solving_strategy->Clear();
+        mpSolvingStrategy->Clear();
 
     }
 
@@ -412,14 +406,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mdistance_part_is_initialized;
-    unsigned int mmax_iterations;
+    bool mDistancePartIsInitialized;
+    unsigned int mMaxIterations;
 
-    ModelPart& mr_base_model_part;
+    Model& mrModel;
+    ModelPart& mrBaseModelPart;
     Flags mOptions;
     std::string mAuxModelPartName;
 
-    typename SolvingStrategyType::UniquePointer mp_solving_strategy;
+    typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     ///@}
     ///@name Protected Operators
@@ -431,13 +426,13 @@ protected:
 
     void ValidateInput()
     {
-        const DataCommunicator& r_comm = mr_base_model_part.GetCommunicator().GetDataCommunicator();
-        int num_elements = mr_base_model_part.NumberOfElements();
-        int num_nodes = mr_base_model_part.NumberOfNodes();
+        const DataCommunicator& r_comm = mrBaseModelPart.GetCommunicator().GetDataCommunicator();
+        int num_elements = mrBaseModelPart.NumberOfElements();
+        int num_nodes = mrBaseModelPart.NumberOfNodes();
 
         if (num_elements > 0)
         {
-            const auto geometry_family = mr_base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily();
+            const auto geometry_family = mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily();
             KRATOS_ERROR_IF( (TDim == 2) && (geometry_family != GeometryData::Kratos_Triangle) )
             << "In 2D the element type is expected to be a triangle." << std::endl;
             KRATOS_ERROR_IF( (TDim == 3) && (geometry_family != GeometryData::Kratos_Tetrahedra) )
@@ -448,8 +443,8 @@ protected:
         KRATOS_ERROR_IF(r_comm.SumAll(num_elements) == 0) << "The model Part has no elements." << std::endl;
 
         // Check that required nodal variables are present
-        VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mr_base_model_part.Nodes());
-        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mr_base_model_part.Nodes());
+        VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mrBaseModelPart.Nodes());
+        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mrBaseModelPart.Nodes());
     }
 
     void InitializeSolutionStrategy(
@@ -459,14 +454,13 @@ protected:
         // Generate a linear strategy
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
 
-        Model& r_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = r_model.GetModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
 
-        mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+        mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
             p_scheme,
             pLinearSolver,
@@ -476,43 +470,42 @@ protected:
             CalculateNormDxFlag);
 
         // TODO: check flag DO_EXPENSIVE_CHECKS
-        mp_solving_strategy->Check();
+        mpSolvingStrategy->Check();
     }
 
-    virtual void ReGenerateDistanceModelPart(ModelPart& r_base_model_part)
+    virtual void ReGenerateDistanceModelPart(ModelPart& rBaseModelPart)
     {
         KRATOS_TRY
 
-        Model& current_model = r_base_model_part.GetModel();
-        if(current_model.HasModelPart( mAuxModelPartName ))
-            current_model.DeleteModelPart( mAuxModelPartName );
+        if(mrModel.HasModelPart( mAuxModelPartName ))
+            mrModel.DeleteModelPart( mAuxModelPartName );
 
         // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof<Variable<double> >(DISTANCE, r_base_model_part);
+        VariableUtils().AddDof<Variable<double> >(DISTANCE, rBaseModelPart);
 
         // Generate
-        ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
 
         ConnectivityPreserveModeler modeler;
-        modeler.GenerateModelPart(r_base_model_part, r_distance_model_part, *p_distance_element);
+        modeler.GenerateModelPart(rBaseModelPart, r_distance_model_part, *p_distance_element);
 
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
         VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, r_distance_model_part.Nodes());
         // Note that above we have assigned the same geometry. Thus the flag is
         // set in the distance model part despite we are iterating the base one
-        for (auto it_cond = r_base_model_part.ConditionsBegin(); it_cond != r_base_model_part.ConditionsEnd(); ++it_cond){
+        for (auto it_cond = rBaseModelPart.ConditionsBegin(); it_cond != rBaseModelPart.ConditionsEnd(); ++it_cond){
             Geometry< Node<3> >& geom = it_cond->GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
                 geom[i].Set(BOUNDARY,true);
             }
         }
 
-        r_base_model_part.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
+        rBaseModelPart.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
 
-        mdistance_part_is_initialized = true;
+        mDistancePartIsInitialized = true;
 
         KRATOS_CATCH("")
     }
@@ -565,8 +558,7 @@ private:
     }
 
     void SynchronizeDistance(){
-        Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
+        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
         auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
@@ -595,9 +587,8 @@ private:
     }
 
     void SynchronizeFixity(){
-        Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPartName );
-                auto &r_communicator = r_distance_model_part.GetCommunicator();
+        ModelPart& r_distance_model_part = mrModel.GetModelPart( mAuxModelPartName );
+        auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
         if(r_communicator.TotalProcesses() != 1){
@@ -649,9 +640,6 @@ const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDen
 
 template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
 const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2));
-
-template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
-const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2, false));
 
 ///@}
 

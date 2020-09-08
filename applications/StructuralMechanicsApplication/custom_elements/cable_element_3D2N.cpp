@@ -54,7 +54,7 @@ CableElement3D2N::~CableElement3D2N() {}
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,
 TrussElement3D2N::msLocalSize>
 CableElement3D2N::CreateElementStiffnessMatrix(
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -80,7 +80,7 @@ CableElement3D2N::CreateElementStiffnessMatrix(
 }
 
 void CableElement3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -123,13 +123,14 @@ void CableElement3D2N::UpdateInternalForces(
     ProcessInfo temp_process_information;
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
     Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
-    mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
-
+    Values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
     const double normal_force =
-        ((temp_internal_stresses[3] + prestress) * l * A) / L0;
+        ((temp_stress[0] + prestress) * l * A) / L0;
 
 
     mIsCompressed = false;

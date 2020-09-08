@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Application includes
 #include "includes/cfd_variables.h"  //TODO: must be removed eventually
 #include "fluid_dynamics_application_variables.h"
+#include "swimming_dem_application_variables.h"
 
 namespace Kratos
 {

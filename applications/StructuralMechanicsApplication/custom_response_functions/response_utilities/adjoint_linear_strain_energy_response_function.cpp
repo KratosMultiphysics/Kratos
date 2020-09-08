@@ -35,17 +35,19 @@ namespace Kratos
 
         // It is necessary to initialize the elements/conditions since no adjoint problem is solved for this response type.
 
+        const auto& r_process_info = mrModelPart.GetProcessInfo();
+
         #pragma omp parallel for
         for(int i=0; i< static_cast<int>(mrModelPart.Elements().size()); ++i)
         {
             auto it = mrModelPart.ElementsBegin() + i;
-            it->Initialize();
+            it->Initialize(r_process_info);
         }
         #pragma omp parallel for
         for(int i=0; i< static_cast<int>(mrModelPart.Conditions().size()); ++i)
         {
             auto it = mrModelPart.ConditionsBegin() + i;
-            it->Initialize();
+            it->Initialize(r_process_info);
         }
 
         KRATOS_CATCH("");
@@ -155,7 +157,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         double response_value = 0.0;
 
         // Check if there are at primal elements, because the primal state is required

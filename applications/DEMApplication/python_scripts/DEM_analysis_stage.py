@@ -324,6 +324,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.KratosPrintInfo(self.report.BeginReport(timer))
 
+        if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
+            self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
+
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
 
@@ -547,8 +550,6 @@ class DEMAnalysisStage(AnalysisStage):
             if output_process.IsOutputStep():
                 output_process.PrintOutput()
 
-        self.FinalizeTimeStep(self.time)
-
     def AfterSolveOperations(self):
         message = 'Warning!'
         message += '\nFunction \'AfterSolveOperations\' is deprecated.'
@@ -563,8 +564,6 @@ class DEMAnalysisStage(AnalysisStage):
         #Phantom Walls
         self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
 
-    def FinalizeTimeStep(self, time):
-        pass
 
     def BreakSolutionStepsLoop(self):
         return False
@@ -582,8 +581,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.model.DeleteModelPart(self.spheres_model_part.Name)
 
     def Finalize(self):
-
         self.KratosPrintInfo("Finalizing execution...")
+        super(DEMAnalysisStage, self).Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
@@ -703,8 +702,6 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self._GetSolver().dt:
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
-        self.FinalizeTimeStep(self.time)
-
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:

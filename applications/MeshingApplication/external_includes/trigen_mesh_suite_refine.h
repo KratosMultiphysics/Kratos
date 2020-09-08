@@ -17,7 +17,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-
+// External includes
 #include "triangle.h"
 
 // Project includes

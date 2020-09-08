@@ -51,7 +51,7 @@ RingElement3D::Create(IndexType NewId, GeometryType::Pointer pGeom,
 RingElement3D::~RingElement3D() {}
 
 void RingElement3D::EquationIdVector(EquationIdVectorType &rResult,
-                                        ProcessInfo &rCurrentProcessInfo) {
+                                     const ProcessInfo &rCurrentProcessInfo) const {
 
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -71,7 +71,7 @@ void RingElement3D::EquationIdVector(EquationIdVectorType &rResult,
   }
 }
 void RingElement3D::GetDofList(DofsVectorType &rElementalDofList,
-                                  ProcessInfo &rCurrentProcessInfo) {
+                               const ProcessInfo &rCurrentProcessInfo) const {
 
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -92,12 +92,8 @@ void RingElement3D::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void RingElement3D::Initialize() {
-  KRATOS_TRY
-  KRATOS_CATCH("")
-}
 
-void RingElement3D::GetValuesVector(Vector &rValues, int Step) {
+void RingElement3D::GetValuesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -119,7 +115,7 @@ void RingElement3D::GetValuesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void RingElement3D::GetFirstDerivativesVector(Vector &rValues, int Step) {
+void RingElement3D::GetFirstDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -141,7 +137,7 @@ void RingElement3D::GetFirstDerivativesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void RingElement3D::GetSecondDerivativesVector(Vector &rValues, int Step) {
+void RingElement3D::GetSecondDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -415,7 +411,7 @@ inline Matrix RingElement3D::TotalStiffnessMatrix() const
 
 void RingElement3D::CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -430,7 +426,7 @@ void RingElement3D::CalculateLeftHandSide(
 }
 
 void RingElement3D::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -444,8 +440,8 @@ void RingElement3D::CalculateRightHandSide(
 }
 
 void RingElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                                            VectorType &rRightHandSideVector,
-                                            ProcessInfo &rCurrentProcessInfo)
+                                         VectorType &rRightHandSideVector,
+                                         const ProcessInfo &rCurrentProcessInfo)
 {
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -498,7 +494,7 @@ void RingElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
 
 void RingElement3D::CalculateMassMatrix(
     MatrixType &rMassMatrix,
-    ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY;
     const int points_number = GetGeometry().PointsNumber();
@@ -522,7 +518,7 @@ void RingElement3D::CalculateMassMatrix(
 }
 
 void RingElement3D::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
   const int points_number = GetGeometry().PointsNumber();
@@ -560,7 +556,7 @@ void RingElement3D::CalculateDampingMatrix(
 void RingElement3D::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -588,7 +584,7 @@ void RingElement3D::AddExplicitContribution(
 
 void RingElement3D::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
-    Variable<array_1d<double, 3>> &rDestinationVariable,
+    const Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo
     )
 {
@@ -639,7 +635,7 @@ void RingElement3D::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-int RingElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
+int RingElement3D::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

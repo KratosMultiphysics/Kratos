@@ -70,6 +70,7 @@ public:
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     static constexpr IndexType SURFACE_INDEX = -1;
 
@@ -78,7 +79,7 @@ public:
     ///@{
 
     /// Constructor for untrimmed patch
-    BrepSurface( 
+    BrepSurface(
         typename NurbsSurfaceType::Pointer pSurface)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
@@ -210,7 +211,7 @@ public:
     * @param Index: trim_index or SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
-    GeometryPointer pGetGeometryPart(IndexType Index) override
+    GeometryPointer pGetGeometryPart(const IndexType Index) override
     {
         const auto& const_this = *this;
         return std::const_pointer_cast<GeometryType>(
@@ -224,7 +225,7 @@ public:
     * @param Index: trim_index or SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
-    const GeometryPointer pGetGeometryPart(IndexType Index) const override
+    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
             return mpNurbsSurface;
@@ -257,7 +258,7 @@ public:
     * @param Index of the geometry part.
     * @return true if has trim or surface
     */
-    bool HasGeometryPart(IndexType Index) const override
+    bool HasGeometryPart(const IndexType Index) const override
     {
         if (Index == SURFACE_INDEX)
             return true;
@@ -317,6 +318,44 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points on the nurbs surface of this geometry.
+     * @param return integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->CreateIntegrationPoints(
+            rIntegrationPoints);
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief creates a list of quadrature point geometries
+     *        from a list of integration points on the
+     *        nurbs surface of this geometry.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of provided integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives) override
+    {
+        mpNurbsSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives);
+    }
+
+    ///@}
     ///@name Shape Function
     ///@{
 

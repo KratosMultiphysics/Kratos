@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -16,6 +15,7 @@ class TestFLOWerCoupling(KratosUnittest.TestCase):
     '''
 
     def test_dummy_flower_solver(self):
+        self.skipTestIfApplicationsNotAvailable("MappingApplication")
         self._createTest("FLOWer_coupling", "cosim", "dummy_flower_solver")
         self._runTest()
 
@@ -38,7 +38,7 @@ class TestFLOWerCoupling(KratosUnittest.TestCase):
 
     def _runTest(self):
         p = subprocess.Popen(
-            ["python3", "../python_scripts/helpers/dummy_flower_solver.py", self.ext_parameter_file_name],
+            ["python3", os.path.join(self.problem_dir_name,"dummy_flower_solver.py"), self.ext_parameter_file_name],
             cwd=os.path.dirname(os.path.abspath(__file__)))
 
         CoSimulationAnalysis(self.cosim_parameters).Run()

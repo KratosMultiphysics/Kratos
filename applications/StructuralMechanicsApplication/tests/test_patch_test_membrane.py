@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -12,6 +11,7 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         if explicit_dynamics:
             mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
             mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
@@ -22,7 +22,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
             mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
             mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
             mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
-
 
     def _add_dofs(self,mp):
         # Adding the dofs AND their corresponding reaction!
@@ -142,10 +141,16 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         mp.CreateNewElement(element_name, 15 , [13, 11,  6,  8], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 16 , [18, 17, 11, 13], mp.GetProperties()[1])
 
-    def _apply_dirichlet_BCs(self,mp):
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+    def _apply_dirichlet_BCs(self,mp,fix_type='all'):
+        if fix_type=='all':
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+        elif fix_type=='YZ':
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+        else:
+            print('fix_type: ', fix_type,' not implemented')
 
     def _apply_self_weight(self, mp):
         for node in mp.Nodes:
@@ -185,7 +190,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -212,7 +216,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -251,7 +254,6 @@ class BasePatchTestMembrane(KratosUnittest.TestCase):
             mp.CloneTimeStep(time)
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-
 
     def _set_up_system_3d3n(self,current_model,explicit_dynamics=False):
         mp = current_model.CreateModelPart("Structure")
@@ -317,6 +319,69 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         self._solve_static(mp)
 
         self._check_static_results(mp.Nodes[9],displacement_results)
+
+        #self.__post_process(mp)
+
+    def test_membrane_wrinkling_law(self):
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("Structure")
+        mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+        self._add_variables(mp)
+
+        # add properties and subproperties
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,206900000000.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,0.0001)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850.0)
+        constitutive_law = StructuralMechanicsApplication.WrinklingLinear2DLaw()
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,constitutive_law)
+        sub_constitutive_law = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+        mp.GetProperties()[2].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,sub_constitutive_law)
+        mp.GetProperties()[1].AddSubProperties(mp.GetProperties()[2])
+
+
+        # create nodes
+        mp.CreateNewNode(1,   0.0000000000,   1.0000000000,   0.0000000000)
+        mp.CreateNewNode(2,   0.0000000000,   0.0000000000,   0.0000000000)
+        mp.CreateNewNode(3,   1.0000000000,   1.0000000000,   0.0000000000)
+        mp.CreateNewNode(4,   1.0000000000,   0.0000000000,   0.0000000000)
+
+        # add dofs
+        self._add_dofs(mp)
+
+        # create element
+        element_name = "MembraneElement3D4N"
+        mp.CreateNewElement(element_name, 1, [4, 3, 1, 2], mp.GetProperties()[1])
+
+        # create & apply dirichlet bcs
+        bcs_dirichlet_all = mp.CreateSubModelPart("BoundaryCondtionsDirichletAll")
+        bcs_dirichlet_all.AddNodes([2,4])
+
+        bcs_dirichlet_mv = mp.CreateSubModelPart("BoundaryCondtionsDirichletMove")
+        bcs_dirichlet_mv.AddNodes([1,3])
+
+        self._apply_dirichlet_BCs(bcs_dirichlet_all)
+        self._apply_dirichlet_BCs(bcs_dirichlet_mv,fix_type='YZ')
+
+        # create & apply neumann bcs
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[1],mp.GetProperties()[1])
+        mp.CreateNewCondition("PointLoadCondition3D1N",2,[3],mp.GetProperties()[1])
+
+        bcs_neumann = mp.CreateSubModelPart("BoundaryCondtionsNeumann")
+        bcs_neumann.AddNodes([1,3])
+        bcs_neumann.AddConditions([1,2])
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_X, 1000000.0, bcs_neumann.Nodes)
+
+        # solve
+        self._solve_static(mp)
+
+        # check results
+        self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.58054148514004470,4)
+        self.assertAlmostEqual(mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.15072065295319598,4)
+
 
 class DynamicPatchTestMembrane(BasePatchTestMembrane):
 

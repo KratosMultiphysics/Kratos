@@ -258,4 +258,14 @@ void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<arra
     }
 }
 
+void ShallowWaterUtilities::SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto& value = (rModelPart.NodesBegin() + i)->FastGetSolutionStepValue(rVariable);
+        value = std::max(value, MinValue);
+    }
+}
+
 }  // namespace Kratos.

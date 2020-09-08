@@ -36,19 +36,20 @@ class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super(DEM2D_ContactTestSolution, self).FinalizeSolutionStep()
         tolerance = 1.001
         for node in self.rigid_face_model_part.Nodes:
             dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
             contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
             if node.Id == 13:
-                if time > 0.3:
+                if self.time > 0.3:
                     expected_value = 45126
                     self.CheckPressure(dem_pressure, expected_value, tolerance)
                     expected_value = -23141
                     self.CheckContactF(contact_force, expected_value, tolerance)
             if node.Id == 22:
-                if time > 0.3:
+                if self.time > 0.3:
                     expected_value = 26712
                     self.CheckPressure(dem_pressure, expected_value, tolerance)
                     expected_value = -13698

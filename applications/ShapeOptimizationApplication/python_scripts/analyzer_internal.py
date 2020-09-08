@@ -22,6 +22,12 @@ try:
     from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
 except ImportError:
     csm_response_factory = None
+try:
+    from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response_function_factory as convdiff_response_factory
+except ImportError:
+    convdiff_response_factory = None
+
+
 import time as timer
 
 # ==============================================================================
@@ -61,7 +67,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             # response gradients
             if communicator.isRequestingGradientOf(identifier):
                 response.CalculateGradient()
-                communicator.reportGradient(identifier, response.GetShapeGradient())
+                communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
 
             response.FinalizeSolutionStep()
 
@@ -83,8 +89,9 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
     def __CreateResponseFunctions( specified_responses, model ):
         response_functions = {}
 
-        sho_response_functions = ["plane_based_packaging", "mesh_based_packaging"]
+        sho_response_functions = ["plane_based_packaging", "mesh_based_packaging", "surface_normal_shape_change"]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
+        convdiff_response_functions = ["point_temperature"]
 
         for (response_id, response_settings) in specified_responses:
             if response_id in response_functions.keys():
@@ -96,6 +103,10 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                 if csm_response_factory is None:
                     raise RuntimeError("ShapeOpt: {} response function requires StructuralMechanicsApplication.".format(response_type))
                 response_functions[response_id] = csm_response_factory.CreateResponseFunction(response_id, response_settings, model)
+            elif response_type in convdiff_response_functions:
+                if convdiff_response_factory is None:
+                    raise RuntimeError("ShapeOpt: {} response function requires ConvectionDiffusionApplication.".format(response_type))
+                response_functions[response_id] = convdiff_response_factory.CreateResponseFunction(response_id, response_settings, model)
             elif response_type in sho_response_functions:
                 response_functions[response_id] = sho_response_factory.CreateResponseFunction(response_id, response_settings, model)
             else:

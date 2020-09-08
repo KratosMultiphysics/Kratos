@@ -41,6 +41,8 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
@@ -72,8 +74,8 @@ namespace Testing
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
 
-        p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
@@ -91,6 +93,8 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
@@ -126,8 +130,8 @@ namespace Testing
         Vector RHS = ZeroVector(12);
         Matrix LHS = ZeroMatrix(12,12);
 
-        p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
@@ -145,6 +149,8 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
@@ -184,8 +190,8 @@ namespace Testing
         Vector RHS = ZeroVector(32);
         Matrix LHS = ZeroMatrix(32,32);
 
-        p_element->Initialize(r_model_part.GetProcessInfo()); // Initialize the element to initialize the constitutive law
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
@@ -224,6 +230,8 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
@@ -242,7 +250,7 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement2D3N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
-        p_element->Initialize(r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = -2.0e-5;
@@ -251,7 +259,7 @@ namespace Testing
 
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25e-5;
@@ -259,7 +267,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed);
 
         Vector RHS_perturbed = ZeroVector(9);
-        p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
         // Calculate the perturbation RHS
         const double delta_alpha = alpha_perturbed - alpha;
@@ -267,7 +275,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, delta_alpha, delta_beta);
 
         Vector RHS_delta = ZeroVector(9);
-        p_element->CalculateRightHandSide(RHS_delta, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_delta, r_process_info);
 
         // Check the error
         const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
@@ -297,6 +305,8 @@ namespace Testing
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
 
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(VOLUMETRIC_STRAIN);
 
@@ -316,7 +326,7 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementMixedVolumetricStrainElement3D4N", 1, element_nodes, p_elem_prop);
 
         // Initialize the element to initialize the constitutive law
-        p_element->Initialize(r_model_part.GetProcessInfo());
+        p_element->Initialize(r_process_info);
 
         // Set a fake displacement and volumetric strain field to compute the residual
         const double alpha = -2.0;
@@ -326,7 +336,7 @@ namespace Testing
 
         Vector RHS = ZeroVector(16);
         Matrix LHS = ZeroMatrix(16,16);
-        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         // Perturb the previous displacement and volumetric strain field to compute the residual
         const double alpha_perturbed = 1.25;
@@ -335,7 +345,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, alpha_perturbed, beta_perturbed, gamma_perturbed);
 
         Vector RHS_perturbed = ZeroVector(16);
-        p_element->CalculateRightHandSide(RHS_perturbed, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_perturbed, r_process_info);
 
         // Calculate the perturbation RHS
         const double delta_alpha = alpha_perturbed - alpha;
@@ -344,7 +354,7 @@ namespace Testing
         LinearPerturbationField(r_model_part, delta_alpha, delta_beta, delta_gamma);
 
         Vector RHS_delta = ZeroVector(16);
-        p_element->CalculateRightHandSide(RHS_delta, r_model_part.GetProcessInfo());
+        p_element->CalculateRightHandSide(RHS_delta, r_process_info);
 
         // Check the error
         const Vector RHS_error = RHS_perturbed - (RHS + RHS_delta);
@@ -374,6 +384,8 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(REACTION);
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -415,7 +427,7 @@ namespace Testing
 
         // Initialize the elements to initialize the constitutive law
         for (auto &r_elem : r_model_part.Elements()) {
-            r_elem.Initialize(r_model_part.GetProcessInfo());
+            r_elem.Initialize(r_process_info);
         }
 
         // Construct the linear solver pointer

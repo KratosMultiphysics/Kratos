@@ -53,40 +53,41 @@ Element::Pointer CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Cl
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+    CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+}
+
+template <int Dim, int NumNodes>
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        CalculateLocalSystemNormalElement(
-            rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateRightHandSideNormalElement(rRightHandSideVector, rCurrentProcessInfo);
     else // Wake element
-        CalculateLocalSystemWakeElement(
-            rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    // TODO: improve speed
-    Matrix tmp;
-    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
+        CalculateRightHandSideWakeElement(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    // TODO: improve speed
-    VectorType tmp;
-    CalculateLocalSystem(rLeftHandSideMatrix, tmp, rCurrentProcessInfo);
+    const CompressiblePerturbationPotentialFlowElement& r_this = *this;
+    const int wake = r_this.GetValue(WAKE);
+
+    if (wake == 0) // Normal element (non-wake) - eventually an embedded
+        CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+    else // Wake element
+        CalculateLeftHandSideWakeElement(rLeftHandSideMatrix, rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+    EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -114,7 +115,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVect
 
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                 ProcessInfo& CurrentProcessInfo)
+                                                                 const ProcessInfo& CurrentProcessInfo) const
 {
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -141,7 +142,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(Dof
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     bool active = true;
     if ((this)->IsDefined(ACTIVE))
@@ -154,7 +155,6 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSoluti
     {
         ComputePotentialJump(rCurrentProcessInfo);
     }
-    ComputeElementInternalEnergy();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ int CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Check(const Pro
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -196,7 +196,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnInte
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        rValues[0] = PotentialFlowUtilities::ComputeCompressiblePressureCoefficient<Dim, NumNodes>(*this, rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputePerturbationCompressiblePressureCoefficient<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     else if (rVariable == DENSITY)
     {
@@ -204,11 +204,11 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnInte
     }
     else if (rVariable == MACH)
     {
-        rValues[0] = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputePerturbationLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     else if (rVariable == SOUND_VELOCITY)
     {
-        rValues[0] = PotentialFlowUtilities::ComputeLocalSpeedOfSound<Dim, NumNodes>(*this, rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputePerturbationLocalSpeedOfSound<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     else if (rVariable == WAKE)
     {
@@ -218,7 +218,7 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnInte
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
@@ -238,17 +238,25 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnInte
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     if (rValues.size() != 1)
         rValues.resize(1);
-    if (rVariable == VELOCITY)
-    {
+    if (rVariable == VELOCITY){
+        const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
         array_1d<double, 3> v(3, 0.0);
         array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k] + free_stream_velocity[k];
+        rValues[0] = v;
+    }
+    else if (rVariable == PERTURBATION_VELOCITY)
+    {
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -301,13 +309,14 @@ template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(
     EquationIdVectorType& rResult) const
 {
+    const auto& r_geometry = this->GetGeometry();
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-            rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+        if (!r_geometry[i].GetValue(TRAILING_EDGE))
+            rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
-            rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+            rResult[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
 }
 
@@ -350,13 +359,14 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListNorm
 template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(DofsVectorType& rElementalDofList) const
 {
+    const auto& r_geometry = this->GetGeometry();
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
+        if (!r_geometry[i].GetValue(TRAILING_EDGE))
+            rElementalDofList[i] = r_geometry[i].pGetDof(VELOCITY_POTENTIAL);
         else
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
+            rElementalDofList[i] = r_geometry[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 }
 
@@ -387,13 +397,11 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListWake
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormalElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideNormalElement(
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
-    if (rRightHandSideVector.size() != NumNodes)
-        rRightHandSideVector.resize(NumNodes, false);
     rLeftHandSideMatrix.clear();
 
     ElementalData<NumNodes, Dim> data;
@@ -405,9 +413,13 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocal
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v =  PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes> (*this);
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
 
-    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
+    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     noalias(rLeftHandSideMatrix) +=
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
@@ -415,25 +427,42 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocal
 
     const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
-
-    data.potentials= PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
-    noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.potentials);
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeElement(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSideNormalElement(
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rRightHandSideVector.size() != NumNodes)
+        rRightHandSideVector.resize(NumNodes, false);
+    rRightHandSideVector.clear();
+
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    const double density = ComputeDensity(rCurrentProcessInfo);
+
+    // Computing local velocity
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
+
+    noalias(rRightHandSideVector) = - data.vol * density * prod(data.DN_DX, velocity);
+}
+
+template <int Dim, int NumNodes>
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideWakeElement(
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // Note that the lhs and rhs have double the size
     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
         rLeftHandSideMatrix.size2() != 2 * NumNodes)
         rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
-    if (rRightHandSideVector.size() != 2 * NumNodes)
-        rRightHandSideVector.resize(2 * NumNodes, false);
     rLeftHandSideMatrix.clear();
-    rRightHandSideVector.clear();
-
-    MatrixType rLaplacianMatrix = ZeroMatrix(2 * NumNodes, 2 * NumNodes);
 
     ElementalData<NumNodes, Dim> data;
 
@@ -445,48 +474,89 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocal
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim, NumNodes>(*this);
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
 
-    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
-
-    const BoundedMatrix<double, NumNodes, NumNodes> laplacian_total =
-        data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     const BoundedMatrix<double, NumNodes, NumNodes> lhs_total =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX)) +
         data.vol * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
 
-    if (this->Is(STRUCTURE))
-    {
+    if (this->Is(STRUCTURE)){
         Matrix lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         Matrix lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
-        Matrix laplacian_positive = ZeroMatrix(NumNodes, NumNodes);
-        Matrix laplacian_negative = ZeroMatrix(NumNodes, NumNodes);
-
-        CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, laplacian_positive,
-                                              laplacian_negative, rCurrentProcessInfo);
-        AssignLocalSystemSubdividedElement(
-            rLeftHandSideMatrix, lhs_positive, lhs_negative, lhs_total, rLaplacianMatrix,
-            laplacian_positive, laplacian_negative, laplacian_total, data);
+        CalculateLeftHandSideSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+        AssignLeftHandSideSubdividedElement(rLeftHandSideMatrix, lhs_positive,
+                                            lhs_negative, lhs_total, data);
     }
-    else
-    {
-        AssignLocalSystemWakeElement(rLeftHandSideMatrix, lhs_total, data);
-        AssignLocalSystemWakeElement(rLaplacianMatrix, laplacian_total, data);
+    else{
+        AssignLeftHandSideWakeElement(rLeftHandSideMatrix, lhs_total, data);
     }
-
-    Vector split_element_values(2 * NumNodes);
-    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
-    noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, split_element_values);
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdividedElement(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRightHandSideWakeElement(
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    // Note that the rhs has double the size
+    if (rRightHandSideVector.size() != 2 * NumNodes)
+        rRightHandSideVector.resize(2 * NumNodes, false);
+    rRightHandSideVector.clear();
+
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    const auto& r_geometry = this->GetGeometry();
+    GeometryUtils::CalculateGeometryData(r_geometry, data.DN_DX, data.N, data.vol);
+    GetWakeDistances(data.distances);
+
+    const double density = ComputeDensity(rCurrentProcessInfo);
+
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
+    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
+
+    for (unsigned int i = 0; i < Dim; i++){
+        upper_velocity[i] += free_stream_velocity[i];
+        lower_velocity[i] += free_stream_velocity[i];
+    }
+    const array_1d<double, Dim> diff_velocity = upper_velocity - lower_velocity;
+
+    const BoundedVector<double, NumNodes> upper_rhs = - data.vol * density * prod(data.DN_DX, upper_velocity);
+    const BoundedVector<double, NumNodes> lower_rhs = - data.vol * density * prod(data.DN_DX, lower_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * density * prod(data.DN_DX, diff_velocity);
+
+    if (this->Is(STRUCTURE)){
+        double upper_vol = 0.0;
+        double lower_vol = 0.0;
+
+        CalculateVolumesSubdividedElement(upper_vol, lower_vol, rCurrentProcessInfo);
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            if (r_geometry[i].GetValue(TRAILING_EDGE)){
+                rRightHandSideVector[i] = upper_rhs(i)*upper_vol/data.vol;
+                rRightHandSideVector[i + NumNodes] = lower_rhs(i)*lower_vol/data.vol;
+            }
+            else{
+                AssignRightHandSideWakeNode(rRightHandSideVector, upper_rhs, lower_rhs, wake_rhs, data, i);
+            }
+        }
+    }
+    else{
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            AssignRightHandSideWakeNode(rRightHandSideVector, upper_rhs, lower_rhs, wake_rhs, data, i);
+        }
+    }
+}
+
+template <int Dim, int NumNodes>
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideSubdividedElement(
     Matrix& lhs_positive,
     Matrix& lhs_negative,
-    Matrix& laplacian_positive,
-    Matrix& laplacian_negative,
     const ProcessInfo& rCurrentProcessInfo)
 {
     ElementalData<NumNodes, Dim> data;
@@ -523,9 +593,13 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocal
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim, NumNodes>(*this);
+    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    for (unsigned int i = 0; i < Dim; i++){
+        velocity[i] += free_stream_velocity[i];
+    }
 
-    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
+    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
 
     // Compute the lhs and rhs that would correspond to it being divided
     for (unsigned int i = 0; i < nsubdivisions; ++i)
@@ -536,9 +610,6 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocal
                 Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
             noalias(lhs_positive) +=
                 Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
-
-            noalias(laplacian_positive) +=
-                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
         }
         else
         {
@@ -546,9 +617,54 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLocal
                 Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
             noalias(lhs_negative) +=
                 Volumes[i] * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
+        }
+    }
+}
 
-            noalias(laplacian_negative) +=
-                Volumes[i] * density * prod(data.DN_DX, trans(data.DN_DX));
+template <int Dim, int NumNodes>
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateVolumesSubdividedElement(
+    double& rUpper_vol,
+    double& rLower_vol,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    GetWakeDistances(data.distances);
+
+    // Subdivide the element
+    constexpr unsigned int nvolumes = 3 * (Dim - 1);
+    BoundedMatrix<double, NumNodes, Dim> Points;
+    array_1d<double, nvolumes> PartitionsSign;
+    BoundedMatrix<double, nvolumes, NumNodes> GPShapeFunctionValues;
+    array_1d<double, nvolumes> Volumes;
+    std::vector<Matrix> GradientsValue(nvolumes);
+    BoundedMatrix<double, nvolumes, 2> NEnriched;
+    for (unsigned int i = 0; i < GradientsValue.size(); ++i)
+        GradientsValue[i].resize(2, Dim, false);
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
+        for (unsigned int k = 0; k < Dim; ++k)
+        {
+            Points(i, k) = coords[k];
+        }
+    }
+
+    const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(
+        Points, data.DN_DX, data.distances, Volumes, GPShapeFunctionValues,
+        PartitionsSign, GradientsValue, NEnriched);
+
+    // Compute the volumes that would correspond to it being divided
+    for (unsigned int i = 0; i < nsubdivisions; ++i)
+    {
+        if (PartitionsSign[i] > 0){
+            rUpper_vol += Volumes[i];
+        }
+        else{
+            rLower_vol += Volumes[i];
         }
     }
 }
@@ -561,52 +677,42 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputeLHSGaus
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdividedElement(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHandSideSubdividedElement(
     Matrix& rLeftHandSideMatrix,
     Matrix& lhs_positive,
     Matrix& lhs_negative,
     const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
-    MatrixType& rLaplacianMatrix,
-    Matrix& laplacian_positive,
-    Matrix& laplacian_negative,
-    const BoundedMatrix<double, NumNodes, NumNodes>& laplacian_total,
     const ElementalData<NumNodes, Dim>& data) const
 {
+    const auto& r_geometry = this->GetGeometry();
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
         // The TE node takes the contribution of the subdivided element and
         // we do not apply the wake condition on the TE node
-        if (GetGeometry()[i].GetValue(TRAILING_EDGE))
-        {
-            for (unsigned int j = 0; j < NumNodes; ++j)
-            {
+        if (r_geometry[i].GetValue(TRAILING_EDGE)){
+            for (unsigned int j = 0; j < NumNodes; ++j){
                 rLeftHandSideMatrix(i, j) = lhs_positive(i, j);
                 rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_negative(i, j);
-
-                rLaplacianMatrix(i, j) = laplacian_positive(i, j);
-                rLaplacianMatrix(i + NumNodes, j + NumNodes) = laplacian_negative(i, j);
             }
         }
-        else
-        {
-            AssignLocalSystemWakeNode(rLeftHandSideMatrix, lhs_total, data, i);
-            AssignLocalSystemWakeNode(rLaplacianMatrix, laplacian_total, data, i);
+        else{
+            AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, data, i);
         }
     }
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeElement(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHandSideWakeElement(
     MatrixType& rLeftHandSideMatrix,
     const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
     const ElementalData<NumNodes, Dim>& data) const
 {
     for (unsigned int row = 0; row < NumNodes; ++row)
-        AssignLocalSystemWakeNode(rLeftHandSideMatrix, lhs_total, data, row);
+        AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, data, row);
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNode(
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHandSideWakeNode(
     MatrixType& rLeftHandSideMatrix,
     const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
     const ElementalData<NumNodes, Dim>& data,
@@ -626,6 +732,25 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLocalSys
     else if (data.distances[row] > 0.0)
         for (unsigned int column = 0; column < NumNodes; ++column)
             rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
+}
+
+template <int Dim, int NumNodes>
+void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightHandSideWakeNode(
+    VectorType& rRightHandSideVector,
+    const BoundedVector<double, NumNodes>& rUpper_rhs,
+    const BoundedVector<double, NumNodes>& rLower_rhs,
+    const BoundedVector<double, NumNodes>& rWake_rhs,
+    const ElementalData<NumNodes, Dim>& rData,
+    unsigned int& rRow) const
+{
+    if (rData.distances[rRow] > 0.0){
+        rRightHandSideVector[rRow] = rUpper_rhs(rRow);
+        rRightHandSideVector[rRow + NumNodes] = rWake_rhs(rRow);
+    }
+    else{
+        rRightHandSideVector[rRow] = rWake_rhs(rRow);
+        rRightHandSideVector[rRow + NumNodes] = rLower_rhs(rRow);
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -657,15 +782,6 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotenti
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEnergy()
-{
-    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
-
-    double internal_energy = 0.5 * inner_prod(velocity, velocity);
-    this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
-}
-
-template <int Dim, int NumNodes>
 double CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const
 {
     // Reading free stream conditions
@@ -675,7 +791,7 @@ double CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputeDensi
     const double mach_number_limit = rCurrentProcessInfo[MACH_LIMIT];
 
     // Computing local mach number
-    double local_mach_number = PotentialFlowUtilities::ComputeLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
+    double local_mach_number = PotentialFlowUtilities::ComputePerturbationLocalMachNumber<Dim, NumNodes>(*this, rCurrentProcessInfo);
 
     if (local_mach_number > mach_number_limit)
     { // Clamping the mach number to mach_number_limit

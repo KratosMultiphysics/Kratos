@@ -18,8 +18,9 @@
 // External includes
 
 // Project includes
-#include "mapper_utilities.h"
 #include "includes/stream_serializer.h"
+#include "utilities/parallel_utilities.h"
+#include "mapper_utilities.h"
 #include "mapping_application_variables.h"
 
 namespace Kratos
@@ -33,17 +34,15 @@ typedef std::size_t IndexType;
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 {
     const int num_nodes_local = rModelPartCommunicator.LocalMesh().NumberOfNodes();
-
     int num_nodes_accumulated = rModelPartCommunicator.GetDataCommunicator().ScanSum(num_nodes_local);
-
     const int start_equation_id = num_nodes_accumulated - num_nodes_local;
-
     const auto nodes_begin = rModelPartCommunicator.LocalMesh().NodesBegin();
 
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes_local; ++i) {
-        ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
-    }
+    IndexPartition<unsigned int>(num_nodes_local).for_each(
+        [nodes_begin, start_equation_id](unsigned int i){
+            (nodes_begin + i)->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
+        }
+    );
 
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
@@ -194,6 +193,34 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                 return true;
     return false;
 }
+
+void SaveCurrentConfiguration(ModelPart& rModelPart)
+{
+    KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.SetValue(CURRENT_COORDINATES, rNode.Coordinates());
+    });
+
+    KRATOS_CATCH("");
+}
+
+void RestoreCurrentConfiguration(ModelPart& rModelPart)
+{
+    KRATOS_TRY;
+
+    if (rModelPart.NumberOfNodes() > 0) {
+        KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->Has(CURRENT_COORDINATES)) << "Nodes do not have CURRENT_COORDINATES for restoring the current configuration!" << std::endl;
+
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetValue(CURRENT_COORDINATES);
+            rNode.Data().Erase(CURRENT_COORDINATES);
+        });
+    }
+
+    KRATOS_CATCH("");
+}
+
 
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
@@ -116,9 +114,6 @@ def  AuxiliarValidateSettings(solver):
     if not solver.settings["reform_dofs_at_each_step"].GetBool():
         KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         solver.settings["reform_dofs_at_each_step"].SetBool(True)
-    if solver.settings["use_computing_model_part"].GetBool():
-        KM.Logger.PrintInfo("Using Computing-ModelPart. Switching to False")
-        solver.settings["use_computing_model_part"].SetBool(False)
 
 def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":

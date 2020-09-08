@@ -35,6 +35,7 @@
 #include "containers/flags.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/global_pointers_vector.h"
+#include "containers/data_value_container.h"
 
 #include "containers/nodal_data.h"
 

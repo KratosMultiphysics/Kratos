@@ -25,10 +25,15 @@ The HDF5 C libraries are used with the *HDF5Application*. If Kratos is configure
 
 1. Install serial or parallel HDF5 library
 
-2. Configure Kratos to build the *HDF5Application*
-
+2. Configure Kratos to build the *HDF5Application* (following the standard [instructions](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md))
+    
+    - For GNU/Linux:
     ```
-    -DHDF5_APPLICATION=ON \
+    add_app ${KRATOS_APP_DIR}/HDF5Application
+    ```
+    - For Windows:
+    ```
+    CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
     ```
 
 3. Build Kratos

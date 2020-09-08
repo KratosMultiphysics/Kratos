@@ -415,6 +415,9 @@ class ExplicitStrategy(object):
     def FinalizeSolutionStep(self):
         (self.cplusplus_strategy).FinalizeSolutionStep()
 
+    def Finalize(self):
+        pass
+
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
@@ -678,20 +681,14 @@ class ExplicitStrategy(object):
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
-        if properties.Has(PARTICLE_FRICTION):
-            self.Procedures.KratosPrintWarning("---------------------------------------------------")
-            self.Procedures.KratosPrintWarning("  WARNING: Property PARTICLE_FRICTION is deprecated ")
-            self.Procedures.KratosPrintWarning("  since April 11th, 2018, replace with FRICTION")
-            self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
-            self.Procedures.KratosPrintWarning("---------------------------------------------------")
-            properties[FRICTION] = properties[PARTICLE_FRICTION]
-        if properties.Has(WALL_FRICTION):
+        if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
-            self.Procedures.KratosPrintWarning("  WARNING: Property WALL_FRICTION is deprecated")
-            self.Procedures.KratosPrintWarning("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KratosPrintWarning("  WARNING: Property FRICTION is deprecated since April 6th, 2020, ")
+            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION and DYNAMIC_FRICTION")
             self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
-            properties[FRICTION] = properties[WALL_FRICTION]
+            properties[STATIC_FRICTION] = properties[FRICTION]
+            properties[DYNAMIC_FRICTION] = properties[FRICTION]
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 

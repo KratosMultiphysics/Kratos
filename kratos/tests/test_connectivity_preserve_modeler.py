@@ -24,14 +24,14 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
         model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
 
-        model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 2, [2,4], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
 
         current_model = KratosMultiphysics.Model()
         new_model_part = current_model.CreateModelPart("Other")
 
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
+        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "LineCondition2D2N")
 
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
@@ -87,8 +87,8 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
         model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
 
-        model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
-        model_part1.CreateNewCondition("Condition2D2N", 1, [1,2], model_part1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 2, [2,4], model_part1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 1, [1,2], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
 
         current_model = KratosMultiphysics.Model()
@@ -96,22 +96,22 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         new_model_part2 = current_model.CreateModelPart("New2")
 
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
+        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "LineCondition2D2N")
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
-        modeler.GenerateModelPart(model_part1, new_model_part2, "Element2D3N", "Condition2D2N")
+        modeler.GenerateModelPart(model_part1, new_model_part2, "Element2D3N", "LineCondition2D2N")
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part2.Nodes))
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part2.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(new_model_part2.Elements))
 
-        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
+        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "LineCondition2D2N")
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
-        modeler.GenerateModelPart(model_part1, new_model_part2, "Element2D3N", "Condition2D2N")
+        modeler.GenerateModelPart(model_part1, new_model_part2, "Element2D3N", "LineCondition2D2N")
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part2.Nodes))
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part2.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(new_model_part2.Elements))
@@ -167,7 +167,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
         model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
 
-        model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 2, [2,4], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
 
         element_model_part = current_model.CreateModelPart("ElementCopy")
@@ -188,7 +188,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
 
         condition_model_part = current_model.CreateModelPart("ConditionCopy")
 
-        modeler.GenerateModelPart(model_part1, condition_model_part, "Condition2D2N")
+        modeler.GenerateModelPart(model_part1, condition_model_part, "LineCondition2D2N")
 
         self.assertEqual(len(condition_model_part.Nodes) , len(model_part1.Nodes))
         self.assertEqual(len(condition_model_part.Elements) , 0)

@@ -47,11 +47,4 @@ with open('response_combination.csv', 'r') as csvfile:
         TestCase().assertEqual(grad_norm_f1, "-")
         TestCase().assertAlmostEqual(grad_norm_f2, 1.43532E+07, 5)
 
-# Cleaning
-kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-kratos_utilities.DeleteFileIfExisting("response_combination.csv")
-kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".post.bin")
-
 # =======================================================================================================

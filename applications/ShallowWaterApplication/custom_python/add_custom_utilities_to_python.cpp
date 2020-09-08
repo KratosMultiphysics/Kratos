@@ -56,8 +56,6 @@ namespace Python
   {
     namespace py = pybind11;
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> ComponentVariableType;
-
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
         .def(py::init<ModelPart& , Parameters >())
         .def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
@@ -93,12 +91,7 @@ namespace Python
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
-        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::NodesContainerType>)
-        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ElementsContainerType>)
-        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<Variable<double>, ModelPart::ConditionsContainerType>)
-        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::NodesContainerType>)
-        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::ElementsContainerType>)
-        .def("RootMeanSquareNonHistorical", &ShallowWaterUtilities::RootMeanSquareNonHistorical<ComponentVariableType, ModelPart::ConditionsContainerType>)
+        .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
@@ -112,10 +105,8 @@ namespace Python
         .def("Replicate", &ReplicateModelPartUtility::Replicate)
         .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<double>>)
         .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<Variable<array_1d<double, 3>>>)
-        .def("TransferVariable", &ReplicateModelPartUtility::TransferVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<double>>)
         .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<Variable<array_1d<double, 3>>>)
-        .def("TransferNonHistoricalVariable", &ReplicateModelPartUtility::TransferNonHistoricalVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
         .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate1)
         .def("SetOriginMeshZCoordinate", SetOriginMeshZCoordinate2)
         .def("SetDestinationMeshZCoordinate", SetDestinationMeshZCoordinate1)
@@ -136,7 +127,6 @@ namespace Python
         .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>,array_1d<double,3>>)
         .def("UpdateSearchDatabase", &BFECCConvectionUtility<2>::UpdateSearchDatabase)
         .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
-        .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;

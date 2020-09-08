@@ -142,10 +142,13 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
     (*p_prop)[POISSON_RATIO] = 0.4;
     (*p_prop)[RAYLEIGH_ALPHA] = 0.02;
     (*p_prop)[RAYLEIGH_BETA] = 0.03;
-    rModelPart.GetElement(1).Check(r_process_info);
-    rModelPart.GetElement(1).Initialize();
-    rModelPart.GetElement(1).InitializeSolutionStep(r_process_info);
-    rModelPart.GetElement(1).InitializeNonLinearIteration(r_process_info);
+
+    const auto& r_const_process_info = rModelPart.GetProcessInfo();
+
+    rModelPart.GetElement(1).Check(r_const_process_info);
+    rModelPart.GetElement(1).Initialize(r_const_process_info);
+    rModelPart.GetElement(1).InitializeSolutionStep(r_const_process_info);
+    rModelPart.GetElement(1).InitializeNonLinearIteration(r_const_process_info);
     KRATOS_CATCH("");
 }
 
@@ -200,7 +203,8 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosStructu
     lhs_ref(5, 3) = -10941.885053732527;
     lhs_ref(5, 4) = -6004.72811348533378;
     lhs_ref(5, 5) = 1491659.588758684;
-    p_elem->CalculateLocalSystem(lhs, rhs, test_model_part.GetProcessInfo());
+    const auto& r_process_info = test_model_part.GetProcessInfo();
+    p_elem->CalculateLocalSystem(lhs, rhs, r_process_info);
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
             KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
@@ -373,7 +377,8 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_CalculateLocalSystem, KratosStructu
     lhs_ref(11,9) = -5758.21041465795861;
     lhs_ref(11,10) = -6353.84779750755661;
     lhs_ref(11,11) = 514270.424453794491;
-    p_elem->CalculateLocalSystem(lhs, rhs, test_model_part.GetProcessInfo());
+    const auto& r_process_info = test_model_part.GetProcessInfo();
+    p_elem->CalculateLocalSystem(lhs, rhs, r_process_info);
     for (std::size_t i = 0; i < 12; ++i)
         for (std::size_t j = 0; j < 12; ++j)
         KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
@@ -425,7 +430,8 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_MassMatrix, KratosStructuralMechani
     lhs_ref(5, 3) = 41.6666666666666217;
     lhs_ref(5, 4) = 0;
     lhs_ref(5, 5) = 83.3333333333333428;
-    p_elem->CalculateMassMatrix(lhs, test_model_part.GetProcessInfo());
+    const auto& r_process_info = test_model_part.GetProcessInfo();
+    p_elem->CalculateMassMatrix(lhs, r_process_info);
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
             KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
@@ -475,7 +481,8 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosStructuralMech
     lhs_ref(5, 3) = -327.42321827864248;
     lhs_ref(5, 4) = -180.141843404560007;
     lhs_ref(5, 5) = 44751.4543294271789;
-    p_elem->CalculateDampingMatrix(lhs, test_model_part.GetProcessInfo());
+    const auto& r_process_info = test_model_part.GetProcessInfo();
+    p_elem->CalculateDampingMatrix(lhs, r_process_info);
     for (std::size_t i = 0; i < 6; ++i)
         for (std::size_t j = 0; j < 6; ++j)
             KRATOS_CHECK_NEAR(lhs(i, j), lhs_ref(i, j), 1e-5);
@@ -505,10 +512,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
     auto p_elem = test_model_part.pGetElement(1);
     std::vector<double> weights;
     std::vector<double> strain_energies;
+    const auto& r_process_info = test_model_part.GetProcessInfo();
     p_elem->CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, weights,
-                                         test_model_part.GetProcessInfo());
+                                         r_process_info);
     p_elem->CalculateOnIntegrationPoints(STRAIN_ENERGY, strain_energies,
-                                         test_model_part.GetProcessInfo());
+                                         r_process_info);
     double element_strain_energy = 0.0;
     for (std::size_t i = 0; i < weights.size(); ++i)
         element_strain_energy += weights[i] * strain_energies[i];
@@ -523,9 +531,9 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
     }
     // Calculate strain energy on rotated element.
     p_elem->CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, weights,
-                                         test_model_part.GetProcessInfo());
+                                         r_process_info);
     p_elem->CalculateOnIntegrationPoints(STRAIN_ENERGY, strain_energies,
-                                         test_model_part.GetProcessInfo());
+                                         r_process_info);
     double rotated_element_strain_energy = 0.0;
     for (std::size_t i = 0; i < weights.size(); ++i)
         rotated_element_strain_energy += weights[i] * strain_energies[i];
@@ -543,15 +551,17 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
     AssignRandomNodalData(VOLUME_ACCELERATION, test_model_part, -10.0, 10.0);
     auto p_elem = test_model_part.pGetElement(1);
     Matrix sensitivity_matrix, semi_analytic_sensitivity_matrix;
+
+    const auto& r_process_info = test_model_part.GetProcessInfo();
     p_elem->CalculateSensitivityMatrix(SHAPE_SENSITIVITY, sensitivity_matrix,
-                                       test_model_part.GetProcessInfo());
+                                       r_process_info);
     semi_analytic_sensitivity_matrix.resize(sensitivity_matrix.size1(),
                                             sensitivity_matrix.size2(), false);
     Vector R, R_perturb, semi_analytic_sensitivity_vector, acceleration;
     Matrix mass_matrix;
-    auto get_res = [&p_elem, &test_model_part, &mass_matrix, &acceleration](Vector& rRes) {
-        p_elem->CalculateRightHandSide(rRes, test_model_part.GetProcessInfo());
-        p_elem->CalculateMassMatrix(mass_matrix, test_model_part.GetProcessInfo());
+    auto get_res = [&p_elem, &mass_matrix, &acceleration, &r_process_info](Vector& rRes) {
+        p_elem->CalculateRightHandSide(rRes, r_process_info);
+        p_elem->CalculateMassMatrix(mass_matrix, r_process_info);
         p_elem->GetSecondDerivativesVector(acceleration);
         if (rRes.size() != acceleration.size())
             rRes.resize(acceleration.size(), false);

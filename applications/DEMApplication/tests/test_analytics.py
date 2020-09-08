@@ -36,23 +36,24 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeTimeStep(self, time):
+    def FinalizeSolutionStep(self):
+        super(AnalyticsTestSolution, self).FinalizeSolutionStep()
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
             face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
             if node.Id == 1:
-                if time > 0.099:
+                if self.time > 0.099:
                     expected_value = 11.07179
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                     expected_value = 6.941702
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
             if node.Id == 2:
-                if time > 0.099:
+                if self.time > 0.099:
                     expected_value = 16.29633
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id == 3:
-                if time > 0.099:
+                if self.time > 0.099:
                     expected_value = 16.29633
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
 
