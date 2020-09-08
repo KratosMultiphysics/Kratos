@@ -626,8 +626,10 @@ protected:
                 }
             }
             mSlaveIds.clear();
-            std::sort( mMasterIds.begin(), mMasterIds.end() );
-            mMasterIds.erase( unique( mMasterIds.begin(), mMasterIds.end() ), mMasterIds.end() );
+            std::set<int> s( mMasterIds.begin(), mMasterIds.end() );
+            mMasterIds.assign( s.begin(), s.end() );
+            // std::sort( mMasterIds.begin(), mMasterIds.end() );
+            // mMasterIds.erase( unique( mMasterIds.begin(), mMasterIds.end() ), mMasterIds.end() );
             for(const auto& slave_masters_pair : indices){
                 mSlaveIds.push_back(slave_masters_pair.first);
             }
