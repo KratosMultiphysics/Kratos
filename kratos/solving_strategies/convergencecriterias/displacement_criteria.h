@@ -92,27 +92,16 @@ public:
     {
     }
 
-    /** Constructor.
-    */
-    explicit DisplacementCriteria(Kratos::Parameters Settings)
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementCriteria(Kratos::Parameters ThisParameters)
         : BaseType()
     {
-        if (Settings.Has("displacement_absolute_tolerance")) {
-            mAlwaysConvergedNorm = Settings["displacement_absolute_tolerance"].GetDouble();
-        } else if (Settings.Has("absolute_tolerance")) {
-            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
-        } else {
-            KRATOS_WARNING("DisplacementCriteria") << "displacement_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
-            mAlwaysConvergedNorm = 1.0e-9;
-        }
-        if (Settings.Has("displacement_relative_tolerance")) {
-            mRatioTolerance = Settings["displacement_relative_tolerance"].GetDouble();
-        } else if (Settings.Has("relative_tolerance")) {
-            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
-        } else {
-            KRATOS_WARNING("DisplacementCriteria") << "displacement_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
-            mRatioTolerance = 1.0e-4;
-        }
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /** Constructor.
@@ -273,6 +262,25 @@ public:
         return "displacement_criteria";
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                            : "displacement_criteria",
+            "displacement_relative_tolerance" : 1.0e-4,
+            "displacement_absolute_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -330,6 +338,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mAlwaysConvergedNorm = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+        mRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access

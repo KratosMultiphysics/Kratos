@@ -91,7 +91,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
             guess_row_size = 15
         else:
             guess_row_size = 45
-        if(self.settings["block_builder"].GetBool() == True):
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(epetra_communicator,
                                                                                    guess_row_size,
                                                                                    linear_solver)

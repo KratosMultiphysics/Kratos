@@ -1,6 +1,6 @@
 {
     "problem_data"         : {
-        "problem_name"         : "pfem2_conserved_variables",
+        "problem_name"         : "swe",
         "domain_size"          : 2,
         "echo_level"           : 0,
         "start_time"           : 0.0,
@@ -9,19 +9,17 @@
         "number_of_threads"    : 1
     },
     "solver_settings"      : {
-        "solver_type"              : "pfem2_conserved_var_solver",
+        "solver_type"              : "shallow_water_solver",
         "model_part_name"          : "main_model_part",
         "domain_size"              : 2,
         "gravity"                  : 9.81,
-        "time_scale"               : "seconds",
-        "water_height_scale"       : "meters",
         "model_import_settings"    : {
             "input_type"               : "mdpa",
-            "input_filename"           : "element_tests/square_domain"
+            "input_filename"           : "square_domain"
         },
         "echo_level"               : 0,
         "buffer_size"              : 2,
-        "dynamic_tau"              : 0.005,
+        "dynamic_tau"              : 0.01,
         "relative_tolerance"       : 1.0E-6,
         "absolute_tolerance"       : 1.0E-9,
         "maximum_iterations"       : 20,
@@ -43,7 +41,7 @@
             "process_name"         : "GidOutputProcess",
             "Parameters"           : {
                 "model_part_name"        : "main_model_part",
-                "output_name"            : "element_tests/pfem2_conserved_variables",
+                "output_name"            : "swe",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"         : {
@@ -53,7 +51,7 @@
                             "MultiFileFlag"         : "SingleFile"
                         },
                         "output_control_type"   : "step",
-                        "output_frequency"      : 1,
+                        "output_interval"       : 1,
                         "body_output"           : true,
                         "node_output"           : false,
                         "skin_output"           : false,
@@ -73,7 +71,7 @@
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Initial_water_level-auto-1",
                 "variable_name"   : "HEIGHT",
-                "value"           : "5"
+                "value"           : "0.1"
             }
         }],
         "boundary_conditions_process_list"  : [{
@@ -101,7 +99,7 @@
                 "is_fixed_y"      : true
             }
         }],
-        "bathymetry_process_list"     : [{
+        "topography_process_list"     : [{
             "python_module"   : "set_topography_process",
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
             "Parameters"      : {
@@ -115,7 +113,7 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
-                "input_file_name"  : "element_tests/test_pfem2_conserved_element.json",
+                "input_file_name"  : "swe_reference.json",
                 "time_frequency"   : 0.5
             }
         }]
@@ -127,7 +125,7 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "output_variables" : ["HEIGHT"],
-                "output_file_name" : "element_tests/test_pfem2_conserved_element.json",
+                "output_file_name" : "swe_reference.json",
                 "time_frequency"   : 0.5
             }
         },{
@@ -136,7 +134,7 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "check_variables"  : ["HEIGHT"],
-                "input_file_name"  : "element_tests/test_pfem2_conserved_element.json",
+                "input_file_name"  : "swe_reference.json",
                 "time_frequency"   : 0.5
             }
         }]
