@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "factories/base_factory.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
+#include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -42,6 +43,12 @@ namespace Kratos
         /// The definition of the factory
         using ExplicitStrategyFactoryType = Factory<ExplicitSolvingStrategyType, ModelPart>;
 
+        /// The definition of the explicit builder
+        using ExplicitBuilderType = ExplicitBuilder<SparseSpaceType,LocalSpaceType>;
+
+        /// The definition of the factory
+        using ExplicitBuilderFactoryType = Factory<ExplicitBuilderType>;
+
         /**
          * Checks if the ExplicitSolvingStrategyRungeKutta4 performs correctly the Factory
          */
@@ -57,6 +64,17 @@ namespace Kratos
             ExplicitSolvingStrategyType::Pointer p_strategy = ExplicitStrategyFactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "ExplicitSolvingStrategyRungeKutta4");
         }
+
+        /**
+         * Checks if the ExplicitBuilder performs correctly the Factory
+         */
+        KRATOS_TEST_CASE_IN_SUITE(ExplicitBuilderFactory, KratosCoreFastSuite)
+        {
+            Parameters this_parameters = Parameters(R"({"name" : "explicit_builder"})");
+            ExplicitBuilderType::Pointer p_explicit_builder = ExplicitBuilderFactoryType().Create(this_parameters);
+            KRATOS_CHECK_STRING_EQUAL(p_explicit_builder->Info(), "ExplicitBuilder");
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
 
