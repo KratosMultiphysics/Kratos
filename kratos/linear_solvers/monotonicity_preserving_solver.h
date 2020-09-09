@@ -236,7 +236,6 @@ public:
         double *values_vector = rA.value_data().begin();
         std::size_t *index1_vector = rA.index1_data().begin();
         std::size_t *index2_vector = rA.index2_data().begin();
-        const std::size_t matrix_size = rA.size1();
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rA.size1()); i++) {
