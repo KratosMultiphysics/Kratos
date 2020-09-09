@@ -37,7 +37,7 @@ namespace Kratos
         mrStructureModelPart(rStructureModelPart)
     {
         // Get the default settings
-        auto default_parameters = this->GetDefaultSettings();
+        auto default_parameters = this->GetDefaultParameters();
 
         // Set default embedded nodal variable settings
         mEmbeddedNodalVariableSettings = default_parameters["embedded_nodal_variable_settings"];
@@ -59,7 +59,7 @@ namespace Kratos
         mrStructureModelPart(rModel.GetModelPart(rParameters["structure_model_part_name"].GetString()))
     {
         // Validate with default parameters
-        rParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
+        rParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
         // Save the embedded nodal variable settings
         mEmbeddedNodalVariableSettings = rParameters["embedded_nodal_variable_settings"];
@@ -255,7 +255,7 @@ namespace Kratos
 
     /* Private functions *******************************************************/
 
-    Parameters FixedMeshALEUtilities::GetDefaultSettings()
+    Parameters FixedMeshALEUtilities::GetDefaultParameters()
     {
         Parameters default_parameters(R"(
         {
