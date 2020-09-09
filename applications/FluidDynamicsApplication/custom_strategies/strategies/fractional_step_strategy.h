@@ -967,6 +967,7 @@ private:
                                       << mPressureGradientRelaxationFactor << ".";
         } else {
             mPressureGradientRelaxationFactor = 1.0;
+            r_process_info.SetValue(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR, mPressureGradientRelaxationFactor);
         }
 
         BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
