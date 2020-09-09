@@ -959,7 +959,7 @@ private:
 
         mReformDofSet = rSolverConfig.GetReformDofSet();
 
-        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
+        auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         if (r_process_info.Has(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)) {
             mPressureGradientRelaxationFactor = r_process_info[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
             KRATOS_INFO(this->Info()) << "Using fractional step strategy with "
