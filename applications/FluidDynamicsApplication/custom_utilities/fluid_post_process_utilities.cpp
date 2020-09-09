@@ -19,9 +19,9 @@ namespace Kratos {
     double FluidPostProcessUtilities::CalculateFlow(const ModelPart& rModelPart) {
 
         double flow = 0.0;
-        auto conditions_begin = rModelPart.ConditionsBegin();
+        const auto conditions_begin = rModelPart.ConditionsBegin();
         const int num_conditions = rModelPart.NumberOfConditions();
-        auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
 
         #pragma omp parallel for reduction(+:flow)
         for(int i_c=0; i_c<num_conditions;++i_c) {
@@ -41,7 +41,7 @@ namespace Kratos {
 
             double average_velocity = 0.0;
 
-            for (int j=0; j<(int)r_geom.size(); j++) {
+            for (IndexType j=0; j<r_geom.size(); j++) {
                 average_velocity += MathUtils<double>::Dot(r_geom[j].FastGetSolutionStepValue(VELOCITY), unit_normal);
             }
             average_velocity *= (1.0 / (double)r_geom.size());
@@ -53,10 +53,7 @@ namespace Kratos {
 
         // For MPI
         double total_flow = flow;
-        if(r_data_comm.IsDistributed())
-        {
-            total_flow = r_data_comm.SumAll(flow);
-        }
+        total_flow = r_data_comm.SumAll(flow);
 
         return total_flow;
     }
