@@ -112,9 +112,37 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF_NOT(ThisParameters.Has("solver_type")) << "Solver_type must be specified to construct the MonotonicityPreservingSolver" << std::endl;
+        Parameters default_parameters( R"(
+        {
+            "solver_type"                    : "monothonicity_preserving_solver",
+            "auxiliary_solver_type"          : {
+                "preconditioner_type"            : "amg",
+                "solver_type"                    : "AMGCL",
+                "smoother_type"                  : "ilu0",
+                "krylov_type"                    : "lgmres",
+                "coarsening_type"                : "aggregation",
+                "max_iteration"                  : 100,
+                "provide_coordinates"            : false,
+                "gmres_krylov_space_dimension"   : 100,
+                "verbosity"                      : 1,
+                "tolerance"                      : 1e-6,
+                "scaling"                        : false,
+                "block_size"                     : 1,
+                "use_block_matrices_if_possible" : true,
+                "coarse_enough"                  : 1000,
+                "max_levels"                     : -1,
+                "pre_sweeps"                     : 1,
+                "post_sweeps"                    : 1,
+                "use_gpgpu"                      : false
+                }
+            }
 
-        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters);
+        }  )" );
+
+        // Now validate agains defaults -- this also ensures no type mismatch
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["auxiliary_solver_type"]);
 
         KRATOS_CATCH("")
     }
