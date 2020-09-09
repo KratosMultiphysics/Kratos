@@ -671,10 +671,6 @@ namespace Kratos
                         return std::shared_ptr<LineSearchStrategyType>(new LineSearchStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
                     }))
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
-                .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, Parameters Settings) {
-                        KRATOS_WARNING("LineSearchStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
-                        return std::shared_ptr<LineSearchStrategyType>(new LineSearchStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, Settings));
-                    }))
                 ;
         }
 
