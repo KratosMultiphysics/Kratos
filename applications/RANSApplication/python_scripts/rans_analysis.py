@@ -6,9 +6,13 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSolver
 
 class RANSAnalysis(AnalysisStage):
-    '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
-
     def __init__(self, model,parameters):
+        """Main script for RANS fluid dynamics simulations using formulations via coupled_rans_solver
+
+        Args:
+            model (Kratos.Model): Model used in the simulation
+            parameters (Kratos.Parameters): Parameters used in the simulation
+        """
         super().__init__(model, parameters)
 
     def _CreateSolver(self):
