@@ -203,7 +203,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         return delta_time
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
             "solver_type"              : "shallow_water_base_solver",
@@ -240,7 +240,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "multigrid_settings"       : {}
         }""")
-        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultParameters())
         return default_settings
 
     def _ReplaceElementsAndConditions(self):
