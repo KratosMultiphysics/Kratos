@@ -77,13 +77,13 @@ def CreateResidualBasedBlockBuilderAndSolver(linear_solver, is_periodic,
         return block_builder_and_solver(linear_solver, communicator)
 
 
-def CreateResidualBasedNewtonRaphsonStrategy(model_part, scheme, linear_solver,
+def CreateResidualBasedNewtonRaphsonStrategy(model_part, scheme,
                                              convergence_criteria,
                                              builder_and_solver,
                                              max_iterations, compute_reactions,
                                              reform_dofs_at_each_step,
                                              move_mesh_flag):
-    return newton_raphson_strategy(model_part, scheme, linear_solver,
+    return newton_raphson_strategy(model_part, scheme,
                                    convergence_criteria, builder_and_solver,
                                    max_iterations, compute_reactions,
                                    reform_dofs_at_each_step, move_mesh_flag)

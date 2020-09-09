@@ -55,7 +55,7 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
             [(KratosRANS.VELOCITY_POTENTIAL, solver_settings["relative_tolerance"].GetDouble(
             ), solver_settings["absolute_tolerance"].GetDouble())])
         self.velocity_strategy = CreateResidualBasedNewtonRaphsonStrategy(
-                    self.velocity_model_part, CreateIncrementalUpdateScheme(), linear_solver,
+                    self.velocity_model_part, CreateIncrementalUpdateScheme(),
                     convergence_criteria, builder_and_solver, 2, False, False, False)
 
         builder_and_solver.SetEchoLevel(
