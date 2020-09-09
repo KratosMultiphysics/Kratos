@@ -37,7 +37,7 @@ class AdjointDiffusionSolver(PythonSolver):
         if self.primal_model_part_name == "":
             raise Exception("No primal_model_part_name provided")
 
-    def GetDefaultSettings(self):
+    def GetDefaultParameters(self):
 
         default_settings = kratos.Parameters(r'''{
             "solver_type" : "adjoint_stationary",
@@ -73,7 +73,7 @@ class AdjointDiffusionSolver(PythonSolver):
             }
         }''')
 
-        default_settings.AddMissingParameters(super(AdjointDiffusionSolver,self).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(AdjointDiffusionSolver,self).GetDefaultParameters())
         return default_settings
 
     def AddVariables(self):
