@@ -10,13 +10,13 @@ from KratosMultiphysics import IntegrationValuesExtrapolationToNodesProcess as e
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
+from KratosMultiphysics.RANSApplication.formulations.utilities import LinearSolverFactory
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedBlockBuilderAndSolver
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateIncrementalUpdateScheme
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
+from KratosMultiphysics.RANSApplication.formulations.utilities import ResidualCriteria
+from KratosMultiphysics.RANSApplication.formulations.utilities import NewtonRaphsonStrategy
+from KratosMultiphysics.RANSApplication.formulations.utilities import IncrementalUpdateStaticScheme
 
 class IncompressiblePotentialFlowRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -97,17 +97,17 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         CalculateNormalsOnConditions(self.GetBaseModelPart())
 
         solver_settings = self.settings
-        linear_solver = CreateLinearSolver(
+        linear_solver = LinearSolverFactory(
             solver_settings["linear_solver_settings"])
-        builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
+        builder_and_solver = CreateBlockBuilderAndSolver(
             linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
-        convergence_criteria = CreateResidualCriteria(
+        convergence_criteria = ResidualCriteria(
             [(KratosRANS.VELOCITY_POTENTIAL, solver_settings["relative_tolerance"].GetDouble(),
             solver_settings["absolute_tolerance"].GetDouble())])
-        self.velocity_strategy = CreateResidualBasedNewtonRaphsonStrategy(
-            self.velocity_model_part, CreateIncrementalUpdateScheme(),
+        self.velocity_strategy = NewtonRaphsonStrategy(
+            self.velocity_model_part, IncrementalUpdateStaticScheme(),
             convergence_criteria, builder_and_solver, 2, False, False, False)
 
         builder_and_solver.SetEchoLevel(solver_settings["echo_level"].GetInt() - 3)

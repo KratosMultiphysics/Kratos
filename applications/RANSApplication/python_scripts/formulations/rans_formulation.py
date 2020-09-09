@@ -140,6 +140,15 @@ class RansFormulation:
                 min_buffer_size = formulation.GetMinimumBufferSize()
         return min_buffer_size
 
+    def IsBufferInitialized(self):
+        """Check whether enough buffer is initialized to solve current formulation and its child formulations
+
+        Returns:
+            bool: True if enough steps are initialized, False otherwise
+        """
+        return (self.GetBaseModelPart().ProcessInfo[Kratos.STEP] + 1 >=
+                self.GetMinimumBufferSize())
+
     def IsConverged(self):
         """Recursively checks whether all formulations are converged.
 

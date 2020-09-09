@@ -8,7 +8,7 @@ def RunParametricTestCase(
     settings_file_name,
     work_folder,
     parameters_dict,
-    print_output=False):
+    print_output = False):
 
     test_folder = os.path.join("..", "tests", work_folder)
 
