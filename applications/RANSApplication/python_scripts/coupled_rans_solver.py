@@ -8,7 +8,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import application specific modules
-from KratosMultiphysics.RANSApplication.formulations import Factory as FomulationFactory
+from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -84,7 +84,7 @@ class CoupledRANSSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE,
                                                   self.domain_size)
 
-        self.formulation = FomulationFactory(self.main_model_part,
+        self.formulation = FormulationFactory(self.main_model_part,
                                 self.settings["formulation_settings"])
 
         self.formulation.SetConstants(self.settings["constants"])
