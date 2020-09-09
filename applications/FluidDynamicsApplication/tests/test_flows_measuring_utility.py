@@ -1,8 +1,9 @@
 import os
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as Fluid
-
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as k_utils
+import KratosMultiphysics.FluidDynamicsApplication.flow_output_process as flow_process
 
 class FlowsMeasuringUtilityTest(UnitTest.TestCase):
 
@@ -16,15 +17,16 @@ class FlowsMeasuringUtilityTest(UnitTest.TestCase):
 
         self.settings = Kratos.Parameters("""
         {
-            "model_part_name_list" : ["FluidMOdelPart.first", "FluidMOdelPart.second"]
+            "model_part_name_list" : ["FluidMOdelPart.first", "FluidMOdelPart.second"],
             "output_file_settings": {
                     "file_name"  : "test_flow_data_output.dat",
-                    "folder_name": "disp_output"
+                    "folder_name": ""
             }
         }
         """)
 
-        self.filename = "test_flow_data_output.dat"
+        self.filename = self.settings["output_file_settings"]["file_name"].GetString()
+        print(self.filename)
 
     def testFlowsMeasuring2D_1(self):
         vel = Kratos.Array3()
@@ -50,15 +52,18 @@ class FlowsMeasuringUtilityTest(UnitTest.TestCase):
         second_smp = self.fluid_model_part.CreateSubModelPart("second")
         second_smp.AddConditions([3])
 
-        flow_measurer = Fluid.FlowsMeasuringProcess(self.current_model, self.settings)
+        flow_measurer = flow_process.FlowOutputProcess(self.current_model, self.settings)
+        flow_measurer.ExecuteInitialize()
+        flow_measurer.ExecuteInitializeSolutionStep()
         flow_measurer.ExecuteFinalizeSolutionStep()
+        flow_measurer.ExecuteFinalize()
 
         with open(self.filename, "r") as f:
-            f.readline()
-            interesting_line = f.readline()
+            lines=f.readlines()
+            interesting_line = lines[2]
             splitted_line = interesting_line.split()
-            self.assertEqual(splitted_line[1], "-2")
-            self.assertEqual(splitted_line[2], "-1")
+            self.assertAlmostEqual(float(splitted_line[1]), -2.0)
+            self.assertAlmostEqual(float(splitted_line[2]), -1.0)
 
     def testFlowsMeasuring3D_1(self):
         vel = Kratos.Array3()
@@ -94,18 +99,15 @@ class FlowsMeasuringUtilityTest(UnitTest.TestCase):
         second_smp.AddConditions([3])
 
 
-        flow_value_first = Fluid.PostProcessUtilities().CalculateFlow(first_smp)
-        flow_value_second = Fluid.PostProcessUtilities().CalculateFlow(second_smp)
+        flow_value_first = Fluid.FluidPostProcessUtilities().CalculateFlow(first_smp)
+        flow_value_second = Fluid.FluidPostProcessUtilities().CalculateFlow(second_smp)
 
-        self.assertEqual(flow_value_first, 1.0)
-        self.assertEqual(flow_value_second, -0.5)
+        self.assertAlmostEqual(flow_value_first, 1.0)
+        self.assertAlmostEqual(flow_value_second, -0.5)
 
     def tearDown(self):
+        k_utils.DeleteFileIfExisting(self.filename)
 
-        try:
-            os.remove(self.filename)
-        except OSError:
-            pass
 
 if __name__ == '__main__':
     UnitTest.main()
