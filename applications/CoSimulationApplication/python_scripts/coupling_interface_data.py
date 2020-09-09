@@ -13,7 +13,7 @@ class CouplingInterfaceData(object):
     """
     def __init__(self, custom_settings, model, name="default", solver_name="default_solver"):
 
-        custom_settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+        custom_settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.settings = custom_settings
         self.model = model
@@ -89,7 +89,7 @@ class CouplingInterfaceData(object):
         self.is_initialized = True
 
     @staticmethod
-    def GetDefaultSettings():
+    def GetDefaultParameters():
         return KM.Parameters("""{
             "model_part_name" : "",
             "variable_name"   : "",
