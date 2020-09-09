@@ -95,7 +95,7 @@ private:
     ///@{
     const ModelPart& mrModelPart;
     const Variable<TDataType>& mrVariable;
-    std::vector<double> mData;
+    std::vector<TDataType> mData;
 
     ///@}
 

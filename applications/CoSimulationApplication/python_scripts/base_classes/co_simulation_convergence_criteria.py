@@ -15,7 +15,6 @@ class CoSimulationConvergenceCriteria(object):
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
-
     def Initialize(self):
         pass
 

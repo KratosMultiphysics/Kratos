@@ -44,18 +44,6 @@ void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::UpdateDofs
 }
 
 template <>
-void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::AssignDofs(
-    DofsArrayType& rDofSet,
-    const SystemVectorType& rX)
-{
-    block_for_each(rDofSet, [&](DofType& rDof) {
-        if (rDof.IsFree()) {
-            rDof.GetSolutionStepValue() = rX[rDof.EquationId()];
-        }
-    });
-}
-
-template <>
 std::string RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::Info() const
 {
     std::stringstream buffer;
@@ -76,4 +64,3 @@ template class RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>;
 ///@}
 
 ///@} addtogroup block
-

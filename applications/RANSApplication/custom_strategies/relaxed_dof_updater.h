@@ -120,17 +120,6 @@ public:
         DofsArrayType& rDofSet,
         const SystemVectorType& rDx) override;
 
-    /// Assign new values for the problem's degrees of freedom using the vector rX.
-    /** For each Dof in rDofSet, this function assigns the value for the corresponding
-     *  variable as value = rX[dof.EquationId()].
-     *  @param[in/out] rDofSet The list of degrees of freedom.
-     *  @param[in] rX The solution vector.
-     *  This method will check if Initialize() was called before and call it if necessary.
-     */
-    void AssignDofs(
-        DofsArrayType& rDofSet,
-        const SystemVectorType& rX) override;
-
     ///@}
     ///@name Input and output
     ///@{
