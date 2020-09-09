@@ -177,7 +177,6 @@ class AdjointDiffusionSolver(PythonSolver):
 
         self.solver = kratos.ResidualBasedLinearStrategy(self.model_part,
                                                          self.time_scheme,
-                                                         self.linear_solver,
                                                          builder_and_solver,
                                                          False,
                                                          False,
@@ -253,7 +252,3 @@ class AdjointDiffusionSolver(PythonSolver):
 
         ## Call the replace elements and conditions process
         kratos.ReplaceElementsAndConditionsProcess(self.model_part, self.settings["element_replace_settings"]).Execute()
-
-
-
-
