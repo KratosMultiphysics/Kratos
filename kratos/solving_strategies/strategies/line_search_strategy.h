@@ -164,8 +164,7 @@ public:
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        const Parameters default_settings_const = this->GetDefaultParameters();
-        Parameters default_settings(default_settings_const);
+        Parameters default_settings = this->GetDefaultParameters();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
@@ -192,8 +191,7 @@ public:
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        const Parameters default_settings_const = this->GetDefaultParameters();
-        Parameters default_settings(default_settings_const);
+        Parameters default_settings = this->GetDefaultParameters();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
@@ -223,8 +221,7 @@ public:
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        const Parameters default_settings_const = this->GetDefaultParameters();
-        Parameters default_settings(default_settings_const);
+        Parameters default_settings = this->GetDefaultParameters();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
@@ -265,30 +262,6 @@ public:
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters ThisParameters
         ): BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, BaseType::GetDefaultParameters())
-    {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
-    }
-
-    /**
-     * Constructor with Settings and pointer to BuilderAndSolver
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
-     * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param pNewBuilderAndSolver The builder and solver employed
-     * @param ThisParameters Settings used in the strategy
-     */
-    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
-    LineSearchStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters ThisParameters
-        ): BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, BaseType::GetDefaultParameters())
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
