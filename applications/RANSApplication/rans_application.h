@@ -22,9 +22,6 @@
 
 // Application includes
 
-// fractional step extended element
-#include "custom_elements/rans_fractional_step_element.h"
-
 // incompressible potential flow elements
 #include "custom_elements/incompressible_potential_flow_velocity_element.h"
 
@@ -136,10 +133,6 @@ public:
 private:
     ///@name Member Variables
     ///@{
-
-    // Fractionalstep elements
-    const RansFractionalStepElement<2> mRansFractionalStep2D;
-    const RansFractionalStepElement<3> mRansFractionalStep3D;
 
     /// incompressible potential flow elements
     const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;

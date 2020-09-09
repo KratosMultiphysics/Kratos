@@ -130,7 +130,13 @@ public:
         BuilderSolverTypePointer vel_build =
             BuilderSolverTypePointer(
                 new TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit<TSparseSpace,TDenseSpace,TLinearSolver,VarComponent>(Comm,guess_row_size,pNewVelocityLinearSolver,this->mDomainSize,FRACT_VEL_X,FRACT_VEL_Y,FRACT_VEL_Z) );
-        this->mpfracvel_strategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(model_part,pscheme,pNewVelocityLinearSolver,vel_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+        this->mpfracvel_strategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(
+            model_part,
+            pscheme,
+            vel_build,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag));
         this->mpfracvel_strategy->SetEchoLevel(1);
 
 // 			BuilderSolverTypePointer vel_y_build	= BuilderSolverTypePointer(	new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm,guess_row_size,pNewVelocityLinearSolver) );
@@ -157,7 +163,13 @@ public:
 //				this->mppressurestep->SetEchoLevel(1);
 
             BuilderSolverTypePointer pressure_builderandsolver = BuilderSolverTypePointer(	new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm,guess_row_size,pNewPressureLinearSolver) );
-            this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(model_part,pscheme,pNewVelocityLinearSolver,pressure_builderandsolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+            this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(
+                model_part,
+                pscheme,
+                pressure_builderandsolver,
+                CalculateReactions,
+                ReformDofAtEachIteration,
+                CalculateNormDxFlag));
             this->mppressurestep->SetEchoLevel(1);
 
         }
