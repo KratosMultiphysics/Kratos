@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 
 from KratosMultiphysics import _ImportApplication
 
-# Applications requiered
+# Applications requiered 
 from KratosDelaunayMeshingApplication import *
 
 # Application dependent names and paths
