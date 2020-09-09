@@ -45,16 +45,17 @@ proc InitGIDProject { dir } {
     if { [GidUtils::IsTkDisabled] eq 0} {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "1.Generate OBJ and export MSH" ] 0 PRE [list OneClickGo] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Select SPH options"] 1 PRE "GidOpenProblemData" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "2.Generate SPH file" ] 2 PRE [list GenerateSPHFileFromOBJFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Cancel SPH generation" ] 3 PRE [list CancelSphereTree] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "3.Generate CLU file" ] 4 PRE [list GenerateClusterFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "0.Generate OBJ, SPH, CLU and visualize" ] 0 PRE [list OneClickGo] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "1.Generate OBJ and export MSH" ] 1 PRE [list GenerateOBJMSH] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Select SPH options"] 2 PRE "GidOpenProblemData" "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "2.Generate SPH file" ] 3 PRE [list GenerateSPHFileFromOBJFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Cancel SPH generation" ] 4 PRE [list CancelSphereTree] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "3.Generate CLU file" ] 5 PRE [list GenerateClusterFile] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 5 PRE [list ReadSPHFileintoMesh] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in principal axis" ] 6 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 6 PRE [list ReadSPHFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in principal axis" ] 7 PRE [list ReadClusterFileintoMesh] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Remove cluster visualization" ] 7 PRE [list DeleteSpheresMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Remove cluster visualization" ] 8 PRE [list DeleteSpheresMesh] "" ""
 
         GiDMenu::UpdateMenus
     }
@@ -158,17 +159,24 @@ proc OneClickGo {} {
     GiD_Process Mescape Utilities Calculate MEscape
 
     # Generate SPH file from OBJ
-    # GenerateSPHFileFromOBJFile
-
-    # Throws error since trying to generate cluster file while SPH is still being generated.
+    GenerateSPHFileFromOBJFile
 
     # Generate CLU file from MSH and SPH
-    # GenerateClusterFile
+    GenerateClusterFile
 
     # Visualize cluster
-    # ReadSPHFileintoMesh
+    ReadSPHFileintoMesh
 }
 
+
+
+
+proc GenerateOBJMSH {} {
+
+    # Generate OBJ and MSH files on Calculate
+    GiD_Process Mescape Utilities Calculate MEscape
+
+}
 
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
@@ -237,6 +245,13 @@ proc call_SphereTree { } {
     proc my_progress_proc { args }  { ... return $user_stop }
 
 proc DEMClusters::call_makeTreeMedial { } {
+
+    set genericSPHFilename [file join $::DEMClusters::ProblemPath generic-medial.sph]
+    if { [file exists $genericSPHFilename] } {
+        W "Previous SPH has been removed. Generating new SPH file."
+        file delete $genericSPHFilename
+        # wait 60 seconds and recheck if sph has been generated.
+    }
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
     set branch [GiD_AccessValue get gendata branch]
@@ -572,6 +587,14 @@ proc GenerateClusterFile { } {
         W "Select a valid algorithm"
     }
 
+    # warning: this never ends
+    while { [file exists $genericSPHFilename] == 0 } {
+        W "waiting for SPH to be generated..."
+        after 60000
+        # wait 60 seconds and recheck if sph has been generated.
+    }
+
+    W "SPH file detected in folder. Generating CLU file."
     set genericMSHFilename [file join $::DEMClusters::ProblemPath generic.msh]
     set ouputpath [file join $::DEMClusters::ProblemPath generic_cluster.clu]
     W "Cluster file generated in the following location:"
