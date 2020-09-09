@@ -214,7 +214,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
             current_part->Nodes().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
 
@@ -917,7 +917,7 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
 
             current_part->Elements().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -980,8 +980,8 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
 
 /** Inserts an element in the mesh with ThisIndex.
 */
-ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName, 
-        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry, 
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -1176,7 +1176,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
 
             current_part->MasterSlaveConstraints().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1436,7 +1436,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
 
             current_part->Conditions().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1758,12 +1758,21 @@ void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 }
 
 
-ModelPart* ModelPart::GetParentModelPart() const
+ModelPart& ModelPart::GetParentModelPart()
 {
     if (IsSubModelPart()) {
-        return mpParentModelPart;
+        return *mpParentModelPart;
     } else {
-        return const_cast<ModelPart*>(this);
+        return *this;
+    }
+}
+
+const ModelPart& ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return *mpParentModelPart;
+    } else {
+        return *this;
     }
 }
 
