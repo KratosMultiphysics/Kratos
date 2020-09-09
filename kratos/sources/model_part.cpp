@@ -980,8 +980,8 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
 
 /** Inserts an element in the mesh with ThisIndex.
 */
-ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName, 
-        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry, 
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -1758,12 +1758,21 @@ void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 }
 
 
-ModelPart* ModelPart::GetParentModelPart() const
+ModelPart& ModelPart::GetParentModelPart()
 {
     if (IsSubModelPart()) {
-        return mpParentModelPart;
+        return *mpParentModelPart;
     } else {
-        return const_cast<ModelPart*>(this);
+        return *this;
+    }
+}
+
+const ModelPart& ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return *mpParentModelPart;
+    } else {
+        return *this;
     }
 }
 

@@ -1063,12 +1063,12 @@ public:
     ElementType::Pointer CreateNewElement(std::string ElementName,
         IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
-    
+
     /// Creates new element with pointer to geometry.
     ElementType::Pointer CreateNewElement(std::string ElementName,
         IndexType Id, typename GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
-    
+
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
     {
@@ -1523,10 +1523,15 @@ public:
         return mSubModelParts;
     }
 
-    /** Returns a pointer to the Parent ModelPart
-     * Returns a pointer to itself if it is not a SubModelPart
+    /** Returns a reference to the Parent ModelPart
+     * Returns a reference to itself if it is not a SubModelPart
     */
-    ModelPart* GetParentModelPart() const;
+    ModelPart& GetParentModelPart();
+
+    /** Returns a reference to the Parent ModelPart (const version)
+     * Returns a reference to itself if it is not a SubModelPart
+    */
+    const ModelPart& GetParentModelPart() const;
 
     /** Returns whether this ModelPart has a SubModelPart with a given name
     */
