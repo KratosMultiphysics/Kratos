@@ -20,48 +20,16 @@ elif (IsDistributedRun()):
     raise Exception("Distributed run requires TrilinosApplication")
 
 class CoupledRANSSolver(PythonSolver):
-    @classmethod
-    def GetDefaultSettings(cls):
-        ##settings string in json format
-        default_settings = Kratos.Parameters("""
-        {
-            "solver_type": "CoupledRANS",
-            "model_part_name": "FluidModelPart",
-            "domain_size": -1,
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "reorder": false
-            },
-            "material_import_settings": {
-                "materials_filename": ""
-            },
-            "consider_periodic_conditions": false,
-            "formulation_settings": {},
-            "wall_function_settings": {},
-            "echo_level": 0,
-            "volume_model_part_name": "volume_model_part",
-            "skin_parts"   : [""],
-            "no_skin_parts": [""],
-            "assign_neighbour_elements_to_conditions": true,
-            "move_mesh": false,
-            "time_scheme_settings":{
-                "scheme_type": "steady"
-            },
-            "time_stepping": {
-                "automatic_time_step" : false,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01,
-                "time_step"           : 0.0
-            },
-            "constants": {}
-        }""")
-
-        default_settings.AddMissingParameters(super().GetDefaultSettings())
-        return default_settings
-
     def __init__(self, model, custom_settings):
+        """RANS solver to be used with RANSFormulations
+
+        This solver creates PythonSolver based on the RANSFormulations specified in custom_settings.
+
+        Args:
+            model (Kratos.Model): Model to be used in the solver.
+            custom_settings (Kratos.Parameters): Settings to be used in the solver.
+        """
+
         self._validate_settings_in_baseclass = True  # To be removed eventually
         super().__init__(model, custom_settings)
 
@@ -107,6 +75,47 @@ class CoupledRANSSolver(PythonSolver):
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        ##settings string in json format
+        default_settings = Kratos.Parameters("""
+        {
+            "solver_type": "CoupledRANS",
+            "model_part_name": "FluidModelPart",
+            "domain_size": -1,
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name",
+                "reorder": false
+            },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
+            "consider_periodic_conditions": false,
+            "formulation_settings": {},
+            "wall_function_settings": {},
+            "echo_level": 0,
+            "volume_model_part_name": "volume_model_part",
+            "skin_parts"   : [""],
+            "no_skin_parts": [""],
+            "assign_neighbour_elements_to_conditions": true,
+            "move_mesh": false,
+            "time_scheme_settings":{
+                "scheme_type": "steady"
+            },
+            "time_stepping": {
+                "automatic_time_step" : false,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01,
+                "time_step"           : 0.0
+            },
+            "constants": {}
+        }""")
+
+        default_settings.AddMissingParameters(super().GetDefaultSettings())
+        return default_settings
 
     def AddVariables(self):
         self.formulation.AddVariables()
