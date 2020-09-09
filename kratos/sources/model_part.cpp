@@ -214,7 +214,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
             current_part->Nodes().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
 
@@ -917,7 +917,7 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
 
             current_part->Elements().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1176,7 +1176,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
 
             current_part->MasterSlaveConstraints().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1436,7 +1436,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
 
             current_part->Conditions().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
