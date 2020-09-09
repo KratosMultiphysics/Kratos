@@ -18,7 +18,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""{
             "solver_type": "Embedded",
@@ -73,7 +73,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             }
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesMPIEmbeddedMonolithicSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesMPIEmbeddedMonolithicSolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):

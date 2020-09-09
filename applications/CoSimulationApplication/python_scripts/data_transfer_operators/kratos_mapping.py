@@ -78,13 +78,13 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         # TODO in the future also non-historical nodal values will be supported, but this still requires some improvements in the MappingApp
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "mapper_settings" : {
                 "mapper_type" : "UNSPECIFIED"
             }
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
     @classmethod
