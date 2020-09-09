@@ -1,10 +1,8 @@
 import sys
 sys.dont_write_bytecode = True
 
-# Import PyCOMPSs
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from xmc.distributedEnvironmentFramework import *
+
 import numpy as np
 
 import xmc
