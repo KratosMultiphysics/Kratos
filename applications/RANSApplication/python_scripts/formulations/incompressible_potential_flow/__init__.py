@@ -7,15 +7,15 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
 # import formulation interface
-from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
+from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import formulations
-from .incompressible_potential_flow_velocity_formulation import IncompressiblePotentialFlowVelocityFormulation
+from .incompressible_potential_flow_velocity_formulation import IncompressiblePotentialFlowVelocityRansFormulation
 
 
-class IncompressiblePotentialFlowFormulation(Formulation):
+class IncompressiblePotentialFlowRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
-        super(IncompressiblePotentialFlowFormulation, self).__init__(model_part, settings)
+        super().__init__(model_part, settings)
 
         default_settings = Kratos.Parameters(r'''
         {
@@ -25,7 +25,7 @@ class IncompressiblePotentialFlowFormulation(Formulation):
         }''')
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.AddFormulation(IncompressiblePotentialFlowVelocityFormulation(model_part, settings["velocity_potential_flow_solver_settings"]))
+        self.AddRansFormulation(IncompressiblePotentialFlowVelocityRansFormulation(model_part, settings["velocity_potential_flow_solver_settings"]))
         self.SetMaxCouplingIterations(1)
 
     def AddVariables(self):
@@ -63,6 +63,6 @@ class IncompressiblePotentialFlowFormulation(Formulation):
         return False
 
     def SetIsPeriodic(self, value):
-        super(IncompressiblePotentialFlowFormulation, self).SetIsPeriodic(False)
+        super(IncompressiblePotentialFlowRansFormulation, self).SetIsPeriodic(False)
         if (value):
             raise Exception("Periodic conditions are not supported by incompressible potential flow solver.")

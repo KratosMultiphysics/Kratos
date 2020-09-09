@@ -127,7 +127,7 @@ def CalculateNormalsOnConditions(model_part):
                                 "Condition normals calculated.")
 
 
-def CreateFormulationModelPart(formulation, element_name, condition_name):
+def CreateRansFormulationModelPart(formulation, element_name, condition_name):
     formulation.domain_size = formulation.GetBaseModelPart().ProcessInfo[
         Kratos.DOMAIN_SIZE]
 

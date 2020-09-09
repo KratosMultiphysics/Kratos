@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
-class Formulation:
+class RansFormulation:
     def __init__(self, base_computing_model_part, settings):
         self.settings = settings
         self.base_computing_model_part = base_computing_model_part
@@ -12,8 +12,12 @@ class Formulation:
     def GetName(self):
         return self.__class__.__name__
 
-    def AddFormulation(self, formulation):
-        self.list_of_formulations.append(formulation)
+    def AddRansFormulation(self, formulation):
+        if (isinstance(formulation, RansFormulation)):
+            self.list_of_formulations.append(formulation)
+        else:
+            msg = str(formulation).rstrip() + " is not a RansFormulation. Please use only RansFormulation objects."
+            raise Exception(msg)
 
     def AddProcess(self, process):
         if (isinstance(process, KratosRANS.RansFormulationProcess)):
@@ -23,28 +27,28 @@ class Formulation:
             raise Exception(msg)
 
     def AddVariables(self):
-        self.__ExecuteFormulationMethods("AddVariables")
+        self.__ExecuteRansFormulationMethods("AddVariables")
 
     def AddDofs(self):
-        self.__ExecuteFormulationMethods("AddDofs")
+        self.__ExecuteRansFormulationMethods("AddDofs")
 
     def PrepareModelPart(self):
-        self.__ExecuteFormulationMethods("PrepareModelPart")
+        self.__ExecuteRansFormulationMethods("PrepareModelPart")
 
     def Clear(self):
-        self.__ExecuteFormulationMethods("Clear")
+        self.__ExecuteRansFormulationMethods("Clear")
 
     def Check(self):
         self.__ExecuteProcessMethods("Check")
-        self.__ExecuteFormulationMethods("Check")
+        self.__ExecuteRansFormulationMethods("Check")
 
     def Initialize(self):
         self.__ExecuteProcessMethods("ExecuteInitialize")
-        self.__ExecuteFormulationMethods("Initialize")
+        self.__ExecuteRansFormulationMethods("Initialize")
 
     def InitializeSolutionStep(self):
         self.__ExecuteProcessMethods("ExecuteInitializeSolutionStep")
-        self.__ExecuteFormulationMethods("InitializeSolutionStep")
+        self.__ExecuteRansFormulationMethods("InitializeSolutionStep")
 
     def SolveCouplingStep(self):
         max_iterations = self.GetMaxCouplingIterations()
@@ -65,11 +69,11 @@ class Formulation:
         self.__ExecuteProcessMethods("ExecuteAfterCouplingSolveStep")
 
     def FinalizeSolutionStep(self):
-        self.__ExecuteFormulationMethods("FinalizeSolutionStep")
+        self.__ExecuteRansFormulationMethods("FinalizeSolutionStep")
         self.__ExecuteProcessMethods("ExecuteFinalizeSolutionStep")
 
     def Finalize(self):
-        self.__ExecuteFormulationMethods("Finalize")
+        self.__ExecuteRansFormulationMethods("Finalize")
         self.__ExecuteProcessMethods("ExecuteFinalize")
 
     def GetMinimumBufferSize(self):
@@ -96,7 +100,7 @@ class Formulation:
         return self.move_mesh
 
     def SetCommunicator(self, communicator):
-        self.__ExecuteFormulationMethods("SetCommunicator", [communicator])
+        self.__ExecuteRansFormulationMethods("SetCommunicator", [communicator])
         self.communicator = communicator
 
     def GetCommunicator(self):
@@ -112,15 +116,15 @@ class Formulation:
             raise Exception(self.__class__.__name__ + " needs to use \"SetIsPeriodic\" first before checking.")
 
     def SetIsPeriodic(self, value):
-        self.__ExecuteFormulationMethods("SetIsPeriodic", [value])
+        self.__ExecuteRansFormulationMethods("SetIsPeriodic", [value])
         self.is_periodic = value
 
     def SetTimeSchemeSettings(self, settings):
-        self.__ExecuteFormulationMethods("SetTimeSchemeSettings", [settings])
+        self.__ExecuteRansFormulationMethods("SetTimeSchemeSettings", [settings])
         self.time_scheme_settings = settings
 
     def SetWallFunctionSettings(self, settings):
-        self.__ExecuteFormulationMethods("SetWallFunctionSettings", [settings])
+        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
         self.wall_function_settings = settings
 
     def GetTimeSchemeSettings(self):
@@ -142,9 +146,9 @@ class Formulation:
             raise Exception(self.__class__.__name__ + " needs to use \"SetMaxCouplingIterations\" first before calling \"GetMaxCouplingIterations\".")
 
     def SetConstants(self, settings):
-        self.__ExecuteFormulationMethods("SetTimeSchemeSettings", [settings])
+        self.__ExecuteRansFormulationMethods("SetTimeSchemeSettings", [settings])
 
-    def GetFormulationsList(self):
+    def GetRansFormulationsList(self):
         return self.list_of_formulations
 
     def GetProcessList(self):
@@ -173,7 +177,7 @@ class Formulation:
             info += str(formulation.GetInfo()).replace("\n", "\n   ")
         return info
 
-    def __ExecuteFormulationMethods(self, method_name, args = []):
+    def __ExecuteRansFormulationMethods(self, method_name, args = []):
         for formulation in self.list_of_formulations:
             getattr(formulation, method_name)(*args)
 

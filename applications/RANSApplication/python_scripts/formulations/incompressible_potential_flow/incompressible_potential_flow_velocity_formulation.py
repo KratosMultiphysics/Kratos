@@ -10,21 +10,21 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics import IntegrationValuesExtrapolationToNodesProcess as extrapolation_process
 
 # import formulation interface
-from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
+from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateIncrementalUpdateScheme
 
-class IncompressiblePotentialFlowVelocityFormulation(Formulation):
+class IncompressiblePotentialFlowVelocityRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
-        super(IncompressiblePotentialFlowVelocityFormulation, self).__init__(model_part, settings)
+        super().__init__(model_part, settings)
 
         defaults = Kratos.Parameters(r"""{
             "linear_solver_settings": {
@@ -39,7 +39,7 @@ class IncompressiblePotentialFlowVelocityFormulation(Formulation):
         self.max_coupling_iterations = 1
 
     def PrepareModelPart(self):
-        self.velocity_model_part = CreateFormulationModelPart(self,
+        self.velocity_model_part = CreateRansFormulationModelPart(self,
                                                                 "RansIncompressiblePotentialFlowVelocity",
                                                                 "RansIncompressiblePotentialFlowVelocityInlet")
 

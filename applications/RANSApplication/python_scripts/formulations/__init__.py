@@ -3,12 +3,12 @@ __all__ = ["Factory"]
 import KratosMultiphysics as Kratos
 
 # flow solver formulations
-from .incompressible_potential_flow import IncompressiblePotentialFlowFormulation
+from .incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
 
 def Factory(model_part, settings):
     formulation_name = settings["formulation_name"].GetString()
     formulations_list = [
-        ["incompressible_potential_flow", IncompressiblePotentialFlowFormulation]
+        ["incompressible_potential_flow", IncompressiblePotentialFlowRansFormulation]
     ]
 
     formulation_names_list = [
@@ -26,7 +26,7 @@ def Factory(model_part, settings):
     current_formulation = formulation_list[formulation_names_list.index(
         formulation_name)](model_part, settings)
 
-    Kratos.Logger.PrintInfo("RANSFormulationFactory",
+    Kratos.Logger.PrintInfo("RansFormulationFactory",
                             "Created " + formulation_name + " formulation.")
 
     return current_formulation
