@@ -49,7 +49,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosRomApplication : public KratosApplication {
+class KRATOS_API(ROM_APPLICATION) KratosRomApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{

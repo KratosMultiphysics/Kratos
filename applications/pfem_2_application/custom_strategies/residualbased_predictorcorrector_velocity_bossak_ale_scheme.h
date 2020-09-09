@@ -35,7 +35,7 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
 
-#include "../../applications/FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "../../applications/FluidDynamicsApplication/custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
 namespace Kratos {
 

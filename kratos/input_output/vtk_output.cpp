@@ -20,6 +20,7 @@
 // Project includes
 #include "vtk_output.h"
 #include "containers/model.h"
+#include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 
 namespace Kratos
@@ -92,13 +93,13 @@ void VtkOutput::PrepareGaussPointResults()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VtkOutput::PrintOutput()
+void VtkOutput::PrintOutput(const std::string& rOutputFilename)
 {
     // For Gauss point results
     PrepareGaussPointResults();
 
     // For whole model part
-    WriteModelPartToFile(mrModelPart, false);
+    WriteModelPartToFile(mrModelPart, false, rOutputFilename);
 
     // For sub model parts
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
@@ -113,9 +114,9 @@ void VtkOutput::PrintOutput()
             const int num_conditions = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
 
             if (num_nodes == 0 && (num_elements != 0 || num_conditions != 0)) {
-                WriteModelPartWithoutNodesToFile(r_sub_model_part);
+                WriteModelPartWithoutNodesToFile(r_sub_model_part, rOutputFilename);
             } else if (num_nodes != 0) {
-                WriteModelPartToFile(r_sub_model_part, true);
+                WriteModelPartToFile(r_sub_model_part, true, rOutputFilename);
             }
         }
     }
@@ -124,12 +125,12 @@ void VtkOutput::PrintOutput()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsSubModelPart)
+void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
     Initialize(rModelPart);
 
     // Make the file stream object
-    const std::string output_file_name = GetOutputFileName(rModelPart, IsSubModelPart);
+    const std::string output_file_name = GetOutputFileName(rModelPart, IsSubModelPart, rOutputFilename);
     std::ofstream output_file;
     if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         output_file.open(output_file_name, std::ios::out | std::ios::trunc);
@@ -138,6 +139,8 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
     } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
         output_file.open(output_file_name, std::ios::out | std::ios::binary | std::ios::trunc);
     }
+
+    KRATOS_ERROR_IF_NOT(output_file.is_open()) << "File \"" << output_file_name << "\" could not be opened!" << std::endl;
 
     WriteHeaderToFile(rModelPart, output_file);
     WriteMeshToFile(rModelPart, output_file);
@@ -151,42 +154,56 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart)
+std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
-    const int rank = rModelPart.GetCommunicator().MyPID();
-    std::string model_part_name;
+    std::string output_file_name = "";
 
-    if (IsSubModelPart) {
-        model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
+    if (rOutputFilename != "") { // user specified file name externally
+        output_file_name = rOutputFilename;
     } else {
-        model_part_name = rModelPart.Name();
+        const int rank = rModelPart.GetCommunicator().MyPID();
+        std::string model_part_name;
+
+        if (IsSubModelPart) {
+            model_part_name = rModelPart.GetParentModelPart().Name() + "_" + rModelPart.Name();
+        } else {
+            model_part_name = rModelPart.Name();
+        }
+
+        std::string label;
+        std::stringstream ss;
+        const std::string output_control = mOutputSettings["output_control_type"].GetString();
+        if (output_control == "step") {
+            ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
+            << rModelPart.GetProcessInfo()[STEP];
+            label = ss.str();
+        } else if(output_control == "time") {
+            ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
+            << rModelPart.GetProcessInfo()[TIME];
+            label = ss.str();
+        } else {
+            KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
+                <<" not recognised!\nPossible output_control_type options "
+                << "are: \"step\", \"time\"" << std::endl;
+        }
+
+        const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+        const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
+        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label;
     }
 
-    std::string label;
-    std::stringstream ss;
-    const std::string output_control = mOutputSettings["output_control_type"].GetString();
-    if (output_control == "step") {
-        ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
-           << rModelPart.GetProcessInfo()[STEP];
-        label = ss.str();
-    } else if(output_control == "time") {
-        ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
-           << rModelPart.GetProcessInfo()[TIME];
-        label = ss.str();
-    } else {
-        KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
-            <<" not recognised!\nPossible output_control_type options "
-            << "are: \"step\", \"time\"" << std::endl;
-    }
+    output_file_name += ".vtk";
 
-    // Putting everything together
-    std::string output_file_name;
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        output_file_name += mOutputSettings["folder_name"].GetString() + "/";
+        const std::string folder_name = mOutputSettings["folder_name"].GetString();
+
+        // create folder if it doesn't exist before
+        if (!Kratos::filesystem::is_directory(folder_name)) {
+            Kratos::filesystem::create_directories(folder_name);
+        }
+
+        output_file_name = Kratos::FilesystemExtensions::JoinPaths({folder_name, output_file_name});
     }
-    const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
-    const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-    output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
 
     return output_file_name;
 }
@@ -994,7 +1011,7 @@ void VtkOutput::WriteIdsToFile(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart)
+void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const std::string& rOutputFilename)
 {
     // Getting model and creating auxiliar model part
     auto& r_model = mrModelPart.GetModel();
@@ -1032,7 +1049,7 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart)
     r_auxiliar_model_part.RemoveNodes(TO_ERASE);
 
     // Actually writing the
-    WriteModelPartToFile(r_auxiliar_model_part, true);
+    WriteModelPartToFile(r_auxiliar_model_part, true, rOutputFilename);
 
     // Deletin auxiliar modek part
     r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
@@ -1050,7 +1067,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "file_format"                                 : "ascii",
         "output_precision"                            : 7,
         "output_control_type"                         : "step",
-        "output_frequency"                            : 1.0,
+        "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
         "folder_name"                                 : "VTK_Output",
         "custom_name_prefix"                          : "",

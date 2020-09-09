@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
@@ -14,9 +12,6 @@ from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 import os
 
-# Check other applications dependency
-hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
-meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 try:
     import stl
     numpy_stl_is_available = True
@@ -24,6 +19,7 @@ except:
     numpy_stl_is_available = False
 
 class WorkFolderScope:
+    # TODO use KratosUnittest.WorkFolderScope
     def __init__(self, work_folder):
         self.currentPath = os.getcwd()
         self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
@@ -40,9 +36,8 @@ class PotentialFlowTests(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication", "HDF5Application")
     def test_Naca0012SmallAdjoint(self):
-        if not hdf5_is_available:
-            self.skipTest("Missing required application: HDF5Application")
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
         settings_file_name_adjoint = file_name + "_adjoint_parameters.json"
@@ -63,6 +58,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_Naca0012SmallCompressible(self):
         file_name = "naca0012_small_compressible"
         settings_file_name = file_name + "_parameters.json"
@@ -78,20 +74,52 @@ class PotentialFlowTests(UnitTest.TestCase):
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
+
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+    def test_Naca0012SmallTransonic(self):
+        file_name = "naca0012_small_transonic"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_transonic_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.9068468588561012, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.3804473187215503, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8890010565994741, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.9085576033568474, 0.0, 1e-8)
+
+        kratos_utilities.DeleteTimeFiles(work_folder)
+
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+    def test_Naca0012SmallPerturbationCompressible(self):
+        file_name = "naca0012_small_perturbation_compressible"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_perturbation_compressible_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
+    @UnitTest.skipIfApplicationsNotAvailable("MeshingApplication")
     def test_EmbeddedCircleNoWake(self):
-        if not meshing_is_available:
-            self.skipTest("Missing required application: MeshingApplication")
         settings_file_name = "embedded_circle_no_wake_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    @UnitTest.skipIfApplicationsNotAvailable("HDF5Application", "MeshingApplication")
     def test_EmbeddedCircle(self):
-        if not hdf5_is_available:
-            self.skipTest("Missing required application: HDF5Application")
         settings_file_name = "embedded_circle_parameters.json"
         settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
+        settings_penalty_file_name = "embedded_circle_penalty_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
@@ -100,6 +128,10 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.5405047994795951, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -0.04198874676923284, 0.0, 1e-9)
             self._runTest(settings_adjoint_file_name)
+            self._runTest(settings_penalty_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.12976919914058177, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.4636936459965071, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.08091879125682809, 0.0, 1e-9)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):
@@ -170,6 +202,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         self._validateIdList(solution_element_id_list, reference_element_id_list)
 
     def _validateIdList(self, solution_element_id_list, reference_element_id_list):
+        # TODO replace with unittest.assertListEqual or KratosUnitTest.assertVectorAlmostEqual
         if(abs(len(reference_element_id_list) - len(solution_element_id_list)) > 0.1):
             raise Exception('Lists have different lengths', ' reference_element_id_list = ',
                             reference_element_id_list, ' solution_element_id_list = ', solution_element_id_list)
@@ -259,6 +292,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         self.main_model_part = model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
 
     def _check_results(self, result, reference, rel_tol, abs_tol):
+        # TODO add message directly to t_isclose
         isclosethis = t_isclose(result, reference, rel_tol, abs_tol)
 
         full_msg =  "Failed with following parameters:\n"

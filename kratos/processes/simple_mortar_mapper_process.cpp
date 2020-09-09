@@ -27,27 +27,17 @@ namespace Kratos
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::AVERAGE_NORMAL(Kratos::Flags::Create(0));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_AVERAGE_NORMAL(Kratos::Flags::Create(0, false));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DISCONTINOUS_INTERFACE(Kratos::Flags::Create(1));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DISCONTINOUS_INTERFACE(Kratos::Flags::Create(1, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_IS_HISTORICAL(Kratos::Flags::Create(2));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_IS_HISTORICAL(Kratos::Flags::Create(2, false));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_IS_HISTORICAL(Kratos::Flags::Create(3));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_IS_HISTORICAL(Kratos::Flags::Create(3, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(4));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(4, false));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(5));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(5, false));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::CONSIDER_TESELLATION(Kratos::Flags::Create(6));
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -66,7 +56,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
         mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Setting flags
@@ -76,6 +66,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
     mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
     mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(CONSIDER_TESELLATION, mThisParameters["consider_tessellation"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -100,7 +91,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
         mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Setting flags
@@ -110,6 +101,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
     mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
     mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(CONSIDER_TESELLATION, mThisParameters["consider_tessellation"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -135,7 +127,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
        mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Setting flags
@@ -145,6 +137,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
     mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
     mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(CONSIDER_TESELLATION, mThisParameters["consider_tessellation"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -832,7 +825,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     MortarOperatorType this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor);
+    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 
     // We reset the nodal area
     ResetNodalArea();
@@ -1042,7 +1035,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     MortarOperatorType this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor);
+    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 
     // Check if the pairs has been created
     CheckAndPerformSearch();
@@ -1334,11 +1327,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Upda
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetDefaultParameters()
+const Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "echo_level"                       : 0,
+        "consider_tessellation"            : false,
         "using_average_nodal_normal"       : true,
         "discontinuous_interface"          : false,
         "discontinous_interface_factor"    : 1.0e-4,

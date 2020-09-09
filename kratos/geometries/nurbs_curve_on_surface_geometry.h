@@ -25,6 +25,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+#include "utilities/curve_axis_intersection.h"
 
 namespace Kratos {
 
@@ -35,8 +36,10 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Geometry as base class.
-    typedef Geometry<typename TSurfaceContainerPointType::value_type> BaseType;
+    typedef typename TSurfaceContainerPointType::value_type NodeType;
+    typedef typename TCurveContainerPointType::value_type CurveNodeType;
+
+    typedef Geometry<NodeType> BaseType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -44,11 +47,15 @@ public:
     typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
     typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
 
-    /** Array of counted pointers to point. This type used to hold
-        geometry's points.*/
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename BaseType::PointsArrayType PointsArrayType;
+    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    // using base class functionalities.
+    using BaseType::CreateQuadraturePointGeometries;
+    using BaseType::pGetPoint;
+    using BaseType::GetPoint;
 
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
@@ -57,14 +64,22 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor
     NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
-        : BaseType(pCurve->Points(), &msGeometryData), mpNurbsSurface(pSurface), mpNurbsCurve(pCurve)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mpNurbsCurve(pCurve)
     {
     }
 
-    /// Copy constructor.
+    /// Default constructor
+    NurbsCurveOnSurfaceGeometry()
+        : BaseType(PointsArrayType(), &msGeometryData)
+    {};
+
+    /// Copy constructor
     NurbsCurveOnSurfaceGeometry(NurbsCurveOnSurfaceGeometry const& rOther)
         : BaseType(rOther)
         , mpNurbsSurface(rOther.mpNurbsSurface)
@@ -72,9 +87,9 @@ public:
     {
     }
 
-    /// Copy constructor from a geometry with different point type.
+    /// Copy constructor, with different point type.
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType> NurbsCurveOnSurfaceGeometry(
-        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
+        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mpNurbsCurve(rOther.mpNurbsCurve)
@@ -132,11 +147,183 @@ public:
     ///@name Operations
     ///@{
 
-    /*typename BaseType::Pointer Create(
+    typename BaseType::Pointer Create(
         TSurfaceContainerPointType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>(ThisPoints);
-    }*/
+        KRATOS_ERROR << "NurbsCurveOnSurfaceGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
+            << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
+            << std::endl;
+    }
+
+    ///@}
+    ///@name Curve Properties
+    ///@{
+
+    /* @brief Provides intersections of the nurbs curve with the knots of the surface,
+     *         using the interval of this curve.
+     * @param vector of span intervals.
+     * @param index of chosen direction, for curves always 0.
+     */
+    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    {
+        auto interval = mpNurbsCurve->DomainInterval();
+        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
+    }
+
+    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
+     * @return vector of interval limitations.
+     */
+    void Spans(std::vector<double>& rSpans,
+        double Start, double End) const
+    {
+        std::vector<double> surface_spans_u;
+        std::vector<double> surface_spans_v;
+        mpNurbsSurface->Spans(surface_spans_u, 0);
+        mpNurbsSurface->Spans(surface_spans_v, 1);
+
+        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
+            rSpans,
+            *(mpNurbsCurve.get()), Start, End,
+            surface_spans_u, surface_spans_v,
+            1e-6);
+    }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
+
+    /* Creates integration points according to the knot intersections
+     * of the underlying nurbs surface.
+     * @param result integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        mpNurbsSurface->PolynomialDegreeU();
+
+        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
+            + mpNurbsSurface->PolynomialDegreeV() + 1;
+
+        std::vector<double> spans;
+        Spans(spans);
+
+        mpNurbsCurve->CreateIntegrationPoints(
+            rIntegrationPoints, spans, points_per_span);
+    }
+
+    /* Creates integration points according to the knot intersections
+     * of the underlying nurbs surface, within a given range.
+     * @param result integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        double StartParameter, double EndParameter) const
+    {
+        mpNurbsSurface->PolynomialDegreeU();
+
+        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
+            + mpNurbsSurface->PolynomialDegreeV() + 1;
+
+        std::vector<double> spans;
+        Spans(spans, StartParameter, EndParameter);
+
+        mpNurbsCurve->CreateIntegrationPoints(
+            rIntegrationPoints, spans, points_per_span);
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /**
+     * @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of integration points.
+     * @param NumberOfShapeFunctionDerivatives the number provided
+     *        derivatives of shape functions in the system.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
+    {
+        // shape function container.
+        NurbsSurfaceShapeFunction shape_function_container(
+            mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->PolynomialDegreeV(),
+            NumberOfShapeFunctionDerivatives);
+
+        // Resize containers.
+        if (rResultGeometries.size() != rIntegrationPoints.size())
+            rResultGeometries.resize(rIntegrationPoints.size());
+
+        auto default_method = this->GetDefaultIntegrationMethod();
+        SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+
+        Matrix N(1, num_nonzero_cps);
+        DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
+        for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
+            shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
+        }
+
+        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
+        {
+            std::vector<CoordinatesArrayType> global_space_derivatives(2);
+            mpNurbsCurve->GlobalSpaceDerivatives(
+                global_space_derivatives,
+                rIntegrationPoints[i],
+                1);
+
+            if (mpNurbsSurface->IsRational()) {
+                shape_function_container.ComputeNurbsShapeFunctionValues(
+                    mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), mpNurbsSurface->Weights(),
+                    global_space_derivatives[0][0], global_space_derivatives[0][1]);
+            }
+            else {
+                shape_function_container.ComputeBSplineShapeFunctionValues(
+                    mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
+                    global_space_derivatives[0][0], global_space_derivatives[0][1]);
+            }
+
+            /// Get List of Control Points
+            PointsArrayType nonzero_control_points(num_nonzero_cps);
+            auto cp_indices = shape_function_container.ControlPointIndices(
+                mpNurbsSurface->NumberOfControlPointsU(), mpNurbsSurface->NumberOfControlPointsV());
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
+            }
+            /// Get Shape Functions N
+            if (NumberOfShapeFunctionDerivatives >= 0) {
+                for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                    N(0, j) = shape_function_container(j, 0);
+                }
+            }
+
+            /// Get Shape Function Derivatives DN_De, ...
+            if (NumberOfShapeFunctionDerivatives > 0) {
+                IndexType shape_derivative_index = 1;
+                for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
+                    for (IndexType k = 0; k < n + 2; k++) {
+                        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                            shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
+                        }
+                    }
+                    shape_derivative_index += n + 2;
+                }
+            }
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                default_method, rIntegrationPoints[i],
+                N, shape_function_derivatives);
+
+            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurveOnSurface(
+                data_container, nonzero_control_points,
+                global_space_derivatives[1][0], global_space_derivatives[1][1]);
+        }
+    }
 
     ///@}
     ///@name Operation within Global Space

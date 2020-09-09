@@ -17,6 +17,7 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos {
   namespace Testing {
@@ -27,61 +28,12 @@ namespace Kratos {
     {
         Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
-        // First we create the nodes
-        NodeType::Pointer p_node_1 = rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_3 = rModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-        NodeType::Pointer p_node_4 = rModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-        NodeType::Pointer p_node_5 = rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_6 = rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+        CppTestsUtilities::Create2DGeometry(rModelPart, "Element2D3N");
 
-        // Now we create the "conditions"
-        std::vector<NodeType::Pointer> condition_nodes_0 (2);
-        condition_nodes_0[0] = p_node_1;
-        condition_nodes_0[1] = p_node_2;
-
-        std::vector<NodeType::Pointer> condition_nodes_1 (2);
-        condition_nodes_1[0] = p_node_1;
-        condition_nodes_1[1] = p_node_4;
-
-        std::vector<NodeType::Pointer> condition_nodes_2 (2);
-        condition_nodes_2[0] = p_node_2;
-        condition_nodes_2[1] = p_node_5;
-
-        std::vector<NodeType::Pointer> condition_nodes_3 (2);
-        condition_nodes_3[0] = p_node_5;
-        condition_nodes_3[1] = p_node_6;
-
-        Condition::Pointer p_cond_0 = rModelPart.CreateNewCondition("Condition2D2N", 1, PointerVector<NodeType>{condition_nodes_0}, p_elem_prop);
-        Condition::Pointer p_cond_1 = rModelPart.CreateNewCondition("Condition2D2N", 2, PointerVector<NodeType>{condition_nodes_1}, p_elem_prop);
-        Condition::Pointer p_cond_2 = rModelPart.CreateNewCondition("Condition2D2N", 3, PointerVector<NodeType>{condition_nodes_2}, p_elem_prop);
-        Condition::Pointer p_cond_3 = rModelPart.CreateNewCondition("Condition2D2N", 4, PointerVector<NodeType>{condition_nodes_3}, p_elem_prop);
-
-        // Now we create the "elements"
-        std::vector<NodeType::Pointer> element_nodes_0 (3);
-        element_nodes_0[0] = p_node_1;
-        element_nodes_0[1] = p_node_2;
-        element_nodes_0[2] = p_node_3;
-
-        std::vector<NodeType::Pointer> element_nodes_1 (3);
-        element_nodes_1[0] = p_node_1;
-        element_nodes_1[1] = p_node_3;
-        element_nodes_1[2] = p_node_4;
-
-        std::vector<NodeType::Pointer> element_nodes_2 (3);
-        element_nodes_2[0] = p_node_2;
-        element_nodes_2[1] = p_node_5;
-        element_nodes_2[2] = p_node_3;
-
-        std::vector<NodeType::Pointer> element_nodes_3 (3);
-        element_nodes_3[0] = p_node_5;
-        element_nodes_3[1] = p_node_6;
-        element_nodes_3[2] = p_node_3;
-
-        Element::Pointer p_elem_0 = rModelPart.CreateNewElement("Element2D3N", 1, PointerVector<NodeType>{element_nodes_0}, p_elem_prop);
-        Element::Pointer p_elem_1 = rModelPart.CreateNewElement("Element2D3N", 2, PointerVector<NodeType>{element_nodes_1}, p_elem_prop);
-        Element::Pointer p_elem_2 = rModelPart.CreateNewElement("Element2D3N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
-        Element::Pointer p_elem_3 = rModelPart.CreateNewElement("Element2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
+        rModelPart.CreateNewCondition("LineCondition2D2N", 1, {{1,2}}, p_elem_prop);
+        rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{1,4}}, p_elem_prop);
+        rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{2,5}}, p_elem_prop);
+        rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{5,6}}, p_elem_prop);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
@@ -161,6 +113,46 @@ namespace Kratos {
         // Constructor with name
         KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
             "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartTable, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+        Table<double>::Pointer p_table = Kratos::make_shared<Table<double>>();
+
+        r_model_part.AddTable(0, p_table);
+
+        Table<double>& r_table_model_part = r_model_part.GetTable(0);
+
+        for (std::size_t i = 0; i < 6; ++i)
+            r_table_model_part.PushBack(static_cast<double>(i), 2.0 * static_cast<double>(i));
+
+        double nearest = (r_table_model_part.GetNearestRow(2.1))[0];
+        KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_model_part.GetValue(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_model_part(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_model_part.GetDerivative(2.1), 2.0);
+
+        auto& r_data = r_table_model_part.Data();
+        KRATOS_CHECK_EQUAL(r_data.size(), 6);
+
+        ModelPart& r_sub_model_part = r_model_part.CreateSubModelPart("Sub");
+
+        r_sub_model_part.AddTable(1, p_table);
+
+        Table<double>& r_table_sub_model_part = r_sub_model_part.GetTable(1);
+
+        nearest = (r_table_sub_model_part.GetNearestRow(2.1))[0];
+        KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_sub_model_part.GetValue(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_sub_model_part(2.1), 4.2);
+        KRATOS_CHECK_DOUBLE_EQUAL(r_table_sub_model_part.GetDerivative(2.1), 2.0);
+
+        r_data = r_table_sub_model_part.Data();
+        KRATOS_CHECK_EQUAL(r_data.size(), 6);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)
@@ -251,6 +243,38 @@ namespace Kratos {
         KRATOS_CHECK(r_model_part.NumberOfNodes() == 3);
         KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
         KRATOS_CHECK(r_model_part.NumberOfElements() == 2);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartEnsureModelPartOwnsProperties, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        Properties::Pointer p_elem_prop = Kratos::make_shared<Properties>(1);
+        for (auto& r_cond : r_model_part.Conditions()) {
+            r_cond.SetProperties(p_elem_prop);
+        }
+        for (auto& r_elem : r_model_part.Elements()) {
+            r_elem.SetProperties(p_elem_prop);
+        }
+
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
+
+        // Call method
+        auto aux_util = AuxiliarModelPartUtilities(r_model_part);
+        aux_util.EnsureModelPartOwnsProperties(false);
+
+        // Check results
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 2);
+
+        aux_util.EnsureModelPartOwnsProperties(true);
+
+        // Check results
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
     }
   }  // namespace Testing.
 }  // namespace Kratos.

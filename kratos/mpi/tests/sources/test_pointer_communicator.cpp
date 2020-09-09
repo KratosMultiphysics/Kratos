@@ -82,7 +82,55 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
         for(unsigned int k=0; k<3; ++k)
             KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
     }
+};
 
+KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorIndexConsistence, KratosMPICoreFastSuite)
+{
+    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    Model current_model;
+    auto& mp = current_model.CreateModelPart("mp");
+    mp.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    const int world_size = r_default_comm.Size();
+    const int current_rank = r_default_comm.Rank();
+
+    // Add 3 Nodes per partition (XYZ) and make X_Z interfaces of the processes on the other side. 
+    // Nodes X and Z of processes 0 and RANK-1 do not communicate with anyone.
+    //
+    //      0      1      2    .....    N
+    //    -----  -----  -----         -----
+    //    X Y Z  X Y Z  X Y Z         X Y Z
+    // ID 0 1 2--2 3 4--4 5 6-       -M N K
+    // PI 0 0 1--1 1 2--2 2 3-       -N N N
+    for(int i = 0; i < 3; i++) {
+        int node_id = i + (current_rank * 2);
+        auto pnode = mp.CreateNewNode(node_id, current_rank, current_rank, current_rank); //the node is equal to the current rank;
+        pnode->SetValue(TEMPERATURE, current_rank );
+        
+        int partition = (i != 2) ? current_rank : std::min(current_rank+1,world_size-1);
+        pnode->FastGetSolutionStepValue(PARTITION_INDEX) = partition;
+    }
+
+    // Build the list
+    std::vector<int> indices;
+    for(int i = 0; i < 3; i++) {
+        indices.push_back(i + (current_rank * 2));
+    }
+
+    auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_default_comm );
+
+    GlobalPointerCommunicator< Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+
+    auto double_proxy = pointer_comm.Apply(
+        [](GlobalPointer< Node<3> >& gp)->double {
+            return gp->GetSolutionStepValue(PARTITION_INDEX);
+        }
+    );
+
+    for(unsigned int i=0; i<indices.size(); ++i) {
+        auto& gp = gp_list(i);
+        KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
+    }
 };
 
 KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorConstructByFunctor, KratosMPICoreFastSuite)

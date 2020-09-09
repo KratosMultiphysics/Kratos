@@ -1,0 +1,9 @@
+Recommendations:
+
+1. Install graphviz package to use 'dot' functionalities. More about this : https://www.howtoinstall.co/en/ubuntu/xenial/graphviz
+
+2. doxygen has limited functionalities for python documentation. To have more detailed documentation for Python please follow
+
+https://github.com/Feneric/doxypypy
+
+and install doxypypy. Also create "py_filter.sh" in the current ('documents') folder.

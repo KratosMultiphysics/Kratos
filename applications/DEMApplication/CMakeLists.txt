@@ -58,6 +58,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_bilinear_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Rankine_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.cpp
@@ -93,6 +94,8 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_checker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/automatic_dt_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_generalized_2d_utilities.cpp
 )
 
 set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
@@ -140,13 +143,13 @@ endif(USE_COTIRE MATCHES ON)
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py KratosMultiphysics/DEMApplication/__init__.py )
 
-# DEM: CLU files need to be installed.
-# This is a temporal fix until we find how standard python modules handle data files.
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.clu" PATTERN ".svn" EXCLUDE)
-
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# DEM: CLU files need to be installed.
+# This is a temporal fix until we find how standard python modules handle data files.
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.clu" PATTERN ".svn" EXCLUDE)
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )

@@ -28,6 +28,7 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
+#include "containers/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -106,8 +107,7 @@ public:
 
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofsVectorType;
-    typedef Kratos::Variable<double> DoubleVariableType;
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<double> DoubleVariableType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
 
@@ -120,6 +120,7 @@ public:
 
 
     typedef Node < 3 > NodeType;
+    typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
@@ -233,6 +234,21 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
+
+    /// The Geometry Container.
+    /**
+    * Contains all geometries, which can be adressed by specific identifiers.
+    */
+    typedef GeometryContainer<GeometryType> GeometryContainerType;
+
+    /// Geometry Iterator
+    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
+
+    /// Const Geometry Iterator
+    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
+
+    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
+    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -369,7 +385,7 @@ public:
 
             current_part->Nodes().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
@@ -442,8 +458,11 @@ public:
      */
     void RemoveNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
-    /** this function gives back the "root" model part, that is the model_part that has no father */
+    /** this function gives back the "root" model part, that is the model_part that has no father (non-const version)*/
     ModelPart& GetRootModelPart();
+
+    /** this function gives back the "root" model part, that is the model_part that has no father (const version)*/
+    const ModelPart& GetRootModelPart() const;
 
     NodeIterator NodesBegin(IndexType ThisIndex = 0)
     {
@@ -694,7 +713,7 @@ public:
 
             current_part->MasterSlaveConstraints().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
@@ -720,16 +739,6 @@ public:
                                                                                     const DoubleVariableType& rSlaveVariable,
                                                                                     const double Weight,
                                                                                     const double Constant,
-                                                                                    IndexType ThisIndex = 0);
-
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
-                                                                                    NodeType& rMasterNode,
-                                                                                    const VariableComponentType& rMasterVariable,
-                                                                                    NodeType& rSlaveNode,
-                                                                                    const VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant,
                                                                                     IndexType ThisIndex = 0);
 
     /**
@@ -1039,19 +1048,26 @@ public:
 
             current_part->Elements().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
     }
 
-    /** Inserts an element in the current mesh.
-     */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    /// Creates new element with a node ids list.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, std::vector<IndexType> ElementNodeIds,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts an element in the current mesh.
-     */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    /// Creates new element with a nodes list.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new element with pointer to geometry.
+    ElementType::Pointer CreateNewElement(std::string ElementName,
+        IndexType Id, typename GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
@@ -1212,22 +1228,25 @@ public:
 
             current_part->Conditions().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
 
         KRATOS_CATCH("")
     }
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a node ids list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, std::vector<IndexType> ConditionNodeIds,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /** Inserts a condition in the current mesh.
-     */
+    /// Creates new condition with a nodes list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+            PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
+    /// Creates new condtion with pointer to geometry.
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName,
+            IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
@@ -1330,6 +1349,117 @@ public:
         return GetMesh(ThisIndex).ConditionsArray();
     }
 
+    ///@}
+    ///@name Geometry Container
+    ///@{
+
+    SizeType NumberOfGeometries() const
+    {
+        return mGeometries.NumberOfGeometries();
+    }
+
+
+    /// Adds a geometry to the geometry container.
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
+
+
+    /// Returns the Geometry::Pointer corresponding to the Id
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the const Geometry::Pointer corresponding to the Id
+    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
+        return mGeometries.pGetGeometry(GeometryId);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns the Geometry::Pointer corresponding to the name
+    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
+        return mGeometries.pGetGeometry(GeometryName);
+    }
+
+    /// Returns a reference geometry corresponding to the id
+    GeometryType& GetGeometry(IndexType GeometryId) {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a const reference geometry corresponding to the id
+    const GeometryType& GetGeometry(IndexType GeometryId) const {
+        return mGeometries.GetGeometry(GeometryId);
+    }
+
+    /// Returns a reference geometry corresponding to the name
+    GeometryType& GetGeometry(std::string GeometryName) {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+    /// Returns a const reference geometry corresponding to the name
+    const GeometryType& GetGeometry(std::string GeometryName) const {
+        return mGeometries.GetGeometry(GeometryName);
+    }
+
+
+    /// Checks if has geometry by id.
+    bool HasGeometry(IndexType GeometryId) const {
+        return mGeometries.HasGeometry(GeometryId);
+    }
+
+    /// Checks if has geometry by name.
+    bool HasGeometry(std::string GeometryName) const {
+        return mGeometries.HasGeometry(GeometryName);
+    }
+
+
+    /// Removes a geometry by id.
+    void RemoveGeometry(IndexType GeometryId);
+
+    /// Removes a geometry by name.
+    void RemoveGeometry(std::string GeometryName);
+
+    /// Removes a geometry by id from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(IndexType GeometryId);
+
+    /// Removes a geometry by name from all root and sub model parts.
+    void RemoveGeometryFromAllLevels(std::string GeometryName);
+
+
+    /// Begin geometry iterator
+    GeometryIterator GeometriesBegin() {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// Begin geometry const iterator
+    GeometryConstantIterator GeometriesBegin() const {
+        return mGeometries.GeometriesBegin();
+    }
+
+    /// End geometry iterator
+    GeometryIterator GeometriesEnd() {
+        return mGeometries.GeometriesEnd();
+    }
+
+    /// End geometry const iterator
+    GeometryConstantIterator GeometriesEnd() const {
+        return mGeometries.GeometriesEnd();
+    }
+
+
+    /// Get geometry map containe
+    GeometriesMapType& Geometries()
+    {
+        return mGeometries.Geometries();
+    }
+
+    /// Get geometry map containe
+    const GeometriesMapType& Geometries() const
+    {
+        return mGeometries.Geometries();
+    }
 
     ///@}
     ///@name Sub model parts
@@ -1348,24 +1478,12 @@ public:
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart& GetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
-
-        return *i;
-    }
+    ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
     /** Returns a shared pointer to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
-    {
-        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name: \"" << SubModelPartName << "\" in model part\"" << Name() << "\"" << std::endl;
-
-        return (i.base()->second).get();
-    }
+    ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
     /** Remove a sub modelpart with given name.
     */
@@ -1400,20 +1518,24 @@ public:
         return mSubModelParts;
     }
 
-
-    ModelPart* GetParentModelPart() const
+    const SubModelPartsContainerType& SubModelParts() const
     {
-        if (IsSubModelPart()) {
-            return mpParentModelPart;
-        } else {
-            return const_cast<ModelPart*>(this);
-        }
+        return mSubModelParts;
     }
 
-    bool HasSubModelPart(std::string const& ThisSubModelPartName) const
-    {
-        return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
-    }
+    /** Returns a reference to the Parent ModelPart
+     * Returns a reference to itself if it is not a SubModelPart
+    */
+    ModelPart& GetParentModelPart();
+
+    /** Returns a reference to the Parent ModelPart (const version)
+     * Returns a reference to itself if it is not a SubModelPart
+    */
+    const ModelPart& GetParentModelPart() const;
+
+    /** Returns whether this ModelPart has a SubModelPart with a given name
+    */
+    bool HasSubModelPart(std::string const& ThisSubModelPartName) const;
 
     ///@}
     ///@name Access
@@ -1517,7 +1639,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This method returns the full name of the model part (including the parents model parts)
      * @details This is evaluated in a recursive way
@@ -1527,11 +1649,11 @@ public:
     {
         std::string full_name = this->Name();
         if (this->IsSubModelPart()) {
-            full_name = this->GetParentModelPart()->FullName() + "." + full_name;
+            full_name = this->GetParentModelPart().FullName() + "." + full_name;
         }
         return full_name;
     }
-    
+
     /**
      * @brief This method returns the name list of submodelparts
      * @return A vector conrtaining the list of submodelparts contained
@@ -1637,6 +1759,8 @@ private:
     TablesContainerType mTables; /// The tables contained on the model part
 
     MeshesContainerType mMeshes; /// The container of all meshes
+
+    GeometryContainerType mGeometries; /// The container of geometries
 
     VariablesList::Pointer mpVariablesList; /// The variable list
 

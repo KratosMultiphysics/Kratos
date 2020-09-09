@@ -109,9 +109,6 @@ public:
   {
     ModelPart::PropertiesType &elemProperties = itElem->GetProperties();
 
-    double density = 0;
-    double bulk_modulus = 0;
-    double viscosity = 0;
     double flow_index = 1;
     double yield_shear = 0;
     double adaptive_exponent = 0;
@@ -124,18 +121,27 @@ public:
     double infinite_friction = 0;
     double inertial_number_one = 0;
     double alpha_parameter = 0;
+    double friction_angle = 0;
+    double cohesion = 0;
 
-    density = elemProperties[DENSITY];
-    bulk_modulus = elemProperties[BULK_MODULUS];
-    viscosity = elemProperties[DYNAMIC_VISCOSITY];
+    double density = elemProperties[DENSITY];
+    double bulk_modulus = elemProperties[BULK_MODULUS];
+    double viscosity = elemProperties[DYNAMIC_VISCOSITY];
+    unsigned int node_property_id = elemProperties.Id();
 
-    if (elemProperties.Has(YIELD_SHEAR))
+    if (elemProperties.Has(YIELD_SHEAR)) //Bingham model
     {
       flow_index = elemProperties[FLOW_INDEX];
       yield_shear = elemProperties[YIELD_SHEAR];
       adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
     }
-    else if (elemProperties.Has(STATIC_FRICTION))
+    else if (elemProperties.Has(FRICTION_ANGLE)) //Frictional Viscoplastic model
+    {
+      friction_angle = elemProperties[FRICTION_ANGLE];
+      cohesion = elemProperties[COHESION];
+      adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
+    }
+    else if (elemProperties.Has(STATIC_FRICTION))  //Mu(I)-rheology
     {
       static_friction = elemProperties[STATIC_FRICTION];
       dynamic_friction = elemProperties[DYNAMIC_FRICTION];
@@ -175,6 +181,9 @@ public:
       rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
       rGeom[i].FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
       rGeom[i].FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
+      rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = node_property_id;
+      rGeom[i].FastGetSolutionStepValue(FRICTION_ANGLE) = friction_angle;
+      rGeom[i].FastGetSolutionStepValue(COHESION) = cohesion;
     }
   }
 

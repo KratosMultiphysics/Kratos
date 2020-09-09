@@ -8,12 +8,14 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//                   Riccardo Tosi
 //
 
 #if !defined(KRATOS_TIME_AVERAGING_PROCESS_H_INCLUDED)
 #define KRATOS_TIME_AVERAGING_PROCESS_H_INCLUDED
 
 // System includes
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -54,6 +56,7 @@ public:
     ///@{
 
     using NodeType = ModelPart::NodeType;
+    using ElementType = ModelPart::ElementType;
 
     /// Pointer definition of TimeAveragingProcess
     KRATOS_CLASS_POINTER_DEFINITION(TimeAveragingProcess);
@@ -82,6 +85,11 @@ public:
     void ExecuteInitialize() override;
 
     void ExecuteFinalizeSolutionStep() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -153,8 +161,22 @@ private:
 
     std::string mModelPartName;
     std::string mIntegrationControlVariableName;
+    enum TimeAveragingContainers
+    {
+        NodalHistorical,
+        NodalNonHistorical,
+        ElementalNonHistorical
+    };
+    TimeAveragingContainers mTimeAveragingContainer;
+    enum TimeAveragingMethods
+    {
+        Average,
+        RootMeanSquare
+    };
+    TimeAveragingMethods mTimeAveragingMethod;
 
     std::vector<std::string> mVariableNamesList;
+    std::vector<std::string> mAveragedVariableNamesList;
 
     int mEchoLevel;
 
@@ -170,9 +192,30 @@ private:
     bool IsIntegrationStep() const;
 
     template <typename TDataType>
-    void CalculateTimeIntegratedQuantity(ModelPart::NodesContainerType& rNodes,
-                                         const Variable<TDataType>& rVariable,
-                                         const double DeltaTime) const;
+    void CalculateTimeIntegratedNodalHistoricalQuantity(ModelPart::NodesContainerType& rNodes,
+                                                        const Variable<TDataType>& rVariable,
+                                                        const Variable<TDataType>& rAveragedVariable,
+                                                        const double DeltaTime) const;
+
+    template <typename TDataType, typename TContainerType>
+    void CalculateTimeIntegratedNonHistoricalQuantity(
+        TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        const Variable<TDataType>& rAveragedVariable,
+        const double DeltaTime) const;
+
+    template <typename TDataType>
+    void AverageMethod(const TDataType& rTemporalVariable,
+                       TDataType& rAveragedVariable,
+                       const double DeltaTime) const;
+
+    template <typename TDataType>
+    void RootMeanSquareMethod(const TDataType& rTemporalVariable,
+                              TDataType& rAveragedVariable,
+                              const double DeltaTime) const;
+
+    template <typename TDataType>
+    std::function<void(const TDataType&, TDataType&, const double)> GetTimeAveragingMethod() const;
 
     ///@}
     ///@name Private  Access

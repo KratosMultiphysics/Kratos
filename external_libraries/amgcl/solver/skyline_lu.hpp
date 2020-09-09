@@ -182,7 +182,8 @@ class skyline_lu {
             // x = invperm[y];
 
             for(int i = 0; i < n; ++i) {
-                rhs_type sum = rhs[perm[i]];
+                rhs_type sum;
+                sum = rhs[perm[i]];
                 for(int k = ptr[i], j = i - ptr[i+1] + k; k < ptr[i+1]; ++k, ++j)
                     sum -= L[k] * y[j];
 

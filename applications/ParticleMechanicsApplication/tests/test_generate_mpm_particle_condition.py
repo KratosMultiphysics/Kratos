@@ -30,6 +30,8 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         self._create_condition(sub_background,dimension, geometry_element)
         for condition in grid_model_part.Conditions:
             condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, num_particle)
+            condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, 1)
+
 
         # Create element and nodes for initial meshes
         sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
@@ -73,9 +75,9 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
             elif (geometry_element == "Line"):
                 initial_mp.CreateNewCondition("LineCondition3D2N", 1, [1,2], initial_mp.GetProperties()[1])
             elif (geometry_element == "Triangle"):
-                initial_mp.CreateNewCondition("Condition3D", 1, [1,6,8], initial_mp.GetProperties()[1])
+                initial_mp.CreateNewCondition("SurfaceCondition3D3N", 1, [1,6,8], initial_mp.GetProperties()[1])
             elif (geometry_element == "Quadrilateral"):
-                initial_mp.CreateNewCondition("Condition3D4N", 1, [2,4,8,6], initial_mp.GetProperties()[1])
+                initial_mp.CreateNewCondition("SurfaceCondition3D4N", 1, [2,4,8,6], initial_mp.GetProperties()[1])
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, initial_mp.Conditions)
 

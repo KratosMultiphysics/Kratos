@@ -245,8 +245,7 @@ protected:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        ) override;
+        const bool CalculateResidualVectorFlag) override;
 
     /**
      * @brief This functions updates the kinematics variables
@@ -257,8 +256,7 @@ protected:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) override;
+        const GeometryType::IntegrationMethod& rIntegrationMethod) override;
 
     // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
     /**
@@ -280,7 +278,7 @@ protected:
     /**
      * this integrated the perturbed strain
      */
-    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+    virtual void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
      * this assings the components to the tangent tensor
@@ -310,6 +308,14 @@ protected:
     void IntegrateStressDamageMechanics(double& rThreshold,double& rDamage, const Vector& rStrainVector,
         const Vector& rStressVector, const int Edge, const double CharacteristicLength,
         ConstitutiveLaw::Parameters& rValues, bool& rIsDamaging);
+
+    /**
+     * this performs the smooting and integrates the CL and returns the integrated Stress
+     */
+    virtual Vector IntegrateSmoothedConstitutiveLaw(const std::string &rYieldSurface, ConstitutiveLaw::Parameters &rValues,
+                                             const ConstitutiveVariables &rThisConstVars, const KinematicVariables &rKinVariables, 
+                                             Vector &rStrainVector, double& rDamageElement,  bool& rIsDamaging, const double CharacteristicLength,
+                                             const bool SaveIntVars);
 
     /**
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
@@ -353,9 +359,9 @@ protected:
     /**
      * this computes the average vector on the edge for a certain variable
      */
-    void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
-    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
-    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge(const Element* pCurrentElement,   const Variable<Vector>& rThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector>& rThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector>& rThisVariable, Vector& rAverageStress, const int edge);
 
     /**
      * this evaluates the constitutive law
@@ -394,6 +400,11 @@ protected:
         std::vector<double> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+    void SetValuesOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rValues,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rOutput,
@@ -408,6 +419,20 @@ protected:
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    virtual void CheckIfEraseElement(
+        ProcessInfo &rCurrentProcessInfo, 
+        const Properties& rProperties)
+    {
+        if (mDamage >= 0.98) {
+            this->Set(ACTIVE, false);
+            mDamage = 0.98;
+            // We set a "flag" to generate the DEM 
+            rCurrentProcessInfo[GENERATE_DEM] = true;
+        }
+    }
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -514,6 +539,10 @@ private:
     void load(Serializer& rSerializer) override;
 
 }; // Class GenericTotalLagrangianFemDemElement
+
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::VoigtSize;
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::NumberOfEdges;
+
 
 ///@}
 ///@name Type Definitions

@@ -31,9 +31,6 @@
 #include "includes/kratos_application.h"
 
 // Shallow water includes
-#include "custom_elements/shallow_element.h"
-#include "custom_elements/rv_swe.h"
-#include "custom_elements/cv_swe.h"
 #include "custom_elements/swe.h"
 #include "custom_conditions/nothing_condition.hpp"
 
@@ -194,15 +191,6 @@ namespace Kratos
         ///@{
 
         // Elements
-        const ShallowElement mShallowElement2D3N;
-        const RV_SWE<3, Eulerian> mRVSWE2D3N;
-        const RV_SWE<4, Eulerian> mRVSWE2D4N;
-        const RV_SWE<3, PFEM2> mPFEM2RVSWE2D3N;
-        const RV_SWE<4, PFEM2> mPFEM2RVSWE2D4N;
-        const CV_SWE<3, Eulerian> mCVSWE2D3N;
-        const CV_SWE<4, Eulerian> mCVSWE2D4N;
-        const CV_SWE<3, PFEM2> mPFEM2CVSWE2D3N;
-        const CV_SWE<4, PFEM2> mPFEM2CVSWE2D4N;
         const SWE<3, Eulerian> mSWE2D3N;
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;

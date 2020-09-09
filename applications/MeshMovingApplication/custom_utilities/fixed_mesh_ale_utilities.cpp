@@ -305,7 +305,6 @@ namespace Kratos
         mpMeshMovingStrategy = Kratos::make_shared<StrategyType>(
             mrVirtualModelPart,
             p_scheme,
-            mpLinearSolver,
             p_builder_and_solver,
             compute_reactions,
             reform_dof_set_at_each_step,

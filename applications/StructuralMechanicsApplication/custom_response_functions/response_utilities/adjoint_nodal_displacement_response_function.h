@@ -56,7 +56,7 @@ public:
 
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
+    typedef Variable<array_1d<double, 3>> ArrayVariableType;
 
     ///@}
     ///@name Pointer Definitions
@@ -193,8 +193,9 @@ private:
     ///@{
 
     std::string mTracedDofLabel;
-    PointTypePointer  mpTracedNode;
-    Element::Pointer mpNeighboringElement;
+    std::string mResponsePartName;
+    array_1d<double,3> mResponseDirection;
+    std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
 
     ///@}
     ///@name Private Operators
@@ -204,7 +205,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void GetNeighboringElementPointer();
+    void ComputeNeighboringElementNodeMap();
 
     ///@}
     ///@name Private  Access

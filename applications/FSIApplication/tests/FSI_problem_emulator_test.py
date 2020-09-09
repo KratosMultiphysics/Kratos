@@ -2,22 +2,15 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FSIApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as KratosUtils
+
+if KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
+    from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural
 
 from os import remove
 
-try:
-    from KratosMultiphysics.ExternalSolversApplication import *
-    from KratosMultiphysics.StructuralMechanicsApplication import *
-    from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
-
 class WorkFolderScope:
+    # TODO use KratosUnittest.WorkFolderScope
     def __init__(self, work_folder):
         self.currentPath = os.getcwd()
         self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
@@ -28,7 +21,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-@UnitTest.skipIf(missing_external_dependencies,"Missing required application: "+ missing_application)
+@UnitTest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication, LinearSolversApplication")
 class FSIProblemEmulatorTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -99,11 +92,9 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 "residual_relative_tolerance"        : 1e-8,
                 "residual_absolute_tolerance"        : 1e-10,
                 "max_iteration"                      : 20,
-                "problem_domain_sub_model_part_list" : ["Parts_Solid"],
-                "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_BC","PointLoad2D_Point_load","StructureInterface2D_Solid_interface"],
                 "rotation_dofs"                      : false,
                 "linear_solver_settings"             : {
-                    "solver_type" : "SuperLUSolver",
+                    "solver_type" : "LinearSolversApplication.sparse_lu",
                     "scaling"     : true
                 }
             }

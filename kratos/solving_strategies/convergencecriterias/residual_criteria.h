@@ -66,6 +66,9 @@ public:
     /// The definition of the base ConvergenceCriteria
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+    /// The definition of the current class
+    typedef ResidualCriteria< TSparseSpace, TDenseSpace > ClassType;
+
     /// The data type
     typedef typename BaseType::TDataType TDataType;
 
@@ -89,25 +92,21 @@ public:
     ///@{
 
     //* Constructor.
-    explicit ResidualCriteria(Kratos::Parameters Settings)
+    explicit ResidualCriteria()
         : BaseType()
     {
-        if (Settings.Has("residual_absolute_tolerance")) {
-            mAlwaysConvergedNorm = Settings["residual_absolute_tolerance"].GetDouble();
-        } else if (Settings.Has("absolute_tolerance")) {
-            mAlwaysConvergedNorm = Settings["absolute_tolerance"].GetDouble();
-        } else {
-            KRATOS_WARNING("ResidualCriteria") << "residual_absolute_tolerance or absolute_tolerance nor defined on settings. Using default 1.0e-9" << std::endl;
-            mAlwaysConvergedNorm = 1.0e-9;
-        }
-        if (Settings.Has("residual_relative_tolerance")) {
-            mRatioTolerance = Settings["residual_relative_tolerance"].GetDouble();
-        } else if (Settings.Has("relative_tolerance")) {
-            mRatioTolerance = Settings["relative_tolerance"].GetDouble();
-        } else {
-            KRATOS_WARNING("ResidualCriteria") << "residual_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
-            mRatioTolerance = 1.0e-4;
-        }
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         this->mActualizeRHSIsNeeded = true;
     }
@@ -141,6 +140,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Criterias that need to be called after getting the solution
@@ -249,9 +261,33 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "residual_criteria",
+            "residual_absolute_tolerance" : 1.0e-4,
+            "residual_relative_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "residual_criteria";
+    }
 
     ///@}
     ///@name Access
@@ -339,7 +375,7 @@ protected:
 
                 const IndexType dof_id = it_dof->EquationId();
 
-                if (mActiveDofs[dof_id]) {
+                if (mActiveDofs[dof_id] == 1) {
                     residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
                     residual_solution_norm += std::pow(residual_dof_value, 2);
                     dof_num++;
@@ -361,6 +397,17 @@ protected:
 
         rDofNum = dof_num;
         rResidualSolutionNorm = std::sqrt(residual_solution_norm);
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mAlwaysConvergedNorm = ThisParameters["residual_absolute_tolerance"].GetDouble();
+        mRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
     }
 
     ///@}
@@ -395,7 +442,7 @@ private:
 
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
-    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;   /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

@@ -20,8 +20,6 @@
 
 namespace Kratos
 {
-//************************************************************************************
-//************************************************************************************
 
 void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
@@ -29,19 +27,15 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
     // Here MPC_IMPOSED_DISPLACEMENT is updated in terms of velocity and acceleration is added
-    array_1d<double,3>& MPC_Imposed_Displacement = this->GetValue(MPC_IMPOSED_DISPLACEMENT);
-    const array_1d<double,3>& MPC_Imposed_Velocity = this->GetValue(MPC_IMPOSED_VELOCITY);
-    const array_1d<double,3>& MPC_Imposed_Acceleration = this->GetValue(MPC_IMPOSED_ACCELERATION);
     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
     // Convert imposition of velocity and acceleration to displacement
     // NOTE: This only consider translational velocity and acceleration: no angular
-    MPC_Imposed_Displacement += (MPC_Imposed_Velocity * delta_time) + (0.5 * MPC_Imposed_Acceleration * delta_time * delta_time);
+    m_imposed_displacement += (m_imposed_velocity * delta_time) + (0.5 * m_imposed_acceleration * delta_time * delta_time);
 
     // Prepare variables
     GeneralVariables Variables;
-    const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
 
     // Get NODAL_AREA from MPC_Area
     GeometryType& r_geometry = GetGeometry();
@@ -60,31 +54,69 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
 
 }
 
-//************************************************************************************
-//************************************************************************************
-
 void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
-
-    const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-    array_1d<double,3> & delta_xg_c = this->GetValue(MPC_IMPOSED_DISPLACEMENT);
-
     // Update the MPC Position
-    const array_1d<double,3> new_xg_c = xg_c + delta_xg_c;
-    this->SetValue(MPC_COORD,new_xg_c);
+    m_xg += m_imposed_displacement;
 
     // Update total MPC Displacement
-    array_1d<double,3> & MPC_Displacement = this->GetValue(MPC_DISPLACEMENT);
-    MPC_Displacement += delta_xg_c;
-    this->SetValue(MPC_DISPLACEMENT,MPC_Displacement);
+    m_displacement += m_imposed_displacement;
 
-    // Reset value of incremental displacement
-    delta_xg_c.clear();
-
-    KRATOS_CATCH( "" )
+    m_imposed_displacement = ZeroVector(3);
 }
 
+void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
+        rValues[0] = m_imposed_displacement;
+    }
+    else if (rVariable == MPC_IMPOSED_VELOCITY) {
+        rValues[0] = m_imposed_velocity;
+    }
+    else if (rVariable == MPC_IMPOSED_ACCELERATION) {
+        rValues[0] = m_imposed_acceleration;
+    }
+    else if (rVariable == MPC_DISPLACEMENT) {
+        rValues[0] = m_displacement;
+    }
+    else {
+        MPMParticleBaseCondition::CalculateOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
+        m_imposed_displacement = rValues[0];
+    }
+    else if (rVariable == MPC_IMPOSED_VELOCITY) {
+        m_imposed_velocity = rValues[0];
+    }
+    else if (rVariable == MPC_IMPOSED_ACCELERATION) {
+        m_imposed_acceleration = rValues[0];
+    }
+    else if (rVariable == MPC_DISPLACEMENT) {
+        m_displacement = rValues[0];
+    }
+    else {
+        MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
 
 Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
 {
@@ -96,16 +128,16 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     double denominator = 1.0;
-    const unsigned int small_cut_instability_tolerance = 0.01;
+    const double small_cut_instability_tolerance = 0.01;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (rResult[i] < small_cut_instability_tolerance){
+            denominator += (small_cut_instability_tolerance - rResult[i]);
             rResult[i] = small_cut_instability_tolerance;
-            denominator += rResult[i];
         }
     }
 
-    rResult = rResult/denominator;
+    rResult = rResult / denominator;
 
     return rResult;
 

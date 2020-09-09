@@ -112,9 +112,8 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         }
     }
 
-    // saving the value of DISTANCE to the non-historical variable AUX_DISTANCE
-    VariableUtils var_utils;
-    var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, r_root_model_part.Nodes() );
+    // Saving the value of DISTANCE to the non-historical variable AUX_DISTANCE
+    VariableUtils().SaveVariable<Variable<double>>( DISTANCE, AUX_DISTANCE, r_root_model_part.Nodes() );
 
     // (*) restoring the original distance field from its stored version
     #pragma omp parallel for

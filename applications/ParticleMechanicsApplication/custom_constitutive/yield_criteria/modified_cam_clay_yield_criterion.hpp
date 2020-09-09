@@ -49,7 +49,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ModifiedCamClayYieldCriterion
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) ModifiedCamClayYieldCriterion
 	: public ParticleYieldCriterion
 {
     public:

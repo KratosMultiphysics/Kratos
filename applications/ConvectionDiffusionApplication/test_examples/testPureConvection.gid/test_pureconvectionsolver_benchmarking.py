@@ -123,7 +123,7 @@ convection_linear_solver = linear_solver = BICGSTABSolver(1e-9, 5000, pConvPreco
 convection_solver = pure_convection_solver.PureConvectionSolver(model_part, domain_size, thermal_settings)
 
 # computing the neighbours
-neighbour_finder = FindNodalNeighboursProcess(model_part, 10, 10)
+neighbour_finder = FindNodalNeighboursProcess(model_part)
 neighbour_finder.Execute()
 # at wish ... when it is needed
 #

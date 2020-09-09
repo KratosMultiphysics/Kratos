@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
 
 try:
-    from KratosMultiphysics.mpi import *
+    import KratosMultiphysics.mpi as KratosMPI
     import KratosMultiphysics.MetisApplication as KratosMetis
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
@@ -13,14 +13,14 @@ except ImportError:
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import os, glob
+import os, glob, sys
 from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/AcceleratorSpringTests/" + fileName
 
 def GetPartitionedFilePath(fileName):
-    return GetFilePath( "{0}_{1}".format(fileName,mpi.rank ) )
+    return GetFilePath( "{0}_{1}".format(fileName, KratosMultiphysics.DataCommunicator.GetDefault().Rank() ) )
 
 class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
@@ -64,7 +64,9 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             KratosMultiphysics.FORCE,
             KratosMultiphysics.REACTION,
             KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
-            residual)
+            residual,
+            "nodal",
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
         return residual
 
@@ -72,21 +74,21 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         return self.space.TwoNorm(residual.GetReference())
 
     def ReadModelPart(self,filename):
-
-        model_part = KratosMultiphysics.ModelPart("Test ModelPart")
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Test ModelPart")
 
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
-        mpi.world.barrier()
+        KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
 
         model_part_io = KratosMultiphysics.ModelPartIO( filename )
         model_part_io.ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
-        KratosTrilinos.ParallelFillCommunicator(model_part).Execute()
+        KratosMPI.ParallelFillCommunicator(model_part).Execute()
 
         return model_part
 
@@ -100,7 +102,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
     def setUp(self):
 
         # So far, the MPI convergence accelerator tests must be run with 2 processes
-        if (mpi.size != 2):
+        if KratosMultiphysics.ParallelEnvironment.GetDefaultSize() != 2:
             raise Exception("The MPI convergence accelerator tests must be run with 2 processes.")
 
         self.print_gid_output = False
@@ -141,15 +143,11 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             gid_io.WriteNodalResults(KratosMultiphysics.REACTION,local_nodes,0.0,0)
             gid_io.FinalizeResults()
 
-        # clean temporary files
-        if mpi.rank == 0:
-            for f in glob.glob(GetFilePath('*.time')):
-                os.remove(f)
+        # Clean temporary files
+        KratosMultiphysics.kratos_utilities.DeleteTimeFiles(".")
 
     def test_accelerator(self,accelerator_settings,force1,force2,solution):
-
-        print("")
-        print("Testing accelerator: ",accelerator_settings["solver_type"].GetString())
+        KratosMultiphysics.Logger.PrintInfo('','Testing accelerator: ' + accelerator_settings["solver_type"].GetString())
 
         top_part = self.model_part.GetSubModelPart("Top")
 
@@ -165,8 +163,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         res_norm = self.ComputeResidualNorm(residual)
 
         while (nl_it <= self.accelerator_iterations):
-
-            print(mpi.rank,": Iteration: ", nl_it," residual norm: ", res_norm, file=sys.stderr)
+            KratosMultiphysics.Logger.PrintInfoOnAllRanks('', "Iteration: {}, residual norm: {}".format(nl_it, res_norm))
 
             if res_norm > self.accelerator_tolerance:
                 coupling_utility.InitializeNonLinearIteration()

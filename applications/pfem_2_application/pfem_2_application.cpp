@@ -52,8 +52,6 @@ namespace Kratos
 
  	void KratosPFEM2Application::Register()
  	{
- 		// calling base class register to register Kratos components
- 		KratosApplication::Register();
  		std::cout << "Initializing KratosPFEM2Application... " << std::endl;
  		KRATOS_REGISTER_ELEMENT("FractionalStepPFEM22D", mFractionalStepPFEM22D);
  		KRATOS_REGISTER_ELEMENT("FractionalStepPFEM23D", mFractionalStepPFEM23D);

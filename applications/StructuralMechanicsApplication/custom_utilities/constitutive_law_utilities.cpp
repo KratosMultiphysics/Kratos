@@ -474,20 +474,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     if (rStrainVector.size() != VoigtSize)
         rStrainVector.resize(VoigtSize, false);
 
-    // Declare the different matrix
-    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
-
-    // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
-
-    // Calculate the eigenvalues of the E matrix
-    for (IndexType i = 0; i < Dimension; ++i) {
-        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
-    }
-
-    // Calculate E matrix
+    // Compute square root matrix
     BoundedMatrixType E_matrix;
-    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+    MathUtils<double>::MatrixSquareRoot(rCauchyTensor, E_matrix, 1.0e-16, 20);
 
     // Biot Strain Calculation
     rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
@@ -948,6 +937,181 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
     MathUtils<double>::InvertMatrix(auxiliar_deformation_gradient_increment, plastic_deformation_gradient_increment, aux_det);
 
     return plastic_deformation_gradient_increment;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
+    const double EulerAngle1,
+    BoundedMatrix<double, 3, 3>& rRotationOperator
+)
+{
+    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+
+    const double cos_angle = std::cos(EulerAngle1 * Globals::Pi / 180.0);
+    const double sin_angle = std::sin(EulerAngle1 * Globals::Pi / 180.0);
+
+    rRotationOperator(0, 0) = cos_angle;
+    rRotationOperator(0, 1) = sin_angle;
+    rRotationOperator(1, 0) = -sin_angle;
+    rRotationOperator(1, 1) = cos_angle;
+    rRotationOperator(2, 2) = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
+    const double EulerAngle2,
+    BoundedMatrix<double, 3, 3>& rRotationOperator
+)
+{
+    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+
+    const double cos_angle = std::cos(EulerAngle2 * Globals::Pi / 180.0);
+    const double sin_angle = std::sin(EulerAngle2 * Globals::Pi / 180.0);
+
+    rRotationOperator(0, 0) = 1.0;
+    rRotationOperator(1, 1) = cos_angle;
+    rRotationOperator(1, 2) = sin_angle;
+    rRotationOperator(2, 1) = -sin_angle;
+    rRotationOperator(2, 2) = cos_angle;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
+    const double EulerAngle3,
+    BoundedMatrix<double, 3, 3>& rRotationOperator
+)
+{
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
+    const double EulerAngle1, // phi
+    const double EulerAngle2, // theta
+    const double EulerAngle3, // hi
+    BoundedMatrix<double, 3, 3>& rRotationOperator // global to local coordinates
+)
+{
+    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
+
+    const double pi_over_180 = Globals::Pi / 180.0;
+    const double cos1 = std::cos(EulerAngle1 * pi_over_180);
+    const double sin1 = std::sin(EulerAngle1 * pi_over_180);
+    const double cos2 = std::cos(EulerAngle2 * pi_over_180);
+    const double sin2 = std::sin(EulerAngle2 * pi_over_180);
+    const double cos3 = std::cos(EulerAngle3 * pi_over_180);
+    const double sin3 = std::sin(EulerAngle3 * pi_over_180);
+
+    rRotationOperator(0, 0) = cos1 * cos3 - sin1 * cos2 * sin3;
+    rRotationOperator(0, 1) = sin1 * cos3 + cos1 * cos2 * sin3;
+    rRotationOperator(0, 2) = sin2 * sin3;
+    rRotationOperator(1, 0) = -cos1 * sin3 - sin1 * cos2 * cos3;
+    rRotationOperator(1, 1) = -sin1 * sin3 + cos1 * cos2 * cos3;
+    rRotationOperator(1, 2) = sin2 * cos3;
+    rRotationOperator(2, 0) = sin1 * sin2;
+    rRotationOperator(2, 1) = -cos1 * sin2;
+    rRotationOperator(2, 2) = cos2;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
+    const BoundedMatrixType& rEulerOperator,
+    BoundedMatrixVoigtType& rVoigtOperator
+    )
+{
+    rVoigtOperator.clear();
+
+    const double l1 = rEulerOperator(0, 0);
+    const double l2 = rEulerOperator(1, 0);
+    const double l3 = rEulerOperator(2, 0);
+    const double m1 = rEulerOperator(0, 1);
+    const double m2 = rEulerOperator(1, 1);
+    const double m3 = rEulerOperator(2, 1);
+    const double n1 = rEulerOperator(0, 2);
+    const double n2 = rEulerOperator(1, 2);
+    const double n3 = rEulerOperator(2, 2);
+
+    rVoigtOperator(0, 0) = std::pow(l1, 2);
+    rVoigtOperator(0, 1) = std::pow(m1, 2);
+    rVoigtOperator(0, 2) = std::pow(n1, 2);
+    rVoigtOperator(0, 3) = l1 * m1;
+    rVoigtOperator(0, 4) = m1 * n1;
+    rVoigtOperator(0, 5) = n1 * l1;
+
+    rVoigtOperator(1, 0) = std::pow(l2, 2);
+    rVoigtOperator(1, 1) = std::pow(m2, 2);
+    rVoigtOperator(1, 2) = std::pow(n2, 2);
+    rVoigtOperator(1, 3) = l2 * m2;
+    rVoigtOperator(1, 4) = m2 * n2;
+    rVoigtOperator(1, 5) = n2 * l2;
+
+    rVoigtOperator(2, 0) = std::pow(l3, 2);
+    rVoigtOperator(2, 1) = std::pow(m3, 2);
+    rVoigtOperator(2, 2) = std::pow(n3, 2);
+    rVoigtOperator(2, 3) = l3 * m3;
+    rVoigtOperator(2, 4) = m3 * n3;
+    rVoigtOperator(2, 5) = n3 * l3;
+
+    rVoigtOperator(3, 0) = 2.0 * l1 * l2;
+    rVoigtOperator(3, 1) = 2.0 * m1 * m2;
+    rVoigtOperator(3, 2) = 2.0 * n1 * n2;
+    rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
+    rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
+    rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
+
+    rVoigtOperator(4, 0) = 2.0 * l2 * l3;
+    rVoigtOperator(4, 1) = 2.0 * m2 * m3;
+    rVoigtOperator(4, 2) = 2.0 * n2 * n3;
+    rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
+    rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
+    rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
+
+    rVoigtOperator(5, 0) = 2.0 * l3 * l1;
+    rVoigtOperator(5, 1) = 2.0 * m3 * m1;
+    rVoigtOperator(5, 2) = 2.0 * n3 * n1;
+    rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
+    rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
+    rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
+    const BoundedMatrixType& rEulerOperator,
+    BoundedMatrixVoigtType& rVoigtOperator
+    )
+{
+    const double c = rEulerOperator(0, 0);
+    const double s = rEulerOperator(0, 1);
+
+    rVoigtOperator(0, 0) = std::pow(c, 2);
+    rVoigtOperator(0, 1) = std::pow(s, 2);
+    rVoigtOperator(0, 2) = c * s;
+
+    rVoigtOperator(1, 0) = std::pow(s, 2);
+    rVoigtOperator(1, 1) = std::pow(c, 2);
+    rVoigtOperator(1, 2) = -c * s;
+
+    rVoigtOperator(2, 0) = -2.0 * c * s;
+    rVoigtOperator(2, 1) = 2.0 * c * s;
+    rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
 }
 
 /***********************************************************************************/

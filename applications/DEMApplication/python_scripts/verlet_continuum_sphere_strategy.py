@@ -62,7 +62,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.search_increment_for_walls = 0.0 # for the moment, until all bugs are removed
         self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
-        self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
+        self.model_part.ProcessInfo.SetValue(CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR, self.continuum_search_radius_amplification_factor)
         self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
 
         if self.contact_mesh_option:

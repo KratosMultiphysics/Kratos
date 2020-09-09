@@ -665,7 +665,11 @@ std::shared_ptr< numa_vector<V> > diagonal(const crs<V, C, P> &A, bool invert = 
     for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
         for(auto a = A.row_begin(i); a; ++a) {
             if (a.col() == i) {
-                (*dia)[i] = invert ? math::inverse(a.value()) : a.value();
+                V d = a.value();
+                if (invert) {
+                    d = math::is_zero(d) ? math::identity<V>() : math::inverse(d);
+                }
+                (*dia)[i] = d;
                 break;
             }
         }

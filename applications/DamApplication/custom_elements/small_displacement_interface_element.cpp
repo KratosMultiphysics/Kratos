@@ -573,7 +573,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetSecondDerivativesVect
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SmallDisplacementInterfaceElement<TDim,TNumNodes>::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
                                                         std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )

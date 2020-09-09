@@ -15,7 +15,7 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
 
         # Set the element and condition names for the replace settings
         self.element_name = "SWE"
-        self.condition_name = "Condition"
+        self.condition_name = "LineCondition"
         self.min_buffer_size = 2
         self.advection_epsilon = self.settings["advection_epsilon"].GetDouble()
 
@@ -28,13 +28,14 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
         KM.VariableUtils().AddDof(KM.MOMENTUM_Y, self.main_model_part)
         KM.VariableUtils().AddDof(SW.FREE_SURFACE_ELEVATION, self.main_model_part)
 
-        KM.Logger.PrintInfo("::[ShallowWaterSolver]::", "Shallow water solver DOFs added correctly.")
+        KM.Logger.PrintInfo(self.__class__.__name__, "Shallow water solver DOFs added correctly.")
 
     def FinalizeSolutionStep(self):
         super(ShallowWaterSolver, self).FinalizeSolutionStep()
-        epsilon = max(self.advection_epsilon, self.main_model_part.ProcessInfo[SW.DRY_HEIGHT])
-        SW.ShallowWaterUtilities().UpdatePrimitiveVariables(self.main_model_part, epsilon)
-        SW.ShallowWaterUtilities().ComputeAccelerations(self.main_model_part)
+        epsilon = max(self.advection_epsilon, self.GetComputingModelPart().ProcessInfo[SW.DRY_HEIGHT])
+        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.GetComputingModelPart())
+        SW.ComputeVelocityProcess(self.GetComputingModelPart(), epsilon).Execute()
+        SW.ShallowWaterUtilities().ComputeAccelerations(self.GetComputingModelPart())
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -52,8 +53,8 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
         permeability = self.settings["permeability"].GetDouble()
         discharge_penalty = self.settings["dry_discharge_penalty"].GetDouble()
         if permeability == 0.0:
-            KM.Logger.PrintWarning("::[ShallowWaterSolver]::", "Detected permeability == 0.0")
+            KM.Logger.PrintWarning(self.__class__.__name__, "Detected permeability == 0.0")
         if discharge_penalty == 0.0:
-            KM.Logger.PrintWarning("::[ShallowWaterSolver]::", "Detected dry_discharge_penalty == 0.0")
+            KM.Logger.PrintWarning(self.__class__.__name__, "Detected dry_discharge_penalty == 0.0")
         self.main_model_part.ProcessInfo.SetValue(SW.PERMEABILITY, permeability)
         self.main_model_part.ProcessInfo.SetValue(SW.DRY_DISCHARGE_PENALTY, discharge_penalty)

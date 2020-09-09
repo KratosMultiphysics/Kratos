@@ -18,7 +18,6 @@ namespace Kratos {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_with_damage_parallel_bond to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
-        SetDebugPrintingOptionValue(pProp);
     }
 
     void DEM_KDEM_with_damage_parallel_bond::Check(Properties::Pointer pProp) const {
@@ -39,8 +38,10 @@ namespace Kratos {
         }
     }
 
-    void DEM_KDEM_with_damage_parallel_bond::SetDebugPrintingOptionValue(Properties::Pointer pProp) {
+    void DEM_KDEM_with_damage_parallel_bond::Initialize(SphericContinuumParticle* element) {
 
+        mDebugPrintingOption = false;
+        Properties::Pointer pProp = element->pGetProperties();
         if (!pProp->Has(DEBUG_PRINTING_OPTION)) {
             mDebugPrintingOption = false;
         } else {
@@ -442,18 +443,28 @@ namespace Kratos {
         UnbondedLocalElasticContactForce[0] = OldUnbondedLocalElasticContactForce[0] - mUnbondedTangentialElasticConstant * LocalDeltDisp[0];
         UnbondedLocalElasticContactForce[1] = OldUnbondedLocalElasticContactForce[1] - mUnbondedTangentialElasticConstant * LocalDeltDisp[1];
 
-        const double my_tg_of_friction_angle    = element1->GetTgOfFrictionAngle();
-        const double wall_tg_of_friction_angle  = element2->GetProperties()[FRICTION];
-        const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);
+        const double my_tg_of_static_friction_angle        = element1->GetTgOfStaticFrictionAngle();
+        const double neighbour_tg_of_static_friction_angle = element2->GetTgOfStaticFrictionAngle();
+        const double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
 
-        const double max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_fri_ang;
+        const double my_tg_of_dynamic_friction_angle        = element1->GetTgOfDynamicFrictionAngle();
+        const double neighbour_tg_of_dynamic_friction_angle = element2->GetTgOfStaticFrictionAngle();
+        const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
+
+        if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
+            KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+        }
 
         const double tangential_contact_force_0 = UnbondedLocalElasticContactForce[0] + mViscoDampingLocalContactForce[0];
         const double tangential_contact_force_1 = UnbondedLocalElasticContactForce[1] + mViscoDampingLocalContactForce[1];
 
         const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
+        double max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_static_fri_ang;
+
         if (ActualTotalShearForce > max_admissible_shear_force) {
+
+            max_admissible_shear_force = mUnbondedLocalElasticContactForce2 * equiv_tg_of_static_fri_ang;
 
             const double ActualElasticShearForce = sqrt(UnbondedLocalElasticContactForce[0] * UnbondedLocalElasticContactForce[0] + UnbondedLocalElasticContactForce[1] * UnbondedLocalElasticContactForce[1]);
 
