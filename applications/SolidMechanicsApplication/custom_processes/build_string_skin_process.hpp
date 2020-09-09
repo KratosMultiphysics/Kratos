@@ -73,7 +73,7 @@ public:
     {
         KRATOS_TRY
 
-	mMaxId = GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
+	mMaxId = GetMaxNodeId(mrModelPart.GetParentModelPart());
 
         KRATOS_CATCH("")
     }
@@ -539,7 +539,7 @@ private:
 	      // std::cout<<" Radius "<<Radius<<std::endl;
 	      // std::cout<<" Base Point ["<<node_id<<"]"<<BasePoint<<std::endl;
 
-	      mrModelPart.AddNode(this->CreateNode(*(mrModelPart.GetParentModelPart()), BasePoint, node_id));
+	      mrModelPart.AddNode(this->CreateNode(mrModelpart.GetParentModelPart(), BasePoint, node_id));
 
 	    }
 
@@ -814,9 +814,9 @@ private:
       ConditionType::Pointer pSkinCondition;
 
       //PROPERTIES:
-      //int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
-      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
-      Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(0);
+      //int number_properties = mrModelPart.GetParentModelPart().NumberOfProperties();
+      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(number_properties-1);
+      Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(0);
 
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
@@ -824,7 +824,7 @@ private:
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 
-      unsigned int condition_id = GetMaxConditionId(*(mrModelPart.GetParentModelPart()));
+      unsigned int condition_id = GetMaxConditionId(mrModelpart.GetParentModelPart());
 
       unsigned int counter = 1;
 
@@ -965,9 +965,9 @@ private:
       ConditionType::Pointer pSkinCondition;
 
       //PROPERTIES:
-      //int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
-      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
-      Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(0);
+      //int number_properties = mrModelPart.GetParentModelPart().NumberOfProperties();
+      //Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(number_properties-1);
+      Properties::Pointer pProperties = mrModelPart.GetParentModelPart().pGetProperties(0);
 
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
@@ -975,7 +975,7 @@ private:
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 
-      unsigned int condition_id = GetMaxConditionId(*(mrModelPart.GetParentModelPart()));
+      unsigned int condition_id = GetMaxConditionId(mrModelpart.GetParentModelPart());
 
       unsigned int counter = 1;
 
@@ -1365,7 +1365,7 @@ private:
         KRATOS_TRY
 
 	std::string OutputModelPartName;
-	ModelPart& rMainModelPart = *(mrModelPart.GetParentModelPart());
+	ModelPart& rMainModelPart = mrModelpart.GetParentModelPart();
 	for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
 	  if( i_mp->Is(ACTIVE) )
