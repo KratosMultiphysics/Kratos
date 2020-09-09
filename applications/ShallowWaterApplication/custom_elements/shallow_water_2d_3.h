@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_SHALLOW_WATER_2D_3_H_INLCUDED
-#define KRATOS_SHALLOW_WATER_2D_3_H_INLCUDED
+#ifndef KRATOS_SHALLOW_WATER_2D_3_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_2D_3_H_INCLUDED
 
 // System includes
 
@@ -471,4 +471,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SHALLOW_WATER_2D_3_H_INLCUDED  defined
+#endif // KRATOS_SHALLOW_WATER_2D_3_H_INCLUDED  defined

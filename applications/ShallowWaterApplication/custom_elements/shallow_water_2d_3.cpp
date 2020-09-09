@@ -208,6 +208,7 @@ void ShallowWater2D3::AddShockCapturingTerm(
     BoundedMatrix<double,2,2> k1, k2, kh;
     ComputeCrossWindDiffusivityTensors(k1, k2, kh, rData, rDN_DX);
 
+    k1 = k2 = ZeroMatrix(2,2); 
     BoundedMatrix<double,9,9> diff_matrix = ZeroMatrix(9,9);
     ComputeDiffusionMatrix(diff_matrix, rData, rDN_DX, k1, k2, kh);
     rLHS += diff_matrix;
@@ -240,11 +241,11 @@ void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentPro
 {
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
     dt_inv = 1.0 / delta_t;
-    lumped_mass_factor = rCurrentProcessInfo[LUMPED_MASS_FACTOR]; // TODO: Get it from the ProcessInfo
-    stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR]; // TODO: Use the STABILIZATION_FACTOR variable
-    shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR]; // TODO: Get it from the ProcessInfo
+    lumped_mass_factor = rCurrentProcessInfo[LUMPED_MASS_FACTOR];
+    stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
+    shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     gravity = rCurrentProcessInfo[GRAVITY_Z];
-    irregularity = rCurrentProcessInfo[GROUND_IRREGULARITY]; // TODO: Get value from the ProcessInfo
+    irregularity = rCurrentProcessInfo[GROUND_IRREGULARITY];
 }
 
 void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX)
@@ -610,14 +611,11 @@ void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
     double h_grad = std::max(norm_2(height_grad), 1.0);
     rK1 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
     rK2 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
-    // rKh = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad * cross_wind;
-    // rKh = 0.5 * rData.shock_stab_factor * length / std::sqrt(rData.gravity*rData.effective_height) * cross_wind;
-    double k = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad;
-    // k += 0.5 * rData.shock_stab_factor * length * (1-rData.wet_fraction);
-    rKh = k * cross_wind;
-
-    this->SetValue(RESIDUAL_NORM, std::abs(height_residual));
-    this->SetValue(SHOCK_STABILIZATION_FACTOR, k);
+    rKh = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad * cross_wind;
+    // // rKh = 0.5 * rData.shock_stab_factor * length / std::sqrt(rData.gravity*rData.effective_height) * cross_wind;
+    // double k = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad;
+    // // k += 0.5 * rData.shock_stab_factor * length * (1-rData.wet_fraction);
+    // rKh = k * cross_wind;
 }
 
 void ShallowWater2D3::AlgebraicResidual(
