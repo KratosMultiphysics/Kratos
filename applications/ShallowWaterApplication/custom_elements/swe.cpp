@@ -18,8 +18,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/cfd_variables.h"
-#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "swe.h"

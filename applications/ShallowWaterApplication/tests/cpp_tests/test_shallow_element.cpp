@@ -19,7 +19,6 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
-#include "includes/cfd_variables.h"
 #include "custom_elements/swe.h"
 #include "shallow_water_application_variables.h"
 
