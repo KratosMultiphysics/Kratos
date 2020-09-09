@@ -96,7 +96,7 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
         return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = GetDefaults()
-        this_defaults.RecursivelyAddMissingParameters(super(MPCContactStaticSolver, cls).GetDefaultSettings())
+        this_defaults.RecursivelyAddMissingParameters(super(MPCContactStaticSolver, cls).GetDefaultParameters())
         return this_defaults
