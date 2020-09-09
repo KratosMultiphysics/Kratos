@@ -7,9 +7,9 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Alejandro Cornejo Velazquez
+//                   Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED )
 #define  KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED
