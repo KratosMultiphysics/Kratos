@@ -307,42 +307,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
     ///@name Static Member Variables
@@ -420,5 +384,4 @@ inline std::ostream& operator << (std::ostream& OStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED  defined
-
 
