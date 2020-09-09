@@ -10,12 +10,10 @@
 //  Main authors:    Daniel Diez
 //
 
-#if !defined(KRATOS_MONOTONICITY_PRESRVING_SOLVER_H_INCLUDED )
-#define  KRATOS_MONOTONICITY_PRESRVING_SOLVER_H_INCLUDED
+#if !defined(KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED )
+#define  KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED
 
 // System includes
-#include <cmath>
-#include <complex>
 
 // External includes
 
@@ -115,7 +113,7 @@ public:
         Parameters default_parameters( R"(
         {
             "solver_type"                    : "monothonicity_preserving_solver",
-            "auxiliary_solver_type"          : {
+            "inner_solver_type"          : {
                 "preconditioner_type"            : "amg",
                 "solver_type"                    : "AMGCL",
                 "smoother_type"                  : "ilu0",
@@ -142,7 +140,7 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["auxiliary_solver_type"]);
+        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["inner_solver_type"]);
 
         KRATOS_CATCH("")
     }
@@ -417,6 +415,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MONOTONICITY_PRESRVING_SOLVER_H_INCLUDED  defined
+#endif // KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED  defined
 
 
