@@ -46,10 +46,13 @@ class EmpireMortarMapper(PythonMapper):
         self.__inverse_mapper = None
 
     def __del__(self):
-        EmpireMortarMapper.mapper_lib.deleteMapper(ConvertToChar(self.mapper_name))
+        if EmpireMortarMapper.mapper_lib.hasMapper(ConvertToChar(self.mapper_name)):
+            EmpireMortarMapper.mapper_lib.deleteMapper(ConvertToChar(self.mapper_name))
 
-        EmpireMortarMapper.mapper_lib.deleteMesh(ConvertToChar(self.mesh_name_origin))
-        EmpireMortarMapper.mapper_lib.deleteMesh(ConvertToChar(self.mesh_name_destination))
+        if EmpireMortarMapper.mapper_lib.hasMesh(ConvertToChar(self.mesh_name_origin)):
+            EmpireMortarMapper.mapper_lib.deleteMesh(ConvertToChar(self.mesh_name_origin))
+        if EmpireMortarMapper.mapper_lib.hasMesh(ConvertToChar(self.mesh_name_destination)):
+            EmpireMortarMapper.mapper_lib.deleteMesh(ConvertToChar(self.mesh_name_destination))
 
         EmpireMortarMapper.instances -= 1
         if EmpireMortarMapper.instances == 0: # last mapper was destoyed
@@ -122,6 +125,10 @@ class EmpireMortarMapper(PythonMapper):
             raise Exception('No nodes exist in ModelPart "{}"!'.format(model_part.FullName()))
         if model_part.NumberOfConditions() < 1:
             raise Exception('No conditions exist in ModelPart "{}"!'.format(model_part.FullName()))
+
+        for cond in model_part.Conditions:
+            if cond.GetGeometry().PointsNumber() not in [3,4]:
+                raise Exception("The EmpireMortarMapper only works with Triangles and Quadrilaterals")
 
         c_mesh_name = ConvertToChar(mesh_name)
 
