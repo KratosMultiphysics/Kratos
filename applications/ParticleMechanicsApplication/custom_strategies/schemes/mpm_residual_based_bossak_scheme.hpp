@@ -220,22 +220,43 @@ public:
             const array_1d<double, 3 > & r_previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
             array_1d<double, 3 > & r_current_displacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 >& r_current_velocity = (i)->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 >& r_current_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
 
             // Displacement prediction for implicit MPM
             if (!(i->pGetDof(DISPLACEMENT_X)->IsFixed()))
+            {
                 r_current_displacement[0] = 0.0;
+                r_current_velocity[0] = 0.0;
+                r_current_acceleration[0] = 0.0;
+            }
             else
+            {
                 r_current_displacement[0]  = r_previous_displacement[0];    //prescribed displacement
+                r_current_velocity[0] = 0.0;
+                r_current_acceleration[0] = 0.0;
+            }
+                
 
             if (!(i->pGetDof(DISPLACEMENT_Y)->IsFixed()))
                 r_current_displacement[1] = 0.0;
             else
+            {
                 r_current_displacement[1]  = r_previous_displacement[1];
+                r_current_velocity[1] = 0.0;
+                r_current_acceleration[1] = 0.0;
+            }
+                
 
             if (i->HasDofFor(DISPLACEMENT_Z))
             {
                 if (!(i->pGetDof(DISPLACEMENT_Z)->IsFixed()))
+                {
                     r_current_displacement[2] = 0.0;
+                    r_current_velocity[2] = 0.0;
+                    r_current_acceleration[2] = 0.0;
+                }
+                    
                 else
                     r_current_displacement[2]  = r_previous_displacement[2];
             }
@@ -250,13 +271,10 @@ public:
                     r_current_pressure = r_previous_pressure;
             }
 
-            // Updating time derivatives
-            array_1d<double, 3 > & current_velocity       = (i)->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & current_acceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
 
             if (mIsDynamic){
-                BossakBaseType::UpdateVelocity(current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
-                BossakBaseType::UpdateAcceleration (current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
+                BossakBaseType::UpdateVelocity(r_current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
+                BossakBaseType::UpdateAcceleration (r_current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
             }
 
 		}
@@ -334,8 +352,8 @@ public:
 
             if (r_nodal_mass > std::numeric_limits<double>::epsilon())
             {
-                const array_1d<double, 3 > & r_nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                const array_1d<double, 3 > & r_nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+                array_1d<double, 3 > & r_nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
+                array_1d<double, 3 > & r_nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
 
                 array_1d<double, 3 > & r_nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
                 array_1d<double, 3 > & r_nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
@@ -348,6 +366,34 @@ public:
                 {
                     double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                     delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
+                }
+
+                // Enforce BCs on initial MP interpolation to the grid.
+                // Needed for Bossak/Average acceleration Newmark method.
+                if (i->pGetDof(DISPLACEMENT_X)->IsFixed())
+                {
+                    // ''r_nodal_velocity[0]=0.0;
+                    // r_nodal_acceleration[0]=0.0;
+
+                    r_nodal_momentum[0] = 0.0;
+                    r_nodal_inertia[0] = 0.0;
+                }
+                if (i->pGetDof(DISPLACEMENT_Y)->IsFixed())
+                {
+                    // r_nodal_velocity[1]=0.0;
+                    // r_nodal_acceleration[1]=0.0;
+                    r_nodal_momentum[1] = 0.0;
+                    r_nodal_inertia[1] = 0.0;
+                }
+                if (i->HasDofFor(DISPLACEMENT_Z))
+                {
+                    if (i->pGetDof(DISPLACEMENT_Z)->IsFixed())
+                    {
+                        // r_nodal_velocity[2]=0.0;
+                        // r_nodal_acceleration[2]=0.0;
+                        r_nodal_momentum[2] = 0.0;
+                        r_nodal_inertia[2] = 0.0;
+                    }
                 }
 
                 const array_1d<double, 3 > delta_nodal_velocity = r_nodal_momentum/r_nodal_mass;
