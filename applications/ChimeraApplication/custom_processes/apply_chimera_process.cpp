@@ -93,8 +93,16 @@ void ApplyChimera<TDim>::ExecuteFinalizeSolutionStep()
 
     if (mReformulateEveryStep) {
         mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
-        for(const auto& remote_id : mRemoteNodes)
-            mrMainModelPart.RemoveNodeFromAllLevels(remote_id);
+        const auto &r_comm = mrMainModelPart.GetCommunicator().GetDataCommunicator();
+        if(r_comm.IsDistributed()){
+            const int mpi_rank = r_comm.Rank();
+            for(const auto& node_id : mRemoteNodes)
+            {
+                if(mrMainModelPart.GetNode(node_id).FastGetSolutionStepValue(PARTITION_INDEX) != mpi_rank)
+                    mrMainModelPart.RemoveNodeFromAllLevels(node_id);
+            }
+            mRemoteNodes.clear();
+        }
         mIsFormulated = false;
     }
 }
@@ -673,7 +681,7 @@ void ApplyChimera<TDim>::WriteModelPart(ModelPart &rModelPart, std::string Name)
                 "output_sub_model_parts"             : false,
                 "folder_name"                        : "test_vtk_output",
                 "save_output_files_in_folder"        : false,
-                "nodal_solution_step_data_variables" : [""],
+                "nodal_solution_step_data_variables" : ["PARTITION_INDEX"],
                 "nodal_data_value_variables"         : [],
                 "element_flags"                      : [],
                 "nodal_flags"                        : [],
@@ -786,7 +794,8 @@ void ApplyChimera<TDim>::SynchronizeNodes(ModelPart& rModelpart, std::vector<Nod
                 auto p_node = *it.base();
                 auto it_node = r_nodes.find(p_node->Id());
                 if( it_node == r_nodes.end()){
-                    rModelpart.Nodes().push_back(p_node);
+                        mRemoteNodes.push_back(p_node->Id());
+                        rModelpart.Nodes().push_back(p_node);
                 }
               }
     }
