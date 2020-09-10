@@ -50,10 +50,6 @@
                 "model_part_name"         : "Structure.LineLoad2D_right_edge",
 				"entity_name"             : "PointLoadCondition3D1N",
                 "entity_type"             : "condition",
-<<<<<<< HEAD
-                "add_to_existing_model_part" : true,
-=======
->>>>>>> master
 				"properties_id"           : 0
 			}
 		}],
