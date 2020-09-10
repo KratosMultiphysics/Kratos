@@ -46,14 +46,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.min_buffer_size = 2
-        self.element_has_nodal_properties = True
-        self.fractional_step_model_part = None
+        self.echo_level = settings["echo_level"].GetInt()
 
-        ## Construct the linear solvers
-        self.linear_solver = GetKratosObjectType("LinearSolverFactory")(self.GetParameters()["linear_solver_settings"])
-        self.echo_level = self.GetParameters()["echo_level"].GetInt()
-
-        self.compute_reactions = self.GetParameters()["compute_reactions"].GetBool()
         self.SetMaxCouplingIterations(1)
 
         Kratos.Logger.PrintInfo(self.GetName(), "Construction of formulation finished.")
@@ -133,8 +127,11 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 settings["move_mesh_strategy"].GetInt(),
                 self.domain_size)
 
+        linear_solver = GetKratosObjectType("LinearSolverFactory")(
+            settings["linear_solver_settings"])
+
         builder_and_solver = CreateBlockBuilderAndSolver(
-            self.linear_solver,
+            linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
 
@@ -148,15 +145,12 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             settings["reform_dofs_at_each_step"].GetBool(),
             settings["move_mesh_flag"].GetBool())
 
-        builder_and_solver.SetEchoLevel(
-            settings["echo_level"].GetInt() - 3)
-        self.solver.SetEchoLevel(
-            settings["echo_level"].GetInt() - 2)
-        conv_criteria.SetEchoLevel(
-            settings["echo_level"].GetInt() - 1)
+        builder_and_solver.SetEchoLevel(self.echo_level - 3)
+        self.solver.SetEchoLevel(self.echo_level - 2)
+        conv_criteria.SetEchoLevel(self.echo_level - 1)
 
-        model_part.ProcessInfo.SetValue(Kratos.DYNAMIC_TAU, settings["dynamic_tau"].GetDouble())
-        model_part.ProcessInfo.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())
+        process_info.SetValue(Kratos.DYNAMIC_TAU, settings["dynamic_tau"].GetDouble())
+        process_info.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())
 
         super().Initialize()
         self.solver.Initialize()
@@ -175,7 +169,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             max_iterations = self.GetMaxCouplingIterations()
             for iteration in range(max_iterations):
                 self.solver.Predict()
-                self.is_converged = self.solver.SolveSolutionStep()
+                _ = self.solver.SolveSolutionStep()
                 self.ExecuteAfterCouplingSolveStep()
                 Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
@@ -218,8 +212,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 
-        self.time_scheme_settings = settings
-
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "von_karman": 0.41,
@@ -229,17 +221,15 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         settings.ValidateAndAssignDefaults(defaults)
 
         # set constants
-        self.von_karman = settings["von_karman"].GetDouble()
-        self.beta = settings["beta"].GetDouble()
-        self.y_plus_limit = RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
-                                                                                self.von_karman,
-                                                                                self.beta
-                                                                                )
+        von_karman = settings["von_karman"].GetDouble()
+        beta = settings["beta"].GetDouble()
+        y_plus_limit = RansCalculationUtilities.CalculateLogarithmicYPlusLimit(
+            von_karman, beta)
 
         process_info = self.GetBaseModelPart().ProcessInfo
-        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, self.von_karman)
-        process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, self.beta)
-        process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, self.y_plus_limit)
+        process_info.SetValue(KratosRANS.WALL_VON_KARMAN, von_karman)
+        process_info.SetValue(KratosRANS.WALL_SMOOTHNESS_BETA, beta)
+        process_info.SetValue(KratosRANS.RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, y_plus_limit)
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
     def SetWallFunctionSettings(self, settings):
