@@ -52,10 +52,9 @@ namespace Kratos {
         } //for conditions
 
         // For MPI
-        double total_flow = flow;
-        total_flow = r_data_comm.SumAll(flow);
-
-        return total_flow;
+        flow = r_data_comm.SumAll(flow);
+        
+        return flow;
     }
 
 } // namespace Kratos.
