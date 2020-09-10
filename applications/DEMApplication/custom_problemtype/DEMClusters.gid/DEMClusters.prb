@@ -1,13 +1,15 @@
 PROBLEM DATA
 
 TITLE:Sphere_Tree_Algorithm_Settings
-QUESTION: Algorithm#CB#(MakeTreeMedial,MakeTreeGrid,MakeTreeSpawn,MakeTreeHubbard,MakeTreeOctree)
+QUESTION: Algorithm#CB#(MakeTreeMedial)
 VALUE: MakeTreeMedial
 DEPENDENCIES: (MakeTreeMedial,RESTORE,depth,#CURRENT#,RESTORE,branch,#CURRENT#,RESTORE,numCover,#CURRENT#,RESTORE,minCover,#CURRENT#,RESTORE,initSpheres,#CURRENT#,RESTORE,minSpheres,#CURRENT#,RESTORE,erFact,#CURRENT#,RESTORE,testerLevels,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#)
 DEPENDENCIES: (MakeTreeSpawn,RESTORE,depth,#CURRENT#,RESTORE,numCover,#CURRENT#,RESTORE,minCover,#CURRENT#,RESTORE,testerLevels,#CURRENT#,HIDE,branch,#CURRENT#,HIDE,initSpheres,#CURRENT#,HIDE,minSpheres,#CURRENT#,HIDE,erFact,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#)
 DEPENDENCIES: (MakeTreeGrid,RESTORE,depth,#CURRENT#,RESTORE,numCover,#CURRENT#,RESTORE,minCover,#CURRENT#,RESTORE,testerLevels,#CURRENT#,HIDE,branch,#CURRENT#,HIDE,initSpheres,#CURRENT#,HIDE,minSpheres,#CURRENT#,HIDE,erFact,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#)
 DEPENDENCIES: (MakeTreeHubbard,RESTORE,depth,#CURRENT#,RESTORE,branch,#CURRENT#,RESTORE,numSamples,#CURRENT#,RESTORE,minSamples,#CURRENT#,HIDE,testerLevels,#CURRENT#,HIDE,initSpheres,#CURRENT#,HIDE,minSpheres,#CURRENT#,HIDE,erFact,#CURRENT#,HIDE,numCover,#CURRENT#,HIDE,minCover,#CURRENT#)
 DEPENDENCIES: (MakeTreeOctree,RESTORE,depth,#CURRENT#,HIDE,branch,#CURRENT#,HIDE,numSamples,#CURRENT#,HIDE,minSamples,#CURRENT#,HIDE,testerLevels,#CURRENT#,HIDE,initSpheres,#CURRENT#,HIDE,minSpheres,#CURRENT#,HIDE,erFact,#CURRENT#,HIDE,numCover,#CURRENT#,HIDE,minCover,#CURRENT#)
+
+#MakeTreeMedial,MakeTreeGrid,MakeTreeSpawn,MakeTreeHubbard,MakeTreeOctree
 
 QUESTION: depth
 VALUE: 1
