@@ -9,7 +9,7 @@ def CreateSolver(model, settings):
 class AdjointDiffusionSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        super(AdjointDiffusionSolver,self).__init__(model,custom_settings)
+        super().__init__(model,custom_settings)
 
         self.min_buffer_size = 1
 
