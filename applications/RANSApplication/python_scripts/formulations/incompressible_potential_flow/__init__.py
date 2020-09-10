@@ -41,7 +41,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12
         }''')
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.GetParameters().ValidateAndAssignDefaults(default_settings)
         self.SetMaxCouplingIterations(1)
 
     def AddVariables(self):
@@ -93,7 +93,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
     def Initialize(self):
         CalculateNormalsOnConditions(self.GetBaseModelPart())
 
-        solver_settings = self.settings
+        solver_settings = self.GetParameters()
         linear_solver = GetKratosObjectType("LinearSolverFactory")(
             solver_settings["linear_solver_settings"])
         builder_and_solver = CreateBlockBuilderAndSolver(

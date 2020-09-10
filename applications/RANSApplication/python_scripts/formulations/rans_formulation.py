@@ -14,11 +14,19 @@ class RansFormulation:
             base_computing_model_part (Kratos.ModelPart): Base model part, which is copied to create solvers for given formulation
             settings (Kratos.Parameters): Settings to be used in this formulation
         """
-        self.settings = settings
-        self.base_computing_model_part = base_computing_model_part
-        self.list_of_formulations = []
-        self.list_of_processes = []
-        self.move_mesh = False
+        self.__settings = settings
+        self.__base_computing_model_part = base_computing_model_part
+        self.__list_of_formulations = []
+        self.__list_of_processes = []
+        self.__move_mesh = False
+
+    def GetParameters(self):
+        """Returns parameters used in this formulation
+
+        Returns:
+            Kratos.Parameters: Parameters of this formulation
+        """
+        return self.__settings
 
     def GetName(self):
         """Returns the name of the formulation
@@ -32,7 +40,7 @@ class RansFormulation:
             formulation (RansFormulation): Formulation to be added
         """
         if (isinstance(formulation, RansFormulation)):
-            self.list_of_formulations.append(formulation)
+            self.__list_of_formulations.append(formulation)
         else:
             msg = str(formulation).rstrip() + " is not a RansFormulation. Please use only RansFormulation objects."
             raise Exception(msg)
@@ -44,7 +52,7 @@ class RansFormulation:
             process (Kratos.RANSApplication.RansFormulationProcess): RansFormulationProcess to be added to current formulation
         """
         if (isinstance(process, KratosRANS.RansFormulationProcess)):
-            self.list_of_processes.append(process)
+            self.__list_of_processes.append(process)
         else:
             msg = str(process).rstrip() + " is not a RansFormulationProcess. Please use only RansFormulationProcess objects."
             raise Exception(msg)
@@ -98,7 +106,7 @@ class RansFormulation:
         max_iterations = self.GetMaxCouplingIterations()
         for iteration in range(max_iterations):
             self.ExecuteBeforeCouplingSolveStep()
-            for formulation in self.list_of_formulations:
+            for formulation in self.__list_of_formulations:
                 if (not formulation.SolveCouplingStep()):
                     return False
             self.ExecuteAfterCouplingSolveStep()
@@ -135,7 +143,7 @@ class RansFormulation:
             int: Minimum buffer size
         """
         min_buffer_size = 0
-        for formulation in self.list_of_formulations:
+        for formulation in self.__list_of_formulations:
             if (min_buffer_size < formulation.GetMinimumBufferSize()):
                 min_buffer_size = formulation.GetMinimumBufferSize()
         return min_buffer_size
@@ -155,7 +163,7 @@ class RansFormulation:
         Returns:
             bool: True if all of them have converged, False if not
         """
-        for formulation in self.list_of_formulations:
+        for formulation in self.__list_of_formulations:
             if (not formulation.IsConverged()):
                 return False
 
@@ -173,13 +181,13 @@ class RansFormulation:
         Returns:
             bool: True if mesh move, False if not
         """
-        return self.move_mesh
+        return self.__move_mesh
 
     def SetCommunicator(self, communicator):
         """Sets the communicator for MPI use
         """
         self.__ExecuteRansFormulationMethods("SetCommunicator", [communicator])
-        self.communicator = communicator
+        self.__communicator = communicator
 
     def GetCommunicator(self):
         """Get the communicator for MPI use
@@ -187,8 +195,8 @@ class RansFormulation:
         Returns:
             Kratos.Communicator: Communicator used in the model part
         """
-        if hasattr(self, "communicator"):
-            return self.communicator
+        if hasattr(self, "_RansFormulation__communicator"):
+            return self.__communicator
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetCommunicator\" first before retrieving.")
 
@@ -198,8 +206,8 @@ class RansFormulation:
         Returns:
             bool: True if Periodic, False if not
         """
-        if hasattr(self, "is_periodic"):
-            return self.is_periodic
+        if hasattr(self, "_RansFormulation__is_periodic"):
+            return self.__is_periodic
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetIsPeriodic\" first before checking.")
 
@@ -210,7 +218,7 @@ class RansFormulation:
             value (bool): True if formulations needs to be Periodic, False otherwise
         """
         self.__ExecuteRansFormulationMethods("SetIsPeriodic", [value])
-        self.is_periodic = value
+        self.__is_periodic = value
 
     def SetTimeSchemeSettings(self, settings):
         """Sets time scheme settings recursively for all formulations
@@ -219,11 +227,7 @@ class RansFormulation:
             settings (Kratos.Parameters): Time scheme settings
         """
         self.__ExecuteRansFormulationMethods("SetTimeSchemeSettings", [settings])
-        self.time_scheme_settings = settings
-
-    def SetWallFunctionSettings(self, settings):
-        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
-        self.wall_function_settings = settings
+        self.__time_scheme_settings = settings
 
     def GetTimeSchemeSettings(self):
         """Returns time scheme settings
@@ -231,10 +235,25 @@ class RansFormulation:
         Returns:
             Kratos.Parameters: Time scheme settings used for formulations
         """
-        if (hasattr(self, "time_scheme_settings")):
-            return self.time_scheme_settings
+        if (hasattr(self, "_RansFormulation__time_scheme_settings")):
+            return self.__time_scheme_settings
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetTimeSchemeSettings\" first before calling \"GetTimeSchemeSettings\".")
+
+    def SetWallFunctionSettings(self, settings):
+        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
+        self.__wall_function_settings = settings
+
+    def GetWallFunctionSettings(self):
+        """Returns wall function settings
+
+        Returns:
+            Kratos.Parameters: Wall function settings used for formulations
+        """
+        if (hasattr(self, "_RansFormulation__wall_function_settings")):
+            return self.__wall_function_settings
+        else:
+            raise Exception(self.__class__.__name__ + " needs to use \"SetWallFunctionSettings\" first before calling \"GetWallFunctionSettings\".")
 
     def GetBaseModelPart(self):
         """Returns base model part used in the formulation
@@ -242,7 +261,7 @@ class RansFormulation:
         Returns:
             Kratos.ModelPart: Base model part used in the formulation
         """
-        return self.base_computing_model_part
+        return self.__base_computing_model_part
 
     def SetMaxCouplingIterations(self, max_iterations):
         """Sets max coupling iterations
@@ -253,7 +272,7 @@ class RansFormulation:
         Args:
             max_iterations (int): Maximum number of coupling iterations to be done in the child formulations
         """
-        self.max_coupling_iterations = max_iterations
+        self.__max_coupling_iterations = max_iterations
 
     def GetMaxCouplingIterations(self):
         """Returns maxmum number of coupling iterations used in this formulation
@@ -261,8 +280,8 @@ class RansFormulation:
         Returns:
             int: Maximum number of coupling iterations
         """
-        if (hasattr(self, "max_coupling_iterations")):
-            return self.max_coupling_iterations
+        if (hasattr(self, "_RansFormulation__max_coupling_iterations")):
+            return self.__max_coupling_iterations
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetMaxCouplingIterations\" first before calling \"GetMaxCouplingIterations\".")
 
@@ -280,7 +299,7 @@ class RansFormulation:
         Returns:
             List(RansFormulation): List of formulations in this formulation
         """
-        return self.list_of_formulations
+        return self.__list_of_formulations
 
     def GetProcessList(self):
         """Returns list of processes used in this formulation
@@ -288,7 +307,7 @@ class RansFormulation:
         Returns:
             List(Kratos.RANSApplication.RansFormulationProcess): List of rans formulation processes in this formulation
         """
-        return self.list_of_processes
+        return self.__list_of_processes
 
     def GetModelPart(self):
         return None
@@ -314,16 +333,16 @@ class RansFormulation:
             for process in self.GetProcessList():
                 info += "\n      " + str(process).strip()
 
-        for formulation in self.list_of_formulations:
+        for formulation in self.GetRansFormulationsList():
             info += str(formulation.GetInfo()).replace("\n", "\n   ")
         return info
 
     def __ExecuteRansFormulationMethods(self, method_name, args = []):
-        for formulation in self.list_of_formulations:
+        for formulation in self.__list_of_formulations:
             getattr(formulation, method_name)(*args)
 
     def __ExecuteProcessMethods(self, method_name):
-        for process in self.list_of_processes:
+        for process in self.__list_of_processes:
             getattr(process, method_name)()
 
 
