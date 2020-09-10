@@ -13,8 +13,6 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -98,6 +96,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             std::vector<Vector> int_normals_neg;                                 // interface normal vector based on the negative side
             Kratos::Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
 
+            ModifiedShapeFunctions::Pointer p_modified_sh_func = ModifiedShapeFunctionsUtility(p_geom, data.Distance);
+
             ComputeSplitting(
                 data,
                 shape_functions_pos,
@@ -107,7 +107,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 shape_derivatives_pos,
                 shape_derivatives_neg,
                 shape_derivatives_enr_pos,
-                shape_derivatives_enr_neg);
+                shape_derivatives_enr_neg,
+                p_modified_sh_func);
 
             if (data.NumberOfDivisions == 1){
                 // Cases exist when the element is not subdivided due to the characteristics of the provided distance
@@ -179,7 +180,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         int_shape_function_enr_neg,
                         int_shape_derivatives,
                         int_gauss_pts_weights,
-                        int_normals_neg);
+                        int_normals_neg,
+                        p_modified_sh_func);
 
                     CalculateCurvature(
                         int_shape_function,
@@ -1881,7 +1883,8 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     GeometryType::ShapeFunctionsGradientsType &rShapeDerivativesPos,
     GeometryType::ShapeFunctionsGradientsType &rShapeDerivativesNeg,
     GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesPos,
-    GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesNeg)
+    GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesNeg,
+    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
 {
     // Set the positive and negative enrichment interpolation matrices
     // Note that the enrichment is constructed using the standard shape functions such that:
@@ -1901,23 +1904,15 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
         }
     }
 
-    // Construct the modified shape fucntions utility
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-    if (Dim == 2)
-        p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, rData.Distance);
-    else
-        p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, rData.Distance);
-
     // Call the positive side modified shape functions calculator
-    p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+    pModifiedShapeFunctions->ComputePositiveSideShapeFunctionsAndGradientsValues(
         rShapeFunctionsPos,
         rShapeDerivativesPos,
         rData.w_gauss_pos_side,
         GeometryData::GI_GAUSS_2);
 
     // Call the negative side modified shape functions calculator
-    p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+    pModifiedShapeFunctions->ComputeNegativeSideShapeFunctionsAndGradientsValues(
         rShapeFunctionsNeg,
         rShapeDerivativesNeg,
         rData.w_gauss_neg_side,
@@ -1939,18 +1934,19 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
         rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]);
     }
 
-    rData.NumberOfDivisions = (p_modified_sh_func->pGetSplittingUtil())->mDivisionsNumber;
+    rData.NumberOfDivisions = (pModifiedShapeFunctions->pGetSplittingUtil())->mDivisionsNumber;
 }
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
-        TElementData &rData,
-        MatrixType& rInterfaceShapeFunctionNeg,
-        MatrixType& rEnrInterfaceShapeFunctionPos,
-        MatrixType& rEnrInterfaceShapeFunctionNeg,
-        GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
-        Kratos::Vector& rInterfaceWeightsNeg,
-        std::vector<Vector>& rInterfaceNormalsNeg)
+    TElementData &rData,
+    MatrixType& rInterfaceShapeFunctionNeg,
+    MatrixType& rEnrInterfaceShapeFunctionPos,
+    MatrixType& rEnrInterfaceShapeFunctionNeg,
+    GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
+    Kratos::Vector& rInterfaceWeightsNeg,
+    std::vector<Vector>& rInterfaceNormalsNeg,
+    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
 {
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
@@ -1963,23 +1959,15 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
         }
     }
 
-    // Construct the modified shape fucntions utility
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-    if (Dim == 2)
-        p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, rData.Distance);
-    else
-        p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, rData.Distance);
-
     // Call the Interface negative side shape functions calculator
-    p_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+    pModifiedShapeFunctions->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
         rInterfaceShapeFunctionNeg,
         rInterfaceShapeDerivativesNeg,
         rInterfaceWeightsNeg,
         GeometryData::GI_GAUSS_2);
 
     // Call the Interface negative side normal functions calculator
-    p_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
+    pModifiedShapeFunctions->ComputeNegativeSideInterfaceAreaNormals(
         rInterfaceNormalsNeg,
         GeometryData::GI_GAUSS_2);
 
@@ -1991,6 +1979,24 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     // Compute the enrichment shape function values at the interface gauss points using the enrichment interpolation matrices
     rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp);
     rEnrInterfaceShapeFunctionNeg = prod(rInterfaceShapeFunctionNeg, enr_neg_interp);
+}
+
+template <>
+ModifiedShapeFunctions::Pointer TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ModifiedShapeFunctionsUtility(
+    const GeometryType::Pointer pGeometry,
+    const Vector& rDistances)
+{
+    auto p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+    return p_modified_sh_func;
+}
+
+template <>
+ModifiedShapeFunctions::Pointer TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >::ModifiedShapeFunctionsUtility(
+        const GeometryType::Pointer pGeometry,
+        const Vector& rDistances)
+{
+    auto p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
+    return p_modified_sh_func;
 }
 
 template <class TElementData>

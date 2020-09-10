@@ -25,6 +25,8 @@
 #include "custom_elements/fluid_element.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "utilities/geometry_utilities.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -397,6 +399,7 @@ private:
      * @param rShapeDerivativesNeg  Negative side shape functions derivatives values
      * @param rEnrichedShapeDerivativesPos Positive side enrichment shape functions derivatives values
      * @param rEnrichedShapeDerivativesNeg Negative side enrichment shape functions derivatives values
+     * @param pModifiedShapeFunctions Pointer to the element splitting utility
      */
     void ComputeSplitting(
 		TElementData& rData,
@@ -407,7 +410,8 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
         GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
         GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
-        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg);
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg,
+        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
 
     /**
      * @brief This method computes the standard and enrichment shape functions for the interfaces
@@ -418,6 +422,7 @@ private:
      * @param rInterfaceShapeDerivativesNeg Negative side shape functions derivatives at the interface-gauss-points
      * @param rInterfaceWeightsNeg Negative side weights for the interface-gauss-points
      * @param rInterfaceNormalsNeg Negative side normal vectors for the interface-gauss-points
+     * @param pModifiedShapeFunctions Pointer to the element splitting utility
      */
     void ComputeSplitInterface(
         TElementData& rData,
@@ -426,7 +431,17 @@ private:
         MatrixType& rEnrInterfaceShapeFunctionNeg,
         GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
         Kratos::Vector& rInterfaceWeightsNeg,
-        std::vector<Vector>& rInterfaceNormalsNeg);
+        std::vector<Vector>& rInterfaceNormalsNeg,
+        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
+
+    /**
+     * @brief This function returns the ModifiedShapeFunctions object according to TDim
+     * @param pGeometry Pointer to the element geometry
+     * @param rDistances Distance at the nodes
+     */
+    ModifiedShapeFunctions::Pointer ModifiedShapeFunctionsUtility(
+        const GeometryType::Pointer pGeometry,
+        const Vector& rDistances);
 
     /**
      * @brief Calculates curvature at the gauss points of the interface.
