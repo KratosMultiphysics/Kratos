@@ -74,7 +74,7 @@ void RansKTurbulentIntensityInletProcess::ExecuteInitializeSolutionStep()
 
     auto& r_nodes = mrModel.GetModelPart(mModelPartName).Nodes();
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const auto& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
         const double velocity_magnitude = norm_2(r_velocity);
 

@@ -1,31 +1,47 @@
-from __future__ import print_function, absolute_import, division
-
 # import kratos
 import KratosMultiphysics as Kratos
 
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
 
+# impot processes
+from KratosMultiphysics import IntegrationValuesExtrapolationToNodesProcess as extrapolation_process
+
 # import formulation interface
-from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
+from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
-# import formulations
-from .incompressible_potential_flow_velocity_formulation import IncompressiblePotentialFlowVelocityFormulation
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
+from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
 
-
-class IncompressiblePotentialFlowFormulation(Formulation):
+class IncompressiblePotentialFlowRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
-        super(IncompressiblePotentialFlowFormulation, self).__init__(model_part, settings)
+        """Incompressible potential flow rans formulation
+
+        This RansFormulation solves incompressible potential flow equation for steady
+        state problems. (The dof is KratosRANS.VELOCITY_POTENTIAL) Afterwards, Kratos.VELOCITY
+        variable is updated properly from computed KratosRANS.VELOCITY_POTENTIAL values for each node.
+
+        This does not support periodic conditions.
+
+        Args:
+            model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
+            settings (Kratos.Parameters): Settings to be used in the formulation.
+        """
+        super().__init__(model_part, settings)
 
         default_settings = Kratos.Parameters(r'''
         {
             "formulation_name": "incompressible_potential_flow",
-            "velocity_potential_flow_solver_settings":{},
-            "pressure_potential_flow_solver_settings":{}
+            "linear_solver_settings": {
+                "solver_type": "amgcl"
+            },
+            "echo_level": 0,
+            "relative_tolerance": 1e-12,
+            "absolute_tolerance": 1e-12
         }''')
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        self.AddFormulation(IncompressiblePotentialFlowVelocityFormulation(model_part, settings["velocity_potential_flow_solver_settings"]))
+        self.GetParameters().ValidateAndAssignDefaults(default_settings)
         self.SetMaxCouplingIterations(1)
 
     def AddVariables(self):
@@ -63,6 +79,111 @@ class IncompressiblePotentialFlowFormulation(Formulation):
         return False
 
     def SetIsPeriodic(self, value):
-        super(IncompressiblePotentialFlowFormulation, self).SetIsPeriodic(False)
         if (value):
             raise Exception("Periodic conditions are not supported by incompressible potential flow solver.")
+
+    def PrepareModelPart(self):
+        self.velocity_model_part = CreateRansFormulationModelPart(
+            self,
+            "RansIncompressiblePotentialFlowVelocity",
+            "RansIncompressiblePotentialFlowVelocityInlet")
+
+        Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
+
+    def Initialize(self):
+        CalculateNormalsOnConditions(self.GetBaseModelPart())
+
+        solver_settings = self.GetParameters()
+        linear_solver = GetKratosObjectType("LinearSolverFactory")(
+            solver_settings["linear_solver_settings"])
+        builder_and_solver = CreateBlockBuilderAndSolver(
+            linear_solver,
+            self.IsPeriodic(),
+            self.GetCommunicator())
+        convergence_criteria = GetKratosObjectType("ResidualCriteria")(
+            [(KratosRANS.VELOCITY_POTENTIAL, solver_settings["relative_tolerance"].GetDouble(),
+            solver_settings["absolute_tolerance"].GetDouble())])
+        self.velocity_strategy = GetKratosObjectType("NewtonRaphsonStrategy")(
+            self.velocity_model_part, GetKratosObjectType("IncrementalUpdateStaticScheme")(),
+            convergence_criteria, builder_and_solver, 2, False, False, False)
+
+        builder_and_solver.SetEchoLevel(solver_settings["echo_level"].GetInt() - 3)
+        self.velocity_strategy.SetEchoLevel(solver_settings["echo_level"].GetInt() - 2)
+        convergence_criteria.SetEchoLevel(solver_settings["echo_level"].GetInt() - 1)
+
+        self.velocity_strategy.Initialize()
+        Kratos.Logger.PrintInfo(self.GetName(), "Initialized formulation")
+
+    def InitializeSolutionStep(self):
+        if (not hasattr(self, "is_initialized")):
+            self.is_initialized = True
+
+            Kratos.VariableUtils().ApplyFixity(
+                KratosRANS.VELOCITY_POTENTIAL,
+                True,
+                self.velocity_model_part.Nodes,
+                Kratos.OUTLET,
+                True)
+
+            self.velocity_strategy.InitializeSolutionStep()
+
+    def IsConverged(self):
+        if (hasattr(self, "is_converged")):
+            return self.is_converged
+        return False
+
+    def SolveCouplingStep(self):
+        if (not self.IsConverged()):
+            self.velocity_strategy.Predict()
+            self.is_converged = self.velocity_strategy.SolveSolutionStep()
+            self.ExecuteAfterCouplingSolveStep()
+            Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
+            if (self.is_converged):
+                Kratos.Logger.PrintInfo(self.GetName(), "*** CONVERGENCE ACHIEVED ****")
+        return True
+
+    def ExecuteAfterCouplingSolveStep(self):
+        Kratos.VariableUtils().CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+            Kratos.VELOCITY,
+            self.velocity_model_part,
+            self.velocity_model_part,
+            Kratos.INLET,
+            True,
+            0)
+
+        # extrapolate gauss point velocities to nodal velocities
+        extrapolation_settings = Kratos.Parameters('''
+        {
+            "echo_level"                 : 0,
+            "area_average"               : true,
+            "average_variable"           : "NODAL_AREA",
+            "list_of_variables"          : ["VELOCITY"],
+            "extrapolate_non_historical" : false
+        }''')
+        extrapolation_process(
+            self.velocity_model_part,
+            extrapolation_settings).Execute()
+
+        # take back the original inlet velocities
+        Kratos.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+            Kratos.VELOCITY,
+            self.velocity_model_part,
+            self.velocity_model_part,
+            Kratos.INLET,
+            True,
+            0)
+
+    def FinalizeSolutionStep(self):
+        self.velocity_strategy.FinalizeSolutionStep()
+
+    def Check(self):
+        self.velocity_strategy.Check()
+
+    def Clear(self):
+        self.velocity_strategy.Clear()
+
+    def GetMaxCouplingIterations(self):
+        return "N/A"
+
+    def GetModelPart(self):
+        return self.velocity_model_part
