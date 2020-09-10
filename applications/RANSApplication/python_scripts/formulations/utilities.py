@@ -61,6 +61,22 @@ def GetKratosObjectType(type_name):
         "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent":[
             "KratosMultiphysics.FluidDynamicsApplication.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",
             "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent"
+        ],
+        "FractionalStepSettingsPeriodic":[
+            "KratosMultiphysics.FluidDynamicsApplication.FractionalStepSettingsPeriodic",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosFractionalStepSettingsPeriodic"
+        ],
+        "FractionalStepSettings":[
+            "KratosMultiphysics.FluidDynamicsApplication.FractionalStepSettings",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosFractionalStepSettings"
+        ],
+        "FractionalStepStrategy":[
+            "KratosMultiphysics.FluidDynamicsApplication.FractionalStepStrategy",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosFractionalStepStrategy"
+        ],
+        "StrategyLabel":[
+            "KratosMultiphysics.FluidDynamicsApplication.StrategyLabel",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosStrategyLabel"
         ]
     }
 
