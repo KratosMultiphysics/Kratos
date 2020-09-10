@@ -36,6 +36,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/cfd_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -180,6 +181,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
 
+    // Adding cfd utilities
+    m.def_submodule("CFDUtilities")
+        .def("CalculateNumberOfNeighbourConditions", &CFDUtilities::CalculateNumberOfNeighbourConditions)
+        .def("CalculateLinearLogarithmicWallFunctionBasedYPlusLimit", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusLimit)
+        .def("CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau", &CFDUtilities::CalculateLinearLogarithmicWallFunctionBasedYPlusAndUtau)
+        .def("CalculateReactionBasedYPlusUTau", &CFDUtilities::CalculateReactionBasedYPlusUTau)
+        .def("CalculateYPlusAndUTauForConditionsBasedOnReaction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnReaction)
+        .def("CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction", &CFDUtilities::CalculateYPlusAndUTauForConditionsBasedOnLinearLogarithmicWallFunction)
+        ;
 }
 
 }  // namespace Python.
