@@ -18,6 +18,18 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosO
 
 class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
+        """Incompressible Variational-Multi-Scale Navier Stokes formulation
+
+        This RansFormulation solves VELOCITY, and PRESSURE with Variational-Multi-Scale (VMS) formulated
+        incompressible Navier-Stokes equation.
+
+        This supports both steady and transient problems, transient with bossak time integration scheme.
+        It uses wall functions at walls, therefore SLIP flag must be True on all walls (in both conditions and nodes)
+
+        Args:
+            model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
+            settings (Kratos.Parameters): Settings to be used in the formulation.
+        """
         super().__init__(model_part, settings)
 
         ##settings string in json format
@@ -145,9 +157,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             settings["reform_dofs_at_each_step"].GetBool(),
             settings["move_mesh_flag"].GetBool())
 
-        builder_and_solver.SetEchoLevel(self.echo_level - 3)
-        self.solver.SetEchoLevel(self.echo_level - 2)
-        conv_criteria.SetEchoLevel(self.echo_level - 1)
+        self.solver.SetEchoLevel(self.echo_level)
+        conv_criteria.SetEchoLevel(self.echo_level)
 
         process_info.SetValue(Kratos.DYNAMIC_TAU, settings["dynamic_tau"].GetDouble())
         process_info.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())
@@ -199,16 +210,16 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             scheme_type = settings["scheme_type"].GetString()
             if (scheme_type == "steady"):
                 self.is_steady_simulation = True
-            elif (scheme_type == "transient"):
+            elif (scheme_type == "bossak"):
                 self.is_steady_simulation = False
                 default_settings = Kratos.Parameters('''{
-                    "scheme_type": "transient",
+                    "scheme_type": "bossak",
                     "alpha_bossak": -0.3
                 }''')
                 settings.ValidateAndAssignDefaults(default_settings)
                 self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, settings["alpha_bossak"].GetDouble())
             else:
-                raise Exception("Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
+                raise Exception("Only \"steady\" and \"bossak\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 

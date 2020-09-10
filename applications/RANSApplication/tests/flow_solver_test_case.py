@@ -18,8 +18,8 @@ class FlowSolverTestCase(UnitTest.TestCase):
 
         self._runTest()
 
-    def testTransient(self):
-        self.parameters["<TIME_SCHEME_TYPE>"] = "transient"
+    def testBossak(self):
+        self.parameters["<TIME_SCHEME_TYPE>"] = "bossak"
 
         self._runTest()
 
