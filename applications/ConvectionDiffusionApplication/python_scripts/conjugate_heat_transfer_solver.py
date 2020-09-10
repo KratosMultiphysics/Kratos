@@ -118,6 +118,9 @@ class ConjugateHeatTransferSolver(PythonSolver):
     def ValidateSettings(self):
         default_settings = self.GetDefaultParameters()
 
+        ## Base class settings validation
+        super().ValidateSettings()
+
         ## Validate fluid and solid domains settings
         self.settings["fluid_domain_solver_settings"].ValidateAndAssignDefaults(default_settings["fluid_domain_solver_settings"])
         self.settings["solid_domain_solver_settings"].ValidateAndAssignDefaults(default_settings["solid_domain_solver_settings"])
