@@ -94,44 +94,6 @@ namespace Kratos
             // 6 - Apply correction quantities
             if (mSubTimestepIndex == mTimestepRatio) {
                 ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
-
-                // compare incremental displacements
-                Vector accel_corrections = prod(mUnitResponseOrigin, lagrange_vector);
-                Vector origin_accel = prod(mProjectorOrigin, accel_corrections);
-                Vector origin_vel = origin_accel * (0.5 * 0.05);
-                Vector origin_disp = origin_vel * (0.5 * 0.05);
-
-                accel_corrections.clear();
-                accel_corrections = prod(unit_response_destination, lagrange_vector);
-                Vector delta_accel = prod(projector_destination, accel_corrections);
-                Vector delta_vel = delta_accel * (0.5 * 0.025);
-                Vector delta_disp = delta_vel * (0.5 * 0.025);
-
-                //KRATOS_WATCH(origin_accel);
-                //KRATOS_WATCH(delta_accel);
-                //KRATOS_WATCH(origin_vel);
-                //KRATOS_WATCH(delta_vel);
-                //KRATOS_WATCH(origin_disp);
-                //KRATOS_WATCH(delta_disp);
-                //
-                //
-                //
-                //KRATOS_WATCH(lagrange_vector)
-                //KRATOS_WATCH(*mpMappingMatrix)
-                //KRATOS_WATCH(mAccumulatedDisplacement);
-                //PrintInterfaceKinematics(DISPLACEMENT, false);
-                //KRATOS_WATCH(delta_disp);
-                //mAccumulatedDisplacement += delta_disp;
-                //KRATOS_WATCH(mAccumulatedDisplacement);
-                //KRATOS_WATCH("1111");
-            }
-            else
-            {
-                Vector accel_corrections = prod(unit_response_destination, lagrange_vector);
-                mAccumulatedDisplacement.clear();
-                mAccumulatedDisplacement = prod(projector_destination, accel_corrections * 0.5 * 0.5 * 0.025 * 0.025);
-                //KRATOS_WATCH(mSubTimestepIndex);
-                //KRATOS_WATCH(mAccumulatedDisplacement);
             }
             ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
 
@@ -141,6 +103,8 @@ namespace Kratos
                 unbalanced_interface_free_velocity.clear();
                 PrintInterfaceKinematics(DISPLACEMENT, true);
                 PrintInterfaceKinematics(DISPLACEMENT, false);
+                PrintInterfaceKinematics(VELOCITY, true);
+                PrintInterfaceKinematics(VELOCITY, false);
                 CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity, true);
                 const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
                 KRATOS_WATCH(equilibrium_norm);
@@ -172,12 +136,12 @@ namespace Kratos
         auto destination_interface_nodes = mrDestinationInterfaceModelPart.NodesArray();
 
         // Get destination velocities
-        GetInterfaceQuantity(mrDestinationInterfaceModelPart, VELOCITY, rUnbalancedVelocities, dim);
+        GetInterfaceQuantity(mrDestinationInterfaceModelPart, mrEquilibriumVariable, rUnbalancedVelocities, dim);
         rUnbalancedVelocities *= -1.0;
 
         // Get final predicted origin velocities
         if (mSubTimestepIndex == 1 || IsEquilibriumCheck)
-            GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, mFinalOriginInterfaceVelocities, dim);
+            GetInterfaceQuantity(mrOriginInterfaceModelPart, mrEquilibriumVariable, mFinalOriginInterfaceVelocities, dim);
 
         // Interpolate origin velocities to the current sub-timestep
         Vector interpolated_origin_velocities = (IsEquilibriumCheck) ? mFinalOriginInterfaceVelocities
@@ -263,14 +227,37 @@ namespace Kratos
     {
         KRATOS_TRY
 
+
         const double origin_dt = mpOriginDomain->GetProcessInfo()[DELTA_TIME];
         const double dest_dt = mpDestinationDomain->GetProcessInfo().GetValue(DELTA_TIME);
+        double origin_kinematic_coefficient = 0.0;
+        double dest_kinematic_coefficient = 0.0;
+
+        if (mrEquilibriumVariable == ACCELERATION)
+        {
+            origin_kinematic_coefficient = 1.0;
+            dest_kinematic_coefficient = 1.0;
+        }
+        else if (mrEquilibriumVariable == VELOCITY)
+        {
+            origin_kinematic_coefficient = mOriginGamma * origin_dt;
+            dest_kinematic_coefficient = mDestinationGamma * dest_dt;
+        }
+        else if (mrEquilibriumVariable == DISPLACEMENT)
+        {
+            KRATOS_ERROR_IF(mIsImplicitOrigin == false || mIsImplicitDestination == false)
+                << "CAN ONLY DO DIAPLCEMENT COUPLING FOR IMPLICIT-IMPLICIT";
+            origin_kinematic_coefficient = mOriginGamma * mOriginGamma * origin_dt * origin_dt;
+            dest_kinematic_coefficient = mDestinationGamma * mDestinationGamma * dest_dt * dest_dt;
+        }
+
+
 
         rCondensationMatrix = prod(rOriginProjector, rOriginUnitResponse);
-        rCondensationMatrix *= mOriginGamma* origin_dt;
+        rCondensationMatrix *= origin_kinematic_coefficient;
 
         Matrix h_destination = prod(rDestinationProjector, rDestinationUnitResponse);
-        h_destination *= mDestinationGamma* dest_dt;
+        h_destination *= dest_kinematic_coefficient;
         rCondensationMatrix += h_destination;
 
         rCondensationMatrix *= -1.0;
@@ -664,7 +651,7 @@ namespace Kratos
             mInitialOriginInterfaceVelocities.resize(origin_interface_dofs);
         mInitialOriginInterfaceVelocities.clear();
 
-        GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, mInitialOriginInterfaceVelocities, dim_origin);
+        GetInterfaceQuantity(mrOriginInterfaceModelPart, mrEquilibriumVariable, mInitialOriginInterfaceVelocities, dim_origin);
 
         // Set the subTimestep index to 1
         mSubTimestepIndex = 1;
