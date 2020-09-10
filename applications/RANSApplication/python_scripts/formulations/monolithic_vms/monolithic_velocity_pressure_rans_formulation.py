@@ -245,8 +245,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def SetWallFunctionSettings(self, settings):
         wall_function_region_type = "logarithmic_region_only"
         if (settings.Has("wall_function_region_type")):
-            wall_function_region_type = settings[
-                "wall_function_region_type"].GetString()
+            wall_function_region_type = settings["wall_function_region_type"].GetString()
 
         if (wall_function_region_type == "logarithmic_region_only"):
             self.condition_name = "RansVMSMonolithicKBasedWall"
@@ -254,7 +253,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
             msg += "Supported wall function region types are:\n"
             msg += "\tlogarithmic_region_only\n"
-            msg += "\tlinear_and_logarithmic_regions\n"
             raise Exception(msg)
 
     def GetStrategy(self):
