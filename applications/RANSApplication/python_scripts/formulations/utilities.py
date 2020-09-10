@@ -9,29 +9,59 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-    from KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory import ConstructSolver as LinearSolverFactory
-    from KratosMultiphysics.TrilinosApplication import TrilinosMixedGenericCriteria as ResidualCriteria
-    from KratosMultiphysics.TrilinosApplication import TrilinosNewtonRaphsonStrategy as NewtonRaphsonStrategy
-    from KratosMultiphysics.TrilinosApplication import TrilinosResidualBasedIncrementalUpdateStaticScheme as IncrementalUpdateStaticScheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPISteadyScalarScheme as SteadyScalarScheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIAlgebraicFluxCorrectedSteadyScalarScheme as AfcSteadyScalarScheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import MPIBossakRelaxationScalarScheme as BossakScheme
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import TrilinosRansWallDistanceCalculationProcess as WallDistanceCalculationProcess
     from KratosMultiphysics.TrilinosApplication import TrilinosBlockBuilderAndSolverPeriodic
     from KratosMultiphysics.TrilinosApplication import TrilinosBlockBuilderAndSolver
 elif (not IsDistributedRun()):
-    from KratosMultiphysics.python_linear_solver_factory import ConstructSolver as LinearSolverFactory
-    from KratosMultiphysics import MixedGenericCriteria as ResidualCriteria
-    from Kratos import ResidualBasedNewtonRaphsonStrategy as NewtonRaphsonStrategy
-    from KratosMultiphysics import ResidualBasedIncrementalUpdateStaticScheme as IncrementalUpdateStaticScheme
-    from KratosMultiphysics.RANSApplication import SteadyScalarScheme as SteadyScalarScheme
-    from KratosMultiphysics.RANSApplication import AlgebraicFluxCorrectedSteadyScalarScheme as AfcSteadyScalarScheme
-    from KratosMultiphysics.RANSApplication import BossakRelaxationScalarScheme as BossakScheme
-    from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess as WallDistanceCalculationProcess
-    from Kratos import ResidualBasedBlockBuilderAndSolver
+    from KratosMultiphysics import ResidualBasedBlockBuilderAndSolver
     from KratosMultiphysics.FluidDynamicsApplication import ResidualBasedBlockBuilderAndSolverPeriodic
 else:
     raise Exception("Distributed run requires TrilinosApplication")
+
+def GetKratosModule(type_name):
+    type_dict = {
+        "LinearSolverFactory": [
+            ["KratosMultiphysics.python_linear_solver_factory", "ConstructSolver"],
+            ["KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory", "ConstructSolver"]
+        ],
+        "NewtonRaphsonStrategy": [
+            ["KratosMultiphysics", "ResidualBasedNewtonRaphsonStrategy"],
+            ["KratosMultiphysics.TrilinosApplication", "TrilinosNewtonRaphsonStrategy"]
+        ],
+        "ResidualCriteria": [
+            ["KratosMultiphysics", "MixedGenericCriteria"],
+            ["KratosMultiphysics.TrilinosApplication", "TrilinosMixedGenericCriteria"]
+        ],
+        "IncrementalUpdateStaticScheme": [
+            ["KratosMultiphysics", "ResidualBasedIncrementalUpdateStaticScheme"],
+            ["KratosMultiphysics.TrilinosApplication", "TrilinosResidualBasedIncrementalUpdateStaticScheme"]
+        ],
+        "SteadyScalarScheme": [
+            ["KratosMultiphysics.RANSApplication", "SteadyScalarScheme"],
+            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "MPISteadyScalarScheme"]
+        ],
+        "AfcSteadyScalarScheme": [
+            ["KratosMultiphysics.RANSApplication", "AlgebraicFluxCorrectedSteadyScalarScheme"],
+            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "MPIAlgebraicFluxCorrectedSteadyScalarScheme"]
+        ],
+        "BossakScheme": [
+            ["KratosMultiphysics.RANSApplication", "BossakRelaxationScalarScheme"],
+            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "MPIBossakRelaxationScalarScheme"]
+        ],
+        "WallDistanceCalculationProcess": [
+            ["KratosMultiphysics.RANSApplication", "RansWallDistanceCalculationProcess"],
+            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "TrilinosRansWallDistanceCalculationProcess"]
+        ]
+    }
+
+    if (type_name not in type_dict.keys()):
+        raise Exception(type_name + " not found in type_dict. Followings are allowed type_names:" + "\n\t".join(sorted(type_dict.keys())))
+
+    module_info = type_dict[type_name][IsDistributedRun()]
+    module_name = module_info[0]
+    attribute_name = module_info[1]
+
+    module = __import__(module_name, fromlist=[attribute_name])
+    return getattr(module, attribute_name)
 
 
 def CreateDuplicateModelPart(
