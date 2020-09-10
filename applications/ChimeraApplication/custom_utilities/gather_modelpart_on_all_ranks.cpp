@@ -245,7 +245,7 @@ void GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(
         &rModelPartToGather.GetNodalSolutionStepVariablesList(),
         r_root_mp.GetCommunicator().GetDataCommunicator());
     rGatheredModelPart.SetCommunicator(p_new_comm);
-    ParallelFillCommunicator(rGatheredModelPart).Execute();
+    // ParallelFillCommunicator(rGatheredModelPart).Execute();
   }
 #endif
 }
