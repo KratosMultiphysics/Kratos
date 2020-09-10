@@ -26,15 +26,15 @@ def GetKratosObjectType(type_name):
             "KratosMultiphysics.python_linear_solver_factory.ConstructSolver",
             "KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory.ConstructSolver"
         ],
-        "NewtonRaphsonStrategy": [
+        "ResidualBasedNewtonRaphsonStrategy": [
             "KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy",
             "KratosMultiphysics.TrilinosApplication.TrilinosNewtonRaphsonStrategy"
         ],
-        "ResidualCriteria": [
+        "MixedGenericCriteria": [
             "KratosMultiphysics.MixedGenericCriteria",
             "KratosMultiphysics.TrilinosApplication.TrilinosMixedGenericCriteria"
         ],
-        "IncrementalUpdateStaticScheme": [
+        "ResidualBasedIncrementalUpdateStaticScheme": [
             "KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme",
             "KratosMultiphysics.TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme"
         ],
@@ -42,17 +42,25 @@ def GetKratosObjectType(type_name):
             "KratosMultiphysics.RANSApplication.SteadyScalarScheme",
             "KratosMultiphysics.RANSApplication.TrilinosExtension.MPISteadyScalarScheme"
         ],
-        "AfcSteadyScalarScheme": [
+        "AlgebraicFluxCorrectedSteadyScalarScheme": [
             "KratosMultiphysics.RANSApplication.AlgebraicFluxCorrectedSteadyScalarScheme",
             "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIAlgebraicFluxCorrectedSteadyScalarScheme"
         ],
-        "BossakScheme": [
+        "BossakRelaxationScalarScheme": [
             "KratosMultiphysics.RANSApplication.BossakRelaxationScalarScheme",
             "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIBossakRelaxationScalarScheme"
         ],
-        "WallDistanceCalculationProcess": [
+        "RansWallDistanceCalculationProcess": [
             "KratosMultiphysics.RANSApplication.RansWallDistanceCalculationProcess",
             "KratosMultiphysics.RANSApplication.TrilinosExtension.TrilinosRansWallDistanceCalculationProcess"
+        ],
+        "ResidualBasedSimpleSteadyScheme": [
+            "KratosMultiphysics.FluidDynamicsApplication.ResidualBasedSimpleSteadyScheme",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosResidualBasedSimpleSteadyScheme"
+        ],
+        "ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent":[
+            "KratosMultiphysics.FluidDynamicsApplication.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",
+            "KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent"
         ]
     }
 

@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RANSApplication.test_utilities import RunParametericTestCase
+from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
 
 
 class FlowSolverTestCase(UnitTest.TestCase):
@@ -31,6 +31,6 @@ class FlowSolverTestCase(UnitTest.TestCase):
 
         self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
 
-        RunParametericTestCase(self.parameters_file_name, self.working_folder,
+        RunParametricTestCase(self.parameters_file_name, self.working_folder,
                                self.parameters, self.print_output)
 
