@@ -8,8 +8,35 @@ from KratosMultiphysics.testing.utilities import GetPython3Command
 import os
 import subprocess
 
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
+class TestCoSimIOPyExposure_aux_tests(KratosUnittest.TestCase):
+
+    def test_InfoFromParameters(self):
+        params = KM.Parameters("""{
+            "some_bool"      : true,
+            "the_string"     : "file",
+            "another_string" : "i25mmk",
+            "int_for_it"     : 12,
+            "double_val"     : 0.223,
+            "array_val_ign"  : [0.923, 1.8]
+        }""")
+
+        info = CoSimIO.InfoFromParameters(params)
+        self.assertEqual(info.Size(), 5)
+        self.assertTrue(info.Has("some_bool"))
+        self.assertTrue(info.Has("the_string"))
+        self.assertTrue(info.Has("another_string"))
+        self.assertTrue(info.Has("int_for_it"))
+        self.assertTrue(info.Has("double_val"))
+        # only int, bool, double & string can be converted, others are ignored
+        self.assertFalse(info.Has("array_val_ign"))
+
+        self.assertTrue(info.GetBool("some_bool"))
+        self.assertEqual(info.GetString("the_string"), "file")
+        self.assertEqual(info.GetString("another_string"), "i25mmk")
+        self.assertEqual(info.GetInt("int_for_it"), 12)
+        self.assertAlmostEqual(info.GetDouble("double_val"), 0.223)
+
 
 class TestCoSimIOPyExposure(KratosUnittest.TestCase):
 

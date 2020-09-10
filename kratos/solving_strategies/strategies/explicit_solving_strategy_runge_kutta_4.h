@@ -58,6 +58,9 @@ public:
     // The base class definition
     typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> BaseType;
 
+    /// The definition of the current class
+    typedef ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace> ClassType;
+
     // The explicit builder and solver definition
     typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
 
@@ -75,6 +78,14 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor. (empty)
+     */
+    explicit ExplicitSolvingStrategyRungeKutta4()
+        : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
@@ -82,8 +93,11 @@ public:
     explicit ExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
         Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
+        : BaseType(rModelPart)
     {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -114,6 +128,19 @@ public:
     {
     }
 
+    /**
+     * @brief Create method
+     * @param rModelPart The model part to be computed
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
+
     /** Copy constructor.
      */
     ExplicitSolvingStrategyRungeKutta4(const ExplicitSolvingStrategyRungeKutta4 &Other) = delete;
@@ -121,6 +148,32 @@ public:
     /** Destructor.
      */
     ~ExplicitSolvingStrategyRungeKutta4() override = default;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "explicit_solving_strategy_runge_kutta_4"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "explicit_solving_strategy_runge_kutta_4";
+    }
 
     ///@}
     ///@name Operators
@@ -203,7 +256,7 @@ protected:
                 double& r_u_0 = it_dof->GetSolutionStepValue(0);
                 const double& r_u_1 = it_dof->GetSolutionStepValue(1);
                 if (it_dof->IsFixed()) {
-                    u_n(i_dof) = r_u_1;
+                    u_n(i_dof) = r_u_0;
                 }
                 r_u_0 = r_u_1;
             }
