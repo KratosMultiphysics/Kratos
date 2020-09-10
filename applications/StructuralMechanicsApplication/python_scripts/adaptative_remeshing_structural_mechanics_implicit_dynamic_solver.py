@@ -31,7 +31,6 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
         adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
 
         # Validate the remaining settings in the base class.
-        self.validate_and_transfer_matching_settings(custom_settings, adaptative_remesh_parameters)
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
         self.adaptative_remeshing_utilities.SetDefaultParameters(self.adaptative_remesh_parameters)
 

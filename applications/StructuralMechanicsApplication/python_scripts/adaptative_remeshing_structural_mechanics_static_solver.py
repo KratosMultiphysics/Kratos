@@ -31,7 +31,6 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
 
         # Validate the remaining settings in the base class.
-        self.validate_and_transfer_matching_settings(custom_settings, adaptative_remesh_parameters)
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
         self.adaptative_remeshing_utilities.SetDefaultParameters(self.adaptative_remesh_parameters)
 
@@ -67,6 +66,3 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
         return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)
-
-
-
