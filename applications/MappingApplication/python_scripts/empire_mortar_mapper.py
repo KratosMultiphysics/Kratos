@@ -14,6 +14,14 @@ def Create(model_part_origin, model_part_destination, mapper_settings):
 
 
 class EmpireMortarMapper(PythonMapper):
+    """Wrapper for the Mortar mapper of EMPIRE
+
+    Usage:
+    Empire needs to be compiled separately
+    It can then be used by either of the two ways:
+    - (default) use "startEMPIRE" to bring "EMPIRE_MAPPER_LIBSO_ON_MACHINE" to the environment
+    - use "path_mapper_lib" to sprecify the path to "libEMPIRE_MapperLib.so" (by default located in "EMPIRE-Core/lib/")
+    """
 
     mapper_count = 0
     instances = 0
