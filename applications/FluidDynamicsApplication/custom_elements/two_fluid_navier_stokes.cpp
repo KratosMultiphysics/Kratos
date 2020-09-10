@@ -92,9 +92,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             Matrix int_shape_function_neg;                                       // interface shape functions
             Matrix int_shape_function_enr_neg, int_shape_function_enr_pos;       // interface enriched shape functions
             GeometryType::ShapeFunctionsGradientsType int_shape_derivatives_neg; // interface shape functions derivatives
-            Kratos::Vector int_gauss_pts_weights;                                // interface Gauss points weights
+            Vector int_gauss_pts_weights;                                // interface Gauss points weights
             std::vector<Vector> int_normals_neg;                                 // interface normal vector based on the negative side
-            Kratos::Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
+            Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
 
             ModifiedShapeFunctions::Pointer p_modified_sh_func = ModifiedShapeFunctionsUtility(p_geom, data.Distance);
 
@@ -169,9 +169,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
                     Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
                     GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
-                    Kratos::Vector int_gauss_pts_weights;
+                    Vector int_gauss_pts_weights;
                     std::vector<Vector> int_normals_neg;
-                    Kratos::Vector gauss_pts_curvature;
+                    Vector gauss_pts_curvature;
 
                     ComputeSplitInterface(
                         data,
@@ -1944,7 +1944,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     MatrixType& rEnrInterfaceShapeFunctionPos,
     MatrixType& rEnrInterfaceShapeFunctionNeg,
     GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
-    Kratos::Vector& rInterfaceWeightsNeg,
+    Vector& rInterfaceWeightsNeg,
     std::vector<Vector>& rInterfaceNormalsNeg,
     ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
 {
@@ -2002,7 +2002,7 @@ ModifiedShapeFunctions::Pointer TwoFluidNavierStokes< TwoFluidNavierStokesData<3
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
         const Matrix& rInterfaceShapeFunctions,
-        Kratos::Vector& rInterfaceCurvature)
+        Vector& rInterfaceCurvature)
 {
     GeometryType::Pointer p_geom = this->pGetGeometry();
     const unsigned int n_gpt = rInterfaceShapeFunctions.size1();
@@ -2021,8 +2021,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     const double coefficient,
-    const Kratos::Vector& rCurvature,
-    const Kratos::Vector& rInterfaceWeights,
+    const Vector& rCurvature,
+    const Vector& rInterfaceWeights,
     const Matrix& rInterfaceShapeFunctions,
     const std::vector<Vector>& rInterfaceNormalsNeg,
     VectorType& rRHS)
@@ -2044,7 +2044,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     TElementData& rData,
-    const Kratos::Vector& rInterfaceWeights,
+    const Vector& rInterfaceWeights,
     const Matrix& rEnrInterfaceShapeFunctionPos,
     const Matrix& rEnrInterfaceShapeFunctionNeg,
     const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,

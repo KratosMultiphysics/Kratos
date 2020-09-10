@@ -430,7 +430,7 @@ private:
         MatrixType& rEnrInterfaceShapeFunctionPos,
         MatrixType& rEnrInterfaceShapeFunctionNeg,
         GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
-        Kratos::Vector& rInterfaceWeightsNeg,
+        Vector& rInterfaceWeightsNeg,
         std::vector<Vector>& rInterfaceNormalsNeg,
         ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
 
@@ -450,7 +450,7 @@ private:
      */
     void CalculateCurvature(
         const Matrix& rInterfaceShapeFunctions,
-        Kratos::Vector& rInterfaceCurvature);
+        Vector& rInterfaceCurvature);
 
     /**
      * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
@@ -463,8 +463,8 @@ private:
      */
     void SurfaceTension(
         const double coefficient,
-        const Kratos::Vector& rCurvature,
-        const Kratos::Vector& rInterfaceWeights,
+        const Vector& rCurvature,
+        const Vector& rInterfaceWeights,
         const Matrix& rInterfaceShapeFunctions,
         const std::vector<Vector>& rInterfaceNormalsNeg,
         VectorType& rRHS);
@@ -480,7 +480,7 @@ private:
      */
     void PressureGradientStabilization(
         TElementData& rData,
-        const Kratos::Vector& rInterfaceWeights,
+        const Vector& rInterfaceWeights,
         const Matrix& rEnrInterfaceShapeFunctionPos,
         const Matrix& rEnrInterfaceShapeFunctionNeg,
         const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,

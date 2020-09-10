@@ -103,9 +103,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SURFACE_TENSION, surface_tension)
 
-        self._retinitialization_type = "variational"
+        self._reinitialization_type = "variational"
         if (self.settings.Has("distance_reinitialization")):
-            self._retinitialization_type = self.settings["distance_reinitialization"].GetString()
+            self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
         self._distance_smoothing = False
         if (self.settings.Has("distance_smoothing")):
@@ -136,6 +136,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CURVATURE)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
@@ -164,6 +165,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             computing_model_part)
         neighbour_search.Execute()
 
+        dimensions = computing_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        avg_num_elements = dimensions + 1
+        elemental_neighbour_search = KratosMultiphysics.FindElementalNeighboursProcess(
+            computing_model_part,
+            dimensions,
+            avg_num_elements)
+        elemental_neighbour_search.Execute()
+
         # Set and initialize the solution strategy
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -187,9 +196,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self._GetLevelSetConvectionProcess().Execute()
 
             # Recompute the distance field according to the new level-set position
-            if (self._retinitialization_type == "variational"):
+            if (self._reinitialization_type == "variational"):
                 self._GetDistanceReinitializationProcess().Execute()
-            elif (self._retinitialization_type == "parallel"):
+            elif (self._reinitialization_type == "parallel"):
                 layers = int(0.005*self.main_model_part.NumberOfElements()) # this parameer is essential
                 max_distance = 1.0 # use this parameter to define the redistancing range
                 # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
@@ -199,13 +208,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.NODAL_AREA,
                     layers,
                     max_distance,
-                    self._GetDistanceReinitializationProcess().NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
             # filtering noises is necessary for curvature calculation
             if (self._distance_smoothing):
                 # distance gradient is used as a boundary condition for smoothing process
                 self._GetDistanceGradientProcess().Execute()
                 self._GetDistanceSmoothingProcess().Execute()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Smoothing process is finished.")
 
             if (self.main_model_part.ProcessInfo[KratosCFD.SURFACE_TENSION]):
                 self._GetDistanceGradientProcess().Execute()
@@ -375,7 +386,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def _CreateDistanceReinitializationProcess(self):
         # Construct the variational distance calculation process
-        if (self._retinitialization_type == "variational"):
+        if (self._reinitialization_type == "variational"):
             maximum_iterations = 2 #TODO: Make this user-definable
             linear_solver = self._GetLinearSolver()
             computing_model_part = self.GetComputingModelPart()
@@ -392,7 +403,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     maximum_iterations,
                     KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-        elif (self._retinitialization_type == "parallel"):
+        elif (self._reinitialization_type == "parallel"):
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
                 locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
                 locator.UpdateSearchDatabase()
