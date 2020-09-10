@@ -14,7 +14,11 @@ except ImportError:
 
 # Import the tests or test_classes to create the suits
 
+# process test_classes
 from custom_process_tests import CustomProcessTest
+
+# flow solver test_classes
+from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -37,6 +41,9 @@ def AssembleTestSuites():
     nightlyMPISuite = suites['mpi_nightly']
 
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CustomProcessTest]))
+
+    # adding incompressible potential flow solver tests
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IncompressiblePotentialFlowSolverFormulationTest]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

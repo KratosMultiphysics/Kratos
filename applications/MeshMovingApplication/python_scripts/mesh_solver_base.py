@@ -56,7 +56,7 @@ class MeshSolverBase(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type"           : "mesh_solver_base",
             "buffer_size"           : 1,
@@ -90,7 +90,7 @@ class MeshSolverBase(PythonSolver):
             "superimpose_mesh_disp_with": [],
             "superimpose_mesh_velocity_with": []
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Public user interface functions ####

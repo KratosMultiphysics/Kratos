@@ -142,7 +142,7 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                             self.settings["move_mesh_flag"].GetBool())
 
-        self.main_model_part.ProcessInfo.SetValue(KM.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
 
         (self.solver).SetEchoLevel(max(0, self.echo_level-1))
         (self.solver).Check()
@@ -203,7 +203,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         return delta_time
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
             "solver_type"              : "shallow_water_base_solver",
@@ -218,8 +218,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "echo_level"               : 0,
             "buffer_size"              : 2,
-            "dynamic_tau"              : 0.005,
-            "dry_height_threshold"      : 1e-3,
+            "stabilization_factor"     : 0.005,
+            "dry_height_threshold"     : 1e-3,
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,
@@ -227,10 +227,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "reform_dofs_at_each_step" : false,
             "calculate_norm_dx"        : true,
             "move_mesh_flag"           : false,
-            "wetting_drying_model"     : {
-                "model_name"               : "negative_height",
-                "beta"                     : 1e4
-            },
+            "wetting_drying_model"     : {},
             "linear_solver_settings"   : {
                 "solver_type"              : "amgcl"
             },
@@ -240,7 +237,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "multigrid_settings"       : {}
         }""")
-        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultParameters())
         return default_settings
 
     def _ReplaceElementsAndConditions(self):
