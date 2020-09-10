@@ -77,10 +77,10 @@ class EmpireMortarMapper(PythonMapper):
     def _MapInternal(self, variable_origin, variable_destination, mapper_flags):
         if mapper_flags.Is(Mapper.USE_TRANSPOSE):
             mapper_flags.Reset(Mapper.USE_TRANSPOSE)
-            mapper_flags.Set(Mapper.INTERNAL_USE_TRANSPOSE, True)
+            mapper_flags.Set(KM.VISITED, True)
             self.__GetInverseMapper().Map(variable_destination, variable_origin, mapper_flags)
             return
-        elif mapper_flags.Is(Mapper.INTERNAL_USE_TRANSPOSE):
+        elif mapper_flags.Is(KM.VISITED):
             self.__MapInternalTranspose(variable_origin, variable_destination, mapper_flags)
             return
 
