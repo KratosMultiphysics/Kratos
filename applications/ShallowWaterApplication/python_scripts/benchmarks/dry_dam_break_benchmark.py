@@ -12,25 +12,27 @@ def Factory(settings, model):
     return DryDamBreakBenchmark(model, settings["Parameters"])
 
 class DryDamBreakBenchmark(BaseBenchmarkProcess):
+    """Dry dam break benchark.
+
+    O. Delestre, C. Lucas, P.-A. Ksinant, F. Darboux, C. Laguerre, T.N.T. Vo, F. James, S. Cordier
+    SWASHES: a compilation of Shallow Water Analytic Solutions for Hydraulic and Environmental Studies
+    International Journal for Numerical Methods in Fluids, Wiley, 2013, 72 (3), pp.269-300
+    """
 
     def __init__(self, model, settings):
-        # The base class sets the model_part, variables and benchmark_settings
-        super(DryDamBreakBenchmark, self).__init__(model, settings)
+        """Constructor of the benchmark.
 
-        benchmark_default_settings = KM.Parameters("""
-            {
-                "dam_position"  : 5.0,
-                "left_height"   : 2.0
-            }
-            """
-            )
-        self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
+        The base class validates the settings and sets the model_part, the variables and the benchmark_settings
+        """
+        super(DryDamBreakBenchmark, self).__init__(model, settings)
 
         self.dam = self.benchmark_settings["dam_position"].GetDouble()
         self.hl = self.benchmark_settings["left_height"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
 
     def Check(self):
+        """This method checks if the input values have physical sense."""
+
         super(DryDamBreakBenchmark, self).Check()
         label = "DryDamBreakBenchmark. "
         if self.g <= 0:
@@ -39,14 +41,21 @@ class DryDamBreakBenchmark(BaseBenchmarkProcess):
         elif self.hl <= 0:
             msg = label + "Left height must be a positive value. Please, check the Parameters."
             raise Exception(msg)
-        elif self.dam <= 0:
-            msg = label + "The dam position must be a positive value. Please, check the Parameters."
-            raise Exception(msg)
 
-    def Topography(self, coordinates):
+    @classmethod
+    def _GetBenchmarkDefaultSettings(cls):
+        return KM.Parameters("""
+            {
+                "dam_position"  : 5.0,
+                "left_height"   : 2.0
+            }
+            """
+            )
+
+    def _Topography(self, coordinates):
         return 0.0
 
-    def Height(self, coordinates, time):
+    def _Height(self, coordinates, time):
         x = coordinates.X
 
         xa = self.__xa(time)
@@ -59,7 +68,7 @@ class DryDamBreakBenchmark(BaseBenchmarkProcess):
         else:
             return 0.0
 
-    def Velocity(self, coordinates, time):
+    def _Velocity(self, coordinates, time):
         x = coordinates.X
 
         xa = self.__xa(time)
