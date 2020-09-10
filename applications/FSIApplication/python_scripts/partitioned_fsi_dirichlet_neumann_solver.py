@@ -19,11 +19,11 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
     @classmethod
     def GetDefaultParameters(cls):
-        """This function returns the default-settings used by this class
-        """
+
         this_defaults = KratosMultiphysics.Parameters("""{
             "coupling_scheme": "dirichlet_neumann"
         }""")
+
         this_defaults.AddMissingParameters(super(PartitionedFSIDirichletNeumannSolver, cls).GetDefaultParameters())
         return this_defaults
 

@@ -29,8 +29,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
         # Call the base Python solver constructor
         # Note that default settings in GetDefaultParameters() are validated in here
-        self._validate_settings_in_baseclass = True
-        super(PartitionedFSIBaseSolver,self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
         # Auxiliar variables
         self.parallel_type = self.settings["parallel_type"].GetString()
@@ -108,8 +107,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
-        """This function returns the default-settings used by this class
-        """
+
         this_defaults = KratosMultiphysics.Parameters("""{
             "echo_level": 0,
             "parallel_type": "OpenMP",
@@ -121,10 +119,34 @@ class PartitionedFSIBaseSolver(PythonSolver):
             "mesh_solver_settings":{
             },
             "coupling_settings":{
+                "coupling_strategy_settings": {
+                    "solver_type": "MVQN",
+                    "w_0": 0.825
+                },
+                "mapper_settings": [{
+                    "fluid_interface_submodelpart_name": "",
+                    "mapper_face": "unique",
+                    "structure_interface_submodelpart_name": ""
+                }],
+                "nl_max_it": 25,
+                "nl_tol": 1e-8,
+                "solve_mesh_at_each_iteration": true,
+                "fluid_interfaces_list": [],
+                "structure_interfaces_list": []
             }
         }""")
+
         this_defaults.AddMissingParameters(super(PartitionedFSIBaseSolver, cls).GetDefaultParameters())
         return this_defaults
+
+    def ValidateSettings(self):
+        default_settings = self.GetDefaultParameters()
+
+        ## Base class settings validation
+        super().ValidateSettings()
+
+        ## Validate coupling settings
+        self.settings["coupling_settings"].ValidateAndAssignDefaults(default_settings["coupling_settings"])
 
     def GetMinimumBufferSize(self):
         # Get structure buffer size
