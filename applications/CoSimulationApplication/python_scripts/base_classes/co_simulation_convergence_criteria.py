@@ -11,15 +11,9 @@ class CoSimulationConvergenceCriteria(object):
     """
     def __init__(self, settings):
         self.settings = settings
-        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.echo_level = self.settings["echo_level"].GetInt()
-
-    def SetSolvers(self, settings, solver_wrapper):
-        pass
-
-    def SetInterfaceData(self, settings, solver_wrapper):
-        pass
 
     def Initialize(self):
         pass
@@ -53,7 +47,7 @@ class CoSimulationConvergenceCriteria(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",

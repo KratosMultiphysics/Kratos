@@ -55,12 +55,12 @@ class CouplingOutput(CoSimulationCouplingOperation):
 
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"            : "UNSPECIFIED",
             "execution_point"   : "UNSPECIFIED",
             "output_format"     : "vtk",
             "output_parameters" : { }
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

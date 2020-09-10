@@ -34,7 +34,6 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-#include "solving_strategies/strategies/explicit_strategy.h"
 //#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
 
 // Schemes
@@ -56,13 +55,16 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
+#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_lagrange_multiplier.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -73,8 +75,6 @@ namespace Kratos
     namespace Python
     {
         namespace py = pybind11;
-
-
 
         typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -238,16 +238,6 @@ namespace Kratos
         void AddStrategiesToPython(pybind11::module& m)
         {
 
-//             py::class_< Kratos::shared_ptr<CompressedMatrix> >(m,"CompressedMatrixPointer")
-//             .def(py::init<Kratos::shared_ptr<CompressedMatrix> >())
-//                     .def("GetReference", GetMatRef, py::return_value_policy::reference_internal)
-//                     ;
-//
-//             py::class_< Kratos::shared_ptr<Vector> >(m,"VectorPointer")
-//             .def(py::init< Kratos::shared_ptr<Vector> >())
-//                     .def("GetReference", GetVecRef, py::return_value_policy::reference_internal)
-//                     ;
-
             typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
             //********************************************************************
@@ -279,12 +269,15 @@ namespace Kratos
                 .def("Clear",&BaseSchemeType::Clear)
                 .def("MoveMesh", MoveMesh)
                 .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
+                .def("GetDefaultParameters",&BaseSchemeType::GetDefaultParameters)
+                .def("Info", &BaseSchemeType::Info)
                 ;
 
             py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
                 typename ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>::Pointer,
                 BaseSchemeType >
                 (m, "ResidualBasedIncrementalUpdateStaticScheme")
+                .def(py::init<Parameters >() )
                 .def(py::init< >()
                 );
 
@@ -294,6 +287,7 @@ namespace Kratos
                 typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::Pointer,
                 ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >
                 (m,"ResidualBasedIncrementalUpdateStaticSchemeSlip")
+                .def(py::init<Parameters >() )
                 .def(py::init<unsigned int, unsigned int>())
                 .def(py::init<RotationToolPointerType>());
 
@@ -311,6 +305,7 @@ namespace Kratos
                 typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
                 BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
                 .def(py::init< >() )
+                .def(py::init<Parameters>() )
                 ;
 
 	         // Residual Based Pseudo-Static Scheme Type
@@ -318,16 +313,19 @@ namespace Kratos
                 typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
                 BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
                 .def(py::init< const Variable<double>& >() )
+                .def(py::init<Parameters>() )
                 ;
 
             // Residual Based BDF displacement Scheme Type
             py::class_< ResidualBasedBDFDisplacementSchemeType,typename ResidualBasedBDFDisplacementSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFDisplacementScheme")
+                .def(py::init<Parameters >() )
                 .def(py::init<  >() )
                 .def(py::init <const std::size_t>())
                 ;
 
             // Residual Based BDF custom Scheme Type
             py::class_< ResidualBasedBDFCustomSchemeType, typename ResidualBasedBDFCustomSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFCustomScheme")
+                .def(py::init<Parameters >() )
                 .def(py::init<  >() )
                 .def(py::init <const std::size_t>())
                 .def(py::init <const std::size_t, Parameters>())
@@ -378,6 +376,7 @@ namespace Kratos
                     .def("FinalizeNonLinearIteration", &ConvergenceCriteriaType::FinalizeNonLinearIteration)
                     .def("FinalizeSolutionStep", &ConvergenceCriteriaType::FinalizeSolutionStep)
                     .def("Check", &ConvergenceCriteriaType::Check)
+                    .def("GetDefaultParameters",&ConvergenceCriteriaType::GetDefaultParameters)
                     .def("SetEchoLevel", &ConvergenceCriteriaType::SetEchoLevel)
                     .def("Info", &ConvergenceCriteriaType::Info)
                     ;
@@ -386,6 +385,7 @@ namespace Kratos
                 typename DisplacementCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
                 ConvergenceCriteriaType >
                 (m,"DisplacementCriteria")
+                .def(py::init<Parameters >() )
                 .def(py::init< double, double>())
                 ;
 
@@ -393,6 +393,7 @@ namespace Kratos
                 typename ResidualCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
                 ConvergenceCriteriaType >
                 (m,"ResidualCriteria")
+                .def(py::init<Parameters >() )
                 .def(py::init< double, double>())
                 ;
 
@@ -400,6 +401,7 @@ namespace Kratos
                 typename And_Criteria< SparseSpaceType, LocalSpaceType >::Pointer,
                 ConvergenceCriteriaType >
                 (m,"AndCriteria")
+                .def(py::init<Parameters >() )
                 .def(py::init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
                 ;
 
@@ -407,7 +409,16 @@ namespace Kratos
                 typename Or_Criteria< SparseSpaceType, LocalSpaceType >::Pointer,
                 ConvergenceCriteriaType >
                 (m,"OrCriteria")
+                .def(py::init<Parameters >() )
                 .def(py::init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
+                ;
+
+            typedef typename MixedGenericCriteria<SparseSpaceType, LocalSpaceType>::ConvergenceVariableListType ConvergenceVariableListType;
+            py::class_<MixedGenericCriteria<SparseSpaceType, LocalSpaceType >,
+                typename MixedGenericCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
+                ConvergenceCriteriaType >
+                (m,"MixedGenericCriteria")
+                .def(py::init< const ConvergenceVariableListType& > ())
                 ;
 
             //********************************************************************
@@ -450,8 +461,10 @@ namespace Kratos
                 .def("CalculateReactions", &BuilderAndSolverType::CalculateReactions)
                 .def("Clear", &BuilderAndSolverType::Clear)
                 .def("Check", &BuilderAndSolverType::Check)
+                .def("GetDefaultParameters",&BuilderAndSolverType::GetDefaultParameters)
                 .def("SetEchoLevel", &BuilderAndSolverType::SetEchoLevel)
                 .def("GetEchoLevel", &BuilderAndSolverType::GetEchoLevel)
+                .def("Info", &BuilderAndSolverType::Info)
                 ;
 
             // Explicit builder
@@ -478,11 +491,15 @@ namespace Kratos
                 .def("FinalizeSolutionStep", &ExplicitBuilderType::FinalizeSolutionStep)
                 .def("Clear", &ExplicitBuilderType::Clear)
                 .def("Check", &ExplicitBuilderType::Check)
+                .def("GetDefaultParameters",&ExplicitBuilderType::GetDefaultParameters)
                 .def("SetEchoLevel", &ExplicitBuilderType::SetEchoLevel)
-                .def("GetEchoLevel", &ExplicitBuilderType::GetEchoLevel);
+                .def("GetEchoLevel", &ExplicitBuilderType::GetEchoLevel)
+                .def("Info", &ExplicitBuilderType::Info)
+                ;
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
             py::class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
+            .def(py::init<LinearSolverType::Pointer, Parameters >() )
             .def(py::init< LinearSolverType::Pointer > ())
             ;
 
@@ -496,6 +513,12 @@ namespace Kratos
 
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
+            .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
+            ;
+
+            typedef ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType;
+            py::class_< ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType, ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier")
             .def(py::init< LinearSolverType::Pointer > ())
             .def(py::init< LinearSolverType::Pointer, Parameters > ())
             ;
@@ -542,9 +565,13 @@ namespace Kratos
                     .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
                     .def("Clear", &BaseSolvingStrategyType::Clear)
                     .def("Check", &BaseSolvingStrategyType::Check)
+                    .def("GetDefaultParameters",&BaseSolvingStrategyType::GetDefaultParameters)
                     .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
                     .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
                     .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                    .def("GetSystemMatrix", &BaseSolvingStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
+                    .def("GetSystemVector", &BaseSolvingStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
+                    .def("GetSolutionVector", &BaseSolvingStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
                     .def("Info", &BaseSolvingStrategyType::Info)
                     ;
@@ -565,10 +592,12 @@ namespace Kratos
                 .def("MoveMesh", &BaseExplicitSolvingStrategyType::MoveMesh)
                 .def("Clear", &BaseExplicitSolvingStrategyType::Clear)
                 .def("Check", &BaseExplicitSolvingStrategyType::Check)
+                .def("GetDefaultParameters",&BaseExplicitSolvingStrategyType::GetDefaultParameters)
                 .def("InitializeSolutionStep", &BaseExplicitSolvingStrategyType::InitializeSolutionStep)
                 .def("FinalizeSolutionStep", &BaseExplicitSolvingStrategyType::FinalizeSolutionStep)
                 .def("SolveSolutionStep", &BaseExplicitSolvingStrategyType::SolveSolutionStep)
                 .def("GetModelPart", [](BaseExplicitSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
+                .def("Info", &BaseExplicitSolvingStrategyType::Info)
                 ;
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;
@@ -582,15 +611,16 @@ namespace Kratos
 
             py::class_< ResidualBasedLinearStrategyType, typename ResidualBasedLinearStrategyType::Pointer,BaseSolvingStrategyType >
                 (m,"ResidualBasedLinearStrategy")
+                .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
                 .def(py::init < ModelPart& ,  BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
-                .def(py::init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
+                .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, BuilderAndSolverType::Pointer pBuilderAndSolver, bool CalculateReactionFlag, bool ReformDofSetAtEachStep, bool CalculateNormDxFlag, bool MoveMeshFlag) {
+                    KRATOS_WARNING("ResidualBasedLinearStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                    return std::shared_ptr<ResidualBasedLinearStrategyType>(new ResidualBasedLinearStrategyType(rModelPart, pScheme, pBuilderAndSolver, CalculateReactionFlag, ReformDofSetAtEachStep, CalculateNormDxFlag, MoveMeshFlag));
+                }))
                 .def("GetScheme", &ResidualBasedLinearStrategyType::GetScheme)
                 .def("GetResidualNorm", &ResidualBasedLinearStrategyType::GetResidualNorm)
                 .def("SetBuilderAndSolver", &ResidualBasedLinearStrategyType::SetBuilderAndSolver)
-                .def("GetSystemMatrix", &ResidualBasedLinearStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
-                .def("GetSystemVector", &ResidualBasedLinearStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
-                .def("GetSolutionVector", &ResidualBasedLinearStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
                 ;
 
             typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
@@ -599,59 +629,49 @@ namespace Kratos
                 (m,"ResidualBasedNewtonRaphsonStrategy")
                 .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
-                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters>())
-                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters>())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters>())
+                .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, int MaxIterations, bool CalculateReactions, bool ReformDofSetAtEachStep, bool MoveMeshFlag) {
+                        KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                        return std::shared_ptr<ResidualBasedNewtonRaphsonStrategyType>(new ResidualBasedNewtonRaphsonStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
+                    }))
+                .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, Parameters Settings) {
+                        KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                        return std::shared_ptr<ResidualBasedNewtonRaphsonStrategyType>(new ResidualBasedNewtonRaphsonStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, Settings));
+                    }))
                 .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
                 .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
                 .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
                 .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
                 .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
                 .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
-                .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
-                .def("GetSystemVector", &ResidualBasedNewtonRaphsonStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
-                .def("GetSolutionVector", &ResidualBasedNewtonRaphsonStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
-                .def("SetUseOldStiffnessInFirstIterationFlag",
-                     &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
-                .def("GetUseOldStiffnessInFirstIterationFlag",
-                     &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
+                .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                 typename AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                 BaseSolvingStrategyType >
                 (m,"AdaptiveResidualBasedNewtonRaphsonStrategy")
+                .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, int, bool, bool, bool, double, double, int
                 >())
                 ;
 
-            py::class_< LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-                typename LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                ResidualBasedNewtonRaphsonStrategyType  >
+            typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LineSearchStrategyType;
+            py::class_< LineSearchStrategyType, typename LineSearchStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
                 (m,"LineSearchStrategy")
+                .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
-                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters >())
-                .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+                .def(py::init([](ModelPart& rModelPart, BaseSchemeType::Pointer pScheme, LinearSolverType::Pointer pLinearSolver, ConvergenceCriteriaType::Pointer pConvergenceCriteria, BuilderAndSolverType::Pointer pBuilderAndSolver, int MaxIterations, bool CalculateReactions, bool ReformDofSetAtEachStep, bool MoveMeshFlag) {
+                        KRATOS_WARNING("LineSearchStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+                        return std::shared_ptr<LineSearchStrategyType>(new LineSearchStrategyType(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
+                    }))
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
-
-            py::class_< ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-                typename ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                BaseSolvingStrategyType >(m,"Explicit_Strategy")
-                .def(py::init<ModelPart&, int, bool >() )
-                //AssembleLoop loops the elements calling AddExplicitContribution. Using processinfo the element is the one who "decides" which variable to modify.
-                .def("AssembleLoop",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssembleLoop)
-                //once the assembleloop has been performed, the variable must be normalized. (for example with the nodal mass or the nodal area). Loop on nodes.
-                .def("NormalizeVariable",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::NormalizeVariable)
-                //ExplicitUpdateLoop modifies a vectorial variable by adding another variable (the RHS, PRESS_PROJ,etc) multiplied by a user-given factor (ie delta_time)
-                .def("ExplicitUpdateLoop",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ExplicitUpdateLoop)
-                //initialize and finalize.
-                .def("InitializeSolutionStep",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
-                .def("FinalizeSolutionStep",&ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)
-                ;
-
         }
 
     } // namespace Python.

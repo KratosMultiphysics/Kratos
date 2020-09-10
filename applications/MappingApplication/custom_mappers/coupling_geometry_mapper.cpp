@@ -340,38 +340,11 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const Variable<array_1d<double, 3>>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
-    // store data for dodgy aitken
-    mComponentIndex = 0;
-    for (const auto var_ext : { "_X", "_Y", "_Z" }) {
-        const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
-
-        mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_origin, MappingOptions);
-        Vector orig = Vector(mpInterfaceVectorContainerOrigin->GetVector());
-
-        if (mComponentIndex == 0)
-        {
-            mMappingData.resize(3, orig.size());
-        }
-
-        for (size_t i = 0; i < orig.size(); i++)
-        {
-            mMappingData(mComponentIndex, i) = orig[i];
-        }
-
-        mComponentIndex += 1;
-    }
-
-    KRATOS_WATCH(mMappingData)
-
-    mComponentIndex = 0;
-
-
     for (const auto var_ext : {"_X", "_Y", "_Z"}) {
         const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
         const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
 
         MapInternalTranspose(var_origin, var_destination, MappingOptions);
-        mComponentIndex += 1;
     }
 }
 

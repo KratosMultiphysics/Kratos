@@ -127,13 +127,6 @@ private:
 
     void CheckParameters();
 
-    ///@}
-    ///@name Serializer
-    ///@{
-
-    friend class Serializer;
-
-    ///@}
 }; // Class MappingGeometriesModeler
 
 ///@}

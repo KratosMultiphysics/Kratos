@@ -1138,10 +1138,12 @@ namespace Kratos
 			double elementVolume = eElement.Volume();
 			double criticalVolume = 0.1 * mrRemesh.Refine->MeanVolume;
 
-			std::vector<array_1d<double, 3>> rigidNodesCoordinates = {ZeroVector(3)};
-			std::vector<array_1d<double, 3>> rigidNodesNormals = {ZeroVector(3)};
+			std::vector<array_1d<double, 3>> rigidNodesCoordinates;
+			std::vector<array_1d<double, 3>> rigidNodesNormals;
 			array_1d<double, 3> notRigidNodeCoordinates(3,0.0);
 			unsigned int notRigidNodeId = 0;
+			rigidNodesCoordinates.resize(3);
+			rigidNodesNormals.resize(3);
 
 			if (mrRemesh.UseRefiningBox == true)
 			{

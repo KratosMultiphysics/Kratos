@@ -37,7 +37,14 @@ class CouplingGeometryLocalSystem : public MapperLocalSystem
 {
 public:
 
-    explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom) : mpGeom(pGeom) {}
+    explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom,
+                                         const bool IsProjection,
+                                         const bool IsDualMortar
+                                         )
+        : mpGeom(pGeom),
+          mIsProjection(IsProjection),
+          mIsDualMortar(IsDualMortar)
+        {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
@@ -53,22 +60,6 @@ public:
 
     /// Turn back information as a string.
     std::string PairingInfo(const int EchoLevel) const override;
-
-    void SetValue(const Variable<bool>& rVariable, const bool rValue) override
-    {
-        if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) mIsProjection = rValue;
-        else if (rVariable == IS_DUAL_MORTAR) mIsDualMortar = rValue;
-        else if (rVariable == IS_CONSISTENT_MORTAR) mIsConsistentMortar = rValue;
-        else MapperLocalSystem::SetValue(rVariable, rValue);
-    }
-
-    bool GetValue(const Variable<bool>& rVariable) override
-    {
-        if (rVariable == IS_PROJECTED_LOCAL_SYSTEM) return mIsProjection;
-        else if (rVariable == IS_DUAL_MORTAR) return mIsDualMortar;
-        else if (rVariable == IS_CONSISTENT_MORTAR) return mIsConsistentMortar;
-        else return MapperLocalSystem::GetValue(rVariable);
-    }
 
 private:
     GeometryPointerType mpGeom;
@@ -236,11 +227,6 @@ public:
     ///@name Access
     ///@{
 
-    TMappingMatrixType* pGetMappingMatrix() override
-    {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
-    }
-
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
@@ -288,9 +274,6 @@ private:
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
     ModelPart* mpCouplingInterfaceDestination = nullptr;
-
-    IndexType mComponentIndex = 1;
-    Matrix mMappingData;
 
     Parameters mMapperSettings;
 
