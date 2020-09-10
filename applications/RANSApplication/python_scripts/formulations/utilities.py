@@ -1,3 +1,5 @@
+from importlib import import_module
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
@@ -17,50 +19,52 @@ elif (not IsDistributedRun()):
 else:
     raise Exception("Distributed run requires TrilinosApplication")
 
-def GetKratosModule(type_name):
+
+def GetKratosObjectType(type_name):
     type_dict = {
         "LinearSolverFactory": [
-            ["KratosMultiphysics.python_linear_solver_factory", "ConstructSolver"],
-            ["KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory", "ConstructSolver"]
+            "KratosMultiphysics.python_linear_solver_factory.ConstructSolver",
+            "KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory.ConstructSolver"
         ],
         "NewtonRaphsonStrategy": [
-            ["KratosMultiphysics", "ResidualBasedNewtonRaphsonStrategy"],
-            ["KratosMultiphysics.TrilinosApplication", "TrilinosNewtonRaphsonStrategy"]
+            "KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy",
+            "KratosMultiphysics.TrilinosApplication.TrilinosNewtonRaphsonStrategy"
         ],
         "ResidualCriteria": [
-            ["KratosMultiphysics", "MixedGenericCriteria"],
-            ["KratosMultiphysics.TrilinosApplication", "TrilinosMixedGenericCriteria"]
+            "KratosMultiphysics.MixedGenericCriteria",
+            "KratosMultiphysics.TrilinosApplication.TrilinosMixedGenericCriteria"
         ],
         "IncrementalUpdateStaticScheme": [
-            ["KratosMultiphysics", "ResidualBasedIncrementalUpdateStaticScheme"],
-            ["KratosMultiphysics.TrilinosApplication", "TrilinosResidualBasedIncrementalUpdateStaticScheme"]
+            "KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme",
+            "KratosMultiphysics.TrilinosApplication.TrilinosResidualBasedIncrementalUpdateStaticScheme"
         ],
         "SteadyScalarScheme": [
-            ["KratosMultiphysics.RANSApplication", "SteadyScalarScheme"],
-            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "MPISteadyScalarScheme"]
+            "KratosMultiphysics.RANSApplication.SteadyScalarScheme",
+            "KratosMultiphysics.RANSApplication.TrilinosExtension.MPISteadyScalarScheme"
         ],
         "AfcSteadyScalarScheme": [
-            ["KratosMultiphysics.RANSApplication", "AlgebraicFluxCorrectedSteadyScalarScheme"],
-            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "MPIAlgebraicFluxCorrectedSteadyScalarScheme"]
+            "KratosMultiphysics.RANSApplication.AlgebraicFluxCorrectedSteadyScalarScheme",
+            "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIAlgebraicFluxCorrectedSteadyScalarScheme"
         ],
         "BossakScheme": [
-            ["KratosMultiphysics.RANSApplication", "BossakRelaxationScalarScheme"],
-            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "MPIBossakRelaxationScalarScheme"]
+            "KratosMultiphysics.RANSApplication.BossakRelaxationScalarScheme",
+            "KratosMultiphysics.RANSApplication.TrilinosExtension.MPIBossakRelaxationScalarScheme"
         ],
         "WallDistanceCalculationProcess": [
-            ["KratosMultiphysics.RANSApplication", "RansWallDistanceCalculationProcess"],
-            ["KratosMultiphysics.RANSApplication.TrilinosExtension", "TrilinosRansWallDistanceCalculationProcess"]
+            "KratosMultiphysics.RANSApplication.RansWallDistanceCalculationProcess",
+            "KratosMultiphysics.RANSApplication.TrilinosExtension.TrilinosRansWallDistanceCalculationProcess"
         ]
     }
 
     if (type_name not in type_dict.keys()):
-        raise Exception(type_name + " not found in type_dict. Followings are allowed type_names:" + "\n\t".join(sorted(type_dict.keys())))
+        raise Exception(type_name + " not found in type_dict. Followings are allowed type_names:\n\t" + "\n\t".join(sorted(type_dict.keys())))
 
     module_info = type_dict[type_name][IsDistributedRun()]
-    module_name = module_info[0]
-    attribute_name = module_info[1]
+    index = module_info.rfind(".")
+    module_name = module_info[:index]
+    attribute_name = module_info[index + 1:]
 
-    module = __import__(module_name, fromlist=[attribute_name])
+    module = import_module(module_name)
     return getattr(module, attribute_name)
 
 

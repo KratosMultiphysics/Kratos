@@ -77,7 +77,7 @@ class CoupledRANSSolver(PythonSolver):
                                             "Solver construction finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = Kratos.Parameters("""
         {
@@ -114,7 +114,7 @@ class CoupledRANSSolver(PythonSolver):
             "constants": {}
         }""")
 
-        default_settings.AddMissingParameters(super().GetDefaultSettings())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def AddVariables(self):

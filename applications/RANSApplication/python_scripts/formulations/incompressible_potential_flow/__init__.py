@@ -13,7 +13,7 @@ from KratosMultiphysics.RANSApplication.formulations.rans_formulation import Ran
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosModule
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
 
 class IncompressiblePotentialFlowRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -94,17 +94,17 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         CalculateNormalsOnConditions(self.GetBaseModelPart())
 
         solver_settings = self.settings
-        linear_solver = GetKratosModule("LinearSolverFactory")(
+        linear_solver = GetKratosObjectType("LinearSolverFactory")(
             solver_settings["linear_solver_settings"])
         builder_and_solver = CreateBlockBuilderAndSolver(
             linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
-        convergence_criteria = GetKratosModule("ResidualCriteria")(
+        convergence_criteria = GetKratosObjectType("ResidualCriteria")(
             [(KratosRANS.VELOCITY_POTENTIAL, solver_settings["relative_tolerance"].GetDouble(),
             solver_settings["absolute_tolerance"].GetDouble())])
-        self.velocity_strategy = GetKratosModule("NewtonRaphsonStrategy")(
-            self.velocity_model_part, GetKratosModule("IncrementalUpdateStaticScheme")(),
+        self.velocity_strategy = GetKratosObjectType("NewtonRaphsonStrategy")(
+            self.velocity_model_part, GetKratosObjectType("IncrementalUpdateStaticScheme")(),
             convergence_criteria, builder_and_solver, 2, False, False, False)
 
         builder_and_solver.SetEchoLevel(solver_settings["echo_level"].GetInt() - 3)
