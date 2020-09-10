@@ -480,12 +480,12 @@ void ApplyChimera<TDim>::FormulateConstraints(
         ModelPart::NodesContainerType::iterator i_boundary_node =
             gathered_modelpart.NodesBegin() + i_bn;
         NodeType& r_boundary_node = *(*(i_boundary_node.base()));
-        const int node_p_index = is_comm_distributed ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX) : 0;
         unsigned int start_constraint_id = i_bn * (TDim + 1) * (TDim + 1);
         Element::Pointer r_host_element;
         Vector weights;
         bool is_found = SearchNode(rBinLocator, r_boundary_node, r_host_element, weights);
         if (is_found) {
+            const int node_p_index = is_comm_distributed ? r_boundary_node.GetSolutionStepValue(PARTITION_INDEX) : 0;
             auto& ms_velocity_container =
                 rVelocityMasterSlaveContainerVector[omp_get_thread_num()];
             auto& ms_pressure_container =
@@ -498,7 +498,7 @@ void ApplyChimera<TDim>::FormulateConstraints(
             found_counter += 1;
             // KRATOS_INFO_ALL_RANKS("Slave Node ")<<r_boundary_node.Id()<<"  Host Element : "<<r_host_element->Id()<<std::endl;
 
-            if(node_p_index != mpi_rank){ 
+            if(node_p_index != mpi_rank){
                 ++sync_counter;
                 auto p_geom = r_host_element->GetGeometry();
                 for(auto p_node=p_geom.ptr_begin(); p_node != p_geom.ptr_end(); ++p_node)
@@ -735,13 +735,11 @@ void ApplyChimera<TDim>::SynchronizeConstraints(MasterSlaveContainerVectorType& 
                 const int master_node_id = master_dof->Id();
                 auto it_master_node = r_nodes.find(master_node_id);
                 if( it_master_node != r_nodes.end()){
-                    if((*it_master_node).GetSolutionStepValue(PARTITION_INDEX) != mpi_rank){
                         auto& r_master_variable = master_dof->GetVariable();
                         auto p_new_master = (*it_master_node).pGetDof(r_master_variable);
                         new_master_dof_list.push_back(p_new_master);
-                    }else{
-                        new_master_dof_list.push_back(master_dof);
-                    }
+                } else {
+                    KRATOS_ERROR<<"A master which do not belong to this partition "<<mpi_rank<<" is requested for !"<<std::endl;
                 }
             }
             (*p_constraint)->SetMasterDofsVector(new_master_dof_list);
