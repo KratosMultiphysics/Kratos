@@ -2020,12 +2020,12 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::SurfaceTension(
-        const double coefficient,
-        const Kratos::Vector& rCurvature,
-        const Kratos::Vector& rInterfaceWeights,
-        const Matrix& rInterfaceShapeFunctions,
-        const std::vector<Vector>& rInterfaceNormalsNeg,
-        VectorType& rRHS)
+    const double coefficient,
+    const Kratos::Vector& rCurvature,
+    const Kratos::Vector& rInterfaceWeights,
+    const Matrix& rInterfaceShapeFunctions,
+    const std::vector<Vector>& rInterfaceNormalsNeg,
+    VectorType& rRHS)
 {
     VectorType rhs = ZeroVector(NumNodes*NumNodes); //Size is NumNodes x (NumDim+1)
 
@@ -2043,13 +2043,13 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
 template <class TElementData>
 void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
-        TElementData& rData,
-        const Kratos::Vector& rInterfaceWeights,
-        const Matrix& rEnrInterfaceShapeFunctionPos,
-        const Matrix& rEnrInterfaceShapeFunctionNeg,
-        const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
-        MatrixType& rKeeTot,
-		VectorType& rRHSeeTot)
+    TElementData& rData,
+    const Kratos::Vector& rInterfaceWeights,
+    const Matrix& rEnrInterfaceShapeFunctionPos,
+    const Matrix& rEnrInterfaceShapeFunctionNeg,
+    const GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+    MatrixType& rKeeTot,
+    VectorType& rRHSeeTot)
 {
     MatrixType kee = ZeroMatrix(NumNodes, NumNodes);
     VectorType rhs_enr = ZeroVector(NumNodes);
@@ -2268,9 +2268,10 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
-                                                                        std::vector<double> &rValues,
-                                                                        const ProcessInfo &rCurrentProcessInfo )
+void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo )
 {
     if (rVariable == DIVERGENCE){
 
