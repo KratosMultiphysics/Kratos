@@ -179,8 +179,7 @@ int HyperElasticIsotropicOgden1D::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
-    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] < std::numeric_limits<double>::epsilon())
+    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
      << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(OGDEN_BETA_1);

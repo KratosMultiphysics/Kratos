@@ -446,7 +446,7 @@ public:
      * @brief This clears the database
      * @warning This conflicts with flags Clear
      */
-    void Clear() override;
+    virtual void Clear();
 
     /**
      * @brief Execute method is used to execute the Process algorithms.

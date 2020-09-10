@@ -12,7 +12,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suites
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
-from couette_flow_test import CouetteFlowTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
@@ -47,8 +46,6 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicStokes'))
-    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicNavierStokes'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette2D'))

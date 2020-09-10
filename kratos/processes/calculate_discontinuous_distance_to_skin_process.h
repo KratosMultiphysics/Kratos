@@ -111,7 +111,7 @@ public:
      * @brief Calls the FindIntersectedObjects Clear() method
      * This method calls the FindIntersectedObjects Clear() to empty the intersecting objects geometries array
      */
-    void Clear() override;
+    virtual void Clear();
 
     /**
      * @brief Executes the CalculateDiscontinuousDistanceToSkinProcess

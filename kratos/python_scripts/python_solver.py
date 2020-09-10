@@ -42,7 +42,7 @@ class PythonSolver(object):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         """This function returns the default-settings used by this class
         """
         return KratosMultiphysics.Parameters("""{
@@ -52,7 +52,7 @@ class PythonSolver(object):
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        default_settings = self.GetDefaultParameters()
+        default_settings = self.GetDefaultSettings()
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def AddVariables(self):
@@ -236,7 +236,7 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
-        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultParameters"')
+        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
 
         """Transfer matching settings from origin to destination.
 

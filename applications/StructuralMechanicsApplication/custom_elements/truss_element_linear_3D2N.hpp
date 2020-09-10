@@ -75,11 +75,11 @@ public:
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function adds forces from prestressing to the force vector
@@ -100,7 +100,7 @@ public:
      * @brief This function calculates the total stiffness matrix for the element
      */
     BoundedMatrix<double,msLocalSize,msLocalSize>
-    CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) override;
+    CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function calculates the original nodal postion for the transformation matrix
@@ -123,7 +123,7 @@ public:
     void UpdateInternalForces(
         BoundedVector<double,msLocalSize>& rInternalForces) override;
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 private:
 

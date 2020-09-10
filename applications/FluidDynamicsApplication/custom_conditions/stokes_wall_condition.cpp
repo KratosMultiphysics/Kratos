@@ -10,9 +10,8 @@ namespace Kratos
  * @see StokesWallCondition::EquationIdVector
  */
 template <>
-void StokesWallCondition<2,2>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const
+void StokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -33,9 +32,8 @@ void StokesWallCondition<2,2>::EquationIdVector(
  * @see StokesWallCondition::EquationIdVector
  */
 template <>
-void StokesWallCondition<3,3>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const
+void StokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -54,36 +52,11 @@ void StokesWallCondition<3,3>::EquationIdVector(
 }
 
 /**
- * @see StokesWallCondition::EquationIdVector
- */
-template <>
-void StokesWallCondition<3,4>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    const SizeType NumNodes = 4;
-    const SizeType LocalSize = 16;
-    unsigned int LocalIndex = 0;
-
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
-
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
-    }
-}
-
-/**
  * @see StokesWallCondition::GetDofList
  */
 template <>
-void StokesWallCondition<2,2>::GetDofList(
-    DofsVectorType& rElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const
+void StokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -105,9 +78,8 @@ void StokesWallCondition<2,2>::GetDofList(
  * @see StokesWallCondition::GetDofList
  */
 template <>
-void StokesWallCondition<3,3>::GetDofList(
-    DofsVectorType& rElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const
+void StokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -127,29 +99,34 @@ void StokesWallCondition<3,3>::GetDofList(
 }
 
 
-/**
- * @see StokesWallCondition::GetDofList
- */
+
 template <>
-void StokesWallCondition<3,4>::GetDofList(
-    DofsVectorType& rElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo) const
+void StokesWallCondition<2,2>::CalculateNormal(array_1d<double,3>& An)
 {
-    const SizeType NumNodes = 4;
-    const SizeType LocalSize = 16;
+    Geometry<Node<3> >& pGeometry = this->GetGeometry();
 
-    if (rElementalDofList.size() != LocalSize)
-        rElementalDofList.resize(LocalSize);
+    An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
+    An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+    An[2] =    0.00;
 
-    unsigned int LocalIndex = 0;
+}
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
-    }
+template <>
+void StokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
+{
+    Geometry<Node<3> >& pGeometry = this->GetGeometry();
+
+    array_1d<double,3> v1,v2;
+    v1[0] = pGeometry[1].X() - pGeometry[0].X();
+    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+    v2[0] = pGeometry[2].X() - pGeometry[0].X();
+    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+    MathUtils<double>::CrossProduct(An,v1,v2);
+    An *= 0.5;
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -157,23 +134,23 @@ void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLoc
 {
     const unsigned int LocalSize = TDim+1;
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryData::IntegrationMethod integration_method = static_cast<GeometryData::IntegrationMethod> (GeometryData::GI_GAUSS_2);
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(integration_method);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
     const unsigned int NumGauss = IntegrationPoints.size();
-    Vector gauss_pts_J_det = ZeroVector(NumGauss);
-    rGeom.DeterminantOfJacobian(gauss_pts_J_det, integration_method);
-    MatrixType NContainer = rGeom.ShapeFunctionsValues(integration_method);
+
+    MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+    array_1d<double,3> Normal;
+    this->CalculateNormal(Normal); //this already contains the area
+    double A = norm_2(Normal);
+    Normal /= A;
+
+    // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines 
+    double J = (TDim == 2) ? 0.5*A : 2.0*A;
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
         Vector N = row(NContainer,g);
-        double Weight = gauss_pts_J_det[g] * IntegrationPoints[g].Weight();
-
-        // Compute Unit normal
-        array_1d<double, 3> Normal;
-        Normal = rGeom.Normal(IntegrationPoints[g].Coordinates());
-        double A = norm_2(Normal);
-        Normal /= A;
+        double Weight = J * IntegrationPoints[g].Weight();
 
         // Neumann boundary condition
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -193,6 +170,5 @@ void StokesWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLoc
 
 template class StokesWallCondition<2,2>;
 template class StokesWallCondition<3,3>;
-template class StokesWallCondition<3,4>;
 
 } // namespace Kratos

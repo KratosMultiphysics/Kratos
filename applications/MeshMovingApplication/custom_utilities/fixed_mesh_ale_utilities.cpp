@@ -37,7 +37,7 @@ namespace Kratos
         mrStructureModelPart(rStructureModelPart)
     {
         // Get the default settings
-        auto default_parameters = this->GetDefaultParameters();
+        auto default_parameters = this->GetDefaultSettings();
 
         // Set default embedded nodal variable settings
         mEmbeddedNodalVariableSettings = default_parameters["embedded_nodal_variable_settings"];
@@ -59,7 +59,7 @@ namespace Kratos
         mrStructureModelPart(rModel.GetModelPart(rParameters["structure_model_part_name"].GetString()))
     {
         // Validate with default parameters
-        rParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        rParameters.ValidateAndAssignDefaults(this->GetDefaultSettings());
 
         // Save the embedded nodal variable settings
         mEmbeddedNodalVariableSettings = rParameters["embedded_nodal_variable_settings"];
@@ -255,7 +255,7 @@ namespace Kratos
 
     /* Private functions *******************************************************/
 
-    Parameters FixedMeshALEUtilities::GetDefaultParameters()
+    Parameters FixedMeshALEUtilities::GetDefaultSettings()
     {
         Parameters default_parameters(R"(
         {
@@ -305,6 +305,7 @@ namespace Kratos
         mpMeshMovingStrategy = Kratos::make_shared<StrategyType>(
             mrVirtualModelPart,
             p_scheme,
+            mpLinearSolver,
             p_builder_and_solver,
             compute_reactions,
             reform_dof_set_at_each_step,

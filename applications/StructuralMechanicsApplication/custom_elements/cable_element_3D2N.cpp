@@ -54,7 +54,7 @@ CableElement3D2N::~CableElement3D2N() {}
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,
 TrussElement3D2N::msLocalSize>
 CableElement3D2N::CreateElementStiffnessMatrix(
-    const ProcessInfo& rCurrentProcessInfo)
+    ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -80,7 +80,7 @@ CableElement3D2N::CreateElementStiffnessMatrix(
 }
 
 void CableElement3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY

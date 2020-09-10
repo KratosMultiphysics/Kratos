@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
@@ -14,8 +16,8 @@ from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis
 # Other imports
 import math
 
-def Create(settings, model, solver_name):
-    return ParticleMechanicsWrapper(settings, model, solver_name)
+def Create(settings, solver_name):
+    return ParticleMechanicsWrapper(settings, solver_name)
 
 class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the ParticleMechanicsApplication of Kratos"""
@@ -49,7 +51,7 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             if norm_normal > 1.e-10:
                 model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_NORMAL, [normal], model_part.ProcessInfo)
 
-        super().SolveSolutionStep()
+        super(ParticleMechanicsWrapper, self).SolveSolutionStep()
 
         ### Get contact force from mp to coupling_mp
         for mpc in model_part.Conditions:

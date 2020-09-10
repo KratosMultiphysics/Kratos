@@ -101,9 +101,12 @@ public:
     explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
         : BaseType()
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /** Default onstructor.
@@ -383,23 +386,6 @@ public:
     void Clear() override
     {
         this->mpDofUpdater->Clear();
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "static_scheme"
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
     }
 
     /**

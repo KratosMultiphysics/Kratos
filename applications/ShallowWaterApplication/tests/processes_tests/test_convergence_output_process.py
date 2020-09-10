@@ -4,16 +4,19 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-try:
-    import KratosMultiphysics.ShallowWaterApplication.convergence_output_process as convergence_output
-    import h5py
-except ImportError:
-    pass
+import KratosMultiphysics.ShallowWaterApplication.convergence_output_process as convergence_output
 
-@KratosUnittest.skipIfApplicationsNotAvailable("StatisticsApplication")
+import os
+import h5py
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 class TestConvergenceOutputProcess(KratosUnittest.TestCase):
-    def test_execution(self):
+    def test_single_output_process(self):
         self._ExecuteBasicConvergenceOutputProcessCheck()
+
+    def test_two_attributes_output_process(self):
         self._ExecuteMultipleConvergenceOutputProcessCheck()
 
     def tearDown(self):
@@ -45,7 +48,8 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
                 "analysis_attributes"        : {
                     "density"                     : 1.0
                 },
-                "convergence_variables_list" : ["ERROR_RATIO","NODAL_ERROR"]
+                "convergence_variables_list" : ["ERROR_RATIO","NODAL_ERROR"],
+                "weighting_variable"         : "NODAL_AREA"
             }
         }''')
         variables = [KM.ERROR_RATIO, KM.NODAL_ERROR]
@@ -71,7 +75,8 @@ class TestConvergenceOutputProcess(KratosUnittest.TestCase):
                     "dummy_flag"                 : true,
                     "dummy_string"               : "string"
                 },
-                "convergence_variables_list" : ["ERROR_RATIO"]
+                "convergence_variables_list" : ["ERROR_RATIO"],
+                "weighting_variable"         : "NODAL_AREA"
             }
         }''')
         variables = [KM.ERROR_RATIO]

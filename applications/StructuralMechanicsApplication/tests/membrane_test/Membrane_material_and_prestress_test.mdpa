@@ -1786,13 +1786,3 @@ Begin SubModelPart check_results
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart result_nodal_mp
-    Begin SubModelPartNodes
-    End SubModelPartNodes
-    Begin SubModelPartElements
-        410
-        425
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart

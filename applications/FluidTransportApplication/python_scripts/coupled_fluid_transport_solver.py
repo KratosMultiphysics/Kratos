@@ -34,7 +34,7 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
         self.thermal_solver = solver_module.CreateSolver(self.model, self.settings["thermal_solver_settings"])
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
 
         # TODO adapt thermal solver settings to FluidTransportReplaceSolver settings
         this_defaults = KratosMultiphysics.Parameters("""
@@ -66,5 +66,5 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
         }
         """)
 
-        this_defaults.AddMissingParameters(PythonSolver.GetDefaultParameters())
+        this_defaults.AddMissingParameters(PythonSolver.GetDefaultSettings())
         return this_defaults

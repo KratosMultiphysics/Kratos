@@ -154,8 +154,6 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
             .def("InverseMap",          InverseMapWithOptionsScalar<TSparseSpace, TDenseSpace>)
             .def("InverseMap",          InverseMapWithOptionsVector<TSparseSpace, TDenseSpace>)
 
-            .def("GetMappingMatrix",    &MapperType::GetMappingMatrix, py::return_value_policy::reference_internal)
-
             .def("AreMeshesConforming", &MapperType::AreMeshesConforming)
 
             .def("__str__",             PrintObject<MapperType>)

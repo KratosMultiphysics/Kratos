@@ -36,13 +36,13 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
         self.adaptative_remeshing_utilities.SetDefaultParameters(self.adaptative_remesh_parameters)
 
         # Construct the base solver.
-        super().__init__(model, custom_settings)
+        super(AdaptativeRemeshingImplicitMechanicalSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def AddVariables(self):
-        super().AddVariables()
+        super(AdaptativeRemeshingImplicitMechanicalSolver, self).AddVariables()
         if not missing_meshing_dependencies:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Variables ADDED")

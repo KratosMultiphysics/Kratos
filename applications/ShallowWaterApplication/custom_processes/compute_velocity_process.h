@@ -48,7 +48,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/**
+/** 
  * @ingroup ShallowWaterApplication
  * @class ComputeVelocityProcess
  * @brief This process computes the velocity from the conserved variables using the mass matrix to avoid local instabilities
@@ -85,9 +85,9 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override;
+    virtual void Execute() override;
 
-    void Clear() override;
+    virtual void Clear();
 
     ///@}
     ///@name Access
@@ -102,17 +102,17 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override {
+    virtual std::string Info() const override {
         return "ComputeVelocityProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {
+    virtual void PrintInfo(std::ostream& rOStream) const override {
         rOStream << "ComputeVelocityProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {
+    virtual void PrintData(std::ostream& rOStream) const override {
     }
 
     ///@}

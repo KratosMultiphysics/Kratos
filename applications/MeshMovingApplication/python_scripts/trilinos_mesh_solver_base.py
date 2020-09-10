@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -14,11 +16,11 @@ from KratosMultiphysics.mpi.distributed_import_model_part_utility import Distrib
 
 class TrilinosMeshSolverBase(MeshSolverBase):
     def __init__(self, model, custom_settings):
-        super().__init__(model, custom_settings)
+        super(TrilinosMeshSolverBase, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "linear_solver_settings" : {
                 "solver_type" : "amgcl",
@@ -36,13 +38,13 @@ class TrilinosMeshSolverBase(MeshSolverBase):
                 "coarse_enough" : 5000
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(TrilinosMeshSolverBase, cls).GetDefaultSettings())
         return this_defaults
 
     #### Public user interface functions ####
 
     def AddVariables(self):
-        super().AddVariables()
+        super(TrilinosMeshSolverBase, self).AddVariables()
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: Variables ADDED.")
 
@@ -53,13 +55,13 @@ class TrilinosMeshSolverBase(MeshSolverBase):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]:: ", "Finished importing model part.")
 
     def PrepareModelPart(self):
-        super().PrepareModelPart()
+        super(TrilinosMeshSolverBase, self).PrepareModelPart()
         # Construct the mpi-communicator
         self.distributed_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMeshSolverBase]::", "ModelPart prepared for Solver.")
 
     def Finalize(self):
-        super().Finalize()
+        super(TrilinosMeshSolverBase, self).Finalize()
         self.get_mesh_motion_solving_strategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####

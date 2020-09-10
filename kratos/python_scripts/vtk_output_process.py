@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
+import os
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -31,6 +32,8 @@ class VtkOutputProcess(KratosMultiphysics.Process):
                 folder_name = settings["folder_name"].GetString()
                 if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
                     kratos_utils.DeleteDirectoryIfExisting(folder_name)
+                if not os.path.isdir(folder_name):
+                    os.makedirs(folder_name)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         self.output_interval = settings["output_interval"].GetDouble()

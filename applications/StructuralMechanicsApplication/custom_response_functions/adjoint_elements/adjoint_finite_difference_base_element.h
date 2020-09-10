@@ -147,29 +147,29 @@ public:
         mpPrimalElement->CleanMemory();
     }
 
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
     }
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->FinalizeSolutionStep(rCurrentProcessInfo);
     }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      const ProcessInfo& rCurrentProcessInfo) override
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix,
                                               rRightHandSideVector,
@@ -177,7 +177,7 @@ public:
     }
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       const ProcessInfo& rCurrentProcessInfo) override
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
                                                rCurrentProcessInfo);
@@ -193,7 +193,7 @@ public:
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        const ProcessInfo& rCurrentProcessInfo) override
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
                                                 rCurrentProcessInfo);
@@ -210,7 +210,7 @@ public:
 
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							VectorType& rRightHandSideVector,
-							const ProcessInfo& rCurrentProcessInfo) override
+							ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
 							rRightHandSideVector,
@@ -218,14 +218,14 @@ public:
     }
 
     void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					        const ProcessInfo& rCurrentProcessInfo) override
+					        ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
 					        rCurrentProcessInfo);
     }
 
     void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      const ProcessInfo& rCurrentProcessInfo) override
+					      ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateFirstDerivativesRHS(rRightHandSideVector,
 					        rCurrentProcessInfo);
@@ -233,7 +233,7 @@ public:
 
     void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
-							 const ProcessInfo& rCurrentProcessInfo) override
+							 ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
 							    rRightHandSideVector,
@@ -241,25 +241,25 @@ public:
     }
 
     void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					       const ProcessInfo& rCurrentProcessInfo) override
+					       ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
 					        rCurrentProcessInfo);
     }
 
     void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       const ProcessInfo& rCurrentProcessInfo) override
+					       ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateSecondDerivativesRHS(rRightHandSideVector,
 					        rCurrentProcessInfo);
     }
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
     }
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }

@@ -28,9 +28,8 @@
             "gradient_mode"       : "semi_analytic",
             "step_size"           : 1.0e-6,
             "adapt_step_size"     : true,
-            "response_part_name": "response_mp",
-            "direction"         : [0.0,0.0,1.0],
-            "traced_dof"          : "DISPLACEMENT"
+            "traced_node_id"      : 2,
+            "traced_dof"          : "DISPLACEMENT_Z"
         },
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_spring",

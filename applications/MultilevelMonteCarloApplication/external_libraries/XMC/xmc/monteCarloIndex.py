@@ -9,7 +9,10 @@ import warnings
 
 import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu
 
-from xmc.distributedEnvironmentFramework import *
+# Import PyCOMPSs
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 class MonteCarloIndex():
     """

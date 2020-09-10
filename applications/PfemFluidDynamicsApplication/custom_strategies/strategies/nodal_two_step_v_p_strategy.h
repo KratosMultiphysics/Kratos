@@ -1533,7 +1533,7 @@ namespace Kratos
 
 			if (it == 0)
 			{
-				velocityNorm = this->ComputeVelocityNorm();
+				this->ComputeVelocityNorm(velocityNorm);
 			}
 			double DvErrorNorm = NormDv / velocityNorm;
 
@@ -1607,7 +1607,7 @@ namespace Kratos
 
 			if (it == 0)
 			{
-				NormP=this->ComputePressureNorm();
+				this->ComputePressureNorm(NormP);
 			}
 
 			double DpErrorNorm = NormDp / (NormP);
@@ -1714,11 +1714,11 @@ namespace Kratos
 			}
 		}
 
-		double ComputeVelocityNorm()
+		void ComputeVelocityNorm(double &NormV)
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
 
-			double NormV = 0.00;
+			NormV = 0.00;
 
 #pragma omp parallel reduction(+ \
 							   : NormV)
@@ -1746,15 +1746,11 @@ namespace Kratos
 
 			if (NormV == 0.0)
 				NormV = 1.00;
-
-			return NormV;
 		}
 
-		double ComputePressureNorm()
+		void ComputePressureNorm(double &NormP)
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-
-			double NormP = 0.00;
 
 #pragma omp parallel reduction(+ \
 							   : NormP)
@@ -1775,8 +1771,6 @@ namespace Kratos
 
 			if (NormP == 0.0)
 				NormP = 1.00;
-
-			return NormP;
 		}
 
 		void ComputeErrorL2NormCaseImposedG()

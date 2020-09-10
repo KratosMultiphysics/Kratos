@@ -288,7 +288,7 @@ private:
      * Return the default FM-ALE settings
      * @return Parameters json string encapsulation the default settings
      */
-    Parameters GetDefaultParameters();
+    Parameters GetDefaultSettings();
 
     /**
      * @brief Set the Linear Solver Pointer object

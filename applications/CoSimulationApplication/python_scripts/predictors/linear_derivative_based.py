@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -13,7 +15,7 @@ def Create(settings, solver_wrapper):
 
 class LinearDerivativeBasedPredictor(CoSimulationPredictor):
     def __init__(self, settings, solver_wrapper):
-        super().__init__(settings, solver_wrapper)
+        super(LinearDerivativeBasedPredictor, self).__init__(settings, solver_wrapper)
         self.interface_derivative_data = solver_wrapper.GetInterfaceData(self.settings["derivative_data_name"].GetString())
         self.solver_wrapper = solver_wrapper
 
@@ -30,9 +32,9 @@ class LinearDerivativeBasedPredictor(CoSimulationPredictor):
         self._UpdateData(data)
 
     @classmethod
-    def _GetDefaultParameters(cls):
+    def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
             "derivative_data_name" : "UNSPECIFIED"
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(LinearDerivativeBasedPredictor, cls)._GetDefaultSettings())
         return this_defaults

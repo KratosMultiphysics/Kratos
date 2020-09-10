@@ -35,6 +35,7 @@
         "linear_solver_settings"             : {
             "solver_type" : "LinearSolversApplication.sparse_qr"
         },
+        "use_computing_model_part" : false,
         "rotation_dofs"            : false
     },
     "processes" : {

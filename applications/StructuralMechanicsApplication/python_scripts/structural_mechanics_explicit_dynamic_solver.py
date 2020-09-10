@@ -19,14 +19,14 @@ class ExplicitMechanicalSolver(MechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super().__init__(model, custom_settings)
+        super(ExplicitMechanicalSolver, self).__init__(model, custom_settings)
         # Lumped mass-matrix is necessary for explicit analysis
         self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
         self.delta_time_refresh_counter = self.settings["delta_time_refresh"].GetInt()
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method"    : "explicit",
             "scheme_type"                : "central_differences",
@@ -37,11 +37,11 @@ class ExplicitMechanicalSolver(MechanicalSolver):
             "rayleigh_alpha"             : 0.0,
             "rayleigh_beta"              : 0.0
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(ExplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):
-        super().AddVariables()
+        super(ExplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
 
         scheme_type = self.settings["scheme_type"].GetString()
@@ -65,7 +65,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: Variables ADDED")
 
     def AddDofs(self):
-        super().AddDofs()
+        super(ExplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
         KratosMultiphysics.Logger.PrintInfo("::[ExplicitMechanicalSolver]:: DOF's ADDED")
 
@@ -80,7 +80,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
 
     def Initialize(self):
         # Using the base Initialize
-        super().Initialize()
+        super(ExplicitMechanicalSolver, self).Initialize()
 
         # Initilize delta_time
         self.delta_time_settings = KratosMultiphysics.Parameters("""{}""")

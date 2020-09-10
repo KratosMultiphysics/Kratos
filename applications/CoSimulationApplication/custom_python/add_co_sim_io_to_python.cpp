@@ -29,7 +29,7 @@
 #define CO_SIM_IO_ERROR         KRATOS_ERROR
 #define CO_SIM_IO_ERROR_IF      KRATOS_ERROR_IF
 #define CO_SIM_IO_ERROR_IF_NOT  KRATOS_ERROR_IF_NOT
-#include "custom_external_libraries/co_sim_io/co_sim_io.hpp"
+#include "co_sim_io.hpp"
 
 namespace Kratos {
 namespace Python {
@@ -405,22 +405,7 @@ void ExportData_RawValues(
     KRATOS_CATCH("")
 }
 
-CoSimIO::Info InfoFromParameters(Parameters rSettings)
-{
-    CoSimIO::Info info;
-
-    for (auto it = rSettings.begin(); it != rSettings.end(); ++it) {
-        if      (it->IsString()) info.Set<std::string>(it.name(), it->GetString());
-        else if (it->IsInt())    info.Set<int>(it.name(),    it->GetInt());
-        else if (it->IsBool())   info.Set<bool>(it.name(),   it->GetBool());
-        else if (it->IsDouble()) info.Set<double>(it.name(), it->GetDouble());
-        else KRATOS_WARNING("Kratos-CoSimIO") << "Setting with name \"" << it.name() << "\" cannot be converted to CoSimIO::Info and is ignored!" << std::endl;
-    }
-
-    return info;
-}
-
-} // CoSimIO_Wrappers namespace
+} // helpers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
 {
@@ -450,7 +435,7 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
     m_co_sim_io.def("IsConverged", &CoSimIO::IsConverged);
 
-    m_co_sim_io.def("SendControlSignal", CoSimIO::Internals::SendControlSignal);
+    // m_co_sim_io.def("SendControlSignal", CoSimIO::Internals::SendControlSignal); // this function should only be used by Kratos to control other solvers
 
     m_co_sim_io.def("ImportMesh", CoSimIO_Wrappers::ImportMesh);
     m_co_sim_io.def("ExportMesh", CoSimIO_Wrappers::ExportMesh);
@@ -461,9 +446,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
     m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_ModelPart_Vector);
     m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_RawValues);
     m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_RawValues);
-
-
-    m_co_sim_io.def("InfoFromParameters", CoSimIO_Wrappers::InfoFromParameters);
 
     // // m_co_sim_io.def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry); // This is not yet implemented in the CoSimIO
     // // m_co_sim_io.def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry); // This is not yet implemented in the CoSimIO
@@ -484,10 +466,10 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .value("DisconnectionError", CoSimIO::ConnectionStatus::DisconnectionError)
         ;
 
-    py::enum_<CoSimIO::ControlSignal>(m_co_sim_io,"ControlSignal")
-        .value("Dummy", CoSimIO::ControlSignal::Dummy)
-        // .value("BreakSolutionLoop", CoSimIO::ControlSignal::BreakSolutionLoop)
-        .value("ConvergenceAchieved", CoSimIO::ControlSignal::ConvergenceAchieved)
+    // py::enum_<CoSimIO::ControlSignal>(m_co_sim_io,"ControlSignal")
+    //     .value("Dummy", CoSimIO::ControlSignal::Dummy)
+    //     .value("BreakSolutionLoop", CoSimIO::ControlSignal::BreakSolutionLoop)
+    //     .value("ConvergenceAchieved", CoSimIO::ControlSignal::ConvergenceAchieved)
 
     //     .value("AdvanceInTime", CoSimIO::ControlSignal::AdvanceInTime)
     //     .value("InitializeSolutionStep", CoSimIO::ControlSignal::InitializeSolutionStep)
@@ -500,7 +482,7 @@ void  AddCoSimIOToPython(pybind11::module& m)
     //     .value("ExportMesh", CoSimIO::ControlSignal::ExportMesh)
     //     .value("ImportData", CoSimIO::ControlSignal::ImportData)
     //     .value("ExportData", CoSimIO::ControlSignal::ExportData)
-        ;
+    //     ;
 }
 
 }  // namespace Python.

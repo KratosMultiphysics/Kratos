@@ -68,9 +68,12 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Read json string in materials file, create Parameters
-    const std::string& r_materials_filename = Params["Parameters"]["materials_filename"].GetString();
-    std::ifstream ifs(r_materials_filename);
-    Parameters materials(ifs);
+    const std::string& materials_filename = Params["Parameters"]["materials_filename"].GetString();
+    std::ifstream infile(materials_filename);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    Parameters materials(buffer.str());
 
     GetPropertyBlock(materials);
 
@@ -169,10 +172,10 @@ void ReadMaterialsUtility::AssignMaterialToProperty(
 
     // Assign variables
     AssignVariablesToProperty(MaterialData, rProperty);
-
+    
     // Assign tables
     AssignTablesToProperty(MaterialData, rProperty);
-
+    
     // Assign CL
     AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
@@ -188,7 +191,7 @@ void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
     )
 {
     KRATOS_TRY;
-
+    
     // Set the CONSTITUTIVE_LAW for the current p_properties.
     if (MaterialData.Has("constitutive_law")) {
         Parameters cl_parameters = MaterialData["constitutive_law"];
@@ -202,7 +205,7 @@ void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << rProperty.Id() << std::endl;
     }
-
+    
     KRATOS_CATCH("");
 }
 
@@ -215,12 +218,12 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     )
 {
     KRATOS_TRY;
-
+ 
     // Add / override the values of material parameters in the p_properties
     if (MaterialData.Has("Variables")) {
         Parameters variables = MaterialData["Variables"];
         const Parameters variables_considered = FilterVariables(variables, rProperty.Id());
-
+        
         for (auto iter = variables_considered.begin(); iter != variables_considered.end(); ++iter) {
             const Parameters value = variables_considered.GetValue(iter.name());
 
@@ -277,7 +280,7 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No variables defined for material ID: " << rProperty.Id() << std::endl;
     }
-
+    
     KRATOS_CATCH("");
 }
 
@@ -290,7 +293,7 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     )
 {
     KRATOS_TRY;
-
+    
     // Add / override tables in the p_properties
     if (MaterialData.Has("Tables")) {
         Parameters tables = MaterialData["Tables"];
@@ -318,7 +321,7 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No tables defined for material ID: " << rProperty.Id() << std::endl;
     }
-
+    
     KRATOS_CATCH("");
 }
 

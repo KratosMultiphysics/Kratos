@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -7,7 +9,7 @@ class CoSimulationDataTransferOperator(object):
     """
     def __init__(self, settings):
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
         self.echo_level = self.settings["echo_level"].GetInt()
         self.__checked_combinations = []
 
@@ -55,7 +57,7 @@ class CoSimulationDataTransferOperator(object):
                 raise Exception(err_msg)
 
     @classmethod
-    def _GetDefaultParameters(cls):
+    def _GetDefaultSettings(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "echo_level" : 0

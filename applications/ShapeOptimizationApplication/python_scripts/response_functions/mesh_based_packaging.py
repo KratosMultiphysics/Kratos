@@ -42,7 +42,7 @@ class MeshBasedPackaging(PackagingResponseBase):
         self.packaging_model_part.AddNodalSolutionStepVariable(KSO.NORMALIZED_SURFACE_NORMAL)
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
             "packaging_model_part_name"       : "UNKNOWN_NAME",
             "packaging_domain_size"           : 3,
@@ -51,7 +51,7 @@ class MeshBasedPackaging(PackagingResponseBase):
                 "input_filename" : "UNKNOWN_NAME"
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultSettings())
         return this_defaults
 
     def Initialize(self):

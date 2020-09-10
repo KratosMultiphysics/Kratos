@@ -1,8 +1,10 @@
 import KratosMultiphysics
 try:
   from KratosMultiphysics.StructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_analysis import AdaptativeRemeshingStructuralMechanicsAnalysis
+  missing_external_structural_dependencies = False
 except ImportError as e:
-    pass
+    missing_external_structural_dependencies = True
+
 import os
 
 # Import KratosUnittest
@@ -10,7 +12,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # TODO: Add fluid counter part
 class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
-    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def setUp(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -28,9 +29,12 @@ class MeshingStructuralMechanicsTestFactory(KratosUnittest.TestCase):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
 
             # Creating the test
-            model = KratosMultiphysics.Model()
-            self.test = AdaptativeRemeshingStructuralMechanicsAnalysis(model, ProjectParameters)
-            self.test.Initialize()
+            if not missing_external_structural_dependencies:
+                model = KratosMultiphysics.Model()
+                self.test = AdaptativeRemeshingStructuralMechanicsAnalysis(model, ProjectParameters)
+                self.test.Initialize()
+            else:
+                pass
 
     def modify_parameters(self, project_parameters):
         """This function can be used in derived classes to modify existing parameters

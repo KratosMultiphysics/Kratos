@@ -342,7 +342,7 @@ void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
 
 void SolidShellElementSprism3D6N::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -414,7 +414,7 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
 
 void SolidShellElementSprism3D6N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -447,7 +447,7 @@ void SolidShellElementSprism3D6N::CalculateLeftHandSide(
 void SolidShellElementSprism3D6N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -477,7 +477,7 @@ void SolidShellElementSprism3D6N::CalculateLocalSystem(
 
 void SolidShellElementSprism3D6N::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -506,7 +506,7 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
 
 void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    const ProcessInfo& rCurrentProcessInfo
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
@@ -526,7 +526,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     const MatrixType& rStiffnessMatrix,
     const MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -1398,7 +1398,7 @@ int SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo) c
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void SolidShellElementSprism3D6N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     /* Create and initialize element variables: */
     GeneralVariables general_variables;
@@ -1458,7 +1458,7 @@ void SolidShellElementSprism3D6N::InitializeSolutionStep(const ProcessInfo& rCur
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -1519,7 +1519,7 @@ void SolidShellElementSprism3D6N::FinalizeSolutionStep(const ProcessInfo& rCurre
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
+void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -1527,7 +1527,7 @@ void SolidShellElementSprism3D6N::InitializeNonLinearIteration( const ProcessInf
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
+void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 

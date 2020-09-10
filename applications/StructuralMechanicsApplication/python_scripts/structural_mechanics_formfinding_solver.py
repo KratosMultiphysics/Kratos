@@ -18,15 +18,19 @@ class FormfindingMechanicalSolver(MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
+        if not custom_settings.Has("use_computing_model_part"):
+            custom_settings.AddEmptyValue("use_computing_model_part")
+        custom_settings["use_computing_model_part"].SetBool(False) # must be False for FormFinding!
+
         # Construct the base solver.
-        super().__init__(main_model_part, custom_settings)
-        custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["projection_settings"])
+        super(FormfindingMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        custom_settings["projection_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["projection_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("::[FormfindingMechanicalSolver]:: ", "Construction finished")
 
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "printing_format"             : "all",
             "write_formfound_geometry_file"    : true,
@@ -42,13 +46,13 @@ class FormfindingMechanicalSolver(MechanicalSolver):
                 "check_local_space_dimension" : false
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(FormfindingMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
 
 
 
     def Finalize(self):
-        super().Finalize()
+        super(FormfindingMechanicalSolver, self).Finalize()
         if (self.settings["write_formfound_geometry_file"].GetBool()):
             StructuralMechanicsApplication.FormfindingStrategy.WriteFormFoundMdpa(self.GetComputingModelPart())
 

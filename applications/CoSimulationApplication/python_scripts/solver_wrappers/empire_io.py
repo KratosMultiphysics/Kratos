@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics import kratos_utilities
@@ -21,7 +23,7 @@ class EmpireIO(CoSimulationIO):
     """IO for the legacy EMPIRE_API
     """
     def __init__(self, settings, model, solver_name):
-        super().__init__(settings, model, solver_name)
+        super(EmpireIO, self).__init__(settings, model, solver_name)
         # Note: calling "EMPIRE_API_Connect" is NOT necessary, it is replaced by the next two lines
         KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(self.echo_level)
         KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(self.settings["api_print_timing"].GetBool())
@@ -81,10 +83,10 @@ class EmpireIO(CoSimulationIO):
         pass
 
     @classmethod
-    def _GetDefaultParameters(cls):
+    def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
             "api_print_timing" : false
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(EmpireIO, cls)._GetDefaultSettings())
 
         return this_defaults

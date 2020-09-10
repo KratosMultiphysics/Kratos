@@ -269,7 +269,7 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
@@ -547,7 +547,7 @@ protected:
     /**
      * Initialize Material Properties on the Constitutive Law
      */
-    virtual void InitializeMaterial ();
+    void InitializeMaterial ();
 
 
     /**

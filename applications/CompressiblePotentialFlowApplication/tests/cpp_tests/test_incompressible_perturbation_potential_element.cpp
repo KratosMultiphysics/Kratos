@@ -101,8 +101,7 @@ namespace Kratos {
       // Compute RHS
       Vector RHS = ZeroVector(3);
 
-      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateRightHandSide(RHS, r_current_process_info);
+      pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
       // Check the RHS values
       std::vector<double> reference{5.5, -5, -0.5};
@@ -126,8 +125,7 @@ namespace Kratos {
       // Compute LHS
       Matrix LHS = ZeroMatrix(3,3);
 
-      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+      pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
       // Check the LHS values
       std::array<double, 9> reference{0.5, -0.5, 0, -0.5, 1, -0.5, 0.0, -0.5, 0.5};
@@ -157,8 +155,7 @@ namespace Kratos {
       // Compute RHS
       Vector RHS = ZeroVector(6);
 
-      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateRightHandSide(RHS, r_current_process_info);
+      pElement->CalculateRightHandSide(RHS, model_part.GetProcessInfo());
 
       // Check the RHS values
       std::vector<double> reference{5.5, 0.0, 0.0, 0.0, -5, -0.5};
@@ -184,8 +181,7 @@ namespace Kratos {
       // Compute LHS
       Matrix LHS = ZeroMatrix(6,6);
 
-      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+      pElement->CalculateLeftHandSide(LHS, model_part.GetProcessInfo());
 
       // Check the LHS values
       std::array<double, 36> reference
@@ -217,14 +213,13 @@ namespace Kratos {
         pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
 
       Element::DofsVectorType ElementalDofList;
-      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->GetDofList(ElementalDofList, r_current_process_info);
+      pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
 
       for (int i = 0; i < 3; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
+      pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       // Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -254,14 +249,13 @@ namespace Kratos {
       }
 
       Element::DofsVectorType ElementalDofList;
-      const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->GetDofList(ElementalDofList, r_current_process_info);
+      pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
 
       for (int i = 0; i < 6; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
+      pElement->EquationIdVector(EquationIdVector, model_part.GetProcessInfo());
 
       //Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {

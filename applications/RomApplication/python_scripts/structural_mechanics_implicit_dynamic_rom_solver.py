@@ -28,7 +28,7 @@ class ROMSolver(ImplicitMechanicalSolver):
 
     #### Private functions ####
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "rom_settings": {
@@ -37,7 +37,7 @@ class ROMSolver(ImplicitMechanicalSolver):
             }
         }
         """)
-        default_settings.AddMissingParameters(super(ROMSolver,cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super(ROMSolver,cls).GetDefaultSettings())
         return default_settings
 
     def AddVariables(self):

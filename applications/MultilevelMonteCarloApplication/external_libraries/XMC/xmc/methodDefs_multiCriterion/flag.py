@@ -1,4 +1,7 @@
-from xmc.distributedEnvironmentFramework import *
+# Import PyCOMPSs
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
 def plainFlag(values, criteria, valuesForCriterion, interpreter):
     """

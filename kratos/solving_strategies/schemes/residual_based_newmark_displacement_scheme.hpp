@@ -88,11 +88,14 @@ public:
      * @param ThisParameters Dummy parameters
      */
     explicit ResidualBasedNewmarkDisplacementScheme(Parameters ThisParameters)
-        :DerivedBaseType()
+      :DerivedBaseType(0.0)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "ResidualBasedNewmarkDisplacementScheme"
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**
@@ -122,23 +125,6 @@ public:
      */
     ~ResidualBasedNewmarkDisplacementScheme
     () override {}
-
-        /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "newmark_scheme"
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = DerivedBaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
-    }
 
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)

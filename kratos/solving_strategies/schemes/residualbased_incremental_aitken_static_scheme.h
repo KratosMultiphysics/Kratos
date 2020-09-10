@@ -78,6 +78,17 @@ public:
     ///@name Life Cycle
     ///@{
 
+    static Parameters GetDefaultSettings()
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "ResidualBasedIncrementalAitkenStaticScheme",
+            "default_omega" : 0.1
+        })");
+
+        return default_parameters;
+    }
+
     /**
      * @brief Default constructor
      */
@@ -90,7 +101,7 @@ public:
      * @param ThisParameters Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
     */
     explicit ResidualBasedIncrementalAitkenStaticScheme(Parameters ThisParameters) :
-        ResidualBasedIncrementalAitkenStaticScheme([](Parameters x) -> double {x.ValidateAndAssignDefaults(StaticGetDefaultParameters()); return x["default_omega"].GetDouble(); }(ThisParameters))
+        ResidualBasedIncrementalAitkenStaticScheme([](Parameters x) -> double {x.ValidateAndAssignDefaults(GetDefaultSettings()); return x["default_omega"].GetDouble(); }(ThisParameters))
     {
     }
 
@@ -216,25 +227,6 @@ public:
         // Store results for next iteration
         boost::numeric::ublas::noalias(mPreviousDx) = Dx;
         mOldOmega = Omega;
-    }
-
-    static Parameters StaticGetDefaultParameters()
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"          : "ResidualBasedIncrementalAitkenStaticScheme",
-            "default_omega" : 0.1
-        })");
-
-        return default_parameters;
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        return StaticGetDefaultParameters();
     }
 
     ///@}

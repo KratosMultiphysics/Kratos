@@ -24,7 +24,6 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
-#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -67,22 +66,12 @@ public:
     // The DOF type from the explicit builder and solver class
     typedef typename ExplicitBuilderType::DofType DofType;
 
-    /// The definition of the current class
-    typedef ExplicitSolvingStrategy<TSparseSpace, TDenseSpace> ClassType;
-
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategy);
 
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief Default constructor. (empty)
-     */
-    explicit ExplicitSolvingStrategy()
-    {
-    }
 
     /**
      * @brief Default constructor. (with parameters)
@@ -92,11 +81,12 @@ public:
     explicit ExplicitSolvingStrategy(
         ModelPart &rModelPart,
         Parameters ThisParameters)
-        : mpModelPart(&rModelPart)
+        : mrModelPart(rModelPart)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        const bool rebuild_level = ThisParameters.Has("rebuild_level") ? ThisParameters["rebuild_level"].GetInt() : 0;
+        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
+        SetMoveMeshFlag(move_mesh_flag);
+        SetRebuildLevel(rebuild_level);
         mpExplicitBuilder = Kratos::make_unique<ExplicitBuilder<TSparseSpace, TDenseSpace>>();
     }
 
@@ -112,7 +102,7 @@ public:
         typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : mpModelPart(&rModelPart),
+        : mrModelPart(rModelPart),
           mpExplicitBuilder(pExplicitBuilder)
     {
         SetMoveMeshFlag(MoveMeshFlag);
@@ -129,7 +119,7 @@ public:
         ModelPart &rModelPart,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
-        : mpModelPart(&rModelPart)
+        : mrModelPart(rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
         SetRebuildLevel(RebuildLevel);
@@ -142,23 +132,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ExplicitSolvingStrategy()
-    {
-        mpModelPart =  nullptr;
-    }
-
-    /**
-     * @brief Create method
-     * @param rModelPart The model part to be computed
-     * @param ThisParameters The configuration parameters
-     */
-    virtual typename ClassType::Pointer Create(
-        ModelPart& rModelPart,
-        Parameters ThisParameters
-        ) const
-    {
-        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
-    }
+    virtual ~ExplicitSolvingStrategy() = default;
 
     ///@}
     ///@name Operators
@@ -197,7 +171,7 @@ public:
         }
 
         // Call the explicit builder and solver initialize (Set up DOF set and lumped mass vector)
-        mpExplicitBuilder->Initialize(*mpModelPart);
+        mpExplicitBuilder->Initialize(mrModelPart);
 
         // Initialize the solution values
         InitializeDofSetValues();
@@ -233,7 +207,7 @@ public:
         InitializeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver initialize solution step
-        mpExplicitBuilder->InitializeSolutionStep(*mpModelPart);
+        mpExplicitBuilder->InitializeSolutionStep(mrModelPart);
     }
 
     /**
@@ -248,7 +222,7 @@ public:
         FinalizeSolutionStepContainer(GetModelPart().MasterSlaveConstraints());
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
-        mpExplicitBuilder->FinalizeSolutionStep(*mpModelPart);
+        mpExplicitBuilder->FinalizeSolutionStep(mrModelPart);
     }
 
     /**
@@ -263,8 +237,8 @@ public:
         InitializeNonLinearIterationContainer(GetModelPart().MasterSlaveConstraints());
 
         // Apply constraints
-        if(mpModelPart->MasterSlaveConstraints().size() != 0) {
-            mpExplicitBuilder->ApplyConstraints(*mpModelPart);
+        if(mrModelPart.MasterSlaveConstraints().size() != 0) {
+            mpExplicitBuilder->ApplyConstraints(mrModelPart);
         }
 
         // Solve the problem assuming that a lumped mass matrix is used
@@ -379,20 +353,20 @@ public:
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return *mpModelPart: The model part member variable
+     * @return mrModelPart: The model part member variable
      */
     ModelPart& GetModelPart()
     {
-        return *mpModelPart;
+        return mrModelPart;
     };
 
     /**
      * @brief Operations to get the pointer to the model
-     * @return *mpModelPart: The model part member variable
+     * @return mrModelPart: The model part member variable
      */
     const ModelPart& GetModelPart() const
     {
-        return *mpModelPart;
+        return mrModelPart;
     };
 
     /**
@@ -455,34 +429,6 @@ public:
         return 0;
 
         KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    virtual Parameters GetDefaultParameters() const
-    {
-        const Parameters default_parameters = Parameters(R"(
-        {
-            "explicit_solving_strategy" : "explicit_solving_strategy",
-            "move_mesh_flag"            : false,
-            "rebuild_level"             : 0,
-            "echo_level"                : 1,
-            "explicit_builder_settings" : {
-                "name": "explicit_builder"
-            }
-        })");
-        return default_parameters;
-    }
-
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        return "explicit_solving_strategy";
     }
 
     ///@}
@@ -551,33 +497,6 @@ protected:
         return GetModelPart().GetProcessInfo().GetValue(DELTA_TIME);
     }
 
-    /**
-     * @brief This method validate and assign default parameters
-     * @param rParameters Parameters to be validated
-     * @param DefaultParameters The default parameters
-     * @return Returns validated Parameters
-     */
-    virtual Parameters ValidateAndAssignParameters(
-        Parameters ThisParameters,
-        const Parameters DefaultParameters
-        ) const
-    {
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        return ThisParameters;
-    }
-
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
-    virtual void AssignSettings(const Parameters ThisParameters)
-    {
-        const bool rebuild_level = ThisParameters["rebuild_level"].GetInt();
-        const bool move_mesh_flag = ThisParameters["move_mesh_flag"].GetBool();
-        SetMoveMeshFlag(move_mesh_flag);
-        SetRebuildLevel(rebuild_level);
-    }
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -599,7 +518,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart* mpModelPart = nullptr;
+    ModelPart &mrModelPart;
 
     bool mMoveMeshFlag;
 

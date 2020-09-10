@@ -21,11 +21,11 @@ class EigenSolver(MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
-        super().__init__(main_model_part, custom_settings)
+        super(EigenSolver, self).__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[EigenSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic",
             "compute_modal_decomposition": false,
@@ -38,7 +38,7 @@ class EigenSolver(MechanicalSolver):
             },
             "eigensolver_diagonal_values" : { }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(EigenSolver, cls).GetDefaultSettings())
         return this_defaults
 
     #### Private functions ####

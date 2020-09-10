@@ -155,6 +155,7 @@ public:
         (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
             *BaseType::mpDistanceModelPart,
             p_scheme,
+            pLinearSolver,
             p_builder_and_solver,
             calculate_reactions,
             reform_dof_at_each_iteration,
@@ -371,3 +372,5 @@ template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinea
 }  // namespace Kratos.
 
 #endif // KRATOS_TRILINOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
+
+

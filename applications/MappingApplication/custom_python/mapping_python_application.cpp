@@ -22,7 +22,6 @@
 #include "includes/define_python.h"
 #include "mapping_application.h"
 #include "custom_python/add_custom_mappers_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 
 
 namespace Kratos {
@@ -40,7 +39,6 @@ PYBIND11_MODULE(KratosMappingApplication, m)
         ;
 
     AddCustomMappersToPython(m);
-    AddCustomUtilitiesToPython(m);
 }
 
 }  // namespace Python.

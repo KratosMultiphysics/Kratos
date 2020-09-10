@@ -200,7 +200,7 @@ protected:
         double epsilon;
         double dt_inv;
         double lumping_factor;
-        double stab_factor;
+        double dyn_tau;
         double gravity;
         double manning2;
         double porosity;

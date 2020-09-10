@@ -119,7 +119,7 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) co
     KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void CrBeamElement3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mDeformationPreviousIteration = mDeformationCurrentIteration;
@@ -302,7 +302,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 }
 
 void CrBeamElement3D2N::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -992,7 +992,7 @@ CrBeamElement3D2N::CalculateTransformationS() const
 }
 
 void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     if (rMassMatrix.size1() != msElementSize) {
@@ -1021,7 +1021,7 @@ void CrBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
 void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -1032,7 +1032,7 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 void CrBeamElement3D2N::ConstCalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) const
+        ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     ConstCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
@@ -1041,7 +1041,7 @@ void CrBeamElement3D2N::ConstCalculateLocalSystem(
 }
 
 void CrBeamElement3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     ConstCalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -1049,7 +1049,7 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) const
+    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     Vector internal_forces = CalculateGlobalNodalForces();
@@ -1063,7 +1063,7 @@ void CrBeamElement3D2N::ConstCalculateRightHandSide(
 
 
 void CrBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -1072,7 +1072,7 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) const
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) const
 {
 
     KRATOS_TRY;
@@ -1181,8 +1181,7 @@ CrBeamElement3D2N::GetCurrentNodalPosition() const
     return current_nodal_position;
 }
 
-void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable,
-     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
         if(rOutput.size1() != msDimension || rOutput.size2() != msDimension) {
@@ -1759,7 +1758,7 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 
-void CrBeamElement3D2N::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void CrBeamElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     SaveQuaternionParameters();
 }

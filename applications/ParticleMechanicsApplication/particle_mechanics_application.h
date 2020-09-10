@@ -49,7 +49,6 @@
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
-#include "custom_elements/updated_lagrangian_PQ.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -98,7 +97,7 @@ namespace Kratos
  * for particle mechanics problems.
  * Currently developed methods are: (1) Material Point Method
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) KratosParticleMechanicsApplication : public KratosApplication
+class KratosParticleMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -231,7 +230,6 @@ private:
     // Elements
     const UpdatedLagrangian mUpdatedLagrangian;
     const UpdatedLagrangianUP mUpdatedLagrangianUP;
-    const UpdatedLagrangianPQ mUpdatedLagrangianPQ;
 
     // Deprecated Elements
     const UpdatedLagrangian mUpdatedLagrangian2D3N;

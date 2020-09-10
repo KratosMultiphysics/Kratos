@@ -146,32 +146,32 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void ConstCalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) const;
+        ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void ConstCalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) const;
+        ProcessInfo& rCurrentProcessInfo) const;
 
     void ConstCalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) const;
+        ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -209,7 +209,7 @@ public:
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void AddExplicitContribution(const VectorType& rRHSVector,
                                  const Variable<VectorType>& rRHSVariable,
@@ -256,8 +256,7 @@ public:
      */
     BoundedVector<double,msElementSize> CalculateBodyForces() const;
 
-    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput,
-     const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
@@ -296,7 +295,7 @@ public:
      */
     Vector CalculateLocalNodalForces() const;
 
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     Vector CalculateGlobalNodalForces() const;
 
@@ -304,7 +303,7 @@ public:
 
     BoundedMatrix<double, msElementSize, msElementSize> GetTransformationMatrixGlobal() const;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
 
     void UpdateQuaternionParameters(double& rScalNodeA,double& rScalNodeB,

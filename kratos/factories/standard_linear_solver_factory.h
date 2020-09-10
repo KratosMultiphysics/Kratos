@@ -63,7 +63,7 @@ class StandardLinearSolverFactory
     ///@name Type Definitions
     ///@{
 
-    /// The definition of the linear solver
+    /// The definition of the preconditioner
     typedef LinearSolver<TSparseSpace,TLocalSpace> LinearSolverType;
 
     ///@}

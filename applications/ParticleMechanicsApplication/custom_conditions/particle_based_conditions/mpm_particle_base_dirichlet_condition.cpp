@@ -61,8 +61,6 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
 
     // Update total MPC Displacement
     m_displacement += m_imposed_displacement;
-
-    m_imposed_displacement = ZeroVector(3);
 }
 
 void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
@@ -132,8 +130,8 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (rResult[i] < small_cut_instability_tolerance){
-            denominator += (small_cut_instability_tolerance - rResult[i]);
             rResult[i] = small_cut_instability_tolerance;
+            denominator += rResult[i];
         }
     }
 

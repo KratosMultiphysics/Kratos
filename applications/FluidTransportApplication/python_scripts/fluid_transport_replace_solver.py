@@ -19,7 +19,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
         super(FluidTransportReplaceSolver,self).__init__(model, custom_settings)
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "fluid_transport_solver",
             "model_part_name": "FluidTransportDomain",
@@ -71,7 +71,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
             "processes_sub_model_part_list": [""]
         }""")
 
-        this_defaults.AddMissingParameters(super(FluidTransportReplaceSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(FluidTransportReplaceSolver, cls).GetDefaultSettings())
         return this_defaults
 
     def PrepareModelPart(self):

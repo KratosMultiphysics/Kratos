@@ -135,11 +135,8 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit LineSearchStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart)
+        : BaseType(rModelPart, ThisParameters)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -164,34 +161,7 @@ public:
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        Parameters default_settings = this->GetDefaultParameters();
-        OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
-        this->AssignSettings(default_settings);
-    }
-
-    /**
-     * @brief Constructor specifying the builder and solver
-     * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
-     * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param pNewBuilderAndSolver The builder and solver employed
-     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
-     * @param CalculateReactions The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
-     * @param MoveMeshFlag The flag that allows to move the mesh
-     */
-    explicit LineSearchStrategy(
-        ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
-        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        int MaxIterations = 30,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false
-        ) : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
-    {
-        Parameters default_settings = this->GetDefaultParameters();
+        Parameters default_settings = this->GetDefaultSettings();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
@@ -208,7 +178,6 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
     explicit LineSearchStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
@@ -221,7 +190,7 @@ public:
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        Parameters default_settings = this->GetDefaultParameters();
+        Parameters default_settings = this->GetDefaultSettings();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
@@ -232,40 +201,42 @@ public:
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
-     * @param ThisParameters Settings used in the strategy
+     * @param Parameters Settings used in the strategy
      */
     LineSearchStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        Parameters ThisParameters
-        ): BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria, BaseType::GetDefaultParameters())
+        Parameters Settings
+        ): BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,Settings)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        Parameters default_settings = this->GetDefaultSettings();
+        Settings.ValidateAndAssignDefaults(default_settings);
+        this->AssignSettings(Settings);
     }
 
     /**
      * Constructor with Settings and pointer to BuilderAndSolver
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param pNewBuilderAndSolver The builder and solver employed
-     * @param ThisParameters Settings used in the strategy
+     * @param Parameters Settings used in the strategy
      */
     LineSearchStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters ThisParameters
-        ): BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, BaseType::GetDefaultParameters())
+        Parameters Settings
+        ): BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,Settings)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        Parameters default_settings = this->GetDefaultSettings();
+        Settings.ValidateAndAssignDefaults(default_settings);
+        this->AssignSettings(Settings);
     }
 
     /**
@@ -298,30 +269,7 @@ public:
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                       : "line_search_strategy",
-            "max_line_search_iterations" : 5,
-            "first_alpha_value"          : 0.5,
-            "second_alpha_value"         : 1.0,
-            "min_alpha"                  : 0.1,
-            "max_alpha"                  : 2.0,
-            "line_search_tolerance"      : 0.5
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
-    }
-
+    
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
@@ -385,6 +333,8 @@ private:
     double mMaxAlpha;               //Maximum possible alpha value at the end of the algorithm
     double mLineSearchTolerance;    //Tolerance of the line search algorithm, defined as the ratio between
                                     //maximum residual*alpha*dx and current iteration residual*alpha*dx
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -399,6 +349,7 @@ private:
     ///@}
     ///@name Protected  Access
     ///@{
+
 
     ///@}
     ///@name Protected Inquiry
@@ -534,38 +485,58 @@ protected:
     }
 
     /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
+     * @brief This method returns the default settings
      */
-    void AssignSettings(const Parameters ThisParameters) override
+    Parameters GetDefaultSettings() override
     {
-        BaseType::AssignSettings(ThisParameters);
-        mMaxLineSearchIterations = ThisParameters["max_line_search_iterations"].GetInt();
-        mFirstAlphaValue = ThisParameters["first_alpha_value"].GetDouble();
-        mSecondAlphaValue = ThisParameters["second_alpha_value"].GetDouble();
-        mMinAlpha = ThisParameters["min_alpha"].GetDouble();
-        mMaxAlpha = ThisParameters["max_alpha"].GetDouble();
-        mLineSearchTolerance = ThisParameters["line_search_tolerance"].GetDouble();
+        Parameters base_default_settings = BaseType::GetDefaultSettings();
+        Parameters default_settings(R"({
+            "max_line_search_iterations" : 5,
+            "first_alpha_value"          : 0.5,
+            "second_alpha_value"         : 1.0,
+            "min_alpha"                  : 0.1,
+            "max_alpha"                  : 2.0,
+            "line_search_tolerance"      : 0.5
+        })");
+        default_settings.AddMissingParameters(base_default_settings);
+        return default_settings;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param Settings Parameters that are assigned to the member variables
+     */
+    void AssignSettings(Parameters Settings) override
+    {
+        BaseType::AssignSettings(Settings);
+        mMaxLineSearchIterations = Settings["max_line_search_iterations"].GetInt();
+        mFirstAlphaValue = Settings["first_alpha_value"].GetDouble();
+        mSecondAlphaValue = Settings["second_alpha_value"].GetDouble();
+        mMinAlpha = Settings["min_alpha"].GetDouble();
+        mMaxAlpha = Settings["max_alpha"].GetDouble();
+        mLineSearchTolerance = Settings["line_search_tolerance"].GetDouble();
     }
 
     /**
      * @brief This method overrides the default settings wiht user provided parameters
-     * @param rDefaultSettings Parameters with default settings
+     * @param DefaultSettings Parameters with default settings
      * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
      * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      */
     void OverrideDefaultSettingsWithParameters(
-        Parameters& rDefaultSettings,
+        Parameters DefaultSettings,
         const double MaxIterations,
         const bool ReformDofSetAtEachStep,
         const bool CalculateReactions
-        )
+    )
     {
-        rDefaultSettings["max_iterations"].SetInt(MaxIterations);
-        rDefaultSettings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
-        rDefaultSettings["compute_reactions"].SetBool(CalculateReactions);
+        DefaultSettings["max_iterations"].SetInt(MaxIterations);
+        DefaultSettings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
+        DefaultSettings["calculate_reactions"].SetBool(CalculateReactions);
     }
+
+
 
     ///@}
     ///@name Private Operations

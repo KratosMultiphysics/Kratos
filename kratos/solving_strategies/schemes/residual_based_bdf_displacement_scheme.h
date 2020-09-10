@@ -100,11 +100,14 @@ public:
      * @param ThisParameters Parameters with the integration order
      */
     explicit ResidualBasedBDFDisplacementScheme(Parameters ThisParameters)
-        : BDFBaseType()
+        : ResidualBasedBDFDisplacementScheme(ThisParameters.Has("integration_order") ? static_cast<std::size_t>(ThisParameters["integration_order"].GetInt()) : 2)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {   "name"              : "ResidualBasedBDFDisplacementScheme",
+            "integration_order" : 2
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**
@@ -352,24 +355,6 @@ public:
         KRATOS_CATCH( "" );
 
         return 0;
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"               : "bdf_displacement_scheme",
-            "integration_order"  : 2
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BDFBaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
     }
 
     /**

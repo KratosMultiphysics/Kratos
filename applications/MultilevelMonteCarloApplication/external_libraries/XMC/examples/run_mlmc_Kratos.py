@@ -95,7 +95,7 @@ if __name__ == "__main__":
     ########################################################################################################################################################################################################
     ########################################################################################################################################################################################################
 
-    # from xmc.distributedEnvironmentFramework import *
+    # from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
     # import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
 
     # # writing to file a dictionary

@@ -147,7 +147,7 @@ void CrBeamElement2D2N::GetSecondDerivativesVector(Vector& rValues, int Step) co
 }
 
 void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     if (rMassMatrix.size1() != msElementSize) {
@@ -221,7 +221,7 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 }
 
 void CrBeamElement2D2N::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -232,7 +232,7 @@ void CrBeamElement2D2N::CalculateDampingMatrix(
 
 void CrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     // t
@@ -257,7 +257,7 @@ void CrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 }
 
 void CrBeamElement2D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     // t
@@ -279,7 +279,7 @@ void CrBeamElement2D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement2D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     rLeftHandSideMatrix = CreateElementStiffnessMatrix_Total();

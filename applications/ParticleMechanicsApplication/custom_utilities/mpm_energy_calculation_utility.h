@@ -35,20 +35,20 @@ namespace MPMEnergyCalculationUtility
     typedef Element::Pointer ElementPointerType;
 
     //compute potential energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculatePotentialEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculatePotentialEnergy(ModelPart& rModelPart);
+    double CalculatePotentialEnergy(Element& rElement);
+    double CalculatePotentialEnergy(ModelPart& rModelPart);
 
      //compute kinetic energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateKineticEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateKineticEnergy(ModelPart& rModelPart);
+    double CalculateKineticEnergy(Element& rElement);
+    double CalculateKineticEnergy(ModelPart& rModelPart);
 
      //compute strain energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateStrainEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateStrainEnergy(ModelPart& rModelPart);
+    double CalculateStrainEnergy(Element& rElement);
+    double CalculateStrainEnergy(ModelPart& rModelPart);
 
     //compute total energy
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateTotalEnergy(Element& rElement);
-    double KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateTotalEnergy(ModelPart& rModelPart);
+    double CalculateTotalEnergy(Element& rElement);
+    double CalculateTotalEnergy(ModelPart& rModelPart);
 
 } // end namespace MPMEnergyCalculationUtility
 

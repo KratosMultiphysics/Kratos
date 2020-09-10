@@ -105,17 +105,6 @@ public:
         mMatrix.D.resize(num_threads);
     }
 
-    /**
-     * @brief Constructor. The implicit method method
-     * @param ThisParameters The configuration parameters
-     */
-    explicit ResidualBasedImplicitTimeScheme(Parameters ThisParameters)
-        :ResidualBasedImplicitTimeScheme()
-    {
-        this->ValidateAndAssignParameters(ThisParameters);
-        this->AssignSettings(ThisParameters);
-    }
-
     /** Copy Constructor.
      */
     explicit ResidualBasedImplicitTimeScheme(ResidualBasedImplicitTimeScheme& rOther)
@@ -415,22 +404,6 @@ public:
         KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Check");
     }
 
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "residualbased_implicit_time_scheme"
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
-    }
 
     ///@}
     ///@name Access

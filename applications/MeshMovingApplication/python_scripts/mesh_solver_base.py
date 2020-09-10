@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication as KMM
@@ -22,7 +24,7 @@ class MeshSolverBase(PythonSolver):
     """
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super().__init__(model, custom_settings)
+        super(MeshSolverBase,self).__init__(model, custom_settings)
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -56,7 +58,7 @@ class MeshSolverBase(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MeshSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type"           : "mesh_solver_base",
             "buffer_size"           : 1,
@@ -90,7 +92,7 @@ class MeshSolverBase(PythonSolver):
             "superimpose_mesh_disp_with": [],
             "superimpose_mesh_velocity_with": []
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(MeshSolverBase, cls).GetDefaultSettings())
         return this_defaults
 
     #### Public user interface functions ####

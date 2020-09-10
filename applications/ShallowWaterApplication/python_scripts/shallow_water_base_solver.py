@@ -135,6 +135,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         self.solver = KM.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                             self.time_scheme,
+                                                            self.linear_solver,
                                                             self.conv_criteria,
                                                             self.builder_and_solver,
                                                             self.settings["maximum_iterations"].GetInt(),
@@ -142,14 +143,14 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                             self.settings["move_mesh_flag"].GetBool())
 
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KM.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         (self.solver).SetEchoLevel(max(0, self.echo_level-1))
         (self.solver).Check()
 
         (self.solver).Initialize()
 
-        KM.Logger.PrintInfo(self.__class__.__name__, "Mesh stage solver initialization finished")
+        KM.Logger.PrintInfo("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
@@ -203,7 +204,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         return delta_time
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         default_settings = KM.Parameters("""
         {
             "solver_type"              : "shallow_water_base_solver",
@@ -218,8 +219,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "echo_level"               : 0,
             "buffer_size"              : 2,
-            "stabilization_factor"     : 0.005,
-            "dry_height_threshold"     : 1e-3,
+            "dynamic_tau"              : 0.005,
+            "dry_height_threshold"      : 1e-3,
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,
@@ -227,7 +228,10 @@ class ShallowWaterBaseSolver(PythonSolver):
             "reform_dofs_at_each_step" : false,
             "calculate_norm_dx"        : true,
             "move_mesh_flag"           : false,
-            "wetting_drying_model"     : {},
+            "wetting_drying_model"     : {
+                "model_name"               : "negative_height",
+                "beta"                     : 1e4
+            },
             "linear_solver_settings"   : {
                 "solver_type"              : "amgcl"
             },
@@ -237,7 +241,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "multigrid_settings"       : {}
         }""")
-        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultSettings())
         return default_settings
 
     def _ReplaceElementsAndConditions(self):

@@ -95,7 +95,7 @@ public:
 
     void Execute() override;
 
-    void Clear() override;
+    void Clear();
 
     ///@}
     ///@name Operations
@@ -155,12 +155,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief Create a Solution Strategy object
-     * This method creates the linear solution strategy
-     * @param pBuilderAndSolver Builder and solver pointer
-     */
-    void CreateSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver);
+    void CreateSolutionStrategy(
+        typename TLinearSolver::Pointer pLinearSolver,
+        BuilderSolverPointerType pBuilderAndSolver);
 
     /**
      * @brief Initialize the process

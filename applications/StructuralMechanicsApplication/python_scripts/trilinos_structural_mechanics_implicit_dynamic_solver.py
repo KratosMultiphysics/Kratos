@@ -20,11 +20,11 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super().__init__(model, custom_settings)
+        super(TrilinosImplicitMechanicalSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method" : "implicit",
             "scheme_type"             : "bossak",
@@ -32,16 +32,16 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
             "rayleigh_alpha"          : 0.0,
             "rayleigh_beta"           : 0.0
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(TrilinosImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
 
     def AddVariables(self):
-        super().AddVariables()
+        super(TrilinosImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
 
     def AddDofs(self):
-        super().AddDofs()
+        super(TrilinosImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: DOF's ADDED")
 

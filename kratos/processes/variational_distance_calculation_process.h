@@ -143,7 +143,7 @@ public:
 
         auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
 
-        InitializeSolutionStrategy(p_builder_solver);
+        InitializeSolutionStrategy(pLinearSolver, p_builder_solver);
 
         KRATOS_CATCH("")
     }
@@ -179,7 +179,7 @@ public:
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         ReGenerateDistanceModelPart(rBaseModelPart);
 
-        InitializeSolutionStrategy(pBuilderAndSolver);
+        InitializeSolutionStrategy(pLinearSolver, pBuilderAndSolver);
 
         KRATOS_CATCH("")
     }
@@ -353,7 +353,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Clear() override
+    virtual void Clear()
     {
         if(mrModel.HasModelPart( mAuxModelPartName ))
             mrModel.DeleteModelPart( mAuxModelPartName );
@@ -447,7 +447,9 @@ protected:
         VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mrBaseModelPart.Nodes());
     }
 
-    void InitializeSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
+    void InitializeSolutionStrategy(
+        typename TLinearSolver::Pointer pLinearSolver,
+        BuilderSolverPointerType pBuilderAndSolver)
     {
         // Generate a linear strategy
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -461,6 +463,7 @@ protected:
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
             p_scheme,
+            pLinearSolver,
             pBuilderAndSolver,
             CalculateReactions,
             ReformDofAtEachIteration,

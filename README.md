@@ -1,6 +1,6 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][CI-image]][CI-link] [![DOI][DOI-image]][DOI]
+[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][CI-image]][CI-link][![DOI][DOI-image]][DOI]
 
 [release-image]: https://img.shields.io/badge/release-8.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases

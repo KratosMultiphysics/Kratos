@@ -16,7 +16,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/dof_updater.h"
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 class Epetra_Import;
@@ -35,14 +34,13 @@ namespace Kratos
 /// Utility class to update the values of degree of freedom (Dof) variables after solving the system.
 /** This class encapsulates the operation of updating nodal degrees of freedom after a system solution.
  *  In pseudo-code, the operation to be performed is
- *  for each dof: dof.variable += dx[dof.equation_id] * Relaxation
+ *  for each dof: dof.variable += dx[dof.equation_id]
  *  This operation is a simple loop in shared memory, but requires additional infrastructure in MPI,
  *  to obtain out-of-process update data. RelaxedDofUpdater takes care of both the operation and the eventual
  *  auxiliary infrastructure.
   */
 template< class TSparseSpace >
 class KRATOS_API(RANS_APPLICATION) RelaxedDofUpdater
-    :public DofUpdater<TSparseSpace>
 {
 public:
     ///@name Type Definitions
@@ -51,24 +49,22 @@ public:
     /// Pointer definition of RelaxedDofUpdater
     KRATOS_CLASS_POINTER_DEFINITION(RelaxedDofUpdater);
 
-    using BaseType = DofUpdater<TSparseSpace>;
-
-    using DofType = typename BaseType::DofType;
-
-    using DofsArrayType = typename BaseType::DofsArrayType;
+	using DofType = Dof<typename TSparseSpace::DataType>;
+	using DofsArrayType = PointerVectorSet<
+		DofType,
+		SetIdentityFunction<DofType>,
+		std::less<typename SetIdentityFunction<DofType>::result_type>,
+		std::equal_to<typename SetIdentityFunction<DofType>::result_type>,
+		DofType* >;
 
     using SystemVectorType = typename TSparseSpace::VectorType;
-
-
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    RelaxedDofUpdater(const double RelaxationFactor)
-        : mRelaxationFactor(RelaxationFactor)
-    {}
+    RelaxedDofUpdater(){}
 
     /// Deleted copy constructor
     RelaxedDofUpdater(RelaxedDofUpdater const& rOther) = delete;
@@ -89,9 +85,9 @@ public:
      *  @return a std::unique_pointer to the new instance.
      *  @see UblasSpace::CreateRelaxedDofUpdater(), TrilinosSpace::CreateRelaxedDofUpdater().
      */
-    typename BaseType::UniquePointer Create() const override
+    virtual typename RelaxedDofUpdater::UniquePointer Create() const
     {
-        return Kratos::make_unique<RelaxedDofUpdater>(mRelaxationFactor);
+        return Kratos::make_unique<RelaxedDofUpdater>();
     }
 
     /// Initialize the RelaxedDofUpdater in preparation for a subsequent UpdateDofs call.
@@ -99,14 +95,14 @@ public:
      *  @param[in] rDofSet The list of degrees of freedom.
      *  @param[in] rDx The update vector.
      */
-    void Initialize(
+    virtual void Initialize(
         const DofsArrayType& rDofSet,
-        const SystemVectorType& rDx) override;
+        const SystemVectorType& rDx);
 
     /// Free internal storage to reset the instance and/or optimize memory consumption.
     /** Note that the base RelaxedDofUpdater does not have internal data, so this does nothing.
      */
-    void Clear() override;
+    virtual void Clear();
 
     /// Calculate new values for the problem's degrees of freedom using the update vector rDx.
     /** For each Dof in rDofSet, this function calculates the updated value for the corresponding
@@ -116,25 +112,35 @@ public:
      *  @param[in] RelaxationFactor Relaxation factor
      *  This method will check if Initialize() was called before and call it if necessary.
      */
-    void UpdateDofs(
+    virtual void UpdateDofs(
         DofsArrayType& rDofSet,
-        const SystemVectorType& rDx) override;
+        const SystemVectorType& rDx,
+        const double RelaxationFactor);
+
+    /// Assign new values for the problem's degrees of freedom using the vector rX.
+    /** For each Dof in rDofSet, this function assigns the value for the corresponding
+     *  variable as value = rX[dof.EquationId()].
+     *  @param[in/out] rDofSet The list of degrees of freedom.
+     *  @param[in] rX The solution vector.
+     *  This method will check if Initialize() was called before and call it if necessary.
+     */
+    virtual void AssignDofs(DofsArrayType& rDofSet, const SystemVectorType& rX);
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << this->Info() << std::endl;
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
         rOStream << this->Info() << std::endl;
     }
@@ -147,7 +153,6 @@ private:
 
     /// This lets the class control if Initialize() was properly called.
     bool mImportIsInitialized = false;
-    const double mRelaxationFactor;
 
     #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     /// Auxiliary trilinos data structure to import out-of-process data in the update vector.

@@ -51,7 +51,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MCStrainSofteningPlasticFlowRule
+class MCStrainSofteningPlasticFlowRule
     :public MCPlasticFlowRule
 {
 

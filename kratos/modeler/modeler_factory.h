@@ -31,11 +31,24 @@ namespace ModelerFactory
 {
 
     /// Checks if the modeler is registered
-    bool KRATOS_API(KRATOS_CORE) Has(const std::string& ModelerName);
+    bool Has(const std::string& ModelerName)
+    {
+        return KratosComponents< Modeler >::Has(ModelerName);
+    }
 
     /// Checks if the modeler is registered
-    typename Modeler::Pointer KRATOS_API(KRATOS_CORE) Create(
-        const std::string& ModelerName, Model& rModel, const Parameters ModelParameters);
+    typename Modeler::Pointer Create(
+        const std::string& ModelerName, Model& rModel, const Parameters ModelParameters)
+    {
+        KRATOS_ERROR_IF_NOT(Has(ModelerName))
+            << "Trying to construct a modeler: "
+            << ModelerName << "\" which does not exist.\n"
+            << "The available options (for currently loaded applications) are:\n"
+            << KratosComponents< Modeler >() << std::endl;
+
+        Modeler const& r_clone_modeler = KratosComponents< Modeler >::Get(ModelerName);
+        return r_clone_modeler.Create(rModel, ModelParameters);
+    }
 
 }
 

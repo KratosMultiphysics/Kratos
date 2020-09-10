@@ -1,12 +1,9 @@
 import KratosMultiphysics
-import KratosMultiphysics.IgaApplication
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.IgaApplication.iga_analysis import IgaAnalysis
 
 """
-The IgaApplication relies on the analyses and solvers of
-the StructuralMechanicsApplication. If user-scripting is
-required it is recommended to derive that class from the
-StructuralMechanicsAnalysis to do modifications.
+For user-scripting it is intended that a new class is derived
+from IgaAnalysis to do modifications
 """
 
 if __name__ == "__main__":
@@ -15,5 +12,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model,parameters)
+    simulation = IgaAnalysis(model,parameters)
     simulation.Run()

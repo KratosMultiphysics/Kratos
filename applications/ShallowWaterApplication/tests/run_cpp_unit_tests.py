@@ -1,9 +1,9 @@
-import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication
+from KratosMultiphysics import *
+from KratosMultiphysics.ShallowWaterApplication import *
 
 def run():
-    KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_LIST)
-    KratosMultiphysics.Tester.RunTestSuite("ShallowWaterApplicationFastSuite")
+    Tester.SetVerbosity(Tester.Verbosity.TESTS_LIST)
+    Tester.RunTestSuite("ShallowWaterApplicationFastSuite")
 
 if __name__ == '__main__':
     run()

@@ -11,18 +11,15 @@
 //
 
 // Project includes
-#include "spaces/ublas_space.h"
-#include "utilities/parallel_utilities.h"
-
-// Include base h
 #include "relaxed_dof_updater.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
 template <>
 void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::Initialize(
-    const DofsArrayType& rDofSet,
-    const SystemVectorType& rDx)
+    const RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::DofsArrayType& rDofSet,
+    const RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::SystemVectorType& rDx)
 {
 }
 
@@ -33,14 +30,36 @@ void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::Clear()
 
 template <>
 void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::UpdateDofs(
-    DofsArrayType& rDofSet,
-    const SystemVectorType& rDx)
+    RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::DofsArrayType& rDofSet,
+    const RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::SystemVectorType& rDx,
+    const double RelaxationFactor)
 {
-    block_for_each(rDofSet, [&](DofType& rDof) {
-        if (rDof.IsFree()) {
-            rDof.GetSolutionStepValue() += rDx[rDof.EquationId()] * mRelaxationFactor;
-        }
-    });
+    const int num_dof = static_cast<int>(rDofSet.size());
+
+#pragma omp parallel for
+    for (int i = 0; i < num_dof; ++i)
+    {
+        auto it_dof = rDofSet.begin() + i;
+
+        if (it_dof->IsFree())
+            it_dof->GetSolutionStepValue() += rDx[it_dof->EquationId()] * RelaxationFactor;
+    }
+}
+
+template <>
+void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::AssignDofs(
+    RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::DofsArrayType& rDofSet,
+    const RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::SystemVectorType& rX)
+{
+    const int num_dof = static_cast<int>(rDofSet.size());
+
+#pragma omp parallel for
+    for (int i = 0; i < num_dof; ++i)
+    {
+        auto it_dof = rDofSet.begin() + i;
+        if (it_dof->IsFree())
+            it_dof->GetSolutionStepValue() = rX[it_dof->EquationId()];
+    }
 }
 
 template <>
@@ -64,3 +83,4 @@ template class RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>;
 ///@}
 
 ///@} addtogroup block
+

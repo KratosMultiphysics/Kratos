@@ -157,7 +157,7 @@ void AdjointSolidElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrent
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.InitializeSolutionStep(rCurrentProcessInfo);
@@ -165,7 +165,7 @@ void AdjointSolidElement<TPrimalElement>::InitializeSolutionStep(const ProcessIn
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.InitializeNonLinearIteration(rCurrentProcessInfo);
@@ -173,7 +173,7 @@ void AdjointSolidElement<TPrimalElement>::InitializeNonLinearIteration(const Pro
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
@@ -181,7 +181,7 @@ void AdjointSolidElement<TPrimalElement>::FinalizeNonLinearIteration(const Proce
 }
 
 template <class TPrimalElement>
-void AdjointSolidElement<TPrimalElement>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void AdjointSolidElement<TPrimalElement>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.FinalizeSolutionStep(rCurrentProcessInfo);
@@ -190,7 +190,7 @@ void AdjointSolidElement<TPrimalElement>::FinalizeSolutionStep(const ProcessInfo
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                                const ProcessInfo& rCurrentProcessInfo)
+                                                                ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -200,7 +200,7 @@ void AdjointSolidElement<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLef
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::CalculateFirstDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -210,7 +210,7 @@ void AdjointSolidElement<TPrimalElement>::CalculateFirstDerivativesLHS(
 
 template <class TPrimalElement>
 void AdjointSolidElement<TPrimalElement>::CalculateSecondDerivativesLHS(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     mPrimalElement.CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);

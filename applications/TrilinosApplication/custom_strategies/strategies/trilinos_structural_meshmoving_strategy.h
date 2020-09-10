@@ -129,6 +129,7 @@ public:
             new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
                 *mpmesh_model_part,
                 pscheme,
+                pNewLinearSolver,
                 builderSolver,
                 m_compute_reactions,
                 m_reform_dof_set_at_each_step,

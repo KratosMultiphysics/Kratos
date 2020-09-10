@@ -25,7 +25,6 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
-#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -119,8 +118,6 @@ public:
     /// The definition of the element container type
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
-    /// The definition of the current class
-    typedef ExplicitBuilder<TSparseSpace, TDenseSpace> ClassType;
 
     /// Pointer definition of ExplicitBuilder
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitBuilder);
@@ -136,9 +133,12 @@ public:
      */
     explicit ExplicitBuilder(Parameters ThisParameters)
     {
-        // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**
@@ -153,15 +153,6 @@ public:
      */
     virtual ~ExplicitBuilder() = default;
 
-
-    /**
-     * @brief Create method
-     * @param ThisParameters The configuration parameters
-     */
-    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
-    {
-        return Kratos::make_shared<ClassType>(ThisParameters);
-    }
 
     ///@}
     ///@name Operators
@@ -465,28 +456,6 @@ public:
         return 0;
 
         KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    virtual Parameters GetDefaultParameters() const
-    {
-        const Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "explicit_builder"
-        })");
-        return default_parameters;
-    }
-
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        return "explicit_builder";
     }
 
     /**
@@ -819,29 +788,6 @@ protected:
                 }
             );
         }
-    }
-
-    /**
-     * @brief This method validate and assign default parameters
-     * @param rParameters Parameters to be validated
-     * @param DefaultParameters The default parameters
-     * @return Returns validated Parameters
-     */
-    virtual Parameters ValidateAndAssignParameters(
-        Parameters ThisParameters,
-        const Parameters DefaultParameters
-        ) const
-    {
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        return ThisParameters;
-    }
-
-    /**
-     * @brief This method assigns settings to member variables
-     * @param ThisParameters Parameters that are assigned to the member variables
-     */
-    virtual void AssignSettings(const Parameters ThisParameters)
-    {
     }
 
     ///@}

@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -14,7 +16,7 @@ class CoSimulationSolverWrapper(object):
     """Baseclass for the solver wrappers used for CoSimulation
     It wraps solvers used in the CoSimulation
     """
-    def __init__(self, settings, model, solver_name):
+    def __init__(self, settings, name):
         """Constructor of the Base Solver Wrapper
 
         The derived classes should do the following things in their constructors:
@@ -27,21 +29,12 @@ class CoSimulationSolverWrapper(object):
         # Every SolverWrapper has its own model, because:
         # - the names can be easily overlapping (e.g. "Structure.Interface")
         # - Solvers should not be able to access the data of other solvers directly!
-        self.model = model
-        if self.model == None:
-            self.model = KM.Model()
-        elif not isinstance(self.model, KM.Model):
-            err_msg  = 'A solver wrapper can either be passed a Model\n'
-            err_msg += 'or None, got object of type "{}"'.format(type(self.model))
-            raise Exception(err_msg)
+        self.model = KM.Model()
 
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
 
-        self.name = solver_name
-        if "." in self.name:
-            raise Exception("cannot contain dot!")
-
+        self.name = name
         self.echo_level = self.settings["echo_level"].GetInt()
         self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
 
@@ -156,7 +149,7 @@ class CoSimulationSolverWrapper(object):
         return self.__io is not None
 
     @classmethod
-    def _GetDefaultParameters(cls):
+    def _GetDefaultSettings(cls):
         return KM.Parameters("""{
             "type"                    : "",
             "solver_wrapper_settings" : {},
