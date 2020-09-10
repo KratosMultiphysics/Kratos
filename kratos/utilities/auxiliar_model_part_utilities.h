@@ -290,7 +290,7 @@ public:
     {
         std::vector<double> data;
         // see applications/CoSimulationApplication/custom_python/add_co_sim_io_to_python.cpp
-        
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -402,7 +402,16 @@ public:
                 }
             break;
         }
+        case (DataLocation::ProcessInfo):{
+            data.resize(TSize);
+            auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
+            for(int dim = 0 ; dim < TSize ; dim++){
+                    data[counter++] = r_val[dim];
+                }
+            break;
+        }
         default:
+            KRATOS_ERROR << "unknown Datalocation" << std::endl;
             //Throw an error about invalid DataLocation
             break;
         }
