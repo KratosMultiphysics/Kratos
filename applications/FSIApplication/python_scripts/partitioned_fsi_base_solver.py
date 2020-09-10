@@ -108,6 +108,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
     @classmethod
     def GetDefaultParameters(cls):
 
+        # Note that only the coupling settings are validated
+        # The subdomain solver settings will be validated while instantiating these
         this_defaults = KratosMultiphysics.Parameters("""{
             "echo_level": 0,
             "parallel_type": "OpenMP",

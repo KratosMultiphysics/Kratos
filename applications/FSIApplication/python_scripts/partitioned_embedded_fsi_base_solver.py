@@ -54,6 +54,9 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
+
+        # Note that only the coupling settings are validated
+        # The subdomain solver settings will be validated while instantiating these
         default_settings = KratosMultiphysics.Parameters("""
         {
             "echo_level": 0,
