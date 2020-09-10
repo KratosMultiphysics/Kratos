@@ -36,17 +36,9 @@
         "no_skin_parts": [],
         "formulation_settings": {
             "formulation_name": "incompressible_potential_flow",
-            "velocity_potential_flow_solver_settings": {
-                "linear_solver_settings": {
-                    "solver_type": "amgcl",
-                    "tolerance": 1e-8
-                }
-            },
-            "pressure_potential_flow_solver_settings": {
-                "linear_solver_settings": {
-                    "solver_type": "amgcl",
-                    "tolerance": 1e-8
-                }
+            "linear_solver_settings": {
+                "solver_type": "amgcl",
+                "tolerance": 1e-8
             }
         }
     },

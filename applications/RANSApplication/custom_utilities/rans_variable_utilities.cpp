@@ -45,21 +45,20 @@ std::tuple<unsigned int, unsigned int> ClipScalarVariable(
 
     unsigned int number_of_nodes_below_minimum, number_of_nodes_above_maximum;
     std::tie(number_of_nodes_below_minimum, number_of_nodes_above_maximum) =
-        BlockPartition<ModelPart::NodesContainerType>(r_nodes)
-            .for_each<CombinedReduction<SumReduction<unsigned int>, SumReduction<unsigned int>>>(
-                [&](ModelPart::NodeType& rNode) -> std::tuple<unsigned int, unsigned int> {
-                    double& r_value = rNode.FastGetSolutionStepValue(rVariable);
+        block_for_each<CombinedReduction<SumReduction<unsigned int>, SumReduction<unsigned int>>>(
+            r_nodes, [&](ModelPart::NodeType& rNode) -> std::tuple<unsigned int, unsigned int> {
+                double& r_value = rNode.FastGetSolutionStepValue(rVariable);
 
-                    if (r_value < MinimumValue) {
-                        r_value = MinimumValue;
-                        return std::make_tuple<unsigned int, unsigned int>(1, 0);
-                    } else if (r_value > MaximumValue) {
-                        r_value = MaximumValue;
-                        return std::make_tuple<unsigned int, unsigned int>(0, 1);
-                    }
+                if (r_value < MinimumValue) {
+                    r_value = MinimumValue;
+                    return std::make_tuple<unsigned int, unsigned int>(1, 0);
+                } else if (r_value > MaximumValue) {
+                    r_value = MaximumValue;
+                    return std::make_tuple<unsigned int, unsigned int>(0, 1);
+                }
 
-                    return std::make_tuple<unsigned int, unsigned int>(0, 0);
-                });
+                return std::make_tuple<unsigned int, unsigned int>(0, 0);
+            });
 
     r_communicator.SynchronizeVariable(rVariable);
 
@@ -188,20 +187,19 @@ void AssignConditionVariableValuesToNodes(
     auto& r_nodes = rModelPart.Nodes();
     VariableUtils().SetHistoricalVariableToZero(rVariable, r_nodes);
 
-    BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
-        .for_each([&](ModelPart::ConditionType& rCondition) {
-            if (rCondition.Is(rFlag) == FlagValue) {
-                const int number_of_nodes = rCondition.GetGeometry().PointsNumber();
-                const auto& r_normal = rCondition.GetValue(rVariable);
-                for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    auto& r_node = rCondition.GetGeometry()[i_node];
-                    r_node.SetLock();
-                    r_node.FastGetSolutionStepValue(rVariable) +=
-                        r_normal * (1.0 / static_cast<double>(number_of_nodes));
-                    r_node.UnSetLock();
-                }
+    block_for_each(rModelPart.Conditions(), [&](ModelPart::ConditionType& rCondition) {
+        if (rCondition.Is(rFlag) == FlagValue) {
+            const int number_of_nodes = rCondition.GetGeometry().PointsNumber();
+            const auto& r_value = rCondition.GetValue(rVariable);
+            for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+                auto& r_node = rCondition.GetGeometry()[i_node];
+                r_node.SetLock();
+                r_node.FastGetSolutionStepValue(rVariable) +=
+                    r_value * (1.0 / static_cast<double>(number_of_nodes));
+                r_node.UnSetLock();
             }
-        });
+        }
+    });
 
     rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
 }
@@ -237,22 +235,10 @@ bool IsAnalysisStepCompleted(
 void AssignBoundaryFlagsToGeometries(
     ModelPart& rModelPart)
 {
-    BlockPartition<ModelPart::ConditionsContainerType>(rModelPart.Conditions())
-        .for_each([&](ModelPart::ConditionType& rCondition) {
-            rCondition.SetValue(RANS_IS_INLET, rCondition.Is(INLET));
-            rCondition.SetValue(RANS_IS_OUTLET, rCondition.Is(OUTLET));
-            rCondition.SetValue(RANS_IS_STRUCTURE, rCondition.Is(STRUCTURE));
-        });
-}
-
-void CalculateMagnitudeSquareForNodal3DVariable(
-    ModelPart& rModelPart,
-    const Variable<array_1d<double, 3>>& r3DVariable,
-    const Variable<double>& rOutputVariable)
-{
-    BlockPartition<ModelPart::NodesContainerType>(rModelPart.Nodes()).for_each([&](ModelPart::NodeType& rNode) {
-        const double magnitude = norm_2(rNode.FastGetSolutionStepValue(r3DVariable));
-        rNode.FastGetSolutionStepValue(rOutputVariable) = std::pow(magnitude, 2);
+    block_for_each(rModelPart.Conditions(), [&](ModelPart::ConditionType& rCondition) {
+        rCondition.SetValue(RANS_IS_INLET, rCondition.Is(INLET));
+        rCondition.SetValue(RANS_IS_OUTLET, rCondition.Is(OUTLET));
+        rCondition.SetValue(RANS_IS_STRUCTURE, rCondition.Is(STRUCTURE));
     });
 }
 

@@ -34,15 +34,13 @@ class BaseBenchmarkProcess(KM.Process):
         self.benchmark_settings = settings["benchmark_settings"]
 
     def ExecuteInitialize(self):
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(SW.TOPOGRAPHY, self.Topography(node))
-
-    def ExecuteBeforeSolutionLoop(self):
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(SW.TOPOGRAPHY, self.Topography(node))
             node.SetSolutionStepValue(SW.HEIGHT, self.Height(node, time))
             node.SetSolutionStepValue(KM.VELOCITY, self.Velocity(node, time))
             node.SetSolutionStepValue(KM.MOMENTUM, self.Momentum(node, time))
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
 
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KM.TIME]
