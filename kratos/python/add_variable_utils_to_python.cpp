@@ -27,6 +27,32 @@
 namespace Kratos {
 namespace Python {
 
+template<class TDataType>
+void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVariableUtils)
+{
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const Variable<TDataType>&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int,const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, ModelPart&, const Flags&, const bool, const unsigned int))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedElementVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedElementVar));
+    rPythonVariableUtils.def("CopyModelPartFlaggedConditionVar", (void(VariableUtils::*)(const Variable<TDataType>&, const ModelPart&, ModelPart&, const Flags&, const bool))(&VariableUtils::CopyModelPartFlaggedConditionVar));
+}
+
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes
@@ -99,6 +125,74 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
 {
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
+  
+template< class TVarType >
+void ApplyFixity(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes)
+{
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes);
+}
+
+template< class TVarType >
+void ApplyFlaggedFixity(
+    VariableUtils &rVariableUtils,
+    const TVarType& rVar,
+    const bool IsFixed,
+    ModelPart::NodesContainerType& rNodes,
+    const Flags& rFlag,
+    const bool CheckValue)
+{
+    rVariableUtils.ApplyFixity(rVar, IsFixed, rNodes, rFlag, CheckValue);
+}
+
+
+/**
+ * @brief Auxiliary set variable export function
+ * This function is required to export the SetVariable overloaded method with a unique name
+ * @tparam TDataType The variable data type
+ * @tparam Variable<TDataType> The variable type
+ * @param rVariableUtils Reference to the self variable utils class
+ * @param rVariable Reference to the variable to be set
+ * @param rValue Reference to the value to set
+ * @param rNodes Reference to the nodes container
+ */
+template<class TDataType, class TVarType = Variable<TDataType>>
+void VariableUtilsSetVariable(
+    VariableUtils &rVariableUtils,
+    const TVarType &rVariable,
+    const TDataType &rValue,
+    ModelPart::NodesContainerType &rNodes)
+{
+    rVariableUtils.SetVariable(rVariable, rValue, rNodes);
+}
+
+
+/**
+ * @brief Auxiliary set variable export function
+ * This function is required to export the SetVariable with flag overloaded method with a unique name
+ * @tparam TDataType The variable data type
+ * @tparam Variable<TDataType> The variable type
+ * @param rVariableUtils Reference to the self variable utils class
+ * @param rVariable Reference to the variable to be set
+ * @param rValue Reference to the value to set
+ * @param rNodes Reference to the nodes container
+ * @param Flag Flag to filter the nodes that are set
+ * @param CheckValue Flag value to be checked
+ */
+template <class TDataType, class TVarType = Variable<TDataType>>
+void VariableUtilsSetVariableForFlag(
+    VariableUtils &rVariableUtils,
+    const TVarType &rVariable,
+    const TDataType &rValue,
+    ModelPart::NodesContainerType &rNodes,
+    const Flags Flag,
+    const bool CheckValue = true)
+{
+    rVariableUtils.SetVariable(rVariable, rValue, rNodes, Flag, CheckValue);
+}
 
 template <class TDataType, class TContainerType, class TVarType = Variable<TDataType>>
 void VariableUtilsSetNonHistoricalVariable(
@@ -126,7 +220,7 @@ void AddVariableUtilsToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    py::class_<VariableUtils>(m, "VariableUtils")
+    auto python_variable_utils = py::class_<VariableUtils>(m, "VariableUtils")
         .def(py::init<>())
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<bool>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<double>>)
@@ -320,6 +414,14 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::NodesContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ConditionsContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ElementsContainerType>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, int>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, int>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, int>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, double>)
+        .def("WeightedAccumulateConditionVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, double>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, double>)
+        .def("WeightedAccumulateElementVariableOnNodes", &VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::NodesContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ConditionsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
@@ -379,7 +481,8 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyVariable", &VariableUtils::CopyVariable<array_1d<double, 9>>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Vector>)
         .def("CopyVariable", &VariableUtils::CopyVariable<Matrix>)
-        .def("ApplyFixity", &VariableUtils::ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)
@@ -398,6 +501,15 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
+
+    AddCopyModelPartFlaggedInterface<bool>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<double>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 3>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 4>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 6>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<array_1d<double, 9>>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<Vector>(python_variable_utils);
+    AddCopyModelPartFlaggedInterface<Matrix>(python_variable_utils);
 }
 
 } // namespace Python.

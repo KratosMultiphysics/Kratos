@@ -657,7 +657,7 @@ class InsertFluidNodesMesherProcess
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
-    const unsigned int NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+    const unsigned int NodeIdParent = MesherUtilities::GetMaxNodeId( mrModelpart.GetParentModelPart() );
     const unsigned int NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
     unsigned int Id = NodeIdParent + 1; //total model part node size

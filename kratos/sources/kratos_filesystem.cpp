@@ -10,6 +10,9 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
+// System includes
+#include <algorithm>
+
 // External includes
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 
@@ -78,14 +81,21 @@ std::string CurrentWorkingDirectory()
 
 std::string JoinPaths(const std::vector<std::string>& rPaths)
 {
-    const std::size_t num_paths = rPaths.size();
+    auto paths(rPaths); // create local copy
+
+    // first remove empty paths
+    paths.erase(std::remove_if(paths.begin(), paths.end(),
+                         [](const std::string& s)
+                         { return s.empty(); }), paths.end());
+
+    const std::size_t num_paths = paths.size();
 
     if (num_paths == 0) { return ""; }
 
-    std::string full_path = rPaths[0];
+    std::string full_path = paths[0];
     if (num_paths > 1) {
         for(std::size_t i=1; i<num_paths; ++i) {
-            full_path += "/" + rPaths[i]; // using portable separator "/"
+            full_path += "/" + paths[i]; // using portable separator "/"
         }
     }
 
