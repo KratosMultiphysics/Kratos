@@ -138,6 +138,8 @@ namespace Kratos
         CompressedMatrix mProjectorOrigin;
         Matrix mUnitResponseOrigin;  //TODO CompressedMatrix
 
+        Vector mAccumulatedDisplacement;
+
 
         LinearSolverSharedPointerType mpSolver = nullptr;
 
@@ -153,7 +155,7 @@ namespace Kratos
         const bool mIsCheckEquilibrium = true; // normally true
         const bool mIsDisableLagrange = false; // normally false
 
-        void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities);
+        void CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities, const bool IsEquilibriumCheck = false);
 
         void GetInterfaceQuantity(ModelPart& rInterface, const Variable< array_1d<double, 3> >& rVariable,
             Vector& rContainer, const SizeType nDOFs);

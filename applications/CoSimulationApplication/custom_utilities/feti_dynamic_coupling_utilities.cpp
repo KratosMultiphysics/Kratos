@@ -81,12 +81,12 @@ namespace Kratos
             DetermineDomainUnitAccelerationResponse(mpKDestination, projector_destination, unit_response_destination, false);
 
             // 4 - Calculate condensation matrix
-            CompressedMatrix condensation_matrix(origin_interface_dofs, origin_interface_dofs);
+            CompressedMatrix condensation_matrix(destination_interface_dofs, destination_interface_dofs);
             CalculateCondensationMatrix(condensation_matrix, mUnitResponseOrigin,
                 unit_response_destination, mProjectorOrigin, projector_destination);
 
             // 5 - Calculate lagrange mults
-            Vector lagrange_vector(origin_interface_dofs);
+            Vector lagrange_vector(destination_interface_dofs);
             DetermineLagrangianMultipliers(lagrange_vector, condensation_matrix, unbalanced_interface_free_velocity);
             if (mIsDisableLagrange) lagrange_vector.clear();
             if (mIsDisableLagrange) std::cout << "[WARNING] Lagrangian multipliers disabled\n";
@@ -94,6 +94,44 @@ namespace Kratos
             // 6 - Apply correction quantities
             if (mSubTimestepIndex == mTimestepRatio) {
                 ApplyCorrectionQuantities(lagrange_vector, mUnitResponseOrigin, true);
+
+                // compare incremental displacements
+                Vector accel_corrections = prod(mUnitResponseOrigin, lagrange_vector);
+                Vector origin_accel = prod(mProjectorOrigin, accel_corrections);
+                Vector origin_vel = origin_accel * (0.5 * 0.05);
+                Vector origin_disp = origin_vel * (0.5 * 0.05);
+
+                accel_corrections.clear();
+                accel_corrections = prod(unit_response_destination, lagrange_vector);
+                Vector delta_accel = prod(projector_destination, accel_corrections);
+                Vector delta_vel = delta_accel * (0.5 * 0.025);
+                Vector delta_disp = delta_vel * (0.5 * 0.025);
+
+                //KRATOS_WATCH(origin_accel);
+                //KRATOS_WATCH(delta_accel);
+                //KRATOS_WATCH(origin_vel);
+                //KRATOS_WATCH(delta_vel);
+                //KRATOS_WATCH(origin_disp);
+                //KRATOS_WATCH(delta_disp);
+                //
+                //
+                //
+                //KRATOS_WATCH(lagrange_vector)
+                //KRATOS_WATCH(*mpMappingMatrix)
+                //KRATOS_WATCH(mAccumulatedDisplacement);
+                //PrintInterfaceKinematics(DISPLACEMENT, false);
+                //KRATOS_WATCH(delta_disp);
+                //mAccumulatedDisplacement += delta_disp;
+                //KRATOS_WATCH(mAccumulatedDisplacement);
+                //KRATOS_WATCH("1111");
+            }
+            else
+            {
+                Vector accel_corrections = prod(unit_response_destination, lagrange_vector);
+                mAccumulatedDisplacement.clear();
+                mAccumulatedDisplacement = prod(projector_destination, accel_corrections * 0.5 * 0.5 * 0.025 * 0.025);
+                //KRATOS_WATCH(mSubTimestepIndex);
+                //KRATOS_WATCH(mAccumulatedDisplacement);
             }
             ApplyCorrectionQuantities(lagrange_vector, unit_response_destination, false);
 
@@ -101,7 +139,9 @@ namespace Kratos
             if (mIsCheckEquilibrium && !mIsDisableLagrange && mSubTimestepIndex == mTimestepRatio)
             {
                 unbalanced_interface_free_velocity.clear();
-                CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity);
+                PrintInterfaceKinematics(DISPLACEMENT, true);
+                PrintInterfaceKinematics(DISPLACEMENT, false);
+                CalculateUnbalancedInterfaceFreeVelocities(unbalanced_interface_free_velocity, true);
                 const double equilibrium_norm = norm_2(unbalanced_interface_free_velocity);
                 KRATOS_WATCH(equilibrium_norm);
                 KRATOS_ERROR_IF(equilibrium_norm > 1e-12)
@@ -112,15 +152,18 @@ namespace Kratos
             // 8 - Write nodal lagrange multipliers to interface
             WriteLagrangeMultiplierResults(lagrange_vector);
 
-            // 9 - Advance subtimestep counter
-            mSubTimestepIndex += 1;
+
         } // end if correction needs to be applied
+
+        // 9 - Advance subtimestep counter
+        mSubTimestepIndex += 1;
 
         KRATOS_CATCH("")
 	}
 
 
-	void FetiDynamicCouplingUtilities::CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities)
+	void FetiDynamicCouplingUtilities::CalculateUnbalancedInterfaceFreeVelocities(Vector& rUnbalancedVelocities,
+        const bool IsEquilibriumCheck)
 	{
         KRATOS_TRY
 
@@ -133,10 +176,12 @@ namespace Kratos
         rUnbalancedVelocities *= -1.0;
 
         // Get final predicted origin velocities
-        if (mSubTimestepIndex == 1) GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, mFinalOriginInterfaceVelocities, dim);
+        if (mSubTimestepIndex == 1 || IsEquilibriumCheck)
+            GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, mFinalOriginInterfaceVelocities, dim);
 
         // Interpolate origin velocities to the current sub-timestep
-        Vector interpolated_origin_velocities = mSubTimestepIndex / mTimestepRatio * mFinalOriginInterfaceVelocities +
+        Vector interpolated_origin_velocities = (IsEquilibriumCheck) ? mFinalOriginInterfaceVelocities
+            : mSubTimestepIndex / mTimestepRatio * mFinalOriginInterfaceVelocities +
             (1.0 - mSubTimestepIndex / mTimestepRatio) * mInitialOriginInterfaceVelocities;
         CompressedMatrix expanded_mapper(mpMappingMatrix->size1() * dim, mpMappingMatrix->size2() * dim, 0.0);
         GetExpandedMappingMatrix(expanded_mapper, dim);
@@ -276,6 +321,7 @@ namespace Kratos
             // deltaVelocity = 0.5 * dt * accel_correction
             // deltaDisplacement = dt * dt * gamma * gamma * accel_correction
             accel_corrections *= (gamma * dt);
+            //if (!IsOrigin) accel_corrections *= double(mTimestepRatio);
             AddCorrectionToDomain(pDomainModelPart, DISPLACEMENT, accel_corrections, is_implicit);
         }
         else
@@ -555,6 +601,12 @@ namespace Kratos
         const SizeType interface_dofs = rProjector.size1();
         const SizeType system_dofs = rProjector.size2();
 
+        // Convert system stiffness matrix to mass matrix
+        const double gamma = (isOrigin) ? mOriginGamma : mDestinationGamma;
+        const double dt = (isOrigin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
+            : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
+        CompressedMatrix effective_mass = (*pK) * (dt * dt * gamma * gamma);
+
         auto start = std::chrono::system_clock::now();
         #pragma omp parallel
         {
@@ -565,7 +617,7 @@ namespace Kratos
             for (int i = 0; i < static_cast<int>(interface_dofs); ++i)
             {
                 for (size_t j = 0; j < system_dofs; ++j) projector_transpose_column[j] = rProjector(i, j);
-                mpSolver->Solve(*pK, solution, projector_transpose_column);
+                mpSolver->Solve(effective_mass, solution, projector_transpose_column);
                 for (size_t j = 0; j < system_dofs; ++j) rUnitResponse(j, i) = solution[j];
             }
         }
@@ -573,11 +625,7 @@ namespace Kratos
         auto end = std::chrono::system_clock::now();
         auto elasped_solve = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-        // Convert system stiffness matrix to mass matrix
-        const double gamma = (isOrigin) ? mOriginGamma : mDestinationGamma;
-        const double dt = (isOrigin) ? mpOriginDomain->GetProcessInfo()[DELTA_TIME]
-            : mpDestinationDomain->GetProcessInfo()[DELTA_TIME];
-        rUnitResponse /= (dt * dt * gamma * gamma);
+
 
         // reference answer for testing - slow matrix inversion
         const bool is_test_ref = false;
@@ -617,6 +665,9 @@ namespace Kratos
         mInitialOriginInterfaceVelocities.clear();
 
         GetInterfaceQuantity(mrOriginInterfaceModelPart, VELOCITY, mInitialOriginInterfaceVelocities, dim_origin);
+
+        // Set the subTimestep index to 1
+        mSubTimestepIndex = 1;
 
         KRATOS_CATCH("")
     }

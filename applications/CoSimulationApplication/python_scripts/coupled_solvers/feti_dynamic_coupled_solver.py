@@ -56,11 +56,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         if self.is_initialized == False:
             self.__InitializeFetiMethod()
 
-        # initialize sln step of origin and store initial velocities
-        #self.solver_wrappers_vector[0].InitializeSolutionStep()
+        # Set origin initial velocities
         self.feti_coupling.SetOriginInitialVelocities()
-
-        #self.solver_wrappers_vector[1].InitializeSolutionStep()
 
 
     def SolveSolutionStep(self):
@@ -126,15 +123,9 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         destination_newmark_gamma = self.settings["destination_newmark_gamma"].GetDouble()
 
 
-
-
         self.is_implicit = [True, True]
         if origin_newmark_beta == 0.0: self.is_implicit[0] = False
         if destination_newmark_beta == 0.0: self.is_implicit[1] = False
-
-        # check timestep ratio and individual domain timesteps match up
-
-
 
         # create the solver
         linear_solver = self._CreateLinearSolver()
@@ -179,7 +170,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
+            KM.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
             return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     @classmethod
