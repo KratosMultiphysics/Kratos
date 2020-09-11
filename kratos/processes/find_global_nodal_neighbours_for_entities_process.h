@@ -137,6 +137,10 @@ private:
 
     TContainerType& GetContainer();
 
+    void InitializeVisitedFlag();
+
+    void SetVisitedFlag(NodeType& rNode) const;
+
     void AddHangingNodeIds(std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds);
 
     void AddUnique(

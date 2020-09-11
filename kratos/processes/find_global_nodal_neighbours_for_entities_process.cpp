@@ -28,6 +28,7 @@
 #include "utilities/global_pointer_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
+#include "utilities/variable_utils.h"
 
 // Include base h
 #include "find_global_nodal_neighbours_for_entities_process.h"
@@ -50,24 +51,55 @@ template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::AddHangingNodeIds(
     std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds)
 {
-    // do nothing in here since mettis partitioner is based on elements, there cannot be any hanging nodes.
+    // do nothing in here since mettis partitioner is based on elements, there
+    // cannot be any hanging nodes.
 }
 
 template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::AddHangingNodeIds(
     std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds)
 {
-    BlockPartition<NodesContainerType>(mrModelPart.Nodes()).for_each([&](const NodeType& rNode) {
+    this->mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+
+    block_for_each(mrModelPart.Nodes(), [&](const NodeType& rNode) {
         const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
         const int node_id = rNode.Id();
-        if (rNeighbourIds[i_owner_rank].find(node_id) ==
-            rNeighbourIds[i_owner_rank].end()) {
+        if (rNode.Is(VISITED) && rNeighbourIds[i_owner_rank].find(node_id) ==
+                                     rNeighbourIds[i_owner_rank].end()) {
 #pragma omp critical
             {
                 rNeighbourIds[i_owner_rank][node_id];
             }
         }
     });
+}
+
+template <>
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::InitializeVisitedFlag()
+{
+    // do nothing in here since mettis partitioner is based on elements, there
+    // cannot be any hanging nodes.
+}
+
+template <>
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::InitializeVisitedFlag()
+{
+    VariableUtils().SetFlag(VISITED, false, this->mrModelPart.Nodes());
+}
+
+template <>
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::SetVisitedFlag(NodeType& rNode) const
+{
+    // do nothing in here since mettis partitioner is based on elements, there
+    // cannot be any hanging nodes.
+}
+
+template <>
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::SetVisitedFlag(NodeType& rNode) const
+{
+    rNode.SetLock();
+    rNode.Set(VISITED, true);
+    rNode.UnSetLock();
 }
 
 template <class TContainerType>
@@ -79,30 +111,28 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
 
     // first of all the neighbour nodes and elements array are initialized
     // to the guessed size and empties the old entries
-    BlockPartition<NodesContainerType>(r_nodes).for_each([&](NodeType& rNode) {
-        rNode.SetValue(mrOutputVariable, GlobalPointersVector<NodeType>());
-    });
+    VariableUtils().SetNonHistoricalVariable(
+        mrOutputVariable, GlobalPointersVector<NodeType>(), r_nodes);
 
     // adding the neighbouring nodes
     if (!this->mrDataCommunicator.IsDistributed()) {
-        BlockPartition<TContainerType>(this->GetContainer())
-            .for_each([&](typename TContainerType::value_type& rEntity) {
-                auto& r_geometry = rEntity.GetGeometry();
-                for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-                    for (unsigned int j = 0; j < r_geometry.size(); ++j) {
-                        if (j != i) {
-                            auto gp = GlobalPointer<NodeType>(r_geometry(j), 0);
-                            auto& r_node = r_geometry[i];
-                            r_node.SetLock();
-                            AddUniqueGlobalPointer<NodeType>(
-                                r_node.GetValue(mrOutputVariable), gp);
-                            r_node.UnSetLock();
-                        }
+        block_for_each(this->GetContainer(), [&](typename TContainerType::value_type& rEntity) {
+            auto& r_geometry = rEntity.GetGeometry();
+            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+                for (unsigned int j = 0; j < r_geometry.size(); ++j) {
+                    if (j != i) {
+                        auto gp = GlobalPointer<NodeType>(r_geometry(j), 0);
+                        auto& r_node = r_geometry[i];
+                        r_node.SetLock();
+                        AddUniqueGlobalPointer<NodeType>(
+                            r_node.GetValue(mrOutputVariable), gp);
+                        r_node.UnSetLock();
                     }
                 }
-            });
+            }
+        });
 
-        BlockPartition<NodesContainerType>(r_nodes).for_each([&](NodeType& rNode) {
+        block_for_each(r_nodes, [&](NodeType& rNode) {
             auto& r_neighbours = rNode.GetValue(mrOutputVariable);
             r_neighbours.shrink_to_fit();
             std::sort(r_neighbours.ptr_begin(), r_neighbours.ptr_end(),
@@ -118,24 +148,31 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
         using map_of_sets = std::unordered_map<int, std::vector<int>>;
         std::unordered_map<int, map_of_sets> neighbours_ids;
 
-        for (auto& r_entity : this->GetContainer()) {
-            const auto& r_geometry = r_entity.GetGeometry();
+        this->InitializeVisitedFlag();
+
+        block_for_each(this->GetContainer(), [&](typename TContainerType::value_type& rEntity) {
+            auto& r_geometry = rEntity.GetGeometry();
             for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-                const int i_owner_rank =
-                    r_geometry[i].FastGetSolutionStepValue(PARTITION_INDEX);
-                auto& container = neighbours_ids[i_owner_rank][r_geometry[i].Id()];
+                auto& r_node = r_geometry[i];
+                const int i_owner_rank = r_node.FastGetSolutionStepValue(PARTITION_INDEX);
+#pragma omp critical
+                {
+                    neighbours_ids[i_owner_rank][r_node.Id()];
+                }
+                auto& container = neighbours_ids[i_owner_rank][r_node.Id()];
                 for (unsigned int j = 0; j < r_geometry.size(); ++j) {
                     if (j != i) {
                         AddUnique(container, r_geometry[j].Id());
                     }
                 }
+                this->SetVisitedFlag(r_node);
             }
-        }
+        });
 
-        // there are some isolated nodes when metis partitioner performs partitioning
-        // specially in the case where TContainerType = ModelPart::ConditionsContainerType
-        // therefore we add those ids to neighbours_ids so that proper communication scheduling
-        // can be computed.
+        // there are some isolated nodes when metis partitioner performs
+        // partitioning specially in the case where TContainerType =
+        // ModelPart::ConditionsContainerType therefore we add those ids to
+        // neighbours_ids so that proper communication scheduling can be computed.
         AddHangingNodeIds(neighbours_ids);
 
         // here communicate non local data
@@ -153,7 +190,8 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
             send_list, this->mrDataCommunicator);
 
         // finalize computation of neighbour ids on owner nodes
-        std::unordered_map<int, std::vector<int>> non_local_node_ids; // this will contain the id of the nodes that will need communicaiton
+        std::unordered_map<int, std::vector<int>> non_local_node_ids; // this will contain the id of the nodes that will
+                                                                      // need communicaiton
         for (const int color : colors) {
             if (color >= 0) {
                 auto tmp = this->mrDataCommunicator.SendRecv(
@@ -162,7 +200,9 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
                     auto& ids = neighbours_ids[current_rank][item.first];
                     for (int neighbour_id : item.second)
                         AddUnique(ids, neighbour_id);
-                    non_local_node_ids[color].push_back(item.first); // this are the nodes (ids) for which neihbours are needed
+                    non_local_node_ids[color].push_back(
+                        item.first); // this are the nodes (ids) for which
+                                     // neihbours are needed
                 }
             }
         }
@@ -190,7 +230,8 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
         auto all_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(
             this->mrModelPart.Nodes(), all_ids, this->mrDataCommunicator);
 
-        // now construct the list of GlobalPointers - here neighbours are ok for locally owned nodes
+        // now construct the list of GlobalPointers - here neighbours are ok for
+        // locally owned nodes
         for (const auto& item : neighbours_ids[current_rank]) {
             auto node_id = item.first;
             auto& r_node = this->mrModelPart.Nodes()[node_id];
@@ -232,7 +273,7 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
 template <class TContainerType>
 void FindNodalNeighboursForEntitiesProcess<TContainerType>::ClearNeighbours()
 {
-    BlockPartition<NodesContainerType>(this->mrModelPart.Nodes()).for_each([&](NodeType& rNode) {
+    block_for_each(this->mrModelPart.Nodes(), [&](NodeType& rNode) {
         auto& r_gp_neighbour_nodes_vector = rNode.GetValue(mrOutputVariable);
         r_gp_neighbour_nodes_vector.erase(r_gp_neighbour_nodes_vector.begin(),
                                           r_gp_neighbour_nodes_vector.end());
@@ -276,10 +317,9 @@ std::unordered_map<int, std::vector<int>> FindNodalNeighboursForEntitiesProcess<
     };
 
     GlobalPointersVector<NodeType> all_global_pointers =
-        BlockPartition<NodesContainerType>(rNodes).for_each<GlobalPointerAdder>(
-            [&](NodeType& rNode) {
-                return rNode.GetValue(rNodalGlobalPointerVariable);
-            });
+        block_for_each<GlobalPointerAdder>(rNodes, [&](NodeType& rNode) {
+            return rNode.GetValue(rNodalGlobalPointerVariable);
+        });
 
     GlobalPointerCommunicator<NodeType> pointer_comm(rDataCommunicator, all_global_pointers);
 
@@ -301,12 +341,14 @@ std::unordered_map<int, std::vector<int>> FindNodalNeighboursForEntitiesProcess<
 }
 
 template <class TContainerType>
-void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddUnique(
-    std::vector<int>& rContainer,
-    const int Item)
+void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddUnique(std::vector<int>& rContainer,
+                                                                      const int Item)
 {
     if (std::find(rContainer.begin(), rContainer.end(), Item) == rContainer.end()) {
-        rContainer.push_back(Item);
+#pragma omp critical
+        {
+            rContainer.push_back(Item);
+        }
     }
 }
 
