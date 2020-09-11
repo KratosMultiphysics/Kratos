@@ -141,16 +141,17 @@ private:
 
     void SetVisitedFlag(NodeType& rNode) const;
 
-    void AddHangingNodeIds(std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds);
+    void AddHangingNodeIds(
+        std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const;
 
     void AddUnique(
         std::vector<int>& rContainer,
-        const int Item);
+        const int Item) const;
 
     template <class TDataType>
     void AddUniqueGlobalPointer(
         GlobalPointersVector<TDataType>& rGPVector,
-        const GlobalPointer<TDataType>& rCandidate)
+        const GlobalPointer<TDataType>& rCandidate) const
     {
         bool found = false;
         for (const auto& gp : rGPVector.GetContainer()) {

@@ -49,7 +49,7 @@ ModelPart::ConditionsContainerType& FindNodalNeighboursForEntitiesProcess<ModelP
 
 template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::AddHangingNodeIds(
-    std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds)
+    std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const
 {
     // do nothing in here since mettis partitioner is based on elements, there
     // cannot be any hanging nodes.
@@ -57,7 +57,7 @@ void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::Ad
 
 template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::AddHangingNodeIds(
-    std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds)
+    std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const
 {
     this->mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
@@ -88,14 +88,16 @@ void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::
 }
 
 template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::SetVisitedFlag(NodeType& rNode) const
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::SetVisitedFlag(
+    NodeType& rNode) const
 {
     // do nothing in here since mettis partitioner is based on elements, there
     // cannot be any hanging nodes.
 }
 
 template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::SetVisitedFlag(NodeType& rNode) const
+void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::SetVisitedFlag(
+    NodeType& rNode) const
 {
     rNode.SetLock();
     rNode.Set(VISITED, true);
@@ -341,8 +343,9 @@ std::unordered_map<int, std::vector<int>> FindNodalNeighboursForEntitiesProcess<
 }
 
 template <class TContainerType>
-void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddUnique(std::vector<int>& rContainer,
-                                                                      const int Item)
+void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddUnique(
+    std::vector<int>& rContainer,
+    const int Item) const
 {
     if (std::find(rContainer.begin(), rContainer.end(), Item) == rContainer.end()) {
 #pragma omp critical
