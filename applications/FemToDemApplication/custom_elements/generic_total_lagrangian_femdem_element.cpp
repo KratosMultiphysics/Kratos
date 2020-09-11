@@ -312,37 +312,13 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         if (dimension == 2 && this->GetProperties().Has(THICKNESS))
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
-        bool is_damaging = false;
-        Vector damages_edges = ZeroVector(NumberOfEdges);
-
-        if (yield_surface != "Elastic") {
-            // Loop over edges of the element...
-            Vector average_stress_edge(VoigtSize);
-            Vector average_strain_edge(VoigtSize);
-
-            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
-                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
- 
-                damages_edges[edge] = mDamages[edge];
-                double threshold = mThresholds[edge];
-                
-                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
-                                                     average_stress_edge, edge, characteristic_length, cl_values, 
-                                                     is_damaging);
-
-            } // Loop over edges
-        }
-
-        // Calculate the elemental Damage...
-        const double damage_element = this->CalculateElementalDamage(damages_edges);
-
         Vector r_strain_vector;
-        this->CalculateGreenLagrangeStrainVector(r_strain_vector, this_kinematic_variables.F);
-        const Vector& r_stress_vector = this_constitutive_variables.StressVector;
-        const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
+        double damage_element;
+        bool is_damaging = false;
+        const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
+                                                        yield_surface, cl_values, this_constitutive_variables,
+                                                        this_kinematic_variables, r_strain_vector, damage_element, 
+                                                        is_damaging, characteristic_length, false);
 
         if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
@@ -439,33 +415,14 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         if (dimension == 2 && this->GetProperties().Has(THICKNESS))
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
+        Vector r_strain_vector;
+        double damage_element;
         bool is_damaging = false;
-        if (yield_surface != "Elastic") {
-            // Loop over edges of the element...
-            Vector average_stress_edge(VoigtSize);
-            Vector average_strain_edge(VoigtSize);
-
-            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
-                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
-                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
-
-                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
-                                                     average_stress_edge, edge, characteristic_length, cl_values, 
-                                                     is_damaging);
-            } // Loop over edges
-        }
-
-        // Calculate the elemental Damage...
-        mDamage = this->CalculateElementalDamage(mDamages);
-
-        if (mDamage >= 0.98) {
-            this->Set(ACTIVE, false);
-            mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
-            rCurrentProcessInfo[GENERATE_DEM] = true;
-        }
+        const Vector &r_integrated_stress_vector = this->IntegrateSmoothedConstitutiveLaw(
+                                                        yield_surface, cl_values, this_constitutive_variables,
+                                                        this_kinematic_variables, r_strain_vector, damage_element, 
+                                                        is_damaging, characteristic_length, true);
+        this->CheckIfEraseElement(rCurrentProcessInfo, r_properties);
     }
     KRATOS_CATCH( "" )
 }
@@ -858,6 +815,57 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamage
         rThreshold = uniaxial_stress;
         rIsDamaging = true;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedConstitutiveLaw(
+    const std::string& rYieldSurface,
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveVariables& rThisConstVars,
+    const KinematicVariables& rKinVariables,
+    Vector& rStrainVector,
+    double& rDamageElement,
+    bool& rIsDamaging,
+    const double CharacteristicLength,
+    const bool SaveIntVars
+    )
+{
+    Vector damages_edges = ZeroVector(NumberOfEdges);
+    if (rYieldSurface != "Elastic") {
+        // Loop over edges of the element...
+        Vector average_stress_edge(VoigtSize);
+        Vector average_strain_edge(VoigtSize);
+
+        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            noalias(average_stress_edge) = rThisConstVars.StressVector;
+            noalias(average_strain_edge) = rThisConstVars.StrainVector;
+            this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+            this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+
+            if (!SaveIntVars) {
+                damages_edges[edge] = mDamages[edge];
+                double threshold = mThresholds[edge];
+            
+                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
+                                                        average_stress_edge, edge, CharacteristicLength, rValues, 
+                                                        rIsDamaging);
+                rDamageElement = this->CalculateElementalDamage(damages_edges);         
+            } else {
+                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
+                                        average_stress_edge, edge, CharacteristicLength, rValues, 
+                                        rIsDamaging);
+                mDamage = this->CalculateElementalDamage(mDamages);
+                rDamageElement = mDamage;
+            }
+        } // Loop over edges
+    }
+
+    this->CalculateGreenLagrangeStrainVector(rStrainVector, rKinVariables.F);
+    const Vector& r_stress_vector = rThisConstVars.StressVector;
+    return (1.0 - rDamageElement)*r_stress_vector;
 }
 
 /***********************************************************************************/
@@ -2041,10 +2049,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetValueOnIntegration
     const ProcessInfo &rCurrentProcessInfo)
 {
     if (rVariable == DAMAGE_ELEMENT || 
-    rVariable == IS_DAMAGED || 
-    rVariable == STRESS_THRESHOLD || 
-    rVariable == EQUIVALENT_STRESS_VM) {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        rVariable == IS_DAMAGED || 
+        rVariable == STRESS_THRESHOLD || 
+        rVariable == ACUMULATED_PLASTIC_STRAIN ||
+        rVariable == PLASTIC_UNIAXIAL_STRESS) {
+            CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
@@ -2147,6 +2156,19 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
         }
     }
 
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::SetValuesOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == DAMAGE_ELEMENT) {
+        mDamage = rValues[0];
+    } else if (rVariable == STRESS_THRESHOLD) {
+        mThreshold = rValues[0];
+    }
 }
 
 

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -58,7 +56,7 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
 
         # If we reinitialize entities
         self.reinitialize_entities = settings["reinitialize_entities"].GetBool()
-        
+
         # Materials filename
         self.materials_filename = settings["materials_filename"].GetString()
 

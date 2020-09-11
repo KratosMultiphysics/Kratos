@@ -1,14 +1,11 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics import kratos_utilities
 
-try:
-    import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
-    eigen_solvers_is_available = True
-except ImportError:
-    eigen_solvers_is_available = False
+if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
+    from KratosMultiphysics import LinearSolversApplication
 
 #A simply supported square plate under compressive loading is computed
 #The test compares the buckling load/multiplier between one model with symmetry conditions (quarter of the plate) and a full model
@@ -107,7 +104,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         }
         """)
 
-        eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
+        eigen_solver = LinearSolversApplication.EigensystemSolver(eigensolver_settings)
         eigen_solver_ = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(eigen_solver)
         convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-4,1e-9)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -260,7 +257,7 @@ class BaseTestPrebucklingAnalysis(KratosUnittest.TestCase):
         self.assertLess( abs(1-load_multiplier1[0]/reference), 1.0e-2)
 
 class TestPrebucklingAnalysis(BaseTestPrebucklingAnalysis):
-    @KratosUnittest.skipUnless(eigen_solvers_is_available,"EigenSolversApplication not available")
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_dynamic_eigenvalue_analysis(self):
         reference_value = 92.80
         #Construct model with symmetry conditions (quarter of the full plate 1x1)

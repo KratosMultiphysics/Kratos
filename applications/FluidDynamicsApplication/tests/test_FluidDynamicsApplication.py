@@ -12,6 +12,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suites
 from artificial_compressibility_test import ArtificialCompressibilityTest
 from buoyancy_test import BuoyancyTest
+from couette_flow_test import CouetteFlowTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_piston_test import EmbeddedPistonTest
 from embedded_reservoir_test import EmbeddedReservoirTest
@@ -46,6 +47,8 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicStokes'))
+    smallSuite.addTest(CouetteFlowTest('testCouetteFlow2DSymbolicNavierStokes'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette2D'))
@@ -121,17 +124,6 @@ if __name__ == '__main__':
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
     KratosMultiphysics.Tester.RunTestSuite("FluidDynamicsApplicationFastSuite")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
-    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-        p = subprocess.Popen(
-            ["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"],
-            stdout=subprocess.PIPE,
-            cwd=os.path.dirname(os.path.abspath(__file__)))
-        p.wait()
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    else:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

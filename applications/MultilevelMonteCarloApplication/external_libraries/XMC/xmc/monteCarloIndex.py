@@ -9,10 +9,7 @@ import warnings
 
 import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu
 
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from xmc.distributedEnvironmentFramework import *
 
 class MonteCarloIndex():
     """
@@ -84,7 +81,7 @@ class MonteCarloIndex():
         Returns the requested moment estimation of the cost.
         The input arguments are passed to the cost estimator's relevant method.
         """
-        
+
         return self.costEstimator.value(*costEstimatorValueArguments)
 
     def newSample(self):
@@ -93,7 +90,7 @@ class MonteCarloIndex():
 
         See the documentation of SampleGenerator.generate for the data structure.
         """
-        
+
         sample = self.sampler.generate()
         return sample
 
@@ -101,14 +98,14 @@ class MonteCarloIndex():
         """
         Returns the dimension of the Monte Carlo index set.
         """
-        
+
         return len(self.indexValue)
 
     def solverIndices(self):
         """
         Compute list of indices of correlated solvers.
         """
-        
+
         diff_tuple = []
         hypercube_vertices = 2**self.indexSetDimension()
         for _ in range(self.indexSetDimension()):
@@ -124,7 +121,7 @@ class MonteCarloIndex():
         """
         Add newsamples to stored samples. This is an internal method with no check on whether sample storage is enabled; be careful when using it.
         """
-        
+
         # TODO replace self.samples with self.data
         self.samples.append(newSamples)
 
@@ -135,7 +132,7 @@ class MonteCarloIndex():
         each sample and the associated cost with newSample and pass them
         to the update methods of qoiEstimator and costEstimator.
         """
-        
+
         # Compute number of new samples based on areSamplesRecycled
         # TODO Minimum number of new samples hard coded here to 6, since
         # program not planned for moment > 4 estimation. Accept/infer this
@@ -180,15 +177,15 @@ class MonteCarloIndex():
         # (s: solver, o: output); idem for S_i2.
 
         # If solver outputs are split, (i.e. MonteCarloIndex.areSamplesSplit()),
-        # S_ij is of length len(MonteCarloIndex.sampleSplitSizes()) 
+        # S_ij is of length len(MonteCarloIndex.sampleSplitSizes())
         # and S_ijk is of length MonteCarloIndex.sampleSplitSizes()[k].
         # Example, for any event i. If MonteCarloIndex.numberOfSolvers() == 2 and
         # MonteCarloIndex.sampleSplitSizes() == [3, 2]:
         # S_i1 == [ S_(1,1), S_(1,2) ] == [ [s1_o1, s1_o2, s1_o3], [s1_o4, s1_o5] ]
         #      == [future, future] if parallel
-        # (s: solver, o: output); idem for solver S_i2.       
+        # (s: solver, o: output); idem for solver S_i2.
 
-        
+
         ### Estimator update
 
         # Get the multi-indices to the subsets of estimators, samples and times
@@ -361,7 +358,7 @@ class MonteCarloIndex():
         """
         Returns the numberofsolvers in the sample generator<
         """
-        
+
         return len(self.sampler.solvers)
 
     def sampleDimension(self, *args) -> int:
@@ -375,7 +372,7 @@ class MonteCarloIndex():
         Output argument:
         - sample dimension: integer. See SampleGenerator.sampleDimension
         """
-        
+
         return self.sampler.sampleDimension(*args)
 
     def sampleSplitSizes(self, *args):
@@ -386,7 +383,7 @@ class MonteCarloIndex():
 
         Output argument: list of integers, or None. If list, it is [len(subSample) for subSample in sample], where sample is the output from a single solver (after processing).
         """
-        
+
         return self.sampler.sampleSplitSizes(*args)
 
     def areSamplesSplit(self, *args) -> bool:
@@ -398,5 +395,5 @@ class MonteCarloIndex():
 
         Output argument: boolean, True is samples are split and False otherwise.
         """
-        
+
         return self.sampler.areSamplesSplit(*args)

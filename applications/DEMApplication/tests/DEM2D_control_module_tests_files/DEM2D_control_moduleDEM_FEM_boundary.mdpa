@@ -1,0 +1,147 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+  STATIC_FRICTION 0.2
+  DYNAMIC_FRICTION 0.2
+  WALL_COHESION 0.0
+  COMPUTE_WEAR 0
+  SEVERITY_OF_WEAR 0.001
+  IMPACT_WEAR_SEVERITY 0.001
+  BRINELL_HARDNESS 200.0
+  YOUNG_MODULUS 7e11
+  POISSON_RATIO 0.16
+End Properties
+
+Begin Properties 2
+  STATIC_FRICTION 0.2
+  DYNAMIC_FRICTION 0.2
+  WALL_COHESION 0.0
+  COMPUTE_WEAR 0
+  SEVERITY_OF_WEAR 0.001
+  IMPACT_WEAR_SEVERITY 0.001
+  BRINELL_HARDNESS 200.0
+  YOUNG_MODULUS 7e11
+  POISSON_RATIO 0.16
+End Properties
+
+Begin Properties 3
+  STATIC_FRICTION 0.2
+  DYNAMIC_FRICTION 0.2
+  WALL_COHESION 0.0
+  COMPUTE_WEAR 0
+  SEVERITY_OF_WEAR 0.001
+  IMPACT_WEAR_SEVERITY 0.001
+  BRINELL_HARDNESS 200.0
+  YOUNG_MODULUS 7e11
+  POISSON_RATIO 0.16
+End Properties
+
+Begin Properties 4
+  STATIC_FRICTION 0.2
+  DYNAMIC_FRICTION 0.2
+  WALL_COHESION 0.0
+  COMPUTE_WEAR 0
+  SEVERITY_OF_WEAR 0.001
+  IMPACT_WEAR_SEVERITY 0.001
+  BRINELL_HARDNESS 200.0
+  YOUNG_MODULUS 7e11
+  POISSON_RATIO 0.16
+End Properties
+
+Begin Nodes
+    2  -0.003   0.002   0.0
+    3  -0.002   0.003   0.0
+    4  0.002   0.003   0.0
+    5  0.003   0.002   0.0
+    6  0.003   -0.002   0.0
+    7  0.002   -0.003   0.0
+    8  -0.002   -0.003   0.0
+    9  -0.003   -0.002   0.0
+End Nodes
+
+Begin Conditions RigidEdge2D2N// GUI group identifier: left
+ 1          1  8  3
+End Conditions
+
+Begin Conditions RigidEdge2D2N// GUI group identifier: right
+  2          2     7     4
+End Conditions
+
+Begin Conditions RigidEdge2D2N// GUI group identifier: bot
+  3          3  6  9
+End Conditions
+
+Begin Conditions RigidEdge2D2N// GUI group identifier: top
+ 4          4  2  5
+End Conditions
+
+Begin SubModelPart left // DEM-FEM-Wall2D - group identifier: left
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: left
+    IS_GHOST false
+    IDENTIFIER left
+    TOP 0
+    BOTTOM 0
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+      3
+      8
+  End SubModelPartNodes
+Begin SubModelPartConditions
+      1
+End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart right // DEM-FEM-Wall2D - group identifier: right
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: right
+    IS_GHOST false
+    IDENTIFIER right
+    TOP 0
+    BOTTOM 0
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+         4
+         7
+  End SubModelPartNodes
+Begin SubModelPartConditions
+       2
+End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart bot // DEM-FEM-Wall2D - group identifier: bot
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: bot
+    IS_GHOST false
+    IDENTIFIER bot
+    TOP 0
+    BOTTOM 0
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+         6
+         9
+  End SubModelPartNodes
+Begin SubModelPartConditions
+         3
+End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart top // DEM-FEM-Wall2D - group identifier: top
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: top
+    IS_GHOST false
+    IDENTIFIER top
+    TOP 0
+    BOTTOM 0
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+      2
+      5
+  End SubModelPartNodes
+Begin SubModelPartConditions
+      4
+End SubModelPartConditions
+End SubModelPart
+

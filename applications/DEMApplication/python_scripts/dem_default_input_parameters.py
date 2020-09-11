@@ -172,12 +172,13 @@ def GetDefaultInputParameters():
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
+            "output_configuration" : {
+                "print_number_of_neighbours_histogram" : false
+            },
             "post_vtk_option"                  : false,
-
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
             "LoadingVelocityTop"               : 0.0,
             "LoadingVelocityBot"               : 0.0,
-
             "problem_name" : "dummy_name.Provide_a_real_one",
             "processes" : {}
             }""")
