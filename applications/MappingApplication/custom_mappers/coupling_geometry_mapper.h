@@ -71,8 +71,8 @@ private:
     GeometryPointerType mpGeom;
     bool mIsProjection; // Set to true is we are projecting the master onto the slave.
                         // Set to false if we are projecting the slave onto the slave.
-    bool mIsConsistentMortar = false; // by default we use conservative mapping
     bool mIsDualMortar = false;
+    bool mIsConsistentMortar = false; // by default we use conservative mapping
 
 };
 
