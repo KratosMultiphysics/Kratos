@@ -459,6 +459,14 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
             if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
                 self.primal_state_variables.append(KratosMultiphysics.ROTATION)
 
+    def RunCalculation(self, calculate_gradient):
+        self.Initialize()
+        self.InitializeSolutionStep()
+        if calculate_gradient:
+            self.CalculateGradient()
+        self.FinalizeSolutionStep()
+        self.Finalize()
+
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
@@ -482,6 +490,7 @@ class AdjointDynamicResponseFunction(ResponseFunctionInterface):
     def CalculateValue(self):
         
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+        actual_integral_value = self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] += value * self.delta_time
 
     def CalculateGradient(self):
