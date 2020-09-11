@@ -283,7 +283,10 @@ double CalculateWallHeight(
 {
     KRATOS_TRY
 
-    const auto& normal = rNormal / norm_2(rNormal);
+    // for some weird reason, I cannot make the following array_1d<double, 3> to auto.
+    // Clang is compiling fine, and it works as it suppose to be. But in gcc, it compiles
+    // but all the tests start to fail not by crashing, but giving false values.
+    const array_1d<double, 3>& normal = rNormal / norm_2(rNormal);
     const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
 
     const auto& r_parent_geometry = r_parent_element.GetGeometry();
@@ -414,7 +417,7 @@ void CalculateNumberOfNeighbourEntities(
 
     auto& r_container = GetContainer<TContainerType>(rModelPart);
 
-    BlockPartition<TContainerType>(r_container).for_each([&](typename TContainerType::value_type& rEntity) {
+    block_for_each(r_container, [&](typename TContainerType::value_type& rEntity) {
         auto& r_geometry = rEntity.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];
