@@ -39,12 +39,18 @@ public:
 
     explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom,
                                          const bool IsProjection,
-                                         const bool IsDualMortar
+                                         const bool IsDualMortar,
+                                         const bool IsConsistent = false
                                          )
         : mpGeom(pGeom),
           mIsProjection(IsProjection),
-          mIsDualMortar(IsDualMortar)
-        {}
+          mIsDualMortar(IsDualMortar),
+          mIsConsistentMortar(IsConsistent)
+    {
+        KRATOS_ERROR_IF(mIsConsistentMortar && mIsProjection)
+            << "CouplingGeometryLocalSystem incorrectly created with mIsConsistentMortar == true and mIsProjection == true."
+            << "\nThese two options are incompatible.\n";
+    }
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
@@ -65,7 +71,7 @@ private:
     GeometryPointerType mpGeom;
     bool mIsProjection; // Set to true is we are projecting the master onto the slave.
                         // Set to false if we are projecting the slave onto the slave.
-    bool mIsConsistentMortar = false;
+    bool mIsConsistentMortar = false; // by default we use conservative mapping
     bool mIsDualMortar = false;
 
 };
@@ -138,7 +144,12 @@ public:
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
 
         mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
-        mpCouplingMP->GetMesh().SetValue(IS_CONSISTENT_MORTAR, mMapperSettings["consistent_mortar"].GetBool());
+
+        mpCouplingMP->GetMesh().SetValue(IS_CONSISTENT_MORTAR, false);
+        if (mMapperSettings.Has("consistent_mortar"))
+        {
+            mpCouplingMP->GetMesh().SetValue(IS_CONSISTENT_MORTAR, mMapperSettings["consistent_mortar"].GetBool());
+        }
 
         this->InitializeInterface();
     }
@@ -325,17 +336,39 @@ private:
         Matrix& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
 
-    void CheckMappingMatrixConsistency()
+    void CheckMappingMatrixConsistency(Matrix& rMappingMatrix)
     {
-        for (size_t row = 0; row < mpMappingMatrix->size1(); ++row) {
+        for (size_t row = 0; row < rMappingMatrix.size1(); ++row) {
             double row_sum = 0.0;
-            for (size_t col = 0; col < mpMappingMatrix->size2(); ++col) row_sum += (*mpMappingMatrix)(row, col);
+            for (size_t col = 0; col < rMappingMatrix.size2(); ++col) row_sum += rMappingMatrix(row, col);
             if (std::abs(row_sum - 1.0) > 1e-12) {
-                KRATOS_WATCH(*mpMappingMatrix)
+                KRATOS_WATCH(rMappingMatrix)
                 KRATOS_WATCH(row_sum)
                 KRATOS_ERROR << "mapping matrix is not consistent\n";
             }
         }
+    }
+
+    DenseMappingMatrixUniquePointerType CreateInterfaceMappingMatrix(
+        Matrix& rConsistentComponent, Matrix& rProjectedComponent)
+    {
+        // get total interface mapping matrix
+        Matrix inv_interface_matrix_slave(rConsistentComponent.size1(), rConsistentComponent.size2(), 0.0);
+        if (mMapperSettings["dual_mortar"].GetBool())
+        {
+            for (size_t i = 0; i < rConsistentComponent.size1(); ++i) {
+                if (rConsistentComponent(i, i) > std::numeric_limits<double>::epsilon()) {
+                    inv_interface_matrix_slave(i, i) = 1.0 / rConsistentComponent(i, i);
+                }
+            }
+        }
+        else
+        {
+            double aux_det_slave = 0;
+            MathUtils<double>::InvertMatrix(rConsistentComponent, inv_interface_matrix_slave, aux_det_slave);
+        }
+
+        return Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, rProjectedComponent));
     }
 
     Parameters GetMapperDefaultSettings() const

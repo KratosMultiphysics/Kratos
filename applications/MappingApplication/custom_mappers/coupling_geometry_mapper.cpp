@@ -66,14 +66,6 @@ void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    if (mIsConsistentMortar)
-    {
-        if (mIsProjection)
-        {
-            KRATOS_ERROR << "1111";
-        }
-    }
-
     const auto& r_geometry_master = (mIsProjection)
         ? mpGeom->GetGeometryPart(0) // set to master  - get projected 'mass' matrix
         : mpGeom->GetGeometryPart(1); // set to slave - get consistent slave 'mass' matrix
@@ -206,56 +198,37 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_slave);
     }
 
+    // Perform consistency scaling if requested
+    if (mMapperSettings["consistency_scaling"].GetBool())
+        EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
+
+    // get total interface mapping matrix
+    mpMappingMatrix = CreateInterfaceMappingMatrix(interface_matrix_slave, interface_matrix_projector);
+    CheckMappingMatrixConsistency(*(mpMappingMatrix.get()));
+
+
+    // Assemble consistent mapping matrix if requested
     Matrix interface_matrix_master;
     if (is_consistent)
     {
+        KRATOS_WARNING("COUPLING GEOMETRY MAPPER") << "M_origin_dest assumed equal to trans(M_dest_origin)\n";
+
         interface_matrix_master = ZeroMatrix(num_nodes_interface_master, num_nodes_interface_master);
-        for (size_t local_projector_system = 2*number_of_systems;
+        for (size_t local_projector_system = 2 * number_of_systems;
             local_projector_system < 3 * number_of_systems; ++local_projector_system)
         {
             mMapperLocalSystems[local_projector_system]->PairingInfo(0);
             mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
             Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_master);
         }
-    }
 
-    // Perform consistency scaling if requested
-    if (mMapperSettings["consistency_scaling"].GetBool())
-        EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
+        // Perform consistency scaling if requested
+        if (mMapperSettings["consistency_scaling"].GetBool())
+            EnforceConsistencyWithScaling(interface_matrix_master, interface_matrix_projector, 1.1);
 
-    // get total interface mapping matrix
-    Matrix inv_interface_matrix_slave(num_nodes_interface_slave, num_nodes_interface_slave, 0.0);
-    if (mMapperSettings["dual_mortar"].GetBool()) {
-        for (size_t i = 0; i < interface_matrix_slave.size1(); ++i) {
-            if (interface_matrix_slave(i, i) > std::numeric_limits<double>::epsilon()) {
-                inv_interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
-            }
-        }
-    }
-    else {
-        double aux_det_slave = 0;
-        MathUtils<double>::InvertMatrix(interface_matrix_slave, inv_interface_matrix_slave, aux_det_slave);
-    }
-    mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_slave, interface_matrix_projector));
-    CheckMappingMatrixConsistency();
-
-    if (is_consistent)
-    {
-        KRATOS_WARNING("COUPLING GEOMETRY MAPPER") << "M_origin_dest assumed equal to trans(M_dest_origin)\n";
-        Matrix inv_interface_matrix_master(num_nodes_interface_master, num_nodes_interface_master, 0.0);
-        double aux_det = 0;
-        MathUtils<double>::InvertMatrix(interface_matrix_master, inv_interface_matrix_master, aux_det);
-        mpMappingMatrix_consistent_force = Kratos::make_unique<DenseMappingMatrixType>(prod(inv_interface_matrix_master, trans(interface_matrix_projector)));
-
-        for (size_t row = 0; row < mpMappingMatrix_consistent_force->size1(); ++row) {
-            double row_sum = 0.0;
-            for (size_t col = 0; col < mpMappingMatrix_consistent_force->size2(); ++col) row_sum += (*mpMappingMatrix_consistent_force)(row, col);
-            if (std::abs(row_sum - 1.0) > 1e-12) {
-                KRATOS_WATCH(*mpMappingMatrix_consistent_force)
-                    KRATOS_WATCH(row_sum)
-                    KRATOS_ERROR << "consistent mapping matrix is not consistent\n";
-            }
-        }
+        // Get total consistent force mapping matrix
+        mpMappingMatrix_consistent_force = CreateInterfaceMappingMatrix(interface_matrix_master, interface_matrix_projector);
+        CheckMappingMatrixConsistency(*(mpMappingMatrix_consistent_force.get()));
     }
 
     Internals::InitializeSystemVector(mpInterfaceVectorContainerOrigin->pGetVector(), num_nodes_interface_master);
@@ -287,11 +260,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const bool is_consistent = (mpCouplingMP->GetMesh().Has(IS_CONSISTENT_MORTAR))
         ? mpCouplingMP->GetMesh().GetValue(IS_CONSISTENT_MORTAR) : false;
 
-    const double lag_factor = 0.0;
-
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
-
-    auto& origin_vec = mpInterfaceVectorContainerOrigin->GetVector();
 
     if (is_consistent)
     {
@@ -308,14 +277,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
             mpInterfaceVectorContainerDestination->GetVector(),
             mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
     }
-
-    KRATOS_WATCH(origin_vec)
-    for (size_t i = 0; i < origin_vec.size(); i++)
-    {
-        origin_vec[i] = (1.0- lag_factor) * origin_vec[i] + lag_factor * mMappingData(mComponentIndex, i);
-    }
-    //origin_vec = 0.5 * origin_vec + 0.5 * orig;
-    KRATOS_WATCH(origin_vec)
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }
