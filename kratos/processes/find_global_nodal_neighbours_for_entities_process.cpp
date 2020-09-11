@@ -52,13 +52,16 @@ void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::Ad
     std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const
 {
     // do nothing in here since mettis partitioner is based on elements, there
-    // cannot be any hanging nodes.
+    // cannot be any hanging nodes. If metis partitioner is based on conditions, then
+    // this process need not to be used with elements, so this method won't be called.
 }
 
 template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::AddHangingNodeIds(
     std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const
 {
+    // if the metis partitioner is based on conditions, this will still work,
+    // but with this additional cost of checking.
     this->mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
     block_for_each(mrModelPart.Nodes(), [&](const NodeType& rNode) {
@@ -78,12 +81,15 @@ template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::InitializeVisitedFlag()
 {
     // do nothing in here since mettis partitioner is based on elements, there
-    // cannot be any hanging nodes.
+    // cannot be any hanging nodes. If metis partitioner is based on conditions, then
+    // this process need not to be used with elements, so this method won't be called.
 }
 
 template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::InitializeVisitedFlag()
 {
+    // if the metis partitioner is based on conditions, this will still work,
+    // but with this additional cost of initializing.
     VariableUtils().SetFlag(VISITED, false, this->mrModelPart.Nodes());
 }
 
@@ -92,13 +98,16 @@ void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::Se
     NodeType& rNode) const
 {
     // do nothing in here since mettis partitioner is based on elements, there
-    // cannot be any hanging nodes.
+    // cannot be any hanging nodes. If metis partitioner is based on conditions, then
+    // this process need not to be used with elements, so this method won't be called.
 }
 
 template <>
 void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::SetVisitedFlag(
     NodeType& rNode) const
 {
+    // if the metis partitioner is based on conditions, this will still work,
+    // but with this additional cost of setting.
     rNode.SetLock();
     rNode.Set(VISITED, true);
     rNode.UnSetLock();
