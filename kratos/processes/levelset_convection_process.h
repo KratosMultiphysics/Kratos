@@ -212,6 +212,7 @@ public:
 
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
+        KRATOS_INFO("LevelSet") << "n_substep: " << n_substep << std::endl;
 
         // Save the variables to be employed so that they can be restored after the solution
         ProcessInfo& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
@@ -256,10 +257,46 @@ public:
 
                 it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
                 it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
-                it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                const double dist = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = dist;
+                it_node->SetValue(mrLevelSetVar, dist);
             }
 
-            mpSolvingStrategy->Solve();
+            mpSolvingStrategy->Solve(); // phi_n+1
+
+            if (false)
+            {// Error Compensation and Correction
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+
+                    const array_1d<double,3>& v = mVelocity[i_node];
+                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * v_old + Nnew * v);
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * v_old + Nnew_before * v);
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                }
+
+                mpSolvingStrategy->Solve(); // phi_n
+
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+
+                    const array_1d<double,3>& v = mVelocity[i_node];
+                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
+                    const double dist = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                    const double phi_n_star = 1.5*it_node->GetValue(mrLevelSetVar) - 0.5*dist;
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                }
+
+                mpSolvingStrategy->Solve(); // phi_n+1
+            }
         }
 
         // Reset the processinfo to the original settings
