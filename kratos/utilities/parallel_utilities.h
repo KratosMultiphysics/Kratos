@@ -25,7 +25,9 @@
 #include <thread>
 
 // External includes
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
+#endif
 
 // Project includes
 #include "includes/define.h"
@@ -35,6 +37,16 @@
 
 namespace Kratos
 {
+
+// this is temporary until it is available directly from Kratos
+// only necessary to compile when shared memory parallelization is disabled
+#ifdef KRATOS_SMP_NONE
+namespace {
+int omp_get_max_threads() {return 1;}
+}
+#endif
+
+
 ///@addtogroup KratosCore
 
 //***********************************************************************************
