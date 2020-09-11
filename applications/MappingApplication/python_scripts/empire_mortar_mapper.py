@@ -119,10 +119,11 @@ class EmpireMortarMapper(PythonMapper):
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "path_mapper_lib"     : "",
-            "dual"                : false,
-            "enforce_consistency" : false,
-            "opposite_normals"    : false
+            "path_mapper_lib"           : "",
+            "dual"                      : false,
+            "enforce_consistency"       : false,
+            "opposite_normals"          : false,
+            "use_initial_configuration" : false
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
@@ -149,11 +150,19 @@ class EmpireMortarMapper(PythonMapper):
         c_node_coords        = (ctp.c_double * (3 * c_num_nodes.value))(0.0)
         c_num_nodes_per_elem = (ctp.c_int * c_num_elems.value) (0)
 
-        for i_node, node in enumerate(model_part.Nodes):
-            c_node_ids[i_node] = node.Id
-            c_node_coords[i_node*3]   = node.X
-            c_node_coords[i_node*3+1] = node.Y
-            c_node_coords[i_node*3+2] = node.Z
+        if self.mapper_settings["use_initial_configuration"].GetBool():
+            for i_node, node in enumerate(model_part.Nodes):
+                c_node_ids[i_node] = node.Id
+                c_node_coords[i_node*3]   = node.X0
+                c_node_coords[i_node*3+1] = node.Y0
+                c_node_coords[i_node*3+2] = node.Z0
+
+        else:
+            for i_node, node in enumerate(model_part.Nodes):
+                c_node_ids[i_node] = node.Id
+                c_node_coords[i_node*3]   = node.X
+                c_node_coords[i_node*3+1] = node.Y
+                c_node_coords[i_node*3+2] = node.Z
 
         elem_node_ctr = 0
         for elem_ctr, elem in enumerate(model_part.Conditions):
