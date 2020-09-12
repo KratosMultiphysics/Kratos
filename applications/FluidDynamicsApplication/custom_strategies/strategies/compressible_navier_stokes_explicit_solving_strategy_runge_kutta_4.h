@@ -90,11 +90,11 @@ public:
     explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
         Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters)
-        , mShockCapturing(ThisParameters["shock_capturing"].GetBool())
-        , mNithiarasuSmoothing(ThisParameters["nithiarasu_smoothing"].GetBool())
+        : BaseType(rModelPart)
     {
-        // TODO: DO THE PARAMETERS CHECK
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     /**
@@ -141,6 +141,50 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_runge_kutta_4",
+            "rebuild_level" : 0,
+            "move_mesh_flag": false,
+            "shock_capturing" : true,
+            "nithiarasu_smoothing" : false
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4";
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        // Base class assign settings call
+        BaseType::AssignSettings(ThisParameters);
+
+        // Set the specific compressible NS settings
+        mShockCapturing = ThisParameters["shock_capturing"].GetBool();
+        mNithiarasuSmoothing = ThisParameters["nithiarasu_smoothing"].GetBool();
+    }
 
     /**
      * @brief Initialization of member variables and prior operations
@@ -446,9 +490,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mShockCapturing;
+    bool mShockCapturing = true;
     bool mApplySlipCondition = true;
-    bool mNithiarasuSmoothing;
+    bool mNithiarasuSmoothing = false;
     const bool mPAD = false;
     const double mMinDensity = 1.0e-2;
     const double mMinTotalEnergy = 1.0e-6;

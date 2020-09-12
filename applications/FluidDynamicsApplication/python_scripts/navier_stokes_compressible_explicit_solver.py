@@ -33,7 +33,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("::[NavierStokesCompressibleExplicitSolver]:: ","Construction of NavierStokesCompressibleExplicitSolver finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -68,7 +68,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             "use_oss" : true
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesCompressibleExplicitSolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def AddVariables(self):
