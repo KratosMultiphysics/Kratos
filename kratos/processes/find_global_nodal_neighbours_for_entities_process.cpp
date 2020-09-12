@@ -62,12 +62,12 @@ void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::
 {
     // if the metis partitioner is based on conditions, this will still work,
     // but with this additional cost of checking.
-    this->mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
+    // this->mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
     block_for_each(mrModelPart.Nodes(), [&](const NodeType& rNode) {
         const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
         const int node_id = rNode.Id();
-        if (rNode.Is(VISITED) && rNeighbourIds[i_owner_rank].find(node_id) ==
+        if (rNeighbourIds[i_owner_rank].find(node_id) ==
                                      rNeighbourIds[i_owner_rank].end()) {
 #pragma omp critical
             {
@@ -75,42 +75,6 @@ void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::
             }
         }
     });
-}
-
-template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::InitializeVisitedFlag()
-{
-    // do nothing in here since mettis partitioner is based on elements, there
-    // cannot be any hanging nodes. If metis partitioner is based on conditions, then
-    // this process need not to be used with elements, so this method won't be called.
-}
-
-template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::InitializeVisitedFlag()
-{
-    // if the metis partitioner is based on conditions, this will still work,
-    // but with this additional cost of initializing.
-    VariableUtils().SetFlag(VISITED, false, this->mrModelPart.Nodes());
-}
-
-template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ElementsContainerType>::SetVisitedFlag(
-    NodeType& rNode) const
-{
-    // do nothing in here since mettis partitioner is based on elements, there
-    // cannot be any hanging nodes. If metis partitioner is based on conditions, then
-    // this process need not to be used with elements, so this method won't be called.
-}
-
-template <>
-void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::SetVisitedFlag(
-    NodeType& rNode) const
-{
-    // if the metis partitioner is based on conditions, this will still work,
-    // but with this additional cost of setting.
-    rNode.SetLock();
-    rNode.Set(VISITED, true);
-    rNode.UnSetLock();
 }
 
 template <class TContainerType>
@@ -159,26 +123,19 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::Execute()
         using map_of_sets = std::unordered_map<int, std::vector<int>>;
         std::unordered_map<int, map_of_sets> neighbours_ids;
 
-        this->InitializeVisitedFlag();
-
-        block_for_each(this->GetContainer(), [&](typename TContainerType::value_type& rEntity) {
-            auto& r_geometry = rEntity.GetGeometry();
+        for (auto& r_entity : this->GetContainer()) {
+            const auto& r_geometry = r_entity.GetGeometry();
             for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-                auto& r_node = r_geometry[i];
-                const int i_owner_rank = r_node.FastGetSolutionStepValue(PARTITION_INDEX);
-#pragma omp critical
-                {
-                    neighbours_ids[i_owner_rank][r_node.Id()];
-                }
-                auto& container = neighbours_ids[i_owner_rank][r_node.Id()];
+                const int i_owner_rank =
+                    r_geometry[i].FastGetSolutionStepValue(PARTITION_INDEX);
+                auto& container = neighbours_ids[i_owner_rank][r_geometry[i].Id()];
                 for (unsigned int j = 0; j < r_geometry.size(); ++j) {
                     if (j != i) {
                         AddUnique(container, r_geometry[j].Id());
                     }
                 }
-                this->SetVisitedFlag(r_node);
             }
-        });
+        }
 
         // there are some isolated nodes when metis partitioner performs
         // partitioning specially in the case where TContainerType =
@@ -357,10 +314,7 @@ void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddUnique(
     const int Item) const
 {
     if (std::find(rContainer.begin(), rContainer.end(), Item) == rContainer.end()) {
-#pragma omp critical
-        {
-            rContainer.push_back(Item);
-        }
+        rContainer.push_back(Item);
     }
 }
 
