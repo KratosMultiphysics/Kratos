@@ -19,6 +19,7 @@ from custom_process_tests import CustomProcessTest
 
 # flow solver test_classes
 from incompressible_potential_flow_solver_formulation_tests import IncompressiblePotentialFlowSolverFormulationTest
+from monolithic_velocity_pressure_formulation_tests import MonolithicVelocityPressureFormulationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -46,6 +47,9 @@ def AssembleTestSuites():
 
     # adding incompressible potential flow solver tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IncompressiblePotentialFlowSolverFormulationTest]))
+
+    # adding monolithic flow solver tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MonolithicVelocityPressureFormulationTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     # validationSuite = suites['validation']

@@ -100,11 +100,11 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             linear_solver,
             self.IsPeriodic(),
             self.GetCommunicator())
-        convergence_criteria = GetKratosObjectType("ResidualCriteria")(
+        convergence_criteria = GetKratosObjectType("MixedGenericCriteria")(
             [(KratosRANS.VELOCITY_POTENTIAL, solver_settings["relative_tolerance"].GetDouble(),
             solver_settings["absolute_tolerance"].GetDouble())])
-        self.velocity_strategy = GetKratosObjectType("NewtonRaphsonStrategy")(
-            self.velocity_model_part, GetKratosObjectType("IncrementalUpdateStaticScheme")(),
+        self.velocity_strategy = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
+            self.velocity_model_part, GetKratosObjectType("ResidualBasedIncrementalUpdateStaticScheme")(),
             convergence_criteria, builder_and_solver, 2, False, False, False)
 
         builder_and_solver.SetEchoLevel(solver_settings["echo_level"].GetInt() - 3)
