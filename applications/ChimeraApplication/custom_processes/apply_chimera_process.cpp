@@ -777,12 +777,18 @@ void ApplyChimera<TDim>::SynchronizeNodes(ModelPart& rModelpart, std::vector<Nod
     const DataCommunicator &r_comm = rModelpart.GetCommunicator().GetDataCommunicator();
     const int mpi_size = r_comm.Size();
     const int mpi_rank = r_comm.Rank();
-    auto& r_nodes = mrMainModelPart.Nodes();
+    auto& r_nodes = rModelpart.Nodes();
     std::vector<NodesContainerType> RecvNodes(mpi_size);
     BuiltinTimer send_recv_nodes;
     rModelpart.GetCommunicator().TransferObjects(rSendNodes, RecvNodes);
     double time_send_recv = send_recv_nodes.ElapsedSeconds();
     KRATOS_INFO_IF("SynchronizeNodes : Time taken to send recv nodes         : ", mEchoLevel > 1) << r_comm.Max(time_send_recv, 0) << std::endl;
+
+    std::vector<IndexType> current_nodes;
+    current_nodes.reserve(r_nodes.size());
+    for(const auto& node : r_nodes)
+        current_nodes.push_back(node.Id());
+
 
     BuiltinTimer add_nodes;
     for (unsigned int i = 0; i < RecvNodes.size(); i++)
@@ -790,10 +796,12 @@ void ApplyChimera<TDim>::SynchronizeNodes(ModelPart& rModelpart, std::vector<Nod
         for (NodesContainerType::iterator it = RecvNodes[i].begin();
               it != RecvNodes[i].end(); ++it){
                 auto p_node = *it.base();
-                auto it_node = r_nodes.find(p_node->Id());
-                if( it_node == r_nodes.end()){
+                // auto it_node = r_nodes.find(p_node->Id());
+                auto it_node = std::find(current_nodes.begin(), current_nodes.end(), p_node->Id());
+                if( it_node == current_nodes.end()){
+                        current_nodes.push_back(p_node->Id());
                         mRemoteNodes.push_back(p_node->Id());
-                        rModelpart.Nodes().push_back(p_node);
+                        r_nodes.push_back(p_node);
                 }
               }
     }
@@ -802,11 +810,11 @@ void ApplyChimera<TDim>::SynchronizeNodes(ModelPart& rModelpart, std::vector<Nod
 
     BuiltinTimer unique_nodes;
     // rModelpart.Nodes().Unique();
-    double time_unique_nodes = add_nodes.ElapsedSeconds();
+    double time_unique_nodes = unique_nodes.ElapsedSeconds();
     KRATOS_INFO_IF("SynchronizeNodes : Time taken to unique nodes            : ", mEchoLevel > 1) << r_comm.Max(time_unique_nodes, 0) << std::endl;
 
-    int temp = rModelpart.Nodes().size();
-    KRATOS_ERROR_IF(temp != int(rModelpart.Nodes().size()))
+    int temp = r_nodes.size();
+    KRATOS_ERROR_IF(temp != int(r_nodes.size()))
         << "the rModelpart has repeated nodes";
     rSendNodes.clear();
     RecvNodes.clear();
