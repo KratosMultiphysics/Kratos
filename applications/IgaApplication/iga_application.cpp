@@ -20,10 +20,6 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mIgaTrussElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
-    , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaEdgeCableElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -38,18 +34,24 @@ KratosIgaApplication::KratosIgaApplication()
 }
 
 void KratosIgaApplication::Register() {
-    KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
+
+KRATOS_INFO("") << "    KRATOS  _____ _____\n"
+                << "           |_   _/ ____|   /\\\n"
+                << "             | || |  __   /  \\\n"
+                << "             | || | |_ | / /\\ \\\n"
+                << "            _| || |__| |/ ____ \\\n"
+                << "           |_____\\_____/_/    \\_\\\n"
+                << "Initializing KratosIgaApplication..." << std::endl;
 
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
-    KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
-    KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
     KRATOS_REGISTER_ELEMENT("IgaEdgeCableElement", mIgaEdgeCableElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
+    KRATOS_REGISTER_CONDITION("LagrangeCouplingCondition", mLagrangeCouplingCondition)
     KRATOS_REGISTER_CONDITION("NitscheCouplingCondition", mNitscheCouplingCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
 
@@ -70,10 +72,6 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_VARIABLE(PRESTRESS)
     KRATOS_REGISTER_VARIABLE(PRINCIPAL_STRESS_1)
     KRATOS_REGISTER_VARIABLE(PRINCIPAL_STRESS_2)
-
-    KRATOS_REGISTER_VARIABLE(SHAPE_FUNCTION_VALUES)
-    KRATOS_REGISTER_VARIABLE(SHAPE_FUNCTION_LOCAL_DERIVATIVES)
-    KRATOS_REGISTER_VARIABLE(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES)
 
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)

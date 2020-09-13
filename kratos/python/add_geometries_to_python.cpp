@@ -154,22 +154,60 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    // Integration
+    .def("IntegrationPointsNumber", [](GeometryType& self)
+        { return(self.IntegrationPointsNumber()); })
     // Quadrature points
-    .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
-    .def("Normal",GetNormal)
-    .def("Normal",FastGetNormal)
-    .def("UnitNormal",GetUnitNormal)
-    .def("UnitNormal",FastGetUnitNormal)
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, IntegrationInfo integration_info)
+        { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info)); })
+    // Normal
+    .def("Normal", [](GeometryType& self)
+        { const auto& r_type = self.GetGeometryType();
+          KRATOS_WARNING_IF("Geometry", !(r_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || r_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3))
+              << "WARNING:: Your geometry is not linear, please provide local coordinates or a GP index. Normal will be computed at zero local coordinates." << std::endl;
+          CoordinatesArrayType LocalCoords;
+          LocalCoords.clear();
+          return(self.Normal(LocalCoords)); })
+    .def("Normal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.Normal(LocalCoords)); })
+    .def("Normal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.Normal(IntegrationPointIndex)); })
+    .def("UnitNormal", [](GeometryType& self)
+        { const auto& r_type = self.GetGeometryType();
+          KRATOS_WARNING_IF("Geometry", !(r_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || r_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3))
+              << "Your geometry is not linear, please provide local coordinates or a GP index. Normal will be computed at zero local coordinates." << std::endl;
+          CoordinatesArrayType LocalCoords;
+          LocalCoords.clear();
+          return(self.UnitNormal(LocalCoords)); })
+    .def("UnitNormal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.UnitNormal(LocalCoords)); })
+    .def("UnitNormal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.UnitNormal(IntegrationPointIndex)); })
+     // Jacobian
+    .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self)
+        { Vector results; return(self.DeterminantOfJacobian(results)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
+    // ShapeFunctionsValues
+    .def("ShapeFunctionsValues", [](GeometryType& self)
+        { return(self.ShapeFunctionsValues()); })
+    .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex)
+        { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
+    // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
+    // Print
     .def("__str__", PrintObject<GeometryType>)
+    // Access to nodes
     .def("__getitem__", [](GeometryType& self, unsigned int i){return self(i);} )
     .def("__iter__",    [](GeometryType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
     .def("__len__",     [](GeometryType& self){return self.PointsNumber();} )
-//     .def("Points", &GeometryType::ConstGetPoints)
-//     .def("Points", &GeometryType::GetPoints)
     ;
 
     // 2D

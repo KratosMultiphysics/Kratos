@@ -1953,7 +1953,7 @@ namespace Kratos
 			const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
 			std::vector<Node<3>::Pointer> list_of_new_nodes;
-			double NodeIdParent = MesherUtilities::GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
+			double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
 			double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
 			unsigned int initial_node_size = NodeIdParent + 1 + ElementsToRefine; //total model part node size

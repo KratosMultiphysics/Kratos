@@ -214,7 +214,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
             current_part->Nodes().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
 
@@ -917,7 +917,7 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
 
             current_part->Elements().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -970,6 +970,36 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     //create the new element
     ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
     Element::Pointer p_element = r_clone_element.Create(Id, pElementNodes, pProperties);
+
+    //add the new element
+    GetMesh(ThisIndex).AddElement(p_element);
+
+    return p_element;
+    KRATOS_CATCH("")
+}
+
+/** Inserts an element in the mesh with ThisIndex.
+*/
+ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, pGeometry, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddElement(p_new_element);
+        return p_new_element;
+    }
+
+    auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
+    KRATOS_ERROR_IF(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
+        << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
+
+
+    //create the new element
+    ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
+    Element::Pointer p_element = r_clone_element.Create(Id, pGeometry, pProperties);
 
     //add the new element
     GetMesh(ThisIndex).AddElement(p_element);
@@ -1146,7 +1176,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
 
             current_part->MasterSlaveConstraints().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1406,7 +1436,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
 
             current_part->Conditions().Unique();
 
-            current_part = current_part->GetParentModelPart();
+            current_part = &(current_part->GetParentModelPart());
         }
     }
     KRATOS_CATCH("");
@@ -1451,6 +1481,35 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     //get the condition
     ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(ConditionName);
     ConditionType::Pointer p_condition = r_clone_condition.Create(Id, pConditionNodes, pProperties);
+
+    //add the new element
+    GetMesh(ThisIndex).AddCondition(p_condition);
+
+    return p_condition;
+    KRATOS_CATCH("")
+}
+
+/** Inserts a condition in the mesh with ThisIndex.
+*/
+ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string ConditionName,
+        ModelPart::IndexType Id, typename GeometryType::Pointer pGeometry,
+        ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        ConditionType::Pointer p_new_condition = mpParentModelPart->CreateNewCondition(ConditionName, Id, pGeometry, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddCondition(p_new_condition);
+        return p_new_condition;
+    }
+
+    auto existing_condition_iterator = GetMesh(ThisIndex).Conditions().find(Id);
+    KRATOS_ERROR_IF(existing_condition_iterator != GetMesh(ThisIndex).ConditionsEnd() )
+        << "trying to construct a condition with ID " << Id << " however a condition with the same Id already exists";
+
+    //get the condition
+    ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(ConditionName);
+    ConditionType::Pointer p_condition = r_clone_condition.Create(Id, pGeometry, pProperties);
 
     //add the new element
     GetMesh(ThisIndex).AddCondition(p_condition);
@@ -1699,12 +1758,21 @@ void ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 }
 
 
-ModelPart* ModelPart::GetParentModelPart() const
+ModelPart& ModelPart::GetParentModelPart()
 {
     if (IsSubModelPart()) {
-        return mpParentModelPart;
+        return *mpParentModelPart;
     } else {
-        return const_cast<ModelPart*>(this);
+        return *this;
+    }
+}
+
+const ModelPart& ModelPart::GetParentModelPart() const
+{
+    if (IsSubModelPart()) {
+        return *mpParentModelPart;
+    } else {
+        return *this;
     }
 }
 

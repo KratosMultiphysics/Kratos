@@ -20,8 +20,6 @@
 //elements
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/iga_membrane_element.h"
-#include "custom_elements/iga_truss_element.h"
-#include "custom_elements/shell_kl_discrete_element.h"
 #include "custom_elements/iga_edge_cable_element.h"
 
 //conditions
@@ -108,8 +106,6 @@ private:
 
     const Shell3pElement mShell3pElement;
     const IgaMembraneElement mIgaMembraneElement;
-    const IgaTrussElement mIgaTrussElement;
-    const ShellKLDiscreteElement mShellKLDiscreteElement;
     const IgaEdgeCableElement mIgaEdgeCableElement;
 
     //Conditions
