@@ -19,6 +19,7 @@
 #include "move_mesh_utilities.h"
 #include "containers/model.h"
 #include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -44,20 +45,44 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 
 //******************************************************************************
 //******************************************************************************
+
 void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
     const int num_nodes = rNodes.size();
     const auto nodes_begin = rNodes.begin();
 
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = nodes_begin + i;
-        noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
-            + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-    }
+    IndexPartition<size_t>( num_nodes ).for_each(
+        [&]( size_t index )
+        {
+            const auto it_node  = nodes_begin + index;
+            noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
+                + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        }
+    );
+
     KRATOS_CATCH("");
 }
+
+
+// block_for_each discards const qualifiers so this won't work
+/*
+void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
+    KRATOS_TRY;
+
+    using Node = typename ModelPart::NodeType;
+
+    block_for_each( rNodes,
+        []( const Node& node )
+        {
+            noalias(node.Coordinates()) = node.GetInitialPosition()
+                + node.FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        }
+    );
+
+    KRATOS_CATCH("");
+}
+*/
 
 //******************************************************************************
 //******************************************************************************
@@ -102,12 +127,15 @@ void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double
   const int num_nodes = r_nodes.size();
   const auto nodes_begin = r_nodes.begin();
 
-  #pragma omp parallel for
-  for (int i=0; i<num_nodes; i++) {
-      const auto it_node  = nodes_begin + i;
-      if(it_node->Has(rVariableToSuperImpose))
-          it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose);
-  }
+  IndexPartition<size_t>( num_nodes ).for_each(
+    [&]( size_t index )
+    {
+        const auto it_node  = nodes_begin + index;
+        if(it_node->Has(rVariableToSuperImpose))
+            it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose);
+    }
+  );
+
   KRATOS_CATCH("");
 }
 
