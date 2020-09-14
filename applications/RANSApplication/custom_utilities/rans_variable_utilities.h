@@ -61,6 +61,38 @@ void KRATOS_API(RANS_APPLICATION) GetNodalArray(
     const Element& rElement,
     const Variable<double>& rVariable);
 
+template <typename TDataType>
+KRATOS_API(RANS_APPLICATION)
+void AssignConditionVariableValuesToNodes(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const Flags& rFlag,
+    const bool FlagValue = true);
+
+KRATOS_API(RANS_APPLICATION)
+void AddAnalysisStep(
+    ModelPart& rModelPart,
+    const std::string& rStepName);
+
+KRATOS_API(RANS_APPLICATION)
+bool IsAnalysisStepCompleted(
+    const ModelPart& rModelPart,
+    const std::string& rStepName);
+
+KRATOS_API(RANS_APPLICATION)
+void AssignBoundaryFlagsToGeometries(
+    ModelPart& rModelPart);
+
+template <typename TDataType>
+KRATOS_API(RANS_APPLICATION)
+double GetVariableValueNorm(const TDataType& rValue);
+
+template <typename TDataType>
+KRATOS_API(RANS_APPLICATION)
+std::tuple<double, double> CalculateTransientVariableConvergence(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable);
+
 void KRATOS_API(RANS_APPLICATION) SetNodalVariables(
     ModelPart::NodesContainerType& rNodes,
     const Vector& rValues,

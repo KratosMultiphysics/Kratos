@@ -148,7 +148,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
 
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, psolver, pbuildandsolve, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, pbuildandsolve, true));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::LINEAR);
 
@@ -189,7 +189,7 @@ namespace Kratos
             ConvergenceCriteriaType::Pointer pcriteria = ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
             BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
 
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, 10, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, 10, true));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
 
@@ -243,7 +243,7 @@ namespace Kratos
                 "line_search_tolerance"      : 0.5
             })");
 
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new LineSearchStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, settings));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new LineSearchStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, settings));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
 

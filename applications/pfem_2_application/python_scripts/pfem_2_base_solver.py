@@ -154,7 +154,7 @@ class PFEM2BaseSolver(PythonSolver):
         return delta_time
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
             "solver_type"              : "pfem_2_solver",
@@ -193,7 +193,7 @@ class PFEM2BaseSolver(PythonSolver):
                 "convection_type"          : "pfem_2"
             }
         }""")
-        default_settings.AddMissingParameters(super(PFEM2BaseSolver,cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(PFEM2BaseSolver,cls).GetDefaultParameters())
         return default_settings
 
     def _ReplaceElementsAndConditions(self):

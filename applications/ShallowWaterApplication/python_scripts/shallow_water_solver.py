@@ -38,14 +38,19 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
         SW.ShallowWaterUtilities().ComputeAccelerations(self.GetComputingModelPart())
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
             "advection_epsilon"     : 1.0e-2,
             "permeability"          : 1.0e-4,
             "dry_discharge_penalty" : 1.0e+2
         }""")
-        default_settings.AddMissingParameters(super(ShallowWaterSolver,cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(ShallowWaterSolver,cls).GetDefaultParameters())
+        default_settings["wetting_drying_model"] = KM.Parameters("""
+        {
+            "model_name" : "negative_height",
+            "beta" : 1e4
+        }""")
         return default_settings
 
     def PrepareModelPart(self):
