@@ -51,6 +51,7 @@ public:
     {
     }
 
+    /// Custom constructor with initialization
     Reducer(const TDataType& rInitialValue,
             std::function<void(TDataType&, const TDataType&)>&& f)
         : mReducedValue(rInitialValue),
@@ -60,8 +61,10 @@ public:
     }
 
     /// access to reduced value
-    TDataType GetValue() const
+    virtual TDataType GetValue() const
     {
+        // this method is made virtual so, if required they can perform some thread independent
+        // work here such as sorting, so we can optimize global sorting when we have locally thread sorted lists.
         return mReducedValue;
     }
 
