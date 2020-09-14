@@ -24,10 +24,10 @@
 
 namespace Kratos
 {
-typedef typename MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
+typedef typename MapperDefinitions::MPISparseSpaceType SparseSpaceType;
 typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
-typedef InterfaceVectorContainer<MPISparseSpaceType, DenseSpaceType> VectorContainerType;
+typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> VectorContainerType;
 
 /***********************************************************************************/
 /* PUBLIC Methods */
@@ -48,6 +48,6 @@ void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class InterfaceVectorContainer< MPISparseSpaceType, DenseSpaceType >;
+template class InterfaceVectorContainer< SparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.
