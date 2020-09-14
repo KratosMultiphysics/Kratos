@@ -133,7 +133,6 @@ public:
                 "pre_sweeps"                     : 1,
                 "post_sweeps"                    : 1,
                 "use_gpgpu"                      : false
-                }
             }
 
         }  )" );
