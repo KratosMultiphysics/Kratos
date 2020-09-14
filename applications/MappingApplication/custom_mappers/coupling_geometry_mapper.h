@@ -95,11 +95,8 @@ public:
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
-    typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
-
-    typedef Matrix DenseMappingMatrixType;
-    typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+    typedef typename BaseType::TMappingMatrixType MappingMatrixType;
+    typedef Kratos::unique_ptr<MappingMatrixType> MappingMatrixUniquePointerType;
 
     typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
     typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
@@ -283,7 +280,7 @@ private:
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
-    DenseMappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpMappingMatrix;
 
     MapperLocalSystemPointerVector mMapperLocalSystems;
 
@@ -326,8 +323,8 @@ private:
             rLocalSystems);
     }
 
-    void EnforceConsistencyWithScaling(const CompressedMatrix& rInterfaceMatrixSlave,
-        CompressedMatrix& rInterfaceMatrixProjected,
+    void EnforceConsistencyWithScaling(const MappingMatrixType& rInterfaceMatrixSlave,
+        MappingMatrixType& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
 
     void CheckMappingMatrixConsistency()
@@ -345,7 +342,7 @@ private:
 
     void CreateLinearSolver();
 
-    void CalculateMappingMatrixWithSolver(CompressedMatrix& rConsistentInterfaceMatrix, CompressedMatrix& rProjectedInterfaceMatrix);
+    void CalculateMappingMatrixWithSolver(MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix);
 
     Parameters GetMapperDefaultSettings() const
     {

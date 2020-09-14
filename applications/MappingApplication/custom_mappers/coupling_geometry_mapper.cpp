@@ -131,7 +131,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // assemble projector interface mass matrix - interface_matrix_projector
     const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
     const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
-    CompressedMatrix interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
+    MappingMatrixType interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
 
     MapperLocalSystem::MatrixType local_mapping_matrix;
     MapperLocalSystem::EquationIdVectorType origin_ids;
@@ -146,7 +146,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     // assemble slave interface mass matrix - interface_matrix_slave
     // TODO for dual mortar this should be a vector not a matrix
-    CompressedMatrix interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
+    MappingMatrixType interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
     for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
         local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
     {
@@ -241,8 +241,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithScaling(
-    const CompressedMatrix& rInterfaceMatrixSlave,
-    CompressedMatrix& rInterfaceMatrixProjected,
+    const MappingMatrixType& rInterfaceMatrixSlave,
+    MappingMatrixType& rInterfaceMatrixProjected,
     const double scalingLimit)
 {
     // Performs scaling of projected mapping entries as per eqn25 Wang2016
@@ -265,7 +265,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
 
 template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
-    CompressedMatrix& rConsistentInterfaceMatrix, CompressedMatrix& rProjectedInterfaceMatrix)
+    MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix)
 {
     mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(DenseMappingMatrixType(
         rConsistentInterfaceMatrix.size1(), rProjectedInterfaceMatrix.size2()));
