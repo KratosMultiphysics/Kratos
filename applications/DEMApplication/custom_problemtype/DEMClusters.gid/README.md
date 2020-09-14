@@ -24,13 +24,12 @@ Once downloaded and added as problemtype for GiD, the required executables must 
 Once the geometry has been generated and meshed, the user can choose between step-by-step process or automatically generated the final cluster file.
 
 The step-by-step process go as follows:
-- Make sure the center of the geometry is located at the origin. It can be done using GiD utilities.
-- Mesh the geometry.
-- Click on calculate in order to generate the OBJ and MSH files
+- Adjust the meshing parameters and mesh the geometry.
+- Execute step one in the "Sphere Cluster Creation" menu in order to generate the OBJ and MSH files
 - Define the options for the spheretree algorithms or use the default options (recommended)
 - Select generate SPH (see examples for execution time references)
 - Select generate CLU
-- Select visualize cluster over mesh. The cluster will be centered at the origin.
+- Select visualize cluster to draw the generated cluster over the mesh. The cluster can also be visualized in principal axis.
 
 # Examples
 Both examples are created on a Intel i7 laptop.
