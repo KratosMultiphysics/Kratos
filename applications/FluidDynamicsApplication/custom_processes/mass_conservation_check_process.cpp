@@ -203,10 +203,12 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                 const double dist = rGeom[i].FastGetSolutionStepValue(DISTANCE);
                 if ( std::abs(dist) < 1.0e-15 ){
                     if (dist > 0.0){
+                        #pragma omp critical
                         it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) =
                         1.0e-6*it_elem->GetGeometry().GetPoint(i).GetValue(NODAL_H);
                     }
                     else{
+                        #pragma omp critical
                         it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) =
                         -1.0e-6*it_elem->GetGeometry().GetPoint(i).GetValue(NODAL_H);
                     }
