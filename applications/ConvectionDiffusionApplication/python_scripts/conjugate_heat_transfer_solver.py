@@ -19,7 +19,7 @@ def CreateSolver(main_model_part, custom_settings):
 class ConjugateHeatTransferSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        super(ConjugateHeatTransferSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
