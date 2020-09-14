@@ -1,6 +1,7 @@
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
+from KratosMultiphysics import IsDistributedRun
 
 
 class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
@@ -37,6 +38,9 @@ class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
         self._runTest()
 
     def _runTest(self):
+        if(IsDistributedRun()):
+            self.skipTest("Periodic tests are not designed to be run in mpi")
+
         self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
 
         RunParametricTestCase(self.parameters_file_name, self.working_folder,
