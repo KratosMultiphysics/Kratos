@@ -79,7 +79,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             }
         }""")
 
-        default_settings.ValidateAndAssignDefaults(default_settings)
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def ValidateSettings(self):
