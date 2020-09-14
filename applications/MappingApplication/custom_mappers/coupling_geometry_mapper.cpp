@@ -137,23 +137,41 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     MapperLocalSystem::EquationIdVectorType origin_ids;
     MapperLocalSystem::EquationIdVectorType destination_ids;
 
-    for (size_t local_projector_system = 0;
-        local_projector_system < mMapperLocalSystems.size()/2; ++local_projector_system) {
-        mMapperLocalSystems[local_projector_system]->PairingInfo(0);
-        mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
-        Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_projector);
-    }
+    // for (size_t local_projector_system = 0;
+    //     local_projector_system < mMapperLocalSystems.size()/2; ++local_projector_system) {
+    //     mMapperLocalSystems[local_projector_system]->PairingInfo(0);
+    //     mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+    //     Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_projector);
+    // }
 
-    // assemble slave interface mass matrix - interface_matrix_slave
+    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+        mpMappingMatrix,
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerDestination->pGetVector(),
+        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mpInterfaceVectorContainerDestination->GetModelPart(),
+        mMapperLocalSystems,
+        echo_level);
+
+    // // assemble slave interface mass matrix - interface_matrix_slave
     // TODO for dual mortar this should be a vector not a matrix
-    MappingMatrixType interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
-    for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
-        local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
-    {
-        mMapperLocalSystems[local_projector_system]->PairingInfo(0);
-        mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
-        Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_slave);
-    }
+    // MappingMatrixType interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
+    // for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
+    //     local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
+    // {
+    //     mMapperLocalSystems[local_projector_system]->PairingInfo(0);
+    //     mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+    //     Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_slave);
+    // }
+
+    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+        mpMappingMatrix,
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerDestination->pGetVector(),
+        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mpInterfaceVectorContainerDestination->GetModelPart(),
+        mMapperLocalSystems,
+        echo_level);
 
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool())
@@ -174,9 +192,6 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     }
 
     CheckMappingMatrixConsistency();
-
-    Internals::InitializeSystemVector(mpInterfaceVectorContainerOrigin->pGetVector(), num_nodes_interface_master);
-    Internals::InitializeSystemVector(mpInterfaceVectorContainerDestination->pGetVector(), num_nodes_interface_slave);
 }
 
 template<class TSparseSpace, class TDenseSpace>
