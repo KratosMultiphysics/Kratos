@@ -343,24 +343,7 @@ private:
         }
     }
 
-    void CreateLinearSolver()
-    {
-        bool is_linear_solver_specified = false;
-        if (mMapperSettings.Has("linear_solver_settings"))
-        {
-            if (mMapperSettings["linear_solver_settings"].Has("solver_type"))
-            {
-                is_linear_solver_specified = true;
-                mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
-            }
-        }
-        if (!is_linear_solver_specified)
-        {
-            // TODO - replicate 'get fastest solver'
-            mMapperSettings.AddString("solver_type", "skyline_lu_factorization");
-            mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);
-        }
-    }
+    void CreateLinearSolver();
 
     void CalculateMappingMatrixWithSolver(CompressedMatrix& rConsistentInterfaceMatrix, CompressedMatrix& rProjectedInterfaceMatrix);
 

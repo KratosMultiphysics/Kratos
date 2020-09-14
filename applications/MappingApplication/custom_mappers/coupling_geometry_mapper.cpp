@@ -286,6 +286,26 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWi
     }
 }
 
+template<class TSparseSpace, class TDenseSpace>
+void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
+{
+    bool is_linear_solver_specified = false;
+    if (mMapperSettings.Has("linear_solver_settings"))
+    {
+        if (mMapperSettings["linear_solver_settings"].Has("solver_type"))
+        {
+            is_linear_solver_specified = true;
+            mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
+        }
+    }
+    if (!is_linear_solver_specified)
+    {
+        // TODO - replicate 'get fastest solver'
+        mMapperSettings.AddString("solver_type", "skyline_lu_factorization");
+        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 template class CouplingGeometryMapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
