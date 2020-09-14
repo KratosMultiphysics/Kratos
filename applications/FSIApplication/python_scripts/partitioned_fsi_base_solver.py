@@ -138,7 +138,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             }
         }""")
 
-        this_defaults.AddMissingParameters(super(PartitionedFSIBaseSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def ValidateSettings(self):
