@@ -17,8 +17,6 @@
 
 // KratosCore dependencies
 #include "includes/model_part.h"
-#include "linear_solvers/linear_solver.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "spaces/ublas_space.h"
 
 // TrilinosApplication dependencies
@@ -29,9 +27,6 @@
 #include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
 #include "custom_strategies/bossak_relaxation_scalar_scheme.h"
 #include "custom_strategies/steady_scalar_scheme.h"
-#include "custom_strategies/rans_fractional_step_strategy.h"
-#include "custom_utilities/solver_settings.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 
 // Include base h
 #include "add_trilinos_strategies_to_python.h"
@@ -46,15 +41,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
 
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
     using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
-    using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
     using MPIBaseSchemeType = Scheme<MPISparseSpaceType, LocalSpaceType>;
-    using MPIBaseSolvingStrategyType = SolvingStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-
-    // strategies
-    using MPIRansFractionalStepStrategyType = RansFractionalStepStrategy<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
-    py::class_<MPIRansFractionalStepStrategyType, typename MPIRansFractionalStepStrategyType::Pointer, MPIBaseSolvingStrategyType>(m, "MPIRansFractionalStepStrategy")
-        .def(py::init<ModelPart&, SolverSettings<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>&, bool, bool>())
-        .def(py::init<ModelPart&, SolverSettings<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>&, bool, bool, const Kratos::Variable<int>&>());
 
     // add schemes
     using MPIAlgebraicFluxCorrectedSteadyScalarSchemeType = AlgebraicFluxCorrectedSteadyScalarScheme<MPISparseSpaceType, LocalSpaceType>;

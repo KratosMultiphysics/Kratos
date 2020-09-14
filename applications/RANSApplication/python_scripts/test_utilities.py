@@ -4,10 +4,11 @@ from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 
 import os
 
-def RunParametericTestCase(settings_file_name,
-                           work_folder,
-                           parameters_dict,
-                           print_output=False):
+def RunParametricTestCase(
+    settings_file_name,
+    work_folder,
+    parameters_dict,
+    print_output = False):
 
     test_folder = os.path.join("..", "tests", work_folder)
 

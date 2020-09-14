@@ -19,18 +19,10 @@
 #include "includes/define_python.h"
 #include "spaces/ublas_space.h"
 
-// strategies
-#include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/rans_fractional_step_strategy.h"
-#include "custom_utilities/solver_settings.h"
-
 // schemes
 #include "custom_strategies/bossak_relaxation_scalar_scheme.h"
 #include "custom_strategies/steady_scalar_scheme.h"
 #include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
-
-//linear solvers
-#include "linear_solvers/linear_solver.h"
 
 // Include base h
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -45,15 +37,7 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
     using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
-    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
     using BaseSchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
-    using BaseSolvingStrategyType = SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-
-    // strategies
-    using RansFractionalStepStrategyType = RansFractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    py::class_<RansFractionalStepStrategyType, typename RansFractionalStepStrategyType::Pointer, BaseSolvingStrategyType>(m, "RansFractionalStepStrategy")
-        .def(py::init<ModelPart&, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType>&, bool, bool>())
-        .def(py::init<ModelPart&, SolverSettings<SparseSpaceType, LocalSpaceType, LinearSolverType>&, bool, bool, const Kratos::Variable<int>&>());
 
     // add schemes
     using SteadyScalarSchemeType = SteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
