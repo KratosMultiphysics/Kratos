@@ -23,6 +23,7 @@
 #include "processes/variational_distance_calculation_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
@@ -207,10 +208,9 @@ void RansWallDistanceCalculationProcess::CorrectWallDistances()
     };
 
     auto all_global_pointers =
-        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each<GlobalPointerAdder>(
-            [](ModelPart::NodeType& rNode) {
-                return rNode.GetValue(NEIGHBOUR_NODES);
-            });
+        block_for_each<GlobalPointerAdder>(r_nodes, [](ModelPart::NodeType& rNode) {
+            return rNode.GetValue(NEIGHBOUR_NODES);
+        });
 
     GlobalPointerCommunicator<ModelPart::NodeType> pointer_comm(
         r_data_communicator, all_global_pointers);
@@ -220,70 +220,44 @@ void RansWallDistanceCalculationProcess::CorrectWallDistances()
             return gp->FastGetSolutionStepValue(DISTANCE);
         });
 
-    class CustomReducer
-    {
-    public:
-        typedef int value_type;
-        int number_of_modified_nodes;
+    int number_of_modified_nodes = block_for_each<SumReduction<int>>(
+        r_nodes, [&](ModelPart::NodeType& rNode) -> int {
+            if (rNode.FastGetSolutionStepValue(DISTANCE) < 0.0) {
+                const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
 
-        value_type GetValue()
-        {
-            return number_of_modified_nodes;
-        }
-
-        void LocalReduce(int ModifiedNodesCount)
-        {
-            this->number_of_modified_nodes += ModifiedNodesCount;
-        }
-        void ThreadSafeReduce(CustomReducer& rOther)
-        {
-#pragma omp critical
-            {
-                this->number_of_modified_nodes += rOther.number_of_modified_nodes;
-            }
-        }
-    };
-
-    int number_of_modified_nodes =
-        BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each<CustomReducer>(
-            [&](ModelPart::NodeType& rNode) -> int {
-                if (rNode.FastGetSolutionStepValue(DISTANCE) < 0.0) {
-                    const auto& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
-
-                    int count = 0;
-                    double average_value = 0.0;
-                    for (int j_node = 0;
-                         j_node < static_cast<int>(r_neighbours.size()); ++j_node) {
-                        const double j_distance =
-                            distance_proxy.Get(r_neighbours(j_node));
-                        if (j_distance > 0.0) {
-                            average_value += j_distance;
-                            count++;
-                        }
+                int count = 0;
+                double average_value = 0.0;
+                for (int j_node = 0;
+                     j_node < static_cast<int>(r_neighbours.size()); ++j_node) {
+                    const double j_distance = distance_proxy.Get(r_neighbours(j_node));
+                    if (j_distance > 0.0) {
+                        average_value += j_distance;
+                        count++;
                     }
-
-                    if (count > 0) {
-                        rNode.SetValue(DISTANCE, average_value / static_cast<double>(count));
-                    } else {
-                        KRATOS_ERROR << "Node " << rNode.Id() << " at "
-                                     << rNode.Coordinates() << " didn't find any neighbour("
-                                     << r_neighbours.size() << ") with positive DISTANCE. Please recheck "
-                                     << mModelPartName << ".\n";
-                    }
-
-                    return 1;
                 }
-                return 0;
-            });
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
-        [&](ModelPart::NodeType& rNode) {
-            double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
-            const double avg_distance = rNode.GetValue(DISTANCE);
-            if (r_distance < 0.0) {
-                r_distance = avg_distance;
+                if (count > 0) {
+                    rNode.SetValue(DISTANCE, average_value / static_cast<double>(count));
+                } else {
+                    KRATOS_ERROR
+                        << "Node " << rNode.Id() << " at " << rNode.Coordinates()
+                        << " didn't find any neighbour(" << r_neighbours.size()
+                        << ") with positive DISTANCE. Please recheck "
+                        << mModelPartName << ".\n";
+                }
+
+                return 1;
             }
+            return 0;
         });
+
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+        double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
+        const double avg_distance = rNode.GetValue(DISTANCE);
+        if (r_distance < 0.0) {
+            r_distance = avg_distance;
+        }
+    });
 
     r_communicator.SynchronizeVariable(DISTANCE);
     number_of_modified_nodes =

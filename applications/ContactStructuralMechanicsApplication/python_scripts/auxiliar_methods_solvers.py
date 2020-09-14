@@ -103,7 +103,7 @@ def  AuxiliarMPCSetSettings(settings, contact_settings):
     return settings
 
 def  AuxiliarValidateSettings(solver):
-    default_settings = solver.GetDefaultSettings()
+    default_settings = solver.GetDefaultParameters()
     default_settings.RecursivelyAddMissingParameters(solver.settings)
     solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 

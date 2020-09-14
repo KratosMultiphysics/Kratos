@@ -4,8 +4,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
 import os
 class TestPingPong(KratosUnittest.TestCase):
     '''TODO add description
@@ -18,13 +16,12 @@ class TestPingPong(KratosUnittest.TestCase):
         with open(full_parameter_file_name, 'r') as parameter_file:
             self.cosim_parameters = KM.Parameters(parameter_file.read())
 
-        if not using_pykratos:
-            # To avoid many prints
-            echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()
-            if (echo_level == 0):
-                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
-            else:
-                KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
+        # To avoid many prints
+        echo_level = self.cosim_parameters["problem_data"]["echo_level"].GetInt()
+        if (echo_level == 0):
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+        else:
+            KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 
     def test_ping_pong(self):
         self._createTest("ping_pong_test", "cosim_ping_pong_parameters")
