@@ -114,7 +114,7 @@ public:
         Parameters default_parameters( R"(
         {
             "solver_type"                    : "monothonicity_preserving_solver",
-            "inner_solver_type"          : {
+            "inner_solver_settings"          : {
                 "preconditioner_type"            : "amg",
                 "solver_type"                    : "AMGCL",
                 "smoother_type"                  : "ilu0",
@@ -140,7 +140,7 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["inner_solver_type"]);
+        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["inner_solver_settings"]);
 
         KRATOS_CATCH("")
     }

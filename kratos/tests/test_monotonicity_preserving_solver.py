@@ -9,7 +9,7 @@ class TestMonotonicityPreservingSolver(KratosUnittest.TestCase):
         settings = KratosMultiphysics.Parameters("""
             {
                 "solver_type" : "monotonicity_preserving",
-                "inner_solver_type" : {
+                "inner_solver_settings" : {
                     "preconditioner_type": "amg",
                     "solver_type": "amgcl",
                     "smoother_type": "ilu0",
