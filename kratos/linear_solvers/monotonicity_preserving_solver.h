@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -235,23 +236,26 @@ public:
         std::size_t *index1_vector = rA.index1_data().begin();
         std::size_t *index2_vector = rA.index2_data().begin();
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++) {
-            for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
-                const double value = values_vector[k];
-                if (value > 0.0) {
-                    const int j = index2_vector[k];
-                    if (j > i) {
-                        rA(i,i) += value;
-                        rA(i,j) -= value;
-                        rA(j,i) -= value;
-                        rA(j,j) += value;
-                        rB[i] += value*rX[j] - value*rX[i];
-                        rB[j] += value*rX[i] - value*rX[j];
+
+        IndexPartition<std::size_t>(rA.size1()).for_each(
+            [&](std::size_t i)
+            {
+                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                    const double value = values_vector[k];
+                    if (value > 0.0) {
+                        const auto j = index2_vector[k];
+                        if (j > i) {
+                            rA(i,i) += value;
+                            rA(i,j) -= value;
+                            rA(j,i) -= value;
+                            rA(j,j) += value;
+                            rB[i] += value*rX[j] - value*rX[i];
+                            rB[j] += value*rX[i] - value*rX[j];
+                        }
                     }
                 }
             }
-        }
+        );
 
         //solve the problem
         bool is_solved = mpLinearSolver->Solve(rA,rX,rB);
@@ -303,42 +307,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
     ///@name Static Member Variables
@@ -416,5 +384,4 @@ inline std::ostream& operator << (std::ostream& OStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED  defined
-
 
