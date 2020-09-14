@@ -10,7 +10,7 @@ from .fractional_step.fractional_step_velocity_pressure_rans_formulation import 
 # # turbulence model formulations
 # ### k-epsilon formulations
 from .monolithic_vms.monolithic_k_epsilon_rans_formulation import MonolithicKEpsilonRansFormulation
-# from .fractional_step.fractional_step_k_epsilon_formulation import FractionalStepKEpsilonFormulation
+from .fractional_step.fractional_step_k_epsilon_rans_formulation import FractionalStepKEpsilonRansFormulation
 
 # ### k-omega formulations
 # from .monolithic_vms.monolithic_k_omega_formulation import MonolithicKOmegaFormulation
@@ -28,8 +28,8 @@ def Factory(model_part, settings):
         ["monolithic_k_epsilon", MonolithicKEpsilonRansFormulation],
         # ["monolithic_k_omega", MonolithicKOmegaFormulation],
         # ["monolithic_k_omega_sst", MonolithicKOmegaSSTFormulation],
-        ["fractional_step", FractionalStepVelocityPressureRansFormulation]
-        # ["fractional_step_k_epsilon", FractionalStepKEpsilonFormulation],
+        ["fractional_step", FractionalStepVelocityPressureRansFormulation],
+        ["fractional_step_k_epsilon", FractionalStepKEpsilonRansFormulation],
         # ["fractional_step_k_omega", FractionalStepKOmegaFormulation],
         # ["fractional_step_k_omega_sst", FractionalStepKOmegaSSTFormulation]
     ]
