@@ -12,12 +12,12 @@
 //
 
 // Application includes
-#include "custom_constitutive/simplified_bilinear_3D_law.hpp"
+#include "custom_constitutive/joint_cohesion_driven_3D_law.hpp"
 
 namespace Kratos
 {
 
-int SimplifiedBilinear3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int JointCohesionDriven3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
 {
     // Verify ProcessInfo variables
     KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
@@ -44,7 +44,7 @@ int SimplifiedBilinear3DLaw::Check(const Properties& rMaterialProperties,const G
     } else {
         KRATOS_ERROR << "FRICTION_COEFFICIENT not defined" << std::endl;
     }
-    
+
         KRATOS_CHECK_VARIABLE_KEY(COHESION);
     if(rMaterialProperties.Has(COHESION)) {
         KRATOS_ERROR_IF(rMaterialProperties[COHESION] < 0.0) << "COHESION has an invalid value " << std::endl;
@@ -57,14 +57,14 @@ int SimplifiedBilinear3DLaw::Check(const Properties& rMaterialProperties,const G
 
 //----------------------------------------------------------------------------------------
 
-void SimplifiedBilinear3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
+void JointCohesionDriven3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
     mStateVariable = 1.0;
 }
 
 //----------------------------------------------------------------------------------------
 
-void SimplifiedBilinear3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
+void JointCohesionDriven3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
     if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
@@ -85,7 +85,7 @@ void SimplifiedBilinear3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValue
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SimplifiedBilinear3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables,
+void JointCohesionDriven3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables,
                                                                  Parameters& rValues)
 
 {
@@ -99,7 +99,7 @@ void SimplifiedBilinear3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLaw
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SimplifiedBilinear3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
+void JointCohesionDriven3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
                                                     Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
@@ -112,9 +112,9 @@ void SimplifiedBilinear3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
             double tau0 = rVariables.YieldStress * StrainVector[0];
             double tau1 = rVariables.YieldStress * StrainVector[1];
 		    double sigma = rVariables.YoungModulus * StrainVector[2];
-		    
+
 		    double broken_limit = (-rVariables.FrictionCoefficient * rVariables.YoungModulus * StrainVector[2])+ rVariables.Cohesion;
-            
+
 		    if (sigma > (rVariables.Cohesion/rVariables.FrictionCoefficient)) rVariables.EquivalentStrain = 0.0;
 		    if (abs (tau0) > broken_limit) rVariables.EquivalentStrain = 0.0;
 		    if (abs (tau1) > broken_limit) rVariables.EquivalentStrain = 0.0;
@@ -124,13 +124,13 @@ void SimplifiedBilinear3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
     {
         rVariables.EquivalentStrain = 1.0;
         if (mStateVariable == 1.0)
-        {    
+        {
 		    double tau0 = rVariables.YieldStress * StrainVector[0];
             double tau1 = rVariables.YieldStress * StrainVector[1];
 		    double sigma = rVariables.YoungModulus * StrainVector[2];
-		    
+
 		    double broken_limit = (-rVariables.FrictionCoefficient * rVariables.YoungModulus * StrainVector[2])+ rVariables.Cohesion;
-            
+
 		    if (sigma > (rVariables.Cohesion/rVariables.FrictionCoefficient)) rVariables.EquivalentStrain = 0.0;
 		    if (abs (tau0) > broken_limit) rVariables.EquivalentStrain = 0.0;
 		    if (abs (tau1) > broken_limit) rVariables.EquivalentStrain = 0.0;
@@ -140,7 +140,7 @@ void SimplifiedBilinear3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SimplifiedBilinear3DLaw::CheckLoadingFunction(ConstitutiveLawVariables& rVariables,
+void JointCohesionDriven3DLaw::CheckLoadingFunction(ConstitutiveLawVariables& rVariables,
                                                     Parameters& rValues)
 {
     rVariables.LoadingFlag = false;
@@ -155,7 +155,7 @@ void SimplifiedBilinear3DLaw::CheckLoadingFunction(ConstitutiveLawVariables& rVa
 
 //----------------------------------------------------------------------------------------
 
-void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+void JointCohesionDriven3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                                         ConstitutiveLawVariables& rVariables,
                                                         Parameters& rValues)
 {
@@ -214,8 +214,8 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 			double shear_modulus_stress0 = fabs (StrainVector[0] / (2.0 * (1.0 + rVariables.PoissonCoefficient)));
 			double shear_modulus_stress1 = fabs (StrainVector[1] / (2.0 * (1.0 + rVariables.PoissonCoefficient)));
 			double friction_modulus_stress = fabs(rVariables.FrictionCoefficient * StrainVector[2]);
-			
-			if (shear_modulus_stress0 > friction_modulus_stress && shear_modulus_stress1 > friction_modulus_stress) 
+
+			if (shear_modulus_stress0 > friction_modulus_stress && shear_modulus_stress1 > friction_modulus_stress)
 			{
 				rConstitutiveMatrix(0,0) = broken_YieldStress;
 				rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
@@ -253,7 +253,7 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 					rConstitutiveMatrix(1,2) = 0.0;
 				}
 			}
-			
+
 			else
 			{
 				double shear_modulus = rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));
@@ -274,7 +274,7 @@ void SimplifiedBilinear3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 
 //----------------------------------------------------------------------------------------
 
-void SimplifiedBilinear3DLaw::ComputeStressVector(Vector& rStressVector,
+void JointCohesionDriven3DLaw::ComputeStressVector(Vector& rStressVector,
                                                  ConstitutiveLawVariables& rVariables,
                                                  Parameters& rValues)
 {
@@ -314,7 +314,7 @@ void SimplifiedBilinear3DLaw::ComputeStressVector(Vector& rStressVector,
         if (mStateVariable==0.0) // Broken joint
 		{
 			rStressVector[2] = rVariables.YoungModulus * StrainVector[2];
-			
+
 			double broken_YieldStress = rVariables.YoungModulus * 1.0e-9;
 			double tangential_strain_vector_modulus = sqrt(StrainVector[0] * StrainVector[0] + StrainVector[1] * StrainVector[1]);
 			const double shear_modulus =  rVariables.YieldStress / (2.0 * (1.0 + rVariables.PoissonCoefficient));

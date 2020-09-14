@@ -12,12 +12,12 @@
 //
 
 // Application includes
-#include "custom_constitutive/simplified_bilinear_2D_law.hpp"
+#include "custom_constitutive/joint_cohesion_driven_2D_law.hpp"
 
 namespace Kratos
 {
 
-void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
+void JointCohesionDriven2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
                                                     Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
@@ -58,7 +58,7 @@ void SimplifiedBilinear2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& 
 
 //----------------------------------------------------------------------------------------
 
-void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+void JointCohesionDriven2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                                                 ConstitutiveLawVariables& rVariables,
                                                                 Parameters& rValues)
 {
@@ -137,7 +137,7 @@ void SimplifiedBilinear2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMat
 
 //----------------------------------------------------------------------------------------
 
-void SimplifiedBilinear2DLaw::ComputeStressVector(Vector& rStressVector,
+void JointCohesionDriven2DLaw::ComputeStressVector(Vector& rStressVector,
                                                 ConstitutiveLawVariables& rVariables,
                                                 Parameters& rValues)
 {
