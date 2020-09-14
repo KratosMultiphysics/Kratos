@@ -1,7 +1,5 @@
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from xmc.distributedEnvironmentFramework import *
+
 import numpy as np
 import time as time
 
@@ -12,7 +10,7 @@ class SingleLevelRNGSolverWrapper(sw.SolverWrapper):
     solveWrapper type whose solve method accepts a random number
     and returns it in a list of size self.ouptutDimension
 
-    Constructor arguments - 
+    Constructor arguments -
     solverWrapperIndex - Index-space position of the solverWrapper instance
     """
 

@@ -9,6 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -53,13 +54,30 @@ namespace Kratos
  * @brief Tool to evaluate the normals on nodes based on the normals of a set of surface conditions
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) NormalCalculationUtils
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
+    /// The index type definition
+    typedef std::size_t IndexType;
+
+    /// The size type definition
+    typedef std::size_t SizeType;
+
+    // Node definitions
+    typedef Node<3> NodeType;
+
+    /// Definition of geometries
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Condition type definition
+    typedef ModelPart::ConditionType ConditionType;
+
+    /// Conditions array definition
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     ///@}
@@ -75,6 +93,37 @@ public:
     ///@{
 
     /**
+     * @brief It computes the normal in the conditions
+     * @param rModelPart The model part to compute
+     */
+    template<class TContainerType>
+    void CalculateNormalsInContainer(ModelPart& rModelPart);
+
+    /**
+     * @brief It computes the mean of the normal in the entities and in all the nodes
+     * @param rModelPart The model part to compute
+     * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
+     * @tparam TEntity The entity type considered
+     */
+    template<class TEntity>
+    void CalculateNormals(
+        ModelPart& rModelPart,
+        const bool EnforceGenericGeometryAlgorithm = false
+        );
+
+    /**
+     * @brief It computes the mean of the normal in the entities and in all the nodes (unit normal version)
+     * @param rModelPart The model part to compute
+     * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
+     * @tparam TEntity The entity type considered
+     */
+    template<class TEntity>
+    void CalculateUnitNormals(
+        ModelPart& rModelPart,
+        const bool EnforceGenericGeometryAlgorithm = false
+        );
+
+    /**
      * @brief Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
      * @details This is done on the base of the Conditions provided which should be understood as the surface elements of the area of interest.
      * @param rConditions A set of conditions defining the "skin" of a model
@@ -87,10 +136,21 @@ public:
         );
 
     /**
+     * @brief Calculates nodal area normal shape sensitivities w.r.t. nodal coordinates of the condition.
+     *
+     * @param rConditions   List of conditions where shape sensitivities need to be calculated.
+     * @param Dimension     Dimensionality of the conditions
+     */
+    void CalculateNormalShapeDerivativesOnSimplex(
+        ConditionsArrayType& rConditions,
+        const std::size_t Dimension
+    );
+
+    /**
      * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
      * @details This is done on the base of the Conditions provided which should be  understood as the surface elements of the area of interest.
      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
-     * @param dimension Spatial dimension (2 or 3)
+     * @param Dimension Spatial dimension (2 or 3)
      * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
      */
     void CalculateOnSimplex(
@@ -98,6 +158,15 @@ public:
         const std::size_t Dimension
         );
 
+    /**
+     * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
+     * @details This is done on the base of the Conditions provided which should be  understood as the surface elements of the area of interest.
+     * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
+     * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
+     */
+    void CalculateOnSimplex(
+        ModelPart& rModelPart
+        );
 
     /**
      * @brief This function swaps the normal of all of the conditions in a model part
@@ -137,7 +206,7 @@ public:
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal2D(itCond,An);
+                    CalculateNormal2D(*itCond,An);
             }
         } else if ( Dimension == 3 ) {
             array_1d<double,3> v1(3,0.0);
@@ -145,7 +214,7 @@ public:
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal3D(itCond,An,v1,v2);
+                    CalculateNormal3D(*itCond,An,v1,v2);
             }
         }
 
@@ -215,7 +284,7 @@ public:
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal2D(itCond,An);
+                    CalculateNormal2D(*itCond,An);
             }
         } else if ( Dimension == 3 ) {
             array_1d<double,3> v1(3,0.0);
@@ -223,7 +292,7 @@ public:
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal3D(itCond,An,v1,v2);
+                    CalculateNormal3D(*itCond,An,v1,v2);
             }
         }
 
@@ -327,7 +396,7 @@ public:
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal2D(itCond,An);
+                    CalculateNormal2D(*itCond,An);
             }
         } else if ( Dimension == 3 ) {
             array_1d<double,3> v1(3,0.0);
@@ -335,7 +404,7 @@ public:
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal3D(itCond,An,v1,v2);
+                    CalculateNormal3D(*itCond,An,v1,v2);
             }
         }
 
@@ -424,19 +493,67 @@ private:
     ///@name Private Operations
     ///@{
 
-    //this function adds the Contribution of one of the geometries
-    //to the corresponding nodes
+    /**
+     * @brief It initializes the normal in the entites and in all the nodes
+     * @param rModelPart The model part to compute
+     * @tparam TEntity The entity type considered
+     */
+    template<class TEntity>
+    void InitializeNormals(ModelPart& rModelPart);
+
+    /**
+     * @brief It computes the unit normals from the area normals
+     * @param rModelPart The model part to compute
+     */
+    void ComputeUnitNormalsFromAreaNormals(ModelPart& rModelPart);
+
+    /**
+     * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
+     * @param rCondition Reference to the target condition
+     * @param rAn Area normal
+     */
     static void CalculateNormal2D(
-        ConditionsArrayType::iterator it,
-        array_1d<double,3>& An
+        Condition& rCondition,
+        array_1d<double,3>& rAn
         );
 
-    static void CalculateNormal3D(
-        ConditionsArrayType::iterator it,
-        array_1d<double,3>& An,
-        array_1d<double,3>& v1,
-        array_1d<double,3>& v2
+    /**
+     * @brief Calculates 2D condition area normals shape sensitivity
+     *
+     * @param rCondition    Reference to the targe condition
+     */
+    static void CalculateNormalShapeDerivative2D(
+        ConditionType& rCondition
         );
+
+    /**
+     * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
+     * @param rCondition Reference to the target condition
+     * @param rAn Area normal
+     * @param rv1 First tangent vector
+     * @param rv2 Second tangent vector
+     */
+    static void CalculateNormal3D(
+        Condition& rCondition,
+        array_1d<double,3>& rAn,
+        array_1d<double,3>& rv1,
+        array_1d<double,3>& rv2
+        );
+
+    /**
+     * @brief Calculates 3D condition area normals shape sensitivity
+     *
+     * @param rCondition    Reference to the targe condition
+     */
+    static void CalculateNormalShapeDerivative3D(
+        ConditionType& rCondition
+        );
+
+    template<class TContainerType>
+    TContainerType& GetContainer(ModelPart& rModelPart);
+
+    template<class TContainerType>
+    void CalculateNormalsUsingGenericAlgorithm(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Access

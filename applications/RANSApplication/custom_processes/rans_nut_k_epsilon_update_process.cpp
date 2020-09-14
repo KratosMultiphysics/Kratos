@@ -102,7 +102,7 @@ void RansNutKEpsilonUpdateProcess::ExecuteAfterCouplingSolveStep()
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
     auto& r_nodes = r_model_part.Nodes();
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         const double epsilon =
             rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
 
