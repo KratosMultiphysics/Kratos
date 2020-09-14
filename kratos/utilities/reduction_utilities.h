@@ -68,6 +68,9 @@ public:
         return mReducedValue;
     }
 
+    /// Destructor. Do nothing!!!
+    virtual ~Reducer() {}
+
     /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType& value)
     {
