@@ -6,10 +6,9 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
-from KratosMultiphysics.RANSApplication import RansVariableUtilities
 
 # import formulation interface
-from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
+from KratosMultiphysics.RANSApplication.formulations.two_equation_turbulence_model_rans_formulation import TwoEquationTurbulenceModelRansFormulation
 
 # import formulations
 from .k_epsilon_k_rans_formulation import KEpsilonKRansFormulation
@@ -17,13 +16,10 @@ from .k_epsilon_epsilon_rans_formulation import KEpsilonEpsilonRansFormulation
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
-from KratosMultiphysics.RANSApplication import ScalarVariableDifferenceNormCalculationUtility
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 
-class KEpsilonRansFormulation(RansFormulation):
+class KEpsilonRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
         super().__init__(model_part, settings)
-
         default_settings = Kratos.Parameters(r'''
         {
             "formulation_name": "k_epsilon",
@@ -43,7 +39,7 @@ class KEpsilonRansFormulation(RansFormulation):
             "auxiliar_process_list": [],
             "echo_level": 0
         }''')
-        settings = self.GetParameters()
+
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.stabilization_method = settings["stabilization_method"].GetString()
@@ -55,10 +51,6 @@ class KEpsilonRansFormulation(RansFormulation):
         self.epsilon_formulation = KEpsilonEpsilonRansFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"])
         self.epsilon_formulation.SetStabilizationMethod(self.stabilization_method)
         self.AddRansFormulation(self.epsilon_formulation)
-
-        self.echo_level = settings["echo_level"].GetInt()
-        self.nu_t_convergence_utility = ScalarVariableDifferenceNormCalculationUtility(self.GetBaseModelPart(), Kratos.TURBULENT_VISCOSITY)
-        self.SetMaxCouplingIterations(settings["coupling_settings"]["max_iterations"].GetInt())
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
@@ -83,12 +75,6 @@ class KEpsilonRansFormulation(RansFormulation):
         Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, self.GetBaseModelPart())
 
         Kratos.Logger.PrintInfo(self.GetName(), "Added solution step dofs.")
-
-    def GetMinimumBufferSize(self):
-        if (self.is_steady_simulation):
-            return 1
-        else:
-            return 2
 
     def Initialize(self):
         model_part = self.GetBaseModelPart()
@@ -152,52 +138,3 @@ class KEpsilonRansFormulation(RansFormulation):
                                                                                     process_info[KratosRANS.WALL_VON_KARMAN],
                                                                                     process_info[KratosRANS.WALL_SMOOTHNESS_BETA]
                                                                                     ))
-
-    def SetTimeSchemeSettings(self, settings):
-        if (settings.Has("scheme_type")):
-            scheme_type = settings["scheme_type"].GetString()
-            if (scheme_type == "steady"):
-                self.is_steady_simulation = True
-                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, 0.0)
-            elif (scheme_type == "bdf2" or scheme_type == "bossak"):
-                self.is_steady_simulation = False
-                default_settings = Kratos.Parameters('''{
-                    "scheme_type": "transient",
-                    "alpha_bossak": -0.3
-                }''')
-                settings.ValidateAndAssignDefaults(default_settings)
-                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, settings["alpha_bossak"].GetDouble())
-            else:
-                raise Exception("Only \"steady\", \"bdf2\" and \"bossak\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
-        else:
-            raise Exception("\"scheme_type\" is missing in time scheme settings")
-
-        super().SetTimeSchemeSettings(settings)
-
-    def SolveCouplingStep(self):
-        settings = self.GetParameters()
-        relative_tolerance = settings["coupling_settings"]["relative_tolerance"].GetDouble()
-        absolute_tolerance = settings["coupling_settings"]["absolute_tolerance"].GetDouble()
-        max_iterations = self.GetMaxCouplingIterations()
-
-        for itration in range(max_iterations):
-            self.nu_t_convergence_utility.InitializeCalculation()
-
-            for formulation in self.GetRansFormulationsList():
-                if (not formulation.SolveCouplingStep()):
-                    return False
-            self.ExecuteAfterCouplingSolveStep()
-
-            relative_error, absolute_error = self.nu_t_convergence_utility.CalculateDifferenceNorm()
-            info = GetConvergenceInfo(Kratos.TURBULENT_VISCOSITY, relative_error, relative_tolerance, absolute_error, absolute_tolerance)
-            Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", info)
-
-            is_converged = relative_error < relative_tolerance or absolute_error < absolute_tolerance
-            if (is_converged):
-                Kratos.Logger.PrintInfo(self.GetName() + " CONVERGENCE", "TURBULENT_VISCOSITY *** CONVERGENCE ACHIEVED ***")
-
-            Kratos.Logger.PrintInfo(self.GetName(), "Solved coupling itr. " + str(itration + 1) + "/" + str(max_iterations) + ".")
-            if (is_converged):
-                return True
-
-        return True

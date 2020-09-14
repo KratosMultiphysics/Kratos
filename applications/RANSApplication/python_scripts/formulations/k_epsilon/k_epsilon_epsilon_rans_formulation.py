@@ -10,12 +10,12 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
-from KratosMultiphysics import VariableUtils
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateAlgebraicFluxCorrectedSteadyScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeYPlusVariablesInConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 
@@ -49,10 +49,7 @@ class KEpsilonEpsilonRansFormulation(RansFormulation):
                                 "Created formulation model part.")
 
     def Initialize(self):
-        VariableUtils().SetNonHistoricalVariableToZero(
-            KratosRANS.RANS_Y_PLUS, self.epsilon_model_part.Conditions)
-        VariableUtils().SetNonHistoricalVariableToZero(
-            KratosRANS.FRICTION_VELOCITY, self.epsilon_model_part.Conditions)
+        InitializeYPlusVariablesInConditions(self.epsilon_model_part)
 
         CalculateNormalsOnConditions(self.epsilon_model_part)
 

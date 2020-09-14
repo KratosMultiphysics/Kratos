@@ -13,8 +13,8 @@ from .monolithic_vms.monolithic_k_epsilon_rans_formulation import MonolithicKEps
 from .fractional_step.fractional_step_k_epsilon_rans_formulation import FractionalStepKEpsilonRansFormulation
 
 # ### k-omega formulations
-# from .monolithic_vms.monolithic_k_omega_formulation import MonolithicKOmegaFormulation
-# from .fractional_step.fractional_step_k_omega_formulation import FractionalStepKOmegaFormulation
+from .monolithic_vms.monolithic_k_omega_rans_formulation import MonolithicKOmegaRansFormulation
+from .fractional_step.fractional_step_k_omega_rans_formulation import FractionalStepKOmegaRansFormulation
 
 # ### k-omega-sst formulations
 # from .monolithic_vms.monolithic_k_omega_sst_formulation import MonolithicKOmegaSSTFormulation
@@ -26,11 +26,11 @@ def Factory(model_part, settings):
         ["incompressible_potential_flow", IncompressiblePotentialFlowRansFormulation],
         ["monolithic", MonolithicVelocityPressureRansFormulation],
         ["monolithic_k_epsilon", MonolithicKEpsilonRansFormulation],
-        # ["monolithic_k_omega", MonolithicKOmegaFormulation],
+        ["monolithic_k_omega", MonolithicKOmegaRansFormulation],
         # ["monolithic_k_omega_sst", MonolithicKOmegaSSTFormulation],
         ["fractional_step", FractionalStepVelocityPressureRansFormulation],
         ["fractional_step_k_epsilon", FractionalStepKEpsilonRansFormulation],
-        # ["fractional_step_k_omega", FractionalStepKOmegaFormulation],
+        ["fractional_step_k_omega", FractionalStepKOmegaRansFormulation]
         # ["fractional_step_k_omega_sst", FractionalStepKOmegaSSTFormulation]
     ]
 
