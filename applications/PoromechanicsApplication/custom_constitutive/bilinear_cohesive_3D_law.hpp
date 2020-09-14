@@ -89,6 +89,9 @@ protected:
         double PoissonCoefficient;
         double FrictionCoefficient;
         double PenaltyStiffness;
+        double MaxTensileStress;
+        double MaxCompresiveStress;
+        double Cohesion;
 
         Matrix CompressionMatrix;
         Matrix WeightMatrix;
