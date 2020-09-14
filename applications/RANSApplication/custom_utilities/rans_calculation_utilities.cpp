@@ -417,7 +417,7 @@ void CalculateNumberOfNeighbourEntities(
 
     auto& r_container = GetContainer<TContainerType>(rModelPart);
 
-    BlockPartition<TContainerType>(r_container).for_each([&](typename TContainerType::value_type& rEntity) {
+    block_for_each(r_container, [&](typename TContainerType::value_type& rEntity) {
         auto& r_geometry = rEntity.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];

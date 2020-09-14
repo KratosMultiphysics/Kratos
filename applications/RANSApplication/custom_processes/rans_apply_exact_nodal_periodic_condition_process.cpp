@@ -161,55 +161,52 @@ void RansApplyExactNodalPeriodicConditionProcess::CreatePeriodicConditions()
                                  ? translation_and_rotation_operator
                                  : (mRotationAngle > eps) ? rotation_operator : translation_operator;
 
-    BlockPartition<ModelPart::NodesContainerType>(r_master_model_part_nodes)
-        .for_each([&](ModelPart::NodeType& rMasterNode) {
-            const auto& master_initial_position =
-                rMasterNode.GetInitialPosition().Coordinates();
-            const auto& master_final_position = r_operator(master_initial_position);
-            int& r_master_patch_index = rMasterNode.FastGetSolutionStepValue(PATCH_INDEX);
-            for (int j_node = 0; j_node < number_of_nodes; ++j_node) {
-                const auto& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
-                if (norm_2(master_final_position -
-                           r_slave_node.GetInitialPosition().Coordinates()) < mTolerance) {
-                    r_master_patch_index = r_slave_node.Id();
-                    break;
-                }
+    block_for_each(r_master_model_part_nodes, [&](ModelPart::NodeType& rMasterNode) {
+        const auto& master_initial_position =
+            rMasterNode.GetInitialPosition().Coordinates();
+        const auto& master_final_position = r_operator(master_initial_position);
+        int& r_master_patch_index = rMasterNode.FastGetSolutionStepValue(PATCH_INDEX);
+        for (int j_node = 0; j_node < number_of_nodes; ++j_node) {
+            const auto& r_slave_node = *(r_slave_model_part_nodes.begin() + j_node);
+            if (norm_2(master_final_position -
+                       r_slave_node.GetInitialPosition().Coordinates()) < mTolerance) {
+                r_master_patch_index = r_slave_node.Id();
+                break;
             }
+        }
 
-            KRATOS_ERROR_IF(r_master_patch_index == 0)
-                << "Slave node is not found in " << mSlaveModelPartName
-                << " near " << master_final_position << " with tolerance "
-                << mTolerance << " for master node id=" << rMasterNode.Id()
-                << " at " << rMasterNode.GetInitialPosition().Coordinates()
-                << " in " << mMasterModelPartName << ".\n";
+        KRATOS_ERROR_IF(r_master_patch_index == 0)
+            << "Slave node is not found in " << mSlaveModelPartName << " near "
+            << master_final_position << " with tolerance " << mTolerance
+            << " for master node id=" << rMasterNode.Id() << " at "
+            << rMasterNode.GetInitialPosition().Coordinates() << " in "
+            << mMasterModelPartName << ".\n";
 
-            if (static_cast<std::size_t>(r_master_patch_index) != rMasterNode.Id()) {
-                std::vector<std::size_t> node_id_list = {
-                    rMasterNode.Id(), static_cast<std::size_t>(r_master_patch_index)};
+        if (static_cast<std::size_t>(r_master_patch_index) != rMasterNode.Id()) {
+            std::vector<std::size_t> node_id_list = {
+                rMasterNode.Id(), static_cast<std::size_t>(r_master_patch_index)};
 #pragma omp critical
-                {
-                    condition_id++;
-                    auto p_condition = r_base_model_part.CreateNewCondition(
-                        "PeriodicCondition", condition_id, node_id_list, p_properties);
-                    p_condition->Set(PERIODIC);
-                    rMasterNode.Set(PERIODIC);
-                }
+            {
+                condition_id++;
+                auto p_condition = r_base_model_part.CreateNewCondition(
+                    "PeriodicCondition", condition_id, node_id_list, p_properties);
+                p_condition->Set(PERIODIC);
+                rMasterNode.Set(PERIODIC);
             }
-        });
+        }
+    });
 
-    BlockPartition<ModelPart::ConditionsContainerType>(r_base_model_part.Conditions())
-        .for_each([&](ModelPart::ConditionType& rCondition) {
-            if (rCondition.Is(PERIODIC)) {
-                const auto& r_node_master = rCondition.GetGeometry()[0];
-                auto& r_node_slave = rCondition.GetGeometry()[1];
+    block_for_each(r_base_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
+        if (rCondition.Is(PERIODIC)) {
+            const auto& r_node_master = rCondition.GetGeometry()[0];
+            auto& r_node_slave = rCondition.GetGeometry()[1];
 
-                r_node_slave.SetLock();
-                r_node_slave.FastGetSolutionStepValue(PATCH_INDEX) =
-                    r_node_master.Id();
-                r_node_slave.Set(PERIODIC);
-                r_node_slave.UnSetLock();
-            }
-        });
+            r_node_slave.SetLock();
+            r_node_slave.FastGetSolutionStepValue(PATCH_INDEX) = r_node_master.Id();
+            r_node_slave.Set(PERIODIC);
+            r_node_slave.UnSetLock();
+        }
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Created periodic conditions between " << mMasterModelPartName << " and "

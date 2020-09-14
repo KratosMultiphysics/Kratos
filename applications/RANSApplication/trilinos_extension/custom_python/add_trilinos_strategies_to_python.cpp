@@ -23,7 +23,7 @@
 #include "trilinos_space.h"
 
 // RANS trilinos extensions
-// strategies
+// schemes
 #include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
 #include "custom_strategies/bossak_relaxation_scalar_scheme.h"
 #include "custom_strategies/steady_scalar_scheme.h"

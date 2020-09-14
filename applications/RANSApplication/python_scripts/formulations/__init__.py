@@ -49,7 +49,7 @@ def Factory(model_part, settings):
     current_formulation = formulation_list[formulation_names_list.index(
         formulation_name)](model_part, settings)
 
-    Kratos.Logger.PrintInfo("RANSFormulationFactory",
+    Kratos.Logger.PrintInfo("RansFormulationFactory",
                             "Created " + formulation_name + " formulation.")
 
     return current_formulation

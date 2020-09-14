@@ -78,8 +78,7 @@ std::tuple<double, double> RansVariableDifferenceNormsCalculationUtility<TDataTy
                         std::pow(value - mData[iNode], 2), std::pow(value, 2));
                 });
 
-    const auto norm_values = {dx, solution, static_cast<double>(number_of_nodes)};
-
+    const std::vector<double> norm_values = {dx, solution, static_cast<double>(number_of_nodes)};
     const auto& total_norm_values = r_communicator.GetDataCommunicator().SumAll(norm_values);
 
     dx = std::sqrt(total_norm_values[0]);

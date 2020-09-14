@@ -120,10 +120,7 @@ public:
         BossakRelaxationScalarScheme::CalculateBossakConstants(
             mBossak, mAlphaBossak, delta_time);
 
-#pragma omp critical
-        {
-            rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
-        }
+        rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
 
         KRATOS_CATCH("");
     }
@@ -378,25 +375,19 @@ private:
 
     void UpdateScalarRateVariables(ModelPart& rModelPart)
     {
-        BlockPartition<ModelPart::NodesContainerType>(rModelPart.Nodes())
-            .for_each([&](ModelPart::NodeType& rNode) {
-                double& r_current_rate =
-                    rNode.FastGetSolutionStepValue(mrScalarRateVariable);
-                const double old_rate =
-                    rNode.FastGetSolutionStepValue(mrScalarRateVariable, 1);
-                const double current_value =
-                    rNode.FastGetSolutionStepValue(mrScalarVariable);
-                const double old_value =
-                    rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            double& r_current_rate = rNode.FastGetSolutionStepValue(mrScalarRateVariable);
+            const double old_rate = rNode.FastGetSolutionStepValue(mrScalarRateVariable, 1);
+            const double current_value = rNode.FastGetSolutionStepValue(mrScalarVariable);
+            const double old_value = rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
 
-                // update scalar rate variable
-                r_current_rate =
-                    mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
+            // update scalar rate variable
+            r_current_rate = mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
 
-                // update relaxed scalar rate variable
-                rNode.FastGetSolutionStepValue(mrRelaxedScalarRateVariable) =
-                    this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
-            });
+            // update relaxed scalar rate variable
+            rNode.FastGetSolutionStepValue(mrRelaxedScalarRateVariable) =
+                this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
+        });
     }
 
     ///@}
