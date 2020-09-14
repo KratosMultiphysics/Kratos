@@ -233,7 +233,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
     const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry()); //this->GetValue(ELEMENT_H);
-    const double epsilon = 1.0e3*dt*he*he;
+    const double epsilon = 2.0e3*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
@@ -411,10 +411,10 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double slip_velocity = inner_prod(slip_vector,
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                            const double zeta = 1.0e0;
+                            const double zeta = 1.0e2;
                             const double gamma = 0.0426;
 
-                            const double cos_theta_s = 0.5299192642332;
+                            const double cos_theta_s = -0.469471563;
                             const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
 
                             KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
