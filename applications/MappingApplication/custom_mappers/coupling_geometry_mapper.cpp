@@ -22,44 +22,10 @@
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
+#include "factories/linear_solver_factory.h"
 
 namespace Kratos {
 namespace Internals {
-
-typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
-typedef std::size_t SizeType;
-
-void Assemble(
-    const MapperLocalSystem::MatrixType& rLocalMappingMatrix,
-    const MapperLocalSystem::EquationIdVectorType& rOriginIds,
-    const MapperLocalSystem::EquationIdVectorType& rDestinationIds,
-    CompressedMatrix& rMappingMatrix)
-{
-    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size1() != rDestinationIds.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rLocalMappingMatrix.size1() << " | DestinationIDs-size: " << rDestinationIds.size() << std::endl;
-    KRATOS_DEBUG_ERROR_IF(rLocalMappingMatrix.size2() != rOriginIds.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rLocalMappingMatrix.size2() << " | OriginIDs-size: " << rOriginIds.size() << std::endl;
-
-    for (IndexType i=0; i<rDestinationIds.size(); ++i) {
-        for (IndexType j=0; j<rOriginIds.size(); ++j) {
-            rMappingMatrix(rDestinationIds[i], rOriginIds[j]) += rLocalMappingMatrix(i,j);
-        }
-    }
-}
-
-// dirty copy-paste from "mapping_matrix_utilities.cpp"
-void InitializeSystemVector(Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpVector,
-                            const SizeType VectorSize)
-{
-    // The vectors dont have graphs, that why we don't always have to reinitialize them
-    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
-        Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector = Kratos::make_unique<typename SparseSpaceType::VectorType>(VectorSize);
-        rpVector.swap(p_new_vector);
-    }
-    else {
-        SparseSpaceType::SetToZero(*rpVector);
-    }
-}
-
-} // namespace Internals
 
 void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rOriginIds,

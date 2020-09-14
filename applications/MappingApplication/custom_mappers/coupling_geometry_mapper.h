@@ -28,9 +28,7 @@
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "modeler/modeler_factory.h"
 
-#include "factories/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -103,8 +101,7 @@ public:
     typedef Matrix DenseMappingMatrixType;
     typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
 
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
     typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
 
     ///@}
