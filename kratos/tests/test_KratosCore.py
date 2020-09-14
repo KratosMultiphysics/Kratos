@@ -54,6 +54,7 @@ import test_linear_constraints
 import test_cad_json_input
 import test_compare_elements_conditions
 import test_matrix_market_interface
+import test_monotonicity_preserving_solver
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -126,6 +127,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_json_input.TestCadJsonInput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compare_elements_conditions.TestCompareElementsAndConditionsUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_market_interface.TestMatrixMarketInterface]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_monotonicity_preserving_solver.TestMonotonicityPreservingSolver]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
