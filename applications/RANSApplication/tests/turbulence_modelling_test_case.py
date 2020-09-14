@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RANSApplication.test_utilities import RunParametericTestCase
+from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
 
 
 class TurbulenceModellingTestCase(UnitTest.TestCase):
@@ -43,14 +43,14 @@ class TurbulenceModellingTestCase(UnitTest.TestCase):
     def testRfcTkeTransient(self):
         self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "turbulent_kinetic_energy_based"
-        self.parameters["<TIME_SCHEME_TYPE>"] = "transient"
+        self.parameters["<TIME_SCHEME_TYPE>"] = self.transient_scheme_type
 
         self._runTest()
 
     def testRfcVelocityTransient(self):
         self.parameters["<STABILIZATION_METHOD>"] = "residual_based_flux_corrected"
         self.parameters["<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"] = "velocity_based"
-        self.parameters["<TIME_SCHEME_TYPE>"] = "transient"
+        self.parameters["<TIME_SCHEME_TYPE>"] = self.transient_scheme_type
 
         self._runTest()
 
@@ -62,6 +62,6 @@ class TurbulenceModellingTestCase(UnitTest.TestCase):
 
         self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
 
-        RunParametericTestCase(self.parameters_file_name, self.working_folder,
+        RunParametricTestCase(self.parameters_file_name, self.working_folder,
                                self.parameters, self.print_output)
 

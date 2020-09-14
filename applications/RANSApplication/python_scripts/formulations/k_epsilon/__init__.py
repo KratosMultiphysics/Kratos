@@ -9,20 +9,20 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 
 # import formulation interface
-from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
+from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import formulations
-from .k_epsilon_k_formulation import KEpsilonKFormulation
-from .k_epsilon_epsilon_formulation import KEpsilonEpsilonFormulation
+from .k_epsilon_k_rans_formulation import KEpsilonKRansFormulation
+from .k_epsilon_epsilon_rans_formulation import KEpsilonEpsilonRansFormulation
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
 from KratosMultiphysics.RANSApplication import ScalarVariableDifferenceNormCalculationUtility
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 
-class KEpsilonFormulation(Formulation):
+class KEpsilonRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
-        super(KEpsilonFormulation, self).__init__(model_part, settings)
+        super().__init__(model_part, settings)
 
         default_settings = Kratos.Parameters(r'''
         {
@@ -43,21 +43,22 @@ class KEpsilonFormulation(Formulation):
             "auxiliar_process_list": [],
             "echo_level": 0
         }''')
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings = self.GetParameters()
+        settings.ValidateAndAssignDefaults(default_settings)
 
-        self.stabilization_method = self.settings["stabilization_method"].GetString()
+        self.stabilization_method = settings["stabilization_method"].GetString()
 
-        self.tke_formulation = KEpsilonKFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"])
+        self.tke_formulation = KEpsilonKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"])
         self.tke_formulation.SetStabilizationMethod(self.stabilization_method)
-        self.AddFormulation(self.tke_formulation)
+        self.AddRansFormulation(self.tke_formulation)
 
-        self.epsilon_formulation = KEpsilonEpsilonFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"])
+        self.epsilon_formulation = KEpsilonEpsilonRansFormulation(model_part, settings["turbulent_energy_dissipation_rate_solver_settings"])
         self.epsilon_formulation.SetStabilizationMethod(self.stabilization_method)
-        self.AddFormulation(self.epsilon_formulation)
+        self.AddRansFormulation(self.epsilon_formulation)
 
-        self.echo_level = self.settings["echo_level"].GetInt()
+        self.echo_level = settings["echo_level"].GetInt()
         self.nu_t_convergence_utility = ScalarVariableDifferenceNormCalculationUtility(self.GetBaseModelPart(), Kratos.TURBULENT_VISCOSITY)
-        self.SetMaxCouplingIterations(self.settings["coupling_settings"]["max_iterations"].GetInt())
+        self.SetMaxCouplingIterations(settings["coupling_settings"]["max_iterations"].GetInt())
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
@@ -116,11 +117,11 @@ class KEpsilonFormulation(Formulation):
 
         factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
         self.auxiliar_process_list = factory.ConstructListOfProcesses(
-            self.settings["auxiliar_process_list"])
+            self.GetParameters()["auxiliar_process_list"])
         for process in self.auxiliar_process_list:
             self.AddProcess(process)
 
-        super(KEpsilonFormulation, self).Initialize()
+        super().Initialize()
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
@@ -158,7 +159,7 @@ class KEpsilonFormulation(Formulation):
             if (scheme_type == "steady"):
                 self.is_steady_simulation = True
                 self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, 0.0)
-            elif (scheme_type == "transient"):
+            elif (scheme_type == "bdf2" or scheme_type == "bossak"):
                 self.is_steady_simulation = False
                 default_settings = Kratos.Parameters('''{
                     "scheme_type": "transient",
@@ -167,21 +168,22 @@ class KEpsilonFormulation(Formulation):
                 settings.ValidateAndAssignDefaults(default_settings)
                 self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, settings["alpha_bossak"].GetDouble())
             else:
-                raise Exception("Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
+                raise Exception("Only \"steady\", \"bdf2\" and \"bossak\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 
-        super(KEpsilonFormulation, self).SetTimeSchemeSettings(settings)
+        super().SetTimeSchemeSettings(settings)
 
     def SolveCouplingStep(self):
-        relative_tolerance = self.settings["coupling_settings"]["relative_tolerance"].GetDouble()
-        absolute_tolerance = self.settings["coupling_settings"]["absolute_tolerance"].GetDouble()
+        settings = self.GetParameters()
+        relative_tolerance = settings["coupling_settings"]["relative_tolerance"].GetDouble()
+        absolute_tolerance = settings["coupling_settings"]["absolute_tolerance"].GetDouble()
         max_iterations = self.GetMaxCouplingIterations()
 
         for itration in range(max_iterations):
             self.nu_t_convergence_utility.InitializeCalculation()
 
-            for formulation in self.list_of_formulations:
+            for formulation in self.GetRansFormulationsList():
                 if (not formulation.SolveCouplingStep()):
                     return False
             self.ExecuteAfterCouplingSolveStep()

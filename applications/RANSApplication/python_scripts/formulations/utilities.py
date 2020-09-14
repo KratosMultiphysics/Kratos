@@ -262,7 +262,7 @@ def CreateBlockBuilderAndSolver(
 
 def CreateAlgebraicFluxCorrectedSteadyScalarScheme(relaxation_factor, boundary_flags, is_periodic):
     if (is_periodic):
-        return GetKratosObjectType("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, boundary_flags)
-    else:
         return GetKratosObjectType("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, boundary_flags, KratosCFD.PATCH_INDEX)
+    else:
+        return GetKratosObjectType("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, boundary_flags)
 

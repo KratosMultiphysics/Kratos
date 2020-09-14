@@ -7,28 +7,22 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
 # import formulation interface
-from KratosMultiphysics.RANSApplication.formulations.formulation import Formulation
+from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
 from KratosMultiphysics import VariableUtils
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateLinearSolver
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateFormulationModelPart
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
+from KratosMultiphysics.RANSApplication.formulations.utilities import CreateAlgebraicFluxCorrectedSteadyScalarScheme
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedBlockBuilderAndSolver
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualCriteria
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateResidualBasedNewtonRaphsonStrategy
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyAlgebraicFluxCorrectedScheme
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBossakRelaxationScalarScheme
-from KratosMultiphysics.RANSApplication.formulations.utilities import CreateSteadyScalarScheme
-from KratosMultiphysics.RANSApplication.formulations.utilities import IsBufferInitialized
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 
 
-class KEpsilonEpsilonFormulation(Formulation):
+class KEpsilonEpsilonRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
-        super(KEpsilonEpsilonFormulation,
-              self).__init__(model_part, settings)
+        super().__init__(model_part, settings)
 
         defaults = Kratos.Parameters(r"""{
             "wall_function_type"    : "turbulent_kinetic_energy_based",
@@ -43,11 +37,12 @@ class KEpsilonEpsilonFormulation(Formulation):
             "boundary_flags": ["INLET", "STRUCTURE"]
         }""")
 
-        self.settings.ValidateAndAssignDefaults(defaults)
-        self.echo_level = self.settings["echo_level"].GetInt()
+        settings = self.GetParameters()
+        settings.ValidateAndAssignDefaults(defaults)
+        self.echo_level = settings["echo_level"].GetInt()
 
     def PrepareModelPart(self):
-        self.epsilon_model_part = CreateFormulationModelPart(
+        self.epsilon_model_part = CreateRansFormulationModelPart(
             self, self.element_name, self.condition_name)
 
         Kratos.Logger.PrintInfo(self.GetName(),
@@ -66,32 +61,35 @@ class KEpsilonEpsilonFormulation(Formulation):
                 self.GetBaseModelPart(), self.epsilon_model_part,
                 [KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE])
 
-        solver_settings = self.settings
-        linear_solver = CreateLinearSolver(
+        solver_settings = self.GetParameters()
+
+        linear_solver = GetKratosObjectType("LinearSolverFactory")(
             solver_settings["linear_solver_settings"])
-        builder_and_solver = CreateResidualBasedBlockBuilderAndSolver(
+
+        builder_and_solver = CreateBlockBuilderAndSolver(
             linear_solver, self.IsPeriodic(), self.GetCommunicator())
-        convergence_criteria = CreateResidualCriteria([
+
+        convergence_criteria = GetKratosObjectType("MixedGenericCriteria")([
             (KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE,
-             self.settings["relative_tolerance"].GetDouble(),
-             self.settings["absolute_tolerance"].GetDouble())
+             solver_settings["relative_tolerance"].GetDouble(),
+             solver_settings["absolute_tolerance"].GetDouble())
         ])
 
         if (self.is_steady_simulation):
             scheme = self.scheme_type(
-                self.settings["relaxation_factor"].GetDouble())
+                solver_settings["relaxation_factor"].GetDouble())
         else:
-            scheme = CreateBossakRelaxationScalarScheme(
+            scheme = GetKratosObjectType("BossakRelaxationScalarScheme")(
                 self.epsilon_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
-                self.settings["relaxation_factor"].GetDouble(),
+                solver_settings["relaxation_factor"].GetDouble(),
                 KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE,
                 KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2,
                 KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
-        self.solver = CreateResidualBasedNewtonRaphsonStrategy(
+        self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
             self.epsilon_model_part, scheme, linear_solver,
             convergence_criteria, builder_and_solver,
-            self.settings["max_iterations"].GetInt(), False, False, False)
+            solver_settings["max_iterations"].GetInt(), False, False, False)
 
         builder_and_solver.SetEchoLevel(
             solver_settings["echo_level"].GetInt() - 3)
@@ -106,7 +104,7 @@ class KEpsilonEpsilonFormulation(Formulation):
         self.solver.InitializeSolutionStep()
 
     def SolveCouplingStep(self):
-        if (IsBufferInitialized(self)):
+        if (self.IsBufferInitialized()):
             self.solver.Predict()
             self.solver.SolveSolutionStep()
             Kratos.Logger.PrintInfo(self.GetName(), "Solved  formulation.")
@@ -114,8 +112,8 @@ class KEpsilonEpsilonFormulation(Formulation):
 
         return False
 
-    def FinializeSolutionStep(self):
-        self.solver.FinializeSolutionStep()
+    def FinalizeSolutionStep(self):
+        self.solver.FinalizeSolutionStep()
 
     def Check(self):
         self.solver.Check()
@@ -131,11 +129,11 @@ class KEpsilonEpsilonFormulation(Formulation):
             scheme_type = settings["scheme_type"].GetString()
             if (scheme_type == "steady"):
                 self.is_steady_simulation = True
-            elif (scheme_type == "transient"):
+            elif (scheme_type == "bdf2" or scheme_type == "bossak"):
                 self.is_steady_simulation = False
             else:
                 raise Exception(
-                    "Only \"steady\" and \"transient\" scheme types supported. [ scheme_type = \""
+                    "Only \"steady\", \"bdf2\" and \"bossak\" scheme types supported. [ scheme_type = \""
                     + scheme_type + "\" ]")
         else:
             raise Exception(
@@ -150,15 +148,15 @@ class KEpsilonEpsilonFormulation(Formulation):
     def SetStabilizationMethod(self, stabilization_method):
         if (stabilization_method == "algebraic_flux_corrected"):
             self.element_name = "RansKEpsilonEpsilonAFC"
-            self.scheme_type = lambda x: CreateSteadyAlgebraicFluxCorrectedScheme(
-                x, GetBoundaryFlags(self.settings["boundary_flags"]),
+            self.scheme_type = lambda x: CreateAlgebraicFluxCorrectedSteadyScalarScheme(
+                x, GetBoundaryFlags(self.GetParameters()["boundary_flags"]),
                 self.IsPeriodic())
         elif (stabilization_method == "residual_based_flux_corrected"):
             self.element_name = "RansKEpsilonEpsilonRFC"
-            self.scheme_type = CreateSteadyScalarScheme
+            self.scheme_type = GetKratosObjectType("SteadyScalarScheme")
         elif (stabilization_method == "non_linear_cross_wind_dissipation"):
             self.element_name = "RansKEpsilonEpsilonCWD"
-            self.scheme_type = CreateSteadyScalarScheme
+            self.scheme_type = GetKratosObjectType("SteadyScalarScheme")
         else:
             raise Exception("Unsupported stabilization method")
 

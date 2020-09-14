@@ -1,6 +1,6 @@
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.RANSApplication.test_utilities import RunParametericTestCase
+from KratosMultiphysics.RANSApplication.test_utilities import RunParametricTestCase
 
 
 class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
@@ -39,6 +39,6 @@ class PeriodicTurbulenceModellingTestCase(UnitTest.TestCase):
     def _runTest(self):
         self.addCleanup(lambda: kratos_utilities.DeleteTimeFiles("."))
 
-        RunParametericTestCase(self.parameters_file_name, self.working_folder,
+        RunParametricTestCase(self.parameters_file_name, self.working_folder,
                                self.parameters, self.print_output)
 
