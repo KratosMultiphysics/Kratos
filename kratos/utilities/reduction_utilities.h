@@ -80,9 +80,10 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const Reducer<TDataType>& rOther)
     {
+        const TDataType& r_other_value = rOther.GetValue();
 #pragma omp critical
         {
-            mF(mReducedValue, rOther.GetValue());
+            mF(mReducedValue, r_other_value);
         }
     }
 
