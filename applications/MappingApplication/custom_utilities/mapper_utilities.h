@@ -230,24 +230,6 @@ void CreateMapperLocalSystemsFromGeometries(const Communicator& rModelPartCommun
     KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
 }
 
-inline int ComputeNumberOfNodes(ModelPart& rModelPart)
-{
-    int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
-}
-
-inline int ComputeNumberOfConditions(ModelPart& rModelPart)
-{
-    int num_conditions = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
-}
-
-inline int ComputeNumberOfElements(ModelPart& rModelPart)
-{
-    int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_elements); // Compute the sum among the partitions
-}
-
 template <class T1, class T2>
 inline double ComputeDistance(const T1& rCoords1,
                               const T2& rCoords2)
