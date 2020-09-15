@@ -31,9 +31,23 @@ if( USE_EIGEN_MKL MATCHES ON )
 
         link_directories("$ENV{MKLROOT}/lib")
 
-        if( NOT MSVC )
-            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+        # Setting the options from the MKL Link Line Advisor
+        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+            if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+            elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -ldl" )
+            endif()
+        elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+            if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_rt -lpthread -lm -ldl" )
+            elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_rt -lpthread -lm -ldl" )
+            elseif (${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
+                set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_rt -lpthread -lm -ldl" )
+            endif()
         endif()
+
     elseif( DEFINED ENV{CONDA_PREFIX} )
         message("-- Found Conda environment: $ENV{CONDA_PREFIX}")
 
