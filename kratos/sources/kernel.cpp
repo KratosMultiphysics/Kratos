@@ -22,7 +22,6 @@
 #include "includes/parallel_environment.h"
 #include "input_output/logger.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/scope_lock.h"
 
 namespace Kratos {
 Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
@@ -38,10 +37,6 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
 
     if (!IsImported("KratosMultiphysics")) {
         this->ImportApplication(mpKratosCoreApplication);
-    }
-
-    if (!ScopeLock::IsInitialized()) {
-        ScopeLock::Initialize();
     }
 }
 
