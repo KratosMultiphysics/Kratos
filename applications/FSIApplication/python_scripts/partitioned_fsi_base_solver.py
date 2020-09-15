@@ -28,7 +28,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             project_parameters["structure_solver_settings"]["multi_point_constraints_used"].SetBool(False)
 
         # Call the base Python solver constructor
-        # Note that default settings in GetDefaultSettings() are validated in here
+        # Note that default settings in GetDefaultParameters() are validated in here
         self._validate_settings_in_baseclass = True
         super(PartitionedFSIBaseSolver,self).__init__(model, project_parameters)
 
@@ -107,7 +107,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[PartitionedFSIBaseSolver]::", "Partitioned FSI base solver construction finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         """This function returns the default-settings used by this class
         """
         this_defaults = KratosMultiphysics.Parameters("""{
@@ -123,7 +123,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             "coupling_settings":{
             }
         }""")
-        this_defaults.AddMissingParameters(super(PartitionedFSIBaseSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(PartitionedFSIBaseSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def GetMinimumBufferSize(self):
