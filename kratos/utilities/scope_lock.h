@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/lock_object.h"
 
 
@@ -54,18 +55,13 @@ public:
     ///@name Operations
     ///@{
 
-    static bool IsInitialized();
-
-    static void Initialize();
-
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
 
-    static LockObject* mpLock;
-    static bool mIsInitialized;
+    static LockObject mLock;
 
     ///@}
 

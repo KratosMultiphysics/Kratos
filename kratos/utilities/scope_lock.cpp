@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/scope_lock.h"
 
 
@@ -25,30 +24,14 @@ namespace Kratos {
 
 ScopeLock::ScopeLock()
 {
-    KRATOS_ERROR_IF_NOT(ScopeLock::mIsInitialized) << "ScopeLock is not initialized!" << std::endl;
-    mpLock->SetLock();
+    mLock.SetLock();
 }
 
 ScopeLock::~ScopeLock()
 {
-    mpLock->UnSetLock();
+    mLock.UnSetLock();
 }
 
-bool ScopeLock::IsInitialized()
-{
-    return mIsInitialized;
-}
-
-void ScopeLock::Initialize()
-{
-    KRATOS_ERROR_IF(ScopeLock::mIsInitialized) << "ScopeLock was already initialized!" << std::endl;
-
-    static LockObject static_lock;
-    mpLock = &static_lock;
-    mIsInitialized = true;
-}
-
-LockObject* ScopeLock::mpLock = nullptr;
-bool ScopeLock::mIsInitialized = false;
+LockObject ScopeLock::mLock;
 
 }  // namespace Kratos.
