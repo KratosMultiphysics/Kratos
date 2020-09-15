@@ -456,6 +456,7 @@ class CustomProcessTest(UnitTest.TestCase):
                     "model_part_name"                  : "test",
                     "echo_level"                       : 0,
                     "max_distance"                     : "max",
+                    "max_levels"                       : 14,
                     "wall_flag_variable_name"          : "STRUCTURE",
                     "wall_flag_variable_value"         : true,
                     "re_calculate_at_each_time_step"   : false,

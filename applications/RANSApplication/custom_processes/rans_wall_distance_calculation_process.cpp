@@ -373,16 +373,15 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
         }
     });
 
-    unsigned int max_level = 100;
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
         auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<2>>();
         p_distance_smoother->CalculateDistances(
-            r_model_part, r_distance_variable, r_nodal_area_variable, max_level, mMaxDistance);
+            r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
     } else {
         auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<2>>();
         p_distance_smoother->CalculateDistances(
-            r_model_part, r_distance_variable, r_nodal_area_variable, max_level, mMaxDistance);
+            r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
     }
 
     // revert boundary negative distances to zero
