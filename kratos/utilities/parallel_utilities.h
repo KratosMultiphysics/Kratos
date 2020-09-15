@@ -239,7 +239,7 @@ typename TReducer::value_type block_for_each(TContainerType &&v, const TThreadLo
  *  @param TMaxThreads - maximum number of threads allowed in the partitioning.
  *                       must be known at compile time to avoid heap allocations in the partitioning
  */
-template<class TIndexType, int TMaxThreads=Globals::MaxAllowedThreads>
+template<class TIndexType=std::size_t, int TMaxThreads=Globals::MaxAllowedThreads>
 class IndexPartition
 {
 public:
