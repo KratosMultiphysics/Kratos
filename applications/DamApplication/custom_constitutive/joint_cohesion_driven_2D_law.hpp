@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ignasi de Pouplana
+//  Main authors:    Javier San Mauro Saiz
+//                   Joaquin Irazabal Gonzalez
 //
 
 #if !defined (KRATOS_JOINT_COHESION_DRIVEN_2D_LAW_H_INCLUDED)
