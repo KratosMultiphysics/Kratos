@@ -50,13 +50,13 @@ class TestMonotonicityPreservingSolver(KratosUnittest.TestCase):
         n = A.Size1()
         x = KratosMultiphysics.Vector(n)
         for dof in x:
-            dof = 293.15
+            dof = 300.0
         linear_solver = python_linear_solver_factory.ConstructSolver(settings)
         linear_solver.Solve(A,x,b)
         for dof in x:
             self.assertTrue(dof > 0.0)
         solution_norm = space.TwoNorm(x)
-        self.assertAlmostEqual(solution_norm, 5515.662307638862)
+        self.assertAlmostEqual(solution_norm, 604.4123359124281)
 
 
 if __name__ == '__main__':
