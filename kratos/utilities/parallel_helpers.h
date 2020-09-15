@@ -33,7 +33,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ParallelHelpers
+class KRATOS_API(KRATOS_CORE) ParallelHelpers
 {
 public:
     ///@name Life Cycle
