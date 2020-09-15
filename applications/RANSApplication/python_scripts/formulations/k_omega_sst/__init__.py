@@ -16,7 +16,7 @@ from .k_omega_sst_omega_rans_formulation import KOmegaSSTOmegaRansFormulation
 
 # import utilities
 from KratosMultiphysics.RANSApplication import RansCalculationUtilities
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess
 
 class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
@@ -70,6 +70,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
@@ -101,7 +102,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         wall_distance_calculation_settings.AddEmptyValue("model_part_name")
         wall_distance_calculation_settings["model_part_name"].SetString(self.GetBaseModelPart().Name)
 
-        wall_distance_process = GetKratosObjectType("RansWallDistanceCalculationProcess")(model, wall_distance_calculation_settings)
+        wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         self.AddProcess(wall_distance_process)
 
         process_info = model_part.ProcessInfo

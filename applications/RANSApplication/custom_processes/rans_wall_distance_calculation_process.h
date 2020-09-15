@@ -92,30 +92,20 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected Operations
-    ///@{
-
-    virtual Process::Pointer GetWallDistanceCalculationProcess(
-        ModelPart& rModelPart,
-        Parameters LinearSolverParameters,
-        const int MaxIterations);
-
-    ///@}
-
 private:
     ///@name Member Variables
     ///@{
     Model& mrModel;
-    Parameters mLinearSolverParameters;
     std::string mModelPartName;
-    int mMaxIterations;
+    int mMaxLevels;
     int mEchoLevel;
     std::string mWallFlagVariableName;
+    std::string mDistanceVariableName;
+    std::string mNodalAreaVariableName;
     bool mWallFlagVariableValue;
     bool mRecalculateAtEachTimeStep;
     bool mCorrectDistancesUsingNeighbors;
-    Process::Pointer mpVariationalDistanceCalculationProcess;
+    double mMaxDistance;
 
     ///@}
     ///@name Private Operations
