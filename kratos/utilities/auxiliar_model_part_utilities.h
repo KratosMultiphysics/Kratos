@@ -337,7 +337,7 @@ public:
         }
         default:{
             //Throw an error about invalid DataLocation
-            KRATOS_ERROR ;
+            KRATOS_ERROR << "unknown Datalocation" << std::endl;
             break;
         }
 
@@ -412,10 +412,7 @@ public:
             break;
         }
         case (DataLocation::ProcessInfo):{
-<<<<<<< HEAD
             IndexType counter = 0;
-=======
->>>>>>> 6e8bc9f8ec1e9603e295f0fdbc3043601e6f718b
             data.resize(TSize);
             auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
             for(int dim = 0 ; dim < TSize ; dim++){
@@ -423,18 +420,14 @@ public:
                 }
             break;
         }
-<<<<<<< HEAD
         default:{
-=======
-        default:
-            KRATOS_ERROR << "unknown Datalocation" << std::endl;
->>>>>>> 6e8bc9f8ec1e9603e295f0fdbc3043601e6f718b
             //Throw an error about invalid DataLocation
-            KRATOS_ERROR ;
+            KRATOS_ERROR << "unknown Datalocation" << std::endl;
             break;
         }
-
+        
         }
+
         
         return data;
     }
@@ -488,7 +481,7 @@ public:
         }
         default:{
             //Throw an error about invalid DataLocation
-            KRATOS_ERROR ;
+            KRATOS_ERROR << "unknown Datalocation" << std::endl;
             break;
         }
 
@@ -564,7 +557,7 @@ public:
         }
         default:{
             //Throw an error about invalid DataLocation
-            KRATOS_ERROR ;
+            KRATOS_ERROR << "unknown Datalocation" << std::endl;
             break;
         }
 
