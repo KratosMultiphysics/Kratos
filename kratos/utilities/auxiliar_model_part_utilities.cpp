@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/key_hash.h"
 #include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/scope_lock.h"
 
 namespace Kratos
 {
@@ -83,8 +84,8 @@ void AuxiliarModelPartUtilities::EnsureModelPartOwnsProperties(const bool Remove
         }
 
         // Combine buffers together
-        #pragma omp critical
         {
+            ScopeLock lock;
             list_of_properties.insert(buffer_list_of_properties.begin(),buffer_list_of_properties.end());
         }
     }
