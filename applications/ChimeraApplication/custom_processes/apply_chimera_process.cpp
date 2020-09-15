@@ -460,7 +460,7 @@ void ApplyChimera<TDim>::FormulateConstraints(
     if(is_comm_distributed)
         GatherModelPartOnAllRanksUtility::GatherModelPartOnAllRanks(rBoundaryModelPart, gathered_modelpart);
     const int n_boundary_nodes = static_cast<int>(gathered_modelpart.Nodes().size());
-    WriteModelPart(gathered_modelpart, rBoundaryModelPart.FullName()+std::to_string(mpi_rank));
+    // WriteModelPart(gathered_modelpart, rBoundaryModelPart.FullName()+std::to_string(mpi_rank));
 
     std::vector<int> vector_of_non_found_nodes;
     std::vector<int> constraints_id_vector;
