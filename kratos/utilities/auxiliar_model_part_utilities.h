@@ -330,11 +330,19 @@ public:
             data[0] = mrModelPart[rVariable];
             break;
         }
-        default:
-            //Throw an error about invalid DataLocation
+        case (DataLocation::ProcessInfo):{
+            data.resize(1);
+            data[0] = mrModelPart.GetProcessInfo()[rVariable];
             break;
         }
-        //Need to do something related to ProcessInfo ??
+        default:{
+            //Throw an error about invalid DataLocation
+            KRATOS_ERROR ;
+            break;
+        }
+
+        }
+
         return data;
     }
 
@@ -395,6 +403,7 @@ public:
             break;
         }
         case (DataLocation::ModelPart):{
+            IndexType counter = 0;
             data.resize(TSize);
             auto& r_val = mrModelPart[rVariable];
             for(int dim = 0 ; dim < TSize ; dim++){
@@ -402,12 +411,23 @@ public:
                 }
             break;
         }
-        default:
+        case (DataLocation::ProcessInfo):{
+            IndexType counter = 0;
+            data.resize(TSize);
+            auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
+            for(int dim = 0 ; dim < TSize ; dim++){
+                    data[counter++] = r_val[dim];
+                }
+            break;
+        }
+        default:{
             //Throw an error about invalid DataLocation
+            KRATOS_ERROR ;
             break;
         }
 
-        //Need to do something related to ProcessInfo ??
+        }
+        
         return data;
     }
 
@@ -445,7 +465,7 @@ public:
         }
         case (DataLocation::Condition):{
             IndexType counter = 0;
-            for(auto& r_cond : mrModelPart.Condions()){
+            for(auto& r_cond : mrModelPart.Conditions()){
                 r_cond.GetValue(rVariable) = rData[counter++];
             }
             break;
@@ -454,12 +474,17 @@ public:
             mrModelPart[rVariable]= rData[0];
             break;
         }
-        default:
+        case (DataLocation::ProcessInfo):{
+            mrModelPart.GetProcessInfo()[rVariable] = rData[0] ;
+            break;
+        }
+        default:{
             //Throw an error about invalid DataLocation
+            KRATOS_ERROR ;
             break;
         }
 
-        //Need to do something related to ProcessInfo ??
+        }
 
     }
 
@@ -506,7 +531,7 @@ public:
         case (DataLocation::Condition):{
             IndexType counter = 0;
             for(auto& r_cond : mrModelPart.Conditions()){
-                array_1d<double, TSize>& r_val = r_elem.GetValue(rVariable);
+                array_1d<double, TSize>& r_val = r_cond.GetValue(rVariable);
                 for(int dim = 0 ; dim < TSize ; dim++){
                     r_val[dim] = rData[counter++];
                 }
@@ -514,19 +539,29 @@ public:
             break;
         }
         case (DataLocation::ModelPart):{
+            IndexType counter = 0;
             auto& r_val = mrModelPart[rVariable];
                 for(int dim = 0 ; dim < TSize ; dim++){
-                    r_val[dim] = data[counter++];
+                    r_val[dim] = rData[counter++];
                 }
+            break;
             }
+        case (DataLocation::ProcessInfo):{
+            IndexType counter = 0;
+            auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
+            for(int dim = 0 ; dim < TSize ; dim++){
+                    r_val[dim] = rData[counter++];
+                }
             break;
         }
-        default:
+        default:{
             //Throw an error about invalid DataLocation
+            KRATOS_ERROR ;
             break;
         }
 
-        //Need to do something related to ProcessInfo ??
+        }
+        
     }
 
 
