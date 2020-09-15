@@ -49,8 +49,8 @@ class TestMonotonicityPreservingSolver(KratosUnittest.TestCase):
         KratosMultiphysics.ReadMatrixMarketVector(rhs_file_path,b)
         n = A.Size1()
         x = KratosMultiphysics.Vector(n)
-        for dof in x:
-            dof = 300.0
+        for i in range(0,x.Size()):
+            x[i] = 300.0
         linear_solver = python_linear_solver_factory.ConstructSolver(settings)
         linear_solver.Solve(A,x,b)
         for dof in x:
