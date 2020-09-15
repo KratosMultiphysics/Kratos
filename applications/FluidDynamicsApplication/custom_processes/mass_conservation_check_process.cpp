@@ -200,17 +200,15 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
-                const double dist = rGeom[i].FastGetSolutionStepValue(DISTANCE);
-                if ( std::abs(dist) < 1.0e-15 ){
-                    if (dist > 0.0){
+                double& r_dist = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+                if (std::abs(r_dist) < 1.0e-12) {
+                    const double aux_dist = 1.0e-6* rGeom[i].GetValue(NODAL_H)
+                    if (dist > 0.0) {
                         #pragma omp critical
-                        it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) =
-                        1.0e-6*it_elem->GetGeometry().GetPoint(i).GetValue(NODAL_H);
-                    }
-                    else{
+                        r_dist = aux_dist;
+                    } else {
                         #pragma omp critical
-                        it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) =
-                        -1.0e-6*it_elem->GetGeometry().GetPoint(i).GetValue(NODAL_H);
+                        r_dist = -aux_dist;
                     }
                 }
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
