@@ -16,18 +16,15 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Classes
@@ -39,13 +36,6 @@ namespace Kratos
 class ParallelHelpers
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of ParallelHelpers
-    KRATOS_CLASS_POINTER_DEFINITION(ParallelHelpers);
-
-    ///@}
     ///@name Life Cycle
     ///@{
 
