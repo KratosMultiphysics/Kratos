@@ -181,7 +181,7 @@ void KratosApplication::RegisterKratosCore() {
     //Register general geometries:
     // Point register:
     Serializer::Register("Point", mPointPrototype);
-    
+
     // Register + KratosComponents
     KRATOS_REGISTER_GEOMETRY("Point2D", mPoint2DPrototype);
     KRATOS_REGISTER_GEOMETRY("Point3D", mPoint3DPrototype);
@@ -207,6 +207,11 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D8", mHexahedra3D8Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D20", mHexahedra3D20Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D27", mHexahedra3D27Prototype);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometry1DinWorkingSpace1D", mQuadraturePointGeometry1DinWorkingSpace1D);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometry1DinWorkingSpace2D", mQuadraturePointGeometry1DinWorkingSpace2D);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometry2DinWorkingSpace2D", mQuadraturePointGeometry2DinWorkingSpace2D);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometry2DinWorkingSpace3D", mQuadraturePointGeometry2DinWorkingSpace3D);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometry3DinWorkingSpace3D", mQuadraturePointGeometry3DinWorkingSpace3D);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);
