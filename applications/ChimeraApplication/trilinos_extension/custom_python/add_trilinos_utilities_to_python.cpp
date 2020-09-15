@@ -27,6 +27,8 @@
 // TrilinosApplication dependencies
 #include "trilinos_space.h"
 
+#include "custom_utilities/trilinos_chimera_fractional_step_settings.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -39,8 +41,16 @@ void AddTrilinosUtilitiesToPython(pybind11::module& m)
     using UblasLocalSpace = UblasSpace<double, Matrix, Vector>;
     using TrilinosLinearSolver = LinearSolver<TrilinosSparseSpace, UblasLocalSpace>;
 
-    //using BaseSolverSettings = SolverSettings<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
+    using BaseSolverSettings = SolverSettings<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
+    typedef ChimeraTrilinosFractionalStepSettings<TrilinosSparseSpace,UblasLocalSpace,TrilinosLinearSolver> ChimeraTrilinosFractionalStepSettingsType;
 
+    // TrilinosChimeraFractionalStepSettings
+    py::class_< ChimeraTrilinosFractionalStepSettingsType, BaseSolverSettings>(m,"TrilinosFractionalStepSettings")
+    .def(py::init<Epetra_MpiComm&, ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+    .def("SetStrategy",&ChimeraTrilinosFractionalStepSettingsType::SetStrategy)
+    .def("GetStrategy",&ChimeraTrilinosFractionalStepSettingsType::pGetStrategy)
+    .def("SetEchoLevel",&ChimeraTrilinosFractionalStepSettingsType::SetEchoLevel)
+    ;
 }
 
 }

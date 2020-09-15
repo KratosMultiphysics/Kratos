@@ -72,13 +72,14 @@ public:
     typedef FractionalStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef FractionalStepSettingsForChimera<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
+    typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> BaseSolverSettingsType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     FractionalStepStrategyForChimera(ModelPart& rModelPart,
-               SolverSettingsType& rSolverConfig,
+               BaseSolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
         BaseType(rModelPart,rSolverConfig,PredictorCorrector)
     {
@@ -88,7 +89,7 @@ public:
 
     FractionalStepStrategyForChimera(
         ModelPart &rModelPart,
-        SolverSettingsType &rSolverConfig,
+        BaseSolverSettingsType &rSolverConfig,
         bool PredictorCorrector,
         bool CalculateReactionsFlag)
         : BaseType(rModelPart, rSolverConfig, PredictorCorrector, CalculateReactionsFlag)
@@ -647,7 +648,7 @@ private:
         }
     }
 
-    void InitializeStrategy(SolverSettingsType& rSolverConfig,
+    void InitializeStrategy(BaseSolverSettingsType& rSolverConfig,
             bool PredictorCorrector)
     {
        KRATOS_TRY;
@@ -670,12 +671,12 @@ private:
         BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
 
         // Initialize strategies for each step
-        bool HaveVelStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Velocity,BaseType::mpMomentumStrategy);
+        bool HaveVelStrategy = rSolverConfig.FindStrategy(BaseSolverSettingsType::Velocity,BaseType::mpMomentumStrategy);
 
         if (HaveVelStrategy)
         {
-            rSolverConfig.FindTolerance(SolverSettingsType::Velocity,BaseType::mVelocityTolerance);
-            rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,BaseType::mMaxVelocityIter);
+            rSolverConfig.FindTolerance(BaseSolverSettingsType::Velocity,BaseType::mVelocityTolerance);
+            rSolverConfig.FindMaxIter(BaseSolverSettingsType::Velocity,BaseType::mMaxVelocityIter);
             KRATOS_INFO("FractionalStepStrategyForChimera ")<<"Velcoity strategy successfully set !"<<std::endl;
         }
         else
@@ -683,12 +684,12 @@ private:
             KRATOS_THROW_ERROR(std::runtime_error,"FS_Strategy error: No Velocity strategy defined in FractionalStepSettings","");
         }
 
-        bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,BaseType::mpPressureStrategy);
+        bool HavePressStrategy = rSolverConfig.FindStrategy(BaseSolverSettingsType::Pressure,BaseType::mpPressureStrategy);
 
         if (HavePressStrategy)
         {
-            rSolverConfig.FindTolerance(SolverSettingsType::Pressure,BaseType::mPressureTolerance);
-            rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,BaseType::mMaxPressureIter);
+            rSolverConfig.FindTolerance(BaseSolverSettingsType::Pressure,BaseType::mPressureTolerance);
+            rSolverConfig.FindMaxIter(BaseSolverSettingsType::Pressure,BaseType::mMaxPressureIter);
 
             KRATOS_INFO("FractionalStepStrategyForChimera ")<<"Pressure strategy successfully set !"<<std::endl;
         }

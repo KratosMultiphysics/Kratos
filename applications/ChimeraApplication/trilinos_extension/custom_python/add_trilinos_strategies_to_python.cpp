@@ -31,6 +31,8 @@
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_with_constraints.h"
 #include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver_with_constraints.h"
+#include "custom_strategies/strategies/fs_strategy_for_chimera.h"
+#include "custom_utilities/trilinos_chimera_fractional_step_settings.h"
 #include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
@@ -55,14 +57,19 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     (m, "TrilinosChimeraBlockBuilderAndSolver").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
 
-    typedef TrilinosChimeraResidualBasedBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > OldTrilinosChimeraBlockBuilderAndSolverType;
-    py::class_<
-        OldTrilinosChimeraBlockBuilderAndSolverType,
-        typename OldTrilinosChimeraBlockBuilderAndSolverType::Pointer,
-        TrilinosBaseBuilderAndSolverType >
-    (m, "OldTrilinosChimeraBlockBuilderAndSolver").def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
-    ;
 
+    // Base types
+    typedef FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > BaseSolvingStrategyType;
+    typedef FractionalStepStrategyForChimera< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > FractionalStepStrategyForChimeraType;
+    typedef ChimeraTrilinosFractionalStepSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> ChimeraTrilinosFractionalStepSettingsType;
+    //*************************STRATEGY CLASSES***************************
+    py::class_< FractionalStepStrategyForChimeraType,
+                typename FractionalStepStrategyForChimeraType::Pointer,
+                BaseSolvingStrategyType >
+                (m,"TrilinosFractionalStepStrategyForChimera")
+                .def(py::init< ModelPart&, ChimeraTrilinosFractionalStepSettingsType&, bool >() )
+                .def(py::init< ModelPart&, ChimeraTrilinosFractionalStepSettingsType&, bool, bool >() )
+                ;
 
 
 }

@@ -1,25 +1,54 @@
-#ifndef KRATOS_TRILINOS_FRACTIONAL_STEP_SETTINGS_H
-#define KRATOS_TRILINOS_FRACTIONAL_STEP_SETTINGS_H
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
+// 					Navaneeth K Narayanan
+//					Rishith Ellath Meethal
+//
+
+
+#ifndef KRATOS_TRILINOS_FRACTIONAL_STEP_SETTINGS_FOR_CHIMERA_H
+#define KRATOS_TRILINOS_FRACTIONAL_STEP_SETTINGS_FOR_CHIMERA_H
 
 // System includes
+#include <string>
+#include <iostream>
+
 
 // External includes
 #include "Epetra_MpiComm.h"
 
+
 // Project includes
+#include "includes/define.h"
+
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
+#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "processes/process.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
+#include "containers/model.h"
 
 // Application includes
-#include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
-#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
+#include "custom_utilities/solver_settings.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solvers/trilinos_chimera_block_builder_and_solver_with_constraints.h"
 
-// FluidDynamicsApplication dependences
-#include "../FluidDynamicsApplication/custom_utilities/solver_settings.h"
 
 namespace Kratos
 {
-///@addtogroup TrilinosApplication
+///@addtogroup FluidDynamicsApplication
 ///@{
 
 ///@name Kratos Globals
@@ -46,42 +75,53 @@ template< class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver
           >
-class TrilinosFractionalStepSettings: public SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
+class ChimeraTrilinosFractionalStepSettings: public SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TrilinosFractionalStepSettings
-    KRATOS_CLASS_POINTER_DEFINITION(TrilinosFractionalStepSettings);
+    /// Pointer definition of ChimeraTrilinosFractionalStepSettings
+    KRATOS_CLASS_POINTER_DEFINITION(ChimeraTrilinosFractionalStepSettings);
 
     typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-
     typedef typename BaseType::StrategyType StrategyType;
     typedef typename BaseType::StrategyPointerType StrategyPointerType;
     typedef typename BaseType::ProcessPointerType ProcessPointerType;
-
     typedef typename BaseType::StrategyLabel StrategyLabel;
-    typedef typename BaseType::TurbulenceModelLabel TurbulenceModelLabel;
+    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ResidualBasedBlockBuilderAndSolverType;
+    typedef typename ResidualBasedBlockBuilderAndSolverType::Pointer ResidualBasedBlockBuilderAndSolverPointerType;
+    typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    TrilinosFractionalStepSettings(Epetra_MpiComm& rComm,
-                                   ModelPart& rModelPart,
-                                   const unsigned int ThisDomainSize,
-                                   const unsigned int ThisTimeOrder,
-                                   const bool UseSlip,
-                                   const bool MoveMeshFlag,
-                                   const bool ReformDofSet):
-        SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver>(rModelPart,ThisDomainSize,ThisTimeOrder,UseSlip,MoveMeshFlag,ReformDofSet),
-        mrComm(rComm)
+    ChimeraTrilinosFractionalStepSettings(Epetra_MpiComm& rComm,
+                   ModelPart& r_model_part,
+                   const std::size_t ThisDomainSize,
+                   const std::size_t ThisTimeOrder,
+                   const bool use_slip,
+                   const bool MoveMeshFlag,
+                   const bool reform_dof_set):
+        BaseType(r_model_part,ThisDomainSize,ThisTimeOrder,use_slip,MoveMeshFlag,reform_dof_set), mrComm(rComm)
     {}
 
     /// Destructor.
-    virtual ~TrilinosFractionalStepSettings(){}
+    ~ChimeraTrilinosFractionalStepSettings() = default;
+
+
+    /// Default constructor.
+    ChimeraTrilinosFractionalStepSettings() = delete;
+
+    /// Assignment operator.
+    ChimeraTrilinosFractionalStepSettings& operator=(ChimeraTrilinosFractionalStepSettings const& rOther) = delete;
+
+    /// Copy constructor.
+    ChimeraTrilinosFractionalStepSettings(ChimeraTrilinosFractionalStepSettings const& rOther) = delete;
+
 
     ///@}
     ///@name Operators
@@ -97,108 +137,92 @@ public:
     ///@{
 
     void SetStrategy(StrategyLabel const& rStrategyLabel,
-                     typename TLinearSolver::Pointer pLinearSolver,
-                     const double Tolerance,
-                     const unsigned int MaxIter) override
+                             typename TLinearSolver::Pointer pLinearSolver,
+                             const double Tolerance,
+                             const unsigned int MaxIter) override
     {
         KRATOS_TRY;
 
-        // pointer types for solution strategy construcion
+        // pointer types for solution strategy construction
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
-        //~ typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
-        typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+        typedef TrilinosChimeraBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType;
 
         // Default, fixed flags
-        bool CalculateReactions = false;
-        bool CalculateNormDxFlag = true;
+        bool calculate_reactions = false;
+        bool calculate_norm_dx_flag = true;
+        const int RowSizeGuess = 40;
 
-        // Trilinos defaults
-        int RowSizeGuess;
-        if(this->GetDomainSize() == 2)
-            RowSizeGuess = 15;
-        else
-            RowSizeGuess = 40;
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
-        ModelPart& rModelPart = this->GetModelPart();
-        bool ReformDofSet = this->GetReformDofSet();
-        bool UseSlip = this->UseSlipConditions();
-        unsigned int EchoLevel = this->GetEchoLevel();
+        bool use_slip = BaseType::UseSlipConditions();
+        // Modification of the DofSet is managed by the fractional step strategy, not the auxiliary velocity and pressure strategies.
+        bool reform_dof_set = BaseType::GetReformDofSet();
+        std::size_t echo_level = BaseType::GetEchoLevel();
+        std::size_t strategy_echo_level = (echo_level > 0) ? (echo_level-1) : 0;
 
         if ( rStrategyLabel == BaseType::Velocity )
         {
+            std::string fs_vel_mp_name = r_model_part.Name()+"fs_velocity_model_part";
+            ModelPart &r_fs_velocity_model_part = r_model_part.CreateSubModelPart(fs_vel_mp_name);
+            FastTransferBetweenModelPartsProcess(r_fs_velocity_model_part, r_model_part).Execute();
             // Velocity Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mrComm,RowSizeGuess,pLinearSolver));
+            BuilderSolverTypePointer p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(mrComm, RowSizeGuess, pLinearSolver);
+            p_build_and_solver->SetEchoLevel(strategy_echo_level);
 
-            SchemePointerType pScheme;
+            SchemePointerType p_scheme;
             //initializing fractional velocity solution step
-            if (UseSlip)
+            if (use_slip)
             {
-                double DomainSize = this->GetDomainSize();
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
-                pScheme.swap(Temp);
+                std::size_t domain_size = BaseType::GetDomainSize();
+                SchemePointerType p_temp = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace>> (domain_size,domain_size);
+                p_scheme.swap(p_temp);
             }
             else
             {
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-                pScheme.swap(Temp);
+                SchemePointerType p_temp = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace >>();
+                p_scheme.swap(p_temp);
             }
 
             // Strategy
-            this->mStrategies[BaseType::Velocity] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
-
+            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
+                                                                        (r_fs_velocity_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
+            std::string fs_pressure_mp_name = r_model_part.Name()+"fs_pressure_model_part";
+            ModelPart &r_fs_pressure_model_part = r_model_part.CreateSubModelPart(fs_pressure_mp_name);
+            FastTransferBetweenModelPartsProcess(r_fs_pressure_model_part, r_model_part).Execute();
             // Pressure Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(mrComm,RowSizeGuess,pLinearSolver));
-            SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+            BuilderSolverTypePointer p_build_and_solver =  Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraintsForChimeraType>(mrComm, RowSizeGuess, pLinearSolver);
+            SchemePointerType p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace >> ();
+            p_build_and_solver->SetEchoLevel(strategy_echo_level);
 
             // Strategy
-            this->mStrategies[BaseType::Pressure] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            BaseType::mStrategies[rStrategyLabel] = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >>
+                                                                        (r_fs_pressure_model_part, p_scheme, pLinearSolver, p_build_and_solver, calculate_reactions, reform_dof_set, calculate_norm_dx_flag);
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in TrilinosFractionalStepSettings: Unknown strategy label.","");
+            KRATOS_ERROR << "Error in ChimeraTrilinosFractionalStepSettings: Unknown strategy label."<<std::endl;
         }
 
-        this->mTolerances[rStrategyLabel] = Tolerance;
+        BaseType::mTolerances[rStrategyLabel] = Tolerance;
 
-        this->mMaxIter[rStrategyLabel] = MaxIter;
+        BaseType::mMaxIter[rStrategyLabel] = MaxIter;
 
-        this->mStrategies[rStrategyLabel]->SetEchoLevel(EchoLevel);
+        BaseType::mStrategies[rStrategyLabel]->SetEchoLevel(strategy_echo_level);
 
         KRATOS_CATCH("");
     }
 
-    void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
-                            typename TLinearSolver::Pointer pLinearSolver,
-                            const double Tolerance,
-                            const unsigned int MaxIter) override
+
+    bool FindStrategy(StrategyLabel const& rStrategyLabel,
+                              StrategyPointerType& pThisStrategy) override
     {
-        KRATOS_TRY;
-
-        this->mHaveTurbulenceModel = true;
-
-        ModelPart& rModelPart = this->GetModelPart();
-        double DomainSize = this->GetDomainSize();
-        bool ReformDofSet = this->GetReformDofSet();
-        unsigned int TimeOrder = this->GetTimeOrder();
-
-        if (rTurbulenceModel == BaseType::SpalartAllmaras)
-        {
-            this->mpTurbulenceModel = ProcessPointerType( new TrilinosSpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver>(mrComm,rModelPart,pLinearSolver,DomainSize,Tolerance,MaxIter,ReformDofSet,TimeOrder));
-        }
-        else
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in TrilinosFractionalStepSettings: Unknown turbulence model label.","");
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    void SetTurbulenceModel(ProcessPointerType pTurbulenceModel) override
-    {
-        BaseType::SetTurbulenceModel(pTurbulenceModel);
+        pThisStrategy = BaseType::mStrategies[rStrategyLabel];
+        if(pThisStrategy != nullptr)
+            return true;
+        return false;
     }
 
     ///@}
@@ -213,12 +237,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "TrilinosFractionalStepSettings" ;
+        buffer << "ChimeraTrilinosFractionalStepSettings" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "TrilinosFractionalStepSettings";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "ChimeraTrilinosFractionalStepSettings";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -230,92 +254,10 @@ public:
 
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
     Epetra_MpiComm& mrComm;
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Default constructor.
-    TrilinosFractionalStepSettings(){}
-
-    /// Assignment operator.
-    TrilinosFractionalStepSettings& operator=(TrilinosFractionalStepSettings const& rOther){}
-
-    /// Copy constructor.
-    TrilinosFractionalStepSettings(TrilinosFractionalStepSettings const& rOther){}
-
-
-    ///@}
-
-}; // Class TrilinosFractionalStepSettings
+}; // Class ChimeraTrilinosFractionalStepSettings
 
 ///@}
 
@@ -331,7 +273,7 @@ private:
 /// input stream function
 template< class TDenseSpace, class TSparseSpace, class TLinearSolver >
 inline std::istream& operator >> (std::istream& rIStream,
-                                  TrilinosFractionalStepSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
+                                  ChimeraTrilinosFractionalStepSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
 {
     return rIStream;
 }
@@ -339,7 +281,7 @@ inline std::istream& operator >> (std::istream& rIStream,
 /// output stream function
 template< class TDenseSpace, class TSparseSpace, class TLinearSolver >
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const TrilinosFractionalStepSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
+                                  const ChimeraTrilinosFractionalStepSettings<TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -353,4 +295,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_FRACTIONAL_STEP_SETTINGS_H
+#endif // KRATOS_TRILINOS_FRACTIONAL_STEP_SETTINGS_FOR_CHIMERA_H

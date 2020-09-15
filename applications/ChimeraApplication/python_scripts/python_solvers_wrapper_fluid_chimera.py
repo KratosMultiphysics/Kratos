@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 from importlib import import_module
+from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ChimeraApplication import *
 
 def CreateSolverByParameters(model, custom_settings, parallelism):
@@ -21,7 +22,7 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
         if (solver_type == "monolithic" or solver_type == "Monolithic"):
             solver_module_name = "trilinos_navier_stokes_solver_vmsmonolithic_chimera"
         elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
-            solver_module_name = "trilinos_navier_stokes_solver_fractionalstep_chimera"
+            solver_module_name = "trilinos_navier_stokes_solver_fractional_step_chimera"
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
     else:
