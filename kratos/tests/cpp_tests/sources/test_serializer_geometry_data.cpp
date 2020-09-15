@@ -161,7 +161,7 @@ namespace Kratos {
             serializer.load("qp", quadrature_loaded);
 
             // Check coordinates
-            for(unsigned int i; i < 3; ++i){
+            for(unsigned int i = 0; i < 3; ++i){
                 KRATOS_CHECK_NEAR((*quadrature_saved)[i].X(), (*quadrature_loaded)[i].X(), 1e-6);
                 KRATOS_CHECK_NEAR((*quadrature_saved)[i].Y(), (*quadrature_loaded)[i].Y(), 1e-6);
                 KRATOS_CHECK_NEAR((*quadrature_saved)[i].Z(), (*quadrature_loaded)[i].Z(), 1e-6);
