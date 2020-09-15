@@ -155,8 +155,8 @@ class MmgProcess(KratosMultiphysics.Process):
             "save_external_files"              : false,
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
-            "remesh_at_finalize"               : true,
-            "output_final_mesh"                : true,
+            "remesh_at_finalize"               : false,
+            "output_final_mesh"                : false,
             "sub_model_part_names_to_remove"   : [],
             "output_mesh_file_name"            : "final_refined_mesh",
             "max_number_of_searchs"            : 1000,
@@ -427,16 +427,16 @@ class MmgProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        self.remesh_at_finalize = self.settings["remesh_at_finalize"].GetBool()
-        self.output_final_mesh = self.settings["output_final_mesh"].GetBool()
+        remesh_at_finalize = self.settings["remesh_at_finalize"].GetBool()
+        output_final_mesh = self.settings["output_final_mesh"].GetBool()
         output_mesh_file_name = self.settings["output_mesh_file_name"].GetString()
         sub_model_part_names_to_remove = self.settings["sub_model_part_names_to_remove"].GetStringArray()
-        if self.remesh_at_finalize:
+        if remesh_at_finalize:
             for sub_model_part_name in sub_model_part_names_to_remove:
                 if self.main_model_part.HasSubModelPart(sub_model_part_name):
                     self.main_model_part.RemoveSubModelPart(sub_model_part_name)
             self._ExecuteRefinement()
-        if self.output_final_mesh:
+        if output_final_mesh:
             KratosMultiphysics.ModelPartIO(output_mesh_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
 
     def ExecuteFinalizeSolutionStep(self):
