@@ -54,7 +54,9 @@ public:
     ///@name Operations
     ///@{
 
-    static void InitializeLock();
+    static bool IsInitialized();
+
+    static void Initialize();
 
     ///@}
 

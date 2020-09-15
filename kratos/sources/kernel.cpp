@@ -40,7 +40,9 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
         this->ImportApplication(mpKratosCoreApplication);
     }
 
-    ScopeLock::InitializeLock();
+    if (!ScopeLock::IsInitialized()) {
+        ScopeLock::Initialize();
+    }
 }
 
 std::unordered_set<std::string> &Kernel::GetApplicationsList() {

@@ -34,7 +34,12 @@ ScopeLock::~ScopeLock()
     mpLock->UnSetLock();
 }
 
-void ScopeLock::InitializeLock()
+bool ScopeLock::IsInitialized()
+{
+    return mIsInitialized;
+}
+
+void ScopeLock::Initialize()
 {
     KRATOS_ERROR_IF(ScopeLock::mIsInitialized) << "ScopeLock was already initialized!" << std::endl;
 
