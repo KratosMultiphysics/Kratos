@@ -31,6 +31,7 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/parallel_helpers.h"
 
 
 namespace Kratos
@@ -60,7 +61,7 @@ public:
      */
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
-                   int Nchunks = omp_get_max_threads())
+                   int Nchunks = ParallelHelpers::GetNumThreads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
@@ -84,7 +85,7 @@ public:
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
     BlockPartition(TContainerType& rData,
-                   int Nchunks = omp_get_max_threads())
+                   int Nchunks = ParallelHelpers::GetNumThreads())
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
     {}
 
@@ -165,7 +166,7 @@ public:
  *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
  */
     IndexPartition(TIndexType Size,
-                   int Nchunks = omp_get_max_threads())
+                   int Nchunks = ParallelHelpers::GetNumThreads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
