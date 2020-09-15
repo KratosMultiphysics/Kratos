@@ -378,10 +378,13 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
         auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<2>>();
         p_distance_smoother->CalculateDistances(
             r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
-    } else {
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<2>>();
+    } else if (domain_size == 3) {
+        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<3>>();
         p_distance_smoother->CalculateDistances(
             r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
+    } else {
+        KRATOS_ERROR << "Unsupported domain size in " << r_model_part.Name()
+                     << ". [ DOMAIN_SIZE = " << domain_size << " ]\n";
     }
 
     // revert boundary negative distances to zero
