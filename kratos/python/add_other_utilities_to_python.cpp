@@ -42,6 +42,7 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/sensitivity_builder.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_helpers.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
@@ -469,6 +470,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
         .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
         .def_static("GetNumberOfProcessors", &OpenMPUtils::GetNumberOfProcessors)
+        ;
+
+    // ParallelHelpers
+    py::class_<ParallelHelpers >(m,"ParallelHelpers")
+        .def_static("GetNumThreads", &ParallelHelpers::GetNumThreads)
         ;
 
 
