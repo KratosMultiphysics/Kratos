@@ -136,6 +136,13 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        # Get updated model_part
+        if (self.model_part_name.startswith('Background_Grid.')):
+            self.model_part_name = self.model_part_name.replace('Background_Grid.','')
+        #Brauch ich das obere auch?
+        mpm_material_model_part_name = "MPM_Material." + self.model_part_name
+        if( self.model.HasModelPart(mpm_material_model_part_name )):
+            self.model_part = self.model[mpm_material_model_part_name]
 
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]

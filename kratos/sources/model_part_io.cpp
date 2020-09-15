@@ -575,9 +575,10 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     SizeType n=0;
     for (const auto& r_conn : rAuxConnectivities) {
         n++;
-        KRATOS_ERROR_IF(r_conn.size() == 0) << "Node #" << n << " caused an error during the construction of the nodal graph. Possible reasons are:\n"
-            << "The node is a hanging node, not connected to any element or condition\n"
-            << "The nodes are not consecutively numbered. This can be avoided by using the \"ReorderConsecutiveModelPartIO\"" << std::endl;
+        // Todo. Overwrite this function
+        // KRATOS_ERROR_IF(r_conn.size() == 0) << "Node #" << n << " caused an error during the construction of the nodal graph. Possible reasons are:\n"
+        //     << "The node is a hanging node, not connected to any element or condition\n"
+        //     << "The nodes are not consecutively numbered. This can be avoided by using the \"ReorderConsecutiveModelPartIO\"" << std::endl;
     }
 
     // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
@@ -1690,7 +1691,7 @@ void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
         {
             (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
             const auto& Variable = KratosComponents<Kratos::Variable<int> >::Get(variable_name);
-            
+
             for(std::size_t j = 0; j < r_this_nodes.size(); j++)
             {
                 auto it_node = r_this_nodes.begin() + j;

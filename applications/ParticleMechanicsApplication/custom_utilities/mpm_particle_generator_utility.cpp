@@ -375,7 +375,7 @@ namespace MPMParticleGeneratorUtility
                                     std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
                                 }
-                                    
+
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
@@ -390,6 +390,8 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                            //TODO: Test if this also works in python..
+                            rMPMModelPart.GetSubModelPart(submodelpart_name).GetCommunicator().LocalMesh().AddCondition(p_condition);
                         }
 
                         last_condition_id += integration_point_per_conditions;
@@ -435,7 +437,7 @@ namespace MPMParticleGeneratorUtility
                                     std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
                                  }
-                                
+
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
@@ -450,6 +452,8 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                            //TODO: Test if this also works in python..
+                            rMPMModelPart.GetSubModelPart(submodelpart_name).GetCommunicator().LocalMesh().AddCondition(p_condition);
                         }
 
                         last_condition_id += r_geometry.size();

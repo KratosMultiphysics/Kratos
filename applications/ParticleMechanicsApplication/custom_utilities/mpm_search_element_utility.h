@@ -8,7 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Bodhinanda Chandra
-//
+// Temporary changes:
+// TODO: Create entire new file to avoid all preprocessor directives
 
 
 #ifndef KRATOS_MPM_SEARCH_ELEMENT_UTILITY
@@ -19,6 +20,7 @@
 // External includes
 #ifdef KRATOS_USING_MPI
 #include "mpi/element_communicator_mpi.h"
+#include "mpi/mpm_mpi_search.h"
 #endif
 
 // Project includes
@@ -1242,8 +1244,11 @@ namespace MPMSearchElementUtility
                 MaxNumberOfResults, Tolerance);
 
 #ifdef KRATOS_USING_MPI
-        ElementCommunicatorMPI::MPI_Search(rMPMModelPart, rBackgroundGridModelPart, missing_conditions,
-                MaxNumberOfResults, Tolerance);
+        ElementCommunicatorMPI::MPI_Search(rMPMModelPart, rBackgroundGridModelPart, missing_elements,
+                missing_conditions, MaxNumberOfResults, Tolerance);
+
+        MPM_MPI_SEARCH::SearchElements(rMPMModelPart, rBackgroundGridModelPart, missing_elements,
+                missing_conditions, MaxNumberOfResults, Tolerance);
 #endif
     }
 } // end namespace MPMSearchElementUtility

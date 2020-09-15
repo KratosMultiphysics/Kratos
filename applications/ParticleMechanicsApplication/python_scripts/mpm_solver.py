@@ -150,6 +150,7 @@ class MPMSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        #TODO: Check if this must be moved for first condition search??
         self._SearchElement()
         self._GetSolutionStrategy().Initialize()
 

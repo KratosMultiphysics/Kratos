@@ -137,6 +137,8 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             self.model_part_name = self.model_part_name.replace('Background_Grid.','')
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
 
+        # Muss für sich ändernde Conditions nochmal unten aufgreufen werden!!
+        # Weil nur initialter Modellpart hat den submodelpart
         if( self.model.HasModelPart(mpm_material_model_part_name )):
             self.model_part = self.model[mpm_material_model_part_name]
         #TODO: Is the function call below really required?
@@ -148,7 +150,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
         for mpc in self.model_part.Conditions:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             mpc_coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD,self.model_part.ProcessInfo)[0]
