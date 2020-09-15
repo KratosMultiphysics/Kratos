@@ -128,10 +128,9 @@ public:
     /** @brief loop with thread local storage (TLS). f called on every entry in rData
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
-     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TThreadLocalStorage, class TFunction>
-    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
+    inline void for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -154,10 +153,9 @@ public:
      * @param TReducer template parameter specifying the reduction operation to be done
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
-     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
+    inline typename TReducer::value_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -210,25 +208,23 @@ typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &
  * @param v - containers to be looped upon
  * @param tls - thread local storage
  * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
- * Note: TLS is passed by value to make construction on the fly possible
  */
 template <class TContainerType, class TThreadLocalStorage, class TFunctionType>
-void block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
+void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
-    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::move(tls), std::forward<TFunctionType>(func));
+    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(tls, std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
  * @param v - containers to be looped upon
  * @param tls - thread local storage
  * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
- * Note: TLS is passed by value to make construction on the fly possible
  */
 template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
-typename TReducer::value_type block_for_each(TContainerType &&v, const TThreadLocalStorage tls, TFunctionType &&func)
+typename TReducer::value_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
     return BlockPartition<typename std::decay<TContainerType>::type>
-        (std::forward<TContainerType>(v)).template for_each<TReducer>(std::move(tls), std::forward<TFunctionType>(func));
+        (std::forward<TContainerType>(v)).template for_each<TReducer>(tls, std::forward<TFunctionType>(func));
 }
 
 //***********************************************************************************
@@ -340,10 +336,9 @@ public:
     /** @brief loop with thread local storage (TLS). f called on every entry in rData
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input IndexType and the thread local storage
-     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TThreadLocalStorage, class TFunction>
-    inline void for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
+    inline void for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
@@ -366,10 +361,9 @@ public:
      * @param TReducer - template parameter specifying the type of reducer to be applied
      * @param TThreadLocalStorage template parameter specifying the thread local storage
      * @param f - must be a function accepting as input IndexType and the thread local storage
-     * Note: TLS is passed by value to make construction on the fly possible
      */
     template <class TReducer, class TThreadLocalStorage, class TFunction>
-    inline typename TReducer::value_type for_each(const TThreadLocalStorage rThreadLocalStoragePrototype, TFunction &&f)
+    inline typename TReducer::value_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
     {
         static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
 
