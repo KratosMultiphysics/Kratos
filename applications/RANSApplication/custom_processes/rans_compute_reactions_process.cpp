@@ -67,7 +67,7 @@ void RansComputeReactionsProcess::CorrectPeriodicNodes(
 
     auto& r_nodes = rModelPart.Nodes();
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each([&](ModelPart::NodeType& rNode) {
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
         if (rNode.Is(PERIODIC)) {
             const int slave_id = rNode.FastGetSolutionStepValue(PATCH_INDEX);
             const int master_id = rNode.Id();
@@ -107,21 +107,18 @@ void RansComputeReactionsProcess::ExecuteFinalizeSolutionStep()
 
     auto& r_conditions = r_model_part.Conditions();
 
-    BlockPartition<ModelPart::ConditionsContainerType>(r_conditions)
-        .for_each([&](ModelPart::ConditionType& rCondition) {
+    block_for_each(r_conditions, [&](ModelPart::ConditionType& rCondition) {
             CalculateReactionValues(rCondition);
         });
 
     r_model_part.GetCommunicator().AssembleCurrentData(REACTION);
     this->CorrectPeriodicNodes(r_model_part, REACTION);
 
-    BlockPartition<ModelPart::NodesContainerType>(r_nodes).for_each(
-        [&](ModelPart::NodeType& rNode) {
-            const auto& pressure_force =
-                rNode.FastGetSolutionStepValue(NORMAL) *
-                (-1.0 * rNode.FastGetSolutionStepValue(PRESSURE));
-            rNode.FastGetSolutionStepValue(REACTION) += pressure_force;
-        });
+    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
+        const auto& pressure_force = rNode.FastGetSolutionStepValue(NORMAL) *
+                                     (-1.0 * rNode.FastGetSolutionStepValue(PRESSURE));
+        rNode.FastGetSolutionStepValue(REACTION) += pressure_force;
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Computed Reaction terms for " << mModelPartName << " for slip condition.\n";

@@ -20,13 +20,13 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosPartitionedFSIDirichletNeumannSolver]::", "Solver construction finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         """This function returns the default-settings used by this class
         """
         this_defaults = KratosMultiphysics.Parameters("""{
             "coupling_scheme": "dirichlet_neumann"
         }""")
-        this_defaults.AddMissingParameters(super(TrilinosPartitionedFSIDirichletNeumannSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(TrilinosPartitionedFSIDirichletNeumannSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def Initialize(self):

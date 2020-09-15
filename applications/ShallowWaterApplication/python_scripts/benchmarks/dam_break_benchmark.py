@@ -39,7 +39,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         super(DamBreakBenchmark, self).Check()
         label = "DamBreakBenchmark. "
         if self.g <= 0:
-            msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z compontent in the ProcessInfo."
+            msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z component in the ProcessInfo."
             raise Exception(msg)
         elif self.hr <= 0:
             msg = label + "Right height must be a positive value. Please, check the Parameters."
