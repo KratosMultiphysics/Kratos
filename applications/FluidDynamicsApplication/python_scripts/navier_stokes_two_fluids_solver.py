@@ -412,9 +412,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part)
                 locator.UpdateSearchDatabase()
                 distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
-
+        elif (self._reinitialization_type == "none"):
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
         else:
-            raise Exception("Please use a valid distance reinitialization type.")
+            raise Exception("Please use a valid distance reinitialization type or set it as none.")
 
         return distance_reinitialization_process
 
