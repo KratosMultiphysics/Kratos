@@ -312,7 +312,7 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        const SizeType points_per_span = PolynomialDegree() + 1;
+        const SizeType points_per_span = PolynomialDegree(0) + 1;
 
         std::vector<double> spans;
         Spans(spans);
