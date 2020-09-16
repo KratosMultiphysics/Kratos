@@ -17,7 +17,7 @@ class BaseBenchmarkProcess(KM.Process):
 
         It is intended to be called from the constructor of deriving classes.
         """
-        super(BaseBenchmarkProcess, self).__init__()
+        super().__init__()
 
         default_settings = KM.Parameters("""
             {
