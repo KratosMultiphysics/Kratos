@@ -205,7 +205,7 @@ public:
             return this->NumberOfControlPointsV();
         }
         KRATOS_ERROR_IF(LocalDirectionIndex > 1)
-            << "Possible direction index in NurbsSurfaceGeometry reaches from 0-2. Given direction index: "
+            << "Possible direction index in NurbsSurfaceGeometry reaches from 0-1. Given direction index: "
             << LocalDirectionIndex << std::endl;
     }
 
