@@ -289,9 +289,9 @@ public:
     ///@{
 
     /// Return polynomial degree of the nurbs surface
-    SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex = 0) const override
     {
-        return mpNurbsSurface->PolynomialDegree(DirectionIndex);
+        return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
     }
 
     ///@}
