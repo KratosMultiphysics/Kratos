@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 
 
 namespace Kratos
@@ -47,6 +48,8 @@ public:
     ///@{
 
     static int GetNumThreads();
+
+    static void SetNumThreads(const int NumThreads);
 
     ///@}
 

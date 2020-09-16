@@ -113,6 +113,10 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static bool IsDistributedRun();
 
+    static int GetNumThreads();
+
+    static void SetNumThreads(const int NumThreads);
+
     ///@}
     ///@name Input and output
     ///@{
@@ -141,9 +145,11 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Static Member Variables
     ///@{
 
-        KratosApplication::Pointer mpKratosCoreApplication;
+    KratosApplication::Pointer mpKratosCoreApplication;
 
     static bool mIsDistributedRun;
+
+    static int mNumThreads;
 
     ///@}
     ///@name Member Variables
