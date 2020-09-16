@@ -60,11 +60,11 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
 
     // Base types
     typedef FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > BaseSolvingStrategyType;
-    typedef FractionalStepStrategyForChimera< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > FractionalStepStrategyForChimeraType;
+    typedef FractionalStepStrategyForChimera< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType  > TrilinosFractionalStepStrategyForChimeraType;
     typedef ChimeraTrilinosFractionalStepSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> ChimeraTrilinosFractionalStepSettingsType;
     //*************************STRATEGY CLASSES***************************
-    py::class_< FractionalStepStrategyForChimeraType,
-                typename FractionalStepStrategyForChimeraType::Pointer,
+    py::class_< TrilinosFractionalStepStrategyForChimeraType,
+                typename TrilinosFractionalStepStrategyForChimeraType::Pointer,
                 BaseSolvingStrategyType >
                 (m,"TrilinosFractionalStepStrategyForChimera")
                 .def(py::init< ModelPart&, ChimeraTrilinosFractionalStepSettingsType&, bool >() )

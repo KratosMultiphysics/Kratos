@@ -6,13 +6,16 @@ import KratosMultiphysics.ChimeraApplication as KratosChimera
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
-from KratosMultiphysics.ChimeraApplication import TrilinosExtension as TrilinosChimera
 from KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension import *
 from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as TrilinosFluid
 from KratosMultiphysics.ChimeraApplication import chimera_setup_utils
+from KratosMultiphysics.ChimeraApplication import TrilinosExtension as TrilinosChimera
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.trilinos_navier_stokes_solver_fractionalstep import TrilinosNavierStokesSolverFractionalStep
+
+# Import super base class file
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_fractionalstep import NavierStokesSolverFractionalStep
 
 def CreateSolver(main_model_part, custom_settings):
     return TrilinosChimeraNavierStokesSolverFractionalStep(main_model_part, custom_settings)
@@ -57,7 +60,7 @@ class TrilinosChimeraNavierStokesSolverFractionalStep(TrilinosNavierStokesSolver
             # Note that his also calls the PrepareModelPart of the turbulence model
             super(TrilinosChimeraNavierStokesSolverFractionalStep, self).PrepareModelPart()
         else :
-            super(TrilinosNavierStokesSolverMonolithic,self).PrepareModelPart()
+            super(NavierStokesSolverFractionalStep,self).PrepareModelPart()
 
 
     def Initialize(self):

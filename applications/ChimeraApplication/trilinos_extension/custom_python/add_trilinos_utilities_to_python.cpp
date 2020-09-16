@@ -45,7 +45,7 @@ void AddTrilinosUtilitiesToPython(pybind11::module& m)
     typedef ChimeraTrilinosFractionalStepSettings<TrilinosSparseSpace,UblasLocalSpace,TrilinosLinearSolver> ChimeraTrilinosFractionalStepSettingsType;
 
     // TrilinosChimeraFractionalStepSettings
-    py::class_< ChimeraTrilinosFractionalStepSettingsType, BaseSolverSettings>(m,"TrilinosFractionalStepSettings")
+    py::class_< ChimeraTrilinosFractionalStepSettingsType, ChimeraTrilinosFractionalStepSettingsType::Pointer, BaseSolverSettings>(m,"TrilinosFractionalStepSettings")
     .def(py::init<Epetra_MpiComm&, ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
     .def("SetStrategy",&ChimeraTrilinosFractionalStepSettingsType::SetStrategy)
     .def("GetStrategy",&ChimeraTrilinosFractionalStepSettingsType::pGetStrategy)
