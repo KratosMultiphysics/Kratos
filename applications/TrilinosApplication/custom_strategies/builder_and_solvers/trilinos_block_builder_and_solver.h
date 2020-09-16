@@ -35,6 +35,17 @@
 #include "Epetra_SerialDenseVector.h"
 #include "Epetra_Vector.h"
 
+#if !defined(START_TIMER)
+#define START_TIMER(label, rank) \
+    if (mrComm.MyPID() == rank)  \
+        Timer::Start(label);
+#endif
+#if !defined(STOP_TIMER)
+#define STOP_TIMER(label, rank) \
+    if (mrComm.MyPID() == rank) \
+        Timer::Stop(label);
+#endif
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -420,7 +431,7 @@ public:
     {
         KRATOS_TRY
         if (BaseType::GetEchoLevel() > 0) {
-            START_TIMER("BuildRHS ", 0)
+            START_TIMER("BuildRHS ", 0);
         }
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
@@ -465,7 +476,7 @@ public:
         rb.GlobalAssemble();
 
         if (BaseType::GetEchoLevel() > 0) {
-            STOP_TIMER("BuildRHS ", 0)
+            STOP_TIMER("BuildRHS ", 0);
         }
         KRATOS_CATCH("")
     }
