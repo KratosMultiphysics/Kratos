@@ -150,17 +150,19 @@ class MaterialTest(object):
         absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
         absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
         absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
-        self.graph_export   = open(absolute_path_to_file1, 'w')
-        self.graph_export_1 = open(absolute_path_to_file2, 'w')
-        self.graph_export_2 = open(absolute_path_to_file3, 'w')
+        self.graph_export_1 = open(absolute_path_to_file1, 'w')
+        self.graph_export_2 = open(absolute_path_to_file2, 'w')
+        self.graph_export_3 = open(absolute_path_to_file3, 'w')
 
     else:
         absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
         absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
         absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
-        self.graph_export   = open(absolute_path_to_file1, 'w')
-        self.graph_export_1 = open(absolute_path_to_file2, 'w')
-        self.graph_export_2 = open(absolute_path_to_file3, 'w')
+        absolute_path_to_file4 = os.path.join(self.graphs_path, self.problem_name + "_graph_strain_vs_q_in_psi.grf")
+        self.graph_export_1 = open(absolute_path_to_file1, 'w')
+        self.graph_export_2 = open(absolute_path_to_file2, 'w')
+        self.graph_export_3 = open(absolute_path_to_file3, 'w')
+        self.graph_export_4 = open(absolute_path_to_file4, 'w')
 
         if self.test_type == "Hydrostatic":
             absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
@@ -427,30 +429,34 @@ class MaterialTest(object):
           self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
 
   def PrintGraph(self, time):
+    MPa_to_psi_factor = 145.0
+    q = MPa_to_psi_factor * (self.total_stress_mean * 1e-6 - self.ConfinementPressure)
 
     for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.mesh_nodes = smp.Nodes
 
-    if(self.graph_counter == self.graph_frequency):
+    if self.graph_counter == self.graph_frequency:
 
       self.graph_counter = 0
 
-      if(self.test_type == "BTS"):
+      if self.test_type == "BTS":
 
         self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts*1e-6).rjust(13)+'\n')
         self.Flush(self.bts_export)
 
       else:
 
-        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n')
-        self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_top*1e-6)).rjust(13)+'\n')
-        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_bot*1e-6)).rjust(13)+'\n')
-        self.Flush(self.graph_export)
+        self.graph_export_1.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n')
+        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_top*1e-6)).rjust(13)+'\n')
+        self.graph_export_3.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_bot*1e-6)).rjust(13)+'\n')
+        self.graph_export_4.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%q).rjust(13)+'\n')
         self.Flush(self.graph_export_1)
         self.Flush(self.graph_export_2)
+        self.Flush(self.graph_export_3)
+        self.Flush(self.graph_export_4)
 
-        if( self.test_type =="Hydrostatic"):
+        if self.test_type =="Hydrostatic":
           self.graph_export_volumetric.write(str("%.8g"%self.volumetric_strain).rjust(12)+"    "+str("%.6g"%self.total_stress_mean*1e-6).rjust(13)+'\n')
           self.Flush(self.graph_export_volumetric)
 
