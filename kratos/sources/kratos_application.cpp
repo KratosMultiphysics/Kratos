@@ -212,7 +212,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryPoint3D", mQuadraturePointGeometryPoint3D);
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface2D", mQuadraturePointGeometrySurface2D);
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface3D", mQuadraturePointGeometrySurface3D);
-    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySolid3D", mQuadraturePointGeometrySolid3D);
+    KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryVolume3D", mQuadraturePointGeometryVolume3D);
 
     // Register flags:
     KRATOS_REGISTER_FLAG(STRUCTURE);
