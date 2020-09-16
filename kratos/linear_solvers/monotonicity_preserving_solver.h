@@ -175,7 +175,7 @@ public:
     */
     bool AdditionalPhysicalDataIsNeeded() override
     {
-        return mpLinearSolver->AdditionalPhysicalDataIsNeeded();
+        return true;
     }
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
@@ -192,7 +192,41 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        mpLinearSolver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
+        Vector dofs_values = ZeroVector(rdof_set.size());
+
+        block_for_each(rdof_set, [&](Dof<double>& rDof){
+            const std::size_t id = rDof.EquationId();
+            dofs_values[id] = rDof.GetSolutionStepValue();
+        });
+
+        double *values_vector = rA.value_data().begin();
+        std::size_t *index1_vector = rA.index1_data().begin();
+        std::size_t *index2_vector = rA.index2_data().begin();
+
+
+        IndexPartition<std::size_t>(rA.size1()).for_each(
+            [&](std::size_t i)
+            {
+                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                    const double value = values_vector[k];
+                    if (value > 0.0) {
+                        const auto j = index2_vector[k];
+                        if (j > i) {
+                            rA(i,i) += value;
+                            rA(i,j) -= value;
+                            rA(j,i) -= value;
+                            rA(j,j) += value;
+                            rB[i] += value*dofs_values[j] - value*dofs_values[i];
+                            rB[j] += value*dofs_values[i] - value*dofs_values[j];
+                        }
+                    }
+                }
+            }
+        );
+
+        if (mpLinearSolver->AdditionalPhysicalDataIsNeeded()) {
+            mpLinearSolver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
+        }
     }
 
     void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
@@ -228,38 +262,7 @@ public:
     */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        if(this->IsNotConsistent(rA, rX, rB))
-            return false;
-
-        double *values_vector = rA.value_data().begin();
-        std::size_t *index1_vector = rA.index1_data().begin();
-        std::size_t *index2_vector = rA.index2_data().begin();
-
-
-        IndexPartition<std::size_t>(rA.size1()).for_each(
-            [&](std::size_t i)
-            {
-                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
-                    const double value = values_vector[k];
-                    if (value > 0.0) {
-                        const auto j = index2_vector[k];
-                        if (j > i) {
-                            rA(i,i) += value;
-                            rA(i,j) -= value;
-                            rA(j,i) -= value;
-                            rA(j,j) += value;
-                            rB[i] += value*rX[j] - value*rX[i];
-                            rB[j] += value*rX[i] - value*rX[j];
-                        }
-                    }
-                }
-            }
-        );
-
-        //solve the problem
-        bool is_solved = mpLinearSolver->Solve(rA,rX,rB);
-
-        return is_solved;
+        return mpLinearSolver->Solve(rA,rX,rB);
     }
 
 
