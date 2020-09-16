@@ -51,6 +51,9 @@ class SetDirectorsProcess(KratosMultiphysics.Process):
      dirTang[0,1] = 1
      dirTang[1,1] = 0
      dirTang[2,1] = 0
+     for node in self.model_part.Nodes:
+         node.SetValue(DIRECTOR, director)
+         node.SetValue(DIRECTORTANGENTSPACE, dirTang)
 
 #       for node in self.model_part.Nodes:
 #          
