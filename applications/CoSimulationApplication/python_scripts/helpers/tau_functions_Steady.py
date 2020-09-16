@@ -410,7 +410,34 @@ def CalculateCellForce(node_ids, nodal_pressures, X, Y, Z):
     cell_force = pressure * area * normal
 
     return cell_force
+def CalculateCellArea(X, Y, Z, node_ids):
+    # Calculate cell sides
+    cell_side_01 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[1])
+    cell_side_03 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[3])
 
+    # Calculate cell area
+    cell_area = np.cross(cell_side_01, cell_side_03)
+
+    # hold only for 2d case, MUST be modified for 3d interfaces
+    cell_area = np.linalg.norm(cell_area)
+
+    return cell_area
+
+
+# Calculate cell normal
+def CalculateCellNormal(X, Y, Z, node_ids):
+    # Calculate cell diagonals
+    cell_diagonal_02 = CalculateDistanceVector(X,Y,Z,node_ids[0],node_ids[2])
+    cell_diagonal_13 = CalculateDistanceVector(X,Y,Z,node_ids[1],node_ids[3])
+
+    # Calculate cell normal
+    cell_normal = np.cross(cell_diagonal_02, cell_diagonal_13)
+
+    # Normalize to make unit normal
+    magnitude = np.linalg.norm(cell_normal)
+    unit_cell_normal = cell_normal/magnitude
+
+    return unit_cell_normal
 
 # Finds steps' corresponding primary grid filename
 def FindPrimaryGridFilename(working_path, step, start_step):
@@ -438,8 +465,9 @@ def FindOutputFilename(working_path, step, ouput_file_pattern):
     # if rotate and unsteady "airfoilSol.pval.deform_i="
     # if non rotate and unsteady "airfoilSol.pval.unsteady_i="
     # if rotate and steady
-    CheckIfPathExists(FindFilename(outputs_path, ouput_file_pattern, step + 1))
-    return FindFilename(outputs_path, ouput_file_pattern, step + 1)
+    print("step_FindOutputFilename = ", step)
+    CheckIfPathExists(FindFilename(outputs_path, ouput_file_pattern, step + 10))
+    return FindFilename(outputs_path, ouput_file_pattern, step + 10)
 
 
 # Read header from interface file
@@ -501,34 +529,7 @@ def CalculateCellPressure(nodal_pressures, node_ids):
 
 
 # Calculate cell area
-def CalculateCellArea(X, Y, Z, node_ids):
-    # Calculate cell sides
-    cell_side_01 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[1])
-    cell_side_03 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[3])
 
-    # Calculate cell area
-    cell_area = np.cross(cell_side_01, cell_side_03)
-
-    # hold only for 2d case, MUST be modified for 3d interfaces
-    cell_area = np.linalg.norm(cell_area)
-
-    return cell_area
-
-
-# Calculate cell normal
-def CalculateCellNormal(X, Y, Z, node_ids):
-    # Calculate cell diagonals
-    cell_diagonal_02 = CalculateDistanceVector(X,Y,Z,node_ids[0],node_ids[2])
-    cell_diagonal_13 = CalculateDistanceVector(X,Y,Z,node_ids[1],node_ids[3])
-
-    # Calculate cell normal
-    cell_normal = np.cross(cell_diagonal_02, cell_diagonal_13)
-
-    # Normalize to make unit normal
-    magnitude = np.linalg.norm(cell_normal)
-    unit_cell_normal = cell_normal/magnitude
-
-    return unit_cell_normal
 
 
 # Looks for a file matching the given pattern within the given path

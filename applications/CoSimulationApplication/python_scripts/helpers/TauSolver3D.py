@@ -2,6 +2,7 @@
 import shutil, sys, os, time, json
 import numpy as np
 import CoSimIO
+import netcdf4
 
 def print_on_rank_zero(*args):
     if tau_mpi_rank() == 0:
@@ -15,7 +16,6 @@ with open(working_path + 'input/tau_settings.json') as json_file:
 start_step = tau_settings["start_step"]
 tau_path = tau_settings["tau_path"]
 rotate = tau_settings["rotate"]
-ouput_file_pattern = tau_settings["ouput_file_pattern"]
 sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
 
@@ -49,7 +49,8 @@ shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
-tau_time_step = 1#float(Para.get_para_value('Unsteady physical time step size'))
+Prep = PyPrep.Preprocessing(para_path_mod)
+tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
 tau_parallel_sync()
 
 if rotate:
@@ -58,6 +59,7 @@ if rotate:
                  "Unsteady enable external control over progress in time (0/1)": 1})
 
     # external output period (needed if output period in para_path not working properly)
+    pitchDeg = 0  # mean pitch angle
 
     # --- Load external excitation files ---
     # --- thetaDeg -> pitch angle per timestep in deg
@@ -65,27 +67,24 @@ if rotate:
     thetaDeg = np.loadtxt(working_path + 'signal/APRBSDeg_membrane.dat')
     thetaRate = np.loadtxt(working_path + 'signal/APRBSRate_membrane.dat')
 
+    MyMotionStringGenerator = MSG.MotionStringGenerator(
+        tau_time_step, pitchDeg, thetaDeg, thetaRate)
+
     # --- Prepare parameters for unsteady rotating simulation ---
-    nodeNames = ["WING"]
+    nodeNames = ["MEMBRANE"]
 
     # --- Instanciate required modules ---
     MyTauMotionDelegate = PyMotionExternalDelegate.MotionExternalDelegate(
         nodeNames)
-    MyMotionStringGenerator = MSG.MotionStringGenerator(
-        tau_time_step, thetaDeg, thetaRate)
-    Para = PyPara.Parafile(para_path_mod)
-    Prep = PyPrep.Preprocessing(para_path_mod)
+
     Solver = PySolv.Solver(para_path_mod, delegate=MyTauMotionDelegate)
 
-  #  # --- Init motion stack ---
-  #  motionString = MyMotionStringGenerator(0)
-  #  #MyTauMotionDelegate.UpdateMotion(nodeNames, motionString)
-  #  MyTauMotionDelegate.PushMotion()
-  #  TauFunctions.PrintBlockHeader("Inital Motionstring: %s" %(motionString))
-
-
+    # --- Init motion stack ---
+    motionString = MyMotionStringGenerator(0)
+    MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
+    MyTauMotionDelegate.PushMotion()
+    TauFunctions.PrintBlockHeader("Inital Motionstring: %s" %(motionString))
 else:
-    Prep = PyPrep.Preprocessing(para_path_mod)
     Solver = PySolv.Solver(para_path_mod)
     tau_parallel_sync()
 
@@ -106,7 +105,7 @@ def AdvanceInTime(current_time):
 
     if rotate:
         motionString = MyMotionStringGenerator(step - start_step)
-        MyTauMotionDelegate.UpdateMotion("WING", motionString)
+        MyTauMotionDelegate.UpdateMotion("MEMBRANE", motionString)
         MyTauMotionDelegate.InitExchange()
 
     # Get current time and time step from tau
@@ -136,7 +135,7 @@ def SolveSolutionStep():
     tau_parallel_sync()
     # Convert tau output to dat file using tau2plt
     if tau_mpi_rank() == 0:
-        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step, ouput_file_pattern)
+        TauFunctions.ConvertOutputToDat(working_path, tau_path, step, para_path_mod, start_step)
     tau_parallel_sync()
 
 def FinalizeSolutionStep():
@@ -150,7 +149,7 @@ def FinalizeSolutionStep():
     Para.free_parameters()
     if tau_mpi_rank() == 0:
         global step
-        step += 100
+        step += 1
     print step
     tau_parallel_sync()
 
@@ -203,13 +202,13 @@ def ExportData(conn_name, identifier):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", ouput_file_pattern)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP")
             with open('forces_up' + str(step) + '.dat','w') as fname:
                for i in range(len(forces)/3):
                    fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN")
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -227,9 +226,9 @@ def ExportMesh(conn_name, identifier):
 
         # identifier is the data-name in json
         if identifier == "UpperInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", ouput_file_pattern)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP")
         elif identifier == "LowerInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", ouput_file_pattern)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN")
             # elem_connectivities += int(30000)
             # print(elem_connectivities)
         else:
@@ -254,7 +253,7 @@ settings = {
 if rank == 0:
     CoSimIO.Connect(connection_name, settings)
 
-n_steps = 2#int(Para.get_para_value('Unsteady physical time steps'))
+n_steps = int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
 for i in range(n_steps):
@@ -265,14 +264,14 @@ for i in range(n_steps):
 
     if not coupling_interface_imported:
         if tau_mpi_rank() == 0:
-            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP", ouput_file_pattern)
+            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP")
         tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface")
         ExportMesh(connection_name, "LowerInterface")
         coupling_interface_imported = True
 
     if tau_mpi_rank() == 0:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP",ouput_file_pattern)
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP")
     tau_parallel_sync()
     ExportData(connection_name, "Upper_Interface_force")
     ExportData(connection_name, "Lower_Interface_force")

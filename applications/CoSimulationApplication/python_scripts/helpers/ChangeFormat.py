@@ -25,10 +25,20 @@ def CheckIfPathExists(path):
 # Write new file from the 'surface.pval*'
 def WriteNewFile(filename_original, filename_write, startLine, stopLine):
     f = open(filename_original,'r')
-    list_lines = f.readlines()
+    list_lines_original = f.readlines()
+    list_lines = filter(None,list_lines_original)
     with open(filename_write,'a') as fwrite:
+        zone_counter = 0
         for elem in list_lines[startLine:stopLine]:
-            fwrite.write(elem)
+            if "ZONE" in elem:
+                zone_counter += 1
+                if zone_counter > 1:
+                    break
+                else:
+                    fwrite.write(elem)
+            elif elem != "\n":
+                fwrite.write(elem)
+            
     f.close()
                 
 # Count lines first zone between 'ZONE' and end Connectivity for the same zone

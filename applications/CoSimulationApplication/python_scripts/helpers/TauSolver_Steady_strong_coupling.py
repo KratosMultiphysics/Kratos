@@ -28,7 +28,7 @@ rank = tau_mpi_rank()
 from tau_python import *
 
 # tau_functions can only be imported after appending kratos' path
-import tau_functions as TauFunctions
+import tau_functions_Steady as TauFunctions
 import MotionStringGenerator as MSG
 
 if tau_mpi_rank() == 0:
@@ -49,7 +49,9 @@ shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
-tau_time_step = 1#float(Para.get_para_value('Unsteady physical time step size'))
+test_time = Para.get_para_value('Maximal time step number')
+print(str(test_time))
+tau_time_step = float(Para.get_para_value('Maximal time step number'))
 tau_parallel_sync()
 
 if rotate:
@@ -150,7 +152,7 @@ def FinalizeSolutionStep():
     Para.free_parameters()
     if tau_mpi_rank() == 0:
         global step
-        step += 100
+        step += 10
     print step
     tau_parallel_sync()
 
@@ -257,22 +259,19 @@ if rank == 0:
 n_steps = 2#int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
-for i in range(n_steps):
-    AdvanceInTime(0.0)
-    InitializeSolutionStep()
-
+def InnerLoop():
     SolveSolutionStep()
 
     if not coupling_interface_imported:
         if tau_mpi_rank() == 0:
-            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP", ouput_file_pattern)
+            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
         tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface")
         ExportMesh(connection_name, "LowerInterface")
         coupling_interface_imported = True
 
     if tau_mpi_rank() == 0:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP",ouput_file_pattern)
+        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN")
     tau_parallel_sync()
     ExportData(connection_name, "Upper_Interface_force")
     ExportData(connection_name, "Lower_Interface_force")
@@ -280,6 +279,19 @@ for i in range(n_steps):
     # Read displacements
     ImportData(connection_name, "Upper_Interface_disp")
     ImportData(connection_name, "Lower_Interface_disp")
+
+
+is_strong_coupling = True
+
+for i in range(n_steps):
+    AdvanceInTime(0.0)
+    InitializeSolutionStep()
+
+    if is_strong_coupling:
+        is_converged = False
+        while not is_converged:
+            InnerLoop()
+            is_converged = CoSimIO.IsConverged(connection_name)
 
     Deform.run(read_primgrid=1, write_primgrid=1, read_deformation=0, field_io=1)
 

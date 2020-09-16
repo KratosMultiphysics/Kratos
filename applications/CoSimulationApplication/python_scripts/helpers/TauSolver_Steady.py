@@ -28,7 +28,7 @@ rank = tau_mpi_rank()
 from tau_python import *
 
 # tau_functions can only be imported after appending kratos' path
-import tau_functions as TauFunctions
+import tau_functions_Steady as TauFunctions
 import MotionStringGenerator as MSG
 
 if tau_mpi_rank() == 0:
@@ -49,7 +49,9 @@ shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
-tau_time_step = 1#float(Para.get_para_value('Unsteady physical time step size'))
+test_time = Para.get_para_value('Maximal time step number')
+print(str(test_time))
+tau_time_step = float(Para.get_para_value('Maximal time step number'))
 tau_parallel_sync()
 
 if rotate:
@@ -150,7 +152,7 @@ def FinalizeSolutionStep():
     Para.free_parameters()
     if tau_mpi_rank() == 0:
         global step
-        step += 100
+        step += 10
     print step
     tau_parallel_sync()
 
@@ -259,6 +261,8 @@ coupling_interface_imported = False
 
 for i in range(n_steps):
     AdvanceInTime(0.0)
+    print("step = ", step)
+    print("i = ", i)
     InitializeSolutionStep()
 
     SolveSolutionStep()
