@@ -18,7 +18,7 @@ def CreateSolver(model, custom_settings):
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -39,6 +39,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "compute_reactions": false,
+            "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "relative_velocity_tolerance": 1e-5,
             "absolute_velocity_tolerance": 1e-7,
@@ -64,7 +65,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
@@ -182,11 +183,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 self.settings["relative_velocity_tolerance"].GetDouble(),
                 self.settings["absolute_velocity_tolerance"].GetDouble())
         else:
-            convergence_criterion = KratosTrilinos.TrilinosUPCriteria(
-                self.settings["relative_velocity_tolerance"].GetDouble(),
-                self.settings["absolute_velocity_tolerance"].GetDouble(),
-                self.settings["relative_pressure_tolerance"].GetDouble(),
-                self.settings["absolute_pressure_tolerance"].GetDouble())
+            convergence_criterion = KratosTrilinos.TrilinosMixedGenericCriteria(
+                [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+                (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
         convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 

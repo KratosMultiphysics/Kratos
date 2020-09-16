@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -12,6 +10,7 @@ def Factory(settings, Model):
     return FlowOutputProcess(Model, settings["Parameters"])
 
 class FlowOutputProcess(KratosMultiphysics.Process):
+
     """This process calculates(using c++ utilities) and writes the flow through a given list of (sub)model parts.
     In 3D use a surface eg. Inlet, Outlet
     In 2D use a line eg. Inlet, Outlet

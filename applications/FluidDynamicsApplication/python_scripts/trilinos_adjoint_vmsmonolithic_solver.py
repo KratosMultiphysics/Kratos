@@ -15,7 +15,7 @@ def CreateSolver(main_model_part, custom_settings):
 class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -53,10 +53,10 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 "time_step"           : -0.1
             },
             "consider_periodic_conditions": false,
-            "assign_neighbour_elements_to_conditions": false
+            "assign_neighbour_elements_to_conditions": true
         }""")
 
-        default_settings.AddMissingParameters(super(AdjointVMSMonolithicMPISolver, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(AdjointVMSMonolithicMPISolver, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):
