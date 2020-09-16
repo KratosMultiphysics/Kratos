@@ -417,15 +417,17 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
     //QuadraturePointGeometries:
-    const QuadraturePointGeometry<Node<3>,1> mQuadraturePointGeometry1DinWorkingSpace1D = QuadraturePointGeometry<Node<3>,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node<3>,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node<3>,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,2,1> mQuadraturePointGeometry1DinWorkingSpace2D = QuadraturePointGeometry<Node<3>,2,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node<3>,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node<3>,2,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,2> mQuadraturePointGeometry2DinWorkingSpace2D = QuadraturePointGeometry<Node<3>,2>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node<3>,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node<3>,3,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3,2> mQuadraturePointGeometry2DinWorkingSpace3D = QuadraturePointGeometry<Node<3>,3,2>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node<3>,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node<3>,2>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3> mQuadraturePointGeometry3DinWorkingSpace3D = QuadraturePointGeometry<Node<3>,3>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node<3>,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node<3>,3,2>(GeometryType::PointsArrayType(),
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    const QuadraturePointGeometry<Node<3>,3> mQuadraturePointGeometrySolid3D = QuadraturePointGeometry<Node<3>,3>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
