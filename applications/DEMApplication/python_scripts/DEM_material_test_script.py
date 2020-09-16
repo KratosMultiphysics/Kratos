@@ -429,8 +429,9 @@ class MaterialTest(object):
           self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
 
   def PrintGraph(self, time):
+
     MPa_to_psi_factor = 145.0
-    q = MPa_to_psi_factor * (self.total_stress_mean * 1e-6 - self.ConfinementPressure)
+    q_deviatoric_stress = MPa_to_psi_factor * (self.total_stress_mean * 1e-6 - self.ConfinementPressure)
 
     for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
@@ -450,7 +451,7 @@ class MaterialTest(object):
         self.graph_export_1.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%(self.total_stress_mean*1e-6)).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n')
         self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_top*1e-6)).rjust(13)+'\n')
         self.graph_export_3.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%(self.total_stress_bot*1e-6)).rjust(13)+'\n')
-        self.graph_export_4.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%q).rjust(13)+'\n')
+        self.graph_export_4.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%q_deviatoric_stress).rjust(13)+'\n')
         self.Flush(self.graph_export_1)
         self.Flush(self.graph_export_2)
         self.Flush(self.graph_export_3)
