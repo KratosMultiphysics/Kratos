@@ -82,7 +82,10 @@ public:
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
-    typedef std::size_t  SizeType;
+    typedef std::size_t SizeType;
+
+    /// The index type definition to be consistent
+    typedef typename TSparseSpaceType::IndexType IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -273,7 +276,7 @@ public:
         return 0;
     }
 
-    virtual unsigned int GetIterationsNumber()
+    virtual IndexType GetIterationsNumber()
     {
         KRATOS_WARNING("LinearSolver") << "Accessed base function \"GetIterationsNumber\", returning 0 !" << std::endl ;
 
