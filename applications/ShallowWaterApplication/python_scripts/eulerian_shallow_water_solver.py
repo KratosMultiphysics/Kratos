@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
@@ -11,7 +10,7 @@ def CreateSolver(model, custom_settings):
 
 class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
     def __init__(self, model, settings):
-        super(EulerianShallowWaterSolver, self).__init__(model, settings)
+        super().__init__(model, settings)
 
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowWater"
@@ -19,7 +18,7 @@ class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
         self.min_buffer_size = 2
 
     def AddVariables(self):
-        super(EulerianShallowWaterSolver, self).AddVariables()
+        super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
 
@@ -31,20 +30,20 @@ class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
         KM.Logger.PrintInfo(self.__class__.__name__, "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
-        super(EulerianShallowWaterSolver, self).Initialize()
+        super().Initialize()
         self.main_model_part.ProcessInfo.SetValue(SW.LUMPED_MASS_FACTOR, self.settings["lumped_mass_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.GROUND_IRREGULARITY, self.settings["ground_irregularity"].GetDouble())
 
     def FinalizeSolutionStep(self):
-        super(EulerianShallowWaterSolver, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
         SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, 0.005)
         SW.ComputeVelocityProcess(self.main_model_part, 0.01).Execute()
         self._CheckWaterLoss()
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
         "lumped_mass_factor"         : 1.0,
@@ -52,7 +51,7 @@ class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
         "ground_irregularity"        : 0.001
         }
         """)
-        default_settings.AddMissingParameters(super(EulerianShallowWaterSolver,cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def _InitializeWaterLoss(self):
