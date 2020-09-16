@@ -8,30 +8,12 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+import auxiliary_functions_for_tests
+
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
-
-def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
-
-    # os.environ['OMP_NUM_THREADS']='1'
-    # os.system("echo Unittest will be running on $OMP_NUM_THREADS cpu")
-
-    omp_utils = KratosMultiphysics.OpenMPUtils()
-    if "OMP_NUM_THREADS" in os.environ:
-        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
-        omp_utils.SetNumThreads(1)
-
-    with open(parameters_file_name,'r') as parameter_file:
-        project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-    my_obj(model, project_parameters).Run()
-
-    if "OMP_NUM_THREADS" in os.environ:
-        omp_utils.SetNumThreads(int(initial_number_of_threads))
-
-
 
 class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
 
@@ -102,7 +84,7 @@ class TestDEM2DControlModule(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        CreateAndRunStageInOneOpenMPThread(DEM2D_ControlModuleTestSolution, model, parameters_file_name)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_control_module_tests_files", "TimesPartialRelease")
