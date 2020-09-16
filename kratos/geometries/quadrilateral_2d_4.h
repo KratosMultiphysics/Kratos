@@ -356,7 +356,7 @@ public:
             return 2;
         }
         KRATOS_ERROR_IF(LocalDirectionIndex > 2)
-	    << "Possible direction index reaches from 0-2. Given direction index: "
+            << "Possible direction index reaches from 0-2. Given direction index: "
             << LocalDirectionIndex << std::endl;
     }
 
