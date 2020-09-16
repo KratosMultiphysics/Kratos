@@ -24,7 +24,7 @@ class DryDamBreakBenchmark(BaseBenchmarkProcess):
 
         The base class validates the settings and sets the model_part, the variables and the benchmark_settings
         """
-        super(DryDamBreakBenchmark, self).__init__(model, settings)
+        super().__init__(model, settings)
 
         self.dam = self.benchmark_settings["dam_position"].GetDouble()
         self.hl = self.benchmark_settings["left_height"].GetDouble()
@@ -33,7 +33,7 @@ class DryDamBreakBenchmark(BaseBenchmarkProcess):
     def Check(self):
         """This method checks if the input values have physical sense."""
 
-        super(DryDamBreakBenchmark, self).Check()
+        super().Check()
         label = "DryDamBreakBenchmark. "
         if self.g <= 0:
             msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z component in the ProcessInfo."
