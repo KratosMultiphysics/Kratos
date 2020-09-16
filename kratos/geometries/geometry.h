@@ -993,7 +993,7 @@ public:
     ///@{
 
     /// Return polynomial degree of the geometry in a certain direction
-    virtual SizeType PolynomialDegree(IndexType DirectionIndex = 0) const
+    virtual SizeType PolynomialDegree(IndexType LocalDirectionIndex) const
     {
         KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
     }
