@@ -333,35 +333,31 @@ namespace Kratos
 		{
 			SizeType kr = 5 * r;
 
-			const BoundedMatrix<double, 3, 2> BLAI = GetGeometry()[r].GetValue(DIRECTORTANGENTSPACE);
-			const BoundedMatrix<double, 3, 3> WI1 = rVariations.Q1 * m_N(IntPoint, r) + rVariations.P * m_cart_deriv[IntPoint](0, r);
-			const BoundedMatrix<double, 3, 3> WI2 = rVariations.Q2 * m_N(IntPoint, r) + rVariations.P * m_cart_deriv[IntPoint](1, r);
+			const Matrix32d BLAI = GetGeometry()[r].GetValue(DIRECTORTANGENTSPACE);
+			const Matrix3d WI1 = rVariations.Q1 * m_N(IntPoint, r) + rVariations.P * m_cart_deriv[IntPoint](0, r);
+			const Matrix3d WI2 = rVariations.Q2 * m_N(IntPoint, r) + rVariations.P * m_cart_deriv[IntPoint](1, r);
 
 			Vector Temp(1, 2), Temp1(1, 2), Temp2(1, 2), Temp3(1, 2), Temp4(1, 2);
 
 			for (int s = 0; s < 3; s++)
 			{
-				//membrane
-				rB(0, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.a1[s];
+				rB(0, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.a1[s]; //membrane_{,disp}
 				rB(1, kr + s) = m_cart_deriv[IntPoint](1, r) * rActualKinematic.a2[s];
-
-				//inplane shear
 				rB(2, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.a2[s] + m_cart_deriv[IntPoint](1, r) * rActualKinematic.a1[s];
 
-				//BENDING PART displacement variation
-				rB(3, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.dtd1[s];
+				rB(3, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.dtd1[s]; //bending_{,disp}
 				rB(4, kr + s) = m_cart_deriv[IntPoint](1, r) * rActualKinematic.dtd2[s];
 				rB(5, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.dtd2[s] + m_cart_deriv[IntPoint](1, r) * rActualKinematic.dtd1[s];
 
-				//TransverseShear displacement variation
-				rB(6, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.t[s];
+				rB(6, kr + s) = m_cart_deriv[IntPoint](0, r) * rActualKinematic.t[s];  //trans_shear_{,disp}
 				rB(7, kr + s) = m_cart_deriv[IntPoint](1, r) * rActualKinematic.t[s];
 			}
 
-			 Temp = prod(prod<Vector>(trans(rActualKinematic.a1), WI1), BLAI);
+			 Temp = prod(prod<Vector>(trans(rActualKinematic.a1), WI1), BLAI); //bending_{,dir}
 			 Temp1 = prod(prod<Vector>(trans(rActualKinematic.a2), WI2), BLAI);
 			 Temp2 = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
-			 Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntPoint, r), BLAI);
+
+			 Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(IntPoint, r), BLAI); //shear_{,dir}
 			 Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(IntPoint, r), BLAI);
 
 			for (int s = 0; s < 2; s++)
@@ -414,13 +410,12 @@ namespace Kratos
 		const SizeType num_dof = number_of_control_points * 5;
 
 		Matrix Kg{ ZeroMatrix(num_dof, num_dof) };
-		const array_1d<double, 8>& StressRes = rConstitutive.StressVector;
+		const array_1d<double, 8>& S = rConstitutive.StressVector;
 
-		const BoundedMatrix<double,3,3> chifac = (ractVar.Chi11 * StressRes[3] + ractVar.Chi22 * StressRes[4] + (ractVar.Chi12 + ractVar.Chi21) * StressRes[5]); //S[3..5] are moments
-		const BoundedMatrix<double, 3, 3> kg2directorshear = ractVar.S1 * StressRes[6] + ractVar.S2 * StressRes[7]; //S[6..7] is  shear
+		const Matrix3d chifac = (ractVar.Chi11 * S[3] + ractVar.Chi22 * S[4] + (ractVar.Chi12 + ractVar.Chi21) * S[5]); //S[3..5] are moments
+		const Matrix3d kg2directorshear = ractVar.S1 * S[6] + ractVar.S2 * S[7]; //S[6..7] is  shear
 
 		Matrix BLAJ(3, 2);
-
 		Matrix Temp(3, 3);
 		Matrix Temp2(2, 3);
 
@@ -430,16 +425,14 @@ namespace Kratos
 			const int ii2 = ii1 + 1;
 			const int ii3 = ii1 + 2;
 			const int ii4 = ii1 + 3;
-			const int ii5 = ii1 + 4;
 
 			const double Nii = m_N(IntPoint, ii);
 			const double dN1ii = m_cart_deriv[IntPoint](0, ii);
 			const double dN2ii = m_cart_deriv[IntPoint](1, ii);
 
-			const BoundedMatrix<double, 3, 3> WI1 = ractVar.Q1 * Nii + ractVar.P * dN1ii;
-			const BoundedMatrix<double, 3, 3> WI2 = ractVar.Q2 * Nii + ractVar.P * dN2ii;
-
-			const BoundedMatrix<double, 2, 3> BLAI_T = trans(r_geometry[ii].GetValue(DIRECTORTANGENTSPACE));
+			const Matrix3d WI1 = ractVar.Q1 * Nii + ractVar.P * dN1ii;
+			const Matrix3d WI2 = ractVar.Q2 * Nii + ractVar.P * dN2ii;
+			const Matrix23d BLAI_T = trans(r_geometry[ii].GetValue(DIRECTORTANGENTSPACE));
 			for (SizeType jj = ii; jj < number_of_control_points; jj++)
 			{
 				const int jj1 = 5 * jj;
@@ -451,59 +444,42 @@ namespace Kratos
 				const double dN1jj = m_cart_deriv[IntPoint](0, jj);
 				const double dN2jj = m_cart_deriv[IntPoint](1, jj);
 
-				const BoundedMatrix<double,3,2> BLAJ = r_geometry[jj].GetValue(DIRECTORTANGENTSPACE);
+				const Matrix3d WJ1 = ractVar.Q1 * Njj + ractVar.P * dN1jj;
+				const Matrix3d WJ2 = ractVar.Q2 * Njj + ractVar.P * dN2jj;
+				const Matrix32d BLAJ = r_geometry[jj].GetValue(DIRECTORTANGENTSPACE);
 
-				const BoundedMatrix<double, 3, 3> WJ1 = ractVar.Q1 * Njj + ractVar.P * dN1jj;
-				const BoundedMatrix<double, 3, 3> WJ2 = ractVar.Q2 * Njj + ractVar.P * dN2jj;
+				const double NS = dN1ii * dN1jj * S[0] + dN2ii * dN2jj * S[1] + (dN1ii * dN2jj + dN2ii * dN1jj) * S[2];
+				Kg(ii1, jj1) = Kg(ii2, jj2) = Kg(ii3, jj3) = NS; // membrane_{,disp,disp}*N
 
-				const double dN1ii_dN2jj_p_dN2ii_dN1jj = dN1ii * dN2jj + dN2ii * dN1jj;
-				// MEMBRANE CONTRIBUTION
-				const double NS = dN1ii * dN1jj * StressRes[0] + dN2ii * dN2jj * StressRes[1] + dN1ii_dN2jj_p_dN2ii_dN1jj * StressRes[2];
-				Kg(ii1, jj1) = Kg(ii2, jj2) = Kg(ii3, jj3) = NS;
+				Temp = S[3] * dN1ii * WJ1 + S[4] * dN2ii * WJ2 + S[5] * (dN1ii * WJ2 + dN2ii * WJ1); // bending_{,dir,disp}*M
+				Temp += ractVar.P * Njj * (dN1ii * S[6] + dN2ii * S[7]);  // shear_{,dir,disp}*Q
 
-				// BENDING CONTRIBUTION ROTATIONAL IJ
-				//bending part
-				Temp = StressRes[3] * dN1ii * WJ1 + StressRes[4] * dN2ii * WJ2 +
-					StressRes[5] * (dN1ii * WJ2 + dN2ii * WJ1);
-				//TRANSVERSAL SHEAR ROTATIONAL IJ
-				Temp += ractVar.P * Njj * (dN1ii * StressRes[6] + dN2ii * StressRes[7]);
-
-				//Kg.block<3, 2>(ii1, jj4).noalias() = prod(Temp , BLAJ);
 				noalias(subrange(Kg, ii, 3, jj4, 2)) = prod(Temp, BLAJ);
 
-				// BENDING CONTRIBUTION ROTATIONAL JI
-				Temp = StressRes[3] * dN1jj * WI1 + StressRes[4] * dN2jj * WI2 +
-					StressRes[5] * (dN1jj * WI2 + dN2jj * WI1);
-				//TRANSVERSAL SHEAR ROTATIONAL JI
-				Temp += ractVar.P * Nii * (dN1jj * StressRes[6] + dN2jj * StressRes[7]);
+				Temp = S[3] * dN1jj * WI1 + S[4] * dN2jj * WI2 + S[5] * (dN1jj * WI2 + dN2jj * WI1); // bending_{,disp,dir}*M
+	
+				Temp += ractVar.P * Nii * (dN1jj * S[6] + dN2jj * S[7]);// shear_{,disp,dir}*Q
 
-				//Kg.block<2, 3>(ii4, jj1).noalias() = prod(BLAI_T , Temp);
 				noalias(subrange(Kg, ii4, 2, jj1, 3)) = prod(BLAI_T, Temp);
 
-				// LINEARIZATION OF VARIATION OF DIRECTOR
-				// linearization of variation of director shear part
-				Temp = Nii * Njj * kg2directorshear;
-				// linearization of variation of director bending part
+				Temp = Nii * Njj * kg2directorshear;  // shear_{,dir,dir}*Q
+
 				const double NdN1 = dN1jj * Nii + Njj * dN1ii;
 				const double NdN2 = dN2jj * Nii + Njj * dN2ii;
-				Temp += Nii * Njj * chifac;
-				Temp += ractVar.S1 * NdN1 * StressRes[3] + ractVar.S2 * NdN2 * StressRes[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * StressRes[5];
+				Temp += Nii * Njj * chifac;  // bending_{,dir,dir}*M
+				Temp += ractVar.S1 * NdN1 * S[3] + ractVar.S2 * NdN2 * S[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * S[5];  // bending_{,dir,dir}*M
 
-				//Kg.block<2, 2>(ii4, jj4).noalias() = prod(prod(BLAI_T , Temp) , BLAJ);
 				Temp2 = prod(BLAI_T, Temp); //useless temp due to ublas prodprod
 				noalias(subrange(Kg, ii4, 2, jj4, 2)) = prod(Temp2, BLAJ);
 			}
-			///  Residual Part second part of Linearisation
-			///   difference to only projected Euclidean Hessian
-			/// LINEARIZATION OF PROJECTOR
-			const double kgT = -inner_prod(r_geometry[ii].GetValue(DIRECTOR),
-				                     prod(WI1, rActKin.a1) * StressRes[3] +
-				                     prod(WI2, rActKin.a2) * StressRes[4] + 
-				                     prod(WI2, rActKin.a1) + prod(WI1, rActKin.a2) * StressRes[5] +
-			                         prod(ractVar.P, rActKin.a1) * Nii * StressRes[6] +
-								     prod(ractVar.P, rActKin.a2) * Nii * StressRes[7]);
-			Kg(ii4, ii4) += kgT;
-			Kg(ii5, ii5) += kgT;
+			const double kgT = -inner_prod(r_geometry[ii].GetValue(DIRECTOR), 
+				                     prod(WI1, rActKin.a1) * S[3] +
+				                     prod(WI2, rActKin.a2) * S[4] + 
+				                     prod(WI2, rActKin.a1) + prod(WI1, rActKin.a2) * S[5] +
+			                         prod(ractVar.P, rActKin.a1) * Nii * S[6] +
+								     prod(ractVar.P, rActKin.a2) * Nii * S[7]); //P’_{,dir}*F_{int}
+			Kg(ii1 + 3, ii1 + 3) += kgT;
+			Kg(ii1 + 4, ii1 + 4) += kgT;
 		}
 		return Kg;
 	}

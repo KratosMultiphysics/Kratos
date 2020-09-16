@@ -423,6 +423,10 @@ private:
     );
 
 
+    using Matrix3d = BoundedMatrix<double, 3, 3>;
+    using Matrix32d = BoundedMatrix<double, 3, 2>;
+    using Matrix23d = BoundedMatrix<double, 2, 3>;
+
     //void Shell5pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo);
     //void Shell5pElement::constructReferenceDirectorL2FitSystem(MatrixType& rLeftHandSideMatrix, MatrixType& rRightHandSideMatrix);
   //  inline void CalculateAndAddKm(
