@@ -39,26 +39,29 @@ void OutputQuadratureDomainProcess::ExecuteBeforeSolutionLoop()
     ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
     std::string output_file_name = mThisParameters["output_file_name"].GetString();
 
-    std::ofstream file;
-    file.open(output_file_name);
-
-    file << "{ \"geometry_integration_points\":[";
+    std::string contents = "{ \"geometry_integration_points\":[";
 
     if (OutputGeometryElements) {
         for (auto element : r_model_part.Elements()) {
             auto integration_point = element.GetGeometry().IntegrationPoints()[0];
-            file << "[" << element.Id() << "," << element.GetGeometry().GetGeometryParent(0).Id() << ",[" << integration_point[0] << "," << integration_point[1] << "]],";
+            contents += '[' + element.Id() + ',' + element.GetGeometry().GetGeometryParent(0).Id() + ',[';
+            contents += std::to_string(integration_point[0]) + ',' + std::to_string(integration_point[1]) + "]],";
         }
     }
     if (OutputGeometryConditions) {
         for (auto condition : r_model_part.Conditions()) {
             auto integration_point = condition.GetGeometry().IntegrationPoints()[0];
-            file << "[" << condition.Id() << "," << condition.GetGeometry().GetGeometryParent(0).Id() << ",[" << integration_point[0] << "," << integration_point[1] << "]],";
+            contents += '[' << condition.Id() + ',' + condition.GetGeometry().GetGeometryParent(0).Id() + ',[';
+            contents += std::to_string(integration_point[0]) + ',' + std::to_string(integration_point[1]) + "]],";
         }
     }
     /// cut off last ","
-    file << -1;
-    file << "]}";
+    contents.pop_back();
+    contents += ']}';
+
+    std::ofstream file;
+    file.open(output_file_name);
+    file << contents;
     file.close();
 }
 
