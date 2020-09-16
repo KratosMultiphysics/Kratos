@@ -1203,10 +1203,7 @@ class Report(object):
 
     def BeginReport(self, timer):
         label = "DEM: "
-        report = "Main loop starting..." + "\n" + \
-            label + "Total number of TIME STEPs expected in the calculation: " + \
-            str(self.total_steps_expected) + "\n" + label
-
+        report = label + "Total number of time s expected in the calculation: " + str(self.total_steps_expected) + "\n\n"
         return report
 
     def StepiReport(self, timer, time, step):
@@ -1232,10 +1229,10 @@ class Report(object):
             self.first_print = False
             estimated_sim_duration = 60.0 * (self.total_steps_expected / step)  # seconds
 
-            report = report + "\n" + label + "The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
-                + label + "In minutes: " + str(estimated_sim_duration / 60.0) + " minutes" + "\n"\
-                + label + "In hours:   " + str(estimated_sim_duration / 3600.0) + " hours" + "\n"\
-                + label + "In days:    " + str(estimated_sim_duration / 86400.0) + " days" + "\n" + label
+            report = report + "\n" + label + "****** The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
+                + label + "****** In minutes: " + str(round(estimated_sim_duration / 60.0, 2)) + " minutes" + "\n"\
+                + label + "****** In hours: " + str(round(estimated_sim_duration / 3600.0, 3)) + " hours" + "\n"\
+                + label + "****** In days: " + str(round(estimated_sim_duration / 86400.0, 3)) + " days" + "\n" + label
 
         return report
 
