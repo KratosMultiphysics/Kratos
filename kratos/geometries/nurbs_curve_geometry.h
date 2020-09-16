@@ -175,10 +175,10 @@ public:
     ///@{
 
     /// Return polynomial degree of the curve
-    SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
-        KRATOS_DEBUG_ERROR_IF(DirectionIndex != 0)
-            << "Trying to access polynomial degree in direction " << DirectionIndex
+        KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex != 0)
+            << "Trying to access polynomial degree in direction " << LocalDirectionIndex
             << " from NurbsCurveGeometry #" << this->Id() << ". However, nurbs curves have only one direction."
             << std::endl;
 
