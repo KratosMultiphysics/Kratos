@@ -196,14 +196,14 @@ public:
     ///@{
 
     /// Return polynomial degree of the surface in direction 0 or 1
-    SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
-        KRATOS_DEBUG_ERROR_IF(DirectionIndex > 1)
-            << "Trying to access polynomial degree in direction " << DirectionIndex
-            << " from NurbsSurfaceGeometry #" << this->Id() << ". However, nurbs surfaces have only two directions."
+        KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex > 1)
+            << "Trying to access polynomial degree in direction " << LocalDirectionIndex
+            << " from NurbsSurfaceGeometry #" << this->Id() << ". Nurbs surfaces have only two directions."
             << std::endl;
 
-        if (DirectionIndex == 0)
+        if (LocalDirectionIndex == 0)
             return mPolynomialDegreeU;
         else
             return mPolynomialDegreeV;
