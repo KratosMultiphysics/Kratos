@@ -14,7 +14,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesSolverFractionalStep(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -85,7 +85,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             }
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStep, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStep, cls).GetDefaultParameters())
         return default_settings
 
     def __init__(self, model, custom_settings):

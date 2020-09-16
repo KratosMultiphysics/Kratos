@@ -183,7 +183,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         return auxiliar_methods_solvers.AuxiliarNewton(computing_model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.contact_settings, self.processes_list, self.post_process)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = auxiliar_methods_solvers.AuxiliarContactSettings()
-        this_defaults.RecursivelyAddMissingParameters(super(ContactImplicitMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.RecursivelyAddMissingParameters(super(ContactImplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults
