@@ -1,7 +1,6 @@
 import os
 import KratosMultiphysics
 from KratosMultiphysics import Logger
-import KratosMultiphysics.kratos_utilities as kratos_utils
 import multiprocessing
 
 def CreateAndRunStageInSelectedNumberOfOpenMPThreads(my_obj, model, parameters_file_name, number_of_threads):

@@ -8,7 +8,6 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import multiprocessing
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
