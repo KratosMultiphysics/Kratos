@@ -223,16 +223,16 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.DISTANCE,
                     KratosCFD.AREA_VARIABLE_AUX,
                     layers,
-                    8.0e-3,
+                    1.0e0,
                     (self.parallel_distance_process).NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT added on feb 20, 2020
 
-        self.variational_distance_process = self._set_variational_distance_process()
+        #self.variational_distance_process = self._set_variational_distance_process()
         #(self.variational_distance_process).Execute()
 
         #self.lumped_eikonal_distance_calculation = self._set_lumped_eikonal_distance_calculation()
         #(self.lumped_eikonal_distance_calculation).Execute()
 
-        self.variational_non_eikonal_distance = self._set_variational_non_eikonal_distance()
+        #self.variational_non_eikonal_distance = self._set_variational_non_eikonal_distance()
         #(self.distance_gradient_process).Execute()
         #(self.curvature_calculation_process).Execute()
         #(self.variational_non_eikonal_distance).Execute()
@@ -332,7 +332,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosCFD.AREA_VARIABLE_AUX,
                     layers,
                     8.0e-3)#,
-                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                #    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
                 print(time.time())
 
@@ -407,7 +407,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "solved SolutionStep")
 
         # Smoothing the surface to filter oscillatory surface
-        (self.distance_gradient_process).Execute() # Always check if alculated above
+        (self.distance_gradient_process).Execute() # Always check if calculated above
         print("Smoothing")
         print(time.time())
         (self.surface_smoothing_process).Execute()
@@ -528,7 +528,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                         mean_radius += math.sqrt((x_center-x_zero)**2+(y_center-y_zero)**2+(z_center-z_zero)**2)
 
                 with open("ZeroDistance_Unstructured.log", "a") as USdistLogFile:
-                    USdistLogFile.write( str(TimeStep*DT) + "\t" + str(mean_radius/num_points) + "\n" )
+                    if (num_points > 0):
+                        USdistLogFile.write( str(TimeStep*DT) + "\t" + str(mean_radius/num_points) + "\n" )
+                    else:
+                        USdistLogFile.write( str(TimeStep*DT) + "\t" + "0.0" + "\n" )
 
             #############################
             # Zero Disance - Structured #
@@ -885,7 +888,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return mass_conservation_check_process
 
     def _set_find_neighbouring_elements_process(self):
-        dimensions = 3
+        dimensions = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         avg_num_elements = 10
         find_neighbouring_elements_process = KratosMultiphysics.FindElementalNeighboursProcess(
                 self.main_model_part, dimensions, avg_num_elements)
