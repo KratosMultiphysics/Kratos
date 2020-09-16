@@ -160,7 +160,7 @@ public:
     ///@{
 
     /// Return polynomial degree of the curve
-    SizeType PolynomialDegree(IndexType DirectionIndex = 0) const override
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
         return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
     }
