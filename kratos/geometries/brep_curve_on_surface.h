@@ -217,7 +217,7 @@ public:
     ///@{
 
     /// Return polynomial degree of the nurbs curve on surface
-    SizeType PolynomialDegree(IndexType LocalDirectionIndex = 0) const override
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
         return mpCurveOnSurface->PolynomialDegree(LocalDirectionIndex);
     }
