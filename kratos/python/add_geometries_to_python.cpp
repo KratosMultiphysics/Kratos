@@ -153,6 +153,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    .def("PolynomialDegree",&GeometryType::PolynomialDegree)
     // Quadrature points
     .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
     .def("Normal",GetNormal)
