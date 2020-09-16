@@ -355,7 +355,7 @@ public:
             return 3;
         }
         KRATOS_ERROR << "Possible direction index reaches from 0-1. Given direction index: "
-            << DirectionIndex << std::endl;
+            << LocalDirectionIndex << std::endl;
     }
 
     /**
