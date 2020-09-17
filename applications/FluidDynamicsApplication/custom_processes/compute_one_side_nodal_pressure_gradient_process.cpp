@@ -128,10 +128,10 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
                         r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
                     }
 
-                    double& vol = r_geometry[i_node].GetValue(NODAL_AREA);
+                    double& r_vol = r_geometry[i_node].GetValue(NODAL_AREA);
 
                     #pragma omp atomic
-                    vol += N[i_node] * gauss_point_volume;
+                    r_vol += N[i_node] * gauss_point_volume;
                 }
             }
         }
