@@ -2004,7 +2004,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateCurvature(
         const Matrix& rInterfaceShapeFunctions,
         Vector& rInterfaceCurvature)
 {
-    GeometryType::Pointer p_geom = this->pGetGeometry();
+    auto p_geom = this->pGetGeometry();
     const unsigned int n_gpt = rInterfaceShapeFunctions.size1();
 
     rInterfaceCurvature.resize(n_gpt, false);
