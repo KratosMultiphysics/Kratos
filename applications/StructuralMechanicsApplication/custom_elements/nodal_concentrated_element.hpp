@@ -133,17 +133,17 @@ public:
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
     //************* COMPUTING  METHODS
@@ -160,7 +160,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
 
@@ -173,7 +173,7 @@ public:
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -185,7 +185,7 @@ public:
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -196,7 +196,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -207,7 +207,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**

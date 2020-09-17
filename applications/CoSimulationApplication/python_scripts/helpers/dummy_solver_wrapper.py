@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -7,10 +5,10 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 
-def Create(settings, solver_name):
-    return DummySolverWrapper(settings, solver_name)
+def Create(settings, model, solver_name):
+    return DummySolverWrapper(settings, model, solver_name)
 
 class DummySolverWrapper(CoSimulationSolverWrapper):
     """This class serves as dummy for testing, it does not solve anything
@@ -18,15 +16,15 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
     Note that this is only an example, other configurations are of course also possible
     """
-    def __init__(self, settings, solver_name):
-        super(DummySolverWrapper, self).__init__(settings, solver_name)
+    def __init__(self, settings, model, solver_name):
+        super().__init__(settings, model, solver_name)
 
         self.time_step = self.settings["solver_wrapper_settings"]["time_step"].GetDouble()
         self.model_part = self.model.CreateModelPart(self.settings["solver_wrapper_settings"]["main_model_part_name"].GetString())
 
         self.model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.settings["solver_wrapper_settings"]["domain_size"].GetInt()
 
-        cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
+        model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
         severity = KM.Logger.GetDefaultOutput().GetSeverity()
@@ -35,11 +33,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         model_part_io.ReadModelPart(self.model_part)
         KM.Logger.GetDefaultOutput().SetSeverity(severity)
 
-        super(DummySolverWrapper, self).Initialize()
+        super().Initialize()
 
     def AdvanceInTime(self, current_time):
         return current_time + self.time_step
-
-    def PrintInfo(self):
-        cs_tools.cs_print_info("DummySolver", self._ClassName())
-        ## TODO print additional stuff with higher echo-level

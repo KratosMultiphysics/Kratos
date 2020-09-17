@@ -35,7 +35,6 @@
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
-#include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
 #include "custom_strategies/strategies/trilinos_laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/trilinos_structural_meshmoving_strategy.h"
 
@@ -140,12 +139,22 @@ void AddStrategies(pybind11::module& m)
 
     typedef ResidualBasedLinearStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLinearStrategy;
     py::class_< TrilinosLinearStrategy , typename TrilinosLinearStrategy::Pointer, TrilinosBaseSolvingStrategyType >
-    (m,"TrilinosLinearStrategy").def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosBuilderAndSolverType::Pointer, bool, bool, bool, bool >())
+    (m,"TrilinosLinearStrategy")
+        .def(py::init([](ModelPart& rModelPart, TrilinosBaseSchemeType::Pointer pScheme, TrilinosLinearSolverType::Pointer pLinearSolver, TrilinosBuilderAndSolverType::Pointer pBuilderAndSolver, bool CalculateReactionFlag, bool ReformDofSetAtEachStep, bool CalculateNormDxFlag, bool MoveMeshFlag) {
+            KRATOS_WARNING("TrilinosLinearStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+            return std::shared_ptr<TrilinosLinearStrategy>(new TrilinosLinearStrategy(rModelPart, pScheme, pBuilderAndSolver, CalculateReactionFlag, ReformDofSetAtEachStep, CalculateNormDxFlag, MoveMeshFlag));
+        }))
+        .def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosBuilderAndSolverType::Pointer, bool, bool, bool, bool >())
     ;
 
     typedef ResidualBasedNewtonRaphsonStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosNewtonRaphsonStrategy;
     py::class_< TrilinosNewtonRaphsonStrategy , typename TrilinosNewtonRaphsonStrategy::Pointer, TrilinosBaseSolvingStrategyType >
-    (m,"TrilinosNewtonRaphsonStrategy").def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >())
+    (m,"TrilinosNewtonRaphsonStrategy")
+    .def(py::init([](ModelPart& rModelPart, TrilinosBaseSchemeType::Pointer pScheme, TrilinosLinearSolverType::Pointer pLinearSolver, TrilinosConvergenceCriteria::Pointer pConvergenceCriteria, TrilinosBuilderAndSolverType::Pointer pBuilderAndSolver, int MaxIterations, bool CalculateReactions, bool ReformDofSetAtEachStep, bool MoveMeshFlag) {
+            KRATOS_WARNING("TrilinosNewtonRaphsonStrategy") << "Using deprecated constructor. Please use constructor without linear solver.";
+            return std::shared_ptr<TrilinosNewtonRaphsonStrategy>(new TrilinosNewtonRaphsonStrategy(rModelPart, pScheme, pConvergenceCriteria, pBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag));
+        }))
+    .def(py::init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >())
     ;
 
     // Mesh Moving ********************************************************************************************

@@ -29,19 +29,19 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.WET_VOLUME)
 
     def testSpatialStatisticsProcessNodalHistorical(self):
-        settings = SpatialStatisticsTestCase.__GetDefaultSettings("nodal_historical")
+        settings = SpatialStatisticsTestCase.__GetDefaultParameters("nodal_historical")
         self.__TestMethod(settings)
 
     def testSpatialStatisticsProcessNodalNonHistorical(self):
-        settings = SpatialStatisticsTestCase.__GetDefaultSettings("nodal_non_historical")
+        settings = SpatialStatisticsTestCase.__GetDefaultParameters("nodal_non_historical")
         self.__TestMethod(settings)
 
     def testSpatialStatisticsProcessElementNonHistorical(self):
-        settings = SpatialStatisticsTestCase.__GetDefaultSettings("element_non_historical")
+        settings = SpatialStatisticsTestCase.__GetDefaultParameters("element_non_historical")
         self.__TestMethod(settings)
 
     def testSpatialStatisticsProcessConditionNonHistorical(self):
-        settings = SpatialStatisticsTestCase.__GetDefaultSettings("condition_non_historical")
+        settings = SpatialStatisticsTestCase.__GetDefaultParameters("condition_non_historical")
         self.__TestMethod(settings)
 
     def __TestMethod(self, settings):
@@ -59,7 +59,7 @@ class SpatialStatisticsTestCase(statistics_test_case.StatisticsTestCase):
             process.ExecuteFinalize()
 
     @staticmethod
-    def __GetDefaultSettings(container_name):
+    def __GetDefaultParameters(container_name):
         settings_str = r'''
             {
                 "kratos_module" : "KratosMultiphysics.StatisticsApplication",

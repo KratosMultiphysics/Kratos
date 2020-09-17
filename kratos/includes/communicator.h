@@ -206,9 +206,17 @@ public:
 
     virtual int TotalProcesses() const;
 
+    SizeType GlobalNumberOfNodes() const;
+
+    SizeType GlobalNumberOfElements() const;
+
+    SizeType GlobalNumberOfConditions() const;
+
     SizeType GetNumberOfColors() const;
 
     void SetNumberOfColors(SizeType NewNumberOfColors);
+
+    void AddColors(SizeType NumberOfAddedColors);
 
     NeighbourIndicesContainerType& NeighbourIndices();
 

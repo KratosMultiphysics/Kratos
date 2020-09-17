@@ -167,7 +167,7 @@ void NodalConcentratedElement::EquationIdVector(
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step )
+void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -186,7 +186,7 @@ void NodalConcentratedElement::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -204,7 +204,7 @@ void NodalConcentratedElement::GetFirstDerivativesVector( Vector& rValues, int S
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -224,7 +224,7 @@ void NodalConcentratedElement::GetSecondDerivativesVector( Vector& rValues, int 
 //************************************************************************************
 //************************************************************************************
 
-void NodalConcentratedElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY;
@@ -243,7 +243,7 @@ void NodalConcentratedElement::CalculateLocalSystem( MatrixType& rLeftHandSideMa
 //***********************************************************************************
 //***********************************************************************************
 
-void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -279,7 +279,7 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
 //***********************************************************************************
 //***********************************************************************************
 
-void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -327,7 +327,7 @@ Matrix& NodalConcentratedElement::CalculateDeltaPosition(Matrix & rDeltaPosition
 //************************************************************************************
 //************************************************************************************
 
-void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -357,7 +357,7 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
 void NodalConcentratedElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;

@@ -49,7 +49,7 @@ class Commander(object):
         t.start()
         t.join(timeout)
 
-        if t.isAlive():
+        if t.is_alive():
             self.process.terminate()
             t.join()
             print('\n[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
@@ -173,13 +173,11 @@ class Commander(object):
 
 
 def print_test_header(application):
-    print("\nRunning {} tests".format(application), file=sys.stderr)
-    sys.stderr.flush()
+    print("\nRunning {} tests".format(application), file=sys.stderr, flush=True)
 
 def print_test_footer(application, exit_code):
     appendix = " with exit code {}!".format(exit_code) if exit_code != 0 else "."
-    print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr)
-    sys.stderr.flush()
+    print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr, flush=True)
 
 def print_summary(exit_codes):
     print("Test results summary:", file=sys.stderr)

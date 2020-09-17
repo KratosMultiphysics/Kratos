@@ -237,7 +237,7 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     ofs_sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     ofs_sand_prod_file.flush();
 
-    unsigned int number_of_time_steps_between_granulometry_prints = 1000;
+    unsigned int number_of_time_steps_between_granulometry_prints = 1e9;
     static unsigned int printing_counter = 0;
     if (printing_counter == number_of_time_steps_between_granulometry_prints) {
         ofs_granulometry_distr_file << time;

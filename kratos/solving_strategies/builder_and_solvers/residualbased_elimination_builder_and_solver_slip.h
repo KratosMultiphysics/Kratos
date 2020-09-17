@@ -480,13 +480,14 @@ public:
                 ParallelConstructGraph(A);
             }
         }
-        if (Dx.size() != BaseType::mEquationSystemSize)
+        if (Dx.size() != BaseType::mEquationSystemSize) {
             Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
+        }
+        TSparseSpace::SetToZero(Dx);
+        if (b.size() != BaseType::mEquationSystemSize) {
             b.resize(BaseType::mEquationSystemSize, false);
-
-        //
-        // KRATOS_WATCH("builder 459")
+        }
+        TSparseSpace::SetToZero(b);
 
 
         //if needed resize the vector for the calculation of reactions

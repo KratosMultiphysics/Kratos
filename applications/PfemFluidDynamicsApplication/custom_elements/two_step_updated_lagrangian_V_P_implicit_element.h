@@ -124,6 +124,12 @@ public:
 
   typedef typename BaseType::ElementalVariables ElementalVariables;
 
+  ///Reference type definition for constitutive laws
+  typedef ConstitutiveLaw ConstitutiveLawType;
+
+  ///Pointer type for constitutive laws
+  typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -322,6 +328,8 @@ protected:
   ///@name Protected member Variables
   ///@{
 
+  ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -341,18 +349,6 @@ protected:
   void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                              VectorType &rRightHandSideVector,
                                              ProcessInfo &rCurrentProcessInfo) override{};
-
-  void ComputeMaterialParameters(double &Density,
-                                 double &DeviatoricCoeff,
-                                 double &VolumetricCoeff,
-                                 ProcessInfo &rCurrentProcessInfo,
-                                 ElementalVariables &rElementalVariables) override{};
-
-  void ComputeMaterialParametersGranularGas(double &Density,
-                                            double &DeviatoricCoeff,
-                                            double &VolumetricCoeff,
-                                            ProcessInfo &rCurrentProcessInfo,
-                                            ElementalVariables &rElementalVariables) override{};
 
   double GetThetaMomentum() override
   {
@@ -427,9 +423,9 @@ protected:
                                           const ShapeFunctionDerivativesType &rShapeDeriv,
                                           const double Weight){};
 
-  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                        double TimeStep,
-                                        unsigned int g) override{};
+  void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
+                                        const ProcessInfo &rCurrentProcessInfo, double &Density,
+                                        double &DeviatoricCoeff, double &VolumetricCoeff) override{};
 
   virtual void CalculateTauFIC(double &TauOne,
                                double ElemSize,

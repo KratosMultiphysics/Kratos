@@ -947,45 +947,6 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::ComputePreviousM
     MortarExplicitContributionUtilities<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, false, TNumNodesMaster>::ComputePreviousMortarOperators(this, rCurrentProcessInfo, mPreviousMortarOperators, integration_order, false);
 }
 
-//******************************* GET DOUBLE VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET ARRAY_1D VALUE *******************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET VECTOR VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 

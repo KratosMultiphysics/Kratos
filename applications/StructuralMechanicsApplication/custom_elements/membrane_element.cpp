@@ -154,7 +154,7 @@ void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 void MembraneElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     TotalStiffnessMatrix(rLeftHandSideMatrix,GetGeometry().GetDefaultIntegrationMethod());
@@ -165,7 +165,7 @@ void MembraneElement::CalculateLeftHandSide(
 
 void MembraneElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     const SizeType number_of_nodes = GetGeometry().size();
@@ -186,7 +186,7 @@ void MembraneElement::CalculateRightHandSide(
 void MembraneElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -199,8 +199,7 @@ void MembraneElement::CalculateLocalSystem(
 
 void MembraneElement::GetValuesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -224,8 +223,7 @@ void MembraneElement::GetValuesVector(
 
 void MembraneElement::GetFirstDerivativesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * 3;
@@ -249,8 +247,7 @@ void MembraneElement::GetFirstDerivativesVector(
 
 void MembraneElement::GetSecondDerivativesVector(
     Vector& rValues,
-    int Step)
-
+    int Step) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType mat_size = number_of_nodes * 3;
@@ -721,7 +718,8 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
     const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
+
+    if (rVariable==PK2_STRESS_VECTOR || rVariable==PRINCIPAL_PK2_STRESS_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
         Vector stress = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
@@ -735,6 +733,11 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+            if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
             // getting information for integration
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
@@ -751,17 +754,34 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
 
-            Matrix material_tangent_modulus = ZeroMatrix(dimension);
-            MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
-                transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
 
-            if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
-                Vector principal_stresses = ZeroVector(2);
-                PrincipalVector(principal_stresses,stress);
-                rOutput[point_number] = principal_stresses;
-            }  else {
-                rOutput[point_number] = stress;
+            if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+                    Vector strain_vector = ZeroVector(3);
+                    StrainGreenLagrange(strain_vector,covariant_metric_reference,
+                    covariant_metric_current,inplane_transformation_matrix_material);
+                    strain_vector[2] /= 2.0;
+                    noalias(rOutput[point_number]) = strain_vector;
             }
+            else {
+                Matrix material_tangent_modulus = ZeroMatrix(dimension);
+                MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
+                    transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus);
+
+                if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
+                    Vector principal_stresses = ZeroVector(2);
+
+                    if (rOutput[point_number].size() != 2) {
+                        rOutput[point_number].resize(2);
+                    }
+
+
+                    PrincipalVector(principal_stresses,stress);
+                    noalias(rOutput[point_number]) = principal_stresses;
+                }  else {
+                    noalias(rOutput[point_number]) = stress;
+                }
+            }
+
         }
 
     }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
@@ -782,6 +802,12 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         double det_deformation_gradient = 0.0;
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+
+            if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
             // getting information for integration
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
@@ -814,6 +840,11 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             if (rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
                 Vector principal_stresses = ZeroVector(2);
+
+                if (rOutput[point_number].size() != 2) {
+                    rOutput[point_number].resize(2);
+                }
+
                 PrincipalVector(principal_stresses,stress);
                 rOutput[point_number] = principal_stresses;
             }  else {
@@ -973,26 +1004,8 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
     }
 }
 
-void MembraneElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
+void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-void MembraneElement::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                        std::vector<Vector>& rValues,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
-void MembraneElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     auto& r_geom = GetGeometry();
@@ -1058,7 +1071,7 @@ void MembraneElement::CalculateLumpedMassVector(VectorType& rMassVector)
 void MembraneElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -1085,7 +1098,7 @@ void MembraneElement::AddExplicitContribution(
 }
 
 void MembraneElement::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -1096,7 +1109,7 @@ void MembraneElement::CalculateDampingMatrix(
 
 void MembraneElement::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;

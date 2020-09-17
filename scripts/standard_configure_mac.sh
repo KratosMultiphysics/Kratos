@@ -32,7 +32,7 @@ export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/Library/Frameworks/Python.framew
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 
@@ -49,4 +49,4 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
  -DUSE_EIGEN_MKL=OFF
 
 # Buid
-/Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+/Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(sysctl -n hw.physicalcpu)
