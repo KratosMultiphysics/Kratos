@@ -192,6 +192,23 @@ public:
     }
 
     ///@}
+    ///@name Information
+    ///@{
+
+    /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        if (LocalDirectionIndex == 0) {
+            return this->NumberOfControlPointsU();
+        }
+        else if (LocalDirectionIndex == 1) {
+            return this->NumberOfControlPointsV();
+        }
+        KRATOS_ERROR << "Possible direction index in NurbsSurfaceGeometry reaches from 0-1. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
+    ///@}
     ///@name Get and Set functions
     ///@{
 
