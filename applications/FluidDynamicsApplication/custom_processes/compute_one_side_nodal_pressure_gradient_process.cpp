@@ -115,7 +115,7 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
                 // Getting the jacobians and local gradients
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
                 MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
-                const Matrix& rDN_De = rDN_DeContainer[point_number];
+                const auto& rDN_De = rDN_DeContainer[point_number];
                 GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 
                 noalias(grad) = prod(trans(DN_DX), pressures);
