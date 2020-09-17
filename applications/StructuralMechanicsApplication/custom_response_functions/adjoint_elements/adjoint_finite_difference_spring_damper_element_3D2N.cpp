@@ -83,6 +83,48 @@ void AdjointFiniteDifferenceSpringDamperElement<TPrimalElement>::CalculateSensit
         // give original stiffness parameters back
         this->pGetPrimalElement()->SetValue(rDesignVariable, variable_value);
     }
+    else if (this->Has(rDesignVariable) && (rDesignVariable == NODAL_ROTATIONAL_DAMPING_RATIO || rDesignVariable == NODAL_DAMPING_RATIO)) {
+        if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {
+                rOutput.resize(dimension, local_size, false);
+        }
+
+        // save original damping parameters
+        const auto variable_value = this->pGetPrimalElement()->GetValue(rDesignVariable);
+
+        // reset original damping parameters before computing the derivatives
+        this->pGetPrimalElement()->SetValue(rDesignVariable, rDesignVariable.Zero());
+
+        // allocate derivative components 
+        Vector DampingForceDerivative = ZeroVector(local_size);
+        Vector VelocityVector = ZeroVector(local_size);
+        MatrixType DampingMatrixDerivative;
+
+        // get velocity vector
+        auto& r_geometry = this->pGetPrimalElement()->GetGeometry();
+
+        for(IndexType n_i = 0; n_i < number_of_nodes; ++n_i) {
+            for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
+                VelocityVector[dir_i + 2*n_i   *dimension] = r_geometry[n_i].FastGetSolutionStepValue(VELOCITY)[dir_i];
+                VelocityVector[dir_i +(2*n_i+1)*dimension] = r_geometry[n_i].FastGetSolutionStepValue(ANGULAR_VELOCITY)[dir_i];
+            }
+        }
+
+        for(IndexType dir_i = 0; dir_i < dimension; ++dir_i) {
+            // The following approach assumes a linear dependency between RHS and damping ratio
+            array_1d<double, 3> perturbed_nodal_damping = ZeroVector(3);
+            perturbed_nodal_damping[dir_i] = 1.0;
+            this->pGetPrimalElement()->SetValue(rDesignVariable, perturbed_nodal_damping);
+            // Getting the derivative of the damping matrix
+            this->pGetPrimalElement()->CalculateDampingMatrix(DampingMatrixDerivative, rCurrentProcessInfo);
+
+            DampingForceDerivative = -prod(DampingMatrixDerivative, VelocityVector);
+                  
+            KRATOS_ERROR_IF_NOT(DampingForceDerivative.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+            for(IndexType i = 0; i < DampingForceDerivative.size(); ++i) {
+                rOutput(dir_i, i) = DampingForceDerivative[i];
+            }
+        }
+    }
     else {
         if ((rOutput.size1() != 0) || (rOutput.size2() != local_size)) {
             rOutput.resize(0, local_size, false);
