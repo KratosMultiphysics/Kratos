@@ -1974,18 +1974,18 @@ class DEMIo(object):
 
         # BB Elements:
         props = Properties(10000)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 1, [node1.Id, node4.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 2, [node4.Id, node8.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 3, [node8.Id, node5.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 4, [node5.Id, node1.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 5, [node1.Id, node2.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 6, [node3.Id, node4.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 7, [node7.Id, node8.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 8, [node5.Id, node6.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 9, [node6.Id, node2.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 1, [node1.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 2, [node4.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 3, [node8.Id, node5.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 4, [node5.Id, node1.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 5, [node1.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 6, [node3.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 7, [node7.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 8, [node5.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 9, [node6.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 10, [node2.Id, node3.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 11, [node3.Id, node7.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 12, [node7.Id, node6.Id], props)
 
 
 
