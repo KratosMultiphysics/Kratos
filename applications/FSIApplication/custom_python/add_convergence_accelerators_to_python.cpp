@@ -18,11 +18,11 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
 
 // Application includes
 #include "custom_python/add_convergence_accelerators_to_python.h"
-#include "custom_utilities/convergence_accelerator.hpp"
 #include "custom_utilities/constant_relaxation_convergence_accelerator.h"
 #include "custom_utilities/mvqn_convergence_accelerator.hpp"
 #include "custom_utilities/mvqn_recursive_convergence_accelerator.hpp"

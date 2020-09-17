@@ -16,8 +16,8 @@
 /* External includes */
 
 /* Project includes */
-#include "convergence_accelerator.hpp"
 #include "includes/ublas_interface.h"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/svd_utils.h"
 #include "utilities/qr_utility.h"
 
@@ -220,7 +220,7 @@ public:
         const VectorType& rNewColV,
         const VectorType& rNewColW,
         const double AbsCutOff = 1e-8)
-    {   
+    {
         // Add the provided iformation to the observation matrices
         mJacobianObsMatrixV.push_back(rNewColV);
         mJacobianObsMatrixW.push_back(rNewColW);
@@ -237,7 +237,7 @@ public:
         }
 
         // Perform the Singular Value Decomposition (SVD) of matrix trans(V)*V
-        // SVD decomposition of matrix A yields two orthogonal matrices "u_svd" 
+        // SVD decomposition of matrix A yields two orthogonal matrices "u_svd"
         // and "v_svd" as well as a diagonal matrix "w_svd" cotaining matrix
         // A eigenvalues such that A = u_svd * w_svd * v_svd
         MatrixType u_svd; // Orthogonal matrix (m x m)
@@ -247,7 +247,7 @@ public:
         const double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
         SVDUtils<double>::SingularValueDecomposition(*ptransV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
 
-        // Get the eigenvalues vector. Remember that eigenvalues 
+        // Get the eigenvalues vector. Remember that eigenvalues
         // of trans(A)*A are equal to the eigenvalues of A^2
         std::vector<double> eig_vector(data_cols);
         for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
@@ -270,7 +270,7 @@ public:
         // If its value is close to zero or out of the representativity
         // the correspondent data columns are dropped from both V and W.
         if (min_eig_V < AbsCutOff * max_eig_V){
-            KRATOS_WARNING("MVQNRecursiveJacobianConvergenceAccelerator") 
+            KRATOS_WARNING("MVQNRecursiveJacobianConvergenceAccelerator")
                 << "Dropping info for eigenvalue " << min_eig_V << " (tolerance " << AbsCutOff * max_eig_V << " )" << std::endl;
             mJacobianObsMatrixV.pop_back();
             mJacobianObsMatrixW.pop_back();
@@ -283,9 +283,9 @@ public:
 
     /**
     * Calls the AppendDataColumns() method to add the new data columns
-    * to the observation matrices (provided that the new data columns 
+    * to the observation matrices (provided that the new data columns
     * are not linear dependent to the previous data). Then, if the
-    * information has been added, the oldest column is dropped to avoid 
+    * information has been added, the oldest column is dropped to avoid
     * the number of data columns become larger than the problem size.
     * @param rNewColV new column to be appended to V observation matrix
     * @param rNewColW new column to be appended to W observation matrix
@@ -295,7 +295,7 @@ public:
         const VectorType& rNewColV,
         const VectorType& rNewColW,
         const double AbsCutOffEps = 1e-8)
-    {  
+    {
         // std::cout << "DropAndAppendDataColumns()" << std::endl;
         const bool info_added = this->AppendDataColumns(rNewColV, rNewColW, AbsCutOffEps);
 
@@ -317,7 +317,7 @@ public:
     /**
      * @brief Get the Number Of Data Cols object
      * This function returns the number of data columns stored.
-     * Since the data columns is assumed (and must be) the same in 
+     * Since the data columns is assumed (and must be) the same in
      * both observation matrices, it is computed using V matrix.
      * @return std::size_t number of data columns
      */
@@ -329,8 +329,8 @@ public:
     /**
      * @brief Get the Residual Size object
      * This function returns the interface residual size.
-     * Since the residual size is assumed (and must be) the same in 
-     * every column for both observation matrices, it is computed 
+     * Since the residual size is assumed (and must be) the same in
+     * every column for both observation matrices, it is computed
      * using the first column of V matrix.
      * @return std::size_t residual size
      */
@@ -433,7 +433,7 @@ public:
             "solver_type"     : "MVQN_recursive",
             "w_0"             : 0.825,
             "buffer_size"     : 10,
-            "abs_cut_off_tol" : 1e-8 
+            "abs_cut_off_tol" : 1e-8
         }
         )");
 
@@ -492,7 +492,7 @@ public:
     }
 
     /**
-     * @brief 
+     * @brief
      * This method initializes the internal counters and constructs the previous step Jacobian emulator.
      * The Jacobian emulator is recursively build at each time step according to the buffer size.
      */
@@ -568,7 +568,7 @@ public:
             // Apply the current step inverse Jacobian emulator to the residual vector
             VectorPointerType pIterationCorrection(new VectorType(rResidualVector));
             mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pIterationCorrection);
-            
+
             TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pIterationCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
         }
 

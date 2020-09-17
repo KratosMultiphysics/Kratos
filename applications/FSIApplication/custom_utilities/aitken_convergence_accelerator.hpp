@@ -16,8 +16,8 @@
 /* External includes */
 
 /* Project includes */
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/math_utils.h"
-#include "convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -72,7 +72,7 @@ public:
         {
             "solver_type"       : "Relaxation",
             "acceleration_type" : "Aitken",
-            "w_0"               : 0.825  
+            "w_0"               : 0.825
         }
         )");
 

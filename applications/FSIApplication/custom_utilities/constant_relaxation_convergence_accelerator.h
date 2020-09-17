@@ -21,7 +21,7 @@
 
 
 /* Project includes */
-#include "convergence_accelerator.hpp"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 
 
 namespace Kratos

@@ -19,11 +19,11 @@
 
 // Project includes
 #include "includes/ublas_interface.h"
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "utilities/svd_utils.h"
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "convergence_accelerator.hpp"
 
 namespace Kratos
 {
