@@ -1,23 +1,25 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Original author:  Ruben Zorrilla
+//  License:		 BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ruben Zorrilla
+//
 //
 
 #if !defined(KRATOS_CONVERGENCE_ACCELERATOR )
 #define  KRATOS_CONVERGENCE_ACCELERATOR
 
-
-/* System includes */
+// System includes
 #include <set>
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "input_output/logger.h"
@@ -25,252 +27,191 @@
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@addtogroup KratosCore
+///@{
 
+///@name Kratos Classes
+///@{
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-
-/** Short class definition.
-Detail class definition.
-*/
-
+/**
+ * @brief Base class for convergence accelerators
+ * This class is intended to be the base of any convergence accelerator in Kratos
+ * @tparam TSpace Linear algebra space
+ */
 template<class TSpace>
 class ConvergenceAccelerator
 {
 
 public:
 
-    /** Type Definitions
-    */
+    ///@name Type Definitions
+    ///@{
 
-    /*@{ */
     typedef typename TSpace::VectorType                             VectorType;
     typedef typename TSpace::MatrixType                             MatrixType;
 
     typedef typename TSpace::VectorPointerType               VectorPointerType;
     typedef typename TSpace::MatrixPointerType               MatrixPointerType;
 
-    //~ typedef typename TSpace::MatrixType::size_type                    SizeType;
+    // Counted pointer of ConvergenceAccelerator
+    KRATOS_CLASS_POINTER_DEFINITION(ConvergenceAccelerator);
 
-    //~ /** Counted pointer of ClassName */
-    KRATOS_CLASS_POINTER_DEFINITION( ConvergenceAccelerator );
-    /*@} */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    /** Constructor.
-     */
+    // Default constructor
+    ConvergenceAccelerator() = default;
 
-    /*@{ */
-    ConvergenceAccelerator()
-    {
-    }
-    /*@} */
-
-    /** Copy constructor.
-    */
-
-    /*@{ */
+    // Deleted copy constructor
     ConvergenceAccelerator(const ConvergenceAccelerator& Other) = delete;
-    /*@{ */
 
-    /** Destructor.
-     */
+    // Default destructor
+    virtual ~ConvergenceAccelerator() = default;
 
-    /*@{ */
-    virtual ~ConvergenceAccelerator()
-    {
-    }
-    /*@} */
+    ///@}
+    ///@name Operators
+    ///@{
 
-    //*********************************************************************************
-    /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
-    /*@{ */
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-    Initialization of member variables and prior operations. Executed once.
+     * @brief Initialize the convergence accelerator
+     * Operations that are required to be done once before the resolution of the problem
      */
     virtual void Initialize()
     {
     }
 
     /**
-    Performs all the required operations that should be done (for each step) before solving the solution step.
-	A member variable should be used as a flag to make sure this function is called only once per step.
+     * @brief Operations before solving the solution step
+     * Performs all the required operations that should be done (for each step) before solving the solution step.
      */
     virtual void InitializeSolutionStep()
     {
     }
 
     /**
-    Performs all the required operations that should be done at the beginning of each non-linear iteration.
+     * @brief Operations before each non-linear iteration
+     * Performs all the required operations that should be done before each non-linear iteration.
      */
     virtual void InitializeNonLinearIteration()
     {
     }
 
     /**
-    Computes the correction over the given iteration guess
+     * @brief Corrects the given iteration guess
+     * Computes the correction of the iteration guess according to the provided residual vector
+     * Note that the correction is performed over the given iteration guess, so the return value is already modified
+     * @param rResidualVector Residual vector from which the correction is computed
+     * @param rIterationGuess Iteration guess to be corrected
      */
-    virtual void UpdateSolution(const VectorType& rResidualVector,
-                                VectorType& rIterationGuess)
+    virtual void UpdateSolution(
+        const VectorType& rResidualVector,
+        VectorType& rIterationGuess)
     {
     }
 
     /**
-    Performs all the required operations that should be done at the end of each non-linear iteration.
+     * @brief Operations after each non-linear iteration
+     * Performs all the required operations that should be done at the end of each non-linear iteration.
      */
     virtual void FinalizeNonLinearIteration()
     {
     }
 
     /**
-    Performs all the required operations that should be done (for each step) after solving the solution step.
-    A member variable should be used as a flag to make sure this function is called only once per step.
-    */
+     * @brief Operations after solving the solution step
+     * Performs all the required operations that should be done (for each step) after solving the solution step
+     */
     virtual void FinalizeSolutionStep()
     {
     }
-	
+
     /**
-    Perform all the operations required after the resolution of the problem.
-    */
+     * @brief Finalize the convergence accelerator
+     * Perform all the operations required after the resolution of the problem
+     */
     virtual void Finalize()
     {
     }
 
     /**
-    Clears the internal storage
+     * @brief Clear the internal storage
+     * Clears all the internal data (e.g. previous observation matrices)
      */
     virtual void Clear()
     {
     }
 
-    //*********************************************************************************
-
-    /**level of echo for the convergence accelerator
-    0 -> mute... no echo at all
-    1 -> printing time and basic informations
-    2 -> printing linear solver data
-    3 -> Print of debug informations:
+    /**
+     * @brief Set the Echo Level object
+     * Set the echo level of the convergence accelerator
+     * @param Level Echo level value
      */
     virtual void SetEchoLevel(int Level)
     {
         mEchoLevel = Level;
     }
 
+    /**
+     * @brief Get the Echo Level object
+     * Get the echo level of the convergence accelerator
+     * @return int Echo level value
+     */
     int GetEchoLevel()
     {
         return mEchoLevel;
     }
 
-    //*********************************************************************************
-
-    /*@} */
-
+    ///@}
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables
+    ///@{
 
-    //level of echo for the convergence accelerator
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    // Level of echo for the convergence accelerator
     int mEchoLevel;
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-private:
-
-    /*@} */
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@}
+}; // Class ConvergenceAccelerator
 
-    //~ ModelPart& mr_model_part;
+///@} // Kratos classes
 
-    //~ bool mMoveMeshFlag;
+///@} // Application group
 
+} /// namespace Kratos
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-    /*@} */
-
-}; /* Class ConvergenceAccelerator */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
-
-} /* namespace Kratos.*/
-
-#endif /* KRATOS_CONVERGENCE_ACCELERATOR  defined */
+#endif // KRATOS_CONVERGENCE_ACCELERATOR  defined
