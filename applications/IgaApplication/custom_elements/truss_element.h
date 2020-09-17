@@ -205,6 +205,10 @@ public:
     ///@name Dynamic functions
     ///@{
 
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
+
     /// Calculates the mass matrix with use of the lumped mass vector
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,

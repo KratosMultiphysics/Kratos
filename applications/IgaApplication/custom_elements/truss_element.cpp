@@ -69,7 +69,6 @@ void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     for (IndexType point_number = 0; point_number < GetGeometry().IntegrationPointsNumber(); ++point_number) {
         mReferenceBaseVector[point_number] = CalculateActualBaseVector(point_number);
     }
-
     InitializeMaterial();
 }
 
@@ -395,13 +394,8 @@ bool TrussElement::HasSelfWeight() const
 {
     array_1d<double, 3> volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double self_weight = inner_prod(volume_acceleration, volume_acceleration);
-    KRATOS_WATCH(volume_acceleration)
-    if (self_weight <= std::numeric_limits<double>::epsilon()) {
-        return false;
-    }
-    else {
-        return true;
-    }
+
+    return false;
 }
 
 ///@}
@@ -490,6 +484,44 @@ void TrussElement::AddExplicitContribution(
 ///@name Dynamic functions
 ///@{
 
+void TrussElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+
+    const auto& r_geometry = GetGeometry();
+    const IndexType nb_dofs = r_geometry.size() * 3;
+
+    // 1.-Resizing if needed
+    if (rDampingMatrix.size1() != nb_dofs || rDampingMatrix.size2() != nb_dofs) {
+        rDampingMatrix.resize(nb_dofs, nb_dofs, false);
+    }
+    noalias(rDampingMatrix) = ZeroMatrix(nb_dofs, nb_dofs);
+
+    // 2.-Calculate StiffnessMatrix (if needed):
+    const double beta = (GetProperties().Has(RAYLEIGH_BETA))
+        ? GetProperties()[RAYLEIGH_BETA]
+        : 0.0;
+    if (std::abs(beta) > 0.0) {
+        Element::MatrixType stiffness_matrix;
+        CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
+        noalias(rDampingMatrix) += beta * stiffness_matrix;
+    }
+
+    // 3.-Calculate MassMatrix (if needed):
+    const double alpha = (GetProperties().Has(RAYLEIGH_ALPHA))
+        ? GetProperties()[RAYLEIGH_ALPHA]
+        : 0.0;
+    if (std::abs(alpha) > 0.0) {
+        Element::MatrixType mass_matrix;
+        CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+        noalias(rDampingMatrix) += alpha * mass_matrix;
+    }
+
+    KRATOS_CATCH("CalculateRayleighDampingMatrix")
+}
+
 void TrussElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo
@@ -552,14 +584,14 @@ void TrussElement::GetValuesVector(Vector& rValues, int Step) const
         rValues.resize(nb_nodes * 3, false);
     }
 
-    for (int i = 0; i < nb_nodes; ++i) {
-        int index = i * 3;
+    for (IndexType i = 0; i < nb_nodes; ++i) {
+        IndexType index = i * 3;
         const auto& disp =
             r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
 
-        rValues[index] = disp[0];
-        rValues[index + 1] = disp[1];
-        rValues[index + 2] = disp[2];
+        rValues[index]                = disp[0];
+        rValues[index + IndexType(1)] = disp[1];
+        rValues[index + IndexType(2)] = disp[2];
     }
 }
 
@@ -571,14 +603,14 @@ void TrussElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
         rValues.resize(nb_nodes * 3, false);
     }
 
-    for (int i = 0; i < nb_nodes; ++i) {
-        int index = i * 3;
+    for (IndexType i = 0; i < nb_nodes; ++i) {
+        IndexType index = i * 3;
         const auto& vel =
             r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
 
-        rValues[index] = vel[0];
-        rValues[index + 1] = vel[1];
-        rValues[index + 2] = vel[2];
+        rValues[index]                = vel[0];
+        rValues[index + IndexType(1)] = vel[1];
+        rValues[index + IndexType(2)] = vel[2];
     }
 }
 
@@ -590,14 +622,14 @@ void TrussElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
         rValues.resize(nb_nodes * 3, false);
     }
 
-    for (int i = 0; i < nb_nodes; ++i) {
-        int index = i * 3;
+    for (IndexType i = 0; i < nb_nodes; ++i) {
+        IndexType index = i * 3;
         const auto& acc =
             r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
 
-        rValues[index] = acc[0];
-        rValues[index + 1] = acc[1];
-        rValues[index + 2] = acc[2];
+        rValues[index]                = acc[0];
+        rValues[index + IndexType(1)] = acc[1];
+        rValues[index + IndexType(2)] = acc[2];
     }
 }
 
@@ -691,7 +723,7 @@ int TrussElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     return 0;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("Truss Element check.")
 }
 
 ///@}
