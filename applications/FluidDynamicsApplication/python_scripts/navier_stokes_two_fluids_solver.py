@@ -415,7 +415,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         elif (self._reinitialization_type == "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
         else:
-            raise Exception("Please use a valid distance reinitialization type or set it as none.")
+            raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
 
         return distance_reinitialization_process
 
