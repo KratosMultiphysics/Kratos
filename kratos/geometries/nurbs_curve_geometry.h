@@ -215,7 +215,7 @@ public:
     */
     SizeType NumberOfNonzeroControlPoints() const
     {
-        return PolynomialDegree() + 1;
+        return mPolynomialDegree + 1;
     }
 
     /*
