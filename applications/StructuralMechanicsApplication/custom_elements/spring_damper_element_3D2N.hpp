@@ -147,8 +147,8 @@ public:
      */
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo) override;
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -159,7 +159,7 @@ public:
      */
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this calculates just the LHS
@@ -169,7 +169,7 @@ public:
      */
 
     void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
-                                ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -178,7 +178,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-		    ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -187,7 +187,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-		    ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
