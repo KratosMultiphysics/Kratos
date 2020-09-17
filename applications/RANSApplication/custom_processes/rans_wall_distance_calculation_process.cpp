@@ -34,83 +34,34 @@ namespace Kratos
 {
 namespace WallDistanceCalculationUtilities
 {
-void UpdateToMinimumDistances(
-    std::vector<int>& rIndices,
-    std::vector<double>& rDistances,
-    const int NodeId,
-    const double WallDistance)
-{
-    const auto itr = std::find(rIndices.begin(), rIndices.end(), NodeId);
-    if (itr == rIndices.end()) {
-        rIndices.push_back(NodeId);
-        rDistances.push_back(WallDistance);
-    } else {
-        const auto index = std::distance(rIndices.begin(), itr);
-        double& current_distance = rDistances[index];
-        if (current_distance > WallDistance) {
-            current_distance = WallDistance;
-        }
-    }
-}
-
-void UpdateModelPartDistancesToMinimum(
-    ModelPart& rModelPart,
-    std::vector<int>& rLocalIndices,
-    std::vector<double>& rLocalDistances,
+/**
+ * @brief Calculates wall distance and updates nodal value
+ *
+ * This method calculates wall distance. Wall distance is the projection of distance vector
+ * from node to wall point in the direction of normal
+ *
+ * @param rNode                 Node, where wall distance is required
+ * @param rWallLocation         Nearest wall location
+ * @param rUnitNormal           Wall normal (this should be always outward pointing normal)
+ * @param rDistanceVariable     Distance variable to store nodal distance
+ */
+void CalculateAndUpdateNodalMinimumWallDistance(
+    ModelPart::NodeType& rNode,
+    const array_1d<double, 3>& rWallLocation,
+    const array_1d<double, 3>& rUnitNormal,
     const Variable<double>& rDistanceVariable)
 {
-    KRATOS_TRY
+    // rUnitNormal is assumed to be outward pointing, hence wall_distance will be always positive.
+    const double wall_distance =
+        inner_prod(rWallLocation - rNode.Coordinates(), rUnitNormal);
 
-    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-
-    KRATOS_ERROR_IF(rLocalIndices.size() != rLocalDistances.size())
-        << "Local indices list and distances list size mismatch. [ "
-        << rLocalIndices.size() << " != " << rLocalDistances.size() << " ].\n";
-
-    const auto& global_indices_vector = r_data_communicator.Gatherv(rLocalIndices, 0);
-    const auto& global_distances_vector =
-        r_data_communicator.Gatherv(rLocalDistances, 0);
-
-    rLocalIndices.clear();
-    rLocalDistances.clear();
-
-    if (r_data_communicator.Rank() == 0) {
-        for (std::size_t rank = 0; rank < global_indices_vector.size(); ++rank) {
-            const auto& current_indices = global_indices_vector[rank];
-            const auto& current_distances = global_distances_vector[rank];
-
-            for (std::size_t i = 0; i < current_indices.size(); ++i) {
-                UpdateToMinimumDistances(rLocalIndices, rLocalDistances,
-                                         current_indices[i], current_distances[i]);
-            }
-        }
+    rNode.SetLock();
+    double& current_distance = rNode.FastGetSolutionStepValue(rDistanceVariable);
+    if (current_distance > wall_distance) {
+        current_distance = wall_distance;
     }
-
-    int number_of_indices = rLocalIndices.size();
-    r_data_communicator.Broadcast(number_of_indices, 0);
-    rLocalIndices.resize(number_of_indices);
-    rLocalDistances.resize(number_of_indices);
-
-    r_data_communicator.Broadcast(rLocalIndices, 0);
-    r_data_communicator.Broadcast(rLocalDistances, 0);
-
-    IndexPartition<int>(number_of_indices).for_each([&](const int i) {
-        const int node_id = rLocalIndices[i];
-
-        if (rModelPart.GetMesh().HasNode(node_id)) {
-            const double distance = rLocalDistances[i];
-            auto& r_node = rModelPart.GetNode(node_id);
-            r_node.SetLock();
-            r_node.FastGetSolutionStepValue(rDistanceVariable) = distance;
-            r_node.Set(VISITED, true);
-            r_node.UnSetLock();
-        }
-    });
-
-    // no VISITED flag synchronization is required since, all ranks iterate
-    // through same global indices thus setting VISITED flag in each rank
-
-    KRATOS_CATCH("");
+    rNode.Set(VISITED, true);
+    rNode.UnSetLock();
 }
 } // namespace WallDistanceCalculationUtilities
 
@@ -170,18 +121,14 @@ int RansWallDistanceCalculationProcess::Check()
         << r_nodal_area_variable.Name() << " is not found in nodal solution step variables list of "
         << mModelPartName << " used to store nodal areas.";
 
-    return 0.0;
+    return RansFormulationProcess::Check();
 
     KRATOS_CATCH("");
 }
 
 void RansWallDistanceCalculationProcess::ExecuteInitialize()
 {
-    KRATOS_TRY
-
     CalculateWallDistances();
-
-    KRATOS_CATCH("");
 }
 
 void RansWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
@@ -216,155 +163,89 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
         rNode.FastGetSolutionStepValue(r_distance_variable) = mMaxDistance;
     });
 
-    class NodalMinimumDistanceReduction
-    {
-    public:
-        typedef std::tuple<std::vector<int>, std::vector<double>> value_type;
-        std::vector<int> indices;
-        std::vector<double> distances;
+    // calculate wall distances based on conditions
+    block_for_each(r_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
+        if (rCondition.Is(r_wall_flag) == mWallFlagVariableValue) {
+            array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
+            const double normal_magnitude = norm_2(normal);
+            KRATOS_ERROR_IF(normal_magnitude == 0.0)
+                << "NORMAL is not properly initialied in condition with id "
+                << rCondition.Id() << " at "
+                << rCondition.GetGeometry().Center() << ".\n";
+            normal /= normal_magnitude;
 
-        /// access to reduced value
-        value_type GetValue() const
-        {
-            return std::make_tuple(indices, distances);
-        }
-
-        /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
-        void LocalReduce(const value_type& value)
-        {
-            const auto& value_indices = std::get<0>(value);
-            const auto& value_distances = std::get<1>(value);
-
-            for (std::size_t i = 0; i < value_indices.size(); ++i) {
-                UpdateToMinimumDistances(indices, distances, value_indices[i],
-                                         value_distances[i]);
-            }
-        }
-
-        /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
-        void ThreadSafeReduce(const NodalMinimumDistanceReduction& rOther)
-        {
-#pragma omp critical
-            {
-                const int number_of_indices = rOther.indices.size();
-                for (int i = 0; i < number_of_indices; ++i) {
-                    UpdateToMinimumDistances(indices, distances, rOther.indices[i],
-                                             rOther.distances[i]);
-                }
-            }
-        }
-    };
-
-    // first try setting distances for nodes based on condition normals
-    std::vector<int> local_indices;
-    std::vector<double> local_distances;
-
-    const auto number_of_nodes = r_communicator.GlobalNumberOfNodes();
-    local_indices.reserve(number_of_nodes);
-    local_distances.reserve(number_of_nodes);
-
-    std::tie(local_indices, local_distances) = block_for_each<NodalMinimumDistanceReduction>(
-        r_model_part.Conditions(), [&](ModelPart::ConditionType& rCondition) {
-            std::vector<int> indices;
-            std::vector<double> distances;
-
-            if (rCondition.Is(r_wall_flag) == mWallFlagVariableValue) {
-                array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
-                normal /= norm_2(normal);
-
-                auto& parent_geometry =
-                    rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
-                for (auto& r_parent_node : parent_geometry) {
-                    const int parent_node_id = r_parent_node.Id();
-                    if (r_parent_node.Is(r_wall_flag) != mWallFlagVariableValue) {
-                        const double wall_distance = inner_prod(
-                            rCondition.GetGeometry().Center() - r_parent_node.Coordinates(),
-                            normal);
-                        UpdateToMinimumDistances(indices, distances,
-                                                 parent_node_id, wall_distance);
-                    }
-                }
-
-                // update nodal non-historical NORMAL to be used in case where
-                // some nodes needs updating of nodal distances via Elements.
-                auto& r_geometry = rCondition.GetGeometry();
-                for (auto& r_node : r_geometry) {
-                    r_node.SetLock();
-                    r_node.GetValue(NORMAL) += normal;
-                    r_node.UnSetLock();
+            auto& parent_geometry =
+                rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
+            for (auto& r_parent_node : parent_geometry) {
+                if (r_parent_node.Is(r_wall_flag) != mWallFlagVariableValue) {
+                    CalculateAndUpdateNodalMinimumWallDistance(
+                        r_parent_node, rCondition.GetGeometry().Center(),
+                        normal, r_distance_variable);
                 }
             }
 
-            return std::make_tuple(indices, distances);
-        });
+            // update nodal non-historical NORMAL to be used in case where
+            // some nodes needs updating of nodal distances via Elements.
+            auto& r_geometry = rCondition.GetGeometry();
+            for (auto& r_node : r_geometry) {
+                r_node.SetLock();
+                r_node.GetValue(NORMAL) += normal;
+                r_node.UnSetLock();
+            }
+        }
+    });
 
     // communication for all ranks
     r_communicator.AssembleNonHistoricalData(NORMAL);
+    r_communicator.SynchronizeCurrentDataToMin(r_distance_variable);
+    r_communicator.SynchronizeOrNodalFlags(VISITED);
 
-    // get condition based distances from all ranks
-    UpdateModelPartDistancesToMinimum(r_model_part, local_indices, local_distances, r_distance_variable);
-
-    VariableUtils().SetFlag(VISITED, false, r_model_part.Elements());
-
-    // identify elements which has nodes needs distance calculated analytically.
+    // calculate distances based on elements (on wall adjacent nodes which are not covered by conditions)
     block_for_each(r_model_part.Elements(), [&](ModelPart::ElementType& rElement) {
-        const auto& r_geometry = rElement.GetGeometry();
-        bool found_non_wall_node_without_distance = false;
+        auto& r_geometry = rElement.GetGeometry();
 
         array_1d<double, 3> normal = ZeroVector(3);
         array_1d<double, 3> normal_center = ZeroVector(3);
         double normals_count = 0.0;
+        std::vector<int> nodal_indices_to_update;
 
-        for (const auto& r_node : r_geometry) {
+        // identify nodes' distances which are not calculated by conditions, and are adjacent to wall nodes.
+        // compute average normal and average wall location from nodal normals and nodal coordinates which
+        // lies on the wall.
+        for (std::size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+            const auto& r_node = r_geometry[i_node];
             if (r_node.Is(r_wall_flag) == mWallFlagVariableValue) {
                 noalias(normal) += r_node.GetValue(NORMAL);
                 noalias(normal_center) += r_node.Coordinates();
                 normals_count += 1.0;
-            } else {
-                found_non_wall_node_without_distance = found_non_wall_node_without_distance
-                                                           ? found_non_wall_node_without_distance
-                                                           : !r_node.Is(VISITED);
+            } else if (!r_node.Is(VISITED)) {
+                nodal_indices_to_update.push_back(i_node);
             }
         }
 
-        if (normals_count > 0.0 && found_non_wall_node_without_distance) {
-            normal /= norm_2(normal);
+        if (normals_count > 0.0 && nodal_indices_to_update.size() > 0) {
+            const double normal_magnitude = norm_2(normal);
+            KRATOS_ERROR_IF(normal_magnitude == 0.0)
+                << "NORMAL is not properly initialied in adjacent wall nodes "
+                   "in element with id "
+                << rElement.Id() << " at " << rElement.GetGeometry().Center() << ".\n";
+
+            normal /= normal_magnitude;
             normal_center /= normals_count;
-            rElement.SetValue(NORMAL, normal);
-            rElement.SetValue(NODAL_VAUX, normal_center);
-            rElement.Set(VISITED, true);
+
+            for (const auto i_node : nodal_indices_to_update) {
+                auto& r_node = r_geometry[i_node];
+                CalculateAndUpdateNodalMinimumWallDistance(
+                    r_node, normal_center, normal, r_distance_variable);
+            }
         }
     });
 
-    // calculate distances for identified nodes in elements, which are not covered by conditions
-    std::tie(local_indices, local_distances) = block_for_each<NodalMinimumDistanceReduction>(
-        r_model_part.Elements(), [&](ModelPart::ElementType& rElement) {
-            std::vector<int> indices;
-            std::vector<double> distances;
-
-            if (rElement.Is(VISITED)) {
-                const auto& r_normal = rElement.GetValue(NORMAL);
-                const auto& r_center = rElement.GetValue(NODAL_VAUX);
-                const auto& r_geometry = rElement.GetGeometry();
-
-                for (const auto& r_node : r_geometry) {
-                    const int node_id = r_node.Id();
-                    if (r_node.Is(r_wall_flag) != mWallFlagVariableValue &&
-                        !r_node.Is(VISITED)) {
-                        // assumes r_normal is always outward pointing, therefore wall_distance > 0.0
-                        const double wall_distance =
-                            inner_prod(r_center - r_node.Coordinates(), r_normal);
-                        UpdateToMinimumDistances(indices, distances, node_id, wall_distance);
-                    }
-                }
-            }
-
-            return std::make_tuple(indices, distances);
-        });
-
     // communication for all ranks
-    UpdateModelPartDistancesToMinimum(r_model_part, local_indices, local_distances, r_distance_variable);
+    r_communicator.SynchronizeCurrentDataToMin(r_distance_variable);
+    r_communicator.SynchronizeOrNodalFlags(VISITED);
 
+    // update rest of the domain
     block_for_each(r_model_part.Nodes(), [&](ModelPart::NodeType& rNode) {
         if (rNode.Is(r_wall_flag) == mWallFlagVariableValue) {
             rNode.FastGetSolutionStepValue(r_distance_variable) = -1e-12;
@@ -518,7 +399,7 @@ const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() cons
         {
             "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "max_levels"                       : 100,
-            "max_distance"                     : 1000.0,
+            "max_distance"                     : 1e+30,
             "echo_level"                       : 0,
             "distance_variable_name"           : "DISTANCE",
             "nodal_area_variable_name"         : "NODAL_AREA",
