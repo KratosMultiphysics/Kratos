@@ -105,7 +105,7 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
                 pressures[i_node] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
 
             // The containers of the shape functions and the local gradients
-            const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
+            const auto& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
             const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
