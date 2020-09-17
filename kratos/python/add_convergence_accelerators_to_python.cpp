@@ -32,7 +32,6 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     namespace py = pybind11;
 
     typedef UblasSpace<double, Matrix, Vector > TSpace;
-    typedef ConvergenceAccelerator< TSpace > BaseConvergenceAcceleratorType;
 
     // Convergence accelerator base class
     py::class_<ConvergenceAccelerator<TSpace>>(m, "ConvergenceAccelerator")
