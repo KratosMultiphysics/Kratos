@@ -103,7 +103,6 @@ public:
     ///@name Access
     ///@{
 
-
     void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
