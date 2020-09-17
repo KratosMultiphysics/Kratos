@@ -14,6 +14,7 @@
 #define KRATOS_STRING_UTILITIES
 
 // System includes
+#include <string>
 
 // External includes
 
@@ -54,6 +55,35 @@ namespace StringUtilities
      * @return The string in snake_case
      */
     std::string KRATOS_API(KRATOS_CORE) ConvertCammelCaseToSnakeCase(const std::string& rString);
+
+    /**
+     * @brief Erase first occurrence of given  substring from main string.
+     * @param rMainString The string to be transformed
+     * @param rToErase The string to remove
+     * @return The string without the part to remove
+     */
+    std::string KRATOS_API(KRATOS_CORE) ErasePartialString(
+        const std::string& rMainString,
+        const std::string& rToErase
+        );
+
+    /**
+     * @brief Checks the existence of a substring from main string.
+     * @param rMainString The string to be transformed
+     * @param rToCheck The string to search
+     * @return True if the substring is found and false otherwise
+     */
+    bool KRATOS_API(KRATOS_CORE) ContainsPartialString(
+        const std::string& rMainString,
+        const std::string& rToCheck
+        );
+
+    /**
+     * @brief This method removes whitespaces
+     * @param rString The string to be transformed
+     * @return The string without white spaces
+     */
+    std::string KRATOS_API(KRATOS_CORE) RemoveWhiteSpaces(const std::string& rString);
 
 }; // namespace StringUtilities
 }  // namespace Kratos

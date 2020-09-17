@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 
 def singleIndexDoubleSampleNumber(inputDict, newLevels):
     oldHierarchy = inputDict['oldHierarchy']
@@ -80,10 +79,11 @@ def multiLevelCostMinimisationTErr(inputDict, newLevels):
         cost_variance_sum += np.sqrt(cost_level*variance_level)
 
     # Compute number of samples
+    constantTerm = (cdf_value/(splitting_parameter*tolerance))**2 * cost_variance_sum
     for i in range(len(newLevels)):
         cost_level = cost_model(cost_parameters,newLevels[i])
         variance_level = variances_for_hierarchy[i]
-        new_sample = (cdf_value/(splitting_parameter*tolerance))**2 * cost_variance_sum * np.sqrt(variance_level/cost_level)
+        new_sample = constantTerm * np.sqrt(variance_level/cost_level)
         new_samples.append(int(np.ceil(new_sample)))
     return new_samples
 

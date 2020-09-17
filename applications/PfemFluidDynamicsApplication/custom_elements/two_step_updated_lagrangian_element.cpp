@@ -602,7 +602,7 @@ void TwoStepUpdatedLagrangianElement<TDim>::CalculateGeometryData(ShapeFunctionD
 
   rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1), false);
 
-  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++)
+  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
   {
     // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
     rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
@@ -623,7 +623,7 @@ void TwoStepUpdatedLagrangianElement<TDim>::CalculateGeometryData(Vector &rGauss
 
   rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1), false);
 
-  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++)
+  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
   {
     rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
     // if(rGaussWeights[g]<0)
@@ -1184,12 +1184,12 @@ void TwoStepUpdatedLagrangianElement<2>::CalcVolumetricDefRate(const ShapeFuncti
   // double lagDNY0=rDN_DX(0,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(0,1)*rElementalVariables.InvFgrad(1,1);
   // double lagDNY1=rDN_DX(1,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(1,1)*rElementalVariables.InvFgrad(1,1);
   // double lagDNY2=rDN_DX(2,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(2,1)*rElementalVariables.InvFgrad(1,1);
-  double lagDNX0 = rDN_DX(0, 0) * invGradDef(0, 0) + rDN_DX(0, 1) * invGradDef(1, 0);
-  double lagDNX1 = rDN_DX(1, 0) * invGradDef(0, 0) + rDN_DX(1, 1) * invGradDef(1, 0);
-  double lagDNX2 = rDN_DX(2, 0) * invGradDef(0, 0) + rDN_DX(2, 1) * invGradDef(1, 0);
-  double lagDNY0 = rDN_DX(0, 0) * invGradDef(0, 1) + rDN_DX(0, 1) * invGradDef(1, 1);
-  double lagDNY1 = rDN_DX(1, 0) * invGradDef(0, 1) + rDN_DX(1, 1) * invGradDef(1, 1);
-  double lagDNY2 = rDN_DX(2, 0) * invGradDef(0, 1) + rDN_DX(2, 1) * invGradDef(1, 1);
+  const double lagDNX0 = rDN_DX(0, 0) * invGradDef(0, 0) + rDN_DX(0, 1) * invGradDef(1, 0);
+  const double lagDNX1 = rDN_DX(1, 0) * invGradDef(0, 0) + rDN_DX(1, 1) * invGradDef(1, 0);
+  const double lagDNX2 = rDN_DX(2, 0) * invGradDef(0, 0) + rDN_DX(2, 1) * invGradDef(1, 0);
+  const double lagDNY0 = rDN_DX(0, 0) * invGradDef(0, 1) + rDN_DX(0, 1) * invGradDef(1, 1);
+  const double lagDNY1 = rDN_DX(1, 0) * invGradDef(0, 1) + rDN_DX(1, 1) * invGradDef(1, 1);
+  const double lagDNY2 = rDN_DX(2, 0) * invGradDef(0, 1) + rDN_DX(2, 1) * invGradDef(1, 1);
 
   volumetricDefRate = lagDNX0 * RHSVelocities[0] + lagDNX1 * RHSVelocities[2] + lagDNX2 * RHSVelocities[4];
   volumetricDefRate += lagDNY0 * RHSVelocities[1] + lagDNY1 * RHSVelocities[3] + lagDNY2 * RHSVelocities[5];
@@ -1865,8 +1865,8 @@ void TwoStepUpdatedLagrangianElement<2>::AddInternalForces(Vector &rRHSVector,
 
   for (SizeType i = 0; i < NumNodes; ++i)
   {
-    double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
-    double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
+    const double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
+    const double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
     // lagDNXi=rDN_DX(i,0);
     // lagDNYi=rDN_DX(i,1);
 

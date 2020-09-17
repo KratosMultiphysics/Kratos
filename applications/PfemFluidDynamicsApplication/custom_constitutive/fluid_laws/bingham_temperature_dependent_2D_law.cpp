@@ -59,17 +59,17 @@ int BinghamTemperatureDependent2DLaw::Check(const Properties& rMaterialPropertie
     KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
     KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
 
-    if (rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0) {
+    if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for BinghamTemperatureDependent2DLaw: "
                      << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
     }
 
-    if (rMaterialProperties[YIELD_SHEAR] <= 0.0) {
+    if (rMaterialProperties[YIELD_SHEAR] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing YIELD_SHEAR provided in process info for BinghamTemperatureDependent2DLaw: "
                      << rMaterialProperties[YIELD_SHEAR] << std::endl;
     }
 
-    if (rMaterialProperties[ADAPTIVE_EXPONENT] <= 0.0) {
+    if (rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for BinghamTemperatureDependent2DLaw: "
                      << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
     }
