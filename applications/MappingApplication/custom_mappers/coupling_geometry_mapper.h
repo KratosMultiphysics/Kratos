@@ -60,7 +60,7 @@ public:
         KRATOS_ERROR << "not implemented, needs checking" << std::endl;
     }
 
-    MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const
+    MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
     {
         return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar);
     }
