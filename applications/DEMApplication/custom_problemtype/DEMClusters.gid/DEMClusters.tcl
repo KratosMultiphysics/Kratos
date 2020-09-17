@@ -250,7 +250,6 @@ proc DEMClusters::call_makeTreeMedial { } {
     if { [file exists $genericSPHFilename] } {
         W "Previous SPH has been removed. Generating new SPH file."
         file delete $genericSPHFilename
-        # wait 60 seconds and recheck if sph has been generated.
     }
 
     set Algorithm [GiD_AccessValue get gendata Algorithm]
@@ -291,12 +290,12 @@ proc DEMClusters::call_makeTreeMedial { } {
     # proces can be canceled but not ouput on process info screen
     catch {set ::DEMClusters::pid [open "|$program $argv"]} msg
 
-    set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
-    set outfl [open $ouputpath w]
+    # set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
+    # set outfl [open $ouputpath w]
 
     #puts $outfl [read $::DEMClusters::pid]
     #flush stdout
-    close $outfl
+    # close $outfl
 
     #W [read $::DEMClusters::pid]
     #W "SPH generation finished"
@@ -587,11 +586,11 @@ proc GenerateClusterFile { } {
         W "Select a valid algorithm"
     }
 
-    # warning: this never ends
+    # warning: this never ends. Only works with one click go.
     while { [file exists $genericSPHFilename] == 0 } {
         W "waiting for SPH to be generated..."
-        after 60000
-        # wait 60 seconds and recheck if sph has been generated.
+        after 30000
+        # wait 30 seconds and recheck if sph has been generated.
     }
 
     W "SPH file detected in folder. Generating CLU file."
