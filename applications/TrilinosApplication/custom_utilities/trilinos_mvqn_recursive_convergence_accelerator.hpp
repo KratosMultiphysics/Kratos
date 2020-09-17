@@ -21,9 +21,7 @@
 #include "includes/variables.h"
 #include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
-
-#include "../FSIApplication/custom_utilities/convergence_accelerator.hpp"
-
+#include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 
 namespace Kratos
 {
