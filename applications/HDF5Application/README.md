@@ -1,3 +1,12 @@
+# HDF5Application
+
+The *HDF5Application* enables the serialization of a model part with or without MPI using the [HDF5 library](https://support.hdfgroup.org/HDF5/). The model part is stored in and HDF5 file, which can be used for:
+
+* Viewing a model part with [HDFVIEW](https://support.hdfgroup.org/products/java/hdfview/)
+* Scientific visualization with tools supporting [XDMF](http://www.xdmf.org/index.php/Main_Page). Tools, which are known to work, include [ParaView 5.4](https://www.paraview.org/) and [VisIt](https://wci.llnl.gov/simulation/computer-codes/visit/).
+* Checkpointing (under development).
+* Re-partitioning (not supported yet).
+
 - [HDF5Application](#hdf5application)
   - [Installing HDF5 (minimum version 1.8)](#installing-hdf5-minimum-version-18)
     - [Serial HDF5 Library](#serial-hdf5-library)
@@ -14,15 +23,6 @@
     - [Multiple mesh temporal output process](#multiple-mesh-temporal-output-process)
     - [Single mesh xdmf output process for Paraview](#single-mesh-xdmf-output-process-for-paraview)
     - [User defined I/O process](#user-defined-io-process)
-
-# HDF5Application
-
-The *HDF5Application* enables the serialization of a model part with or without MPI using the [HDF5 library](https://support.hdfgroup.org/HDF5/). The model part is stored in and HDF5 file, which can be used for:
-
-* Viewing a model part with [HDFVIEW](https://support.hdfgroup.org/products/java/hdfview/)
-* Scientific visualization with tools supporting [XDMF](http://www.xdmf.org/index.php/Main_Page). Tools, which are known to work, include [ParaView 5.4](https://www.paraview.org/) and [VisIt](https://wci.llnl.gov/simulation/computer-codes/visit/).
-* Checkpointing (under development).
-* Re-partitioning (not supported yet).
 
 ## Installing HDF5 (minimum version 1.8)
 The HDF5 C libraries are used with the *HDF5Application*. If Kratos is configured with MPI then the parallel HDF5 library must be installed. Otherwise, the serial HDF5 library is used.
