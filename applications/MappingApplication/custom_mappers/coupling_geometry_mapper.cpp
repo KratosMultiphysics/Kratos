@@ -134,10 +134,10 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     AssignInterfaceEquationIds(); // Has to be done every time in case of overlapping interfaces!
 
-    // // assemble projector interface mass matrix - interface_matrix_projector
-    // const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
-    // const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
-    // MappingMatrixType interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
+    // assemble projector interface mass matrix - interface_matrix_projector
+    const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
+    const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
+    mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_slave, num_nodes_interface_master);
 
     const int echo_level = mMapperSettings["echo_level"].GetInt();
 
