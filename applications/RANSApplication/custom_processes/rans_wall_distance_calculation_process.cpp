@@ -169,7 +169,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
             array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
             const double normal_magnitude = norm_2(normal);
             KRATOS_ERROR_IF(normal_magnitude == 0.0)
-                << "NORMAL is not properly initialied in condition with id "
+                << "NORMAL is not properly initialized in condition with id "
                 << rCondition.Id() << " at "
                 << rCondition.GetGeometry().Center() << ".\n";
             normal /= normal_magnitude;
@@ -226,7 +226,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
         if (normals_count > 0.0 && nodal_indices_to_update.size() > 0) {
             const double normal_magnitude = norm_2(normal);
             KRATOS_ERROR_IF(normal_magnitude == 0.0)
-                << "NORMAL is not properly initialied in adjacent wall nodes "
+                << "NORMAL is not properly initialized in adjacent wall nodes "
                    "in element with id "
                 << rElement.Id() << " at " << rElement.GetGeometry().Center() << ".\n";
 
@@ -256,12 +256,10 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
 
     const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<2>>();
-        p_distance_smoother->CalculateDistances(
+        ParallelDistanceCalculator<2>().CalculateDistances(
             r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
     } else if (domain_size == 3) {
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<3>>();
-        p_distance_smoother->CalculateDistances(
+        ParallelDistanceCalculator<3>().CalculateDistances(
             r_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
     } else {
         KRATOS_ERROR << "Unsupported domain size in " << r_model_part.Name()
