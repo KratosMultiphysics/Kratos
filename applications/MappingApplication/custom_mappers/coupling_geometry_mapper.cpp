@@ -25,7 +25,6 @@
 #include "factories/linear_solver_factory.h"
 
 namespace Kratos {
-namespace Internals {
 
 void CouplingGeometryLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rOriginIds,
@@ -123,26 +122,26 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // kommt drauf an, wo die Coupling-Geometries sind
 
     // compose local element mappings
-    CreateMapperLocalSystems(mpCouplingMP->GetCommunicator(),
-                             mMapperLocalSystems);
+    const bool is_dual_mortar = mMapperSettings["dual_mortar"].GetBool();
+    CouplingGeometryLocalSystem ref_projector_local_system(nullptr, true, is_dual_mortar);
+    CouplingGeometryLocalSystem ref_slave_local_system(nullptr, false, is_dual_mortar);
+
+    MapperUtilities::CreateMapperLocalSystemsFromGeometries(ref_projector_local_system,
+                             mpCouplingMP->GetCommunicator(),
+                             mMapperLocalSystemsProjector);
+
+    MapperUtilities::CreateMapperLocalSystemsFromGeometries(ref_slave_local_system,
+                             mpCouplingMP->GetCommunicator(),
+                             mMapperLocalSystemsSlave);
 
     AssignInterfaceEquationIds(); // Has to be done every time in case of overlapping interfaces!
 
-    // assemble projector interface mass matrix - interface_matrix_projector
-    const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
-    const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
-    MappingMatrixType interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
+    // // assemble projector interface mass matrix - interface_matrix_projector
+    // const std::size_t num_nodes_interface_slave = mpCouplingInterfaceDestination->NumberOfNodes();
+    // const std::size_t num_nodes_interface_master = mpCouplingInterfaceOrigin->NumberOfNodes();
+    // MappingMatrixType interface_matrix_projector = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_master);
 
-    MapperLocalSystem::MatrixType local_mapping_matrix;
-    MapperLocalSystem::EquationIdVectorType origin_ids;
-    MapperLocalSystem::EquationIdVectorType destination_ids;
-
-    // for (size_t local_projector_system = 0;
-    //     local_projector_system < mMapperLocalSystems.size()/2; ++local_projector_system) {
-    //     mMapperLocalSystems[local_projector_system]->PairingInfo(0);
-    //     mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
-    //     Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_projector);
-    // }
+    const int echo_level = mMapperSettings["echo_level"].GetInt();
 
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrix,
@@ -150,19 +149,8 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerDestination->pGetVector(),
         mpInterfaceVectorContainerOrigin->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
-        mMapperLocalSystems,
+        mMapperLocalSystemsProjector,
         echo_level);
-
-    // // assemble slave interface mass matrix - interface_matrix_slave
-    // TODO for dual mortar this should be a vector not a matrix
-    // MappingMatrixType interface_matrix_slave = ZeroMatrix(num_nodes_interface_slave, num_nodes_interface_slave);
-    // for (size_t local_projector_system = mMapperLocalSystems.size() / 2;
-    //     local_projector_system < mMapperLocalSystems.size(); ++local_projector_system)
-    // {
-    //     mMapperLocalSystems[local_projector_system]->PairingInfo(0);
-    //     mMapperLocalSystems[local_projector_system]->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
-    //     Internals::Assemble(local_mapping_matrix, origin_ids, destination_ids, interface_matrix_slave);
-    // }
 
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrix,
@@ -170,28 +158,28 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerDestination->pGetVector(),
         mpInterfaceVectorContainerOrigin->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
-        mMapperLocalSystems,
+        mMapperLocalSystemsSlave,
         echo_level);
 
-    // Perform consistency scaling if requested
-    if (mMapperSettings["consistency_scaling"].GetBool())
-        EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
+    // // Perform consistency scaling if requested
+    // if (mMapperSettings["consistency_scaling"].GetBool())
+    //     EnforceConsistencyWithScaling(interface_matrix_slave, interface_matrix_projector, 1.1);
 
-    // get total interface mapping matrix
-    if (mMapperSettings["dual_mortar"].GetBool()) {
-        for (size_t i = 0; i < interface_matrix_slave.size1(); ++i) {
-            if (interface_matrix_slave(i, i) > std::numeric_limits<double>::epsilon()) {
-                interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
-            }
-            else interface_matrix_slave(i, i) = 0.0;
-        }
-        mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(interface_matrix_slave, interface_matrix_projector));
-    }
-    else {
-        CalculateMappingMatrixWithSolver(interface_matrix_slave, interface_matrix_projector);
-    }
+    // // get total interface mapping matrix
+    // if (mMapperSettings["dual_mortar"].GetBool()) {
+    //     for (size_t i = 0; i < interface_matrix_slave.size1(); ++i) {
+    //         if (interface_matrix_slave(i, i) > std::numeric_limits<double>::epsilon()) {
+    //             interface_matrix_slave(i, i) = 1.0 / interface_matrix_slave(i, i);
+    //         }
+    //         else interface_matrix_slave(i, i) = 0.0;
+    //     }
+    //     mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(prod(interface_matrix_slave, interface_matrix_projector));
+    // }
+    // else {
+    //     CalculateMappingMatrixWithSolver(interface_matrix_slave, interface_matrix_projector);
+    // }
 
-    CheckMappingMatrixConsistency();
+    // CheckMappingMatrixConsistency();
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -282,23 +270,23 @@ template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
     MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix)
 {
-    mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(DenseMappingMatrixType(
-        rConsistentInterfaceMatrix.size1(), rProjectedInterfaceMatrix.size2()));
+    // mpMappingMatrix = Kratos::make_unique<DenseMappingMatrixType>(DenseMappingMatrixType(
+    //     rConsistentInterfaceMatrix.size1(), rProjectedInterfaceMatrix.size2()));
 
-    const size_t n_rows = mpMappingMatrix->size1();
-    #pragma omp parallel
-    {
-        Vector solution(n_rows);
-        Vector projector_column(n_rows);
+    // const size_t n_rows = mpMappingMatrix->size1();
+    // #pragma omp parallel
+    // {
+    //     Vector solution(n_rows);
+    //     Vector projector_column(n_rows);
 
-        #pragma omp for
-        for (int i = 0; i < static_cast<int>(mpMappingMatrix->size2()); ++i)
-        {
-            for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i);
-            mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
-            for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix)(j, i) = solution[j];
-        }
-    }
+    //     #pragma omp for
+    //     for (int i = 0; i < static_cast<int>(mpMappingMatrix->size2()); ++i)
+    //     {
+    //         for (size_t j = 0; j < n_rows; ++j) projector_column[j] = rProjectedInterfaceMatrix(j, i);
+    //         mpLinearSolver->Solve(rConsistentInterfaceMatrix, solution, projector_column);
+    //         for (size_t j = 0; j < n_rows; ++j) (*mpMappingMatrix)(j, i) = solution[j];
+    //     }
+    // }
 }
 
 template<class TSparseSpace, class TDenseSpace>

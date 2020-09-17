@@ -60,6 +60,11 @@ public:
         KRATOS_ERROR << "not implemented, needs checking" << std::endl;
     }
 
+    MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const
+    {
+        return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar);
+    }
+
     /// Turn back information as a string.
     std::string PairingInfo(const int EchoLevel) const override;
 
@@ -137,8 +142,6 @@ public:
 
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
-
-        mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
 
         this->CreateLinearSolver();
         this->InitializeInterface();
@@ -282,7 +285,8 @@ private:
 
     MappingMatrixUniquePointerType mpMappingMatrix;
 
-    MapperLocalSystemPointerVector mMapperLocalSystems;
+    MapperLocalSystemPointerVector mMapperLocalSystemsProjector;
+    MapperLocalSystemPointerVector mMapperLocalSystemsSlave;
 
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
@@ -313,15 +317,6 @@ private:
     void MapInternalTranspose(const Variable<array_1d<double, 3>>& rOriginVariable,
                               const Variable<array_1d<double, 3>>& rDestinationVariable,
                               Kratos::Flags MappingOptions);
-
-    void CreateMapperLocalSystems(
-        const Communicator& rModelPartCommunicator,
-        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
-    {
-        MapperUtilities::CreateMapperLocalSystemsFromGeometries<CouplingGeometryLocalSystem>(
-            rModelPartCommunicator,
-            rLocalSystems);
-    }
 
     void EnforceConsistencyWithScaling(const MappingMatrixType& rInterfaceMatrixSlave,
         MappingMatrixType& rInterfaceMatrixProjected,
