@@ -11,7 +11,6 @@ from iga_test_factory import SinglePatchTest as SinglePatchTest
 
 # Import python based truss tests
 from truss_element_tests import TrussElementTests as TTrussElementTests
-from test_patch_test_truss import TestTruss as TTestTruss
 
 # Import the tests o test_classes to create the suits
 
@@ -32,7 +31,6 @@ def AssembleTestSuites():
         SinglePatchTest,
         TTrussElementTests
         ]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
