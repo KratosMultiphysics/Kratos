@@ -71,7 +71,7 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
     #pragma omp parallel for firstprivate(DN_DX, N, J0, InvJ0, detJ0, pressures, distances, grad)
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
 
-        auto it_elem = it_element_begin + i_elem;
+        const auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
 
         // Current geometry information
@@ -84,8 +84,11 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
         unsigned int nneg=0, npos=0;
         for(unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if(distances(i) > 0) npos += 1;
-            else /* if(distances(i) < 0) */ nneg += 1;
+            if(distances(i) > 0) {
+                npos += 1;
+            } else {
+                nneg += 1;
+            }
         }
 
         if(nneg == 0 || npos == 0)
@@ -105,7 +108,7 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
                 pressures[i_node] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
 
             // The containers of the shape functions and the local gradients
-            const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
+            const auto& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
             const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
 
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
@@ -115,7 +118,7 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
                 // Getting the jacobians and local gradients
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
                 MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
-                const Matrix& rDN_De = rDN_DeContainer[point_number];
+                const auto& rDN_De = rDN_DeContainer[point_number];
                 GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
 
                 noalias(grad) = prod(trans(DN_DX), pressures);
@@ -128,10 +131,10 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
                         r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
                     }
 
-                    double& vol = r_geometry[i_node].GetValue(NODAL_AREA);
+                    double& r_vol = r_geometry[i_node].GetValue(NODAL_AREA);
 
                     #pragma omp atomic
-                    vol += N[i_node] * gauss_point_volume;
+                    r_vol += N[i_node] * gauss_point_volume;
                 }
             }
         }
