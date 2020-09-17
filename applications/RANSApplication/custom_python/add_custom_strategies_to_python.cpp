@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 // System includes
@@ -16,16 +16,16 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "includes/define_python.h"
 #include "spaces/ublas_space.h"
 
-// strategies
-#include "custom_strategies/generic_residual_based_bossak_velocity_scalar_scheme.h"
-#include "custom_strategies/generic_residualbased_simple_steady_scalar_scheme.h"
+// schemes
+#include "custom_strategies/bossak_relaxation_scalar_scheme.h"
+#include "custom_strategies/steady_scalar_scheme.h"
+#include "custom_strategies/algebraic_flux_corrected_steady_scalar_scheme.h"
 
-// convergence criterians
-#include "custom_strategies/generic_convergence_criteria.h"
+// Include base h
+#include "custom_python/add_custom_strategies_to_python.h"
 
 namespace Kratos
 {
@@ -39,23 +39,19 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
     using BaseSchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 
-    // Convergence criteria
-    py::class_<GenericConvergenceCriteria<SparseSpaceType, LocalSpaceType>,
-               typename GenericConvergenceCriteria<SparseSpaceType, LocalSpaceType>::Pointer,
-               ConvergenceCriteria<SparseSpaceType, LocalSpaceType>>(
-        m, "GenericScalarConvergenceCriteria")
-        .def(py::init<double, double>());
-
-    py::class_<GenericResidualBasedBossakVelocityScalarScheme<SparseSpaceType, LocalSpaceType>,
-               typename GenericResidualBasedBossakVelocityScalarScheme<SparseSpaceType, LocalSpaceType>::Pointer, BaseSchemeType>(
-        m, "GenericResidualBasedBossakVelocityDynamicScalarScheme")
-        .def(py::init<const double, const double, const Variable<double>&,
-                      const Variable<double>&, const Variable<double>&>());
-
-    py::class_<GenericResidualBasedSimpleSteadyScalarScheme<SparseSpaceType, LocalSpaceType>,
-               typename GenericResidualBasedSimpleSteadyScalarScheme<SparseSpaceType, LocalSpaceType>::Pointer, BaseSchemeType>(
-        m, "GenericResidualBasedSimpleSteadyScalarScheme")
+    // add schemes
+    using SteadyScalarSchemeType = SteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<SteadyScalarSchemeType, typename SteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "SteadyScalarScheme")
         .def(py::init<const double>());
+
+    using AlgebraicFluxCorrectedSteadyScalarSchemeType = AlgebraicFluxCorrectedSteadyScalarScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<AlgebraicFluxCorrectedSteadyScalarSchemeType, typename AlgebraicFluxCorrectedSteadyScalarSchemeType::Pointer, BaseSchemeType>(m, "AlgebraicFluxCorrectedSteadyScalarScheme")
+        .def(py::init<const double, const Flags&>())
+        .def(py::init<const double, const Flags&, const Variable<int>&>());
+
+    using BossakRelaxationScalarSchemeType = BossakRelaxationScalarScheme<SparseSpaceType, LocalSpaceType>;
+    py::class_<BossakRelaxationScalarSchemeType, typename BossakRelaxationScalarSchemeType::Pointer, BaseSchemeType>(m, "BossakRelaxationScalarScheme")
+        .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
 
 }
 
