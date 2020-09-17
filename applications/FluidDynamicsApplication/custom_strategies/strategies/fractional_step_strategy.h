@@ -964,7 +964,7 @@ private:
             mPressureGradientRelaxationFactor = r_process_info[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
             KRATOS_INFO("FractionalStepStrategy") << "Using fractional step strategy with "
                                          "pressure gradient relaxation = "
-                                      << mPressureGradientRelaxationFactor << ".";
+                                      << mPressureGradientRelaxationFactor << ".\n";
         } else {
             mPressureGradientRelaxationFactor = 1.0;
             r_process_info.SetValue(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR, mPressureGradientRelaxationFactor);
