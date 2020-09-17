@@ -284,6 +284,8 @@ private:
     MapperUniquePointerType mpInverseMapper = nullptr;
 
     MappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpMappingMatrixProjector;
+    MappingMatrixUniquePointerType mpMappingMatrixSlave;
 
     MapperLocalSystemPointerVector mMapperLocalSystemsProjector;
     MapperLocalSystemPointerVector mMapperLocalSystemsSlave;
@@ -318,22 +320,12 @@ private:
                               const Variable<array_1d<double, 3>>& rDestinationVariable,
                               Kratos::Flags MappingOptions);
 
-    void EnforceConsistencyWithScaling(const MappingMatrixType& rInterfaceMatrixSlave,
+    void EnforceConsistencyWithScaling(
+        const MappingMatrixType& rInterfaceMatrixSlave,
         MappingMatrixType& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
 
-    void CheckMappingMatrixConsistency()
-    {
-        for (size_t row = 0; row < mpMappingMatrix->size1(); ++row) {
-            double row_sum = 0.0;
-            for (size_t col = 0; col < mpMappingMatrix->size2(); ++col) row_sum += (*mpMappingMatrix)(row, col);
-            if (std::abs(row_sum - 1.0) > 1e-12) {
-                KRATOS_WATCH(*mpMappingMatrix)
-                KRATOS_WATCH(row_sum)
-                KRATOS_ERROR << "mapping matrix is not consistent\n";
-            }
-        }
-    }
+    void CheckMappingMatrixConsistency();
 
     void CreateLinearSolver();
 
