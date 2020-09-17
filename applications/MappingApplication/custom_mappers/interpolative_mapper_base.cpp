@@ -18,13 +18,15 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
+#include "input_output/vtk_output.h"
+#include "utilities/variable_utils.h"
+
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
-#include "input_output/vtk_output.h"
-#include "utilities/variable_utils.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "custom_searching/mpi/interface_communicator_mpi.h"
 #endif
@@ -50,6 +52,16 @@ I.e. Operations that can be performed several times in the livetime of the mappe
 template<class TSparseSpace, class TDenseSpace>
 void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags MappingOptions)
 {
+    const bool use_initial_configuration = mMapperSettings["use_initial_configuration"].GetBool();
+
+    if (use_initial_configuration) {
+        MapperUtilities::SaveCurrentConfiguration(mrModelPartOrigin);
+        MapperUtilities::SaveCurrentConfiguration(mrModelPartDestination);
+
+        VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartOrigin.Nodes());
+        VariableUtils().UpdateCurrentToInitialConfiguration(mrModelPartDestination.Nodes());
+    }
+
     AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
     KRATOS_ERROR_IF_NOT(mpIntefaceCommunicator) << "mpIntefaceCommunicator is a nullptr!" << std::endl;
@@ -73,6 +85,11 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krat
 
     if (echo_level > 0) {
         PrintPairingInfo(echo_level);
+    }
+
+    if (use_initial_configuration) {
+        MapperUtilities::RestoreCurrentConfiguration(mrModelPartOrigin);
+        MapperUtilities::RestoreCurrentConfiguration(mrModelPartDestination);
     }
 }
 
@@ -202,22 +219,27 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
         }
     }
 
-    if (EchoLevel > 1) {
+    if (mMapperSettings["print_pairing_status_to_file"].GetBool()) {
         // print a debug ModelPart to check the pairing
 
-        std::string prefix = Info() + "_PairingStatus_";
+        const std::string pairing_status_file_path = mMapperSettings["pairing_status_file_path"].GetString();
+
+        filesystem::create_directories(pairing_status_file_path);
+
+        const std::string file_name = FilesystemExtensions::JoinPaths({
+            pairing_status_file_path,
+            std::string(Info() + "_PairingStatus_O_" + mrModelPartOrigin.FullName() + "_D_" + mrModelPartDestination.FullName())
+        });
+
+        KRATOS_INFO("Mapper") << "Printing file with PAIRING_STATUS: " << file_name << ".vtk" << std::endl;
 
         Parameters vtk_params( R"({
             "file_format"                        : "binary",
-            "output_precision"                   : 7,
-            "output_control_type"                : "step",
-            "custom_name_prefix"                 : "",
             "save_output_files_in_folder"        : false,
             "nodal_data_value_variables"         : ["PAIRING_STATUS"]
         })");
 
-        vtk_params["custom_name_prefix"].SetString(prefix);
-        VtkOutput(mrModelPartDestination, vtk_params).PrintOutput();
+        VtkOutput(mrModelPartDestination, vtk_params).PrintOutput(file_name);
     }
 }
 

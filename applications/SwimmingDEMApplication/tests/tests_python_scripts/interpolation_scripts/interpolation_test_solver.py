@@ -33,7 +33,6 @@ class InterpolationTestSolver(BaseSolver):
 
     def SolveDEM(self):
         import random
-        random.random()
 
         for node in self.dem_solver.spheres_model_part.Nodes:
             node.X = random.random()

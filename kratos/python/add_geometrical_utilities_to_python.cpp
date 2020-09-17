@@ -107,29 +107,22 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,int);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarType)(ModelPart&,int,Variable<double>&);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithIntVarType)(ModelPart&,int,Variable<int>&);
-//            typedef  void (NormalCalculationUtils::*CalcOnSimplexWithArrayVarType)(ModelPart&,int,Variable< array_1d<double,3> >&,const array_1d<double,3>&);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarAlphaType)(ModelPart&,int,Variable<double>&,const double,const double);
-
-    CalcOnSimplexCondType CalcOnSimplex_Cond = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexMPType CalcOnSimplex_ModelPart = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexWithDoubleVarType CalcOnSimplexWithDoubleVar = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexWithIntVarType CalcOnSimplexWithIntVar = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexWithDoubleVarAlphaType CalcOnSimplexWithDoubleVarAlpha = &NormalCalculationUtils::CalculateOnSimplex;
-
     py::class_<NormalCalculationUtils > (m,"NormalCalculationUtils")
         .def(py::init<>())
-        .def("CalculateOnSimplex", CalcOnSimplex_Cond)
-        .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
-        .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVar)
-        .def("CalculateOnSimplex", CalcOnSimplexWithIntVar)
-        .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVarAlpha)
+        .def("CalculateNormalsInConditions", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ConditionsContainerType>)
+        .def("CalculateNormalsInElements", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ElementsContainerType>)
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateOnSimplex(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<int>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable,const double Zero,const double Alpha){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable, Zero, Alpha);})
+        .def("CalculateNormalShapeDerivativesOnSimplex", &NormalCalculationUtils::CalculateNormalShapeDerivativesOnSimplex)
         .def("SwapNormals", &NormalCalculationUtils::SwapNormals)
-    //                    .def("CalculateOnSimplex", CalcOnSimplexWithArrayVar)
         ;
 
     py::class_<BodyNormalCalculationUtils > (m,"BodyNormalCalculationUtils")

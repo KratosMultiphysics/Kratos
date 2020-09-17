@@ -30,7 +30,7 @@ void GetNameWithAscendants(const ModelPart& rModelPart, std::vector<std::string>
 {
     rModelPartNames.insert(rModelPartNames.begin(), rModelPart.Name()); // "push_front"
     if (rModelPart.IsSubModelPart()) {
-        GetNameWithAscendants(*rModelPart.GetParentModelPart(), rModelPartNames);
+        GetNameWithAscendants(rModelPart.GetParentModelPart(), rModelPartNames);
     }
 }
 } // empty namespace for internal functions

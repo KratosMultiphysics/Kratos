@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -167,7 +167,13 @@ public:
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 
         BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> > (pNewLinearSolver, rUnknownVar));
-        mstep1 = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme, pNewLinearSolver, componentwise_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        mstep1 = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (
+            model_part,
+            pscheme,
+            componentwise_build,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag));
         mstep1->SetEchoLevel(2);
 
         Check();
@@ -549,4 +555,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY_NONLINEAR  defined */
-

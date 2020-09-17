@@ -40,7 +40,7 @@ class UPwSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "poromechanics_U_Pw_solver",
             "model_part_name": "PorousModelPart",
@@ -101,7 +101,7 @@ class UPwSolver(PythonSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

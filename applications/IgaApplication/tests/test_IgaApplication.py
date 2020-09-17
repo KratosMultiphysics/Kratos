@@ -6,6 +6,9 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Import Iga test factory tests
+from iga_test_factory import SinglePatchTest as SinglePatchTest
+
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 
@@ -24,7 +27,10 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestModelers]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        SinglePatchTest,
+        TTestModelers
+        ]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
@@ -35,5 +41,4 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    #run_cpp_unit_tests.run()
     KratosUnittest.runTests(AssembleTestSuites())
