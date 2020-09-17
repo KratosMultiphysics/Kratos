@@ -21,7 +21,7 @@ namespace Kratos
 /// Short class definition.
 /** Kirchhoff IGA Membrane. 
 */
-class IgaMembraneElement
+class KRATOS_API(IGA_APPLICATION) IgaMembraneElement
     : public Element
 {
 protected:
