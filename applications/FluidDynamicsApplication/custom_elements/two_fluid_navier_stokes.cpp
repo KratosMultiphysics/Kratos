@@ -2096,7 +2096,7 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
     }
     const double element_volume = positive_volume + negative_volume;
 
-    GeometryType::Pointer p_geom = this->pGetGeometry();
+    auto p_geom = this->pGetGeometry();
     const double h_elem = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(*p_geom);
 
     double cut_area = 0.0;
