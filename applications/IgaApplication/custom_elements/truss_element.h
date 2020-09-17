@@ -194,12 +194,12 @@ public:
         const VectorType& rRHSVector,
         const Variable<VectorType>& rRHSVariable,
         const Variable<double >& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void AddExplicitContribution(
         const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
         const Variable<array_1d<double, 3>>& rDestinationVariable,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Dynamic functions
@@ -207,7 +207,7 @@ public:
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Calculates the mass matrix with use of the lumped mass vector
     void CalculateMassMatrix(

@@ -392,8 +392,8 @@ void TrussElement::CalculateBodyForces(Vector& rBodyForces)
 /// Checks if volume acceleration is bigger than 0
 bool TrussElement::HasSelfWeight() const
 {
-    array_1d<double, 3> volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    const double self_weight = inner_prod(volume_acceleration, volume_acceleration);
+    //array_1d<double, 3> volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    //const double self_weight = inner_prod(volume_acceleration, volume_acceleration);
 
     return false;
 }
@@ -417,9 +417,9 @@ void TrussElement::AddExplicitContribution(
         VectorType element_mass_vector(nb_dofs);
         CalculateLumpedMassVector(element_mass_vector);
 
-        for (SizeType i = 0; i < nb_nodes; ++i) {
+        for (IndexType i = 0; i < nb_nodes; ++i) {
             double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
-            int index = i * 3;
+            IndexType index = i * 3;
 
             #pragma omp atomic
             r_nodal_mass += element_mass_vector(index);
@@ -449,10 +449,10 @@ void TrussElement::AddExplicitContribution(
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
-        for (size_t i = 0; i < nb_nodes; ++i) {
-            size_t index = 3 * i;
+        for (IndexType i = 0; i < nb_nodes; ++i) {
+            IndexType index = 3 * i;
             array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-            for (size_t j = 0; j < 3; ++j) {
+            for (IndexType j = 0; j < 3; ++j) {
             #pragma omp atomic
                 r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
             }
@@ -464,15 +464,15 @@ void TrussElement::AddExplicitContribution(
         VectorType mass_vector(nb_dofs);
         CalculateLumpedMassVector(mass_vector);
 
-        for (int i = 0; i < nb_nodes; ++i) {
+        for (IndexType i = 0; i < nb_nodes; ++i) {
             double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
             array_1d<double, 3>& r_nodal_inertia = r_geometry[i].GetValue(NODAL_INERTIA);
-            int index = i * 3;
+            IndexType index = i * 3;
 
             #pragma omp atomic
             r_nodal_mass += mass_vector[index];
 
-            for (int k = 0; k < 3; ++k) {
+            for (IndexType k = 0; k < 3; ++k) {
                 #pragma omp atomic
                 r_nodal_inertia[k] += 0.0;
             }
