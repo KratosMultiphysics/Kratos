@@ -41,17 +41,6 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector > TSpace;
     typedef ConvergenceAccelerator< TSpace > BaseConvergenceAcceleratorType;
 
-    // Convergence accelerator base class
-    py::class_<ConvergenceAccelerator<TSpace>>(m, "ConvergenceAccelerator")
-        .def(py::init<>())
-        .def("Initialize", &ConvergenceAccelerator<TSpace>::Initialize)
-        .def("InitializeSolutionStep", &ConvergenceAccelerator<TSpace>::InitializeSolutionStep)
-        .def("InitializeNonLinearIteration", &ConvergenceAccelerator<TSpace>::InitializeNonLinearIteration)
-        .def("UpdateSolution", &ConvergenceAccelerator<TSpace>::UpdateSolution)
-        .def("FinalizeNonLinearIteration", &ConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &ConvergenceAccelerator<TSpace>::FinalizeSolutionStep)
-        .def("SetEchoLevel", &ConvergenceAccelerator<TSpace>::SetEchoLevel);
-
     // Constant relaxation convergence accelerator
     py::class_<ConstantRelaxationConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "ConstantRelaxationConvergenceAccelerator")
         .def(py::init<double>())
