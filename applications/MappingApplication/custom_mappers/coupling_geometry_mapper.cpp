@@ -141,15 +141,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
 
     const int echo_level = mMapperSettings["echo_level"].GetInt();
 
-    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
-        mpMappingMatrixProjector,
-        mpInterfaceVectorContainerOrigin->pGetVector(),
-        mpInterfaceVectorContainerDestination->pGetVector(),
-        mpInterfaceVectorContainerOrigin->GetModelPart(),
-        mpInterfaceVectorContainerDestination->GetModelPart(),
-        mMapperLocalSystemsProjector,
-        echo_level);
-
+    // TODO Philipp I am pretty sure we should separate the vector construction from the matrix construction, should be independent otherwise no clue what is happening
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrixSlave,
         mpInterfaceVectorContainerOrigin->pGetVector(),
@@ -157,6 +149,15 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerOrigin->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mMapperLocalSystemsSlave,
+        echo_level);
+
+    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+        mpMappingMatrixProjector,
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerDestination->pGetVector(),
+        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mpInterfaceVectorContainerDestination->GetModelPart(),
+        mMapperLocalSystemsProjector,
         echo_level);
 
     // Perform consistency scaling if requested
