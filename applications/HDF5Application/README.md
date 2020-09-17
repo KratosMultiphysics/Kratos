@@ -65,7 +65,7 @@ This package is needed to use some of the python-files, e.g. `xdmf_utils.py`
 The minimum version for the GCC compiler is **4.9**. This is because earlier version don't fully support *regular expressions*.
 
 ## Kratos processes
-There are few available HDF5 processes which can be integrated into work flow via ProjectParameters.json file. Following is the list of processes available:
+There are few available HDF5 processes which can be integrated into work flow via ProjectParameters.json file.
 
 ### Initialization from hdf5 process
 This process can be used to initialize a given model part using existing HDF5 files. Illustrated example reads in VELOCITY and PRESSURE variables from
@@ -245,7 +245,7 @@ This process can be used to output data from model parts to HDF5. This will writ
 ```
 
 ### Multiple mesh temporal output process
-This process is used to output model part variable data to HDF5 with mesh written for each time step. This is useful in the case if required to wrote down deformed mesh in each time step.
+This process is used to output model part variable data to HDF5 with mesh written for each time step. This is useful in the case if required to write down deformed mesh in each time step.
 
 ```json
             {
@@ -309,7 +309,7 @@ This process is used to output model part variable data to HDF5 with mesh writte
 ```
 
 ### Single mesh xdmf output process for Paraview
-This process outputs model part variable data for each time step, additionally it writes down the XDMF file after each time step which is required to visualize HDF5 data in paraview. This process requires ```h5py``` to be installed in the ```python``` version which is used by ```Kratos Multiphysics```
+This process outputs model part variable data for each time step, additionally it writes down the XDMF file after each time step which is required to visualize HDF5 data in paraview. This process requires ```h5py``` to be installed in the ```python``` version (which is compiled with ```Kratos Multiphysics```)
 
 ```json
             {
