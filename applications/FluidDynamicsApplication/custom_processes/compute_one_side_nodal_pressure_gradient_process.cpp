@@ -84,8 +84,11 @@ void ComputeOneSideNodalPressureGradientProcess::Execute(){
         unsigned int nneg=0, npos=0;
         for(unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            if(distances(i) > 0) npos += 1;
-            else /* if(distances(i) < 0) */ nneg += 1;
+            if(distances(i) > 0) {
+                npos += 1;
+            } else {
+                nneg += 1;
+            }
         }
 
         if(nneg == 0 || npos == 0)
