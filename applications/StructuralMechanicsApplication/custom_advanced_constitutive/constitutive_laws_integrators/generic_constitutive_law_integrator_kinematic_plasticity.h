@@ -332,7 +332,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 }
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (r_kinematic_parameters[1] * pDot);
-                rBackStressVector = (rBackStressVector + (2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement)) / denominator;
+                rBackStressVector = (rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator;
                 break;
 
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
@@ -344,10 +344,10 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (r_kinematic_parameters[1] * pDot);
                 if (pDot > tolerance) {
-                    rBackStressVector += (2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
+                    rBackStressVector = (rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator;
                 } else {
                     const Vector& r_delta_stress = rPredictiveStressVector - rPreviousStressVector;
-                    rBackStressVector += ((2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement) +
+                    rBackStressVector = (rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement) +
                                          r_kinematic_parameters[2] * r_delta_stress) / denominator;
                 }
                 break;
