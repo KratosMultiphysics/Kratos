@@ -50,13 +50,13 @@ namespace Kratos
 
             model_part.AddNodalSolutionStepVariable(TEMPERATURE);
 
-            for (int i = 0; i < 5; i++) {
+            for (std::size_t i = 0; i < 5; i++) {
                 model_part.CreateNewNode(i+1, 0.0, 0.0, 0.0);
             }
 
             VariableUtils().AddDof(TEMPERATURE, model_part);
 
-            for (int i = 0; i < model_part.NumberOfNodes(); i++) {
+            for (std::size_t i = 0; i < model_part.NumberOfNodes(); i++) {
                 auto it_node = model_part.NodesBegin() + i;
                 it_node->GetSolutionStepValue(TEMPERATURE) = 20.0*i;
             }
@@ -92,7 +92,7 @@ namespace Kratos
             SpaceType::VectorType rX = ZeroVector(5);
             SpaceType::VectorType rB = ZeroVector(5);
             ModelPart::DofsArrayType dof_set;
-            for (int i = 0; i < model_part.NumberOfNodes(); i++) {
+            for (std::size_t i = 0; i < model_part.NumberOfNodes(); i++) {
                 auto it_node = model_part.NodesBegin() + i;
                 auto p_dof = it_node->pGetDof(TEMPERATURE);
                 p_dof->SetEquationId(i);
