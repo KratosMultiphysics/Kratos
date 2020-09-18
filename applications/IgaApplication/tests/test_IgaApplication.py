@@ -8,9 +8,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
-# Import the tests o test_classes to create the suits
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -28,7 +28,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
         TTestModelers
-]))
+        ]))
+
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
