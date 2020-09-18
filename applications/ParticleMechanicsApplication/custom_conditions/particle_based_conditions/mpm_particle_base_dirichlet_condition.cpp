@@ -142,7 +142,8 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
         }
     }
 
-    rResult = rResult / denominator;
+    if (denominator > std::numeric_limits<double>::epsilon() )
+        rResult = rResult / denominator;
 
     return rResult;
 
