@@ -163,6 +163,10 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        if self.settings["phase_field_dofs"].GetBool():
+            # Add specific variables for the problem (phase field dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PHASE_FIELD)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.DAMAGE_DRIVING_FORCE)
         if self.settings["volumetric_strain_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
