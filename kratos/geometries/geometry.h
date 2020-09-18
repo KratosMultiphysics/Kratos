@@ -635,6 +635,99 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /* Set s a certain value to the geometry,
+     * according to a variable.
+     * Allows dynamic interfaces with each respective geometry.
+     */
+
+    /// Set with bool
+    virtual void Set(
+        const Variable<bool>& rVariable,
+        double& Output) {}
+
+    /// Set with int
+    virtual void Set(
+        const Variable<int>& rVariable,
+        double& Output) {}
+
+    /// Set with double
+    virtual void Set(
+        const Variable<double>& rVariable,
+        double& Output) {}
+
+    /// Set with array_1d<double, 2>
+    virtual void Set(
+        const Variable<array_1d<double, 2>>& rVariable,
+        array_1d<double, 3 >& Output) {}
+
+    /// Set with array_1d<double, 3>
+    virtual void Set(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3 >& Output) {}
+
+    /// Set with array_1d<double, 6>
+    virtual void Set(
+        const Variable<array_1d<double, 6>>& rVariable,
+        array_1d<double, 3 >& Output) {}
+
+    /// Set with Vector
+    virtual void Set(
+        const Variable<Vector >& rVariable,
+        Vector& Output) {}
+
+    /// Set with Matrix
+    virtual void Set(
+        const Variable<Matrix >& rVariable,
+        Matrix& Output) {}
+
+    /* Calculate either provides get or calculates a certain value,
+     * according to a variable.
+     */
+
+    /// Calculate with bool
+    virtual void Calculate(
+        const Variable<bool>& rVariable,
+        double& Output) {}
+
+    /// Calculate with int
+    virtual void Calculate(
+        const Variable<int>& rVariable,
+        double& Output) {}
+
+    /// Calculate with double
+    virtual void Calculate(
+        const Variable<double>& rVariable,
+        double& Output) {}
+
+    /// Calculate with array_1d<double, 2>
+    virtual void Calculate(
+        const Variable<array_1d<double, 2>>& rVariable,
+        array_1d<double, 3 >& Output) {}
+
+    /// Calculate with array_1d<double, 3>
+    virtual void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3 >& Output) {}
+
+    /// Calculate with array_1d<double, 6>
+    virtual void Calculate(
+        const Variable<array_1d<double, 6>>& rVariable,
+        array_1d<double, 3 >& Output) {}
+
+    /// Calculate with Vector
+    virtual void Calculate(
+        const Variable<Vector >& rVariable,
+        Vector& Output) {}
+
+    /// Calculate with Matrix
+    virtual void Calculate(
+        const Variable<Matrix >& rVariable,
+        Matrix& Output) {}
+
+    ///@}
     ///@name Inquiry
     ///@{
 
