@@ -119,7 +119,7 @@ public:
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
-        )
+        ) override
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = false;
@@ -139,7 +139,7 @@ public:
 
     /// Calls CalculateAll without computing ResidualVector
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
@@ -162,7 +162,7 @@ public:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
-        )
+        ) override
     {
         //calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
