@@ -316,6 +316,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     /*const*/ Kratos::Variable<double> \
                   component3(#component3, &name, 2);
 
+#ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(name) \
+     KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_X, name##_Y, name##_Z)
+
 #ifdef KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS
 #undef KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS
 #endif
@@ -328,17 +334,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     /*const*/ Kratos::Variable<double> \
                   component2(#component2, &name, 1);
 
-#ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
-#undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
-#endif
-#define KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(name) \
-     KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_X, name##_Y, name##_Z)
-
 #ifdef KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS
 #endif
 #define KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS(name) \
-     KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_1, name##_2)
+     KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_X, name##_Y)
 
 #ifdef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
