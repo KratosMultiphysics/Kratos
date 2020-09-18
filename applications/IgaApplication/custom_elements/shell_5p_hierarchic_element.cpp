@@ -791,8 +791,8 @@ namespace Kratos
 
                 // curvature
                 array_1d<double, 3> ddg3(3, 0.0);
-                unsigned int dirt = 4 - dirr - dirs;
-                unsigned int ddir = dirr - dirs;
+                int dirt = 4 - dirr - dirs;
+                int ddir = dirr - dirs;
                 if (ddir == -1)      ddg3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
                 else if (ddir == 2)  ddg3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
                 else if (ddir == 1)  ddg3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
@@ -1118,8 +1118,6 @@ namespace Kratos
         MetricVariables actual_metric(3, 5);
         CalculateMetric(actual_metric);
         CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
-        
-        double thickness = GetProperties().GetValue(THICKNESS);
 
         // the Gauss-Points start from bottom to top
         for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
