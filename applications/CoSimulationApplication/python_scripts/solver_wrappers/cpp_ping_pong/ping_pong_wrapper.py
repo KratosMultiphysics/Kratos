@@ -6,7 +6,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
 
 # Other imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 
 def Create(settings, model, solver_name):
     return PingPongWrapper(settings, model, solver_name)
@@ -25,8 +25,8 @@ class PingPongWrapper(CoSimulationSolverWrapper):
 
         self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
         model_part_name = self.settings["solver_wrapper_settings"]["main_model_part_name"].GetString()
-        cs_tools.CreateMainModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
-        cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
+        model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
+        model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
         self.mp = self.model[model_part_name]
         self.mp.CreateNewNode(1,0,0,0)
 
@@ -45,9 +45,6 @@ class PingPongWrapper(CoSimulationSolverWrapper):
     def SolveSolutionStep(self):
         super().SolveSolutionStep()
         self.__RunExecutable()
-
-    def PrintInfo(self):
-        cs_tools.cs_print_info(self._ClassName(), "printing info...")
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
