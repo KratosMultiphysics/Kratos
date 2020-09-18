@@ -266,7 +266,7 @@ public:
 
             mpSolvingStrategy->Solve(); // phi_n+1
 
-            if (false)
+            if (true)
             {// Error Compensation and Correction
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
@@ -275,6 +275,7 @@ public:
                     const array_1d<double,3>& v = mVelocity[i_node];
                     const array_1d<double,3>& v_old = mVelocityOld[i_node];
 
+                    mFirstUnPlusOne[ i_node ] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                     it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * v_old + Nnew * v);
                     it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * v_old + Nnew_before * v);
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
@@ -288,161 +289,187 @@ public:
                 #pragma omp parallel for
                 for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
                     auto it_node = it_node_begin + i;
-                    mError1[i] =
+                    mError[i] =
                         0.5*(it_node->GetValue(mrLevelSetVar) - it_node->FastGetSolutionStepValue(mrLevelSetVar));
+                }
+                /////////////////////
+
+                /////////////////////
+                // One additional uncorrected forward convection
+                /////////////////////
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = it_node_begin + i_node;
+
+                    const array_1d<double,3>& v = mVelocity[i_node];
+                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+
+                    mFirstUnPlusOne[ i_node ] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
+                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                }
+
+                mpSolvingStrategy->Solve(); // phi_n+1
+
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
+                    auto it_node = it_node_begin + i;
+
+                    mThirdUnPlusOne[i] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+
+                    mErrorOfError[i] = 0.5*(mFirstUnPlusOne[i] - mThirdUnPlusOne[i]) - mError[i];
+
+                    //mError[i] = 0.5*mError[i] + 0.25*(mFirstUnPlusOne[i] - mThirdUnPlusOne[i]);
                 }
                 /////////////////////
 
                 /////////////////////
                 // Smoothing (limiting) the error
                 /////////////////////
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
-                    auto it_node=it_node_begin + i;
-                    it_node->SetValue(NODAL_AREA, 0.0);
-                    //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = 0.0;
-                    //mError1[i] = 0.0;
-                    mError2[i] = 0.0;
-                }
+                // #pragma omp parallel for
+                // for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
+                //     auto it_node=it_node_begin + i;
+                //     it_node->SetValue(NODAL_AREA, 0.0);
+                //     //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = 0.0;
+                //     //mError[i] = 0.0;
+                //     mErrorCopy[i] = 0.0;
+                // }
 
-                const unsigned int number_of_nodes = TDim + 1;
-                Vector N(number_of_nodes);
-                Vector nodal_error(number_of_nodes);
-                double detJ0;
-                Matrix J0, InvJ0;
+                // const unsigned int number_of_nodes = TDim + 1;
+                // Vector N(number_of_nodes);
+                // Vector nodal_error(number_of_nodes);
+                // double detJ0;
+                // Matrix J0, InvJ0;
 
-                const auto it_element_begin = mpDistanceModelPart->ElementsBegin();
+                // const auto it_element_begin = mpDistanceModelPart->ElementsBegin();
 
-                #pragma omp parallel for firstprivate(N, nodal_error, detJ0, J0, InvJ0)
-                for(int i_elem=0; i_elem<static_cast<int>(mpDistanceModelPart->NumberOfElements()); ++i_elem) {
-                    auto it_elem = it_element_begin + i_elem;
-                    auto& r_geometry = it_elem->GetGeometry();
+                // #pragma omp parallel for firstprivate(N, nodal_error, detJ0, J0, InvJ0)
+                // for(int i_elem=0; i_elem<static_cast<int>(mpDistanceModelPart->NumberOfElements()); ++i_elem) {
+                //     auto it_elem = it_element_begin + i_elem;
+                //     auto& r_geometry = it_elem->GetGeometry();
 
-                    for(unsigned int i_node=0; i_node < number_of_nodes; ++i_node){
-                        const double dist = r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar);
-                        nodal_error[i_node] = mError1[ r_geometry[i_node].Id() - 1 ]; //0.5*(r_geometry[i_node].GetValue(mrLevelSetVar) - dist);
+                //     for(unsigned int i_node=0; i_node < number_of_nodes; ++i_node){
+                //         const double dist = r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar);
+                //         nodal_error[i_node] = mError[ r_geometry[i_node].Id() - 1 ]; //0.5*(r_geometry[i_node].GetValue(mrLevelSetVar) - dist);
 
-                        //KRATOS_INFO("convection process") << "r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar) " << r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar) << std::endl;
-                        //KRATOS_INFO("convection process") << "r_geometry[i_node].GetValue(mrLevelSetVar) " << r_geometry[i_node].GetValue(mrLevelSetVar) << std::endl;
-                    }
+                //         //KRATOS_INFO("convection process") << "r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar) " << r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar) << std::endl;
+                //         //KRATOS_INFO("convection process") << "r_geometry[i_node].GetValue(mrLevelSetVar) " << r_geometry[i_node].GetValue(mrLevelSetVar) << std::endl;
+                //     }
 
-                    const auto& r_integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
-                    const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-                    noalias(N) = row(rNcontainer, 0);
-                    //KRATOS_INFO("convection process") << "N " << N << std::endl;
-                    const double elemental_error = inner_prod(N, nodal_error);
-                    //KRATOS_INFO("convection process") << "elemental_error " << elemental_error << std::endl;
-                    GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[0], J0);
-                    MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
-                    const double gauss_point_volume = r_integration_points[0].Weight() * detJ0;
-                    //KRATOS_INFO("convection process") << "gauss_point_volume " << gauss_point_volume << std::endl;
+                //     const auto& r_integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_1);
+                //     const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+                //     noalias(N) = row(rNcontainer, 0);
+                //     //KRATOS_INFO("convection process") << "N " << N << std::endl;
+                //     const double elemental_error = inner_prod(N, nodal_error);
+                //     //KRATOS_INFO("convection process") << "elemental_error " << elemental_error << std::endl;
+                //     GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[0], J0);
+                //     MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
+                //     const double gauss_point_volume = r_integration_points[0].Weight() * detJ0;
+                //     //KRATOS_INFO("convection process") << "gauss_point_volume " << gauss_point_volume << std::endl;
 
-                    for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
-                        double& dist_error = mError2[i_node]; //r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar, 1);
-                        #pragma omp atomic
-                        dist_error += N[i_node] * gauss_point_volume*elemental_error;
+                //     for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
+                //         double& dist_error = mErrorCopy[i_node]; //r_geometry[i_node].FastGetSolutionStepValue(mrLevelSetVar, 1);
+                //         #pragma omp atomic
+                //         dist_error += N[i_node] * gauss_point_volume*elemental_error;
 
-                        double& vol = r_geometry[i_node].GetValue(NODAL_AREA);
-                        #pragma omp atomic
-                        vol += N[i_node] * gauss_point_volume;
-                    }
-                }
+                //         double& vol = r_geometry[i_node].GetValue(NODAL_AREA);
+                //         #pragma omp atomic
+                //         vol += N[i_node] * gauss_point_volume;
+                //     }
+                // }
 
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
-                    auto it_node = it_node_begin + i;
+                // #pragma omp parallel for
+                // for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
+                //     auto it_node = it_node_begin + i;
 
-                    //KRATOS_INFO("convection process") << "it_node->GetValue(NODAL_AREA) " << it_node->GetValue(NODAL_AREA) << std::endl;
-                    //if (it_node->GetValue(NODAL_AREA) > 1.0e-15){
-                    //    mError1[i] = mError2[i] / it_node->GetValue(NODAL_AREA);
-                        //const double phi_n_star = it_node->GetValue(mrLevelSetVar) +
-                        //    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) / it_node->GetValue(NODAL_AREA);
-                        //it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
-                        //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
-                    //} else{
-                    //    mError1[i] = 0.0;
-                        //const double phi_n_star = it_node->GetValue(mrLevelSetVar);
-                        //it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
-                        //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
-                    //}
+                //     //KRATOS_INFO("convection process") << "it_node->GetValue(NODAL_AREA) " << it_node->GetValue(NODAL_AREA) << std::endl;
+                //     if (it_node->GetValue(NODAL_AREA) > 1.0e-15){
+                //         mError[i] = mErrorCopy[i] / it_node->GetValue(NODAL_AREA);
+                //         //const double phi_n_star = it_node->GetValue(mrLevelSetVar) +
+                //         //    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) / it_node->GetValue(NODAL_AREA);
+                //         //it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
+                //         //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                //     } else{
+                //         mError[i] = 0.0;
+                //         //const double phi_n_star = it_node->GetValue(mrLevelSetVar);
+                //         //it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
+                //         //it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                //     }
 
-                }
+                // }
                 /////////////////////
 
                 /////////////////////
                 // Limiter based on 2nd error estimation
                 /////////////////////
-                #pragma omp parallel for
-                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-                    auto it_node = it_node_begin + i_node;
+                // #pragma omp parallel for
+                // for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                //     auto it_node = it_node_begin + i_node;
 
-                    const array_1d<double,3>& v = mVelocity[i_node];
-                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+                //     const array_1d<double,3>& v = mVelocity[i_node];
+                //     const array_1d<double,3>& v_old = mVelocityOld[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
-                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
-                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mError1[i_node];
-                    it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
-                    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
-                }
+                //     it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
+                //     it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
+                //     const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mError[i_node];
+                //     it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
+                //     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
+                // }
 
-                mpSolvingStrategy->Solve(); // phi2_n+1
+                // mpSolvingStrategy->Solve(); // phi2_n+1
 
-                #pragma omp parallel for
-                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
-                    auto it_node = it_node_begin + i_node;
+                // #pragma omp parallel for
+                // for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                //     auto it_node = it_node_begin + i_node;
 
-                    const array_1d<double,3>& v = mVelocity[i_node];
-                    const array_1d<double,3>& v_old = mVelocityOld[i_node];
+                //     const array_1d<double,3>& v = mVelocity[i_node];
+                //     const array_1d<double,3>& v_old = mVelocityOld[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * v_old + Nnew * v);
-                    it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * v_old + Nnew_before * v);
-                    it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
-                }
+                //     it_node->FastGetSolutionStepValue(mrConvectVar) = -(Nold * v_old + Nnew * v);
+                //     it_node->FastGetSolutionStepValue(mrConvectVar, 1) = -(Nold_before * v_old + Nnew_before * v);
+                //     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                // }
 
-                mpSolvingStrategy->Solve(); // phi2_n
+                // mpSolvingStrategy->Solve(); // phi2_n
 
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i){
-                    mError2[i] = mError1[i]; // A copy
-                }
+                // #pragma omp parallel for
+                // for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i){
+                //     mErrorCopy[i] = mError[i]; // A copy
+                // }
 
-                Vector aux_error = ZeroVector(mError1.size());
+                // Vector aux_error = ZeroVector(mError.size());
 
-                #pragma omp parallel for
-                for (unsigned int i = 0; i < mError1.size(); ++i)
-                    aux_error[i] = mError1[i];
+                // #pragma omp parallel for
+                // for (unsigned int i = 0; i < mError.size(); ++i)
+                //     aux_error[i] = mError[i];
 
-                //#pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
-                    auto it_node = it_node_begin + i;
-                    const double second_error = it_node->GetValue(mrLevelSetVar)
-                        - (it_node->FastGetSolutionStepValue(mrLevelSetVar) + mError2[i]);
+                // //#pragma omp parallel for
+                // for(int i = 0; i < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i) {
+                //     auto it_node = it_node_begin + i;
+                //     const double second_error = it_node->GetValue(mrLevelSetVar)
+                //         - (it_node->FastGetSolutionStepValue(mrLevelSetVar) + mErrorCopy[i]);
 
-                    const double error1i = mError2[i];
-                    if (std::abs(second_error) > std::abs(error1i)){
-                        auto& neighbors = it_node->GetValue(NEIGHBOUR_NODES);
-                        //KRATOS_INFO("convection process") << "neighbors.size() " << neighbors.size() << std::endl;
-                        for (unsigned int j = 0; j < neighbors.size(); ++j){
-                            const double& error1j = mError1[ neighbors[j].Id() - 1 ];
+                //     const double& first_error_i = mErrorCopy[i];
+                //     if (std::abs(second_error) > std::abs(first_error_i)){
+                //         auto& neighbors = it_node->GetValue(NEIGHBOUR_NODES);
+                //         //KRATOS_INFO("convection process") << "neighbors.size() " << neighbors.size() << std::endl;
+                //         for (unsigned int j = 0; j < neighbors.size(); ++j){
+                //             double& first_error_j = mError[ neighbors[j].Id() - 1 ];
 
-                            if (error1i > 0.0 && error1j > 0.0){
-                                //#pragma omp critical
-                                aux_error[ neighbors[j].Id() - 1 ] = std::min(error1j, error1i);
-                            } else if (error1i < 0.0 && error1j < 0.0){
-                                //#pragma omp critical
-                                aux_error[ neighbors[j].Id() - 1 ] = std::max(error1j, error1i);
-                            } else{
-                                //#pragma omp critical
-                                aux_error[ neighbors[j].Id() - 1 ] = 0.0;
-                            }
-                        }
-                    }
-                }
-
-                #pragma omp parallel for
-                for (unsigned int i = 0; i < mError1.size(); ++i)
-                    mError1[i] = aux_error[i];
+                //             if (first_error_i > 0.0 && first_error_j > 0.0){
+                //                 //#pragma omp critical
+                //                 first_error_j = std::min(first_error_j, first_error_i);
+                //             } else if (first_error_i < 0.0 && first_error_j < 0.0){
+                //                 //#pragma omp critical
+                //                 first_error_j = std::max(first_error_j, first_error_i);
+                //             } else{
+                //                 //#pragma omp critical
+                //                 first_error_j = 0.0;
+                //             }
+                //         }
+                //     }
+                // }
                 /////////////////////
 
                 #pragma omp parallel for
@@ -454,12 +481,27 @@ public:
 
                     it_node->FastGetSolutionStepValue(mrConvectVar) = Nold * v_old + Nnew * v;
                     it_node->FastGetSolutionStepValue(mrConvectVar, 1) = Nold_before * v_old + Nnew_before * v;
-                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mError1[i_node];
+                    const double phi_n_star = it_node->GetValue(mrLevelSetVar) + mError[i_node];
                     it_node->FastGetSolutionStepValue(mrLevelSetVar) = phi_n_star;
                     it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = phi_n_star;
                 }
 
                 mpSolvingStrategy->Solve(); // phi_n+1
+
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                    auto it_node = it_node_begin + i_node;
+
+                    const double convected_corrected_variable = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+
+                    //it_node->FastGetSolutionStepValue(mrLevelSetVar) = 2.0*mFirstUnPlusOne[i_node] -
+                    //    convected_corrected_variable + mError[i_node];
+
+                    //it_node->FastGetSolutionStepValue(mrLevelSetVar) = 5.0*mFirstUnPlusOne[i_node] -
+                    //    convected_corrected_variable + 7*mError[i_node] - 3*mThirdUnPlusOne[i_node];
+
+                    it_node->FastGetSolutionStepValue(mrLevelSetVar) += mErrorOfError[i_node];
+                }
             }
         }
 
@@ -491,8 +533,12 @@ public:
         mVelocity.clear();
         mVelocityOld.clear();
         mOldDistance.clear();
-        mError1.clear();
-        mError2.clear();
+        mError.clear();
+        mErrorOfError.clear();
+        mErrorCopy.clear();
+        mFirstUnPlusOne.clear();
+        mSecondUn.clear();
+        mThirdUnPlusOne.clear();
     }
 
     ///@}
@@ -550,7 +596,7 @@ protected:
 
 	const unsigned int mMaxSubsteps;
 
-    std::vector< double > mOldDistance, mError1, mError2;
+    std::vector< double > mOldDistance, mError, mErrorOfError, mErrorCopy, mFirstUnPlusOne, mSecondUn, mThirdUnPlusOne;
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
@@ -633,8 +679,12 @@ protected:
         mVelocity.resize(n_nodes);
         mVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
-        mError1.resize(n_nodes);
-        mError2.resize(n_nodes);
+        mError.resize(n_nodes);
+        mErrorOfError.resize(n_nodes);
+        mErrorCopy.resize(n_nodes);
+        mFirstUnPlusOne.resize(n_nodes);
+        mSecondUn.resize(n_nodes);
+        mThirdUnPlusOne.resize(n_nodes);
 
         mDistancePartIsInitialized = true;
 
