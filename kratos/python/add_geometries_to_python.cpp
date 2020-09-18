@@ -87,6 +87,28 @@ namespace Python
         return(dummy.IsIdSelfAssigned());
     }
 
+    ///@}
+    ///@name Set and Calculate
+    ///@{
+
+    template< class TDataType >
+    pybind11::list Set(
+        GeometryType& dummy, const Variable<TDataType>& rVariable, TDataType Value)
+    {
+        dummy.Set(rVariable, Value);
+    }
+
+    template< class TDataType >
+    pybind11::list Calculate(
+        GeometryType& dummy, const Variable<TDataType>& rVariable)
+    {
+        TDataType Output;
+        dummy.Calculate(rVariable, Output);
+        return Output;
+    }
+
+    ///@}
+
 void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -163,6 +185,24 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
+    // Calculate
+    .def("Set", Set<bool>)
+    .def("Set", Set<int>)
+    .def("Set", Set<double>)
+    .def("Set", Set<array_1d<double, 2>>)
+    .def("Set", Set<array_1d<double, 3>>)
+    .def("Set", Set<array_1d<double, 6>>)
+    .def("Set", Set<Vector>)
+    .def("Set", Set<Matrix>)
+    // Calculate
+    .def("Calculate", Calculate<bool>)
+    .def("Calculate", Calculate<int>)
+    .def("Calculate", Calculate<double>)
+    .def("Calculate", Calculate<array_1d<double, 2>>)
+    .def("Calculate", Calculate<array_1d<double, 3>>)
+    .def("Calculate", Calculate<array_1d<double, 6>>)
+    .def("Calculate", Calculate<Vector>)
+    .def("Calculate", Calculate<Matrix>)
     // Print
     .def("__str__", PrintObject<GeometryType>)
     // Access to nodes
