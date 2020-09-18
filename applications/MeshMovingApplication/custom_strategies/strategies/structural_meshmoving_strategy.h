@@ -108,12 +108,13 @@ public:
                                                TLinearSolver>(
             pNewLinearSolver));
 
-    mstrategy = typename BaseType::Pointer(
-        new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
-                                        TLinearSolver>(
-            *mpmesh_model_part, pscheme, pNewLinearSolver, mpbulider_and_solver,
-            mcompute_reactions, mreform_dof_set_at_each_step,
-            calculate_norm_dx_flag));
+    mstrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
+        *mpmesh_model_part,
+        pscheme,
+        mpbulider_and_solver,
+        mcompute_reactions,
+        mreform_dof_set_at_each_step,
+        calculate_norm_dx_flag));
 
     mstrategy->SetEchoLevel(mecho_level);
 

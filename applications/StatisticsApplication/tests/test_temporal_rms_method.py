@@ -16,7 +16,7 @@ class TemporalRootMeanSquareMethodHelperClass(
         temporal_statistics_test_case.TemporalStatisticsTestCase):
     def RunTemporalStatisticsTest(self, norm_type, container_name):
 
-        settings = TemporalRootMeanSquareMethodHelperClass.__GetDefaultSettings(
+        settings = TemporalRootMeanSquareMethodHelperClass.__GetDefaultParameters(
             norm_type, container_name)
         input_method = TemporalRootMeanSquareMethodHelperClass.GetInputMethod(
             container_name)
@@ -97,7 +97,7 @@ class TemporalRootMeanSquareMethodHelperClass(
         return KratosStats.MethodUtilities.RaiseToPower(result * (1.0 / max(len(value_array) * 2.0, 1.0)), 0.5)
 
     @staticmethod
-    def __GetDefaultSettings(norm_type, container_name):
+    def __GetDefaultParameters(norm_type, container_name):
         settings_str = r'''
         [
             {

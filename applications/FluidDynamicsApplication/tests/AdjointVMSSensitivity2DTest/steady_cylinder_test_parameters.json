@@ -6,7 +6,7 @@
         "start_time"      : 0.0,
         "end_time"        : 1.0
     },
-    "output_processes" : {
+    "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -25,7 +25,7 @@
                         },
                         "file_label"          : "time",
                         "output_control_type" : "step",
-                        "output_frequency"    : 1.0,
+                        "output_interval"     : 1.0,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,

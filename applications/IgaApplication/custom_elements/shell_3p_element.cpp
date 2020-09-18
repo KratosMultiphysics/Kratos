@@ -7,9 +7,6 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
-//                   Riccardo Rossi
-//
 
 
 // System includes
@@ -232,9 +229,9 @@ namespace Kratos
         Matrix H = ZeroMatrix(3, 3);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
-        rKinematicVariables.b_ab_covariant[0] = H(0, 0)*rKinematicVariables.a3_tilde[0] + H(1, 0)*rKinematicVariables.a3_tilde[1] + H(2, 0)*rKinematicVariables.a3_tilde[2];
-        rKinematicVariables.b_ab_covariant[1] = H(0, 1)*rKinematicVariables.a3_tilde[0] + H(1, 1)*rKinematicVariables.a3_tilde[1] + H(2, 1)*rKinematicVariables.a3_tilde[2];
-        rKinematicVariables.b_ab_covariant[2] = H(0, 2)*rKinematicVariables.a3_tilde[0] + H(1, 2)*rKinematicVariables.a3_tilde[1] + H(2, 2)*rKinematicVariables.a3_tilde[2];
+        rKinematicVariables.b_ab_covariant[0] = H(0, 0)*rKinematicVariables.a3[0] + H(1, 0)*rKinematicVariables.a3[1] + H(2, 0)*rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant[1] = H(0, 1)*rKinematicVariables.a3[0] + H(1, 1)*rKinematicVariables.a3[1] + H(2, 1)*rKinematicVariables.a3[2];
+        rKinematicVariables.b_ab_covariant[2] = H(0, 2)*rKinematicVariables.a3[0] + H(1, 2)*rKinematicVariables.a3[1] + H(2, 2)*rKinematicVariables.a3[2];
     }
 
     /* Computes the transformation matrix T from the contravariant curvilinear basis to
@@ -342,8 +339,8 @@ namespace Kratos
 
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        if (rB.size1() != mat_size || rB.size2() != mat_size)
-            rB.resize(mat_size, mat_size);
+        if (rB.size1() != 3 || rB.size2() != mat_size)
+            rB.resize(3, mat_size);
         noalias(rB) = ZeroMatrix(3, mat_size);
 
         for (IndexType r = 0; r < mat_size; r++)
@@ -354,9 +351,9 @@ namespace Kratos
 
             array_1d<double, 3> dE_curvilinear;
             // strain
-            dE_curvilinear[0] = r_DN_De(0, kr)*rActualKinematic.a1(dirr);
-            dE_curvilinear[1] = r_DN_De(1, kr)*rActualKinematic.a2(dirr);
-            dE_curvilinear[2] = 0.5*(r_DN_De(0, kr)*rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr)*r_DN_De(1, kr));
+            dE_curvilinear[0] = r_DN_De(kr, 0)*rActualKinematic.a1(dirr);
+            dE_curvilinear[1] = r_DN_De(kr, 1)*rActualKinematic.a2(dirr);
+            dE_curvilinear[2] = 0.5*(r_DN_De(kr, 0)*rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr)*r_DN_De(kr, 1));
 
             rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2)*dE_curvilinear[2];
             rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0)*dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1)*dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2)*dE_curvilinear[2];
@@ -394,17 +391,17 @@ namespace Kratos
             IndexType index = 3 * i;
             //first line
             da3(0, 0) =  0;
-            da3(0, 1) = -r_DN_De(0, i) * rActualKinematic.a2[2] + r_DN_De(1, i) * rActualKinematic.a1[2];
-            da3(0, 2) =  r_DN_De(0, i) * rActualKinematic.a2[1] - r_DN_De(1, i) * rActualKinematic.a1[1];
+            da3(0, 1) = -r_DN_De(i, 0) * rActualKinematic.a2[2] + r_DN_De(i, 1) * rActualKinematic.a1[2];
+            da3(0, 2) =  r_DN_De(i, 0) * rActualKinematic.a2[1] - r_DN_De(i, 1) * rActualKinematic.a1[1];
 
             //second line
-            da3(1, 0) =  r_DN_De(0, i) * rActualKinematic.a2[2] - r_DN_De(1, i) * rActualKinematic.a1[2];
+            da3(1, 0) =  r_DN_De(i, 0) * rActualKinematic.a2[2] - r_DN_De(i, 1) * rActualKinematic.a1[2];
             da3(1, 1) =  0;
-            da3(1, 2) = -r_DN_De(0, i) * rActualKinematic.a2[0] + r_DN_De(1, i) * rActualKinematic.a1[0];
+            da3(1, 2) = -r_DN_De(i, 0) * rActualKinematic.a2[0] + r_DN_De(i, 1) * rActualKinematic.a1[0];
 
             //third line
-            da3(2, 0) = -r_DN_De(0, i) * rActualKinematic.a2[1] + r_DN_De(1, i) * rActualKinematic.a1[1];
-            da3(2, 1) =  r_DN_De(0, i) * rActualKinematic.a2[0] - r_DN_De(1, i) * rActualKinematic.a1[0];
+            da3(2, 0) = -r_DN_De(i, 0) * rActualKinematic.a2[1] + r_DN_De(i, 1) * rActualKinematic.a1[1];
+            da3(2, 1) =  r_DN_De(i, 0) * rActualKinematic.a2[0] - r_DN_De(i, 1) * rActualKinematic.a1[0];
             da3(2, 2) =  0;
 
             for (IndexType j = 0; j < 3; j++)
@@ -417,19 +414,19 @@ namespace Kratos
             }
 
             // curvature vector [K11,K22,K12] referred to curvilinear coordinate system
-            b(0, index)     = 0 - (r_DDN_DDe(0, i) * rActualKinematic.a3[0] + H(0, 0) * dn(0, 0) + H(1, 0) * dn(0, 1) + H(2, 0) * dn(0, 2));
-            b(0, index + 1) = 0 - (r_DDN_DDe(0, i) * rActualKinematic.a3[1] + H(0, 0) * dn(1, 0) + H(1, 0) * dn(1, 1) + H(2, 0) * dn(1, 2));
-            b(0, index + 2) = 0 - (r_DDN_DDe(0, i) * rActualKinematic.a3[2] + H(0, 0) * dn(2, 0) + H(1, 0) * dn(2, 1) + H(2, 0) * dn(2, 2));
+            b(0, index)     = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[0] + H(0, 0) * dn(0, 0) + H(1, 0) * dn(0, 1) + H(2, 0) * dn(0, 2));
+            b(0, index + 1) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[1] + H(0, 0) * dn(1, 0) + H(1, 0) * dn(1, 1) + H(2, 0) * dn(1, 2));
+            b(0, index + 2) = 0 - (r_DDN_DDe(i, 0) * rActualKinematic.a3[2] + H(0, 0) * dn(2, 0) + H(1, 0) * dn(2, 1) + H(2, 0) * dn(2, 2));
 
             //second line
-            b(1, index)     = 0 - (r_DDN_DDe(1, i) * rActualKinematic.a3[0] + H(0, 1) * dn(0, 0) + H(1, 1) * dn(0, 1) + H(2, 1) * dn(0, 2));
-            b(1, index + 1) = 0 - (r_DDN_DDe(1, i) * rActualKinematic.a3[1] + H(0, 1) * dn(1, 0) + H(1, 1) * dn(1, 1) + H(2, 1) * dn(1, 2));
-            b(1, index + 2) = 0 - (r_DDN_DDe(1, i) * rActualKinematic.a3[2] + H(0, 1) * dn(2, 0) + H(1, 1) * dn(2, 1) + H(2, 1) * dn(2, 2));
+            b(1, index)     = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[0] + H(0, 1) * dn(0, 0) + H(1, 1) * dn(0, 1) + H(2, 1) * dn(0, 2));
+            b(1, index + 1) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[1] + H(0, 1) * dn(1, 0) + H(1, 1) * dn(1, 1) + H(2, 1) * dn(1, 2));
+            b(1, index + 2) = 0 - (r_DDN_DDe(i, 2) * rActualKinematic.a3[2] + H(0, 1) * dn(2, 0) + H(1, 1) * dn(2, 1) + H(2, 1) * dn(2, 2));
 
             //third line
-            b(2, index)     = 0 - (r_DDN_DDe(2, i) * rActualKinematic.a3[0] + H(0, 2) * dn(0, 0) + H(1, 2) * dn(0, 1) + H(2, 2) * dn(0, 2));
-            b(2, index + 1) = 0 - (r_DDN_DDe(2, i) * rActualKinematic.a3[1] + H(0, 2) * dn(1, 0) + H(1, 2) * dn(1, 1) + H(2, 2) * dn(1, 2));
-            b(2, index + 2) = 0 - (r_DDN_DDe(2, i) * rActualKinematic.a3[2] + H(0, 2) * dn(2, 0) + H(1, 2) * dn(2, 1) + H(2, 2) * dn(2, 2));
+            b(2, index)     = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[0] + H(0, 2) * dn(0, 0) + H(1, 2) * dn(0, 1) + H(2, 2) * dn(0, 2));
+            b(2, index + 1) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[1] + H(0, 2) * dn(1, 0) + H(1, 2) * dn(1, 1) + H(2, 2) * dn(1, 2));
+            b(2, index + 2) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[2] + H(0, 2) * dn(2, 0) + H(1, 2) * dn(2, 1) + H(2, 2) * dn(2, 2));
         }
 
         noalias(rB) = -prod(m_T_vector[IntegrationPointIndex], b);
@@ -475,8 +472,8 @@ namespace Kratos
 
             array_1d<double, 3> S_dg_1 = ZeroVector(3);
             array_1d<double, 3> S_dg_2 = ZeroVector(3);
-            S_dg_1(dirr) = r_DN_De(0, kr);
-            S_dg_2(dirr) = r_DN_De(1, kr);
+            S_dg_1(dirr) = r_DN_De(kr, 0);
+            S_dg_2(dirr) = r_DN_De(kr, 1);
 
             // curvature
             S_da3(0, r) = S_dg_1(1) * rActualKinematic.a2(2) - S_dg_1(2) * rActualKinematic.a2(1) + rActualKinematic.a1(1) * S_dg_2(2) - rActualKinematic.a1(2) * S_dg_2(1);
@@ -508,9 +505,9 @@ namespace Kratos
                 array_1d<double, 3> ddE_cu = ZeroVector(3);
                 if (dirr == dirs)
                 {
-                    ddE_cu[0] = r_DN_De(0, kr) * r_DN_De(0, ks);
-                    ddE_cu[1] = r_DN_De(1, kr) * r_DN_De(1, ks);
-                    ddE_cu[2] = 0.5 * (r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(1, kr) * r_DN_De(0, ks));
+                    ddE_cu[0] = r_DN_De(kr, 0) * r_DN_De(ks, 0);
+                    ddE_cu[1] = r_DN_De(kr, 1) * r_DN_De(ks, 1);
+                    ddE_cu[2] = 0.5 * (r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(kr, 1) * r_DN_De(ks, 0));
 
                     rSecondVariationsStrain.B11(r, s) = m_T_vector[IntegrationPointIndex](0, 0) * ddE_cu[0] + m_T_vector[IntegrationPointIndex](0, 1) * ddE_cu[1] + m_T_vector[IntegrationPointIndex](0, 2) * ddE_cu[2];
                     rSecondVariationsStrain.B22(r, s) = m_T_vector[IntegrationPointIndex](1, 0) * ddE_cu[0] + m_T_vector[IntegrationPointIndex](1, 1) * ddE_cu[1] + m_T_vector[IntegrationPointIndex](1, 2) * ddE_cu[2];
@@ -521,10 +518,10 @@ namespace Kratos
                 array_1d<double, 3> dda3 = ZeroVector(3);
                 int dirt = 4 - static_cast<int>(dirr) - static_cast<int>(dirs);
                 int ddir = static_cast<int>(dirr) - static_cast<int>(dirs);
-                     if (ddir == -1) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
-                else if (ddir ==  2) dda3(dirt - 1) =  r_DN_De(0, kr) * r_DN_De(1, ks) - r_DN_De(0, ks) * r_DN_De(1, kr);
-                else if (ddir ==  1) dda3(dirt - 1) = -r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(0, ks) * r_DN_De(1, kr);
-                else if (ddir == -2) dda3(dirt - 1) = -r_DN_De(0, kr) * r_DN_De(1, ks) + r_DN_De(0, ks) * r_DN_De(1, kr);
+                     if (ddir == -1) dda3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir ==  2) dda3(dirt - 1) =  r_DN_De(kr, 0) * r_DN_De(ks, 1) - r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir ==  1) dda3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
+                else if (ddir == -2) dda3(dirt - 1) = -r_DN_De(kr, 0) * r_DN_De(ks, 1) + r_DN_De(ks, 0) * r_DN_De(kr, 1);
 
                 double c = -(dda3[0] * rActualKinematic.a3_tilde[0] + dda3[1] * rActualKinematic.a3_tilde[1] + dda3[2] * rActualKinematic.a3_tilde[2]
                     + S_da3(0, r) * S_da3(0, s) + S_da3(1, r) * S_da3(1, s) + S_da3(2, r) * S_da3(2, s)
@@ -538,11 +535,11 @@ namespace Kratos
                 ddn[2] = dda3[2] * inv_l_a3 - S_a3_da3_l_a3_3[s] * S_da3(2, r) - S_a3_da3_l_a3_3[r] * S_da3(2, s) + (c + d) * rActualKinematic.a3_tilde[2];
 
                 array_1d<double, 3> ddK_cu = ZeroVector(3);
-                ddK_cu[0] = r_DDN_DDe(0, kr) * S_dn(dirr, s) + r_DDN_DDe(0, ks) * S_dn(dirs, r)
+                ddK_cu[0] = r_DDN_DDe(kr, 0) * S_dn(dirr, s) + r_DDN_DDe(ks, 0) * S_dn(dirs, r)
                     + H(0, 0) * ddn[0] + H(1, 0) * ddn[1] + H(2, 0) * ddn[2];
-                ddK_cu[1] = r_DDN_DDe(1, kr) * S_dn(dirr, s) + r_DDN_DDe(1, ks) * S_dn(dirs, r)
+                ddK_cu[1] = r_DDN_DDe(kr, 2) * S_dn(dirr, s) + r_DDN_DDe(ks, 2) * S_dn(dirs, r)
                     + H(0, 1) * ddn[0] + H(1, 1) * ddn[1] + H(2, 1) * ddn[2];
-                ddK_cu[2] = r_DDN_DDe(2, kr) * S_dn(dirr, s) + r_DDN_DDe(2, ks) * S_dn(dirs, r)
+                ddK_cu[2] = r_DDN_DDe(kr, 1) * S_dn(dirr, s) + r_DDN_DDe(ks, 1) * S_dn(dirs, r)
                     + H(0, 2) * ddn[0] + H(1, 2) * ddn[1] + H(2, 2) * ddn[2];
 
                 rSecondVariationsCurvature.B11(r, s) = m_T_vector[IntegrationPointIndex](0, 0) * ddK_cu[0] + m_T_vector[IntegrationPointIndex](0, 1) * ddK_cu[1] + m_T_vector[IntegrationPointIndex](0, 2) * ddK_cu[2];
