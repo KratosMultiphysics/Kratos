@@ -646,12 +646,12 @@ public:
     /// Set with bool
     virtual void Set(
         const Variable<bool>& rVariable,
-        double& Output) {}
+        bool& Output) {}
 
     /// Set with int
     virtual void Set(
         const Variable<int>& rVariable,
-        double& Output) {}
+        int& Output) {}
 
     /// Set with double
     virtual void Set(
@@ -661,26 +661,26 @@ public:
     /// Set with array_1d<double, 2>
     virtual void Set(
         const Variable<array_1d<double, 2>>& rVariable,
-        array_1d<double, 3 >& Output) {}
+        array_1d<double, 2>& Output) {}
 
     /// Set with array_1d<double, 3>
     virtual void Set(
         const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3 >& Output) {}
+        array_1d<double, 3>& Output) {}
 
     /// Set with array_1d<double, 6>
     virtual void Set(
         const Variable<array_1d<double, 6>>& rVariable,
-        array_1d<double, 3 >& Output) {}
+        array_1d<double, 6>& Output) {}
 
     /// Set with Vector
     virtual void Set(
-        const Variable<Vector >& rVariable,
+        const Variable<Vector>& rVariable,
         Vector& Output) {}
 
     /// Set with Matrix
     virtual void Set(
-        const Variable<Matrix >& rVariable,
+        const Variable<Matrix>& rVariable,
         Matrix& Output) {}
 
     /* Calculate either provides get or calculates a certain value,
@@ -690,12 +690,12 @@ public:
     /// Calculate with bool
     virtual void Calculate(
         const Variable<bool>& rVariable,
-        double& Output) {}
+        bool& Output) {}
 
     /// Calculate with int
     virtual void Calculate(
         const Variable<int>& rVariable,
-        double& Output) {}
+        int& Output) {}
 
     /// Calculate with double
     virtual void Calculate(
@@ -705,26 +705,26 @@ public:
     /// Calculate with array_1d<double, 2>
     virtual void Calculate(
         const Variable<array_1d<double, 2>>& rVariable,
-        array_1d<double, 3 >& Output) {}
+        array_1d<double, 2>& Output) {}
 
     /// Calculate with array_1d<double, 3>
     virtual void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3 >& Output) {}
+        array_1d<double, 3>& Output) {}
 
     /// Calculate with array_1d<double, 6>
     virtual void Calculate(
         const Variable<array_1d<double, 6>>& rVariable,
-        array_1d<double, 3 >& Output) {}
+        array_1d<double, 6>& Output) {}
 
     /// Calculate with Vector
     virtual void Calculate(
-        const Variable<Vector >& rVariable,
+        const Variable<Vector>& rVariable,
         Vector& Output) {}
 
     /// Calculate with Matrix
     virtual void Calculate(
-        const Variable<Matrix >& rVariable,
+        const Variable<Matrix>& rVariable,
         Matrix& Output) {}
 
     ///@}
