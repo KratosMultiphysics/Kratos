@@ -49,7 +49,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \},"
     puts $FileVar "        \"echo_level\"               : [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"buffer_size\"              : 2,"
-    puts $FileVar "        \"dynamic_tau\"              : [GiD_AccessValue get gendata Stabilization_parameter],"
+    puts $FileVar "        \"stabilization_factor\"     : [GiD_AccessValue get gendata Stabilization_parameter],"
     puts $FileVar "        \"relative_tolerance\"       : [GiD_AccessValue get gendata Relative_tolerance],"
     puts $FileVar "        \"absolute_tolerance\"       : [GiD_AccessValue get gendata Absolute_tolerance],"
     puts $FileVar "        \"maximum_iterations\"       : [GiD_AccessValue get gendata Maximum_iterations],"

@@ -14,7 +14,6 @@ from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5p
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
-# Import the tests o test_classes to create the suits
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -32,8 +31,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         SinglePatchTest,
         TShell5pHierarchicLinearThickBeamTest,
-	TShell5pHierarchicLinearScordelisTest,
-	TShell5pHierarchicNonLinearThickBeamTest,
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest,
         TTestModelers
         ]))
 

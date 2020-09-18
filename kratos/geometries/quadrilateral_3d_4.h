@@ -358,12 +358,13 @@ public:
     // }
 
      /// Returns number of points per direction.
-    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
     {
-        if ((DirectionIndex == 0) || (DirectionIndex == 1)) {
+        if ((LocalDirectionIndex == 0) || (LocalDirectionIndex == 1)) {
             return 2;
         }
-        return 1;
+        KRATOS_ERROR << "Possible direction index reaches from 0-1. Given direction index: "
+            << LocalDirectionIndex << std::endl;
     }
 
     /**
