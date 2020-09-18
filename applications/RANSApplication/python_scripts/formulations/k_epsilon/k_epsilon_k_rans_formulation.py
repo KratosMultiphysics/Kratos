@@ -85,11 +85,8 @@ class KEpsilonKRansFormulation(RansFormulation):
         convergence_criteria.SetEchoLevel(
             solver_settings["echo_level"].GetInt() - 1)
 
-        self.solver.Initialize()
+        super().Initialize()
         Kratos.Logger.PrintInfo(self.GetName(), "Initialized formulation")
-
-    def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
 
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
@@ -99,15 +96,6 @@ class KEpsilonKRansFormulation(RansFormulation):
             return True
 
         return False
-
-    def FinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
-
-    def Check(self):
-        self.solver.Check()
-
-    def Clear(self):
-        self.solver.Clear()
 
     def GetStrategy(self):
         return self.solver

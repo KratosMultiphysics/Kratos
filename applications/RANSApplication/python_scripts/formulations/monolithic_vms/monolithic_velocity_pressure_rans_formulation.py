@@ -197,14 +197,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             self.solver.FinalizeSolutionStep()
             super().FinalizeSolutionStep()
 
-    def Check(self):
-        super().Check()
-        self.solver.Check()
-
-    def Clear(self):
-        self.solver.Clear()
-        super().Clear()
-
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
             scheme_type = settings["scheme_type"].GetString()

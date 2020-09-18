@@ -75,6 +75,9 @@ class RansFormulation:
     def Clear(self):
         """Recursively calls Clear methods of existing formulations in this formulaton
         """
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Clear()
+
         self.__ExecuteRansFormulationMethods("Clear")
 
     def Check(self):
@@ -83,17 +86,26 @@ class RansFormulation:
         self.__ExecuteProcessMethods("Check")
         self.__ExecuteRansFormulationMethods("Check")
 
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Check()
+
     def Initialize(self):
         """Recursively calls Initialize methods of existing formulations and processes in this formulaton
         """
         self.__ExecuteProcessMethods("ExecuteInitialize")
         self.__ExecuteRansFormulationMethods("Initialize")
 
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Initialize()
+
     def InitializeSolutionStep(self):
         """Recursively calls InitializeSolutionStep methods of existing formulations and processes in this formulaton
         """
         self.__ExecuteProcessMethods("ExecuteInitializeSolutionStep")
         self.__ExecuteRansFormulationMethods("InitializeSolutionStep")
+
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().InitializeSolutionStep()
 
     def SolveCouplingStep(self):
         """Solves current formulation
@@ -127,6 +139,9 @@ class RansFormulation:
     def FinalizeSolutionStep(self):
         """Recursively calls FinalizeSolutionStep methods of existing formulations and processes in this formulaton
         """
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().FinalizeSolutionStep()
+
         self.__ExecuteRansFormulationMethods("FinalizeSolutionStep")
         self.__ExecuteProcessMethods("ExecuteFinalizeSolutionStep")
 
