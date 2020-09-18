@@ -72,9 +72,7 @@ class KOmegaOmegaRansFormulation(RansFormulation):
             scheme = GetKratosObjectType("BossakRelaxationScalarScheme")(
                 self.omega_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
                 solver_settings["relaxation_factor"].GetDouble(),
-                KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE,
-                KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2,
-                KratosRANS.RANS_AUXILIARY_VARIABLE_2)
+                KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
 
         self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
             self.omega_model_part, scheme,

@@ -69,9 +69,7 @@ class KEpsilonKRansFormulation(RansFormulation):
             scheme = GetKratosObjectType("BossakRelaxationScalarScheme")(
                 self.k_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA],
                 solver_settings["relaxation_factor"].GetDouble(),
-                KratosRANS.TURBULENT_KINETIC_ENERGY,
-                KratosRANS.TURBULENT_KINETIC_ENERGY_RATE,
-                KratosRANS.RANS_AUXILIARY_VARIABLE_1)
+                KratosRANS.TURBULENT_KINETIC_ENERGY)
 
         self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
             self.k_model_part, scheme,
