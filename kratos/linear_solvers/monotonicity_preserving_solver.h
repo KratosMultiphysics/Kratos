@@ -113,7 +113,7 @@ public:
 
         Parameters default_parameters( R"(
         {
-            "solver_type"                    : "monothonicity_preserving_solver",
+            "solver_type"                    : "monotonicity_preserving",
             "inner_solver_settings"          : {
                 "preconditioner_type"            : "amg",
                 "solver_type"                    : "AMGCL",
@@ -198,11 +198,9 @@ public:
             const std::size_t id = rDof.EquationId();
             dofs_values[id] = rDof.GetSolutionStepValue();
         });
-
         double *values_vector = rA.value_data().begin();
         std::size_t *index1_vector = rA.index1_data().begin();
         std::size_t *index2_vector = rA.index2_data().begin();
-
 
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
