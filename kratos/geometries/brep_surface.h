@@ -307,6 +307,12 @@ public:
         return mIsTrimmed;
     }
 
+    /// Returns number of points of NurbsSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpNurbsSurface->PointsNumberInDirection(DirectionIndex);
+    }
+
     ///@}
     ///@name Geometrical Operations
     ///@{

@@ -249,6 +249,12 @@ public:
         return mpCurveOnSurface;
     }
 
+    /// Returns number of points of NurbsCurveOnSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpCurveOnSurface->PointsNumberInDirection(DirectionIndex);
+    }
+
     ///@}
     ///@name Curve Properties
     ///@{

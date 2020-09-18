@@ -527,6 +527,12 @@ public:
         return this->size();
     }
 
+    /// Returns number of points per direction.
+    virtual SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PointsNumberInDirection from geometry base class." << std::endl;
+    }
+
     virtual SizeType max_size() const
     {
         return mPoints.max_size();

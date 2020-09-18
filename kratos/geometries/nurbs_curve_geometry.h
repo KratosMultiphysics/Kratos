@@ -171,6 +171,20 @@ public:
     }
 
     ///@}
+    ///@name Geometrical Information
+    ///@{
+
+    /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        if (LocalDirectionIndex == 0) {
+            return this->PointsNumber();
+        }
+        KRATOS_ERROR << "Possible direction index in NurbsCurveGeometry is 0. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
+    ///@}
     ///@name Mathematical Informations
     ///@{
 
