@@ -125,7 +125,7 @@ class RansCheckScalarBoundsProcess(KratosRANS.RansFormulationProcess):
         min_value = KratosRANS.RansVariableUtilities.GetMinimumScalarValue(self.model_part, self.variable)
         max_value = KratosRANS.RansVariableUtilities.GetMaximumScalarValue(self.model_part, self.variable)
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is bounded between [ {:f}, {:f} ] in {:s}.".format(
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is bounded between [ {:.4e}, {:.4e} ] in {:s}.".format(
             self.variable.Name(), min_value, max_value, self.model_part.Name))
 
     def ExecuteAfterCouplingSolveStep(self):
