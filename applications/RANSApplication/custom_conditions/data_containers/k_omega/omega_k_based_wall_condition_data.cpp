@@ -34,11 +34,6 @@ const Variable<double>& OmegaKBasedWallConditionData::GetScalarVariable()
     return TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE;
 }
 
-const Variable<double>& OmegaKBasedWallConditionData::GetScalarRateVariable()
-{
-    return TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2;
-}
-
 void OmegaKBasedWallConditionData::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
