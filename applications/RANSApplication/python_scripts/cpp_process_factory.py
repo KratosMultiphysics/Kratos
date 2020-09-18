@@ -1,14 +1,5 @@
 import KratosMultiphysics as Kratos
-from KratosMultiphysics import IsDistributedRun
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 import KratosMultiphysics.RANSApplication as KratosRANS
-
-if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
-    from KratosMultiphysics.RANSApplication.TrilinosExtension import TrilinosRansWallDistanceCalculationProcess as wall_distance_calculation_process
-elif (not IsDistributedRun()):
-    from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess as wall_distance_calculation_process
-else:
-    raise Exception("Distributed run requires TrilinosApplication")
 
 
 def Factory(settings, Model):
@@ -50,7 +41,7 @@ def Factory(settings, Model):
         ],
         [
             "WallDistanceCalculationProcess",
-            wall_distance_calculation_process
+            KratosRANS.RansWallDistanceCalculationProcess
         ],
         [
             "NutKEpsilonUpdateProcess",
@@ -139,3 +130,6 @@ class RansCheckScalarBoundsProcess(KratosRANS.RansFormulationProcess):
 
     def ExecuteAfterCouplingSolveStep(self):
         self.Execute()
+
+    def __str__(self):
+        return "RansCheckScalarBoundsProcess [ " + self.variable.Name() + " ]"
