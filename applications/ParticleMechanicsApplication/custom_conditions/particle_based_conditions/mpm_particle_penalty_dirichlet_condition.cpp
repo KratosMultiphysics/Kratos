@@ -85,11 +85,14 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            r_geometry[i].SetLock();
-            r_geometry[i].Set(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
-            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
-            r_geometry[i].UnSetLock();
+            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
+            {
+                r_geometry[i].SetLock();
+                r_geometry[i].Set(SLIP);
+                r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+                r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
+                r_geometry[i].UnSetLock();
+            }
         }
     }
 }
