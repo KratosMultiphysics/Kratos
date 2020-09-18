@@ -53,8 +53,7 @@ namespace Kratos
 ///@{
 
 /// A container of Kratos variables used to define a periodic boundary condition.
-/** It can be filled using either Kratos::Variable<double>
- * It is used by PeriodicCondition to identify the Dofs where the periodic condition applies.
+/** It is used by PeriodicCondition to identify the Dofs where the periodic condition applies.
  * @see PeriodicCondition
  */
 class PeriodicVariablesContainer
