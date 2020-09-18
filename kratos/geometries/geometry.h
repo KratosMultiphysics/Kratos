@@ -1050,6 +1050,20 @@ public:
         return mpGeometryData->LocalSpaceDimension();
     }
 
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the geometry in a certain direction
+    virtual SizeType PolynomialDegree(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
+
     /** This method calculate and return Length or charactereistic
      * length of this geometry depending to it's dimension. For one
      * dimensional geometry for example Line it returns length of it
