@@ -45,35 +45,13 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 
 //******************************************************************************
 //******************************************************************************
-
-void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
-    KRATOS_TRY;
-
-    const int num_nodes = rNodes.size();
-    const auto nodes_begin = rNodes.begin();
-
-    IndexPartition<size_t>( num_nodes ).for_each(
-        [&]( size_t index )
-        {
-            const auto it_node  = nodes_begin + index;
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
-                + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        }
-    );
-
-    KRATOS_CATCH("");
-}
-
-
-// block_for_each discards const qualifiers so this won't work
-/*
-void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
+void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
     using Node = typename ModelPart::NodeType;
 
     block_for_each( rNodes,
-        []( const Node& node )
+        []( Node& node )
         {
             noalias(node.Coordinates()) = node.GetInitialPosition()
                 + node.FastGetSolutionStepValue(MESH_DISPLACEMENT);
@@ -82,7 +60,6 @@ void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
 
     KRATOS_CATCH("");
 }
-*/
 
 //******************************************************************************
 //******************************************************************************
@@ -123,16 +100,14 @@ void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double
                                                  const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
 {
   KRATOS_TRY;
-  auto r_nodes = rModelPart.Nodes();
-  const int num_nodes = r_nodes.size();
-  const auto nodes_begin = r_nodes.begin();
 
-  IndexPartition<size_t>( num_nodes ).for_each(
-    [&]( size_t index )
+  using Node = ModelPart::NodeType;
+
+  block_for_each( rModelPart.Nodes(),
+    [&]( Node& node )
     {
-        const auto it_node  = nodes_begin + index;
-        if(it_node->Has(rVariableToSuperImpose))
-            it_node->GetSolutionStepValue(rVariable,0) += it_node->GetValue(rVariableToSuperImpose);
+        if(node.Has(rVariableToSuperImpose))
+            node.GetSolutionStepValue(rVariable,0) += node.GetValue(rVariableToSuperImpose);
     }
   );
 
