@@ -209,17 +209,17 @@ public:
         return (*mpNurbsSurface)[i];
     }
 
-    virtual PointType const& operator[](const SizeType& i) const override
+    PointType const& operator[](const SizeType& i) const override
     {
         return (*mpNurbsSurface)[i];
     }
 
-    virtual typename PointType::Pointer& operator()(const SizeType& i) override
+    typename PointType::Pointer& operator()(const SizeType& i) override
     {
         return (*mpNurbsSurface)(i);
     }
 
-    virtual const typename PointType::Pointer& operator()(const SizeType& i) const override
+    const typename PointType::Pointer& operator()(const SizeType& i) const override
     {
         return (*mpNurbsSurface)(i);
     }
