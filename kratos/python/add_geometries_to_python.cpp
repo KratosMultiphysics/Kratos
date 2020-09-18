@@ -92,14 +92,14 @@ namespace Python
     ///@{
 
     template< class TDataType >
-    pybind11::list Set(
+    void Set(
         GeometryType& dummy, const Variable<TDataType>& rVariable, TDataType Value)
     {
         dummy.Set(rVariable, Value);
     }
 
     template< class TDataType >
-    pybind11::list Calculate(
+    TDataType Calculate(
         GeometryType& dummy, const Variable<TDataType>& rVariable)
     {
         TDataType Output;
