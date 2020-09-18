@@ -318,10 +318,6 @@ public:
     {
         mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
-
-        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
-            rResultGeometries(i)->SetGeometryParent(this);
-        }
     }
 
     ///@}
@@ -345,6 +341,10 @@ public:
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
     }
 
     ///@}
