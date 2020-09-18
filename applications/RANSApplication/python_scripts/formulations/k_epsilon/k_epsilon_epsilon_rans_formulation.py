@@ -84,8 +84,7 @@ class KEpsilonEpsilonRansFormulation(RansFormulation):
                 KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
         self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
-            self.epsilon_model_part, scheme, linear_solver,
-            convergence_criteria, builder_and_solver,
+            self.epsilon_model_part, scheme, convergence_criteria, builder_and_solver,
             solver_settings["max_iterations"].GetInt(), False, False, False)
 
         builder_and_solver.SetEchoLevel(

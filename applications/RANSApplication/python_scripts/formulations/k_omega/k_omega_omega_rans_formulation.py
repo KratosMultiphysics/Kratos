@@ -78,7 +78,7 @@ class KOmegaOmegaRansFormulation(RansFormulation):
 
         self.solver = GetKratosObjectType("ResidualBasedNewtonRaphsonStrategy")(
             self.omega_model_part, scheme,
-            linear_solver, convergence_criteria, builder_and_solver, solver_settings["max_iterations"].GetInt(), False,
+            convergence_criteria, builder_and_solver, solver_settings["max_iterations"].GetInt(), False,
             False, False)
 
         builder_and_solver.SetEchoLevel(

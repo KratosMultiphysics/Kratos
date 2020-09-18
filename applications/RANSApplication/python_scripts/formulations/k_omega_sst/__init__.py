@@ -40,13 +40,10 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             },
             "wall_distance_calculation_settings":
             {
-                "max_iterations"           : 10,
+                "max_levels"               : 10,
                 "echo_level"               : 0,
                 "wall_flag_variable_name"  : "STRUCTURE",
-                "wall_flag_variable_value" : true,
-                "linear_solver_settings" : {
-                    "solver_type"     : "amgcl"
-                }
+                "wall_flag_variable_value" : true
             },
             "auxiliar_process_list": [],
             "echo_level": 0
