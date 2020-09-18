@@ -54,6 +54,9 @@ namespace MPMParticleGeneratorUtility
     /// Get integration weights of the geometry for the given integration method
     void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
+    /// Get integration weights of the geometry for the given integration method
+    void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) GetIntegrationPointArea(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
+
     /// Get integration method and shape function values for the given element
     void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);

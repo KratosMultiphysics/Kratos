@@ -120,6 +120,7 @@ namespace MPMParticleGeneratorUtility
                         std::string condition_type_name;
                         const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                         const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+                        IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
 
                         if (geo_type == GeometryData::Kratos_Point2D  || geo_type == GeometryData::Kratos_Point3D)
                         {
@@ -167,18 +168,22 @@ namespace MPMParticleGeneratorUtility
                                     break;
                                 case 3:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    int_method = GeometryData::GI_GAUSS_1;
                                     break;
                                 case 4:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                    int_method = GeometryData::GI_GAUSS_2;
                                     break;
                                 case 5:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                    int_method = GeometryData::GI_GAUSS_3;
                                     break;
                                 case 6:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                     break;
                                 case 7:
                                     shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                    int_method = GeometryData::GI_GAUSS_5;
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
@@ -274,11 +279,18 @@ namespace MPMParticleGeneratorUtility
 
                         // Number of integration point per condition
                         const unsigned int integration_point_per_conditions = shape_functions_values.size1();
+                        
+                        Vector int_volumes (integration_point_per_conditions);
+                        
+                        
+                        bool is_equal_int_volumes = false;
 
-                        // Evaluation of geometric length/area
-                        const double area = r_geometry.Area();
-                        mpc_area = area / (1 + integration_point_per_conditions);
+                        if (is_equal_int_volumes) {
+                            for (size_t j = 0; j < integration_point_per_conditions; ++j)  int_volumes[j] = r_geometry.Area() / integration_point_per_conditions;
+                        }
+                        else  GetIntegrationPointArea(r_geometry, int_method, int_volumes);
 
+                        
                         // Check condition variables
                         if (i->Has(DISPLACEMENT))
                             mpc_imposed_displacement = i->GetValue(DISPLACEMENT);
@@ -336,6 +348,8 @@ namespace MPMParticleGeneratorUtility
                         unsigned int new_condition_id = 0;
                         for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
                         {
+                            mpc_area = int_volumes[point_number];
+                            
                             // Create new material point condition
                             new_condition_id = last_condition_id + point_number;
                             Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
@@ -395,64 +409,64 @@ namespace MPMParticleGeneratorUtility
                         last_condition_id += integration_point_per_conditions;
 
                         // 2. Loop over the nodes associated to each condition to create nodal particle condition
-                        for ( unsigned int j = 0; j < r_geometry.size(); j ++)
-                        {
-                            // Nodal normal vector is used
-                            if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
-                            const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
-                            if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
+                        // for ( unsigned int j = 0; j < r_geometry.size(); j ++)
+                        // {
+                        //     // Nodal normal vector is used
+                        //     if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
+                        //     const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
+                        //     if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
 
 
-                            // Create new material point condition
-                            new_condition_id = last_condition_id + j;
-                            Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
+                        //     // Create new material point condition
+                        //     new_condition_id = last_condition_id + j;
+                        //     Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
 
-                            mpc_xg.clear();
-                            for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
-                                mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
-                            }
+                        //     mpc_xg.clear();
+                        //     for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
+                        //         mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
+                        //     }
 
-                            ProcessInfo process_info = ProcessInfo();
+                        //     ProcessInfo process_info = ProcessInfo();
 
-                            // Setting particle condition's initial condition
-                            // TODO: If any variable is added or remove here, please add and remove also at the first loop above
-                            p_condition->SetValuesOnIntegrationPoints(MPC_COORD, { mpc_xg }, process_info);
-                            std::vector<double> mpc_area_vector = { mpc_area };
-                            p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area_vector, process_info);
-                            p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
+                        //     // Setting particle condition's initial condition
+                        //     // TODO: If any variable is added or remove here, please add and remove also at the first loop above
+                        //     p_condition->SetValuesOnIntegrationPoints(MPC_COORD, { mpc_xg }, process_info);
+                        //     std::vector<double> mpc_area_vector = { mpc_area };
+                        //     p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area_vector, process_info);
+                        //     p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
 
-                            if (is_neumann_condition)
-                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
-                            else{
-                                p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+                        //     if (is_neumann_condition)
+                        //         p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
+                        //     else{
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
 
-                                 if (boundary_condition_type == 1){
-                                    std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
-                                    p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
-                                 }
+                        //          if (boundary_condition_type == 1){
+                        //             std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
+                        //             p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+                        //          }
                                 
 
-                                if (is_slip)
-                                    p_condition->Set(SLIP);
-                                if (is_contact)
-                                    p_condition->Set(CONTACT);
-                                if (is_interface)
-                                {
-                                    p_condition->Set(INTERFACE);
-                                    p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE, { mpc_contact_force }, process_info);
-                                }
-                            }
+                        //         if (is_slip)
+                        //             p_condition->Set(SLIP);
+                        //         if (is_contact)
+                        //             p_condition->Set(CONTACT);
+                        //         if (is_interface)
+                        //         {
+                        //             p_condition->Set(INTERFACE);
+                        //             p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE, { mpc_contact_force }, process_info);
+                        //         }
+                        //     }
 
-                            // Add the MP Condition to the model part
-                            rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                        }
+                        //     // Add the MP Condition to the model part
+                        //     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                        // }
 
-                        last_condition_id += r_geometry.size();
+                        // last_condition_id += r_geometry.size();
                     }
                 }
             }
@@ -732,6 +746,16 @@ namespace MPMParticleGeneratorUtility
         }
     }
 
+    void GetIntegrationPointArea(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes)
+    {
+        const double area = rGeom.Area();
+        auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
+        if (rIntVolumes.size() != int_points.size()) rIntVolumes.resize(int_points.size(),false);
+        for (size_t i = 0; i < int_points.size(); ++i) {
+            rIntVolumes[i] = area * 0.5 * int_points[i].Weight();
+        }
+    }
+    
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes)
     {
