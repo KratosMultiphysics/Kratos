@@ -108,13 +108,13 @@ public:
     void EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
-    ) override;
+    ) const override;
 
     /// returns dof list
     void GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
-    ) override;
+    ) const override;
 
     /// Calls CalculateAll without computing StiffnessMatrix
     void CalculateRightHandSide(
