@@ -82,6 +82,7 @@ class RansFormulation:
         """
         if (self.GetStrategy() is not None):
             self.GetStrategy().Clear()
+
         self.__ExecuteRansFormulationMethods("Clear")
 
     def Check(self):
@@ -89,6 +90,7 @@ class RansFormulation:
         """
         self.__ExecuteProcessMethods("Check")
         self.__ExecuteRansFormulationMethods("Check")
+
         if (self.GetStrategy() is not None):
             self.GetStrategy().Check()
 
@@ -97,6 +99,7 @@ class RansFormulation:
         """
         self.__ExecuteProcessMethods("ExecuteInitialize")
         self.__ExecuteRansFormulationMethods("Initialize")
+
         if (self.GetStrategy() is not None):
             self.GetStrategy().Initialize()
 
@@ -105,6 +108,7 @@ class RansFormulation:
         """
         self.__ExecuteProcessMethods("ExecuteInitializeSolutionStep")
         self.__ExecuteRansFormulationMethods("InitializeSolutionStep")
+
         if (self.GetStrategy() is not None):
             self.GetStrategy().InitializeSolutionStep()
 
@@ -142,6 +146,7 @@ class RansFormulation:
         """
         if (self.GetStrategy() is not None):
             self.GetStrategy().FinalizeSolutionStep()
+
         self.__ExecuteRansFormulationMethods("FinalizeSolutionStep")
         self.__ExecuteProcessMethods("ExecuteFinalizeSolutionStep")
 
@@ -287,7 +292,10 @@ class RansFormulation:
         Returns:
             Kratos.ModelPart: Computing model part used in the formulation
         """
-        return self.__base_computing_model_part.GetSubModelPart("fluid_computational_model_part")
+        if (self.__base_computing_model_part.HasSubModelPart("fluid_computational_model_part")):
+            return self.__base_computing_model_part.GetSubModelPart("fluid_computational_model_part")
+        else:
+            raise Exception("Computing model part \"fluid_computational_model_part\" not found as a submodel part in " + self.__base_computing_model_part.Name() + ".")
 
     def SetMaxCouplingIterations(self, max_iterations):
         """Sets max coupling iterations
