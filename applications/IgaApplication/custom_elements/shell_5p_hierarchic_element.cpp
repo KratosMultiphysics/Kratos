@@ -1291,10 +1291,6 @@ namespace Kratos
 
     int Shell5pHierarchicElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0)
-            << "DISPLACEMENT has Key zero! check if the application is correctly registered" << std::endl;
-        KRATOS_ERROR_IF(ROTATION.Key() == 0)
-            << "ROTATION has Key zero! Shell5pHierarchic requires ROTATION dofs." << std::endl;
 
         // Check whether ConstitutiveLaw is 3D
         KRATOS_ERROR_IF(mConstitutiveLawVector[0]->GetStrainSize() != 6) << "ConstitutiveLaw is not 3D." << std::endl;
