@@ -15,7 +15,6 @@
         "model_import_settings": {
             "input_type": "use_input_model_part"
         },
-        "computing_model_part_name": "iga_computing_model_part",
         "material_import_settings": {
             "materials_filename": "linear_beam_thick_p4_nCP5/materials_5p.json"
         },
