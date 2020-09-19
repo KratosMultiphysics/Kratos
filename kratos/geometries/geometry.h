@@ -646,42 +646,42 @@ public:
     /// Set with bool
     virtual void Set(
         const Variable<bool>& rVariable,
-        bool& Output) {}
+        const bool Input) {}
 
     /// Set with int
     virtual void Set(
         const Variable<int>& rVariable,
-        int& Output) {}
+        const int Input) {}
 
     /// Set with double
     virtual void Set(
         const Variable<double>& rVariable,
-        double& Output) {}
+        const double Input) {}
 
     /// Set with array_1d<double, 2>
     virtual void Set(
         const Variable<array_1d<double, 2>>& rVariable,
-        array_1d<double, 2>& Output) {}
+        const array_1d<double, 2> Input) {}
 
     /// Set with array_1d<double, 3>
     virtual void Set(
         const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& Output) {}
+        const array_1d<double, 3> Input) {}
 
     /// Set with array_1d<double, 6>
     virtual void Set(
         const Variable<array_1d<double, 6>>& rVariable,
-        array_1d<double, 6>& Output) {}
+        const array_1d<double, 6> Input) {}
 
     /// Set with Vector
     virtual void Set(
         const Variable<Vector>& rVariable,
-        Vector& Output) {}
+        const Vector Input) {}
 
     /// Set with Matrix
     virtual void Set(
         const Variable<Matrix>& rVariable,
-        Matrix& Output) {}
+        const Matrix Input) {}
 
     /* Calculate either provides get or calculates a certain value,
      * according to a variable.
