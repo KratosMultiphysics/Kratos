@@ -16,6 +16,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRans
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectType
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 
 
 class FractionalStepVelocityPressureRansFormulation(RansFormulation):
@@ -136,7 +137,9 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
 
     def PrepareModelPart(self):
         self.fractional_step_model_part = CreateRansFormulationModelPart(
-            self,
+            self.GetComputingModelPart(),
+            self.GetName(),
+            self.GetDomainSize(),
             "FractionalStep",
             self.condition_name)
 
@@ -160,13 +163,17 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         self.AddProcess(wall_function_update_process)
 
         if (self.IsPeriodic()):
-            self.__InitializePeriodicConditions()
+            InitializePeriodicConditions(
+                model_part,
+                self.fractional_step_model_part,
+                None,
+                "FSPeriodicCondition{0:d}D".format(self.GetDomainSize()))
 
         settings = self.GetParameters()
 
         self.solver_settings = self.__CreateSolverSettings(
             self.fractional_step_model_part,
-            self.domain_size,
+            self.GetDomainSize(),
             settings["time_order"].GetInt(),
             True,
             self.GetMoveMeshFlag(),
@@ -210,16 +217,11 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         process_info.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())
 
         super().Initialize()
-        self.solver.Initialize()
 
         Kratos.Logger.PrintInfo(self.GetName(), "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
-
-    def Finalize(self):
-        self.solver.Clear()
-        super().Finalize()
 
     def IsConverged(self):
         if (hasattr(self, "is_converged")):
@@ -253,20 +255,10 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def InitializeSolutionStep(self):
         if (self.IsBufferInitialized()):
             super().InitializeSolutionStep()
-            self.solver.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         if (self.IsBufferInitialized()):
-            self.solver.FinalizeSolutionStep()
             super().FinalizeSolutionStep()
-
-    def Check(self):
-        super().Check()
-        self.solver.Check()
-
-    def Clear(self):
-        self.solver.Clear()
-        super().Clear()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):
@@ -342,26 +334,6 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         Kratos.Logger.PrintInfo(self.GetName(), info)
 
         return (relative_error <= relative_tolerance or absolute_error <= absolute_tolerance)
-
-    def __InitializePeriodicConditions(self):
-        base_model_part = self.GetBaseModelPart()
-        model_part = self.fractional_step_model_part
-        properties = model_part.CreateNewProperties(
-            model_part.NumberOfProperties() + 1)
-
-        periodic_condition_name = "FSPeriodicCondition{0:d}D".format(self.domain_size)
-
-        current_number_of_conditions = model_part.NumberOfConditions()
-        periodic_conditions_count = 0
-        for condition in base_model_part.Conditions:
-            if condition.Is(Kratos.PERIODIC):
-                periodic_conditions_count += 1
-                node_id_list = [node.Id for node in condition.GetNodes()]
-                periodic_condition = model_part.CreateNewCondition(
-                    periodic_condition_name, current_number_of_conditions + periodic_conditions_count, node_id_list, properties)
-                periodic_condition.Set(Kratos.PERIODIC)
-
-        Kratos.Logger.PrintInfo(self.GetName(), "Created {0:d} periodic conditions using {1:s}".format(periodic_conditions_count, periodic_condition_name))
 
     def __CreateSolverSettings(self, *args):
         if (self.IsPeriodic()):

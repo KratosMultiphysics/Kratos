@@ -84,7 +84,9 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
     def PrepareModelPart(self):
         self.velocity_model_part = CreateRansFormulationModelPart(
-            self,
+            self.GetComputingModelPart(),
+            self.GetName(),
+            self.GetDomainSize(),
             "RansIncompressiblePotentialFlowVelocity",
             "RansIncompressiblePotentialFlowVelocityInlet")
 
@@ -111,7 +113,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         self.velocity_strategy.SetEchoLevel(solver_settings["echo_level"].GetInt() - 2)
         convergence_criteria.SetEchoLevel(solver_settings["echo_level"].GetInt() - 1)
 
-        self.velocity_strategy.Initialize()
+        super().Initialize()
         Kratos.Logger.PrintInfo(self.GetName(), "Initialized formulation")
 
     def InitializeSolutionStep(self):
@@ -125,7 +127,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
                 Kratos.OUTLET,
                 True)
 
-            self.velocity_strategy.InitializeSolutionStep()
+            super().InitializeSolutionStep()
 
     def IsConverged(self):
         if (hasattr(self, "is_converged")):
@@ -173,14 +175,8 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             True,
             0)
 
-    def FinalizeSolutionStep(self):
-        self.velocity_strategy.FinalizeSolutionStep()
-
-    def Check(self):
-        self.velocity_strategy.Check()
-
-    def Clear(self):
-        self.velocity_strategy.Clear()
+    def GetStrategy(self):
+        return self.velocity_strategy
 
     def GetMaxCouplingIterations(self):
         return "N/A"

@@ -101,7 +101,9 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
     def PrepareModelPart(self):
         self.monolithic_model_part = CreateRansFormulationModelPart(
-            self,
+            self.GetComputingModelPart(),
+            self.GetName(),
+            self.GetDomainSize(),
             "VMS",
             self.condition_name)
         Kratos.Logger.PrintInfo(self.GetName(), "Created formulation model part.")
@@ -116,7 +118,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         settings = self.GetParameters()
 
         if (self.IsPeriodic()):
-            if (self.domain_size == 2):
+            if (self.GetDomainSize() == 2):
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
             else:
                 periodic_variables_list = [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
@@ -132,12 +134,12 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             scheme = GetKratosObjectType("ResidualBasedSimpleSteadyScheme")(
                 settings["velocity_relaxation"].GetDouble(),
                 settings["pressure_relaxation"].GetDouble(),
-                self.domain_size)
+                self.GetDomainSize())
         else:
             scheme = GetKratosObjectType("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")(
                 bossak_alpha,
                 settings["move_mesh_strategy"].GetInt(),
-                self.domain_size)
+                self.GetDomainSize())
 
         linear_solver = GetKratosObjectType("LinearSolverFactory")(
             settings["linear_solver_settings"])
@@ -164,16 +166,11 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         process_info.SetValue(Kratos.OSS_SWITCH, settings["oss_switch"].GetInt())
 
         super().Initialize()
-        self.solver.Initialize()
 
         Kratos.Logger.PrintInfo(self.GetName(), "Solver initialization finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
-
-    def Finalize(self):
-        self.solver.Clear()
-        super().Finalize()
 
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
@@ -190,20 +187,10 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def InitializeSolutionStep(self):
         if (self.IsBufferInitialized()):
             super().InitializeSolutionStep()
-            self.solver.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         if (self.IsBufferInitialized()):
-            self.solver.FinalizeSolutionStep()
             super().FinalizeSolutionStep()
-
-    def Check(self):
-        super().Check()
-        self.solver.Check()
-
-    def Clear(self):
-        self.solver.Clear()
-        super().Clear()
 
     def SetTimeSchemeSettings(self, settings):
         if (settings.Has("scheme_type")):

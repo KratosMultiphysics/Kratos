@@ -33,6 +33,11 @@ class RansFormulation:
         """
         return self.__class__.__name__
 
+    def GetDomainSize(self):
+        """Returns domain size
+        """
+        return self.__base_computing_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+
     def AddRansFormulation(self, formulation):
         """Adds another RansFormulation to current formulation creating a list of formulations.
 
@@ -73,27 +78,35 @@ class RansFormulation:
         self.__ExecuteRansFormulationMethods("PrepareModelPart")
 
     def Clear(self):
-        """Recursively calls Clear methods of existing formulations in this formulaton
+        """Recursively calls Clear methods of existing formulations in this formulaton and clears strategy
         """
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Clear()
         self.__ExecuteRansFormulationMethods("Clear")
 
     def Check(self):
-        """Recursively calls Check methods of existing formulations and processes in this formulaton
+        """Recursively calls Check methods of existing formulations, processes and strategy in this formulaton
         """
         self.__ExecuteProcessMethods("Check")
         self.__ExecuteRansFormulationMethods("Check")
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Check()
 
     def Initialize(self):
-        """Recursively calls Initialize methods of existing formulations and processes in this formulaton
+        """Recursively calls Initialize methods of existing formulations, processes and strategy in this formulaton
         """
         self.__ExecuteProcessMethods("ExecuteInitialize")
         self.__ExecuteRansFormulationMethods("Initialize")
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Initialize()
 
     def InitializeSolutionStep(self):
-        """Recursively calls InitializeSolutionStep methods of existing formulations and processes in this formulaton
+        """Recursively calls InitializeSolutionStep methods of existing formulations, processes and strategy in this formulaton
         """
         self.__ExecuteProcessMethods("ExecuteInitializeSolutionStep")
         self.__ExecuteRansFormulationMethods("InitializeSolutionStep")
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().InitializeSolutionStep()
 
     def SolveCouplingStep(self):
         """Solves current formulation
@@ -125,8 +138,10 @@ class RansFormulation:
         self.__ExecuteProcessMethods("ExecuteAfterCouplingSolveStep")
 
     def FinalizeSolutionStep(self):
-        """Recursively calls FinalizeSolutionStep methods of existing formulations and processes in this formulaton
+        """Recursively calls FinalizeSolutionStep methods of existing formulations, processes and strategy in this formulaton
         """
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().FinalizeSolutionStep()
         self.__ExecuteRansFormulationMethods("FinalizeSolutionStep")
         self.__ExecuteProcessMethods("ExecuteFinalizeSolutionStep")
 
@@ -135,6 +150,9 @@ class RansFormulation:
         """
         self.__ExecuteRansFormulationMethods("Finalize")
         self.__ExecuteProcessMethods("ExecuteFinalize")
+
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Clear()
 
     def GetMinimumBufferSize(self):
         """Recursively calculate minimum buffer size required by all formulations
@@ -263,6 +281,14 @@ class RansFormulation:
         """
         return self.__base_computing_model_part
 
+    def GetComputingModelPart(self):
+        """Returns computing model part used in the formulation
+
+        Returns:
+            Kratos.ModelPart: Computing model part used in the formulation
+        """
+        return self.__base_computing_model_part.GetSubModelPart("fluid_computational_model_part")
+
     def SetMaxCouplingIterations(self, max_iterations):
         """Sets max coupling iterations
 
@@ -310,9 +336,19 @@ class RansFormulation:
         return self.__list_of_processes
 
     def GetModelPart(self):
+        """Returns the model part used for solving current formulation (if a strategy is used only.)
+
+        Returns:
+            Kratos.ModelPart: Model part used for solving current formulation
+        """
         return None
 
     def GetStrategy(self):
+        """Returns strategy used in this formulation, if used any.
+
+        Returns:
+            Kratos.SolvingStrategy: Strategy used in this formulation, None if not used.
+        """
         return None
 
     def GetInfo(self):
