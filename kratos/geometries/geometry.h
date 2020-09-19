@@ -690,42 +690,42 @@ public:
     /// Calculate with bool
     virtual void Calculate(
         const Variable<bool>& rVariable,
-        bool& Output) {}
+        bool& rOutput) {}
 
     /// Calculate with int
     virtual void Calculate(
         const Variable<int>& rVariable,
-        int& Output) {}
+        int& rOutput) {}
 
     /// Calculate with double
     virtual void Calculate(
         const Variable<double>& rVariable,
-        double& Output) {}
+        double& rOutput) {}
 
     /// Calculate with array_1d<double, 2>
     virtual void Calculate(
         const Variable<array_1d<double, 2>>& rVariable,
-        array_1d<double, 2>& Output) {}
+        array_1d<double, 2>& rOutput) {}
 
     /// Calculate with array_1d<double, 3>
     virtual void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& Output) {}
+        array_1d<double, 3>& rOutput) {}
 
     /// Calculate with array_1d<double, 6>
     virtual void Calculate(
         const Variable<array_1d<double, 6>>& rVariable,
-        array_1d<double, 6>& Output) {}
+        array_1d<double, 6>& rOutput) {}
 
     /// Calculate with Vector
     virtual void Calculate(
         const Variable<Vector>& rVariable,
-        Vector& Output) {}
+        Vector& rOutput) {}
 
     /// Calculate with Matrix
     virtual void Calculate(
         const Variable<Matrix>& rVariable,
-        Matrix& Output) {}
+        Matrix& rOutput) {}
 
     ///@}
     ///@name Inquiry
