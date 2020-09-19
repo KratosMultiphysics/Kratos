@@ -36,7 +36,7 @@
 
 namespace Kratos
 {
-    void Shell5pHierarchicElement::Initialize()
+    void Shell5pHierarchicElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         //Constitutive Law initialisation
         InitializeMaterial();
@@ -74,7 +74,7 @@ namespace Kratos
     void Shell5pHierarchicElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -1238,7 +1238,7 @@ namespace Kratos
 
     void Shell5pHierarchicElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY
@@ -1265,7 +1265,7 @@ namespace Kratos
 
     void Shell5pHierarchicElement::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY

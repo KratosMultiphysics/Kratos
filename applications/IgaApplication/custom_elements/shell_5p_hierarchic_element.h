@@ -85,7 +85,8 @@ public:
     /* Called to initialize the element.
      * Must be called before any calculation is done
      */
-    void Initialize() override;
+    void Initialize(
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * This functions calculates both the RHS and the LHS
@@ -98,7 +99,7 @@ public:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
@@ -106,19 +107,19 @@ public:
     /// @brief Sets on rResult the ID's of the element degrees of freedom
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /// returns dof list
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /// Calls CalculateAll without computing StiffnessMatrix
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Calculation flags
@@ -139,7 +140,7 @@ public:
 
     /// Calls CalculateAll without computing ResidualVector
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
@@ -161,7 +162,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         //calculation flags
@@ -184,6 +185,12 @@ public:
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
     }
 
+    /// @brief Stress recovery
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -191,7 +198,8 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     std::string Info() const override
     {
@@ -210,8 +218,11 @@ public:
     ///@}
 
 private:
-    ///@name Member Variables
+    ///@name Private Member Variables
     ///@{
+
+    /// The vector containing the constitutive laws
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     // curvilinear coordinate zeta (theta3)
     double mZeta;
@@ -559,21 +570,6 @@ private:
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag,
         IndexType IntegrationPointIndex = 0);
- 
-    /// @brief Stress recovery
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-
-private:
-    ///@name Private member Variables
-    ///@{
-
-    /// The vector containing the constitutive laws
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     ///@}
     ///@name Protected Operations
