@@ -89,14 +89,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     typedef void (PeriodicConditionUtilities::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
 
     AddDoubleVariableType AddDoubleVariable = &PeriodicConditionUtilities::AddPeriodicVariable;
-    AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilities::AddPeriodicVariable;
 
     py::class_<PeriodicConditionUtilities>(m,"PeriodicConditionUtilities")
         .def(py::init<ModelPart&,unsigned int>())
         .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
         .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
         .def("AddPeriodicVariable",AddDoubleVariable)
-        .def("AddPeriodicVariable",AddVariableComponent)
     ;
 
     // Base settings
