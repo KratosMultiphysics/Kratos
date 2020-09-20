@@ -55,7 +55,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
 
     using MPIBossakRelaxationScalarSchemeType = BossakRelaxationScalarScheme<MPISparseSpaceType, LocalSpaceType>;
     py::class_<MPIBossakRelaxationScalarSchemeType, typename MPIBossakRelaxationScalarSchemeType::Pointer, MPIBaseSchemeType>(m, "MPIBossakRelaxationScalarScheme")
-        .def(py::init<const double, const double, const Variable<double>&, const Variable<double>&, const Variable<double>&>());
+        .def(py::init<const double, const double, const Variable<double>&>());
 
 }
 
