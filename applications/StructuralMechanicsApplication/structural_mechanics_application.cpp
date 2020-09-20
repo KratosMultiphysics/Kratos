@@ -116,6 +116,19 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mZStrainDriven2p5DSmallDisplacement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mZStrainDriven2p5DSmallDisplacement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
 
+      mFractureSmallDisplacement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mFractureSmallDisplacement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mFractureSmallDisplacement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
+      mFractureSmallDisplacement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mFractureSmallDisplacement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
+      mFractureSmallDisplacement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mFractureSmallDisplacement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
+      mFractureSmallDisplacement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mFractureSmallDisplacement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<NodeType >(Element::GeometryType::PointsArrayType(10)))),
+      mFractureSmallDisplacement3D15N(0, Element::GeometryType::Pointer(new Prism3D15<NodeType >(Element::GeometryType::PointsArrayType(15)))),
+      mFractureSmallDisplacement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<NodeType >(Element::GeometryType::PointsArrayType(20)))),
+      mFractureSmallDisplacement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<NodeType >(Element::GeometryType::PointsArrayType(27)))),
+
       // Adding the Total lagrangian elements
       mTotalLagrangian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mTotalLagrangian2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -605,6 +618,19 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ZStrainDriven2p5DSmallDisplacementElement2D6N", mZStrainDriven2p5DSmallDisplacement2D6N)
     KRATOS_REGISTER_ELEMENT("ZStrainDriven2p5DSmallDisplacementElement2D8N", mZStrainDriven2p5DSmallDisplacement2D8N)
     KRATOS_REGISTER_ELEMENT("ZStrainDriven2p5DSmallDisplacementElement2D9N", mZStrainDriven2p5DSmallDisplacement2D9N)
+
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement2D3N", mFractureSmallDisplacement2D3N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement2D4N", mFractureSmallDisplacement2D4N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement2D6N", mFractureSmallDisplacement2D6N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement2D8N", mFractureSmallDisplacement2D8N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement2D9N", mFractureSmallDisplacement2D9N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement3D4N", mFractureSmallDisplacement3D4N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement3D6N", mFractureSmallDisplacement3D6N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement3D8N", mFractureSmallDisplacement3D8N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement3D10N", mFractureSmallDisplacement3D10N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement3D15N", mFractureSmallDisplacement3D15N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement3D20N", mFractureSmallDisplacement3D20N)
+    KRATOS_REGISTER_ELEMENT("FractureSmallDisplacementElement3D27N", mFractureSmallDisplacement3D27N)    
 
     // Total lagrangian elements
     KRATOS_REGISTER_ELEMENT("TotalLagrangianElement2D3N", mTotalLagrangian2D3N)
