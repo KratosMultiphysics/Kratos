@@ -118,7 +118,7 @@ void FractureSmallDisplacement::CalculateAll(
     ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Resizing as needed the LHS
-    const SizeType mat_size = number_of_nodes * (dimension + 1); //damage dimension is included
+    const SizeType mat_size = number_of_nodes * (dimension + 1); //phase field dimension is included
 
     if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
         if ( rLeftHandSideMatrix.size1() != mat_size )
@@ -290,7 +290,7 @@ void FractureSmallDisplacement::CalculatePhaseFieldVariables(
     GetPhaseFieldValuesVector(rThisKinematicVariables.PhaseField);
 
     double gpPhaseField = inner_prod(rThisKinematicVariables.N,rThisKinematicVariables.PhaseField);
-    mConstitutiveLawVector[PointNumber]->SetValue(DAMAGE,gpPhaseField,rCurrentProcessInfo);
+    mConstitutiveLawVector[PointNumber]->SetValue(PHASE_FIELD,gpPhaseField,rCurrentProcessInfo);
 
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
