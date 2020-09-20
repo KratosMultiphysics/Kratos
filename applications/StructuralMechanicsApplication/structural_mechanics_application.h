@@ -69,6 +69,7 @@
 #include "custom_elements/updated_lagrangian.h"
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
+#include "custom_elements/fracture_small_displacement.h"
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
@@ -399,6 +400,19 @@ private:
     const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D6N;
     const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D8N;
     const ZStrainDriven2p5DSmallDisplacement mZStrainDriven2p5DSmallDisplacement2D9N;
+
+    const FractureSmallDisplacement mFractureSmallDisplacement2D3N;
+    const FractureSmallDisplacement mFractureSmallDisplacement2D4N;
+    const FractureSmallDisplacement mFractureSmallDisplacement2D6N;
+    const FractureSmallDisplacement mFractureSmallDisplacement2D8N;
+    const FractureSmallDisplacement mFractureSmallDisplacement2D9N;
+    const FractureSmallDisplacement mFractureSmallDisplacement3D4N;
+    const FractureSmallDisplacement mFractureSmallDisplacement3D6N;
+    const FractureSmallDisplacement mFractureSmallDisplacement3D8N;
+    const FractureSmallDisplacement mFractureSmallDisplacement3D10N;
+    const FractureSmallDisplacement mFractureSmallDisplacement3D15N;
+    const FractureSmallDisplacement mFractureSmallDisplacement3D20N;
+    const FractureSmallDisplacement mFractureSmallDisplacement3D27N;    
 
     // Total lagrangian
     const TotalLagrangian mTotalLagrangian2D3N;
