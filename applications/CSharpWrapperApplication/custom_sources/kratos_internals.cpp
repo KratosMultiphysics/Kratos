@@ -89,7 +89,7 @@ void KratosInternals::loadSettingsParameters(const std::string& rJSONFilePath) {
         mSettingsParameters = Kratos::Parameters(buffer.str());
     }
 
-    Kratos::Parameters default_parameters = GetDefaultSettings();
+    Kratos::Parameters default_parameters = GetDefaultParameters();
     mSettingsParameters.RecursivelyAddMissingParameters(default_parameters);
 }
 
@@ -200,7 +200,7 @@ Kratos::Parameters KratosInternals::GetSettings() {
     return mSettingsParameters;
 }
 
-Kratos::Parameters KratosInternals::GetDefaultSettings() {
+Kratos::Parameters KratosInternals::GetDefaultParameters() {
     Kratos::Parameters default_parameters = Kratos::Parameters(R"(
     {
         "problem_data"    : {

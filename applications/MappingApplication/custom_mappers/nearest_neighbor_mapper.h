@@ -232,9 +232,12 @@ private:
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
-            "search_radius"            : -1.0,
-            "search_iterations"        : 3,
-            "echo_level"               : 0
+            "search_radius"                : -1.0,
+            "search_iterations"            : 3,
+            "use_initial_configuration"    : false,
+            "echo_level"                   : 0,
+            "print_pairing_status_to_file" : true,
+            "pairing_status_file_path"     : ""
         })");
     }
 

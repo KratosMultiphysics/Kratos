@@ -30,7 +30,7 @@ void ShallowWaterUtilities::ComputeFreeSurfaceElevation(ModelPart& rModelPart)
     for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = it_node->FastGetSolutionStepValue(HEIGHT) - it_node->FastGetSolutionStepValue(BATHYMETRY);
+        it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = it_node->FastGetSolutionStepValue(HEIGHT) + it_node->FastGetSolutionStepValue(TOPOGRAPHY);
     }
 }
 
@@ -40,7 +40,7 @@ void ShallowWaterUtilities::ComputeHeightFromFreeSurface(ModelPart& rModelPart)
     for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(HEIGHT) = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) + it_node->FastGetSolutionStepValue(BATHYMETRY);
+        it_node->FastGetSolutionStepValue(HEIGHT) = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - it_node->FastGetSolutionStepValue(TOPOGRAPHY);
     }
 }
 
