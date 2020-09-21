@@ -1239,7 +1239,7 @@ namespace Kratos
     void Shell5pHierarchicElement::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
     {
         KRATOS_TRY
 
@@ -1266,7 +1266,7 @@ namespace Kratos
     void Shell5pHierarchicElement::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
     {
         KRATOS_TRY
 
