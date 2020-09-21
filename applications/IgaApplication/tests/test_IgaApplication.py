@@ -8,6 +8,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+from iga_test_factory import Shell3pLinearBeamThick as TShell3pLinearBeamThick
+from iga_test_factory import Shell3pNonLinearBeamThick as TShell3pNonLinearBeamThick
+from iga_test_factory import Shell3pNonLinearBeamThickSD as TShell3pNonLinearBeamThickSD
+from iga_test_factory import Shell3pLinearScordelis as TShell3pLinearScordelis
 
 # Import the tests o test_classes to create the suits
 
@@ -25,12 +29,18 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        SinglePatchTest
+        SinglePatchTest,
+        TShell3pLinearBeamThick,
+        TShell3pNonLinearBeamThick
         ]))
 
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        TShell3pNonLinearBeamThickSD,
+        TShell3pLinearScordelis
+        ]))
 
     allSuite = suites['all']
     allSuite.addTests(nightSuite)

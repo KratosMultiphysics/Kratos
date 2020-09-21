@@ -38,6 +38,15 @@ class IgaTestFactory(KratosUnittest.TestCase):
 class SinglePatchTest(IgaTestFactory):
     file_name = "single_patch_test/single_patch"
 
+# Kirchoff-Love Shell
+class Shell3pLinearBeamThick(IgaTestFactory):
+    file_name = "linear_beam_thick_p4_nCP5/shell_3p"
+class Shell3pNonLinearBeamThick(IgaTestFactory):
+    file_name = "nonlinear_beam_thick_p2_nCP22/shell_3p"
+class Shell3pNonLinearBeamThickSD(IgaTestFactory):
+    file_name = "nonlinear_beam_thick_sd_p3_nCP83/shell_3p"
+class Shell3pLinearScordelis(IgaTestFactory):
+    file_name = "linear_scordelis_p4_nCP10/shell_3p"
 
 if __name__ == '__main__':
     KratosUnittest.main()
