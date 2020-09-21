@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                   Philipp Bucher
 //
 //
 
@@ -17,6 +18,7 @@
 
 // Project includes
 #include "add_convergence_accelerators_to_python.h"
+#include "add_convergence_accelerator_to_python.h"
 #include "includes/define.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
@@ -31,18 +33,11 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, Matrix, Vector > TSpace;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
     // Convergence accelerator base class
-    py::class_<ConvergenceAccelerator<TSpace>>(m, "ConvergenceAccelerator")
-        .def(py::init<>())
-        .def("Initialize", &ConvergenceAccelerator<TSpace>::Initialize)
-        .def("InitializeSolutionStep", &ConvergenceAccelerator<TSpace>::InitializeSolutionStep)
-        .def("InitializeNonLinearIteration", &ConvergenceAccelerator<TSpace>::InitializeNonLinearIteration)
-        .def("UpdateSolution", &ConvergenceAccelerator<TSpace>::UpdateSolution)
-        .def("FinalizeNonLinearIteration", &ConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
-        .def("FinalizeSolutionStep", &ConvergenceAccelerator<TSpace>::FinalizeSolutionStep)
-        .def("SetEchoLevel", &ConvergenceAccelerator<TSpace>::SetEchoLevel);
+    AddBaseConvergenceAcceleratorToPython<SparseSpaceType, LocalSpaceType>(m, "ConvergenceAccelerator");
 
 }
 
