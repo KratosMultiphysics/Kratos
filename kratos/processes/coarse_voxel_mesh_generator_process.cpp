@@ -165,7 +165,7 @@ namespace Kratos
 
 			for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
 				if(x_cell_coarse[i]){
-					x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
+					x_key_planes.push_back(mColors.GetNodalCoordinates(0)[i]);
 					min_i.push_back(i);
 				}
 				if(x_cell_coarse[i+1]){
@@ -175,7 +175,7 @@ namespace Kratos
 
 			for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
 				if(y_cell_coarse[i]){
-					y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
+					y_key_planes.push_back(mColors.GetNodalCoordinates(1)[i]);
 					min_j.push_back(i);
 				}
 				if(y_cell_coarse[i+1]){
@@ -185,7 +185,7 @@ namespace Kratos
 
 			for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
 				if(z_cell_coarse[i]){
-					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
+					z_key_planes.push_back(mColors.GetNodalCoordinates(2)[i]);
 					min_k.push_back(i);
 				}
 				if(z_cell_coarse[i+1]){
@@ -193,9 +193,9 @@ namespace Kratos
 				}
 			}
 
-			x_key_planes.push_back(mMaxPoint[0]);
-			y_key_planes.push_back(mMaxPoint[1]);
-			z_key_planes.push_back(mMaxPoint[2]);
+			x_key_planes.push_back(mColors.GetNodalCoordinates(0).back());
+			y_key_planes.push_back(mColors.GetNodalCoordinates(1).back());
+			z_key_planes.push_back(mColors.GetNodalCoordinates(2).back());
 
 		mCoarseMeshColors.SetCoordinates(x_key_planes, y_key_planes, z_key_planes);
 
