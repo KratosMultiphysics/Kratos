@@ -13,10 +13,9 @@ import numpy as np
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver_wrapper):
+def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    raise NotImplementedError("This class needs some updates see MVQN and Aitken")
-    return AndersonConvergenceAccelerator(settings, solver_wrapper)
+    return AndersonConvergenceAccelerator(settings)
 
 class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
@@ -25,24 +24,13 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param beta weighting factor of constant relaxation
     # @param p factor for switch between constant relaxation and alternating anderson Gauß-Seidel/Jacobian method
     # p = 1 results in the Anderson acceleration and p -> infinity results in constant relaxation
-    def __init__( self, settings, solvers, cosim_solver_details ):
-        super().__init__(settings, solvers, cosim_solver_details)
-        if "iteration_horizon" in self.settings:
-            iteration_horizon = self.settings["iteration_horizon"]
-        else:
-            iteration_horizon = 20
-        if "alpha" in self.settings:
-            self.alpha = self.settings["alpha"]
-        else:
-            self.alpha = 0.1
-        if "beta" in self.settings:
-            self.beta = self.settings["beta"]
-        else:
-            self.beta = 0.2
-        if "p" in self.settings:
-            self.p = self.settings["p"]
-        else:
-            self.p = 2
+    def __init__( self, settings):
+        super().__init__(settings)
+
+        iteration_horizon = self.settings["iteration_horizon"].GetInt()
+        self.alpha = self.settings["alpha"].GetDouble()
+        self.beta = self.settings["beta"].GetDouble()
+        self.p = self.settings["p"].GetInt()
 
         self.V = deque( maxlen = iteration_horizon )
         self.W = deque( maxlen = iteration_horizon )
@@ -104,3 +92,14 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     def FinalizeSolutionStep(self):
         self.V.clear()
         self.W.clear()
+
+    @classmethod
+    def _GetDefaultParameters(cls):
+        this_defaults = KM.Parameters("""{
+            "iteration_horizon" : 20,
+            "alpha"             : 0.1,
+            "beta"              : 0.2,
+            "p"                 : 2
+        }""")
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
+        return this_defaults
