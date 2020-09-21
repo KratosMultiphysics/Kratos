@@ -130,7 +130,10 @@ namespace Kratos
         rKinematicVariables.a_ab_covariant[2] = rKinematicVariables.a1[0] * rKinematicVariables.a2[0] + rKinematicVariables.a1[1] * rKinematicVariables.a2[1] + rKinematicVariables.a1[2] * rKinematicVariables.a2[2];
 
         //Compute the tangent and  the normal to the boundary vector
-        rKinematicVariables.t = g2/norm_2(g2);
+        const array_1d<double, 3 > local_tangent = GetProperties()[TANGENTS];
+
+        rKinematicVariables.t = local_tangent[0]*g1+local_tangent[1]*g2;
+        rKinematicVariables.t = rKinematicVariables.t/norm_2(rKinematicVariables.t);
 
         if (rPatch==PatchType::Slave)
         {
@@ -345,6 +348,7 @@ namespace Kratos
 
         const double stabilization_parameter = GetProperties()[NITSCHE_STABILIZATION_PARAMETER];
 
+        KRATOS_WATCH(stabilization_parameter)
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
