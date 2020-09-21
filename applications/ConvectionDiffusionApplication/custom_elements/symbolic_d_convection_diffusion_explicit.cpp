@@ -185,7 +185,7 @@ int SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInf
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2>::CalculateRightHandSideInternal(
+void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -362,7 +362,7 @@ const double crhs125 =             DN_DX_2_0*crhs66 + DN_DX_2_1*crhs72;
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3>::CalculateRightHandSideInternal(
+void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -647,7 +647,7 @@ const double crhs225 =             DN_DX_3_0*crhs100 + DN_DX_3_1*crhs110 + DN_DX
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -749,7 +749,7 @@ const double crhs52 =             crhs14*(crhs19 + crhs21 + crhs44 + crhs45 + cr
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicDConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -906,7 +906,7 @@ const double crhs99 =             crhs26 + crhs27 + crhs94 + crhs95;
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2>::UpdateUnknownSubgridScaleGaussPoint(
+void SymbolicDConvectionDiffusionExplicit<2,3>::UpdateUnknownSubgridScaleGaussPoint(
     ElementVariables& rVariables,
     unsigned int g)
 {
@@ -932,7 +932,6 @@ void SymbolicDConvectionDiffusionExplicit<2>::UpdateUnknownSubgridScaleGaussPoin
 
     phi_subscale_gauss_new += N[0]*f[0] + N[1]*f[1] + N[2]*f[2]; // forcing term
     phi_subscale_gauss_new += - (N[0]*(phi[0] - phi_old[0]) + N[1]*(phi[1] - phi_old[1]) + N[2]*(phi[2] - phi_old[2]))/(delta_time); // mass term
-    // phi_subscale_gauss_new += - (N[0]*phi_acceleration_old[0] + N[1]*phi_acceleration_old[1] + N[2]*phi_acceleration_old[2]); // mass term (use acceleration step n)
     phi_subscale_gauss_new += - (DN_DX_0_0*phi[0] + DN_DX_1_0*phi[1] + DN_DX_2_0*phi[2])*(N[0]*v(0,0) + N[1]*v(1,0) + N[2]*v(2,0)) - (DN_DX_0_1*phi[0] + DN_DX_1_1*phi[1] + DN_DX_2_1*phi[2])*(N[0]*v(0,1) + N[1]*v(1,1) + N[2]*v(2,1)); // convective term 1
     phi_subscale_gauss_new += - (N[0]*phi[0] + N[1]*phi[1] + N[2]*phi[2])*(DN_DX_0_0*v(0,0) + DN_DX_0_1*v(0,1) + DN_DX_1_0*v(1,0) + DN_DX_1_1*v(1,1) + DN_DX_2_0*v(2,0) + DN_DX_2_1*v(2,1)); // convective term 2
     phi_subscale_gauss_new += N[0]*prj[0] + N[1]*prj[1] + N[2]*prj[2]; // OSS term
@@ -946,7 +945,7 @@ void SymbolicDConvectionDiffusionExplicit<2>::UpdateUnknownSubgridScaleGaussPoin
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3>::UpdateUnknownSubgridScaleGaussPoint(
+void SymbolicDConvectionDiffusionExplicit<3,4>::UpdateUnknownSubgridScaleGaussPoint(
     ElementVariables& rVariables,
     unsigned int g)
 {
@@ -1000,17 +999,13 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
     // Calculate h
     double h = this->ComputeH(rVariables.DN_DX);
     // Calculate tau for each gauss point
-    for(unsigned int g = 0; g<TNumNodes; g++)
-    {
+    for(unsigned int g = 0; g<TNumNodes; g++) {
 	const auto& N = row(rVariables.N_gausspoint,g);
         // Calculate velocity and velocity divergence in the gauss point
-        array_1d<double, 3 > vel_gauss=ZeroVector(3);
-        noalias(vel_gauss) = prod(N,rVariables.convective_velocity);
+        const array_1d<double,3> vel_gauss = prod(N, rVariables.convective_velocity);
         double div_vel = 0;
-        for(unsigned int node_element = 0; node_element<TNumNodes; node_element++)
-        {
-            for(unsigned int dim = 0; dim < TDim; dim++)
-            {
+        for(unsigned int node_element = 0; node_element<TNumNodes; node_element++) {
+            for(unsigned int dim = 0; dim < TDim; dim++) {
                 div_vel += rVariables.DN_DX(node_element,dim)*rVariables.convective_velocity(node_element,dim);
             }
         }
@@ -1035,8 +1030,8 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SymbolicDConvectionDiffusionExplicit<2>;
-template class SymbolicDConvectionDiffusionExplicit<3>;
+template class SymbolicDConvectionDiffusionExplicit<2,3>;
+template class SymbolicDConvectionDiffusionExplicit<3,4>;
 
 /***********************************************************************************/
 /***********************************************************************************/

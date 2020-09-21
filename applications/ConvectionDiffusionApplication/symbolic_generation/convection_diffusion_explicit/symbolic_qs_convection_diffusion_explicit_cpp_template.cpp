@@ -136,7 +136,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribut
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2>::CalculateMassMatrix(
+void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -161,7 +161,7 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3>::CalculateMassMatrix(
+void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
@@ -306,7 +306,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2>::CalculateRightHandSideInternal(
+void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -352,7 +352,7 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateRightHandSideInternal(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3>::CalculateRightHandSideInternal(
+void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -405,7 +405,7 @@ void SymbolicQSConvectionDiffusionExplicit<3>::CalculateRightHandSideInternal(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -449,7 +449,7 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleRH
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleRHSInternal(
+void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -533,17 +533,13 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
     // Calculate h
     double h = this->ComputeH(rVariables.DN_DX);
     // Calculate tau for each gauss point
-    for(unsigned int g = 0; g<TNumNodes; g++)
-    {
+    for(unsigned int g = 0; g<TNumNodes; g++) {
 	const auto& N = row(rVariables.N_gausspoint,g);
         // Calculate velocity and velocity divergence in the gauss point
-        array_1d<double, 3 > vel_gauss=ZeroVector(3);
-        noalias(vel_gauss) = prod(N,rVariables.convective_velocity);
+        const array_1d<double,3> vel_gauss = prod(N, rVariables.convective_velocity);
         double div_vel = 0;
-        for(unsigned int node_element = 0; node_element<TNumNodes; node_element++)
-        {
-            for(unsigned int dim = 0; dim < TDim; dim++)
-            {
+        for(unsigned int node_element = 0; node_element<TNumNodes; node_element++) {
+            for(unsigned int dim = 0; dim < TDim; dim++) {
                 div_vel += rVariables.DN_DX(node_element,dim)*rVariables.convective_velocity(node_element,dim);
             }
         }
@@ -577,8 +573,8 @@ Element::IntegrationMethod SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SymbolicQSConvectionDiffusionExplicit<2>;
-template class SymbolicQSConvectionDiffusionExplicit<3>;
+template class SymbolicQSConvectionDiffusionExplicit<2,3>;
+template class SymbolicQSConvectionDiffusionExplicit<3,4>;
 
 /***********************************************************************************/
 /***********************************************************************************/
