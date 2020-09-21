@@ -26,10 +26,15 @@ namespace MPM_MPI_Utilities{
 
     // Typedefs
     typedef ModelPart::ElementsContainerType ElementsContainerType;
+    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
     // Interface to exchange elements and remove/add elements to respective ModelPart
     void TransferElements(ModelPart& rMPMModelPart,
-                          std::vector<ElementsContainerType>& SendElements);
+                          std::vector<ElementsContainerType>& rSendElements);
+
+    // Interface to exchange conditions and remove/add conditions from/to respective ModelPart
+    void TransferConditions(ModelPart& rMPMModelPart,
+                            std::vector<ConditionsContainerType>& rSendCondition);
 
 } // end MPM_MPI_Utilities
 } // end namespace Kratos
