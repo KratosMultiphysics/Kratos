@@ -139,13 +139,23 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the curve
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
+    }
+
+    ///@}
     ///@name Curve Properties
     ///@{
 
     /// Returns number of points of NurbsCurve.
-    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
     {
-        return mpNurbsCurve->PointsNumberInDirection(DirectionIndex);
+        return mpNurbsCurve->PointsNumberInDirection(LocalDirectionIndex);
     }
 
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,

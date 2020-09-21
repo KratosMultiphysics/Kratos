@@ -1203,10 +1203,7 @@ class Report(object):
 
     def BeginReport(self, timer):
         label = "DEM: "
-        report = "Main loop starting..." + "\n" + \
-            label + "Total number of TIME STEPs expected in the calculation: " + \
-            str(self.total_steps_expected) + "\n" + label
-
+        report = label + "Total number of time s expected in the calculation: " + str(self.total_steps_expected) + "\n\n"
         return report
 
     def StepiReport(self, timer, time, step):
@@ -1232,10 +1229,10 @@ class Report(object):
             self.first_print = False
             estimated_sim_duration = 60.0 * (self.total_steps_expected / step)  # seconds
 
-            report = report + "\n" + label + "The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
-                + label + "In minutes: " + str(estimated_sim_duration / 60.0) + " minutes" + "\n"\
-                + label + "In hours:   " + str(estimated_sim_duration / 3600.0) + " hours" + "\n"\
-                + label + "In days:    " + str(estimated_sim_duration / 86400.0) + " days" + "\n" + label
+            report = report + "\n" + label + "****** The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
+                + label + "****** In minutes: " + str(round(estimated_sim_duration / 60.0, 2)) + " minutes" + "\n"\
+                + label + "****** In hours: " + str(round(estimated_sim_duration / 3600.0, 3)) + " hours" + "\n"\
+                + label + "****** In days: " + str(round(estimated_sim_duration / 86400.0, 3)) + " days" + "\n" + label
 
         return report
 
@@ -1974,18 +1971,18 @@ class DEMIo(object):
 
         # BB Elements:
         props = Properties(10000)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 1, [node1.Id, node4.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 2, [node4.Id, node8.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 3, [node8.Id, node5.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 4, [node5.Id, node1.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 5, [node1.Id, node2.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 6, [node3.Id, node4.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 7, [node7.Id, node8.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 8, [node5.Id, node6.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 9, [node6.Id, node2.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 1, [node1.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 2, [node4.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 3, [node8.Id, node5.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 4, [node5.Id, node1.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 5, [node1.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 6, [node3.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 7, [node7.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 8, [node5.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 9, [node6.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 10, [node2.Id, node3.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 11, [node3.Id, node7.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidFace3D2N", max_element_Id + 12, [node7.Id, node6.Id], props)
 
 
 

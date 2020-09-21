@@ -196,6 +196,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs curve on surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpCurveOnSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Set/ Get functions
     ///@{
 
@@ -425,6 +435,10 @@ public:
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
     }
 
     ///@}

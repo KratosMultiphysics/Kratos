@@ -529,11 +529,9 @@ public:
     }
 
     /// Returns number of points per direction.
-    virtual SizeType PointsNumberInDirection(IndexType DirectionIndex) const
+    virtual SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const
     {
-        return (DirectionIndex == 0)
-            ? mPoints.size()
-            : 1;
+        KRATOS_ERROR << "Trying to access PointsNumberInDirection from geometry base class." << std::endl;
     }
 
     virtual SizeType max_size() const
@@ -1052,6 +1050,20 @@ public:
     {
         return mpGeometryData->LocalSpaceDimension();
     }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the geometry in a certain direction
+    virtual SizeType PolynomialDegree(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
+    }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
 
     /** This method calculate and return Length or charactereistic
      * length of this geometry depending to it's dimension. For one

@@ -69,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(CurveTessellation3D,
 
     const auto tessellation = CurveTessellation<PointerVector<Point>>::ComputeTessellation(
         geometry,
-        geometry.PolynomialDegree(),
+        geometry.PolynomialDegree(0),
         geometry.DomainInterval(),
         geometry.KnotSpanIntervals(),
         1e-2);
