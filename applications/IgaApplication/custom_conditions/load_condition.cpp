@@ -66,9 +66,6 @@ namespace Kratos
             // Shape function values for all integration points
             const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-            const IntegrationMethod integration_method = GetGeometry().GetDefaultIntegrationMethod();
-            const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
-
             for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
             {
                 // Differential area
