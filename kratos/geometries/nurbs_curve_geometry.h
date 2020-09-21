@@ -171,7 +171,7 @@ public:
     }
 
     ///@}
-    ///@name Information
+    ///@name Geometrical Information
     ///@{
 
     /// Returns number of points per direction.
@@ -185,17 +185,23 @@ public:
     }
 
     ///@}
-    ///@name Get and Set functions
+    ///@name Mathematical Informations
     ///@{
 
-    /*
-    * @brief Polynomial degree of this curve.
-    * @return the polynomial degree.
-    */
-    SizeType PolynomialDegree() const
+    /// Return polynomial degree of the curve
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
+        KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex != 0)
+            << "Trying to access polynomial degree in direction " << LocalDirectionIndex
+            << " from NurbsCurveGeometry #" << this->Id() << ". However, nurbs curves have only one direction."
+            << std::endl;
+
         return mPolynomialDegree;
     }
+
+    ///@}
+    ///@name Get and Set functions
+    ///@{
 
     /* 
     * @brief Knot vector is defined to have a multiplicity of p
@@ -223,7 +229,7 @@ public:
     */
     SizeType NumberOfNonzeroControlPoints() const
     {
-        return PolynomialDegree() + 1;
+        return mPolynomialDegree + 1;
     }
 
     /*
@@ -320,7 +326,7 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        const SizeType points_per_span = PolynomialDegree() + 1;
+        const SizeType points_per_span = PolynomialDegree(0) + 1;
 
         std::vector<double> spans;
         Spans(spans);
