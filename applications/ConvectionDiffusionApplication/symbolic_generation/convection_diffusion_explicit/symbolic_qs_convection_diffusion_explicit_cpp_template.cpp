@@ -123,9 +123,10 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribut
     this->CalculateRightHandSideInternal(rhs,rCurrentProcessInfo);
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
+    const auto& reaction_variable = r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable();
     for (unsigned int i_node = 0; i_node < local_size; i_node++) {
         #pragma omp atomic
-        r_geometry[i_node].FastGetSolutionStepValue(r_process_info[CONVECTION_DIFFUSION_SETTINGS]->GetReactionVariable()) += rhs[i_node];
+        r_geometry[i_node].FastGetSolutionStepValue(reaction_variable) += rhs[i_node];
     }
 
     KRATOS_CATCH("");
