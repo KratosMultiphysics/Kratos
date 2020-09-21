@@ -189,7 +189,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         // @Peter we should make this optional, the alternative is to solve the system each time we map
         // => this is done in Empire
         // lets discuss in the next meeting
-        CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
+        // CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
+
+        MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerDestination->GetModelPart().NumberOfNodes());
     }
 
     // CheckMappingMatrixConsistency();
@@ -201,12 +203,23 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<double>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
+    const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
+
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    TSparseSpace::Mult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+    if (dual_mortar) {
+        TSparseSpace::Mult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerOrigin->GetVector(),
+            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+    } else {
+        TSparseSpace::Mult(
+            *mpMappingMatrixProjector,
+            mpInterfaceVectorContainerOrigin->GetVector(),
+            *mpTempVector); // rQd = rMdo * rQo
+
+        mpLinearSolver->Solve(*mpMappingMatrixSlave, mpInterfaceVectorContainerDestination->GetVector(), *mpTempVector);
+    }
 
     mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 }
@@ -217,12 +230,23 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const Variable<double>& rDestinationVariable,
     Kratos::Flags MappingOptions)
 {
+    const bool dual_mortar = mMapperSettings["dual_mortar"].GetBool();
+
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
-    TSparseSpace::TransposeMult(
-        *mpMappingMatrix,
-        mpInterfaceVectorContainerDestination->GetVector(),
-        mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+    if (dual_mortar) {
+        TSparseSpace::TransposeMult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerDestination->GetVector(),
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+    } else {
+        mpLinearSolver->Solve(*mpMappingMatrixSlave, *mpTempVector, mpInterfaceVectorContainerDestination->GetVector());
+
+        TSparseSpace::TransposeMult(
+            *mpMappingMatrixProjector,
+            *mpTempVector,
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+    }
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }

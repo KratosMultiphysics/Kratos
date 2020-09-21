@@ -106,6 +106,9 @@ public:
     typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
     typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
 
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    typedef Kratos::unique_ptr<TSystemVectorType> TSystemVectorUniquePointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -286,6 +289,8 @@ private:
     MappingMatrixUniquePointerType mpMappingMatrix;
     MappingMatrixUniquePointerType mpMappingMatrixProjector;
     MappingMatrixUniquePointerType mpMappingMatrixSlave;
+
+    TSystemVectorUniquePointerType mpTempVector;
 
     MapperLocalSystemPointerVector mMapperLocalSystemsProjector;
     MapperLocalSystemPointerVector mMapperLocalSystemsSlave;
