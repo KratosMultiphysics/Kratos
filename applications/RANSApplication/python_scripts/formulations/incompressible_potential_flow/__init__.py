@@ -180,6 +180,3 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
     def GetMaxCouplingIterations(self):
         return "N/A"
-
-    def GetModelPart(self):
-        return self.velocity_model_part

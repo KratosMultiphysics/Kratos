@@ -246,5 +246,3 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def GetStrategy(self):
         return self.solver
 
-    def GetModelPart(self):
-        return self.monolithic_model_part

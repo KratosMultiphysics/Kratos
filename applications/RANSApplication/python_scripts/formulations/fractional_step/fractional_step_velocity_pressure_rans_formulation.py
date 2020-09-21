@@ -302,9 +302,6 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def GetStrategy(self):
         return self.solver
 
-    def GetModelPart(self):
-        return self.fractional_step_model_part
-
     def SetWallFunctionSettings(self, settings):
         wall_function_region_type = "logarithmic_region_only"
         if (settings.Has("wall_function_region_type")):

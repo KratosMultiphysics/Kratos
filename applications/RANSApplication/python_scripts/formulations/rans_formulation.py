@@ -349,6 +349,9 @@ class RansFormulation:
         Returns:
             Kratos.ModelPart: Model part used for solving current formulation
         """
+
+        if (self.GetStrategy() is not None):
+            return self.GetStrategy().GetModelPart()
         return None
 
     def GetStrategy(self):
