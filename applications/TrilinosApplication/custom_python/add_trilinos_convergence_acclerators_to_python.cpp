@@ -15,11 +15,13 @@
 // System includes
 
 // External includes
+#include "Epetra_FEVector.h"
 
 // Project includes
 #include "python/add_convergence_accelerator_to_python.h"
 #include "includes/define.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
+#include "spaces/ublas_space.h"
 #include "trilinos_space.h"
 
 namespace Kratos {
