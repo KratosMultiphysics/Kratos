@@ -395,7 +395,7 @@ public:
             TSparseSpace::WriteMatrixMarketMatrix("StiffnessMatrix.mm", rStiffnessMatrix, false);
         }
         
-        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
+        rModelPart.GetProcessInfo()[BUILD_LEVEL] = 5;
         TSparseSpace::SetToZero(rQMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rQMatrix,b);
         

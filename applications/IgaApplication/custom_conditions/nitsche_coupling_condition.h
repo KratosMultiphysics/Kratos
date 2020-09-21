@@ -232,16 +232,17 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override
     {
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 3)
-        {
-            CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-                rCurrentProcessInfo, true, true);
-        }
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2)
+        if (rCurrentProcessInfo[BUILD_LEVEL] == 5)
         {
             CalculateQMatrix(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo);
         }
+        else
+        {
+            CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                rCurrentProcessInfo, true, true);
+        }
+        
     }
 
     /**
