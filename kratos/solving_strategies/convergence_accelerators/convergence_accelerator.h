@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
+//                   Philipp Bucher
 //
 //
 
@@ -15,14 +16,12 @@
 #define  KRATOS_CONVERGENCE_ACCELERATOR
 
 // System includes
-#include <set>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -36,9 +35,11 @@ namespace Kratos
 /**
  * @brief Base class for convergence accelerators
  * This class is intended to be the base of any convergence accelerator in Kratos
- * @tparam TSpace Linear algebra space
+ * @tparam TSpace Linear algebra sparse space
+ * @tparam TSpace Linear algebra dense space
  */
-template<class TSpace>
+template<class TSparseSpace,
+         class TDenseSpace>
 class ConvergenceAccelerator
 {
 
@@ -47,11 +48,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef typename TSpace::VectorType                             VectorType;
-    typedef typename TSpace::MatrixType                             MatrixType;
+    typedef typename TSparseSpace::VectorType                             VectorType;
+    typedef typename TSparseSpace::MatrixType                             MatrixType;
 
-    typedef typename TSpace::VectorPointerType               VectorPointerType;
-    typedef typename TSpace::MatrixPointerType               MatrixPointerType;
+    typedef typename TSparseSpace::VectorPointerType               VectorPointerType;
+    typedef typename TSparseSpace::MatrixPointerType               MatrixPointerType;
 
     // Counted pointer of ConvergenceAccelerator
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceAccelerator);
@@ -63,16 +64,14 @@ public:
     // Default constructor
     ConvergenceAccelerator() = default;
 
+    // Constructor with Parameters
+    ConvergenceAccelerator(Parameters ThisParameters) {}
+
     // Deleted copy constructor
     ConvergenceAccelerator(const ConvergenceAccelerator& Other) = delete;
 
     // Default destructor
     virtual ~ConvergenceAccelerator() = default;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
 
     ///@}
     ///@name Operations
@@ -169,11 +168,6 @@ public:
 
     ///@}
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
@@ -181,36 +175,9 @@ protected:
     int mEchoLevel;
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 }; // Class ConvergenceAccelerator
 
 ///@} // Kratos classes
-
-///@} // Application group
 
 } /// namespace Kratos
 
