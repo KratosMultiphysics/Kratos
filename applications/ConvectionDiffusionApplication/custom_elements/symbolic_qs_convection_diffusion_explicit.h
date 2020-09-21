@@ -28,6 +28,7 @@
 #include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
+#include "convection_diffusion_application_variables.h"
 
 namespace Kratos
 {
@@ -148,10 +149,6 @@ public:
         const Variable<double>& rVariable,
         double& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOrthogonalSubgridScaleSystem(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Inquiry
@@ -281,7 +278,7 @@ private:
         BoundedVector<double, TNumNodes>& rRightHandSideBoundedVector,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateOrthogonalSubgridScaleSystemInternal(
+    void CalculateOrthogonalSubgridScaleRHSInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
 

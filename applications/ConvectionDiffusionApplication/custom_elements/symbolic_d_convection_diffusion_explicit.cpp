@@ -96,9 +96,9 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
     KRATOS_TRY;
 
     BaseType::Initialize(rCurrentProcessInfo);
-    // Resize and intialize output
-    if (mUnknownSubScale.size() != TNumNodes) // number integration points = number nodes
-        mUnknownSubScale.resize(TNumNodes, false);
+    // Resize and initialize dynamic subscales container
+    if (mUnknownSubScale.size() != TNumNodes)
+        mUnknownSubScale.resize(TNumNodes, false); // number integration points = number nodes
     mUnknownSubScale = ZeroVector(TNumNodes);
 
     KRATOS_CATCH("");
@@ -119,7 +119,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::FinalizeSolutionStep(
     this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
     // Reading integration points and local gradients
     const auto& r_geometry = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const auto& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
     // Iterate over integration points to update subscales on the gauss point
     for (unsigned int g = 0; g < integration_points.size(); g++) {
@@ -147,13 +147,18 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 {
     KRATOS_TRY;
 
-    auto& r_geometry = this->GetGeometry();
-    const unsigned int local_size = r_geometry.size();
-    BoundedVector<double, TNumNodes> rhs_oss;
-    this->CalculateOrthogonalSubgridScaleSystemInternal(rhs_oss,rCurrentProcessInfo);
-    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
-        #pragma omp atomic
-        r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
+    if (rVariable == SCALAR_PROJECTION) {
+        auto& r_geometry = this->GetGeometry();
+        const unsigned int local_size = r_geometry.size();
+        BoundedVector<double, TNumNodes> rhs_oss;
+        this->CalculateOrthogonalSubgridScaleRHSInternal(rhs_oss,rCurrentProcessInfo);
+        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+            #pragma omp atomic
+            r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
+        }
+    }
+    else {
+        KRATOS_ERROR << "Variable not implemented to compute OSS projection. Use SCALAR_PROJECTION instead." << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -642,7 +647,7 @@ const double crhs225 =             DN_DX_3_0*crhs100 + DN_DX_3_1*crhs110 + DN_DX
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
+void SymbolicDConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -744,7 +749,7 @@ const double crhs52 =             crhs14*(crhs19 + crhs21 + crhs44 + crhs45 + cr
 /***********************************************************************************/
 
 template <>
-void SymbolicDConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
+void SymbolicDConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {

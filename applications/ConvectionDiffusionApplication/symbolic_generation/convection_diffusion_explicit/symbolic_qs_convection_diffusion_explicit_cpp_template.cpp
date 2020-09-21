@@ -195,13 +195,18 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 {
     KRATOS_TRY;
 
-    auto& r_geometry = GetGeometry();
-    const unsigned int local_size = r_geometry.size();
-    BoundedVector<double, TNumNodes> rhs_oss;
-    this->CalculateOrthogonalSubgridScaleSystemInternal(rhs_oss,rCurrentProcessInfo);
-    for (unsigned int i_node = 0; i_node < local_size; i_node++) {
-        #pragma omp atomic
-        r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
+    if (rVariable == SCALAR_PROJECTION) {
+        auto& r_geometry = GetGeometry();
+        const unsigned int local_size = r_geometry.size();
+        BoundedVector<double, TNumNodes> rhs_oss;
+        this->CalculateOrthogonalSubgridScaleRHSInternal(rhs_oss,rCurrentProcessInfo);
+        for (unsigned int i_node = 0; i_node < local_size; i_node++) {
+            #pragma omp atomic
+            r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
+        }
+    }
+    else {
+        KRATOS_ERROR << "Variable not implemented to compute OSS projection. Use SCALAR_PROJECTION instead." << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -400,7 +405,7 @@ void SymbolicQSConvectionDiffusionExplicit<3>::CalculateRightHandSideInternal(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
+void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 3>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -444,7 +449,7 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSy
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
+void SymbolicQSConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleRHSInternal(
     BoundedVector<double, 4>& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
