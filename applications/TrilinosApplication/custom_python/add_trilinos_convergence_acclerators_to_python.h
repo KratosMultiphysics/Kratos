@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Python {
 
-void AddConvergenceAcceleratorsToPython(pybind11::module& m);
+void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
