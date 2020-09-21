@@ -61,6 +61,7 @@ namespace Python{
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
         m.def("TransferElements", &MPM_MPI_Utilities::TransferElements);
+        m.def("TransferConditions", &MPM_MPI_Utilities::TransferConditions);
     }
 
 }  // namespace Python.
