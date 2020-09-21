@@ -231,16 +231,10 @@ for dim in dim_vector:
     rhs = Compute_RHS(res_tot.copy(), testfunc, do_simplifications)
     rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
 
-    # Compute LHS (RHS differenctiation w.r.t. the DOFs)
-    lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
-
     # Replace the computed RHS and LHS in the template outstring
     if(dim == 2):
-        outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
     elif(dim == 3):
-        outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
 
     # Compute OSS functional

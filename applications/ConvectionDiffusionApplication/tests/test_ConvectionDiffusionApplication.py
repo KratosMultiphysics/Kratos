@@ -62,8 +62,6 @@ def AssembleTestSuites():
     smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementUnsteadyQOSS'))
     smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementUnsteadyDASGS'))
     smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementUnsteadyQASGS'))
-    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementSteadyQASGS'))
-    smallSuite.addTest(TestSymbolicEulerianConvectionDiffusionElement('testSymbolicEulerianConvectionDiffusionElementSteadyQOSS'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)

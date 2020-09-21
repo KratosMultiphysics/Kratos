@@ -114,15 +114,21 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Calling the CalculateLocalSystem() method for the explicit Convection-Diffusion element.";
+        KRATOS_CATCH("");
+    }
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Convection-Diffusion element. Call the CalculateRightHandSideInternal() instead.";
+        KRATOS_CATCH("");
+    }
 
     void AddExplicitContribution(
         const ProcessInfo &rCurrentProcessInfo) override;
@@ -182,22 +188,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateLocalSystemInternal(
-        ElementVariables& rVariables,
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector);
-
-    void CalculateOrthogonalSubgridScaleSystemInternal(
-        ElementVariables& rVariables,
-        VectorType& rRightHandSideVector);
-
-    void UpdateUnknownSubgridScaleGaussPoint(
-        ElementVariables& rVariables,
-        unsigned int g);
-
-    void CalculateTau(
-        ElementVariables& rVariables);
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -252,6 +242,20 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateRightHandSideInternal(
+        BoundedVector<double, TNumNodes>& rRightHandSideBoundedVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateOrthogonalSubgridScaleSystemInternal(
+        BoundedVector<double, TNumNodes>& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void UpdateUnknownSubgridScaleGaussPoint(
+        ElementVariables& rVariables,
+        unsigned int g);
+
+    void CalculateTau(
+        ElementVariables& rVariables);
 
     ///@}
     ///@name Private  Access

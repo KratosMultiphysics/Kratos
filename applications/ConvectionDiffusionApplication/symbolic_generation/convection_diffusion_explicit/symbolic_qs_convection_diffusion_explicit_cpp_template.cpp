@@ -65,73 +65,6 @@ Element::Pointer SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    const auto& r_geometry = GetGeometry();
-    const unsigned int local_size = r_geometry.size();
-
-    // Resize and intialize output
-    if (rLeftHandSideMatrix.size1() != local_size)
-        rLeftHandSideMatrix.resize(local_size, local_size, false);
-    if (rRightHandSideVector.size() != local_size)
-        rRightHandSideVector.resize(local_size, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
-    noalias(rRightHandSideVector) = ZeroVector(local_size);
-
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
-
-    // Compute tau
-    this->CalculateTau(rVariables);
-
-    // Execute RHS-LHS build
-    this->CalculateLocalSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    Matrix LeftHandSide;
-    this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    VectorType RightHandSide;
-    this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -179,15 +112,15 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
-    const ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    VectorType rhs;
-    this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
+    BoundedVector<double, TNumNodes> rhs;
+    this->CalculateRightHandSideInternal(rhs,rCurrentProcessInfo);
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
     for (unsigned int i_node = 0; i_node < local_size; i_node++) {
@@ -203,8 +136,8 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribut
 
 template <>
 void SymbolicQSConvectionDiffusionExplicit<2>::CalculateMassMatrix(
-    MatrixType &rMassMatrix,
-    const ProcessInfo &rCurrentProcessInfo)
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -263,43 +196,12 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    VectorType rhs_oss;
-    this->CalculateOrthogonalSubgridScaleSystem(rhs_oss,rCurrentProcessInfo);
+    BoundedVector<double, TNumNodes> rhs_oss;
+    this->CalculateOrthogonalSubgridScaleSystemInternal(rhs_oss,rCurrentProcessInfo);
     for (unsigned int i_node = 0; i_node < local_size; i_node++) {
         #pragma omp atomic
         r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
     }
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateOrthogonalSubgridScaleSystem(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    const auto& r_geometry = GetGeometry();
-    const unsigned int local_size = r_geometry.size();
-
-    // Resize and intialize output
-    if (rRightHandSideVector.size() != local_size)
-        rRightHandSideVector.resize(local_size, false);
-    noalias(rRightHandSideVector) = ZeroVector(local_size);
-
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
-
-    // Compute tau
-    this->CalculateTau(rVariables);
-
-    // Execute OSS step
-    this->CalculateOrthogonalSubgridScaleSystemInternal(rVariables,rRightHandSideVector);
 
     KRATOS_CATCH("");
 }
@@ -398,12 +300,18 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
-    ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector)
+void SymbolicQSConvectionDiffusionExplicit<2>::CalculateRightHandSideInternal(
+    BoundedVector<double, 3>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -424,17 +332,13 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
     const double& DN_DX_1_1 = rVariables.DN_DX(1, 1);
     const double& DN_DX_2_0 = rVariables.DN_DX(2, 0);
     const double& DN_DX_2_1 = rVariables.DN_DX(2, 1);
-    // LHS and RHS
-    auto& lhs = rVariables.lhs;
+    // RHS
     auto& rhs = rVariables.rhs;
-
-    //substitute_lhs_2D
 
     //substitute_rhs_2D
 
     const double local_size = 3;
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -442,12 +346,18 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
-    ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector)
+void SymbolicQSConvectionDiffusionExplicit<3>::CalculateRightHandSideInternal(
+    BoundedVector<double, 4>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -474,17 +384,13 @@ void SymbolicQSConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
     const double& DN_DX_3_0 = rVariables.DN_DX(3,0);
     const double& DN_DX_3_1 = rVariables.DN_DX(3,1);
     const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
-    // LHS and RHS
-    auto& lhs = rVariables.lhs;
+    // RHS
     auto& rhs = rVariables.rhs;
-
-    //substitute_lhs_3D
 
     //substitute_rhs_3D
 
     const double local_size = 4;
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -494,10 +400,17 @@ void SymbolicQSConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
 
 template <>
 void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
-    ElementVariables& rVariables,
-    VectorType& rRightHandSideVector)
+    BoundedVector<double, 3>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -522,7 +435,7 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSy
     //substitute_oss_2D
 
     const double local_size = 3;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -531,10 +444,17 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSy
 
 template <>
 void SymbolicQSConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
-    ElementVariables& rVariables,
-    VectorType& rRightHandSideVector)
+    BoundedVector<double, 4>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -565,7 +485,7 @@ void SymbolicQSConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSy
     //substitute_oss_3D
 
     const double local_size = 4;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }

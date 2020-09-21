@@ -113,15 +113,21 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Calling the CalculateLocalSystem() method for the explicit Convection-Diffusion element.";
+        KRATOS_CATCH("");
+    }
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit Convection-Diffusion element. Call the CalculateRightHandSideInternal() instead.";
+        KRATOS_CATCH("");
+    }
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
@@ -217,20 +223,8 @@ protected:
         ElementVariables& rVariables,
         const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystemInternal(
-        ElementVariables& rVariables,
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector);
-
-    void CalculateOrthogonalSubgridScaleSystemInternal(
-        ElementVariables& rVariables,
-        VectorType& rRightHandSideVector);
-
     double ComputeH(
         BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
-
-    void CalculateTau(
-        ElementVariables& rVariables);
 
     ///@}
     ///@name Protected  Access
@@ -283,6 +277,16 @@ private:
     ///@name Private Operators
     ///@{
 
+    void CalculateRightHandSideInternal(
+        BoundedVector<double, TNumNodes>& rRightHandSideBoundedVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateOrthogonalSubgridScaleSystemInternal(
+        BoundedVector<double, TNumNodes>& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateTau(
+        ElementVariables& rVariables);
 
     ///@}
     ///@name Private Operations

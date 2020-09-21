@@ -148,7 +148,7 @@ public:
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
             for (auto& r_node : r_model_part.GetCommunicator().LocalMesh().Nodes()) {
-                r_node.SetValue(UNKNOWN_PROJECTION, 0.0);
+                r_node.SetValue(SCALAR_PROJECTION, 0.0);
             }
         }
 
@@ -275,7 +275,7 @@ protected:
 #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(n_nodes); ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
-            it_node->GetValue(UNKNOWN_PROJECTION) = 0.0;
+            it_node->GetValue(SCALAR_PROJECTION) = 0.0;
         }
 
         // Calculate the unknown projection
@@ -283,13 +283,13 @@ protected:
 #pragma omp parallel for
         for (int i_elem = 0; i_elem < static_cast<int>(n_elem); ++i_elem) {
             auto it_elem = r_model_part.ElementsBegin() + i_elem;
-            it_elem->Calculate(UNKNOWN_PROJECTION, unknown_proj, r_process_info);
+            it_elem->Calculate(SCALAR_PROJECTION, unknown_proj, r_process_info);
         }
 #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(n_nodes); ++i_node) {
             auto it_node = r_model_part.NodesBegin() + i_node;
             const double mass = r_lumped_mass_vector(i_node);
-            it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(UNKNOWN_PROJECTION) / mass;
+            it_node->FastGetSolutionStepValue(r_settings.GetProjectionVariable()) = it_node->GetValue(SCALAR_PROJECTION) / mass;
         }
 
         KRATOS_CATCH("");

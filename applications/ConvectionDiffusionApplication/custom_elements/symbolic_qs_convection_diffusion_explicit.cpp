@@ -65,73 +65,6 @@ Element::Pointer SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Create(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    const auto& r_geometry = GetGeometry();
-    const unsigned int local_size = r_geometry.size();
-
-    // Resize and intialize output
-    if (rLeftHandSideMatrix.size1() != local_size)
-        rLeftHandSideMatrix.resize(local_size, local_size, false);
-    if (rRightHandSideVector.size() != local_size)
-        rRightHandSideVector.resize(local_size, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
-    noalias(rRightHandSideVector) = ZeroVector(local_size);
-
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
-
-    // Compute tau
-    this->CalculateTau(rVariables);
-
-    // Execute RHS-LHS build
-    this->CalculateLocalSystemInternal(rVariables,rLeftHandSideMatrix,rRightHandSideVector);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    Matrix LeftHandSide;
-    this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    VectorType RightHandSide;
-    this->CalculateLocalSystem(rLeftHandSideMatrix,RightHandSide,rCurrentProcessInfo);
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -179,15 +112,15 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::GetDofList(
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribution(
-    const ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    VectorType rhs;
-    this->CalculateRightHandSide(rhs,rCurrentProcessInfo);
+    BoundedVector<double, TNumNodes> rhs;
+    this->CalculateRightHandSideInternal(rhs,rCurrentProcessInfo);
     // Add the residual contribution
     // Note that the reaction is indeed the formulation residual
     for (unsigned int i_node = 0; i_node < local_size; i_node++) {
@@ -203,8 +136,8 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::AddExplicitContribut
 
 template <>
 void SymbolicQSConvectionDiffusionExplicit<2>::CalculateMassMatrix(
-    MatrixType &rMassMatrix,
-    const ProcessInfo &rCurrentProcessInfo)
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -263,43 +196,12 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 
     auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
-    VectorType rhs_oss;
-    this->CalculateOrthogonalSubgridScaleSystem(rhs_oss,rCurrentProcessInfo);
+    BoundedVector<double, TNumNodes> rhs_oss;
+    this->CalculateOrthogonalSubgridScaleSystemInternal(rhs_oss,rCurrentProcessInfo);
     for (unsigned int i_node = 0; i_node < local_size; i_node++) {
         #pragma omp atomic
         r_geometry[i_node].GetValue(rVariable) += rhs_oss[i_node];
     }
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
-void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateOrthogonalSubgridScaleSystem(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    const auto& r_geometry = GetGeometry();
-    const unsigned int local_size = r_geometry.size();
-
-    // Resize and intialize output
-    if (rRightHandSideVector.size() != local_size)
-        rRightHandSideVector.resize(local_size, false);
-    noalias(rRightHandSideVector) = ZeroVector(local_size);
-
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
-
-    // Compute tau
-    this->CalculateTau(rVariables);
-
-    // Execute OSS step
-    this->CalculateOrthogonalSubgridScaleSystemInternal(rVariables,rRightHandSideVector);
 
     KRATOS_CATCH("");
 }
@@ -398,12 +300,18 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
-    ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector)
+void SymbolicQSConvectionDiffusionExplicit<2>::CalculateRightHandSideInternal(
+    BoundedVector<double, 3>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -424,151 +332,8 @@ void SymbolicQSConvectionDiffusionExplicit<2>::CalculateLocalSystemInternal(
     const double& DN_DX_1_1 = rVariables.DN_DX(1, 1);
     const double& DN_DX_2_0 = rVariables.DN_DX(2, 0);
     const double& DN_DX_2_1 = rVariables.DN_DX(2, 1);
-    // LHS and RHS
-    auto& lhs = rVariables.lhs;
+    // RHS
     auto& rhs = rVariables.rhs;
-
-    const double clhs0 =             1.0/RK_time_coefficient;
-const double clhs1 =             1.0/delta_time;
-const double clhs2 =             0.166666666666667*v(0,0);
-const double clhs3 =             0.166666666666667*v(2,0);
-const double clhs4 =             clhs2 + clhs3 + 0.666666666666667*v(1,0);
-const double clhs5 =             DN_DX_0_0*clhs4;
-const double clhs6 =             0.166666666666667*v(0,1);
-const double clhs7 =             0.166666666666667*v(2,1);
-const double clhs8 =             clhs6 + clhs7 + 0.666666666666667*v(1,1);
-const double clhs9 =             DN_DX_0_1*clhs8;
-const double clhs10 =             clhs5 + clhs9;
-const double clhs11 =             clhs0*clhs1*clhs10*tau[1];
-const double clhs12 =             0.166666666666667*clhs11;
-const double clhs13 =             DN_DX_0_0*v(0,0);
-const double clhs14 =             DN_DX_0_1*v(0,1);
-const double clhs15 =             DN_DX_1_0*v(1,0);
-const double clhs16 =             DN_DX_1_1*v(1,1);
-const double clhs17 =             DN_DX_2_0*v(2,0);
-const double clhs18 =             DN_DX_2_1*v(2,1);
-const double clhs19 =             clhs13 + clhs14 + clhs15 + clhs16 + clhs17 + clhs18;
-const double clhs20 =             clhs10*clhs19*tau[1];
-const double clhs21 =             0.166666666666667*clhs20;
-const double clhs22 =             0.5*clhs13;
-const double clhs23 =             0.5*clhs14;
-const double clhs24 =             0.5*clhs15;
-const double clhs25 =             0.5*clhs16;
-const double clhs26 =             0.5*clhs17;
-const double clhs27 =             0.5*clhs18;
-const double clhs28 =             3*k;
-const double clhs29 =             0.166666666666667*v(1,0);
-const double clhs30 =             clhs2 + clhs29 + 0.666666666666667*v(2,0);
-const double clhs31 =             DN_DX_0_0*clhs30;
-const double clhs32 =             0.166666666666667*clhs31;
-const double clhs33 =             0.166666666666667*clhs5;
-const double clhs34 =             clhs29 + clhs3 + 0.666666666666667*v(0,0);
-const double clhs35 =             DN_DX_0_0*clhs34;
-const double clhs36 =             0.166666666666667*v(1,1);
-const double clhs37 =             clhs36 + clhs6 + 0.666666666666667*v(2,1);
-const double clhs38 =             DN_DX_0_1*clhs37;
-const double clhs39 =             0.166666666666667*clhs38;
-const double clhs40 =             0.166666666666667*clhs9;
-const double clhs41 =             clhs36 + clhs7 + 0.666666666666667*v(0,1);
-const double clhs42 =             DN_DX_0_1*clhs41;
-const double clhs43 =             clhs35 + clhs42;
-const double clhs44 =             clhs31 + clhs38;
-const double clhs45 =             clhs0*clhs1*clhs43*tau[0];
-const double clhs46 =             clhs0*clhs1*clhs44*tau[2];
-const double clhs47 =             0.166666666666667*clhs46;
-const double clhs48 =             clhs19*clhs43*tau[0];
-const double clhs49 =             clhs19*clhs44*tau[2];
-const double clhs50 =             0.166666666666667*clhs49;
-const double clhs51 =             0.166666666666667*clhs45;
-const double clhs52 =             0.166666666666667*clhs48;
-const double clhs53 =             0.25*clhs13;
-const double clhs54 =             0.25*clhs14;
-const double clhs55 =             0.25*clhs15;
-const double clhs56 =             0.25*clhs16;
-const double clhs57 =             0.25*clhs17;
-const double clhs58 =             0.25*clhs18;
-const double clhs59 =             3*DN_DX_0_0*k;
-const double clhs60 =             DN_DX_1_0*clhs59;
-const double clhs61 =             3*DN_DX_0_1*k;
-const double clhs62 =             DN_DX_1_1*clhs61;
-const double clhs63 =             DN_DX_1_0*clhs30;
-const double clhs64 =             0.166666666666667*clhs63;
-const double clhs65 =             DN_DX_1_0*clhs4;
-const double clhs66 =             0.166666666666667*clhs65;
-const double clhs67 =             DN_DX_1_0*clhs34;
-const double clhs68 =             DN_DX_1_1*clhs37;
-const double clhs69 =             0.166666666666667*clhs68;
-const double clhs70 =             DN_DX_1_1*clhs8;
-const double clhs71 =             0.166666666666667*clhs70;
-const double clhs72 =             DN_DX_1_1*clhs41;
-const double clhs73 =             clhs67 + clhs72;
-const double clhs74 =             clhs43*tau[0];
-const double clhs75 =             clhs73*clhs74;
-const double clhs76 =             clhs65 + clhs70;
-const double clhs77 =             clhs10*tau[1];
-const double clhs78 =             clhs76*clhs77;
-const double clhs79 =             clhs63 + clhs68;
-const double clhs80 =             clhs44*tau[2];
-const double clhs81 =             clhs79*clhs80;
-const double clhs82 =             DN_DX_2_0*clhs34;
-const double clhs83 =             DN_DX_2_1*clhs41;
-const double clhs84 =             clhs82 + clhs83;
-const double clhs85 =             DN_DX_2_0*clhs4;
-const double clhs86 =             DN_DX_2_1*clhs8;
-const double clhs87 =             clhs85 + clhs86;
-const double clhs88 =             DN_DX_2_0*clhs30;
-const double clhs89 =             DN_DX_2_1*clhs37;
-const double clhs90 =             clhs88 + clhs89;
-const double clhs91 =             DN_DX_2_0*clhs59 + DN_DX_2_1*clhs61 + clhs53 + clhs54 + clhs55 + clhs56 + clhs57 + clhs58 + clhs74*clhs84 + clhs77*clhs87 + clhs80*clhs90;
-const double clhs92 =             0.166666666666667*clhs88;
-const double clhs93 =             0.166666666666667*clhs85;
-const double clhs94 =             0.166666666666667*clhs89;
-const double clhs95 =             0.166666666666667*clhs86;
-const double clhs96 =             0.166666666666667*clhs35;
-const double clhs97 =             0.166666666666667*clhs42;
-const double clhs98 =             clhs0*clhs1*clhs73*tau[0];
-const double clhs99 =             clhs0*clhs1*clhs76*tau[1];
-const double clhs100 =             0.166666666666667*clhs99;
-const double clhs101 =             clhs0*clhs1*clhs79*tau[2];
-const double clhs102 =             0.166666666666667*clhs101;
-const double clhs103 =             clhs19*clhs73*tau[0];
-const double clhs104 =             clhs19*clhs76*tau[1];
-const double clhs105 =             0.166666666666667*clhs104;
-const double clhs106 =             clhs19*clhs79*tau[2];
-const double clhs107 =             0.166666666666667*clhs106;
-const double clhs108 =             0.166666666666667*clhs67;
-const double clhs109 =             0.166666666666667*clhs72;
-const double clhs110 =             0.166666666666667*clhs98;
-const double clhs111 =             0.166666666666667*clhs103;
-const double clhs112 =             DN_DX_1_0*DN_DX_2_0*clhs28;
-const double clhs113 =             DN_DX_1_1*DN_DX_2_1*clhs28;
-const double clhs114 =             0.166666666666667*clhs82;
-const double clhs115 =             0.166666666666667*clhs83;
-const double clhs116 =             clhs73*clhs84*tau[0];
-const double clhs117 =             clhs76*clhs87*tau[1];
-const double clhs118 =             clhs79*clhs90*tau[2];
-const double clhs119 =             clhs0*clhs1*clhs84*tau[0];
-const double clhs120 =             clhs0*clhs1*clhs87*tau[1];
-const double clhs121 =             0.166666666666667*clhs120;
-const double clhs122 =             clhs0*clhs1*clhs90*tau[2];
-const double clhs123 =             0.166666666666667*clhs122;
-const double clhs124 =             clhs19*clhs84*tau[0];
-const double clhs125 =             clhs19*clhs87*tau[1];
-const double clhs126 =             0.166666666666667*clhs125;
-const double clhs127 =             clhs19*clhs90*tau[2];
-const double clhs128 =             0.166666666666667*clhs127;
-const double clhs129 =             0.166666666666667*clhs119;
-const double clhs130 =             0.166666666666667*clhs124;
-            lhs(0,0)=pow(DN_DX_0_0, 2)*clhs28 + pow(DN_DX_0_1, 2)*clhs28 + pow(clhs10, 2)*tau[1] + clhs12 + clhs21 + clhs22 + clhs23 + clhs24 + clhs25 + clhs26 + clhs27 + clhs32 + clhs33 + 0.666666666666667*clhs35 + clhs39 + clhs40 + 0.666666666666667*clhs42 + pow(clhs43, 2)*tau[0] + pow(clhs44, 2)*tau[2] + 0.666666666666667*clhs45 + clhs47 + 0.666666666666667*clhs48 + clhs50;
-            lhs(0,1)=0.666666666666667*clhs11 + 0.666666666666667*clhs20 + clhs47 + clhs50 + clhs51 + clhs52 + clhs53 + clhs54 + clhs55 + clhs56 + clhs57 + clhs58 + clhs60 + clhs62 + clhs64 + clhs66 + 0.666666666666667*clhs67 + clhs69 + clhs71 + 0.666666666666667*clhs72 + clhs75 + clhs78 + clhs81;
-            lhs(0,2)=clhs12 + clhs21 + 0.666666666666667*clhs46 + 0.666666666666667*clhs49 + clhs51 + clhs52 + 0.666666666666667*clhs82 + 0.666666666666667*clhs83 + clhs91 + clhs92 + clhs93 + clhs94 + clhs95;
-            lhs(1,0)=clhs100 + clhs102 + 0.666666666666667*clhs103 + clhs105 + clhs107 + clhs32 + clhs39 + 0.666666666666667*clhs5 + clhs53 + clhs54 + clhs55 + clhs56 + clhs57 + clhs58 + clhs60 + clhs62 + clhs75 + clhs78 + clhs81 + 0.666666666666667*clhs9 + clhs96 + clhs97 + 0.666666666666667*clhs98;
-            lhs(1,1)=pow(DN_DX_1_0, 2)*clhs28 + pow(DN_DX_1_1, 2)*clhs28 + clhs102 + 0.666666666666667*clhs104 + clhs107 + clhs108 + clhs109 + clhs110 + clhs111 + clhs22 + clhs23 + clhs24 + clhs25 + clhs26 + clhs27 + clhs64 + 0.666666666666667*clhs65 + clhs69 + 0.666666666666667*clhs70 + pow(clhs73, 2)*tau[0] + pow(clhs76, 2)*tau[1] + pow(clhs79, 2)*tau[2] + 0.666666666666667*clhs99;
-            lhs(1,2)=clhs100 + 0.666666666666667*clhs101 + clhs105 + 0.666666666666667*clhs106 + clhs110 + clhs111 + clhs112 + clhs113 + clhs114 + clhs115 + clhs116 + clhs117 + clhs118 + clhs53 + clhs54 + clhs55 + clhs56 + clhs57 + clhs58 + 0.666666666666667*clhs85 + 0.666666666666667*clhs86 + clhs92 + clhs94;
-            lhs(2,0)=0.666666666666667*clhs119 + clhs121 + clhs123 + 0.666666666666667*clhs124 + clhs126 + clhs128 + 0.666666666666667*clhs31 + clhs33 + 0.666666666666667*clhs38 + clhs40 + clhs91 + clhs96 + clhs97;
-            lhs(2,1)=clhs108 + clhs109 + clhs112 + clhs113 + clhs116 + clhs117 + clhs118 + 0.666666666666667*clhs120 + clhs123 + 0.666666666666667*clhs125 + clhs128 + clhs129 + clhs130 + clhs53 + clhs54 + clhs55 + clhs56 + clhs57 + clhs58 + 0.666666666666667*clhs63 + clhs66 + 0.666666666666667*clhs68 + clhs71;
-            lhs(2,2)=pow(DN_DX_2_0, 2)*clhs28 + pow(DN_DX_2_1, 2)*clhs28 + clhs114 + clhs115 + clhs121 + 0.666666666666667*clhs122 + clhs126 + 0.666666666666667*clhs127 + clhs129 + clhs130 + clhs22 + clhs23 + clhs24 + clhs25 + clhs26 + clhs27 + pow(clhs84, 2)*tau[0] + pow(clhs87, 2)*tau[1] + 0.666666666666667*clhs88 + 0.666666666666667*clhs89 + pow(clhs90, 2)*tau[2] + clhs93 + clhs95;
-
 
     const double crhs0 =             0.25*f[1];
 const double crhs1 =             0.166666666666667*v(0,0);
@@ -649,8 +414,7 @@ const double crhs72 =             tau[2]*(DN_DX_2_0*crhs23 + DN_DX_2_1*crhs29);
 
 
     const double local_size = 3;
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -658,12 +422,18 @@ const double crhs72 =             tau[2]*(DN_DX_2_0*crhs23 + DN_DX_2_1*crhs29);
 /***********************************************************************************/
 
 template <>
-void SymbolicQSConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
-    ElementVariables& rVariables,
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector)
+void SymbolicQSConvectionDiffusionExplicit<3>::CalculateRightHandSideInternal(
+    BoundedVector<double, 4>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -690,323 +460,8 @@ void SymbolicQSConvectionDiffusionExplicit<3>::CalculateLocalSystemInternal(
     const double& DN_DX_3_0 = rVariables.DN_DX(3,0);
     const double& DN_DX_3_1 = rVariables.DN_DX(3,1);
     const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
-    // LHS and RHS
-    auto& lhs = rVariables.lhs;
+    // RHS
     auto& rhs = rVariables.rhs;
-
-    const double clhs0 =             1.0/RK_time_coefficient;
-const double clhs1 =             1.0/delta_time;
-const double clhs2 =             0.1381966*v(0,0);
-const double clhs3 =             0.1381966*v(2,0);
-const double clhs4 =             0.1381966*v(3,0);
-const double clhs5 =             clhs3 + clhs4;
-const double clhs6 =             clhs2 + clhs5 + 0.5854102*v(1,0);
-const double clhs7 =             DN_DX_0_0*clhs6;
-const double clhs8 =             0.1381966*v(0,1);
-const double clhs9 =             0.1381966*v(2,1);
-const double clhs10 =             0.1381966*v(3,1);
-const double clhs11 =             clhs10 + clhs9;
-const double clhs12 =             clhs11 + clhs8 + 0.5854102*v(1,1);
-const double clhs13 =             DN_DX_0_1*clhs12;
-const double clhs14 =             0.1381966*v(0,2);
-const double clhs15 =             0.1381966*v(2,2);
-const double clhs16 =             0.1381966*v(3,2);
-const double clhs17 =             clhs15 + clhs16;
-const double clhs18 =             clhs14 + clhs17 + 0.5854102*v(1,2);
-const double clhs19 =             DN_DX_0_2*clhs18;
-const double clhs20 =             clhs13 + clhs19 + clhs7;
-const double clhs21 =             clhs0*clhs1*clhs20*tau[1];
-const double clhs22 =             0.1381966*clhs21;
-const double clhs23 =             DN_DX_0_0*v(0,0);
-const double clhs24 =             DN_DX_0_1*v(0,1);
-const double clhs25 =             DN_DX_0_2*v(0,2);
-const double clhs26 =             DN_DX_1_0*v(1,0);
-const double clhs27 =             DN_DX_1_1*v(1,1);
-const double clhs28 =             DN_DX_1_2*v(1,2);
-const double clhs29 =             DN_DX_2_0*v(2,0);
-const double clhs30 =             DN_DX_2_1*v(2,1);
-const double clhs31 =             DN_DX_2_2*v(2,2);
-const double clhs32 =             DN_DX_3_0*v(3,0);
-const double clhs33 =             DN_DX_3_1*v(3,1);
-const double clhs34 =             DN_DX_3_2*v(3,2);
-const double clhs35 =             clhs23 + clhs24 + clhs25 + clhs26 + clhs27 + clhs28 + clhs29 + clhs30 + clhs31 + clhs32 + clhs33 + clhs34;
-const double clhs36 =             clhs20*clhs35*tau[1];
-const double clhs37 =             0.1381966*clhs36;
-const double clhs38 =             0.40000000301872*clhs23;
-const double clhs39 =             0.40000000301872*clhs24;
-const double clhs40 =             0.40000000301872*clhs25;
-const double clhs41 =             0.40000000301872*clhs26;
-const double clhs42 =             0.40000000301872*clhs27;
-const double clhs43 =             0.40000000301872*clhs28;
-const double clhs44 =             0.40000000301872*clhs29;
-const double clhs45 =             0.40000000301872*clhs30;
-const double clhs46 =             0.40000000301872*clhs31;
-const double clhs47 =             0.40000000301872*clhs32;
-const double clhs48 =             0.40000000301872*clhs33;
-const double clhs49 =             0.40000000301872*clhs34;
-const double clhs50 =             4*k;
-const double clhs51 =             0.1381966*v(1,0);
-const double clhs52 =             clhs2 + clhs51;
-const double clhs53 =             clhs3 + clhs52 + 0.5854102*v(3,0);
-const double clhs54 =             DN_DX_0_0*clhs53;
-const double clhs55 =             0.1381966*clhs54;
-const double clhs56 =             clhs4 + clhs52 + 0.5854102*v(2,0);
-const double clhs57 =             DN_DX_0_0*clhs56;
-const double clhs58 =             0.1381966*clhs57;
-const double clhs59 =             0.1381966*clhs7;
-const double clhs60 =             clhs5 + clhs51 + 0.5854102*v(0,0);
-const double clhs61 =             DN_DX_0_0*clhs60;
-const double clhs62 =             0.1381966*v(1,1);
-const double clhs63 =             clhs62 + clhs8;
-const double clhs64 =             clhs63 + clhs9 + 0.5854102*v(3,1);
-const double clhs65 =             DN_DX_0_1*clhs64;
-const double clhs66 =             0.1381966*clhs65;
-const double clhs67 =             clhs10 + clhs63 + 0.5854102*v(2,1);
-const double clhs68 =             DN_DX_0_1*clhs67;
-const double clhs69 =             0.1381966*clhs68;
-const double clhs70 =             0.1381966*clhs13;
-const double clhs71 =             clhs11 + clhs62 + 0.5854102*v(0,1);
-const double clhs72 =             DN_DX_0_1*clhs71;
-const double clhs73 =             0.1381966*v(1,2);
-const double clhs74 =             clhs14 + clhs73;
-const double clhs75 =             clhs15 + clhs74 + 0.5854102*v(3,2);
-const double clhs76 =             DN_DX_0_2*clhs75;
-const double clhs77 =             0.1381966*clhs76;
-const double clhs78 =             clhs16 + clhs74 + 0.5854102*v(2,2);
-const double clhs79 =             DN_DX_0_2*clhs78;
-const double clhs80 =             0.1381966*clhs79;
-const double clhs81 =             0.1381966*clhs19;
-const double clhs82 =             clhs17 + clhs73 + 0.5854102*v(0,2);
-const double clhs83 =             DN_DX_0_2*clhs82;
-const double clhs84 =             clhs61 + clhs72 + clhs83;
-const double clhs85 =             clhs57 + clhs68 + clhs79;
-const double clhs86 =             clhs54 + clhs65 + clhs76;
-const double clhs87 =             clhs0*clhs1*clhs84*tau[0];
-const double clhs88 =             clhs0*clhs1*clhs85*tau[2];
-const double clhs89 =             0.1381966*clhs88;
-const double clhs90 =             clhs0*clhs1*clhs86*tau[3];
-const double clhs91 =             0.1381966*clhs90;
-const double clhs92 =             clhs35*clhs84*tau[0];
-const double clhs93 =             clhs35*clhs85*tau[2];
-const double clhs94 =             0.1381966*clhs93;
-const double clhs95 =             clhs35*clhs86*tau[3];
-const double clhs96 =             0.1381966*clhs95;
-const double clhs97 =             0.1381966*clhs87;
-const double clhs98 =             0.1381966*clhs92;
-const double clhs99 =             0.19999999899376*clhs23;
-const double clhs100 =             0.19999999899376*clhs24;
-const double clhs101 =             0.19999999899376*clhs25;
-const double clhs102 =             0.19999999899376*clhs26;
-const double clhs103 =             0.19999999899376*clhs27;
-const double clhs104 =             0.19999999899376*clhs28;
-const double clhs105 =             0.19999999899376*clhs29;
-const double clhs106 =             0.19999999899376*clhs30;
-const double clhs107 =             0.19999999899376*clhs31;
-const double clhs108 =             0.19999999899376*clhs32;
-const double clhs109 =             0.19999999899376*clhs33;
-const double clhs110 =             0.19999999899376*clhs34;
-const double clhs111 =             4*DN_DX_0_0*k;
-const double clhs112 =             DN_DX_1_0*clhs111;
-const double clhs113 =             4*DN_DX_0_1*k;
-const double clhs114 =             DN_DX_1_1*clhs113;
-const double clhs115 =             4*DN_DX_0_2*k;
-const double clhs116 =             DN_DX_1_2*clhs115;
-const double clhs117 =             DN_DX_1_0*clhs53;
-const double clhs118 =             0.1381966*clhs117;
-const double clhs119 =             DN_DX_1_0*clhs56;
-const double clhs120 =             0.1381966*clhs119;
-const double clhs121 =             DN_DX_1_0*clhs6;
-const double clhs122 =             0.1381966*clhs121;
-const double clhs123 =             DN_DX_1_0*clhs60;
-const double clhs124 =             DN_DX_1_1*clhs64;
-const double clhs125 =             0.1381966*clhs124;
-const double clhs126 =             DN_DX_1_1*clhs67;
-const double clhs127 =             0.1381966*clhs126;
-const double clhs128 =             DN_DX_1_1*clhs12;
-const double clhs129 =             0.1381966*clhs128;
-const double clhs130 =             DN_DX_1_1*clhs71;
-const double clhs131 =             DN_DX_1_2*clhs75;
-const double clhs132 =             0.1381966*clhs131;
-const double clhs133 =             DN_DX_1_2*clhs78;
-const double clhs134 =             0.1381966*clhs133;
-const double clhs135 =             DN_DX_1_2*clhs18;
-const double clhs136 =             0.1381966*clhs135;
-const double clhs137 =             DN_DX_1_2*clhs82;
-const double clhs138 =             clhs123 + clhs130 + clhs137;
-const double clhs139 =             clhs84*tau[0];
-const double clhs140 =             clhs138*clhs139;
-const double clhs141 =             clhs121 + clhs128 + clhs135;
-const double clhs142 =             clhs20*tau[1];
-const double clhs143 =             clhs141*clhs142;
-const double clhs144 =             clhs119 + clhs126 + clhs133;
-const double clhs145 =             clhs85*tau[2];
-const double clhs146 =             clhs144*clhs145;
-const double clhs147 =             clhs117 + clhs124 + clhs131;
-const double clhs148 =             clhs86*tau[3];
-const double clhs149 =             clhs147*clhs148;
-const double clhs150 =             DN_DX_2_0*clhs111;
-const double clhs151 =             DN_DX_2_1*clhs113;
-const double clhs152 =             DN_DX_2_2*clhs115;
-const double clhs153 =             DN_DX_2_0*clhs53;
-const double clhs154 =             0.1381966*clhs153;
-const double clhs155 =             DN_DX_2_0*clhs56;
-const double clhs156 =             0.1381966*clhs155;
-const double clhs157 =             DN_DX_2_0*clhs6;
-const double clhs158 =             0.1381966*clhs157;
-const double clhs159 =             DN_DX_2_0*clhs60;
-const double clhs160 =             DN_DX_2_1*clhs64;
-const double clhs161 =             0.1381966*clhs160;
-const double clhs162 =             DN_DX_2_1*clhs67;
-const double clhs163 =             0.1381966*clhs162;
-const double clhs164 =             DN_DX_2_1*clhs12;
-const double clhs165 =             0.1381966*clhs164;
-const double clhs166 =             DN_DX_2_1*clhs71;
-const double clhs167 =             DN_DX_2_2*clhs75;
-const double clhs168 =             0.1381966*clhs167;
-const double clhs169 =             DN_DX_2_2*clhs78;
-const double clhs170 =             0.1381966*clhs169;
-const double clhs171 =             DN_DX_2_2*clhs18;
-const double clhs172 =             0.1381966*clhs171;
-const double clhs173 =             DN_DX_2_2*clhs82;
-const double clhs174 =             clhs159 + clhs166 + clhs173;
-const double clhs175 =             clhs139*clhs174;
-const double clhs176 =             clhs157 + clhs164 + clhs171;
-const double clhs177 =             clhs142*clhs176;
-const double clhs178 =             clhs155 + clhs162 + clhs169;
-const double clhs179 =             clhs145*clhs178;
-const double clhs180 =             clhs153 + clhs160 + clhs167;
-const double clhs181 =             clhs148*clhs180;
-const double clhs182 =             DN_DX_3_0*clhs60;
-const double clhs183 =             DN_DX_3_1*clhs71;
-const double clhs184 =             DN_DX_3_2*clhs82;
-const double clhs185 =             clhs182 + clhs183 + clhs184;
-const double clhs186 =             DN_DX_3_0*clhs6;
-const double clhs187 =             DN_DX_3_1*clhs12;
-const double clhs188 =             DN_DX_3_2*clhs18;
-const double clhs189 =             clhs186 + clhs187 + clhs188;
-const double clhs190 =             DN_DX_3_0*clhs56;
-const double clhs191 =             DN_DX_3_1*clhs67;
-const double clhs192 =             DN_DX_3_2*clhs78;
-const double clhs193 =             clhs190 + clhs191 + clhs192;
-const double clhs194 =             DN_DX_3_0*clhs53;
-const double clhs195 =             DN_DX_3_1*clhs64;
-const double clhs196 =             DN_DX_3_2*clhs75;
-const double clhs197 =             clhs194 + clhs195 + clhs196;
-const double clhs198 =             DN_DX_3_0*clhs111 + DN_DX_3_1*clhs113 + DN_DX_3_2*clhs115 + clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + clhs139*clhs185 + clhs142*clhs189 + clhs145*clhs193 + clhs148*clhs197 + clhs99;
-const double clhs199 =             0.1381966*clhs194;
-const double clhs200 =             0.1381966*clhs190;
-const double clhs201 =             0.1381966*clhs186;
-const double clhs202 =             0.1381966*clhs195;
-const double clhs203 =             0.1381966*clhs191;
-const double clhs204 =             0.1381966*clhs187;
-const double clhs205 =             0.1381966*clhs196;
-const double clhs206 =             0.1381966*clhs192;
-const double clhs207 =             0.1381966*clhs188;
-const double clhs208 =             0.1381966*clhs61;
-const double clhs209 =             0.1381966*clhs72;
-const double clhs210 =             0.1381966*clhs83;
-const double clhs211 =             clhs0*clhs1*clhs138*tau[0];
-const double clhs212 =             clhs0*clhs1*clhs141*tau[1];
-const double clhs213 =             0.1381966*clhs212;
-const double clhs214 =             clhs0*clhs1*clhs144*tau[2];
-const double clhs215 =             0.1381966*clhs214;
-const double clhs216 =             clhs0*clhs1*clhs147*tau[3];
-const double clhs217 =             0.1381966*clhs216;
-const double clhs218 =             clhs138*clhs35*tau[0];
-const double clhs219 =             clhs141*clhs35*tau[1];
-const double clhs220 =             0.1381966*clhs219;
-const double clhs221 =             clhs144*clhs35*tau[2];
-const double clhs222 =             0.1381966*clhs221;
-const double clhs223 =             clhs147*clhs35*tau[3];
-const double clhs224 =             0.1381966*clhs223;
-const double clhs225 =             0.1381966*clhs123;
-const double clhs226 =             0.1381966*clhs130;
-const double clhs227 =             0.1381966*clhs137;
-const double clhs228 =             0.1381966*clhs211;
-const double clhs229 =             0.1381966*clhs218;
-const double clhs230 =             4*DN_DX_1_0*k;
-const double clhs231 =             DN_DX_2_0*clhs230;
-const double clhs232 =             4*DN_DX_1_1*k;
-const double clhs233 =             DN_DX_2_1*clhs232;
-const double clhs234 =             4*DN_DX_1_2*k;
-const double clhs235 =             DN_DX_2_2*clhs234;
-const double clhs236 =             0.1381966*clhs159;
-const double clhs237 =             0.1381966*clhs166;
-const double clhs238 =             0.1381966*clhs173;
-const double clhs239 =             clhs138*tau[0];
-const double clhs240 =             clhs174*clhs239;
-const double clhs241 =             clhs141*tau[1];
-const double clhs242 =             clhs176*clhs241;
-const double clhs243 =             clhs144*tau[2];
-const double clhs244 =             clhs178*clhs243;
-const double clhs245 =             clhs147*tau[3];
-const double clhs246 =             clhs180*clhs245;
-const double clhs247 =             DN_DX_3_0*clhs230;
-const double clhs248 =             DN_DX_3_1*clhs232;
-const double clhs249 =             DN_DX_3_2*clhs234;
-const double clhs250 =             0.1381966*clhs182;
-const double clhs251 =             0.1381966*clhs183;
-const double clhs252 =             0.1381966*clhs184;
-const double clhs253 =             clhs185*clhs239;
-const double clhs254 =             clhs189*clhs241;
-const double clhs255 =             clhs193*clhs243;
-const double clhs256 =             clhs197*clhs245;
-const double clhs257 =             clhs0*clhs1*clhs174*tau[0];
-const double clhs258 =             clhs0*clhs1*clhs176*tau[1];
-const double clhs259 =             0.1381966*clhs258;
-const double clhs260 =             clhs0*clhs1*clhs178*tau[2];
-const double clhs261 =             0.1381966*clhs260;
-const double clhs262 =             clhs0*clhs1*clhs180*tau[3];
-const double clhs263 =             0.1381966*clhs262;
-const double clhs264 =             clhs174*clhs35*tau[0];
-const double clhs265 =             clhs176*clhs35*tau[1];
-const double clhs266 =             0.1381966*clhs265;
-const double clhs267 =             clhs178*clhs35*tau[2];
-const double clhs268 =             0.1381966*clhs267;
-const double clhs269 =             clhs180*clhs35*tau[3];
-const double clhs270 =             0.1381966*clhs269;
-const double clhs271 =             0.1381966*clhs257;
-const double clhs272 =             0.1381966*clhs264;
-const double clhs273 =             DN_DX_2_0*DN_DX_3_0*clhs50;
-const double clhs274 =             DN_DX_2_1*DN_DX_3_1*clhs50;
-const double clhs275 =             DN_DX_2_2*DN_DX_3_2*clhs50;
-const double clhs276 =             clhs174*clhs185*tau[0];
-const double clhs277 =             clhs176*clhs189*tau[1];
-const double clhs278 =             clhs178*clhs193*tau[2];
-const double clhs279 =             clhs180*clhs197*tau[3];
-const double clhs280 =             clhs0*clhs1*clhs185*tau[0];
-const double clhs281 =             clhs0*clhs1*clhs189*tau[1];
-const double clhs282 =             0.1381966*clhs281;
-const double clhs283 =             clhs0*clhs1*clhs193*tau[2];
-const double clhs284 =             0.1381966*clhs283;
-const double clhs285 =             clhs0*clhs1*clhs197*tau[3];
-const double clhs286 =             0.1381966*clhs285;
-const double clhs287 =             clhs185*clhs35*tau[0];
-const double clhs288 =             clhs189*clhs35*tau[1];
-const double clhs289 =             0.1381966*clhs288;
-const double clhs290 =             clhs193*clhs35*tau[2];
-const double clhs291 =             0.1381966*clhs290;
-const double clhs292 =             clhs197*clhs35*tau[3];
-const double clhs293 =             0.1381966*clhs292;
-const double clhs294 =             0.1381966*clhs280;
-const double clhs295 =             0.1381966*clhs287;
-            lhs(0,0)=pow(DN_DX_0_0, 2)*clhs50 + pow(DN_DX_0_1, 2)*clhs50 + pow(DN_DX_0_2, 2)*clhs50 + pow(clhs20, 2)*tau[1] + clhs22 + clhs37 + clhs38 + clhs39 + clhs40 + clhs41 + clhs42 + clhs43 + clhs44 + clhs45 + clhs46 + clhs47 + clhs48 + clhs49 + clhs55 + clhs58 + clhs59 + 0.5854102*clhs61 + clhs66 + clhs69 + clhs70 + 0.5854102*clhs72 + clhs77 + clhs80 + clhs81 + 0.5854102*clhs83 + pow(clhs84, 2)*tau[0] + pow(clhs85, 2)*tau[2] + pow(clhs86, 2)*tau[3] + 0.5854102*clhs87 + clhs89 + clhs91 + 0.5854102*clhs92 + clhs94 + clhs96;
-            lhs(0,1)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + clhs112 + clhs114 + clhs116 + clhs118 + clhs120 + clhs122 + 0.5854102*clhs123 + clhs125 + clhs127 + clhs129 + 0.5854102*clhs130 + clhs132 + clhs134 + clhs136 + 0.5854102*clhs137 + clhs140 + clhs143 + clhs146 + clhs149 + 0.5854102*clhs21 + 0.5854102*clhs36 + clhs89 + clhs91 + clhs94 + clhs96 + clhs97 + clhs98 + clhs99;
-            lhs(0,2)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + clhs150 + clhs151 + clhs152 + clhs154 + clhs156 + clhs158 + 0.5854102*clhs159 + clhs161 + clhs163 + clhs165 + 0.5854102*clhs166 + clhs168 + clhs170 + clhs172 + 0.5854102*clhs173 + clhs175 + clhs177 + clhs179 + clhs181 + clhs22 + clhs37 + 0.5854102*clhs88 + clhs91 + 0.5854102*clhs93 + clhs96 + clhs97 + clhs98 + clhs99;
-            lhs(0,3)=0.5854102*clhs182 + 0.5854102*clhs183 + 0.5854102*clhs184 + clhs198 + clhs199 + clhs200 + clhs201 + clhs202 + clhs203 + clhs204 + clhs205 + clhs206 + clhs207 + clhs22 + clhs37 + clhs89 + 0.5854102*clhs90 + clhs94 + 0.5854102*clhs95 + clhs97 + clhs98;
-            lhs(1,0)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + clhs112 + clhs114 + clhs116 + 0.5854102*clhs13 + clhs140 + clhs143 + clhs146 + clhs149 + 0.5854102*clhs19 + clhs208 + clhs209 + clhs210 + 0.5854102*clhs211 + clhs213 + clhs215 + clhs217 + 0.5854102*clhs218 + clhs220 + clhs222 + clhs224 + clhs55 + clhs58 + clhs66 + clhs69 + 0.5854102*clhs7 + clhs77 + clhs80 + clhs99;
-            lhs(1,1)=pow(DN_DX_1_0, 2)*clhs50 + pow(DN_DX_1_1, 2)*clhs50 + pow(DN_DX_1_2, 2)*clhs50 + clhs118 + clhs120 + 0.5854102*clhs121 + clhs125 + clhs127 + 0.5854102*clhs128 + clhs132 + clhs134 + 0.5854102*clhs135 + pow(clhs138, 2)*tau[0] + pow(clhs141, 2)*tau[1] + pow(clhs144, 2)*tau[2] + pow(clhs147, 2)*tau[3] + 0.5854102*clhs212 + clhs215 + clhs217 + 0.5854102*clhs219 + clhs222 + clhs224 + clhs225 + clhs226 + clhs227 + clhs228 + clhs229 + clhs38 + clhs39 + clhs40 + clhs41 + clhs42 + clhs43 + clhs44 + clhs45 + clhs46 + clhs47 + clhs48 + clhs49;
-            lhs(1,2)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + clhs154 + clhs156 + 0.5854102*clhs157 + clhs161 + clhs163 + 0.5854102*clhs164 + clhs168 + clhs170 + 0.5854102*clhs171 + clhs213 + 0.5854102*clhs214 + clhs217 + clhs220 + 0.5854102*clhs221 + clhs224 + clhs228 + clhs229 + clhs231 + clhs233 + clhs235 + clhs236 + clhs237 + clhs238 + clhs240 + clhs242 + clhs244 + clhs246 + clhs99;
-            lhs(1,3)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + 0.5854102*clhs186 + 0.5854102*clhs187 + 0.5854102*clhs188 + clhs199 + clhs200 + clhs202 + clhs203 + clhs205 + clhs206 + clhs213 + clhs215 + 0.5854102*clhs216 + clhs220 + clhs222 + 0.5854102*clhs223 + clhs228 + clhs229 + clhs247 + clhs248 + clhs249 + clhs250 + clhs251 + clhs252 + clhs253 + clhs254 + clhs255 + clhs256 + clhs99;
-            lhs(2,0)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + clhs150 + clhs151 + clhs152 + clhs175 + clhs177 + clhs179 + clhs181 + clhs208 + clhs209 + clhs210 + 0.5854102*clhs257 + clhs259 + clhs261 + clhs263 + 0.5854102*clhs264 + clhs266 + clhs268 + clhs270 + clhs55 + 0.5854102*clhs57 + clhs59 + clhs66 + 0.5854102*clhs68 + clhs70 + clhs77 + 0.5854102*clhs79 + clhs81 + clhs99;
-            lhs(2,1)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + clhs118 + 0.5854102*clhs119 + clhs122 + clhs125 + 0.5854102*clhs126 + clhs129 + clhs132 + 0.5854102*clhs133 + clhs136 + clhs225 + clhs226 + clhs227 + clhs231 + clhs233 + clhs235 + clhs240 + clhs242 + clhs244 + clhs246 + 0.5854102*clhs258 + clhs261 + clhs263 + 0.5854102*clhs265 + clhs268 + clhs270 + clhs271 + clhs272 + clhs99;
-            lhs(2,2)=pow(DN_DX_2_0, 2)*clhs50 + pow(DN_DX_2_1, 2)*clhs50 + pow(DN_DX_2_2, 2)*clhs50 + clhs154 + 0.5854102*clhs155 + clhs158 + clhs161 + 0.5854102*clhs162 + clhs165 + clhs168 + 0.5854102*clhs169 + clhs172 + pow(clhs174, 2)*tau[0] + pow(clhs176, 2)*tau[1] + pow(clhs178, 2)*tau[2] + pow(clhs180, 2)*tau[3] + clhs236 + clhs237 + clhs238 + clhs259 + 0.5854102*clhs260 + clhs263 + clhs266 + 0.5854102*clhs267 + clhs270 + clhs271 + clhs272 + clhs38 + clhs39 + clhs40 + clhs41 + clhs42 + clhs43 + clhs44 + clhs45 + clhs46 + clhs47 + clhs48 + clhs49;
-            lhs(2,3)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + 0.5854102*clhs190 + 0.5854102*clhs191 + 0.5854102*clhs192 + clhs199 + clhs201 + clhs202 + clhs204 + clhs205 + clhs207 + clhs250 + clhs251 + clhs252 + clhs259 + clhs261 + 0.5854102*clhs262 + clhs266 + clhs268 + 0.5854102*clhs269 + clhs271 + clhs272 + clhs273 + clhs274 + clhs275 + clhs276 + clhs277 + clhs278 + clhs279 + clhs99;
-            lhs(3,0)=clhs198 + clhs208 + clhs209 + clhs210 + 0.5854102*clhs280 + clhs282 + clhs284 + clhs286 + 0.5854102*clhs287 + clhs289 + clhs291 + clhs293 + 0.5854102*clhs54 + clhs58 + clhs59 + 0.5854102*clhs65 + clhs69 + clhs70 + 0.5854102*clhs76 + clhs80 + clhs81;
-            lhs(3,1)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + 0.5854102*clhs117 + clhs120 + clhs122 + 0.5854102*clhs124 + clhs127 + clhs129 + 0.5854102*clhs131 + clhs134 + clhs136 + clhs225 + clhs226 + clhs227 + clhs247 + clhs248 + clhs249 + clhs253 + clhs254 + clhs255 + clhs256 + 0.5854102*clhs281 + clhs284 + clhs286 + 0.5854102*clhs288 + clhs291 + clhs293 + clhs294 + clhs295 + clhs99;
-            lhs(3,2)=clhs100 + clhs101 + clhs102 + clhs103 + clhs104 + clhs105 + clhs106 + clhs107 + clhs108 + clhs109 + clhs110 + 0.5854102*clhs153 + clhs156 + clhs158 + 0.5854102*clhs160 + clhs163 + clhs165 + 0.5854102*clhs167 + clhs170 + clhs172 + clhs236 + clhs237 + clhs238 + clhs273 + clhs274 + clhs275 + clhs276 + clhs277 + clhs278 + clhs279 + clhs282 + 0.5854102*clhs283 + clhs286 + clhs289 + 0.5854102*clhs290 + clhs293 + clhs294 + clhs295 + clhs99;
-            lhs(3,3)=pow(DN_DX_3_0, 2)*clhs50 + pow(DN_DX_3_1, 2)*clhs50 + pow(DN_DX_3_2, 2)*clhs50 + pow(clhs185, 2)*tau[0] + pow(clhs189, 2)*tau[1] + pow(clhs193, 2)*tau[2] + 0.5854102*clhs194 + 0.5854102*clhs195 + 0.5854102*clhs196 + pow(clhs197, 2)*tau[3] + clhs200 + clhs201 + clhs203 + clhs204 + clhs206 + clhs207 + clhs250 + clhs251 + clhs252 + clhs282 + clhs284 + 0.5854102*clhs285 + clhs289 + clhs291 + 0.5854102*clhs292 + clhs294 + clhs295 + clhs38 + clhs39 + clhs40 + clhs41 + clhs42 + clhs43 + clhs44 + clhs45 + clhs46 + clhs47 + clhs48 + clhs49;
-
 
     const double crhs0 =             0.19999999899376*f[1];
 const double crhs1 =             0.1381966*v(0,0);
@@ -1151,8 +606,7 @@ const double crhs135 =             tau[3]*(DN_DX_3_0*crhs40 + DN_DX_3_1*crhs50 +
 
 
     const double local_size = 4;
-    noalias(rLeftHandSideMatrix) += lhs * rVariables.volume/local_size;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -1162,10 +616,17 @@ const double crhs135 =             tau[3]*(DN_DX_3_0*crhs40 + DN_DX_3_1*crhs50 +
 
 template <>
 void SymbolicQSConvectionDiffusionExplicit<2>::CalculateOrthogonalSubgridScaleSystemInternal(
-    ElementVariables& rVariables,
-    VectorType& rRightHandSideVector)
+    BoundedVector<double, 3>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -1240,7 +701,7 @@ const double crhs46 =             crhs11*(crhs16 + crhs18 + crhs38 + crhs39 + cr
 
 
     const double local_size = 3;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -1249,10 +710,17 @@ const double crhs46 =             crhs11*(crhs16 + crhs18 + crhs38 + crhs39 + cr
 
 template <>
 void SymbolicQSConvectionDiffusionExplicit<3>::CalculateOrthogonalSubgridScaleSystemInternal(
-    ElementVariables& rVariables,
-    VectorType& rRightHandSideVector)
+    BoundedVector<double, 4>& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
+
+    // Element variables
+    ElementVariables rVariables;
+    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+
+    // Compute tau
+    this->CalculateTau(rVariables);
 
     // Retrieve element variables
     const auto& k = rVariables.diffusivity;
@@ -1378,7 +846,7 @@ const double crhs90 =             crhs23 + crhs24 + crhs85 + crhs86;
 
 
     const double local_size = 4;
-    noalias(rRightHandSideVector) += rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
 
     KRATOS_CATCH("");
 }
