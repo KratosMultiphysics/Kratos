@@ -1,11 +1,10 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
+from KratosMultiphysics.MappingApplication import python_mapper_factory
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -28,7 +27,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     def __init__(self, settings):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
-        super(KratosMappingDataTransferOperator, self).__init__(settings)
+        super().__init__(settings)
         self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
@@ -54,9 +53,9 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
         else:
             if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
-                mapper_create_fct = KratosMapping.MapperFactory.CreateMPIMapper
+                mapper_create_fct = python_mapper_factory.CreateMPIMapper
             else:
-                mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
+                mapper_create_fct = python_mapper_factory.CreateMapper
 
             if self.echo_level > 0:
                 info_msg  = "Creating Mapper:\n"
@@ -79,13 +78,13 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         # TODO in the future also non-historical nodal values will be supported, but this still requires some improvements in the MappingApp
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "mapper_settings" : {
                 "mapper_type" : "UNSPECIFIED"
             }
         }""")
-        this_defaults.AddMissingParameters(super(KratosMappingDataTransferOperator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
     @classmethod

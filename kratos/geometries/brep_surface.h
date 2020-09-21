@@ -285,6 +285,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -295,6 +305,12 @@ public:
     bool IsTrimmed() const
     {
         return mIsTrimmed;
+    }
+
+    /// Returns number of points of NurbsSurface.
+    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    {
+        return mpNurbsSurface->PointsNumberInDirection(DirectionIndex);
     }
 
     ///@}
