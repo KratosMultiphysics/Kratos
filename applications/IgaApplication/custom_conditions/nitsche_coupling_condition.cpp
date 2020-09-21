@@ -778,8 +778,8 @@ namespace Kratos
             m_n_contravariant_vector_slave.resize(r_number_of_integration_points);
 
         //check wheter the size of the element larger than tolerance or not
-        double tolBasic = 0.01;
-        double characteristicLength = 28.284271247461902;
+        const double tolBasic = 0.01;
+        const double characteristicLength = GetProperties()[CHARACTERISTIC_LENGTH];
         double characteristicArea = characteristicLength*characteristicLength;
         double tolSurfaceNormal = tolBasic*characteristicArea;
 
