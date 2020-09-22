@@ -65,7 +65,7 @@ public:
     ///@{
 
         typedef SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes> BaseType;
-        typedef typename BaseType::ElementVariables ElementVariables;
+        typedef typename BaseType::ElementData ElementData;
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -247,11 +247,11 @@ private:
         const ProcessInfo& rCurrentProcessInfo);
 
     void UpdateUnknownSubgridScaleGaussPoint(
-        ElementVariables& rVariables,
+        ElementData& rData,
         unsigned int g);
 
     void CalculateTau(
-        ElementVariables& rVariables);
+        ElementData& rData);
 
     ///@}
     ///@name Private  Access

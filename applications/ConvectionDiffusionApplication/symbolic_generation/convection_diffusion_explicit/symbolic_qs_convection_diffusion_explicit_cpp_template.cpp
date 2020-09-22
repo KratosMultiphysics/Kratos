@@ -234,7 +234,7 @@ int SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessIn
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
-    ElementVariables& rVariables,
+    ElementData& rData,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -247,13 +247,13 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     const auto& r_geometry = GetGeometry();
     const unsigned int local_size = r_geometry.size();
     array_1d<double,TNumNodes> N_aux;
-    GeometryUtils::CalculateGeometryData(r_geometry,rVariables.DN_DX,N_aux,rVariables.volume);
-    rVariables.N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    GeometryUtils::CalculateGeometryData(r_geometry,rData.DN_DX,N_aux,rData.volume);
+    rData.N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    // Initialize some scalar variables
-    rVariables.lumping_factor = 1.00 / double(TNumNodes);
-    rVariables.diffusivity = 0.0;
-    rVariables.dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
+    // Initialize some scalar data
+    rData.lumping_factor = 1.00 / double(TNumNodes);
+    rData.diffusivity = 0.0;
+    rData.dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
     for(unsigned int node_element = 0; node_element<local_size; node_element++)
 {
@@ -268,36 +268,36 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianEl
     //   velocity_mesh = 0 in eulerian framework
     if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==1)
     {
-        rVariables.RK_time_coefficient = std::numeric_limits<double>::max();
-        rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
-        rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
-        rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1];
-        rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2];
+        rData.RK_time_coefficient = std::numeric_limits<double>::max();
+        rData.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1);
+        rData.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0];
+        rData.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1];
+        rData.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2];
     }
     else if (r_process_info.GetValue(RUNGE_KUTTA_STEP)==2 || r_process_info.GetValue(RUNGE_KUTTA_STEP)==3)
     {
-        rVariables.RK_time_coefficient = 0.5;
-        rVariables.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
-        rVariables.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
-        rVariables.convective_velocity(node_element,1) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1]);
-        rVariables.convective_velocity(node_element,2) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2]);
+        rData.RK_time_coefficient = 0.5;
+        rData.forcing[node_element] = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable()) + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable(),1));
+        rData.convective_velocity(node_element,0) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[0] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0]);
+        rData.convective_velocity(node_element,1) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[1] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1]);
+        rData.convective_velocity(node_element,2) = 0.5*(r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable(),1)[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable(),1)[2] + r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2]);
     }
     else
     {
-        rVariables.RK_time_coefficient = 1.0;
-        rVariables.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
-        rVariables.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
-        rVariables.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
-        rVariables.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
+        rData.RK_time_coefficient = 1.0;
+        rData.forcing[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVolumeSourceVariable());
+        rData.convective_velocity(node_element,0) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[0] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[0];
+        rData.convective_velocity(node_element,1) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[1] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[1];
+        rData.convective_velocity(node_element,2) = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetVelocityVariable())[2] - r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetMeshVelocityVariable())[2];
     }
-    rVariables.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetProjectionVariable());
-    rVariables.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
-    rVariables.delta_time = r_process_info[DELTA_TIME];
-    rVariables.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
-    rVariables.unknown_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable(),1);
+    rData.oss_projection[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetProjectionVariable());
+    rData.diffusivity += r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetDiffusionVariable());
+    rData.delta_time = r_process_info[DELTA_TIME];
+    rData.unknown[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable());
+    rData.unknown_old[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_settings.GetUnknownVariable(),1);
 }
-    // divide by number of nodes scalar variables
-    rVariables.diffusivity *= rVariables.lumping_factor;
+    // divide by number of nodes scalar data
+    rData.diffusivity *= rData.lumping_factor;
 
     KRATOS_CATCH("");
 }
@@ -312,39 +312,39 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
 {
     KRATOS_TRY;
 
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+    // Element data
+    ElementData rData;
+    this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rVariables);
+    this->CalculateTau(rData);
 
-    // Retrieve element variables
-    const auto& k = rVariables.diffusivity;
-    const auto& f = rVariables.forcing;
-    const auto& phi = rVariables.unknown;
-    const auto& phi_old = rVariables.unknown_old;
-    const auto& delta_time = rVariables.delta_time;
-    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto& v = rVariables.convective_velocity;
-    const auto& tau = rVariables.tau;
-    const auto& prj = rVariables.oss_projection;
+    // Retrieve element data
+    const auto& k = rData.diffusivity;
+    const auto& f = rData.forcing;
+    const auto& phi = rData.unknown;
+    const auto& phi_old = rData.unknown_old;
+    const auto& delta_time = rData.delta_time;
+    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& v = rData.convective_velocity;
+    const auto& tau = rData.tau;
+    const auto& prj = rData.oss_projection;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double& DN_DX_0_0 = rVariables.DN_DX(0, 0);
-    const double& DN_DX_0_1 = rVariables.DN_DX(0, 1);
-    const double& DN_DX_1_0 = rVariables.DN_DX(1, 0);
-    const double& DN_DX_1_1 = rVariables.DN_DX(1, 1);
-    const double& DN_DX_2_0 = rVariables.DN_DX(2, 0);
-    const double& DN_DX_2_1 = rVariables.DN_DX(2, 1);
+    const double& DN_DX_0_0 = rData.DN_DX(0, 0);
+    const double& DN_DX_0_1 = rData.DN_DX(0, 1);
+    const double& DN_DX_1_0 = rData.DN_DX(1, 0);
+    const double& DN_DX_1_1 = rData.DN_DX(1, 1);
+    const double& DN_DX_2_0 = rData.DN_DX(2, 0);
+    const double& DN_DX_2_1 = rData.DN_DX(2, 1);
     // RHS
-    auto& rhs = rVariables.rhs;
+    auto& rhs = rData.rhs;
 
     //substitute_rhs_2D
 
     const double local_size = 3;
-    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rData.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -358,45 +358,45 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateRightHandSideInternal(
 {
     KRATOS_TRY;
 
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+    // Element data
+    ElementData rData;
+    this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rVariables);
+    this->CalculateTau(rData);
 
-    // Retrieve element variables
-    const auto& k = rVariables.diffusivity;
-    const auto& f = rVariables.forcing;
-    const auto& phi = rVariables.unknown;
-    const auto& phi_old = rVariables.unknown_old;
-    const auto& delta_time = rVariables.delta_time;
-    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto& v = rVariables.convective_velocity;
-    const auto& tau = rVariables.tau;
-    const auto& prj = rVariables.oss_projection;
+    // Retrieve element data
+    const auto& k = rData.diffusivity;
+    const auto& f = rData.forcing;
+    const auto& phi = rData.unknown;
+    const auto& phi_old = rData.unknown_old;
+    const auto& delta_time = rData.delta_time;
+    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& v = rData.convective_velocity;
+    const auto& tau = rData.tau;
+    const auto& prj = rData.oss_projection;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double& DN_DX_0_0 = rVariables.DN_DX(0,0);
-    const double& DN_DX_0_1 = rVariables.DN_DX(0,1);
-    const double& DN_DX_0_2 = rVariables.DN_DX(0,2);
-    const double& DN_DX_1_0 = rVariables.DN_DX(1,0);
-    const double& DN_DX_1_1 = rVariables.DN_DX(1,1);
-    const double& DN_DX_1_2 = rVariables.DN_DX(1,2);
-    const double& DN_DX_2_0 = rVariables.DN_DX(2,0);
-    const double& DN_DX_2_1 = rVariables.DN_DX(2,1);
-    const double& DN_DX_2_2 = rVariables.DN_DX(2,2);
-    const double& DN_DX_3_0 = rVariables.DN_DX(3,0);
-    const double& DN_DX_3_1 = rVariables.DN_DX(3,1);
-    const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
+    const double& DN_DX_0_0 = rData.DN_DX(0,0);
+    const double& DN_DX_0_1 = rData.DN_DX(0,1);
+    const double& DN_DX_0_2 = rData.DN_DX(0,2);
+    const double& DN_DX_1_0 = rData.DN_DX(1,0);
+    const double& DN_DX_1_1 = rData.DN_DX(1,1);
+    const double& DN_DX_1_2 = rData.DN_DX(1,2);
+    const double& DN_DX_2_0 = rData.DN_DX(2,0);
+    const double& DN_DX_2_1 = rData.DN_DX(2,1);
+    const double& DN_DX_2_2 = rData.DN_DX(2,2);
+    const double& DN_DX_3_0 = rData.DN_DX(3,0);
+    const double& DN_DX_3_1 = rData.DN_DX(3,1);
+    const double& DN_DX_3_2 = rData.DN_DX(3,2);
     // RHS
-    auto& rhs = rVariables.rhs;
+    auto& rhs = rData.rhs;
 
     //substitute_rhs_3D
 
     const double local_size = 4;
-    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rData.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -411,37 +411,37 @@ void SymbolicQSConvectionDiffusionExplicit<2,3>::CalculateOrthogonalSubgridScale
 {
     KRATOS_TRY;
 
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+    // Element data
+    ElementData rData;
+    this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rVariables);
+    this->CalculateTau(rData);
 
-    // Retrieve element variables
-    const auto& k = rVariables.diffusivity;
-    const auto& f = rVariables.forcing;
-    const auto& phi = rVariables.unknown;
-    const auto& phi_old = rVariables.unknown_old;
-    const auto& delta_time = rVariables.delta_time;
-    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto& v = rVariables.convective_velocity;
+    // Retrieve element data
+    const auto& k = rData.diffusivity;
+    const auto& f = rData.forcing;
+    const auto& phi = rData.unknown;
+    const auto& phi_old = rData.unknown_old;
+    const auto& delta_time = rData.delta_time;
+    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double& DN_DX_0_0 = rVariables.DN_DX(0, 0);
-    const double& DN_DX_0_1 = rVariables.DN_DX(0, 1);
-    const double& DN_DX_1_0 = rVariables.DN_DX(1, 0);
-    const double& DN_DX_1_1 = rVariables.DN_DX(1, 1);
-    const double& DN_DX_2_0 = rVariables.DN_DX(2, 0);
-    const double& DN_DX_2_1 = rVariables.DN_DX(2, 1);
+    const double& DN_DX_0_0 = rData.DN_DX(0, 0);
+    const double& DN_DX_0_1 = rData.DN_DX(0, 1);
+    const double& DN_DX_1_0 = rData.DN_DX(1, 0);
+    const double& DN_DX_1_1 = rData.DN_DX(1, 1);
+    const double& DN_DX_2_0 = rData.DN_DX(2, 0);
+    const double& DN_DX_2_1 = rData.DN_DX(2, 1);
     // RHS
-    auto& rhs = rVariables.rhs;
+    auto& rhs = rData.rhs;
 
     //substitute_oss_2D
 
     const double local_size = 3;
-    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rData.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -455,43 +455,43 @@ void SymbolicQSConvectionDiffusionExplicit<3,4>::CalculateOrthogonalSubgridScale
 {
     KRATOS_TRY;
 
-    // Element variables
-    ElementVariables rVariables;
-    this->InitializeEulerianElement(rVariables,rCurrentProcessInfo);
+    // Element data
+    ElementData rData;
+    this->InitializeEulerianElement(rData,rCurrentProcessInfo);
 
     // Compute tau
-    this->CalculateTau(rVariables);
+    this->CalculateTau(rData);
 
-    // Retrieve element variables
-    const auto& k = rVariables.diffusivity;
-    const auto& f = rVariables.forcing;
-    const auto& phi = rVariables.unknown;
-    const auto& phi_old = rVariables.unknown_old;
-    const auto& delta_time = rVariables.delta_time;
-    const auto& RK_time_coefficient = rVariables.RK_time_coefficient;
-    const auto& v = rVariables.convective_velocity;
+    // Retrieve element data
+    const auto& k = rData.diffusivity;
+    const auto& f = rData.forcing;
+    const auto& phi = rData.unknown;
+    const auto& phi_old = rData.unknown_old;
+    const auto& delta_time = rData.delta_time;
+    const auto& RK_time_coefficient = rData.RK_time_coefficient;
+    const auto& v = rData.convective_velocity;
     // Hardcoded shape functions gradients for linear triangular element
     // This is explicitly done to minimize the matrix acceses
     // The notation DN_i_j means shape function for node i in dimension j
-    const double& DN_DX_0_0 = rVariables.DN_DX(0,0);
-    const double& DN_DX_0_1 = rVariables.DN_DX(0,1);
-    const double& DN_DX_0_2 = rVariables.DN_DX(0,2);
-    const double& DN_DX_1_0 = rVariables.DN_DX(1,0);
-    const double& DN_DX_1_1 = rVariables.DN_DX(1,1);
-    const double& DN_DX_1_2 = rVariables.DN_DX(1,2);
-    const double& DN_DX_2_0 = rVariables.DN_DX(2,0);
-    const double& DN_DX_2_1 = rVariables.DN_DX(2,1);
-    const double& DN_DX_2_2 = rVariables.DN_DX(2,2);
-    const double& DN_DX_3_0 = rVariables.DN_DX(3,0);
-    const double& DN_DX_3_1 = rVariables.DN_DX(3,1);
-    const double& DN_DX_3_2 = rVariables.DN_DX(3,2);
+    const double& DN_DX_0_0 = rData.DN_DX(0,0);
+    const double& DN_DX_0_1 = rData.DN_DX(0,1);
+    const double& DN_DX_0_2 = rData.DN_DX(0,2);
+    const double& DN_DX_1_0 = rData.DN_DX(1,0);
+    const double& DN_DX_1_1 = rData.DN_DX(1,1);
+    const double& DN_DX_1_2 = rData.DN_DX(1,2);
+    const double& DN_DX_2_0 = rData.DN_DX(2,0);
+    const double& DN_DX_2_1 = rData.DN_DX(2,1);
+    const double& DN_DX_2_2 = rData.DN_DX(2,2);
+    const double& DN_DX_3_0 = rData.DN_DX(3,0);
+    const double& DN_DX_3_1 = rData.DN_DX(3,1);
+    const double& DN_DX_3_2 = rData.DN_DX(3,2);
     // RHS
-    auto& rhs = rVariables.rhs;
+    auto& rhs = rData.rhs;
 
     //substitute_oss_3D
 
     const double local_size = 4;
-    noalias(rRightHandSideVector) = rhs * rVariables.volume/local_size;
+    noalias(rRightHandSideVector) = rhs * rData.volume/local_size;
 
     KRATOS_CATCH("");
 }
@@ -526,36 +526,36 @@ double SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::ComputeH(
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
-    ElementVariables& rVariables)
+    ElementData& rData)
 {
     KRATOS_TRY;
 
     // Calculate h
-    double h = this->ComputeH(rVariables.DN_DX);
+    double h = this->ComputeH(rData.DN_DX);
     // Calculate tau for each gauss point
     for(unsigned int g = 0; g<TNumNodes; g++) {
-	const auto& N = row(rVariables.N_gausspoint,g);
+	const auto& N = row(rData.N_gausspoint,g);
         // Calculate velocity and velocity divergence in the gauss point
-        const array_1d<double,3> vel_gauss = prod(N, rVariables.convective_velocity);
+        const array_1d<double,3> vel_gauss = prod(N, rData.convective_velocity);
         double div_vel = 0;
         for(unsigned int node_element = 0; node_element<TNumNodes; node_element++) {
             for(unsigned int dim = 0; dim < TDim; dim++) {
-                div_vel += rVariables.DN_DX(node_element,dim)*rVariables.convective_velocity(node_element,dim);
+                div_vel += rData.DN_DX(node_element,dim)*rData.convective_velocity(node_element,dim);
             }
         }
         const double norm_velocity = norm_2(vel_gauss);
         // Estimate tau
         double inv_tau = 0;
         // Dynamic part
-        inv_tau += rVariables.dynamic_tau/rVariables.delta_time;
+        inv_tau += rData.dynamic_tau/rData.delta_time;
         // Convection
         inv_tau += 2.0 * norm_velocity / h;
         inv_tau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
         // Diffusion
-        inv_tau += 4.0 * rVariables.diffusivity / (h*h);
+        inv_tau += 4.0 * rData.diffusivity / (h*h);
         // Limiting
         inv_tau = std::max(inv_tau, 1e-2);
-        rVariables.tau[g] = (1.0) / inv_tau;
+        rData.tau[g] = (1.0) / inv_tau;
     }
 
     KRATOS_CATCH("");

@@ -179,7 +179,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    struct ElementVariables
+    struct ElementData
     {
         // scalars
         double diffusivity;
@@ -201,7 +201,7 @@ protected:
         // auxiliary containers for the symbolically-generated matrices
         BoundedMatrix<double,TNumNodes,TNumNodes> lhs;
         array_1d<double,TNumNodes> rhs;
-        // auxiliary containers for the symbolically-generated variables for Gauss integration
+        // auxiliary containers for the symbolically-generated data for Gauss integration
         array_1d<double,TNumNodes> N;
         BoundedMatrix<double,TNumNodes,TNumNodes> N_gausspoint;
 	    BoundedMatrix<double,TNumNodes,TDim> DN_DX;
@@ -217,7 +217,7 @@ protected:
     ///@{
 
     void InitializeEulerianElement(
-        ElementVariables& rVariables,
+        ElementData& rData,
         const ProcessInfo& rCurrentProcessInfo);
 
     double ComputeH(
@@ -283,7 +283,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateTau(
-        ElementVariables& rVariables);
+        ElementData& rData);
 
     ///@}
     ///@name Private Operations
