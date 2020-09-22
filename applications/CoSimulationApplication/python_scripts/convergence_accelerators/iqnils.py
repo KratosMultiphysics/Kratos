@@ -3,11 +3,14 @@
 # Author: Wei He
 # Date: Feb. 20, 2017
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info, SettingsTypeCheck
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
@@ -16,7 +19,7 @@ from copy import deepcopy
 from collections import deque
 
 def Create(settings):
-    cs_tools.SettingsTypeCheck(settings)
+    SettingsTypeCheck(settings)
     return IQNILSConvergenceAccelerator(settings)
 
 ## Class IQNILSConvergenceAccelerator.

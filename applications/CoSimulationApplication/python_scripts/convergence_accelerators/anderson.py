@@ -2,11 +2,14 @@
 # Author: Andreas Winterstein
 # Date: Jul. 2018
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import classprint, bold, red, magenta, blue
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Other imports
 import numpy as np
@@ -55,7 +58,7 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         if k == 0:
             ## For the first iteration, do relaxation only
             if self.echo_level > 3:
-                classprint(self._ClassName(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
+                cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with factor = {}".format(self.alpha))
             return self.alpha * r
         else:
             self.F = np.empty( shape = (col, row) ) # will be transposed later
@@ -66,22 +69,19 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.F = self.F.T
             self.X = self.X.T
 
-
             #compute Moore-Penrose inverse of F^T F
             A = np.linalg.pinv(self.F.T @ self.F)
 
             switch = (self.iteration_counter + 1)/self.p
 
-            classprint(magenta(self.iteration_counter))
-
-            if switch.is_integer() == True:
+            if switch.is_integer():
                 B = self.beta * np.identity(row) - (self.X + self.beta * self.F) @ A @ self.F.T
                 if self.echo_level > 3:
-                    classprint(self._ClassName(), blue("Compute B with Anderson"))
+                    cs_tools.cs_print_info(self._ClassName(), "Compute B with Anderson")
             else:
                 B = self.alpha * np.identity(row)
                 if self.echo_level > 3:
-                    classprint(self._ClassName(), red("Constant underrelaxtion"))
+                    cs_tools.cs_print_info(self._ClassName(), "Constant underrelaxtion")
 
             delta_x = B @ r
 
