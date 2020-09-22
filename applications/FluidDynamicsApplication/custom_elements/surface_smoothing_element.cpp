@@ -444,7 +444,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double capilary_number = effective_viscosity*slip_velocity/gamma;
 
                             if ( std::abs(theta_d - theta_s) < 6.0e-1 &&
-                                capilary_number < 3.0e-1){ // Slightly different than the condition in NS
+                                capilary_number < 3.0e-1){
 
                                 double contact_angle_macro = 0.0;
 
@@ -465,13 +465,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                                     contact_angle_macro = PI; //contact_angle_equilibrium;
                                 //}
 
-                                const double cos_contact_angle_macro = std::acos(contact_angle_macro);
+                                const double cos_contact_angle_macro = std::cos(contact_angle_macro);
                                 const double sin_contact_angle_macro = std::sqrt( 1.0 -
                                     cos_contact_angle_macro*cos_contact_angle_macro );
+
                                 corrected_gradient = norm_grad_phi*( -cos_contact_angle_macro*solid_normal
                                     + sin_contact_angle_macro*slip_vector );
 
-                            } else {
+                            } /* else */ {
                                 if (std::abs(cos_theta_d) <= 1.0){
                                     const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
                                     corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
