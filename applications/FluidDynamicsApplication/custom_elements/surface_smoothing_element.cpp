@@ -22,6 +22,8 @@
 // Project includes
 #include "custom_elements/surface_smoothing_element.h"
 
+#define PI 3.14159265358979
+
 namespace Kratos
 {
 
@@ -233,7 +235,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
     const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry()); //this->GetValue(ELEMENT_H);
-    const double epsilon = 2.0e3*dt*he*he;
+    const double epsilon = 5.0e3*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
@@ -330,12 +332,18 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         const unsigned int num_face_nodes = num_nodes - 1;
         unsigned int n_pos = 0;
 
+        double positive_viscosity = 0.0;
+        double negative_viscosity = 0.0;
+
         for (unsigned int i=0; i < num_face_nodes; ++i){
             if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
                 contact_node++;
             }
             if ( r_face[i].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
                 n_pos++;
+                positive_viscosity = r_face[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+            } else{
+                negative_viscosity = r_face[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
             }
         }
 
@@ -413,21 +421,67 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
                             const double zeta = 1.0e2;
                             const double gamma = 0.0426;
+                            const double micro_length_scale = 1.0e-9;
 
                             const double cos_theta_s = -0.469471563;
+                            const double theta_s = std::acos(cos_theta_s);
+
                             const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
 
                             KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
                                 << "cos_theta_d is larger than one." << std::endl;
 
+                            double theta_d = 0.0;
                             if (std::abs(cos_theta_d) <= 1.0){
-                                const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
-                                corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
+                                theta_d = std::acos(cos_theta_d);
                             } else if (cos_theta_d > 1.0){
-                                corrected_gradient = -norm_grad_phi*solid_normal;
-                            } else //if (cos_theta_d < -1.0){
-                                corrected_gradient = norm_grad_phi*solid_normal;
-                            //}
+                                theta_d = 0.0;
+                            } else { //if (cos_theta_d < -1.0){
+                                theta_d = PI;
+                            }
+
+                            const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
+                            const double capilary_number = effective_viscosity*slip_velocity/gamma;
+
+                            if ( std::abs(theta_d - theta_s) < 6.0e-1 &&
+                                capilary_number < 3.0e-1){ // Slightly different than the condition in NS
+
+                                double contact_angle_macro = 0.0;
+
+                                const double cubic_contact_angle_macro = std::pow(theta_d, 3.0)
+                                    + 9*capilary_number*std::log(he/micro_length_scale);
+
+                                KRATOS_WARNING_IF("SurfaceSmooting", cubic_contact_angle_macro < 0.0 ||
+                                    cubic_contact_angle_macro > 31.0)
+                                    << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
+                                    << std::endl;
+
+                                if (cubic_contact_angle_macro >= 0.0 &&
+                                        cubic_contact_angle_macro <= 31.0) //std::pow(PI, 3.0))
+                                    contact_angle_macro = std::pow(cubic_contact_angle_macro, 1.0/3.0);
+                                else if (cubic_contact_angle_macro < 0.0)
+                                    contact_angle_macro = 0.0; //contact_angle_equilibrium;
+                                else //if (cubic_contact_angle_micro_gp > 31.0){
+                                    contact_angle_macro = PI; //contact_angle_equilibrium;
+                                //}
+
+                                const double cos_contact_angle_macro = std::acos(contact_angle_macro);
+                                const double sin_contact_angle_macro = std::sqrt( 1.0 -
+                                    cos_contact_angle_macro*cos_contact_angle_macro );
+                                corrected_gradient = norm_grad_phi*( -cos_contact_angle_macro*solid_normal
+                                    + sin_contact_angle_macro*slip_vector );
+
+                            } else {
+                                if (std::abs(cos_theta_d) <= 1.0){
+                                    const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
+                                    corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
+                                } else if (cos_theta_d > 1.0){
+                                    corrected_gradient = -norm_grad_phi*solid_normal;
+                                } else //if (cos_theta_d < -1.0){
+                                    corrected_gradient = norm_grad_phi*solid_normal;
+                                //}
+                            }
+
                             //corrected_gradient = GradPHIold[i];
 
                         } else { //not a cut solid surface element

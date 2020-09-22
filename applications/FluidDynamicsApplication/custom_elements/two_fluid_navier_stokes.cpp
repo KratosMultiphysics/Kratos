@@ -171,23 +171,23 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             if (data.NumberOfDivisions == 1){
                 // Cases exist when the element is not subdivided due to the characteristics of the provided distance
                 // In this cases the element is treated as AIR or FLUID depending on the side
-                
+
                 KRATOS_INFO("Cut Element") << "NumberOfDivisions == 1" << std::endl;
-                
+
                 Vector gauss_weights;
                 Matrix shape_functions;
                 ShapeFunctionDerivativesArrayType shape_derivatives;
                 this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
                 const unsigned int number_of_gauss_points = gauss_weights.size();
 
-                //double volume = 0.0;               
+                //double volume = 0.0;
                 //for (unsigned int gp = 0; gp < number_of_gauss_points; gp++)
                 //    volume += gauss_weights[gp];
 
                 //for (unsigned int i = 0; i < NumNodes; i++)
                 //    for (unsigned int j = 0; j < Dim; j++)
                 //        data.BodyForce(i,j) +=  1.0/(volume*(data.Density))*surface_tension(j);
-                
+
                 //array_1d<double, NumNodes> Ncenter;
                 //for (unsigned int i = 0; i < NumNodes; i++){
                 //    Ncenter[i] = 1.0/NumNodes;

@@ -370,11 +370,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             print(time.time())
 
-            ####################################
-            ##
-            ## OLD position of smoothing process
-            ##
-            ####################################
+            # Smoothing the surface to filter oscillatory surface
+            (self.distance_gradient_process).Execute() # Always check if calculated above
+            print("Smoothing")
+            print(time.time())
+            (self.surface_smoothing_process).Execute()
+            print(time.time())
+            for node in self.main_model_part.Nodes:
+                smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
@@ -406,15 +410,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, NS", it_number)
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "solved SolutionStep")
 
-        # Smoothing the surface to filter oscillatory surface
-        (self.distance_gradient_process).Execute() # Always check if calculated above
-        print("Smoothing")
-        print(time.time())
-        (self.surface_smoothing_process).Execute()
-        print(time.time())
-        for node in self.main_model_part.Nodes:
-            smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+        ####################################
+        ##
+        ## Most recent position of smoothing process
+        ##
+        ####################################
 
         it_number=self.linear_solver.GetIterationsNumber()
         KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
