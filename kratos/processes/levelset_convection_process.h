@@ -266,7 +266,7 @@ public:
 
             mpSolvingStrategy->Solve(); // phi_n+1
 
-            if (true)
+            if (false)
             {// Error Compensation and Correction
                 #pragma omp parallel for
                 for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
@@ -318,7 +318,7 @@ public:
 
                     mThirdUnPlusOne[i] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
 
-                    mErrorOfError[i] = 0.5*(mFirstUnPlusOne[i] - mThirdUnPlusOne[i]) - mError[i];
+                    mErrorOfError[i] = 0.5*(0.5*(mFirstUnPlusOne[i] - mThirdUnPlusOne[i]) - mError[i]);
 
                     //mError[i] = 0.5*mError[i] + 0.25*(mFirstUnPlusOne[i] - mThirdUnPlusOne[i]);
                 }
@@ -500,7 +500,7 @@ public:
                     //it_node->FastGetSolutionStepValue(mrLevelSetVar) = 5.0*mFirstUnPlusOne[i_node] -
                     //    convected_corrected_variable + 7*mError[i_node] - 3*mThirdUnPlusOne[i_node];
 
-                    it_node->FastGetSolutionStepValue(mrLevelSetVar) += mErrorOfError[i_node];
+                    //it_node->FastGetSolutionStepValue(mrLevelSetVar) += mErrorOfError[i_node];
                 }
             }
         }
