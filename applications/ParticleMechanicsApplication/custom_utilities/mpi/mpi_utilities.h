@@ -39,7 +39,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceVectorContainer
+    /// Pointer definition of MPM_MPI_Utilities
     KRATOS_CLASS_POINTER_DEFINITION(MPM_MPI_Utilities);
 
     typedef ModelPart::ElementsContainerType ElementsContainerType;
