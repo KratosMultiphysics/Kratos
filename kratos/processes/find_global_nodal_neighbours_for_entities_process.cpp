@@ -62,19 +62,14 @@ void FindNodalNeighboursForEntitiesProcess<ModelPart::ConditionsContainerType>::
 {
     // if the metis partitioner is based on conditions, this will still work,
     // but with this additional cost of checking.
-    // this->mrModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
-    block_for_each(mrModelPart.Nodes(), [&](const NodeType& rNode) {
+    // this loop cannot run in parallel, since std::unordered_maps adds the key if it
+    // is not found, otherwise do nothing.
+    for (const NodeType& rNode : mrModelPart.Nodes()) {
         const int i_owner_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
-        const int node_id = rNode.Id();
-        if (rNeighbourIds[i_owner_rank].find(node_id) ==
-                                     rNeighbourIds[i_owner_rank].end()) {
-#pragma omp critical
-            {
-                rNeighbourIds[i_owner_rank][node_id];
-            }
-        }
-    });
+        const auto node_id = rNode.Id();
+        rNeighbourIds[i_owner_rank][node_id];
+    }
 }
 
 template <class TContainerType>
