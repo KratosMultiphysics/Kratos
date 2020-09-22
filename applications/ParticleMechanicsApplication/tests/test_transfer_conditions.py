@@ -6,7 +6,7 @@ data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
 
 class TestTransferConditions(KratosUnittest.TestCase):
     ''' This class provides all required methods to test the MPM_MPI_Utilities::TransferConditions function.
-        Tests in 2D and 3D with dirichlet and neumann particle conditons are performed.
+        Tests in 2D and 3D with dirichlet, neumann and dirichlet coupling interface conditons are performed.
     '''
     def _create_nodes(self, mp, dimension):
         mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -27,11 +27,15 @@ class TestTransferConditions(KratosUnittest.TestCase):
                 cond = mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition2D3N", id, [1, 2, 3], mp.GetProperties()[1])
             if condition_type == "neumann":
                 cond = mp.CreateNewCondition("MPMParticlePointLoadCondition2D3N", id, [1, 2, 3], mp.GetProperties()[1])
+            if condition_type == "coupling":
+                cond = mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition2D3N", id, [1, 2, 3], mp.GetProperties()[1])
         if dimension == 3:
             if condition_type == "dirichlet":
                 cond = mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition3D4N", id, [1, 2, 3, 4], mp.GetProperties()[1])
             if condition_type == "neumann":
                 cond = mp.CreateNewCondition("MPMParticlePointLoadCondition3D4N", id, [1, 2, 3, 4], mp.GetProperties()[1])
+            if condition_type == "coupling":
+                cond = mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition3D4N", id, [1, 2, 3, 4], mp.GetProperties()[1])
 
     def _assign_pseudo_variables(self, cond, condition_type):
         process_info = KratosMultiphysics.ProcessInfo()
@@ -43,7 +47,7 @@ class TestTransferConditions(KratosUnittest.TestCase):
         cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_VELOCITY,velocity,process_info)
         acceleration = [KratosMultiphysics.Vector([1.5,-1.12,2.45])]
         cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_ACCELERATION,acceleration,process_info)
-        if condition_type == "dirichlet":
+        if condition_type == "dirichlet" or condition_type == "coupling":
             cond.SetValuesOnIntegrationPoints(KratosParticle.PENALTY_FACTOR,[100.0],process_info)
             displacement = [KratosMultiphysics.Vector([1.22,-1.11,0.0])]
             cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT,displacement,process_info)
@@ -56,6 +60,10 @@ class TestTransferConditions(KratosUnittest.TestCase):
         else:
             point_load = [KratosMultiphysics.Vector([3.3,4.4,5.5])]
             cond.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD,point_load ,process_info)
+
+        if condition_type == "coupling":
+            contact_force = [KratosMultiphysics.Vector([3.7,4.4,5.5])]
+            cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE,contact_force ,process_info)
 
     def _check_conditions(self, mp, dimension):
         process_info = KratosMultiphysics.ProcessInfo()
@@ -117,6 +125,10 @@ class TestTransferConditions(KratosUnittest.TestCase):
                 self.assertVectorAlmostEqual(imposed_veclocity[0],[1.0,-1.0,1.1],7)
                 imposed_acceleration = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_ACCELERATION, process_info)
                 self.assertVectorAlmostEqual(imposed_acceleration[0],[1.0,-1.0,2.1],7)
+                if(cond.Info() == "Condition #4"):
+                    #penalty_coupling_interface_condition member
+                    contact_force = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, process_info)
+                    self.assertVectorAlmostEqual(contact_force[0],[3.7,4.4,5.5],7)
             #base_condition members
             xg = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, process_info)
             self.assertVectorAlmostEqual(xg[0],[1.5,-1.0,2.1])
@@ -125,9 +137,9 @@ class TestTransferConditions(KratosUnittest.TestCase):
             acceleration = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_ACCELERATION, process_info)
             self.assertVectorAlmostEqual(acceleration[0],[1.5,-1.12,2.45])
 
-    def _transfer_conditions(self, dimension ):
+    def _transfer_conditions(self, dimension, condition_type_2 ):
         ''' Two dirichlet conditions are created in rank=0 and send to all other processes.
-            One neumann condition is created in rank=1 and send to all other processesself.
+            One neumann or coupled/interface condition is created in rank=1 and send to all other processes.
             The test is passed if all receiving processes hold the correct conditions '''
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("mp_dirichlet_conditions")
@@ -140,8 +152,8 @@ class TestTransferConditions(KratosUnittest.TestCase):
             send_conditions.append( KratosMultiphysics.ConditionsArray() )
 
         if rank is 0: #Sender
-            self._create_particle_condition(mp, dimension, condition_type = "dirichlet", id=1)
-            self._create_particle_condition(mp, dimension, condition_type = "dirichlet", id=2)
+            self._create_particle_condition(mp, dimension, condition_type="dirichlet", id=1)
+            self._create_particle_condition(mp, dimension, condition_type="dirichlet", id=2)
             for i in range(size):
                 if i is not rank:
                     process_info = KratosMultiphysics.ProcessInfo()
@@ -150,12 +162,16 @@ class TestTransferConditions(KratosUnittest.TestCase):
                         self._assign_pseudo_variables(cond, "dirichlet")
                         send_conditions[i].append(cond)
         if rank is 1: #Sender
-            self._create_particle_condition(mp, dimension, condition_type = "neumann", id=3)
+            if condition_type_2 == "neumann":
+                id = 3
+            else:
+                id = 4
+            self._create_particle_condition(mp, dimension, condition_type_2, id)
             for i in range(size):
                 if i is not rank:
                     for cond in mp.Conditions:
                         #Set pseudo-variables
-                        self._assign_pseudo_variables(cond, "neumann")
+                        self._assign_pseudo_variables(cond, condition_type_2)
                         send_conditions[i].append(cond)
 
         KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(mp)
@@ -173,11 +189,17 @@ class TestTransferConditions(KratosUnittest.TestCase):
             self.assertEqual(mp.NumberOfConditions(),3)
             self._check_conditions(mp, dimension)
 
-    def test_transfer_conditions2D(self):
-        self._transfer_conditions(dimension=2)
+    def test_transfer_conditions2D_dirichlet_neumann(self):
+        self._transfer_conditions(dimension=2, condition_type_2="neumann")
 
-    def test_transfer_conditions3D(self):
-        self._transfer_conditions(dimension=3)
+    def test_transfer_conditions2D_dirichlet_coupling(self):
+        self._transfer_conditions(dimension=2, condition_type_2="coupling")
+
+    def test_transfer_conditions3D_dirichlet_neumann(self):
+        self._transfer_conditions(dimension=3, condition_type_2="neumann")
+
+    def test_transfer_conditions3D_dirichlet_coupling(self):
+        self._transfer_conditions(dimension=3, condition_type_2="coupling")
 
 if __name__ == '__main__':
     KratosUnittest.main()

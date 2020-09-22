@@ -20,7 +20,7 @@ file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-# If there is mpi support
+# If there is mpi support, use..
 if((${USE_MPI} MATCHES ON) )
   file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE}
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
