@@ -739,7 +739,7 @@ void SensitivityBuilder::ComputeEntityGeometryNeighbourNodeMap(
     const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
     const Geometry<ModelPart::NodeType>& rEntityGeometry,
     const Flags& rFlag,
-    const bool CheckValue) const
+    const bool CheckValue)
 {
     KRATOS_TRY
 
