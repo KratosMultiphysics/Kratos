@@ -141,7 +141,7 @@ class TestTransferConditions(KratosUnittest.TestCase):
     def _transfer_conditions(self, dimension, condition_type_2 ):
         ''' Two dirichlet conditions are created in rank=0 and send to all other processes.
             One neumann or coupled/interface condition is created in rank=1 and send to all other processes.
-            The test is passed if all receiving processes hold the correct conditions '''
+            The test is passed if all receiving processes hold the correct conditions. '''
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("mp_dirichlet_conditions")
 

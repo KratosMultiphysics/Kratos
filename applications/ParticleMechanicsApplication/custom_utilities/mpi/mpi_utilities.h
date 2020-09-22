@@ -21,18 +21,40 @@
 #include "includes/model_part.h"
 
 namespace Kratos {
-namespace MPM_MPI_Utilities{
 
-    // Typedefs
+///@addtogroup ParticleMechanicsApplication
+///@{
+
+///@name Kratos Classes
+///@{
+
+/**
+ * @class MPM_MPI_Utilities
+ * @ingroup ParticleMechanicsApplication
+ * @brief Provides place to add mpi related utility functions.
+ */
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPM_MPI_Utilities
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of InterfaceVectorContainer
+    KRATOS_CLASS_POINTER_DEFINITION(MPM_MPI_Utilities);
+
     typedef ModelPart::ElementsContainerType ElementsContainerType;
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
 
     /**
      * @brief Interface to exchange elements.
      * @details Interface to exchange elements betweem mpi-processes and remove/add elements from/to respective ModelPart.
      * @param rSendElements list of objects to be send.      SendObjects[i] -> Objects to   process i
      **/
-    void TransferElements(ModelPart& rModelPart,
+    static void TransferElements(ModelPart& rModelPart,
                           std::vector<ElementsContainerType>& rSendElements);
 
     /**
@@ -40,10 +62,13 @@ namespace MPM_MPI_Utilities{
      * @details Interface to exchange conditions betweem mpi-processes and remove/add conditions from/to respective ModelPart.
      * @param rSendCondition list of conditions to be send.      SendObjects[i] -> Objects to   process i
      **/
-    void TransferConditions(ModelPart& rModelPart,
+    static void TransferConditions(ModelPart& rModelPart,
                             std::vector<ConditionsContainerType>& rSendCondition);
+    ///@}
 
-} // end MPM_MPI_Utilities
+}; // end class MPM_MPI_Utilities
+///@} classes
+///@} addToGroup
 } // end namespace Kratos
 
 #endif // end KRATOS_MPM_MPI_UTILITIES_INCLUDE_H
