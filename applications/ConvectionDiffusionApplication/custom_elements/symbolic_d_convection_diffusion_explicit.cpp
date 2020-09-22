@@ -96,9 +96,6 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
     KRATOS_TRY;
 
     BaseType::Initialize(rCurrentProcessInfo);
-    // // Resize and initialize dynamic subscales container
-    // if (mUnknownSubScale.size() != TNumNodes)
-    //     mUnknownSubScale.resize(TNumNodes, false); // number integration points = number nodes
     mUnknownSubScale = ZeroVector(TNumNodes);
 
     KRATOS_CATCH("");
