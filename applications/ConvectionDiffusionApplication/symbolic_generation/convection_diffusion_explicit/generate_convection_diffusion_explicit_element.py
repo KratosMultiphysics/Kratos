@@ -56,7 +56,7 @@ def DefineShapeFunctionsMatrix(dim, n_nodes, n_gauss):
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 ASGS_stabilization = True           # Consider ASGS stabilization terms
-dynamic_subscales = False            # Consider subscale dynamic
+dynamic_subscales = True            # Consider subscale dynamic
 OSS_stabilization = True            # Requires ASGS stabilization to be true
 mode = "c"                          # Output mode to a c++ file
 

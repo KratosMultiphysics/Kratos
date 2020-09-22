@@ -57,7 +57,7 @@ namespace Kratos
  * The element is designed to use an explicit integration method.
  * @author Riccardo Tosi
  */
-template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
+template< unsigned int TDim, unsigned int TNumNodes>
 class SymbolicDConvectionDiffusionExplicit : public SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>
 {
 public:
@@ -84,10 +84,15 @@ public:
     ///@{
 
     //Constructors.
+    SymbolicDConvectionDiffusionExplicit(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+    SymbolicDConvectionDiffusionExplicit(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        Properties::Pointer pProperties);
 
     /// Default constuctor.
-    SymbolicDConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry);
-    SymbolicDConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
     virtual ~SymbolicDConvectionDiffusionExplicit();
@@ -173,7 +178,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    VectorType mUnknownSubScale;
+    BoundedVector<double, TNumNodes> mUnknownSubScale;
 
     ///@}
     ///@name Protected Operators

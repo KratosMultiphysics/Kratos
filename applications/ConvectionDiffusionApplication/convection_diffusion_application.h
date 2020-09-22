@@ -249,10 +249,10 @@ private:
     const AdjointThermalFace mAdjointThermalFace2D2N;
     const AdjointThermalFace mAdjointThermalFace3D3N;
 
-    const SymbolicQSConvectionDiffusionExplicit<2> mSymbolicQSConvectionDiffusionExplicit2D3N;
-    const SymbolicQSConvectionDiffusionExplicit<3> mSymbolicQSConvectionDiffusionExplicit3D4N;
-    const SymbolicDConvectionDiffusionExplicit<2> mSymbolicDConvectionDiffusionExplicit2D3N;
-    const SymbolicDConvectionDiffusionExplicit<3> mSymbolicDConvectionDiffusionExplicit3D4N;
+    const SymbolicQSConvectionDiffusionExplicit<2,3> mSymbolicQSConvectionDiffusionExplicit2D3N;
+    const SymbolicQSConvectionDiffusionExplicit<3,4> mSymbolicQSConvectionDiffusionExplicit3D4N;
+    const SymbolicDConvectionDiffusionExplicit<2,3> mSymbolicDConvectionDiffusionExplicit2D3N;
+    const SymbolicDConvectionDiffusionExplicit<3,4> mSymbolicDConvectionDiffusionExplicit3D4N;
 
     ///@}
     ///@name Private Operators

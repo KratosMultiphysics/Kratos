@@ -547,7 +547,7 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
         // Estimate tau
         double inv_tau = 0;
         // Dynamic part
-        inv_tau += rData.dynamic_tau/rData.delta_time;
+        inv_tau = rData.dynamic_tau/rData.delta_time;
         // Convection
         inv_tau += 2.0 * norm_velocity / h;
         inv_tau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation

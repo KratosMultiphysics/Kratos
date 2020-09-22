@@ -65,7 +65,7 @@ namespace Kratos
  * The element is designed to use an explicit integration method.
  * @author Riccardo Tosi
  */
-template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
+template< unsigned int TDim, unsigned int TNumNodes>
 class SymbolicQSConvectionDiffusionExplicit : public Element
 {
 public:
@@ -84,10 +84,15 @@ public:
     ///@{
 
     //Constructors.
+    SymbolicQSConvectionDiffusionExplicit(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+    SymbolicQSConvectionDiffusionExplicit(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        Properties::Pointer pProperties);
 
     /// Default constuctor.
-    SymbolicQSConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry);
-    SymbolicQSConvectionDiffusionExplicit(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
     virtual ~SymbolicQSConvectionDiffusionExplicit();

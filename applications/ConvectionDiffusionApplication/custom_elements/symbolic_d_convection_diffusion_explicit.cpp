@@ -96,9 +96,9 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Initialize(
     KRATOS_TRY;
 
     BaseType::Initialize(rCurrentProcessInfo);
-    // Resize and initialize dynamic subscales container
-    if (mUnknownSubScale.size() != TNumNodes)
-        mUnknownSubScale.resize(TNumNodes, false); // number integration points = number nodes
+    // // Resize and initialize dynamic subscales container
+    // if (mUnknownSubScale.size() != TNumNodes)
+    //     mUnknownSubScale.resize(TNumNodes, false); // number integration points = number nodes
     mUnknownSubScale = ZeroVector(TNumNodes);
 
     KRATOS_CATCH("");
@@ -1013,7 +1013,7 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::CalculateTau(
         // Estimate tau
         double inv_tau = 0;
         // Dynamic part
-        inv_tau += 1.0/rData.delta_time;
+        inv_tau = 1.0/rData.delta_time;
         // Convection
         inv_tau += 2.0 * norm_velocity / h;
         inv_tau += 1.0*div_vel; // unitary coefficient in front of \nabla \cdot convective_velocity term in the strong equation
