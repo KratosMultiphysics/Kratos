@@ -882,7 +882,7 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
                 std::unordered_map<int, std::unordered_map<int, int>> derivative_nodes_map;
 
                 // calculate the node mapping
-                this->ComputeEntityGeometryNeighbourNodeMap(
+                SensitivityBuilder<TContainerType>::ComputeEntityGeometryNeighbourNodeMap(
                     derivative_nodes_map, rNeighbourNodeIdsMap, r_geometry, rFlag, CheckValue);
 
                 const Matrix& r_entity_derivatives =
