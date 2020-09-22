@@ -9,7 +9,7 @@ import KratosMultiphysics.ParticleMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
-from test_transfer_objects import TestTransferObjects as TTestTransferObjects
+from test_transfer_elements import TestTransferElements as TTestTransferElements
 from test_transfer_conditions import TestTransferConditions as TTestTransferConditions
 
 def AssembleTestSuites():
@@ -28,8 +28,8 @@ def AssembleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
-    smallMPISuite.addTest(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTransferObjects]))
-    smallMPISuite.addTest(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTransferConditions]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTransferElements]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTransferConditions]))
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
     nightlyMPISuite.addTests(smallMPISuite)
