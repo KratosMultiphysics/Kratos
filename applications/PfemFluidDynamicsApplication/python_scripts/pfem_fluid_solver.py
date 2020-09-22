@@ -38,7 +38,7 @@ class PfemFluidSolver(PythonSolver):
 
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
              "solver_type": "pfem_fluid_solver",
             "model_part_name": "PfemFluidModelPart",
@@ -111,7 +111,7 @@ class PfemFluidSolver(PythonSolver):
         "output_processes"         : {},
         "check_process_list": []
         }""")
-        this_defaults.AddMissingParameters(super(PfemFluidSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(PfemFluidSolver, cls).GetDefaultParameters())
         return this_defaults
 
 
@@ -232,13 +232,9 @@ class PfemFluidSolver(PythonSolver):
         for node in self.main_model_part.Nodes:
             # adding dofs
             node.AddDof(KratosMultiphysics.PRESSURE)
-            node.AddDof(KratosMultiphysics.DENSITY)
             node.AddDof(KratosMultiphysics.VELOCITY_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
         print("::[Pfem Fluid Solver]:: DOF's ADDED")
 
     def ImportModelPart(self):

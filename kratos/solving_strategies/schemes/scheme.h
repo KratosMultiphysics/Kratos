@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -88,88 +89,6 @@ public:
     /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-    /**
-     * @class LocalSystemComponents
-     * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise schemes private pointers can only be accessed by means of set and get functions
-     * @details This allows to set and not copy the Element_Variables and Condition_Variables which will be asked and set by another strategy object
-     */
-    struct LocalSystemComponents
-    {
-    private:
-        ///@name Member Variables
-        ///@{
-        // Elements
-        std::vector<LocalSystemMatrixType> *mpLHS_Element_Components;
-        const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Element_Variables;
-
-        std::vector<LocalSystemVectorType> *mpRHS_Element_Components;
-        const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-
-        // Conditions
-        std::vector<LocalSystemMatrixType> *mpLHS_Condition_Components;
-        const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
-
-        std::vector<LocalSystemVectorType> *mpRHS_Condition_Components;
-        const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-        ///@}
-    public:
-        ///@name Operations
-        ///@{
-        /**
-        * @brief This method initializes the pointer of the member variables
-        */
-        void Initialize()
-        {
-            mpLHS_Element_Components = NULL;
-            mpLHS_Element_Variables  = NULL;
-
-            mpRHS_Element_Components = NULL;
-            mpRHS_Element_Variables  = NULL;
-
-            mpLHS_Condition_Components = NULL;
-            mpLHS_Condition_Variables  = NULL;
-
-            mpRHS_Condition_Components = NULL;
-            mpRHS_Condition_Variables  = NULL;
-        }
-
-        /* Setting pointer variables */
-
-        // Elements
-        void SetLHS_Element_Components ( std::vector<LocalSystemMatrixType>& rLHS_Element_Components ) { mpLHS_Element_Components = &rLHS_Element_Components; };
-        void SetLHS_Element_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Element_Variables ) { mpLHS_Element_Variables = &rLHS_Element_Variables; };
-        void SetRHS_Element_Components ( std::vector<LocalSystemVectorType>& rRHS_Element_Components ) { mpRHS_Element_Components = &rRHS_Element_Components; };
-        void SetRHS_Element_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Element_Variables ) { mpRHS_Element_Variables = &rRHS_Element_Variables; };
-
-        bool Are_LHS_Element_Components_Set() { if( mpLHS_Element_Variables == NULL ) return false; else return true; };
-        bool Are_RHS_Element_Components_Set() { if( mpRHS_Element_Variables == NULL ) return false; else return true; };
-
-        // Conditions
-        void SetLHS_Condition_Components ( std::vector<LocalSystemMatrixType>& rLHS_Condition_Components ) { mpLHS_Condition_Components = &rLHS_Condition_Components; };
-        void SetLHS_Condition_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Condition_Variables ) { mpLHS_Condition_Variables = &rLHS_Condition_Variables; };
-        void SetRHS_Condition_Components ( std::vector<LocalSystemVectorType>& rRHS_Condition_Components ) { mpRHS_Condition_Components = &rRHS_Condition_Components; };
-        void SetRHS_Condition_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Condition_Variables ) { mpRHS_Condition_Variables = &rRHS_Condition_Variables; };
-
-        bool Are_LHS_Condition_Components_Set() { if( mpLHS_Condition_Variables == NULL ) return false; else return true; };
-        bool Are_RHS_Condition_Components_Set() { if( mpRHS_Condition_Variables == NULL ) return false; else return true; };
-
-        /* Getting pointer variables */
-
-        // Elements
-        std::vector<LocalSystemMatrixType>& GetLHS_Element_Components() { return *mpLHS_Element_Components; };
-        const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Element_Variables() { return *mpLHS_Element_Variables; };
-        std::vector<LocalSystemVectorType>& GetRHS_Element_Components() { return *mpRHS_Element_Components; };
-        const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Element_Variables() { return *mpRHS_Element_Variables; };
-
-        // Conditions
-        std::vector<LocalSystemMatrixType>& GetLHS_Condition_Components() { return *mpLHS_Condition_Components; };
-        const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Condition_Variables() { return *mpLHS_Condition_Variables; };
-        std::vector<LocalSystemVectorType>& GetRHS_Condition_Components() { return *mpRHS_Condition_Components; };
-        const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Condition_Variables() { return *mpRHS_Condition_Variables; };
-
-        ///@}
-    };
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -185,10 +104,17 @@ public:
         mConditionsAreInitialized = false;
     }
     /**
-     * @brief Default Constructor with Parameters
+     * @brief Constructor with Parameters
      */
-    explicit Scheme(Parameters ThisParameters) : Scheme()
+    explicit Scheme(Parameters ThisParameters)
     {
+        // Validate default parameters
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        mSchemeIsInitialized = false;
+        mElementsAreInitialized = false;
+        mConditionsAreInitialized = false;
     }
 
     /** Copy Constructor.
@@ -230,16 +156,6 @@ public:
     virtual Pointer Clone()
     {
         return Kratos::make_shared<Scheme>(*this) ;
-    }
-
-    /**
-     * @brief Component wise components Get method
-     * @warning Must be defined on the derived classes
-     * @return The local system of components
-     */
-    virtual LocalSystemComponents& GetLocalSystemComponents()
-    {
-        KRATOS_ERROR << "Asking for Local Components to the SCHEME base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
@@ -1085,6 +1001,18 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "scheme"
+        })" );
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -1148,6 +1076,29 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+    }
 
     ///@}
     ///@name Protected  Access

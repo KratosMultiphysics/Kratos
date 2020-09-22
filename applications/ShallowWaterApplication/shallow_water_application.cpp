@@ -31,31 +31,13 @@ namespace Kratos
     KratosShallowWaterApplication::KratosShallowWaterApplication():
         KratosApplication("ShallowWaterApplication"),
 
-        mShallowElement2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-
-        mRVSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mRVSWE2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mPFEM2RVSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mPFEM2RVSWE2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mCVSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mCVSWE2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
-        mPFEM2CVSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
-        mPFEM2CVSWE2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
-
         mSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
         mSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
         mLagrangianSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
         mLagrangianSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
-        mConservedElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3     <Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-        mConservedElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-
         mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
-
     {}
 
     void KratosShallowWaterApplication::Register()
@@ -118,28 +100,11 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(WATER_HEIGHT_UNIT_CONVERTER)
 
         // Registering elements and conditions here
-        KRATOS_REGISTER_ELEMENT("ShallowElement2D3N", mShallowElement2D3N)
-
-        KRATOS_REGISTER_ELEMENT("ReducedSWE2D3N", mRVSWE2D3N)
-        KRATOS_REGISTER_ELEMENT("ReducedSWE2D4N", mRVSWE2D4N)
-
-        KRATOS_REGISTER_ELEMENT("PFEM2ReducedSWE2D3N", mPFEM2RVSWE2D3N)
-        KRATOS_REGISTER_ELEMENT("PFEM2ReducedSWE2D4N", mPFEM2RVSWE2D4N)
-
-        KRATOS_REGISTER_ELEMENT("ConservativeSWE2D3N", mCVSWE2D3N)
-        KRATOS_REGISTER_ELEMENT("ConservativeSWE2D4N", mCVSWE2D4N)
-
-        KRATOS_REGISTER_ELEMENT("PFEM2ConservativeSWE2D3N", mPFEM2CVSWE2D3N)
-        KRATOS_REGISTER_ELEMENT("PFEM2ConservativeSWE2D4N", mPFEM2CVSWE2D4N)
-
         KRATOS_REGISTER_ELEMENT("SWE2D3N", mSWE2D3N)
         KRATOS_REGISTER_ELEMENT("SWE2D4N", mSWE2D4N)
 
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N)
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N)
-
-        KRATOS_REGISTER_ELEMENT("ConservedElement2D3N", mConservedElement2D3N)
-        KRATOS_REGISTER_ELEMENT("ConservedElement2D4N", mConservedElement2D4N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
     }

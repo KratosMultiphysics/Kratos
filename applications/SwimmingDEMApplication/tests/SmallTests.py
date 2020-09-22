@@ -1,22 +1,31 @@
 # Definition of the classes for the SMALL TESTS
 
-# Import TestFactory
-import TestFactory as TF
+#Iimport Kratos
+import KratosMultiphysics
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.SwimmingDEMApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-class candelier(TF.TestFactory):
-    file_name = "candelier_tests/CandelierDEM"
-    file_parameters = "candelier_tests/ProjectParametersDEM.json"
 
 def SetTestSuite(suites):
     small_suite = suites['small']
 
     small_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            candelier
         ])
     )
 
     return small_suite
+
+def AssembleTestSuites():
+    suites = KratosUnittest.KratosSuites
+    night_suite = SetTestSuite(suites)
+    suites['all'].addTests(night_suite)
+
+    return suites
+
+if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DETAIL)
+    KratosUnittest.runTests(AssembleTestSuites())
+
