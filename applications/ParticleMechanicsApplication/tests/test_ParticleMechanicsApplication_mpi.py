@@ -44,6 +44,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    ##KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.DEBUG)
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     # TODO throw if --using-mpi is not being passed!
     KratosUnittest.runTests(AssembleTestSuites())

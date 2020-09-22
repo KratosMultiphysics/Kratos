@@ -6,7 +6,9 @@ import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
 
 class TestTransferElements(KratosUnittest.TestCase):
-
+    ''' This class provides all required methods to test the MPM_MPI_Utilities::TransferElements function.
+        Different tests for all available elements are performed.
+    '''
     def _set_up_model_parts(self, current_model, dimension, is_pqmpm):
         # Initialize model part
         ## Material model part definition
@@ -187,7 +189,7 @@ class TestTransferElements(KratosUnittest.TestCase):
             almansi_strain_vector = el.CalculateOnIntegrationPoints(KratosParticle.MP_ALMANSI_STRAIN_VECTOR, process_info)
             self.assertVectorAlmostEqual( almansi_strain_vector[0], [1.6,2.0,1.45], 7)
             if is_mixed_formulation:
-                # updated_langranian_up members
+                # updated_langrangian_up members
                 pressure = el.CalculateOnIntegrationPoints(KratosParticle.MP_PRESSURE, process_info)
                 self.assertAlmostEqual(pressure[0], 3.3)
 
@@ -261,7 +263,7 @@ class TestTransferElements(KratosUnittest.TestCase):
         #updated_langrangian
         self._transfer_elements(dimension=2,geometry_element="Quadrilateral", is_mixed_formulation=False, is_pqmpm = False)
 
-    def test_transfer_elements_quadrilateral2D4N_up(self):
+    def test_transfer_elements_quadrilateral2D4N_pq(self):
         #updated_langrangian_pq
         self._transfer_elements(dimension=2,geometry_element="Quadrilateral", is_mixed_formulation=False, is_pqmpm = True)
 

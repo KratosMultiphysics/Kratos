@@ -5,7 +5,9 @@ import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
 
 class TestTransferConditions(KratosUnittest.TestCase):
-
+    ''' This class provides all required methods to test the MPM_MPI_Utilities::TransferConditions function.
+        Tests in 2D and 3D with dirichlet and neumann particle conditons are performed.
+    '''
     def _create_nodes(self, mp, dimension):
         mp.CreateNewNode(1,0.0,0.0,0.0)
         mp.CreateNewNode(2,0.0,1.0,0.0)

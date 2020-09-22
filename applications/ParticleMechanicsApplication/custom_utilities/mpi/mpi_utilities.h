@@ -10,7 +10,6 @@
 //  Main authors:    Manuel Meßmer
 //
 
-
 #ifndef KRATOS_MPM_MPI_UTILITIES_INCLUDE_H
 #define KRATOS_MPM_MPI_UTILITIES_INCLUDE_H
 
@@ -28,12 +27,20 @@ namespace MPM_MPI_Utilities{
     typedef ModelPart::ElementsContainerType ElementsContainerType;
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-    // Interface to exchange elements and remove/add elements to respective ModelPart
-    void TransferElements(ModelPart& rMPMModelPart,
+    /**
+     * @brief Interface to exchange elements.
+     * @details Interface to exchange elements betweem mpi-processes and remove/add elements from/to respective ModelPart.
+     * @param rSendElements list of objects to be send.      SendObjects[i] -> Objects to   process i
+     **/
+    void TransferElements(ModelPart& rModelPart,
                           std::vector<ElementsContainerType>& rSendElements);
 
-    // Interface to exchange conditions and remove/add conditions from/to respective ModelPart
-    void TransferConditions(ModelPart& rMPMModelPart,
+    /**
+     * @brief Interface to exchange conditions.
+     * @details Interface to exchange conditions betweem mpi-processes and remove/add conditions from/to respective ModelPart.
+     * @param rSendCondition list of conditions to be send.      SendObjects[i] -> Objects to   process i
+     **/
+    void TransferConditions(ModelPart& rModelPart,
                             std::vector<ConditionsContainerType>& rSendCondition);
 
 } // end MPM_MPI_Utilities

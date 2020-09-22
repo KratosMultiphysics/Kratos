@@ -15,59 +15,80 @@
 
 namespace Kratos {
 
-    void MPM_MPI_Utilities::TransferElements( ModelPart& rMPMModelPart, std::vector<ElementsContainerType>& rSendElements)
+    void MPM_MPI_Utilities::TransferElements( ModelPart& rModelPart, std::vector<ElementsContainerType>& rSendElements)
     {
-        const unsigned int rank = rMPMModelPart.GetCommunicator().MyPID();
-        const unsigned int size = rMPMModelPart.GetCommunicator().TotalProcesses();
+        const unsigned int rank = rModelPart.GetCommunicator().MyPID();
+        const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
 
+        KRATOS_ERROR_IF(rSendElements.size() != size)
+            << "MPM_MPI_Utilities::TransferElements: " << "Size of element container: " << rSendElements.size()
+            << " does not match the number of processes: " << size << "!" << std::endl;
+
+        KRATOS_WARNING_IF("MPM_MPI_Utilities::TransferElements", rSendElements[rank].size() != 0)
+            << "Rank: " << rank << " holds a sending element container with one or more elements with itself "
+            << "(Rank: " << rank << ") as destination." << std::endl
+            << "Theses elements will be cleared." << std::endl;
+
+        // Recieving elements container
         std::vector<ElementsContainerType> recv_elements(size);
 
-        rMPMModelPart.GetCommunicator().TransferObjects(rSendElements, recv_elements);
+        // Exchange elements
+        rModelPart.GetCommunicator().TransferObjects(rSendElements, recv_elements);
 
         // Remove sent elements from current ModelPart
         for( unsigned int i = 0; i < rSendElements.size(); ++i){
-            for(ElementsContainerType::iterator it = rSendElements[i].begin(); it != rSendElements[i].end(); ++it){
+            for(auto it = rSendElements[i].begin(); it != rSendElements[i].end(); ++it){
                 it->GetGeometry().clear();
                 it->Reset(ACTIVE);
-                rMPMModelPart.RemoveElementFromAllLevels(it->Id());
+                rModelPart.RemoveElementFromAllLevels(it->Id());
             }
         }
 
         // Add recieved elements to current ModelPart
         for( unsigned int i = 0; i < recv_elements.size(); ++i){
-            if( rank != i){
-                for(ElementsContainerType::iterator it = recv_elements[i].begin(); it != recv_elements[i].end(); ++it){
-                    rMPMModelPart.AddElement(*it.base());
-                }
+            for(auto it = recv_elements[i].begin(); it != recv_elements[i].end(); ++it){
+                rModelPart.AddElement(*it.base());
             }
         }
+        rSendElements.clear();
     }
 
-    void MPM_MPI_Utilities::TransferConditions(ModelPart& rMPMModelPart, std::vector<ConditionsContainerType>& rSendConditions)
+    void MPM_MPI_Utilities::TransferConditions(ModelPart& rModelPart, std::vector<ConditionsContainerType>& rSendConditions)
     {
-        const unsigned int rank = rMPMModelPart.GetCommunicator().MyPID();
-        const unsigned int size = rMPMModelPart.GetCommunicator().TotalProcesses();
+        const unsigned int rank = rModelPart.GetCommunicator().MyPID();
+        const unsigned int size = rModelPart.GetCommunicator().TotalProcesses();
 
-        std::vector<ConditionsContainerType> RecvConditions(size);
+        KRATOS_ERROR_IF(rSendConditions.size() != size)
+            << "MPM_MPI_Utilities::TransferConditions: " << "Size of condition container: " << rSendConditions.size()
+            << " does not match the number of processes: " << size << "!" << std::endl;
 
-        rMPMModelPart.GetCommunicator().TransferObjects(rSendConditions, RecvConditions);
+        KRATOS_WARNING_IF("MPM_MPI_Utilities::TransferConditions", rSendConditions[rank].size() != 0)
+            << "Rank: " << rank << " holds a sending condition container with one or more conditions with itself "
+            << "(Rank: " << rank << ") as destination." << std::endl
+            << "Theses conditions will be cleared." << std::endl;
 
-        // Remove sent elements from current ModelPart
+        // Recieving conditions container
+        std::vector<ConditionsContainerType> recv_conditions(size);
+
+        // Exchange conditions
+        rModelPart.GetCommunicator().TransferObjects(rSendConditions, recv_conditions);
+
+        // Remove sent conditions from current ModelPart
         for( unsigned int i = 0; i < rSendConditions.size(); ++i){
-            for(ConditionsContainerType::iterator it = rSendConditions[i].begin(); it != rSendConditions[i].end(); ++it){
-                rMPMModelPart.RemoveConditionFromAllLevels(it->Id());
+            for(auto it = rSendConditions[i].begin(); it != rSendConditions[i].end(); ++it){
+                it->GetGeometry().clear();
+                it->Reset(ACTIVE);
+                rModelPart.RemoveConditionFromAllLevels(it->Id());
             }
         }
 
-        // Add recieved elements to current ModelPart
-        for( unsigned int i = 0; i < RecvConditions.size(); ++i){
-            if( rank != i){
-                for(ConditionsContainerType::iterator it = RecvConditions[i].begin(); it != RecvConditions[i].end(); ++it){
-                    rMPMModelPart.AddCondition(*it.base());
-                }
+        // Add recieved conditions to current ModelPart
+        for( unsigned int i = 0; i < recv_conditions.size(); ++i){
+            for(auto it = recv_conditions[i].begin(); it != recv_conditions[i].end(); ++it){
+                rModelPart.AddCondition(*it.base());
             }
         }
-
+        rSendConditions.clear();
     }
 
 } // end namespace Kratos
