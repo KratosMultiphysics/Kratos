@@ -164,23 +164,6 @@ void SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes >
-int SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    int out = Element::Check(rCurrentProcessInfo);
-    KRATOS_ERROR_IF_NOT(out == 0)
-        << "Error in base class Check for Element " << this->Info() << std::endl
-        << "Error code is " << out << std::endl;
-    return 0;
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template <>
 void SymbolicDConvectionDiffusionExplicit<2,3>::CalculateRightHandSideInternal(
     BoundedVector<double, 3>& rRightHandSideVector,

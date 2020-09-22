@@ -159,8 +159,6 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
-
     ///@}
     ///@name Input and output
     ///@{

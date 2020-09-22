@@ -216,23 +216,6 @@ void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Calculate(
 /***********************************************************************************/
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    int out = Element::Check(rCurrentProcessInfo);
-    KRATOS_ERROR_IF_NOT(out == 0)
-        << "Error in base class Check for Element " << this->Info() << std::endl
-        << "Error code is " << out << std::endl;
-    return 0;
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< unsigned int TDim, unsigned int TNumNodes >
 void SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>::InitializeEulerianElement(
     ElementData& rData,
     const ProcessInfo& rCurrentProcessInfo)
