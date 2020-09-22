@@ -148,7 +148,6 @@ public:
         mpSolvingStrategy = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
             *mpDistanceModelPart,
             pscheme,
-            plinear_solver,
             pBuilderSolver,
             CalculateReactions,
             ReformDofAtEachIteration,
@@ -573,4 +572,3 @@ inline std::ostream& operator << (
 }  // namespace Kratos.
 
 #endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
-

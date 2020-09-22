@@ -283,7 +283,8 @@ void RansLineOutputProcess::UpdateSamplePoints()
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    const auto& r_direction_vector = mEndPoint - mStartPoint;
+    const double coeff = 1.0 / (mNumberOfSamplingPoints - 1.0);
+    const array_1d<double, 3>& r_direction_vector = (mEndPoint - mStartPoint) * coeff;
 
     mSamplingPoints.resize(mNumberOfSamplingPoints * 3);
     mSamplingPointElementIds.resize(mNumberOfSamplingPoints, 0);
@@ -295,10 +296,7 @@ void RansLineOutputProcess::UpdateSamplePoints()
     if (r_communicator.Rank() == 0) {
         SizeType local_index = 0;
         for (SizeType i = 0; i < mNumberOfSamplingPoints; ++i) {
-            const auto& current_point =
-                mStartPoint + r_direction_vector *
-                                  (static_cast<double>(i) /
-                                   static_cast<double>(mNumberOfSamplingPoints - 1));
+            const auto& current_point = mStartPoint + (r_direction_vector * i);
             mSamplingPoints[local_index++] = current_point[0];
             mSamplingPoints[local_index++] = current_point[1];
             mSamplingPoints[local_index++] = current_point[2];
