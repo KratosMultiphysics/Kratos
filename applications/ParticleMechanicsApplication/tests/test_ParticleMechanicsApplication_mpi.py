@@ -37,13 +37,8 @@ def AssembleTestSuites():
     allMPISuite = suites['mpi_all']
     allMPISuite.addTests(nightlyMPISuite) # already contains the smallMPISuite
 
-    # can be removed after the cmd-line of the testing accepts "--using-mpi"
-    allSuite = suites['all']
-    allSuite.addTests(allMPISuite)
-
     return suites
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    # TODO throw if --using-mpi is not being passed!
     KratosUnittest.runTests(AssembleTestSuites())
