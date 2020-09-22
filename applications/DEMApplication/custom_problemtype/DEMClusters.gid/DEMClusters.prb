@@ -17,7 +17,7 @@ HELP: Depth of the sphere-tree
 
 QUESTION: branch
 VALUE: 20
-HELP: Branching factor of sphere-tree
+HELP: Branching factor of sphere-tree (approximate total number of spheres)
 
 QUESTION: testerLevels
 VALUE: 2
@@ -25,7 +25,7 @@ HELP: Controls the number of points to use to represent a sphere when evaluating
 
 QUESTION: numCover
 VALUE: 10000
-HELP: Number of sample points to cover object with
+HELP: Number of sample points to cover the object with
 
 QUESTION: minCover
 VALUE: 10

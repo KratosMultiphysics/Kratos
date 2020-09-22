@@ -45,17 +45,18 @@ proc InitGIDProject { dir } {
     if { [GidUtils::IsTkDisabled] eq 0} {
         GiDMenu::Create "Sphere Cluster Creation" PRE
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "SphereTree"] 0 PRE "GidOpenConditions \"SphereTree\"" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "0.Generate OBJ, SPH, CLU and visualize" ] 0 PRE [list OneClickGo] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "1.Generate OBJ and export MSH" ] 1 PRE [list GenerateOBJMSH] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Select SPH options"] 2 PRE "GidOpenProblemData" "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "2.Generate SPH file" ] 3 PRE [list GenerateSPHFileFromOBJFile] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Cancel SPH generation" ] 4 PRE [list CancelSphereTree] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "3.Generate CLU file" ] 5 PRE [list GenerateClusterFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Select SPH options"] 0 PRE "GidOpenProblemData" "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" "---" 1 PRE "" "" "" replace =
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "0.Generate OBJ, SPH, CLU and visualize" ] 2 PRE [list OneClickGo] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "1.Generate OBJ and export MSH" ] 3 PRE [list GenerateOBJMSH] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "2.Generate SPH file" ] 4 PRE [list GenerateSPHFileFromOBJFile] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Cancel SPH generation" ] 5 PRE [list CancelSphereTree] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "3.Generate CLU file" ] 6 PRE [list GenerateClusterFile] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster over geometry" ] 4 PRE [list ReadClusterFileintoGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 6 PRE [list ReadSPHFileintoMesh] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in principal axis" ] 7 PRE [list ReadClusterFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster" ] 7 PRE [list ReadSPHFileintoMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Visualize cluster in principal axis" ] 8 PRE [list ReadClusterFileintoMesh] "" ""
         #GiDMenu::InsertOption "Sphere Cluster Creation" [list "Delete cluster over geometry" ] 6 PRE [list DeleteSpheresGeometry] "" ""
-        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Remove cluster visualization" ] 8 PRE [list DeleteSpheresMesh] "" ""
+        GiDMenu::InsertOption "Sphere Cluster Creation" [list "Remove cluster visualization" ] 9 PRE [list DeleteSpheresMesh] "" ""
 
         GiDMenu::UpdateMenus
     }
@@ -587,9 +588,11 @@ proc GenerateClusterFile { } {
     }
 
     # warning: this never ends. Only works with one click go.
+    set i 0
     while { [file exists $genericSPHFilename] == 0 } {
-        W "waiting for SPH to be generated..."
+        W "waiting for SPH to be generated... time: $i seconds"
         after 30000
+        set i [expr {$i + 30}]
         # wait 30 seconds and recheck if sph has been generated.
     }
 
