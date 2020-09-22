@@ -1777,7 +1777,7 @@ void UpdatedLagrangian::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("xg",mMP);
+    rSerializer.save("MP",mMP);
 }
 
 void UpdatedLagrangian::load( Serializer& rSerializer )
@@ -1786,7 +1786,7 @@ void UpdatedLagrangian::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("xg",mMP);
+    rSerializer.load("MP",mMP);
 }
 
 
