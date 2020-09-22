@@ -144,9 +144,9 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     // TODO Philipp I am pretty sure we should separate the vector construction from the matrix construction, should be independent otherwise no clue what is happening
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrixSlave,
-        mpInterfaceVectorContainerOrigin->pGetVector(),
         mpInterfaceVectorContainerDestination->pGetVector(),
-        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mpInterfaceVectorContainerDestination->pGetVector(),
+        mpInterfaceVectorContainerDestination->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
         mMapperLocalSystemsSlave,
         echo_level);
