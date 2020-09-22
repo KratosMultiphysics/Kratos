@@ -199,7 +199,9 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 }
 
 proc AfterRunCalculation {basename dir problemtypedir where error errorfilename} {
-    return 0
+    #return 0
+
+    return -cancel- ; # To avoid the window
 }
 
 
