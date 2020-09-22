@@ -279,6 +279,16 @@ private:
     ///@name Private Operators
     ///@{
 
+    /// Assignment operator
+    SymbolicQSConvectionDiffusionExplicit& operator=(SymbolicQSConvectionDiffusionExplicit const& rOther) = delete;
+
+    /// Copy constructor
+    SymbolicQSConvectionDiffusionExplicit(SymbolicQSConvectionDiffusionExplicit const& rOther) = delete;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
     void CalculateRightHandSideInternal(
         BoundedVector<double, TNumNodes>& rRightHandSideBoundedVector,
         const ProcessInfo& rCurrentProcessInfo);
@@ -289,11 +299,6 @@ private:
 
     void CalculateTau(
         ElementData& rData);
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
 
     ///@}
     ///@name Private  Access
@@ -309,14 +314,7 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    SymbolicQSConvectionDiffusionExplicit& operator=(SymbolicQSConvectionDiffusionExplicit const& rOther);
-
-    /// Copy constructor.
-    SymbolicQSConvectionDiffusionExplicit(SymbolicQSConvectionDiffusionExplicit const& rOther);
-
     ///@}
-
 
 }; // Class SymbolicQSConvectionDiffusionExplicit
 
@@ -333,16 +331,18 @@ private:
 
 /// input stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-inline std::istream& operator >>(std::istream& rIStream,
-                                 SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+inline std::istream& operator >>(
+    std::istream& rIStream,
+    SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+inline std::ostream& operator <<(
+    std::ostream& rOStream,
+    const SymbolicQSConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

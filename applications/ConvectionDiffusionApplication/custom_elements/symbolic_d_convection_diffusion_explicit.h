@@ -238,6 +238,10 @@ private:
     ///@name Private Operators
     ///@{
 
+    /// Assignment operator
+    SymbolicDConvectionDiffusionExplicit& operator=(SymbolicDConvectionDiffusionExplicit const& rOther) = delete;
+    /// Copy constructor
+    SymbolicDConvectionDiffusionExplicit(SymbolicDConvectionDiffusionExplicit const& rOther) = delete;
 
     ///@}
     ///@name Private Operations
@@ -272,14 +276,7 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    SymbolicDConvectionDiffusionExplicit& operator=(SymbolicDConvectionDiffusionExplicit const& rOther);
-
-    /// Copy constructor.
-    SymbolicDConvectionDiffusionExplicit(SymbolicDConvectionDiffusionExplicit const& rOther);
-
     ///@}
-
 
 }; // Class SymbolicDConvectionDiffusionExplicit
 
@@ -296,16 +293,18 @@ private:
 
 /// input stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-inline std::istream& operator >>(std::istream& rIStream,
-                                 SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+inline std::istream& operator >>(
+    std::istream& rIStream,
+    SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
+inline std::ostream& operator <<(
+    std::ostream& rOStream,
+    const SymbolicDConvectionDiffusionExplicit<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
