@@ -8,6 +8,7 @@ data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
 class TestTransferElements(KratosUnittest.TestCase):
     ''' This class provides all required methods to test the MPM_MPI_Utilities::TransferElements function.
         Different tests for all available elements are performed.
+        New developed elements must be added here.
     '''
     def _set_up_model_parts(self, current_model, dimension, is_pqmpm):
         # Initialize model part
