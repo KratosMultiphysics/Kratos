@@ -734,6 +734,58 @@ void SensitivityBuilder::ClearSensitivities()
     KRATOS_CATCH("");
 }
 
+void SensitivityBuilder::ComputeEntityGeometryNeighbourNodeMap(
+    std::unordered_map<int, std::unordered_map<int, int>>& rDerivativeNodesMap,
+    const std::unordered_map<int, std::vector<int>>& rNeighbourNodeIdsMap,
+    const Geometry<ModelPart::NodeType>& rEntityGeometry,
+    const Flags& rFlag,
+    const bool CheckValue) const
+{
+    KRATOS_TRY
+
+    const int number_of_nodes = rEntityGeometry.PointsNumber();
+
+    for (int i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
+        const auto& r_base_node = rEntityGeometry[i_base_node];
+
+        if (r_base_node.Is(rFlag) == CheckValue) {
+            const int base_node_id = r_base_node.Id();
+
+            std::unordered_map<int, int> derivative_node_map;
+            for (int i_deriv_node = 0; i_deriv_node < number_of_nodes; ++i_deriv_node) {
+                const int deriv_node_id = rEntityGeometry[i_deriv_node].Id();
+
+                if (base_node_id == deriv_node_id) {
+                    derivative_node_map[i_deriv_node] = 0;
+                } else {
+                    const auto p_itr = rNeighbourNodeIdsMap.find(base_node_id);
+                    const auto& r_neighbour_node_indices = p_itr->second;
+
+                    derivative_node_map[i_deriv_node] =
+                        r_neighbour_node_indices.size() + 2;
+                    for (int j = 0;
+                         j < static_cast<int>(r_neighbour_node_indices.size()); ++j) {
+                        if (r_neighbour_node_indices[j] == deriv_node_id) {
+                            derivative_node_map[i_deriv_node] = j + 1;
+                            break;
+                        }
+                    }
+
+                    KRATOS_ERROR_IF(derivative_node_map[i_deriv_node] ==
+                                    static_cast<int>(r_neighbour_node_indices.size() + 2))
+                        << "Derivative node id " << deriv_node_id
+                        << " not found in neighbour nodes list in node with id "
+                        << base_node_id << ".";
+                }
+            }
+
+            rDerivativeNodesMap[i_base_node] = derivative_node_map;
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
 template <class TContainerType>
 void SensitivityBuilder::AssignEntityDerivativesToNodes(
     ModelPart& rModelPart,
@@ -830,41 +882,8 @@ void SensitivityBuilder::AssignEntityDerivativesToNodes(
                 std::unordered_map<int, std::unordered_map<int, int>> derivative_nodes_map;
 
                 // calculate the node mapping
-                for (int i_base_node = 0; i_base_node < number_of_nodes; ++i_base_node) {
-                    const auto& r_base_node = r_geometry[i_base_node];
-
-                    if (r_base_node.Is(rFlag) == CheckValue) {
-                        const int base_node_id = r_base_node.Id();
-
-                        std::unordered_map<int, int> derivative_node_map;
-                        for (int i_deriv_node = 0; i_deriv_node < number_of_nodes; ++i_deriv_node) {
-                            const int deriv_node_id = r_geometry[i_deriv_node].Id();
-
-                            if (base_node_id == deriv_node_id) {
-                                derivative_node_map[i_deriv_node] = 0;
-                            } else {
-                                const auto p_itr = rNeighbourNodeIdsMap.find(base_node_id);
-                                const auto& r_neighbour_node_indices = p_itr->second;
-
-                                derivative_node_map[i_deriv_node] = r_neighbour_node_indices.size() + 2;
-                                for (int j = 0; j < static_cast<int>(r_neighbour_node_indices.size()); ++j) {
-                                    if (r_neighbour_node_indices[j] == deriv_node_id) {
-                                        derivative_node_map[i_deriv_node] = j + 1;
-                                        break;
-                                    }
-                                }
-
-                                KRATOS_ERROR_IF(derivative_node_map[i_deriv_node] ==
-                                                static_cast<int>(r_neighbour_node_indices.size() + 2))
-                                    << "Derivative node id "
-                                    << deriv_node_id << " not found in neighbour nodes list in node with id "
-                                    << base_node_id << ".";
-                            }
-                        }
-
-                        derivative_nodes_map[i_base_node] = derivative_node_map;
-                    }
-                }
+                ComputeEntityGeometryNeighbourNodeMap(
+                    derivative_nodes_map, rNeighbourNodeIdsMap, r_geometry, rFlag, CheckValue);
 
                 const Matrix& r_entity_derivatives =
                     rEntity.GetValue(rDerivativeVariable) * Weight;
