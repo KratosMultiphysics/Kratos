@@ -48,15 +48,9 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    using Node = typename ModelPart::NodeType;
-
-    block_for_each( rNodes,
-        []( Node& node )
-        {
-            noalias(node.Coordinates()) = node.GetInitialPosition()
-                + node.FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        }
-    );
+    block_for_each(rNodes, [](Node<3>& rNode ){
+        noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
+    });
 
     KRATOS_CATCH("");
 }
@@ -99,17 +93,13 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
 void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
                                                  const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
 {
-  KRATOS_TRY;
+    KRATOS_TRY;
 
-  using Node = ModelPart::NodeType;
-
-  block_for_each( rModelPart.Nodes(),
-    [&]( Node& node )
-    {
-        if(node.Has(rVariableToSuperImpose))
-            node.GetSolutionStepValue(rVariable,0) += node.GetValue(rVariableToSuperImpose);
-    }
-  );
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        if (rNode.Has(rVariableToSuperImpose)) {
+            rNode.GetSolutionStepValue(rVariable,0) += rNode.GetValue(rVariableToSuperImpose);
+        }
+    });
 
   KRATOS_CATCH("");
 }
