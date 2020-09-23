@@ -221,11 +221,6 @@ public:
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo) override;
 
-    double FilterWidth();
-
-    double FilterWidth(
-        const BoundedMatrix<double, NumNodes, Dim >& DN_DX);
-
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -282,12 +277,6 @@ public:
         const double TauTwo,
         const double Weight,
         const double DeltaTime = 1.0);
-
-    void CalculateTau(
-        TElementData& rData,
-        const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo);
 
     void EvaluateTimeDerivativeInPoint(
         double& rResult,
@@ -362,6 +351,11 @@ protected:
         MatrixType &rLocalLHS, 
         VectorType &rLocalRHS) override;
 
+    double FilterWidth();
+
+    double FilterWidth(
+        const BoundedMatrix<double, 
+        NumNodes, Dim >& DN_DX);
     // Protected interface of FluidElement ////////////////////////////////////
 
     /**

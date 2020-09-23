@@ -159,29 +159,35 @@ void QSVMSDEMCoupled<TElementData>::Calculate(
     }
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::Calculate(const Variable<array_1d<double, 3>>& rVariable,
-                                              array_1d<double, 3>& rOutput,
-                                              const ProcessInfo& rCurrentProcessInfo) {
+void QSVMSDEMCoupled<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>>& rVariable,
+    array_1d<double, 3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo) {
 
     QSVMS<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 
 }
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::Calculate(const Variable<Vector>& rVariable,
-    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMSDEMCoupled<TElementData>::Calculate(
+    const Variable<Vector>& rVariable,
+    Vector& rOutput, 
+    const ProcessInfo& rCurrentProcessInfo) {}
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::Calculate(const Variable<Matrix>& rVariable,
-    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+void QSVMSDEMCoupled<TElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput, 
+    const ProcessInfo& rCurrentProcessInfo) {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @see QSVMSDEMCoupled::EquationIdVector
  **/
 template < class TElementData >
-void QSVMSDEMCoupled<TElementData>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+void QSVMSDEMCoupled<TElementData>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo)
 {
     if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
         QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
@@ -206,8 +212,9 @@ void QSVMSDEMCoupled<TElementData>::EquationIdVector(EquationIdVectorType& rResu
  * @see QSVMSDEMCoupled::GetDofList
  */
 template < class TElementData >
-void QSVMSDEMCoupled<TElementData>::GetDofList(DofsVectorType& rElementalDofList,
-                                                ProcessInfo& rCurrentProcessInfo)
+void QSVMSDEMCoupled<TElementData>::GetDofList(
+    DofsVectorType& rElementalDofList,
+    ProcessInfo& rCurrentProcessInfo)
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
             QSVMS<TElementData>::GetDofList(rElementalDofList, rCurrentProcessInfo);
@@ -285,9 +292,10 @@ double QSVMSDEMCoupled<TElementData>::FilterWidth(const BoundedMatrix<double, Nu
 }
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                        VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo)
+void QSVMSDEMCoupled<TElementData>::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo)
     {
         
         QSVMS<TElementData>::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -302,8 +310,9 @@ void QSVMSDEMCoupled<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSi
     }
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                            ProcessInfo& rCurrentProcessInfo)
+void QSVMSDEMCoupled<TElementData>::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
     QSVMS<TElementData>::CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -314,8 +323,9 @@ void QSVMSDEMCoupled<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandS
 }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                            ProcessInfo& rCurrentProcessInfo)
+void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo)
     {
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
@@ -356,8 +366,9 @@ void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(VectorType& rRightHan
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::AddMassStabilization(TElementData& rData,
-                                                        MatrixType &rMassMatrix)
+void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
+    TElementData& rData,
+    MatrixType &rMassMatrix)
     {
 
         const double density = this->GetAtCoordinate(rData.Density, rData.N);
@@ -402,8 +413,9 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(TElementData& rData,
     }
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
-                                                    const typename TElementData::ShapeFunctionsType& rN)
+void QSVMSDEMCoupled<TElementData>::GetAdvectiveVel(
+    array_1d< double, 3 > & rAdvVel,
+    const typename TElementData::ShapeFunctionsType& rN)
     {
         // Compute the weighted value of the advective velocity in the (Gauss) Point
         rAdvVel = rN[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY));
@@ -415,7 +427,8 @@ void QSVMSDEMCoupled<TElementData>::GetAdvectiveVel(array_1d< double, 3 > & rAdv
 
 template <class TElementData>
 void QSVMSDEMCoupled<TElementData>::GetEffectiveViscosity(
-    TElementData& rData, double& rViscosity) {
+    TElementData& rData, 
+    double& rViscosity) {
 
     double c_s = rData.CSmagorinsky;
     //this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
@@ -453,7 +466,9 @@ void QSVMSDEMCoupled<TElementData>::GetEffectiveViscosity(
 }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::CalculateLaplacianMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void QSVMSDEMCoupled<TElementData>::CalculateLaplacianMassMatrix(
+    MatrixType& rMassMatrix, 
+    ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int LocalSize = Dim * NumNodes;
 
@@ -472,7 +487,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateLaplacianMassMatrix(MatrixType& rMa
         // Add 'classical' mass matrix (lumped)
         double Coeff = Area / NumNodes; //Optimize!
 
-        this->CalculateLaplacianLumpedMassMatrix(rMassMatrix, Coeff);
+        this->AddLaplacianLumpedMassMatrix(rMassMatrix, Coeff);
     }
 
     /// Write the divergence of the advective velocity evaluated at this point to an array
@@ -484,8 +499,9 @@ void QSVMSDEMCoupled<TElementData>::CalculateLaplacianMassMatrix(MatrixType& rMa
      * @param Step: The time Step
      */
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::GetAdvectiveVelDivergence(double & rAdvVelDiv,
-                                                            const BoundedMatrix<double, NumNodes, Dim >& rDN_DX)
+void QSVMSDEMCoupled<TElementData>::GetAdvectiveVelDivergence(
+    double & rAdvVelDiv,
+    const BoundedMatrix<double, NumNodes, Dim >& rDN_DX)
     {
         rAdvVelDiv = 0.0;
 
@@ -502,8 +518,9 @@ void QSVMSDEMCoupled<TElementData>::GetAdvectiveVelDivergence(double & rAdvVelDi
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::CalculateLaplacianLumpedMassMatrix(MatrixType& rLHSMatrix,
-                                                                        const double Mass)
+void QSVMSDEMCoupled<TElementData>::AddLaplacianLumpedMassMatrix(
+    MatrixType& rLHSMatrix,
+    const double Mass)
     {
         unsigned int DofIndex = 0;
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -517,9 +534,10 @@ void QSVMSDEMCoupled<TElementData>::CalculateLaplacianLumpedMassMatrix(MatrixTyp
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::AddRHSLaplacian(VectorType& F,
-                                        const BoundedMatrix<double, NumNodes, Dim>& rDN_DX,
-                                        const double Weight)
+void QSVMSDEMCoupled<TElementData>::AddRHSLaplacian(
+    VectorType& F,
+    const BoundedMatrix<double, NumNodes, Dim>& rDN_DX,
+    const double Weight)
     {
         double Coef = Weight;
         array_1d<double, 3 > Velocity(3, 0.0);
@@ -539,9 +557,10 @@ void QSVMSDEMCoupled<TElementData>::AddRHSLaplacian(VectorType& F,
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::AddMomentumRHS(VectorType& F,
-                                                const double Weight,
-                                                TElementData& rData)
+void QSVMSDEMCoupled<TElementData>::AddMomentumRHS(
+    VectorType& F,
+    const double Weight,
+    TElementData& rData)
     {
         double Coef = rData.Density * Weight;
 
@@ -561,13 +580,14 @@ void QSVMSDEMCoupled<TElementData>::AddMomentumRHS(VectorType& F,
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::AddMassRHS(VectorType& F,
-                                            const double Density,
-                                            const array_1d<double, NumNodes>& rShapeFunc,
-                                            const double Weight,
-                                            const std::vector<double>& TimeSchemeWeights,
-                                            const double& DeltaTime,
-                                            TElementData& rData)
+void QSVMSDEMCoupled<TElementData>::AddMassRHS(
+    VectorType& F,
+    const double Density,
+    const array_1d<double, NumNodes>& rShapeFunc,
+    const double Weight,
+    const std::vector<double>& TimeSchemeWeights,
+    const double& DeltaTime,
+    TElementData& rData)
     {
         double fluid_fraction_rate = 0.0;
         double mass_source = 0.0;
@@ -587,13 +607,14 @@ void QSVMSDEMCoupled<TElementData>::AddMassRHS(VectorType& F,
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::AddProjectionToRHS(VectorType& RHS,
-                                                    const array_1d<double, 3 > & rAdvVel,
-                                                    TElementData& rData,
-                                                    const double TauOne,
-                                                    const double TauTwo,
-                                                    const double Weight,
-                                                    const double DeltaTime)
+void QSVMSDEMCoupled<TElementData>::AddProjectionToRHS(
+    VectorType& RHS,
+    const array_1d<double, 3 > & rAdvVel,
+    TElementData& rData,
+    const double TauOne,
+    const double TauTwo,
+    const double Weight,
+    const double DeltaTime)
     {
         const unsigned int BlockSize = Dim + 1;
         const double density = this->GetAtCoordinate(rData.Density, rData.N);
@@ -646,9 +667,10 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
 
 // Add a the contribution from a single integration point to the velocity contribution
 template< class TElementData >
-void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(TElementData& rData,
-                                                    MatrixType &rLocalLHS,
-                                                    VectorType &rLocalRHS)
+void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
+    TElementData& rData,
+    MatrixType &rLocalLHS,
+    VectorType &rLocalRHS)
 {
     auto& LHS = rData.LHS;
     LHS.clear();
@@ -754,11 +776,12 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(TElementData& rData,
 }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::GetModifiedConvectionOperator(array_1d< double,  NumNodes >& rResult,
-                                                                array_1d< double, 3 > & rVelocity,
-                                                                const double & rVelocityDiv,
-                                                                const typename TElementData::ShapeFunctionsType& rN,
-                                                                const typename TElementData::ShapeDerivativesType& rDN_DX)
+void QSVMSDEMCoupled<TElementData>::GetModifiedConvectionOperator(
+    array_1d< double,  NumNodes >& rResult,
+    array_1d< double, 3 > & rVelocity,
+    const double & rVelocityDiv,
+    const typename TElementData::ShapeFunctionsType& rN,
+    const typename TElementData::ShapeDerivativesType& rDN_DX)
     {
         // Evaluate (and weight) the a * Grad(Ni) + div(a) * Ni operator in the integration point, for each node i
         for (unsigned int i = 0; i <  NumNodes; ++i){ // Loop over nodes{
@@ -773,8 +796,9 @@ void QSVMSDEMCoupled<TElementData>::GetModifiedConvectionOperator(array_1d< doub
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::MassProjTerm(const TElementData& rData,
-                                                double &rMassRHS) const
+void QSVMSDEMCoupled<TElementData>::MassProjTerm(
+    const TElementData& rData,
+    double &rMassRHS) const
     {
         const auto& r_velocities = rData.Velocity;
 
@@ -794,9 +818,10 @@ void QSVMSDEMCoupled<TElementData>::MassProjTerm(const TElementData& rData,
     }
 
 template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::EvaluateGradientOfScalarInPoint(array_1d< double, 3 >& rResult,
-                                                                    const typename TElementData::NodalScalarData& variable,
-                                                                    const typename TElementData::ShapeDerivativesType& rDN_DX) const
+void QSVMSDEMCoupled<TElementData>::EvaluateGradientOfScalarInPoint(
+    array_1d< double, 3 >& rResult,
+    const typename TElementData::NodalScalarData& variable,
+    const typename TElementData::ShapeDerivativesType& rDN_DX) const
     {
 
         for (unsigned int i = 0; i < NumNodes; ++i) {

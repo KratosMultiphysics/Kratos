@@ -55,21 +55,6 @@ double ElementSize;
 ///@name Public Operations
 ///@{
 
-static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
-{
-    const auto& r_geometry = rElement.GetGeometry();
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FLUID_FRACTION, r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FLUID_FRACTION_RATE, r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FLUID_FRACTION_GRADIENT, r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
-    }
-    QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::Check(rElement, rProcessInfo);
-
-    return 0;
-}
-
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
     // Base class Initialize manages constitutive law parameters
