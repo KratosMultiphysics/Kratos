@@ -119,7 +119,7 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
     auto& r_conditions = r_model_part.Conditions();
 
     // TODO: Make vectors and matrices TLS
-    BlockPartition<ModelPart::ConditionsContainerType>(r_conditions).for_each([&](ModelPart::ConditionType& rCondition) {
+    block_for_each(r_conditions, [&](ModelPart::ConditionType& rCondition) {
         Vector gauss_weights;
         Matrix shape_functions;
         RansCalculationUtilities::CalculateConditionGeometryData(
@@ -140,8 +140,7 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 
             RansCalculationUtilities::EvaluateInPoint(
                 rCondition.GetGeometry(), gauss_shape_functions,
-                std::tie(wall_velocity, VELOCITY),
-                std::tie(nu, KINEMATIC_VISCOSITY),
+                std::tie(wall_velocity, VELOCITY), std::tie(nu, KINEMATIC_VISCOSITY),
                 std::tie(tke, TURBULENT_KINETIC_ENERGY));
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);

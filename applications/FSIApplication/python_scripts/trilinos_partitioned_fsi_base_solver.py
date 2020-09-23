@@ -23,13 +23,13 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         super(TrilinosPartitionedFSIBaseSolver, self).__init__(model, project_parameters)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         """This function returns the default-settings used by this class
         """
         this_defaults = KratosMultiphysics.Parameters("""{
             "parallel_type": "MPI"
         }""")
-        this_defaults.AddMissingParameters(super(TrilinosPartitionedFSIBaseSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(TrilinosPartitionedFSIBaseSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

@@ -34,7 +34,6 @@
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/residual_displacement_and_other_dof_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
 
@@ -81,7 +80,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
     // Custom convergence criterion types
-    typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
     typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
 
@@ -164,12 +162,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-
-    // Displacement and other DoF Convergence Criterion
-    py::class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
-        .def(py::init< double, double, std::string >())
-        .def(py::init< double, double>())
-        ;
 
     // Displacement and other DoF residual Convergence Criterion
     py::class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")

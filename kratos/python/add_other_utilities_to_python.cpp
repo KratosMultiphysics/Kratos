@@ -13,6 +13,7 @@
 
 
 // System includes
+#include <pybind11/stl.h>
 
 // External includes
 
@@ -461,7 +462,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
         .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
-        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities)
+        .def("AssignConditionDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
+        .def("AssignElementDerivativesToNodes", &SensitivityBuilder::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
+        ;
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")
