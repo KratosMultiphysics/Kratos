@@ -419,7 +419,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             const double slip_velocity = inner_prod(slip_vector,
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
-                            const double zeta = 1.0e0;
+                            const double zeta = 7.0e-1;
                             const double gamma = 0.0311;
                             const double micro_length_scale = 1.0e-9;
 
