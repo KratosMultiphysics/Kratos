@@ -334,11 +334,11 @@ typedef Node<3> NodeType;
         curve.CreateIntegrationPoints(integration_points);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 4);
-        double area = 0;
+        double length = 0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
-            area += integration_points[i].Weight();
+            length += integration_points[i].Weight();
         }
-        KRATOS_CHECK_NEAR(area, 11.180339887498949, TOLERANCE);
+        KRATOS_CHECK_NEAR(length, 11.180339887498949, TOLERANCE);
     }
 
 
