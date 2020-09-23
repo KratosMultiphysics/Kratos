@@ -109,6 +109,8 @@ public:
         TLocalMatrixType& rRotationMatrix,
         const GeometryType::PointType& rThisPoint) const
     {
+        KRATOS_TRY
+
         if (mDomainSize == 2) {
             BoundedMatrix<double, 2, 2> local_matrix;
             this->LocalRotationOperatorPure(local_matrix, rThisPoint);
@@ -116,14 +118,19 @@ public:
                 rRotationMatrix.resize(2, 2, false);
             }
             noalias(rRotationMatrix) = local_matrix;
-        } else {
+        } else if (mDomainSize == 3) {
             BoundedMatrix<double, 3, 3> local_matrix;
             this->LocalRotationOperatorPure(local_matrix, rThisPoint);
             if (rRotationMatrix.size1() != 3 || rRotationMatrix.size2() != 3) {
                 rRotationMatrix.resize(3, 3, false);
             }
             noalias(rRotationMatrix) = local_matrix;
+        } else {
+            KRATOS_ERROR << "Unsupported domain size [ mDomainSize = " << mDomainSize
+                         << " ].\n";
         }
+
+        KRATOS_CATCH("");
     }
 
     /**
@@ -147,6 +154,8 @@ public:
         const std::size_t DerivativeDirectionIndex,
         const GeometryType::PointType& rThisPoint) const
     {
+		KRATOS_TRY
+
         if (mDomainSize == 2) {
             BoundedMatrix<double, 2, 2> local_matrix;
             this->CalculateRotationOperatorPureShapeSensitivities(
@@ -156,7 +165,7 @@ public:
                 rRotationMatrixShapeDerivative.resize(2, 2, false);
             }
             noalias(rRotationMatrixShapeDerivative) = local_matrix;
-        } else {
+        } else if (mDomainSize == 3) {
             BoundedMatrix<double, 3, 3> local_matrix;
             this->CalculateRotationOperatorPureShapeSensitivities(
                 local_matrix, DerivativeNodeIndex, DerivativeDirectionIndex, rThisPoint);
@@ -165,7 +174,13 @@ public:
                 rRotationMatrixShapeDerivative.resize(3, 3, false);
             }
             noalias(rRotationMatrixShapeDerivative) = local_matrix;
+        } else {
+            KRATOS_ERROR << "Unsupported domain size [ mDomainSize = " << mDomainSize
+                         << " ].\n";
         }
+
+
+		KRATOS_CATCH("");
     }
 
     /**
