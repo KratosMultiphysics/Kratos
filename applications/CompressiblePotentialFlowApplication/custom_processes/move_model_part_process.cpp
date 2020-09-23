@@ -62,11 +62,9 @@ void MoveModelPartProcess::Execute()
     Matrix rotation_matrix = ZeroMatrix(4,4);
     GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, mRotationAxis, mRotationPoint);
 
-    IndexPartition<size_t>(mrModelPart.NumberOfNodes()).for_each(
-    [&](size_t i)
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
     {
-        auto it_node=mrModelPart.NodesBegin()+i;
-        auto &r_coordinates = it_node->Coordinates();
+        auto &r_coordinates = rNode.Coordinates();
         for (std::size_t i_dim = 0; i_dim < r_coordinates.size(); i_dim++){
             if (mSizingMultiplier > std::numeric_limits<double>::epsilon()){
                 r_coordinates[i_dim] *= mSizingMultiplier;
