@@ -243,7 +243,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     const Variable<double>& primal_variable =
         TConvectionDiffusionReactionData::GetScalarVariable();
     const Variable<double>& relaxed_primal_rate_variable =
-        TConvectionDiffusionReactionData::GetScalarRelaxedRateVariable();
+        primal_variable.GetTimeDerivative().GetTimeDerivative();
 
     const auto& r_geometry = this->GetGeometry();
     TConvectionDiffusionReactionData element_data(r_geometry);

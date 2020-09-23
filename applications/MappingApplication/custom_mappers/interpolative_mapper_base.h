@@ -176,9 +176,9 @@ public:
     ///@name Access
     ///@{
 
-    TMappingMatrixType* pGetMappingMatrix() override
+    TMappingMatrixType& GetMappingMatrix() override
     {
-        return mpMappingMatrix.get();
+        return *mpMappingMatrix;
     }
 
     ///@}
