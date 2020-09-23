@@ -276,7 +276,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Node_Nonhist
 
     std::cout << "Welcome to testing!" << std::endl;
 
-    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical);
+    auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::NodeNonHistorical);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
 
