@@ -132,9 +132,6 @@ void ShallowWater2D3::CalculateLocalSystem(
 
     data.GetNodalData(GetGeometry(), DN_DX);
 
-    this->SetValue(MIU, data.wet_fraction);
-    this->SetValue(MANNING, data.manning2);
-
     AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
@@ -208,7 +205,6 @@ void ShallowWater2D3::AddShockCapturingTerm(
     BoundedMatrix<double,2,2> k1, k2, kh;
     ComputeCrossWindDiffusivityTensors(k1, k2, kh, rData, rDN_DX);
 
-    k1 = k2 = ZeroMatrix(2,2); 
     BoundedMatrix<double,9,9> diff_matrix = ZeroMatrix(9,9);
     ComputeDiffusionMatrix(diff_matrix, rData, rDN_DX, k1, k2, kh);
     rLHS += diff_matrix;
@@ -612,10 +608,6 @@ void ShallowWater2D3::ComputeCrossWindDiffusivityTensors(
     rK1 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[0]) / f1_grad * cross_wind;
     rK2 = 0.5 * rData.shock_stab_factor * length * std::abs(flow_residual[1]) / f2_grad * cross_wind;
     rKh = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad * cross_wind;
-    // // rKh = 0.5 * rData.shock_stab_factor * length / std::sqrt(rData.gravity*rData.effective_height) * cross_wind;
-    // double k = 0.5 * rData.shock_stab_factor * length * std::abs(height_residual) / h_grad;
-    // // k += 0.5 * rData.shock_stab_factor * length * (1-rData.wet_fraction);
-    // rKh = k * cross_wind;
 }
 
 void ShallowWater2D3::AlgebraicResidual(

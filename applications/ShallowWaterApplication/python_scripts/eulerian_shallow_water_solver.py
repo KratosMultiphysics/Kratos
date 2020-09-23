@@ -35,11 +35,18 @@ class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.GROUND_IRREGULARITY, self.settings["ground_irregularity"].GetDouble())
 
+    def InitializeSolutionStep(self):
+        SW.ShallowWaterUtilities().IdentifyWetDomain(self.main_model_part, KM.ACTIVE, self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT))
+        super().InitializeSolutionStep()
+
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
+        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Nodes)
+        KM.VariableUtils().SetFlag(KM.ACTIVE, True, self.main_model_part.Elements)
+        dry_height = self.main_model_part.ProcessInfo.GetValue(SW.DRY_HEIGHT)
         SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
-        SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, 0.005)
-        SW.ComputeVelocityProcess(self.main_model_part, 0.01).Execute()
+        SW.ShallowWaterUtilities().ResetDryDomain(self.main_model_part, dry_height)
+        SW.ComputeVelocityProcess(self.main_model_part, dry_height).Execute()
         self._CheckWaterLoss()
 
     @classmethod
@@ -47,8 +54,8 @@ class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
         default_settings = KM.Parameters("""
         {
         "lumped_mass_factor"         : 1.0,
-        "shock_stabilization_factor" : 0.01,
-        "ground_irregularity"        : 0.001
+        "shock_stabilization_factor" : 0.001,
+        "ground_irregularity"        : 0.0
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -64,6 +71,6 @@ class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
         total_water = KM.VariableUtils().SumHistoricalNodeScalarVariable(SW.HEIGHT, self.main_model_part,0)
         total_water /= self.main_model_part.NumberOfNodes()
         water_loss = (total_water - self.initial_water) / self.initial_water
-        if abs(water_loss) > 1e-3:
+        if abs(water_loss) > 1e-3 and self.echo_level > 1:
             msg = "Water loss : {} %"
             KM.Logger.PrintWarning(self.__class__.__name__, msg.format(water_loss*100))
