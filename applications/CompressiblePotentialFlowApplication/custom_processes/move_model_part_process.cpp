@@ -12,6 +12,7 @@
 
 
 #include "move_model_part_process.h"
+#include "utilities/geometrical_transformation_utilities.h"
 
 namespace Kratos
 {
@@ -52,13 +53,14 @@ void MoveModelPartProcess::Execute()
 {
     KRATOS_TRY;
 
+    Matrix translation_matrix = ZeroMatrix(4.4);
+    GeometricalTransformationUtilities::CalculateTranslationMatrix(mSizingMultiplier, translation_matrix, mOrigin);
     #pragma omp parallel for
     for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfNodes()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
         auto &r_coordinates = it_node->Coordinates();
-
-        for (std::size_t i_dim = 0; i_dim<3;i_dim++){
-            r_coordinates[i_dim] = mSizingMultiplier*r_coordinates[i_dim]+mOrigin[i_dim];
+        for (std::size_t i_dim = 0; i_dim < r_coordinates.size(); i_dim++){
+            r_coordinates[i_dim] += translation_matrix(i_dim, 3);
         }
 
         if (mRotationAngle != 0.0){
