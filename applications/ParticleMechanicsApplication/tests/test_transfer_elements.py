@@ -237,7 +237,7 @@ class TestTransferElements(KratosUnittest.TestCase):
         sub_mp = mp.GetSubModelPart("Elements")
         KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(sub_mp)
         #Send elements from rank=0 to all other
-        KratosParticle.TransferElements(sub_mp, send_elements)
+        KratosParticle.MPM_MPI_Utilities.TransferElements(sub_mp, send_elements)
         #Check if model_parts hold the correct elements
         if rank is 0:
             self.assertEqual(mp.NumberOfElements(), 0) #Check if element was removed after sent

@@ -177,7 +177,7 @@ class TestTransferConditions(KratosUnittest.TestCase):
 
         KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(mp)
         # Exchange elements
-        KratosParticle.TransferConditions(mp, send_conditions)
+        KratosParticle.MPM_MPI_Utilities.TransferConditions(mp, send_conditions)
 
         # Check
         if rank is 0:

@@ -24,10 +24,6 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/mpm_search_element_utility.h"
 #include "custom_utilities/mpm_particle_generator_utility.h"
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "custom_utilities/mpi/mpi_utilities.h"
-#include <pybind11/stl.h>
-#endif
 
 
 namespace Kratos{
@@ -62,10 +58,6 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", &MPMParticleGeneratorUtility::GenerateMaterialPointCondition);
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        m.def("TransferElements", &MPM_MPI_Utilities::TransferElements);
-        m.def("TransferConditions", &MPM_MPI_Utilities::TransferConditions);
-#endif
     }
 
 }  // namespace Python.
