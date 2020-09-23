@@ -99,12 +99,7 @@ void QSVMSDEMCoupled<TElementData>::Calculate(
 
         if (rVariable == ERROR_RATIO)
         {
-            // Get the element's geometric parameters
-            double Weight = data.Weight;
             const double density = this->GetAtCoordinate(data.Density,data.N);
-
-            this->GetEffectiveViscosity(data, data.EffectiveViscosity);
-            const double viscosity = this->GetAtCoordinate(data.EffectiveViscosity,data.N);
 
             // Get Advective velocity
             array_1d<double, 3> convective_velocity= this->GetAtCoordinate(data.Velocity, data.N) -
@@ -339,11 +334,11 @@ void QSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
 
             //this->AddMomentumRHS(rRightHandSideVector, Weight, data);
-            const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+            const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
             static const double arr[] = {1.0,-1.0};
-            std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
+            std::vector<double> scheme_weights (arr, arr + sizeof(arr) / sizeof(arr[0]));
 
-            this->AddMassRHS(rRightHandSideVector, data.Density, data.N, Weight, SchemeWeights, DeltaTime, data);
+            this->AddMassRHS(rRightHandSideVector, data.Density, data.N, Weight, scheme_weights, delta_time, data);
         }
         else {
             const unsigned int LocalSize = Dim * NumNodes;
@@ -436,7 +431,6 @@ void QSVMSDEMCoupled<TElementData>::GetEffectiveViscosity(
     rViscosity = rData.DynamicViscosity;
 
     if (c_s != 0.0) {
-        const double density = this->GetAtCoordinate(rData.Density,rData.N);
         const auto& r_velocities = rData.Velocity;
         const auto& r_dndx = rData.DN_DX;
         const double FilterWidth = this->FilterWidth(r_dndx);
@@ -565,7 +559,6 @@ void QSVMSDEMCoupled<TElementData>::AddMomentumRHS(
         double Coef = rData.Density * Weight;
 
         const auto& body_force = rData.BodyForce;
-        const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
         // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
         int LocalIndex = 0;
 
@@ -697,7 +690,6 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     AGradN *= density; // Convective term is always multiplied by density
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
 
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 

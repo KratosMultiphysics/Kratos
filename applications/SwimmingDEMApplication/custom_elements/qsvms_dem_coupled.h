@@ -246,7 +246,7 @@ public:
         double & rAdvVelDiv, 
         const BoundedMatrix<double, NumNodes, Dim >& rDN_DX);
 
-    void CalculateLaplacianLumpedMassMatrix(
+    void AddLaplacianLumpedMassMatrix(
         MatrixType& rLHSMatrix, 
         const double Mass);
 
@@ -277,6 +277,12 @@ public:
         const double TauTwo,
         const double Weight,
         const double DeltaTime = 1.0);
+
+    void CalculateTau(
+        TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauOne,
+        double &TauTwo);
 
     void EvaluateTimeDerivativeInPoint(
         double& rResult,
