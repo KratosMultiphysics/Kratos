@@ -31,6 +31,8 @@
 #include "includes/define.h"
 #include "utilities/counter.h"
 #include "includes/serializer.h"
+#include "containers/variables_list_visitor_base.h"
+
 
 
 namespace Kratos
@@ -172,6 +174,8 @@ public:
      * @param pData A pointer to the data to be loaded
      */
     virtual void Load(Serializer& rSerializer, void* pData) const;
+
+    virtual void AcceptVisitor(VariablesListVisitorBase& TheVisitor) const;
 
     ///@}
     ///@name Access
