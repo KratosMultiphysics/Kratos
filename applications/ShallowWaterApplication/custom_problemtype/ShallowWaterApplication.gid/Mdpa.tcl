@@ -39,8 +39,6 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar ""
 
     ## Elements
-    set VariablesType [GiD_AccessValue get gendata Variables]
-    set FrameworkType [GiD_AccessValue get gendata Framework]
     # Body_Part
     set Groups [GiD_Info conditions Bottom_friction groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
