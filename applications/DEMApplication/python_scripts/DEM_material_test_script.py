@@ -8,7 +8,7 @@ import weakref
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-class MaterialTest(object):
+class MaterialTest():
 
     def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
         self.parameters = DEM_parameters
@@ -849,7 +849,7 @@ class MaterialTest(object):
         ##savefig(savedname + '.eps')
         savefig(savedname + '.png')
 
-class PreUtils(object):
+class PreUtils():
 
     def __init__(self, spheres_model_part):
 
