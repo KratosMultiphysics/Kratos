@@ -13,6 +13,7 @@
 
 #include "move_model_part_process.h"
 #include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -61,8 +62,9 @@ void MoveModelPartProcess::Execute()
     axis_of_rotation(2) = 1.0;
     GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, axis_of_rotation, mRotationPoint);
 
-    #pragma omp parallel for
-    for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfNodes()); ++i) {
+    IndexPartition<size_t>(mrModelPart.NumberOfNodes()).for_each(
+    [&](size_t i)
+    {
         auto it_node=mrModelPart.NodesBegin()+i;
         auto &r_coordinates = it_node->Coordinates();
         for (std::size_t i_dim = 0; i_dim < r_coordinates.size(); i_dim++){
@@ -84,7 +86,7 @@ void MoveModelPartProcess::Execute()
                 r_coordinates[i_dim] = rotated_coordinates[i_dim];
             }
         }
-    }
+    });
 
     KRATOS_CATCH("");
 }
