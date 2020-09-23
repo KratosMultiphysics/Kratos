@@ -22,6 +22,13 @@
 
 namespace Kratos
 {
+    void VariablesList::ApplyVisitor(VariablesListVisitorBase& TheVisitor){
+        for (auto p_variable : mVariables)
+        {
+            p_variable->AcceptVisitor(TheVisitor);
+        }
+    }
+
     void VariablesList::save(Serializer& rSerializer) const
     {
         std::size_t size = mVariables.size();

@@ -30,6 +30,7 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
+// #include "containers/variables_list_visitor.h"
 
 #ifdef KRATOS_DEBUG
 #include "utilities/openmp_utils.h"
@@ -38,6 +39,7 @@
 
 namespace Kratos
 {
+	class VariablesListVisitorBase;
 
 	///@name Kratos Classes
 	///@{
@@ -352,6 +354,13 @@ namespace Kratos
 			return GetPosition(pThisVariable->SourceKey());
 		}
 
+		void ApplyVisitor(VariablesListVisitorBase& TheVisitor);
+
+		// template<typename TFunctionType>
+		// void ApplyVisitorFunction(TFunctionType&& TheFunction){
+		// 	ApplyVisitor(VariablesListVisitor<TFunctionType>(TheFunction));
+
+		// }
 
 		///@}
 		///@name Access
