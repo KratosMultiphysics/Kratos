@@ -6,9 +6,9 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_base_solver import ShallowWaterBaseSolver
 
 def CreateSolver(model, custom_settings):
-    return EulerianShallowWaterSolver(model, custom_settings)
+    return StabilizedShallowWaterSolver(model, custom_settings)
 
-class EulerianShallowWaterSolver(ShallowWaterBaseSolver):
+class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def __init__(self, model, settings):
         super().__init__(model, settings)
 
