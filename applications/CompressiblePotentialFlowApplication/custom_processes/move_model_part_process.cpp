@@ -28,6 +28,7 @@ MoveModelPartProcess::MoveModelPartProcess(ModelPart& rModelPart,
     {
         "origin"                        : [0.0,0.0,0.0],
         "rotation_point"                : [0.0,0.0,0.0],
+        "rotation_axis"                 : [0.0,0.0,1.0],
         "rotation_angle"                : 0.0,
         "sizing_multiplier"             : 1.0
 
@@ -47,6 +48,7 @@ MoveModelPartProcess::MoveModelPartProcess(ModelPart& rModelPart,
         mRotationPoint = mOrigin;
     }
     mRotationAngle = ThisParameters["rotation_angle"].GetDouble();
+    mRotationAxis = ThisParameters["rotation_axis"].GetVector();
     mSizingMultiplier = ThisParameters["sizing_multiplier"].GetDouble();
 }
 
@@ -59,8 +61,7 @@ void MoveModelPartProcess::Execute()
 
     Matrix rotation_matrix = ZeroMatrix(4.4);
     Vector axis_of_rotation = ZeroVector(3);
-    axis_of_rotation(2) = 1.0;
-    GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, axis_of_rotation, mRotationPoint);
+    GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, mRotationAxis, mRotationPoint);
 
     IndexPartition<size_t>(mrModelPart.NumberOfNodes()).for_each(
     [&](size_t i)
