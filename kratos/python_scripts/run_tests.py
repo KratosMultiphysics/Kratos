@@ -201,6 +201,7 @@ def main():
     verbosity = 1
     level = 'all'
     is_mpi = False
+    override_time_limit = False
 
     # Keep the worst exit code
     exit_code = 0
@@ -215,7 +216,8 @@ def main():
                 'verbose=',
                 'level=',
                 'command=',
-                'using-mpi'
+                'using-mpi',
+                'override-time-limit'
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -269,6 +271,11 @@ def main():
         elif o in ('--using-mpi'):
             is_mpi = True
 
+        elif o in ('--override-time-limit'):
+            # This should only be used to override a time limit for the coverage report, as generating it
+            # has a strong impact in the performance.
+            override_time_limit = True
+
         else:
             assert False, 'unhandled option'
 
@@ -279,6 +286,8 @@ def main():
     signalTime = None
     if level == 'small':
         signalTime = int(60)
+        if override_time_limit:
+            signalTime = int(900)
     elif level == 'nightly':
         signalTime = int(900)
 
