@@ -57,7 +57,7 @@ namespace Kratos
 /** Detail class definition.
 */
 template<class TVectorType>
-class VectorComponentAdaptor
+class KRATOS_DEPRECATED_MESSAGE("This class is no longer used and can be removed") VectorComponentAdaptor
 {
 public:
     ///@name Type Definitions
