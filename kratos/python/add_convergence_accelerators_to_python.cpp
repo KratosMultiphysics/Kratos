@@ -18,8 +18,6 @@
 
 // Project includes
 #include "add_convergence_accelerators_to_python.h"
-#include "add_convergence_accelerator_to_python.h"
-#include "includes/define.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
 
@@ -34,7 +32,20 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
     // Convergence accelerator base class
-    AddBaseConvergenceAcceleratorToPython<SparseSpaceType, LocalSpaceType>(m, "ConvergenceAccelerator");
+    using BaseConvergenceAcceleratorType = ConvergenceAccelerator<SparseSpaceType, LocalSpaceType>;
+
+    py::class_<BaseConvergenceAcceleratorType, typename BaseConvergenceAcceleratorType::Pointer>(m, "ConvergenceAccelerator")
+        .def(py::init<Parameters>())
+        .def("Initialize",                   &BaseConvergenceAcceleratorType::Initialize)
+        .def("InitializeSolutionStep",       &BaseConvergenceAcceleratorType::InitializeSolutionStep)
+        .def("InitializeNonLinearIteration", &BaseConvergenceAcceleratorType::InitializeNonLinearIteration)
+        .def("UpdateSolution",               &BaseConvergenceAcceleratorType::UpdateSolution)
+        .def("FinalizeNonLinearIteration",   &BaseConvergenceAcceleratorType::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep",         &BaseConvergenceAcceleratorType::FinalizeSolutionStep)
+        .def("Finalize",                     &BaseConvergenceAcceleratorType::Finalize)
+        .def("GetEchoLevel",                 &BaseConvergenceAcceleratorType::GetEchoLevel)
+        .def("SetEchoLevel",                 &BaseConvergenceAcceleratorType::SetEchoLevel)
+    ;
 
 }
 

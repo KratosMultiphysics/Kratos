@@ -18,8 +18,7 @@
 #include "Epetra_FEVector.h"
 
 // Project includes
-#include "python/add_convergence_accelerator_to_python.h"
-#include "includes/define.h"
+#include "add_trilinos_convergence_acclerators_to_python.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
 #include "trilinos_space.h"
@@ -35,7 +34,20 @@ void AddTrilinosConvergenceAcceleratorsToPython(pybind11::module &m)
     using TrilinosLocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
     // Convergence accelerator base class
-    AddBaseConvergenceAcceleratorToPython<TrilinosSparseSpaceType, TrilinosLocalSpaceType>(m, "TrilinosConvergenceAccelerator");
+    using TrilinosBaseConvergenceAcceleratorType = ConvergenceAccelerator<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
+
+    py::class_<TrilinosBaseConvergenceAcceleratorType, typename TrilinosBaseConvergenceAcceleratorType::Pointer>(m, "TrilinosConvergenceAccelerator")
+        .def(py::init<Parameters>())
+        .def("Initialize",                   &TrilinosBaseConvergenceAcceleratorType::Initialize)
+        .def("InitializeSolutionStep",       &TrilinosBaseConvergenceAcceleratorType::InitializeSolutionStep)
+        .def("InitializeNonLinearIteration", &TrilinosBaseConvergenceAcceleratorType::InitializeNonLinearIteration)
+        .def("UpdateSolution",               &TrilinosBaseConvergenceAcceleratorType::UpdateSolution)
+        .def("FinalizeNonLinearIteration",   &TrilinosBaseConvergenceAcceleratorType::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep",         &TrilinosBaseConvergenceAcceleratorType::FinalizeSolutionStep)
+        .def("Finalize",                     &TrilinosBaseConvergenceAcceleratorType::Finalize)
+        .def("GetEchoLevel",                 &TrilinosBaseConvergenceAcceleratorType::GetEchoLevel)
+        .def("SetEchoLevel",                 &TrilinosBaseConvergenceAcceleratorType::SetEchoLevel)
+    ;
 
 }
 
