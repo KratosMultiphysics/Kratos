@@ -375,7 +375,6 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
                                 }
 
-
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
