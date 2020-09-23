@@ -55,25 +55,9 @@ double ElementSize;
 ///@name Public Operations
 ///@{
 
-void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
-{
-    // Base class Initialize manages constitutive law parameters
-    QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
-    this->FillFromNodalData(FluidFraction, FLUID_FRACTION, r_geometry);
-    this->FillFromNodalData(FluidFractionRate, FLUID_FRACTION_RATE, r_geometry);
-    this->FillFromNodalData(FluidFractionGradient, FLUID_FRACTION_GRADIENT, r_geometry);
-    this->FillFromNodalData(Acceleration, ACCELERATION, r_geometry);
-    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
-
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
-}
-
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-
-
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const auto& r_geometry = rElement.GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FLUID_FRACTION, r_geometry[i]);
@@ -84,6 +68,20 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
     QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::Check(rElement, rProcessInfo);
 
     return 0;
+}
+
+void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
+{
+    // Base class Initialize manages constitutive law parameters
+    QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);
+    const auto& r_geometry = rElement.GetGeometry();
+    this->FillFromNodalData(FluidFraction, FLUID_FRACTION, r_geometry);
+    this->FillFromNodalData(FluidFractionRate, FLUID_FRACTION_RATE, r_geometry);
+    this->FillFromNodalData(FluidFractionGradient, FLUID_FRACTION_GRADIENT, r_geometry);
+    this->FillFromNodalData(Acceleration, ACCELERATION, r_geometry);
+    this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
+
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }
 
 ///@}

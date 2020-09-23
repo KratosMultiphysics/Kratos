@@ -44,7 +44,7 @@
 #include "../DEMApplication/custom_elements/analytic_spheric_particle.h"
 #include "../FluidDynamicsApplication/custom_elements/qs_vms.h"
 #include "../FluidDynamicsApplication/custom_utilities/qsvms_data.h"
-#include "custom_utilities/qsvmsdemcoupled_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 
 namespace Kratos
 {

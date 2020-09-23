@@ -197,9 +197,10 @@ public:
         double& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(const Variable<array_1d<double, 3>>& rVariable,
-                   array_1d<double, 3>& rOutput,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void Calculate(
         const Variable<Vector >& rVariable,
@@ -212,83 +213,111 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList,
-                    ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo) override;
 
     double FilterWidth();
 
-    double FilterWidth(const BoundedMatrix<double, NumNodes, Dim >& DN_DX);
+    double FilterWidth(
+        const BoundedMatrix<double, NumNodes, Dim >& DN_DX);
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddMassStabilization(TElementData& rData,
-                              MatrixType &rMassMatrix);
+    void AddMassStabilization(
+        TElementData& rData,
+        MatrixType &rMassMatrix);
 
-    void CalculateLaplacianMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLaplacianMassMatrix(
+        MatrixType& rMassMatrix, 
+        ProcessInfo& rCurrentProcessInfo);
 
-    void GetAdvectiveVelDivergence(double & rAdvVelDiv, const BoundedMatrix<double, NumNodes, Dim >& rDN_DX);
+    void GetAdvectiveVelDivergence(
+        double & rAdvVelDiv, 
+        const BoundedMatrix<double, NumNodes, Dim >& rDN_DX);
 
-    void CalculateLaplacianLumpedMassMatrix(MatrixType& rLHSMatrix, const double Mass);
+    void CalculateLaplacianLumpedMassMatrix(
+        MatrixType& rLHSMatrix, 
+        const double Mass);
 
-    void AddRHSLaplacian(VectorType& F,
-                        const BoundedMatrix<double, NumNodes, Dim>& rDN_DX,
-                        const double Weight);
+    void AddRHSLaplacian(
+        VectorType& F,
+        const BoundedMatrix<double, NumNodes, Dim>& rDN_DX,
+        const double Weight);
 
-    void AddMassRHS(VectorType& F,
-                    const double Density,
-                    const array_1d<double, NumNodes>& rShapeFunc,
-                    const double Weight,
-                    const std::vector<double>& TimeSchemeWeights,
-                    const double& DeltaTime,
-                    TElementData& rData);
+    void AddMassRHS(
+        VectorType& F,
+        const double Density,
+        const array_1d<double, NumNodes>& rShapeFunc,
+        const double Weight,
+        const std::vector<double>& TimeSchemeWeights,
+        const double& DeltaTime,
+        TElementData& rData);
 
-    void AddMomentumRHS(VectorType& F, const double Weight, TElementData& rData);
+    void AddMomentumRHS(
+        VectorType& F, 
+        const double Weight, 
+        TElementData& rData);
 
-    void AddProjectionToRHS(VectorType& RHS,
-                            const array_1d<double, 3 > & rAdvVel,
-                            TElementData& rData,
-                            const double TauOne,
-                            const double TauTwo,
-                            const double Weight,
-                            const double DeltaTime = 1.0);
+    void AddProjectionToRHS(
+        VectorType& RHS,
+        const array_1d<double, 3 > & rAdvVel,
+        TElementData& rData,
+        const double TauOne,
+        const double TauTwo,
+        const double Weight,
+        const double DeltaTime = 1.0);
 
-    void CalculateTau(TElementData& rData,
-                      const array_1d<double,3> &Velocity,
-                      double &TauOne,
-                      double &TauTwo);
+    void CalculateTau(
+        TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauOne,
+        double &TauTwo);
 
-    void EvaluateTimeDerivativeInPoint(double& rResult,
-                                       const Variable< double >& rVariable,
-                                       const array_1d< double,  NumNodes >& rN,
-                                       const double& DeltaTime,
-                                       const std::vector<double>& rSchemeWeigths);
+    void EvaluateTimeDerivativeInPoint(
+        double& rResult,
+        const Variable< double >& rVariable,
+        const array_1d< double,  NumNodes >& rN,
+        const double& DeltaTime,
+        const std::vector<double>& rSchemeWeigths);
 
-    void GetModifiedConvectionOperator(array_1d< double,  NumNodes >& rResult,
-                                       array_1d< double, 3 > & rVelocity,
-                                       const double & rVelocityDiv,
-                                       const typename TElementData::ShapeFunctionsType& rN,
-                                       const typename TElementData::ShapeDerivativesType& rDN_DX);
+    void GetModifiedConvectionOperator(
+        array_1d< double,  NumNodes >& rResult,
+        array_1d< double, 3 > & rVelocity,
+        const double & rVelocityDiv,
+        const typename TElementData::ShapeFunctionsType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX);
 
-    void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,const typename TElementData::ShapeFunctionsType& rN);
+    void GetAdvectiveVel(
+        array_1d< double, 3 > & rAdvVel,
+        const typename TElementData::ShapeFunctionsType& rN);
 
-    void MassProjTerm(const TElementData& rData, double &rMassRHS) const override;
+    void MassProjTerm(
+        const TElementData& rData, 
+        double &rMassRHS) const override;
 
-    void EvaluateGradientOfScalarInPoint(array_1d< double, 3 >& rResult,
-                                         const typename TElementData::NodalScalarData& variable,
-                                         const typename TElementData::ShapeDerivativesType& rDN_DX) const;
+    void EvaluateGradientOfScalarInPoint(
+        array_1d< double, 3 >& rResult,
+        const typename TElementData::NodalScalarData& variable,
+        const typename TElementData::ShapeDerivativesType& rDN_DX) const;
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -328,7 +357,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    void AddVelocitySystem(TElementData& rData, MatrixType &rLocalLHS, VectorType &rLocalRHS) override;
+    void AddVelocitySystem(
+        TElementData& rData, 
+        MatrixType &rLocalLHS, 
+        VectorType &rLocalRHS) override;
 
     // Protected interface of FluidElement ////////////////////////////////////
 
@@ -339,7 +371,9 @@ protected:
      * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
      * @return Kinematic viscosity at the integration point.
      */
-    void GetEffectiveViscosity(TElementData& rData, double& rViscosity);
+    void GetEffectiveViscosity(
+        TElementData& rData, 
+        double& rViscosity);
 
     ///@}
     ///@name Protected  Access

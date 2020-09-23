@@ -16,9 +16,11 @@
 #include "includes/checks.h"
 
 #include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
+#include "../FluidDynamicsApplication/custom_elements/fluid_element.cpp"
+#include "../FluidDynamicsApplication/custom_elements/qs_vms.cpp"
 #include "../FluidDynamicsApplication/fluid_dynamics_application.h"
 #include "../FluidDynamicsApplication/custom_utilities/fluid_element_utilities.h"
-#include "custom_utilities/qsvmsdemcoupled_data.h"
+#include "custom_utilities/qsvms_dem_coupled_data.h"
 
 namespace Kratos
 {
@@ -76,14 +78,6 @@ int QSVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    // Extra variables
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA);
-
-    // Output variables (for Calculate() functions)
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(SUBSCALE_PRESSURE);
-
     for(unsigned int i=0; i<NumNodes; ++i)
     {
         Node<3>& rNode = this->GetGeometry()[i];
@@ -95,9 +89,11 @@ int QSVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 }
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::Calculate(const Variable<double>& rVariable,
-                                             double& rOutput, 
-                                             const ProcessInfo& rCurrentProcessInfo) {
+void QSVMSDEMCoupled<TElementData>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput, 
+    const ProcessInfo& rCurrentProcessInfo) 
+    {
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
@@ -105,10 +101,6 @@ void QSVMSDEMCoupled<TElementData>::Calculate(const Variable<double>& rVariable,
         {
             // Get the element's geometric parameters
             double Weight = data.Weight;
-            // array_1d<double, TNumNodes> N;
-            // BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-            // GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.Weight);
-            // Calculate this element's fluid properties
             const double density = this->GetAtCoordinate(data.Density,data.N);
 
             this->GetEffectiveViscosity(data, data.EffectiveViscosity);
@@ -159,7 +151,11 @@ void QSVMSDEMCoupled<TElementData>::Calculate(const Variable<double>& rVariable,
                 this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Weight * data.N[i];
                 this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
             }
-        }        
+        }
+        else{
+
+        }
+
     }
 
 template <class TElementData>
@@ -257,13 +253,13 @@ template <class TElementData>
 double QSVMSDEMCoupled<TElementData>::FilterWidth()
 {
     if (Dim == 2){
-        double FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
-        return 2.0 * FilterWidth;
+        double filter_width = GeometryUtils::CalculateVolume2D(this->GetGeometry());
+        return 2.0 * filter_width;
     } else {
-        const double TwoThirds = 2.0 / 3.0;
-        double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
-        FilterWidth *= 6.0;
-        return pow(FilterWidth, TwoThirds);
+        const double two_thirds = 2.0 / 3.0;
+        double filter_width = GeometryUtils::CalculateVolume3D(this->GetGeometry());
+        filter_width *= 6.0;
+        return pow(filter_width, two_thirds);
     }
 }
 /**
@@ -283,9 +279,9 @@ double QSVMSDEMCoupled<TElementData>::FilterWidth(const BoundedMatrix<double, Nu
         if(inv_h > inv_h_max) inv_h_max = inv_h;
     }
 
-    double DeltaSquared = 1.0/inv_h_max;
+    double delta_squared = 1.0/inv_h_max;
 
-    return DeltaSquared;
+    return delta_squared;
 }
 
 template <class TElementData>
@@ -369,8 +365,8 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(TElementData& rData,
         double tau_one;
         double tau_two;
         array_1d<double, 3> convective_velocity=
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+            this->GetAtCoordinate(rData.Velocity, rData.N) -
+            this->GetAtCoordinate(rData.MeshVelocity, rData.N);
 
         this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
@@ -851,6 +847,12 @@ void QSVMSDEMCoupled<TElementData>::load(Serializer& rSerializer)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
+
+template class FluidElement<QSVMSDEMCoupledData< 2, 3 >>;
+template class FluidElement<QSVMSDEMCoupledData< 3, 4 >>;
+
+template class QSVMS<QSVMSDEMCoupledData< 2, 3 >>;
+template class QSVMS<QSVMSDEMCoupledData< 3, 4 >>;
 
 template class QSVMSDEMCoupled<QSVMSDEMCoupledData< 2, 3 >>;
 template class QSVMSDEMCoupled<QSVMSDEMCoupledData< 3, 4 >>;
