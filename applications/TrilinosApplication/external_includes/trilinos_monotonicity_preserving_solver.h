@@ -10,8 +10,8 @@
 //  Main authors:    Daniel Diez
 //
 
-#if !defined(KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED )
-#define  KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED
+#if !defined(KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED )
+#define  KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED
 
 // System includes
 
@@ -116,7 +116,7 @@ public:
             "solver_type"                    : "monotonicity_preserving",
             "inner_solver_settings"          : {
                 "preconditioner_type"            : "amg",
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "smoother_type"                  : "ilu0",
                 "krylov_type"                    : "lgmres",
                 "coarsening_type"                : "aggregation",
@@ -203,7 +203,6 @@ public:
             ++i;
         }
 
-        // here we construct and fill a vector "fixed local" which cont
         Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
         Epetra_Vector dofs_local(Copy, localmap, dofs_values.data());
 
@@ -226,19 +225,20 @@ public:
             for (int j = 0; j < numEntries; j++) {
                 const double value = vals[j];
                 if (value > 0.0) {
-                    const std::size_t row_gid = rA.RowMap().GID(i);
-                    const std::size_t col_gid = rA.ColMap().GID(cols[j]);
+                    const int row_gid = rA.RowMap().GID(i);
+                    const int col_gid = rA.ColMap().GID(cols[j]);
                     if (row_gid > col_gid) {
                         Matrix LHS(2, 2);
                         LHS(0, 0) = value;
                         LHS(0, 1) = -value;
                         LHS(1, 0) = -value;
                         LHS(1, 1) = value;
-                        Vector dofs(2);
-                        dofs[0] = dofs_local[row_gid];
-                        dofs[1] = dofs[cols[j]];
-                        Vector RHS = -prod(LHS, dofs);
-                        Element::EquationIdVectorType equations_ids = {row_gid, col_gid};
+                        Vector dofs_sol(2);
+                        int row_lid = localmap.LID(row_gid);
+                        dofs_sol[0] = dofs_local[row_lid];
+                        dofs_sol[1] = dofs[cols[j]];
+                        Vector RHS = -prod(LHS, dofs_sol);
+                        Element::EquationIdVectorType equations_ids = {static_cast<std::size_t>(row_gid), static_cast<std::size_t>(col_gid)};
                         TSparseSpaceType::AssembleLHS(rA, LHS, equations_ids);
                         TSparseSpaceType::AssembleRHS(rB, RHS, equations_ids);
 
@@ -246,7 +246,6 @@ public:
                 }
             }
         }
-
 
         if (mpLinearSolver->AdditionalPhysicalDataIsNeeded()) {
             mpLinearSolver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
@@ -409,5 +408,5 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED  defined
+#endif // KRATOS_TRILINOS_MONOTONICITY_PRESERVING_SOLVER_H_INCLUDED  defined
 
