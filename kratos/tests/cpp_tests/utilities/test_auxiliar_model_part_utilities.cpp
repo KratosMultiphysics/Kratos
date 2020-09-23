@@ -51,8 +51,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Node_histori
         i++;
     }
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::NodeHistorical);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -83,8 +81,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Node_Nonhist
         test_values[i] = (disp_test_value * i);
         i++;
     }
-
-    std::cout << "Welcome to testing!" << std::endl;
 
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical);
 
@@ -117,8 +113,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Element, Kra
         i++;
     }
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::Element);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -150,8 +144,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Condition, K
         i++;
     }
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::Condition);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -177,8 +169,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_ModelPart, K
 
     this_model_part[DISPLACEMENT_X] = 3.55;
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::ModelPart);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -203,8 +193,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_ProcessInfo,
     test_values[0] = 3.55;
 
     this_model_part.GetProcessInfo()[DISPLACEMENT_X] = 3.55;
-
-    std::cout << "Welcome to testing!" << std::endl;
 
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::ProcessInfo);
 
@@ -239,8 +227,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Node_histori
         }   
     }
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::NodeHistorical);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -273,8 +259,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Node_Nonhist
             test_values[i++] = (disp_test_value * i *j);
         }   
     }
-
-    std::cout << "Welcome to testing!" << std::endl;
 
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::NodeNonHistorical);
 
@@ -309,8 +293,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Element, Kra
         }   
     }
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::Element);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -344,8 +326,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Condition, K
         }
     }
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::Condition);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -374,8 +354,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_ModelPart, K
         test_values[j] = 3.55;
 	}
 
-    std::cout << "Welcome to testing!" << std::endl;
-
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::ModelPart);
 
     KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
@@ -403,8 +381,6 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_ProcessInfo,
         this_model_part.GetProcessInfo()[DISPLACEMENT][j] = 3.55;
         test_values[j] = 3.55;
 	}
-
-    std::cout << "Welcome to testing!" << std::endl;
 
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::ProcessInfo);
 
