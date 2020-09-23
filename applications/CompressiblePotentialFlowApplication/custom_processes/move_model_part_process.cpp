@@ -54,22 +54,35 @@ void MoveModelPartProcess::Execute()
     KRATOS_TRY;
 
     Matrix translation_matrix = ZeroMatrix(4.4);
-    GeometricalTransformationUtilities::CalculateTranslationMatrix(mSizingMultiplier, translation_matrix, mOrigin);
+    GeometricalTransformationUtilities::CalculateTranslationMatrix(1.0, translation_matrix, mOrigin);
+
+    Matrix rotation_matrix = ZeroMatrix(4.4);
+    Vector axis_of_rotation = ZeroVector(3);
+    axis_of_rotation(2) = 1.0;
+    GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, axis_of_rotation, mRotationPoint);
+
     #pragma omp parallel for
     for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfNodes()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
         auto &r_coordinates = it_node->Coordinates();
         for (std::size_t i_dim = 0; i_dim < r_coordinates.size(); i_dim++){
-            r_coordinates[i_dim] += translation_matrix(i_dim, 3);
+            if (mSizingMultiplier > std::numeric_limits<double>::epsilon()){
+                r_coordinates[i_dim] *= mSizingMultiplier;
+            }
+            if (norm_2(mOrigin) > std::numeric_limits<double>::epsilon()) {
+                r_coordinates[i_dim] += translation_matrix(i_dim, 3);
+            }
         }
 
-        if (mRotationAngle != 0.0){
-            array_1d<double, 3> old_coordinates = r_coordinates;
-            // X-Y plane rotation
-            r_coordinates[0] = mRotationPoint[0]+cos(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
-                            sin(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
-            r_coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])+
-                            cos(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
+        if (std::abs(mRotationAngle) > 0.0){
+            Vector aux_coordinates_copy = r_coordinates;
+            aux_coordinates_copy.resize(4, true);
+            aux_coordinates_copy[3] = 1.0;
+            Vector rotated_coordinates = prod(rotation_matrix, aux_coordinates_copy);
+
+            for (std::size_t i_dim = 0; i_dim < 3; i_dim++){
+                r_coordinates[i_dim] = rotated_coordinates[i_dim];
+            }
         }
     }
 
