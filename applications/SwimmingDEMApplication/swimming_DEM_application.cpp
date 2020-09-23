@@ -39,6 +39,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
+KRATOS_CREATE_VARIABLE(double, MASS_SOURCE)
 KRATOS_CREATE_VARIABLE(double, PERMEABILITY_1_DAY)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
@@ -64,6 +65,8 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mMonolithicDEMCoupledWeak3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+  mQSVMSDEMCoupled2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+  mQSVMSDEMCoupled3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mComputeLaplacianSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mComputeLaplacianSimplex3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mComputeMaterialDerivativeSimplex2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -96,6 +99,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
+  KRATOS_REGISTER_VARIABLE(MASS_SOURCE)
   KRATOS_REGISTER_VARIABLE(PERMEABILITY_1_DAY)
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
@@ -120,6 +124,8 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupled3D", mMonolithicDEMCoupled3D)
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak2D", mMonolithicDEMCoupledWeak2D)
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak3D", mMonolithicDEMCoupledWeak3D)
+  KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled2D3N", mQSVMSDEMCoupled2D3N)
+  KRATOS_REGISTER_ELEMENT("QSVMSDEMCoupled3D4N", mQSVMSDEMCoupled3D4N)
   KRATOS_REGISTER_ELEMENT("RigidShellElement", mRigidShellElement)
   KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingNanoParticle3D", mSwimmingNanoParticle3D)
