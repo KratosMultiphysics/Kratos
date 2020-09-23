@@ -899,7 +899,6 @@ namespace MPMSearchElementUtility
         const array_1d<double, 3>& xg,
         array_1d<double, 3>& rLocalCoords,
         const ProcessInfo& rProcessInfo,
-        bool IsOnGrid,
         bool& IsFound)
     {
         IsFound = false;
@@ -908,7 +907,8 @@ namespace MPMSearchElementUtility
             IsFound = true;
             return rParentGeom;
         }
-        else if(!IsOnGrid) {
+        else
+        {
             if (!rParentGeom.Has(GEOMETRY_NEIGHBOURS))
                 ConstructNeighbourRelations(rParentGeom, rBackgroundGridModelPart);
 
@@ -950,11 +950,10 @@ namespace MPMSearchElementUtility
             bool is_found = false;
             std::vector<array_1d<double, 3>> xg;
             element_itr->CalculateOnIntegrationPoints(MP_COORD, xg, rBackgroundGridModelPart.GetProcessInfo());
-            bool is_on_grid = false;
 
             GeometryType& r_found_geom = FindGridGeom(element_itr->GetGeometry().GetGeometryParent(0),
                 rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
-                rMPMModelPart.GetProcessInfo(), is_on_grid, is_found);
+                rMPMModelPart.GetProcessInfo(), is_found);
 
             if (is_found)
             {
@@ -1003,15 +1002,15 @@ namespace MPMSearchElementUtility
 
             std::vector<array_1d<double, 3>> xg;
             condition_itr->CalculateOnIntegrationPoints(MPC_COORD, xg, rMPMModelPart.GetProcessInfo());
-            bool is_on_grid = condition_itr->Is(CONTACT);
-            if (xg.size() > 0)
+
+            if (xg.size() > 0 && condition_itr->Is(BOUNDARY))
             {
                 array_1d<double, 3> local_coordinates;
                 bool is_found = false;
 
                 GeometryType& r_found_geom = FindGridGeom(condition_itr->GetGeometry(),
                     rBackgroundGridModelPart, Tolerance, xg[0], local_coordinates,
-                    rMPMModelPart.GetProcessInfo(), is_on_grid, is_found);
+                    rMPMModelPart.GetProcessInfo(), is_found);
 
                 if (is_found)
                 {
