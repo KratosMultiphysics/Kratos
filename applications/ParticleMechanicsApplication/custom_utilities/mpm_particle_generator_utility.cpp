@@ -349,7 +349,6 @@ namespace MPMParticleGeneratorUtility
                                 }
                             }
 
-
                             ProcessInfo process_info = ProcessInfo();
 
                             // Setting particle condition's initial condition
@@ -436,7 +435,6 @@ namespace MPMParticleGeneratorUtility
                                     std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
                                  }
-
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
