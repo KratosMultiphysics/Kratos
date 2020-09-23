@@ -27,7 +27,7 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 add_app ${KRATOS_APP_DIR}/DEMApplication;
-# add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
+add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/TrilinosApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
