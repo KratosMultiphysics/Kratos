@@ -56,11 +56,10 @@ void MoveModelPartProcess::Execute()
 {
     KRATOS_TRY;
 
-    Matrix translation_matrix = ZeroMatrix(4.4);
+    Matrix translation_matrix = ZeroMatrix(4,4);
     GeometricalTransformationUtilities::CalculateTranslationMatrix(1.0, translation_matrix, mOrigin);
 
-    Matrix rotation_matrix = ZeroMatrix(4.4);
-    Vector axis_of_rotation = ZeroVector(3);
+    Matrix rotation_matrix = ZeroMatrix(4,4);
     GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, mRotationAxis, mRotationPoint);
 
     IndexPartition<size_t>(mrModelPart.NumberOfNodes()).for_each(
