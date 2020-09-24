@@ -413,6 +413,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Node_histori
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfNodes());
+
     int i=0;
     for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
     {
@@ -449,6 +451,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Node_Nonhist
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfNodes());
+
     int i=0;
     for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
     {
@@ -485,6 +489,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_element, Kra
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Element, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfElements());
+
     int i=0;
     for (auto i_elem = this_model_part.ElementsBegin(); i_elem != this_model_part.ElementsEnd(); i_elem++)
     {
@@ -521,6 +527,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_condition, K
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Condition, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfConditions());
+
     int i=0;
     for (auto i_cond = this_model_part.ConditionsBegin(); i_cond != this_model_part.ConditionsEnd(); i_cond++)
     {
@@ -552,6 +560,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_ModelPart, K
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ModelPart, rData);
 
     std::vector<double> output_values;
+    output_values.resize(1);
+
     output_values[0] = this_model_part[DISPLACEMENT_X];
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
@@ -579,6 +589,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_ProcessInfo,
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ProcessInfo, rData);
 
     std::vector<double> output_values;
+    output_values.resize(1);
+
     output_values[0] = this_model_part.GetProcessInfo()[DISPLACEMENT_X];
 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
@@ -615,6 +627,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Node_histori
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeHistorical, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfNodes() * 3);
+
     counter=0;
 
     for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
@@ -659,6 +673,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Node_Nonhist
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeNonHistorical, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfNodes() * 3);
+
     counter=0;
 
     for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
@@ -703,6 +719,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_element, Kra
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Element, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfElements() * 3);
+
     counter=0;
 
     for (auto i_elem = this_model_part.ElementsBegin(); i_elem != this_model_part.ElementsEnd(); i_elem++)
@@ -747,6 +765,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_condition, K
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Condition, rData);
 
     std::vector<double> output_values;
+    output_values.resize(this_model_part.NumberOfConditions() * 3);
     counter=0;
 
     for (auto i_cond = this_model_part.ConditionsBegin(); i_cond != this_model_part.ConditionsEnd(); i_cond++)
@@ -787,6 +806,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_ModelPart, K
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ModelPart, rData);
 
     std::vector<double> output_values;
+    output_values.resize(3);
 
     for(int j=0; j<3; j++)
     {
@@ -796,6 +816,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_ModelPart, K
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
 
 }
+
 
 /**
 * 24. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ProcessInfo Datalocation
@@ -823,6 +844,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_ProcessInfo,
     AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ProcessInfo, rData);
 
     std::vector<double> output_values;
+    output_values.resize(3);
 
     for(int j=0; j<3; j++)
     {
