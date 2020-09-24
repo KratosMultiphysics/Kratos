@@ -392,6 +392,8 @@ Path where your applications are located. This variable is not necessary but it 
 
 Controls wether the python files are installed by making copies or creating symlinks to the files in the source directory. This options is specially usefull if you are developing python files and don't want to reinstall every time you touch a script.
 
+Using this option in windows requires elevated privileges (you must run the script as admin)
+
 
 ### Common Flags
 
