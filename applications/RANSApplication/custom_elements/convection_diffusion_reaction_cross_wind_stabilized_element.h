@@ -324,10 +324,6 @@ protected:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0) const;
 
-    double GetScalarVariableRelaxedAcceleration(
-        const Vector& rShapeFunctions,
-        const int Step = 0) const;
-
     /**
      * @brief Get the Geometry Parameter Derivatives object
      *

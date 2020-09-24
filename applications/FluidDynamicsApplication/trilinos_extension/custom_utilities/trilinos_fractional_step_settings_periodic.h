@@ -156,7 +156,13 @@ public:
             SchemePointerType pScheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > >();
 
             // Strategy
-            this->mStrategies[BaseType::Pressure] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > >(rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag);
+            this->mStrategies[BaseType::Pressure] = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > >(
+                rModelPart,
+                pScheme,
+                pBuildAndSolver,
+                CalculateReactions,
+                ReformDofSet,
+                CalculateNormDxFlag);
         }
         else
         {

@@ -72,6 +72,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedral_mesh_orientation_check.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_ray_casting_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_neighbours_for_entities_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_elemental_neighbours_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/time_averaging_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/from_json_check_result_process.cpp

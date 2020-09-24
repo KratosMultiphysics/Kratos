@@ -531,6 +531,8 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
 
+    const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
+
     // Stabilization parameters
     double ElemSize = this->ElementSize();
     double TauOne;
@@ -574,7 +576,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         this->AddMomentumMassTerm(MassMatrix,N,GaussWeight*Density);
 
         // Add convection, stabilization and RHS contributions to the local system equation
-        this->AddMomentumSystemTerms(rLeftHandSideMatrix,rRightHandSideVector,Density,UGradN,BodyForce,OldPressure,
+        this->AddMomentumSystemTerms(rLeftHandSideMatrix,rRightHandSideVector,Density,UGradN,BodyForce,OldPressure*eta,
                                      TauOne,TauTwo,MomentumProjection,MassProjection,N,rDN_DX,GaussWeight);
 
         // Add viscous term
@@ -631,6 +633,8 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     double ElemSize = this->ElementSize();
     double TauOne;
     double TauTwo;
+
+    const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -704,6 +708,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 //                for (SizeType j = 1; j < NumNodes; ++j) Conv += UGradN[i] * rGeom[i].FastGetSolutionStepValue(VELOCITY)[d];
                 // Momentum stabilization
                 RHSi += rDN_DX(i,d) * TauOne * ( Density  * ( BodyForce[d]/* - Conv*/ ) - OldPressureGradient[d] - MomentumProjection[d] );
+                RHSi += (eta - 1.0) * LaplacianCoeff * rDN_DX(i, d) * OldPressureGradient[d];
             }
 
             rRightHandSideVector[i] += GaussWeight * RHSi;

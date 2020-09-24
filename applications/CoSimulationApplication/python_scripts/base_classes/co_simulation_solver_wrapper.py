@@ -36,7 +36,7 @@ class CoSimulationSolverWrapper(object):
             raise Exception(err_msg)
 
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.name = solver_name
         if "." in self.name:
@@ -156,7 +156,7 @@ class CoSimulationSolverWrapper(object):
         return self.__io is not None
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"                    : "",
             "solver_wrapper_settings" : {},

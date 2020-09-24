@@ -79,7 +79,7 @@ public:
      * the construction of the object so no instantation exists yet.
      * @return Parameters Default parameters json string
      */
-    static Parameters GetDefaultSettings()
+    static Parameters GetDefaultParameters()
     {
         Parameters default_settings(R"(
         {
@@ -98,7 +98,7 @@ public:
      */
     ConstantRelaxationConvergenceAccelerator(Parameters &rConvAcceleratorParameters)
     : BaseType(),
-      mOmega([] (Parameters x) -> double {x.ValidateAndAssignDefaults(GetDefaultSettings()); return x["w"].GetDouble();} (rConvAcceleratorParameters))
+      mOmega([] (Parameters x) -> double {x.ValidateAndAssignDefaults(GetDefaultParameters()); return x["w"].GetDouble();} (rConvAcceleratorParameters))
     {
     }
 

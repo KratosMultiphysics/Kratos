@@ -36,18 +36,6 @@ const Variable<double>& EpsilonElementData<TDim>::GetScalarVariable()
 }
 
 template <unsigned int TDim>
-const Variable<double>& EpsilonElementData<TDim>::GetScalarRateVariable()
-{
-    return TURBULENT_ENERGY_DISSIPATION_RATE_2;
-}
-
-template <unsigned int TDim>
-const Variable<double>& EpsilonElementData<TDim>::GetScalarRelaxedRateVariable()
-{
-    return RANS_AUXILIARY_VARIABLE_2;
-}
-
-template <unsigned int TDim>
 void EpsilonElementData<TDim>::Check(
     const GeometryType& rGeometry,
     const ProcessInfo& rCurrentProcessInfo)
@@ -89,20 +77,23 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(
 {
     KRATOS_TRY
 
-    const double tke = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_KINETIC_ENERGY, rShapeFunctions, Step);
-    mKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), KINEMATIC_VISCOSITY, rShapeFunctions, Step);
-    mTurbulentKinematicViscosity = RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), TURBULENT_VISCOSITY, rShapeFunctions, Step);
+    using namespace RansCalculationUtilities;
+
+    double tke;
+
+    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
+                    std::tie(tke, TURBULENT_KINETIC_ENERGY),
+                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
+                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+                    std::tie(mEffectiveVelocity, VELOCITY));
+
     mGamma = KEpsilonElementData::CalculateGamma(mCmu, tke, mTurbulentKinematicViscosity);
 
-    mVelocityDivergence = RansCalculationUtilities::GetDivergence(
-        this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
+    mVelocityDivergence =
+        GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);
 
-    RansCalculationUtilities::CalculateGradient<TDim>(
-        this->mVelocityGradient, this->GetGeometry(), VELOCITY,
-        rShapeFunctionDerivatives, Step);
+    CalculateGradient<TDim>(this->mVelocityGradient, this->GetGeometry(),
+                            VELOCITY, rShapeFunctionDerivatives, Step);
 
     KRATOS_CATCH("");
 }
@@ -112,8 +103,7 @@ array_1d<double, 3> EpsilonElementData<TDim>::CalculateEffectiveVelocity(
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives) const
 {
-    return RansCalculationUtilities::EvaluateInPoint(this->GetGeometry(),
-                                                     VELOCITY, rShapeFunctions);
+    return mEffectiveVelocity;
 }
 
 template <unsigned int TDim>

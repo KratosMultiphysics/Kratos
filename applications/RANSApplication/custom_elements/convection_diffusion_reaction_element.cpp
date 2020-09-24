@@ -120,7 +120,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 
     const auto& r_geometry = this->GetGeometry();
     const Variable<double>& r_variable =
-        TConvectionDiffusionReactionData::GetScalarRateVariable();
+        TConvectionDiffusionReactionData::GetScalarVariable().GetTimeDerivative();
 
     IndexType LocalIndex = 0;
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -296,26 +296,6 @@ template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionR
 GeometryData::IntegrationMethod ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-double ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::EvaluateInPoint(
-    const Variable<double>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step) const
-{
-    return RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), rVariable, rShapeFunction, Step);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
-array_1d<double, 3> ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::EvaluateInPoint(
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Vector& rShapeFunction,
-    const int Step) const
-{
-    return RansCalculationUtilities::EvaluateInPoint(
-        this->GetGeometry(), rVariable, rShapeFunction, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TConvectionDiffusionReactionData>
