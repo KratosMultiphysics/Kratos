@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListGetDofInfo, KratosCoreFastSuite) {
             template<typename TVariableType> 
             void operator()(TVariableType const& TheVariable) const
             {
-                for (auto &node : mrModelPart.Nodes())
+                for (auto &node : mrModelPart.Nodes()) {
                     auto& r_value = node.FastGetSolutionStepValue(TheVariable);
                     r_value = 1.0;    
                 }                     
