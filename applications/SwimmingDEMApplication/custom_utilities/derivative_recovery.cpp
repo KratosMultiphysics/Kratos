@@ -445,7 +445,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 //template <std::size_t TDim>
-//void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
+//void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, const Variable<double>& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
 //{
 //    mCalculatingTheGradient = true;
 
@@ -1268,15 +1268,10 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
 template class DerivativeRecovery<2>;
 template class DerivativeRecovery<3>;
 
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double>& >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double>& >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 
-
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< Variable<double>& >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< Variable<double>& >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 
 }  // namespace Kratos.
