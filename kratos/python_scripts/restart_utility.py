@@ -165,8 +165,8 @@ class RestartUtility(object):
             while self.next_output <= control_label:
                 self.next_output += self.restart_save_frequency
 
-        # Add current file to stored dictionary
-        label = self._GetFileLabelSave(control_label)
+        # Add current file to the stored dictionary
+        label = self._GetFileLabelSave(control_label).split('_')[-1]
         if label in self.restart_files:
             self.restart_files[label].append( file_name + ".rest" )
         else:
