@@ -237,16 +237,23 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             s,
             c)
 
-        if c.norm_inf() != 0.0:
-            if c.norm_inf() <= self.max_correction_share * self.step_size:
-                delta = self.step_size - c.norm_inf()
-                s *= delta/s.norm_inf()
+        s_inf_norm = s.norm_inf()
+        s_norm_corrected = s_inf_norm
+        if s_inf_norm == 0.0:
+            KM.Logger.PrintWarning("ShapeOpt", f"Norm of projected search direction is 0.0!")
+            s_norm_corrected = 1.0
+        c_inf_norm = c.norm_inf()
+
+        if c_inf_norm != 0.0:
+            if c_inf_norm <= self.max_correction_share * self.step_size:
+                delta = self.step_size - c_inf_norm
+                s *= delta/s_norm_corrected
             else:
-                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                c *= self.max_correction_share * self.step_size / c.norm_inf()
-                s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c_inf_norm} to {self.max_correction_share * self.step_size}.")
+                c *= self.max_correction_share * self.step_size / c_inf_norm
+                s *= (1.0 - self.max_correction_share) * self.step_size / s_norm_corrected
         else:
-            s *= self.step_size / s.norm_inf()
+            s *= self.step_size / s_norm_corrected
 
         gp_utilities.AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
         gp_utilities.AssignVectorToVariable(c, KSO.CORRECTION)
