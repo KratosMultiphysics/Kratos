@@ -112,13 +112,13 @@ void KratosInternals::initDofs() {
             const auto& r_reaction_variable = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name);
             Kratos::VariableUtils().AddDofWithReaction(r_variable, r_reaction_variable, r_model_part);
         } else if (Kratos::KratosComponents<Kratos::Variable<Kratos::array_1d<double, 3>>>::Has(r_variable_name)) {
-            const auto& r_component_x = Kratos::KratosComponents<Variable<double>>::Get(r_variable_name + "_X");
-            const auto& r_component_y = Kratos::KratosComponents<Variable<double>>::Get(r_variable_name + "_Y");
-            const auto& r_component_z = Kratos::KratosComponents<Variable<double>>::Get(r_variable_name + "_Z");
+            const auto& r_component_x = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_X");
+            const auto& r_component_y = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_Y");
+            const auto& r_component_z = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_variable_name + "_Z");
 
-            const auto& r_reaction_component_x = Kratos::KratosComponents<Variable<double>>::Get(r_reaction_variable_name + "_X");
-            const auto& r_reaction_component_y = Kratos::KratosComponents<Variable<double>>::Get(r_reaction_variable_name + "_Y");
-            const auto& r_reaction_component_z = Kratos::KratosComponents<Variable<double>>::Get(r_reaction_variable_name + "_Z");
+            const auto& r_reaction_component_x = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_X");
+            const auto& r_reaction_component_y = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_Y");
+            const auto& r_reaction_component_z = Kratos::KratosComponents<Kratos::Variable<double>>::Get(r_reaction_variable_name + "_Z");
 
             Kratos::VariableUtils().AddDofWithReaction(r_component_x, r_reaction_component_x, r_model_part);
             Kratos::VariableUtils().AddDofWithReaction(r_component_y, r_reaction_component_y, r_model_part);
