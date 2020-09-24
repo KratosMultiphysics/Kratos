@@ -69,7 +69,7 @@ public:
     ///@name Type Definitions
     ///@{
     typedef std::size_t IndexType; //note that this could be different from the one in the basetype
-    typedef SparseContiguousRowGraph LocalGraphType; //using a map since we need it ordered
+    typedef SparseContiguousRowGraph<IndexType> LocalGraphType; //using a map since we need it ordered
     typedef SparseGraph<IndexType> NonLocalGraphType; //using a map since we need it ordered
 
     /// Pointer definition of DistributedSparseGraph

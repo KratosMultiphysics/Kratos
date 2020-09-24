@@ -60,7 +60,7 @@ namespace Kratos
  * IMPORTANT NOTE: AddEntries IS threasafe
 */
 
-template<class TIndexType=std::size_t>
+template<typename TIndexType=std::size_t>
 class SparseContiguousRowGraph
 {
 public:
@@ -134,7 +134,7 @@ public:
         return false;
     }
 
-    const GraphType::value_type& operator[](const IndexType& Key) const
+    const typename GraphType::value_type& operator[](const IndexType& Key) const
     {
 		return mGraph[Key];
     }
@@ -462,14 +462,16 @@ private:
 
 
 /// input stream function
+template<class TIndexType=std::size_t>
 inline std::istream& operator >> (std::istream& rIStream,
-                SparseContiguousRowGraph& rThis){
+                SparseContiguousRowGraph<TIndexType>& rThis){
                     return rIStream;
                 }
 
 /// output stream function
+template<class TIndexType=std::size_t>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const SparseContiguousRowGraph& rThis)
+                const SparseContiguousRowGraph<TIndexType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
