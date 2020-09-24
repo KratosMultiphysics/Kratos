@@ -16,27 +16,24 @@ class TestTransferConditions(KratosUnittest.TestCase):
         if (dimension == 3):
             mp.CreateNewNode(4, 0.0, 0.0, 1.0)
 
-    def _create_particle_condition(self, mp, dimension, condition_type, id):
+    def _create_particle_condition(self, mp, dimension, condition_type, condition_id):
         #Create nodes
         self._create_nodes(mp, dimension)
 
-        # Ensure that the property 1 is created
-        mp.GetProperties()[1]
-
         if dimension == 2:
             if condition_type == "dirichlet":
-                cond = mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition2D3N", id, [1, 2, 3], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
             if condition_type == "neumann":
-                cond = mp.CreateNewCondition("MPMParticlePointLoadCondition2D3N", id, [1, 2, 3], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePointLoadCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
             if condition_type == "coupling":
-                cond = mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition2D3N", id, [1, 2, 3], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
         if dimension == 3:
             if condition_type == "dirichlet":
-                cond = mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition3D4N", id, [1, 2, 3, 4], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
             if condition_type == "neumann":
-                cond = mp.CreateNewCondition("MPMParticlePointLoadCondition3D4N", id, [1, 2, 3, 4], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePointLoadCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
             if condition_type == "coupling":
-                cond = mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition3D4N", id, [1, 2, 3, 4], mp.GetProperties()[1])
+                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
 
     def _assign_pseudo_variables(self, cond, condition_type):
         process_info = KratosMultiphysics.ProcessInfo()
@@ -77,7 +74,7 @@ class TestTransferConditions(KratosUnittest.TestCase):
             shape_functions_values = cond.GetGeometry().ShapeFunctionsValues()
             shape_functions_derivatives = cond.GetGeometry().ShapeFunctionDerivatives(1,0)
             center = cond.GetGeometry().Center()
-            if dimension is 2:
+            if dimension == 2:
                 jacobian_ref = KratosMultiphysics.Matrix(2,2,0.0)
                 jacobian_ref[0,1] = 1.0
                 jacobian_ref[1,0] = 1.0
@@ -152,24 +149,23 @@ class TestTransferConditions(KratosUnittest.TestCase):
         for i in range(size):
             send_conditions.append( KratosMultiphysics.ConditionsArray() )
 
-        if rank is 0: #Sender
-            self._create_particle_condition(mp, dimension, condition_type="dirichlet", id=1)
-            self._create_particle_condition(mp, dimension, condition_type="dirichlet", id=2)
+        if rank == 0: #Sender
+            self._create_particle_condition(mp, dimension, condition_type="dirichlet", condition_id=1)
+            self._create_particle_condition(mp, dimension, condition_type="dirichlet", condition_id=2)
             for i in range(size):
-                if i is not rank:
-                    process_info = KratosMultiphysics.ProcessInfo()
+                if i != rank:
                     for cond in mp.Conditions:
                         #Set pseudo-variables
                         self._assign_pseudo_variables(cond, "dirichlet")
                         send_conditions[i].append(cond)
-        if rank is 1: #Sender
+        if rank == 1: #Sender
             if condition_type_2 == "neumann":
-                id = 3
+                condition_id = 3
             else:
-                id = 4
-            self._create_particle_condition(mp, dimension, condition_type_2, id)
+                condition_id = 4
+            self._create_particle_condition(mp, dimension, condition_type_2, condition_id)
             for i in range(size):
-                if i is not rank:
+                if i != rank:
                     for cond in mp.Conditions:
                         #Set pseudo-variables
                         self._assign_pseudo_variables(cond, condition_type_2)
@@ -180,10 +176,10 @@ class TestTransferConditions(KratosUnittest.TestCase):
         KratosParticle.MPM_MPI_Utilities.TransferConditions(mp, send_conditions)
 
         # Check
-        if rank is 0:
+        if rank == 0:
             self.assertEqual(mp.NumberOfConditions(),1)
             self._check_conditions(mp, dimension)
-        elif rank is 1:
+        elif rank == 1:
             self.assertEqual(mp.NumberOfConditions(),2)
             self._check_conditions(mp, dimension)
         else:

@@ -97,7 +97,7 @@ class TestTransferElements(KratosUnittest.TestCase):
             shape_functions_values = el.GetGeometry().ShapeFunctionsValues()
             shape_functions_derivatives = el.GetGeometry().ShapeFunctionDerivatives(1,0)
             center = el.GetGeometry().Center()
-            if dimension is 2:
+            if dimension == 2:
                 jacobian_ref = KratosMultiphysics.Matrix(2,2,0.0)
                 if element_type == "Triangle":
                     jacobian_ref[0,0] = 1.0
@@ -156,7 +156,7 @@ class TestTransferElements(KratosUnittest.TestCase):
             xg = el.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, process_info)
             mass = el.CalculateOnIntegrationPoints(KratosParticle.MP_MASS, process_info)
             volume = el.CalculateOnIntegrationPoints(KratosParticle.MP_VOLUME, process_info)
-            if dimension is 2:
+            if dimension == 2:
                 if element_type == "Triangle":
                     self.assertVectorAlmostEqual( xg[0], [1.0/3.0, 1.0/3.0, 0.0], 7)
                     self.assertAlmostEqual( mass[0], 500.0, 7)
@@ -214,7 +214,7 @@ class TestTransferElements(KratosUnittest.TestCase):
             mp = current_model.GetModelPart("MPMModelPart")
             process_info = KratosMultiphysics.ProcessInfo()
             for i in range(size):
-                if i is not rank:
+                if i != rank:
                     for element in mp.Elements:
                         send_elements[i].append(element)
                         for el in send_elements[i]:
@@ -239,7 +239,7 @@ class TestTransferElements(KratosUnittest.TestCase):
         #Send elements from rank=0 to all other
         KratosParticle.MPM_MPI_Utilities.TransferElements(sub_mp, send_elements)
         #Check if model_parts hold the correct elements
-        if rank is 0:
+        if rank == 0:
             self.assertEqual(mp.NumberOfElements(), 0) #Check if element was removed after sent
         else:
             self.assertEqual(mp.NumberOfElements(), 1) #Check if element was added
