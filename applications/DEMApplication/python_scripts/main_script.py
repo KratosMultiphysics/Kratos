@@ -22,7 +22,7 @@ else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
     import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
-class Solution(object):
+class Solution():
 
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"

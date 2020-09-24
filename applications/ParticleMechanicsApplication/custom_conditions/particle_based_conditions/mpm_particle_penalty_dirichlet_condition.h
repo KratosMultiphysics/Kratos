@@ -233,11 +233,15 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
+        rSerializer.save("unit_normal", m_unit_normal);
+        rSerializer.save("penalty", m_penalty);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
+        rSerializer.load("unit_normal", m_unit_normal);
+        rSerializer.load("penalty", m_penalty);
     }
 
 

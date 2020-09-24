@@ -13,20 +13,19 @@ def Factory(settings, model):
     return DamBreakBenchmark(model, settings["Parameters"])
 
 class DamBreakBenchmark(BaseBenchmarkProcess):
+    """Dam break benchark.
+
+    O. Delestre, C. Lucas, P.-A. Ksinant, F. Darboux, C. Laguerre, T.N.T. Vo, F. James, S. Cordier
+    SWASHES: a compilation of Shallow Water Analytic Solutions for Hydraulic and Environmental Studies
+    International Journal for Numerical Methods in Fluids, Wiley, 2013, 72 (3), pp.269-300
+    """
 
     def __init__(self, model, settings ):
-        # The base class sets the model_part, variables and benchmark_settings
-        super(DamBreakBenchmark, self).__init__(model, settings)
+        """Constructor of the benchmark.
 
-        benchmark_default_settings = KM.Parameters("""
-            {
-                "dam_position"  : 5.0,
-                "left_height"   : 2.0,
-                "right_height"  : 1.0
-            }
-            """
-            )
-        self.benchmark_settings.ValidateAndAssignDefaults(benchmark_default_settings)
+        The base class validates the settings and sets the model_part, the variables and the benchmark_settings
+        """
+        super().__init__(model, settings)
 
         self.dam = self.benchmark_settings["dam_position"].GetDouble()
         self.hl = self.benchmark_settings["left_height"].GetDouble()
@@ -36,7 +35,9 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         self.cm = self.__cm()
 
     def Check(self):
-        super(DamBreakBenchmark, self).Check()
+        """This method checks if the input values have physical sense."""
+
+        super().Check()
         label = "DamBreakBenchmark. "
         if self.g <= 0:
             msg = label + "Gravity must be a positive value. Please, check the definition of GRAVITY_Z component in the ProcessInfo."
@@ -47,14 +48,22 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         elif self.hl <= 0:
             msg = label + "Left height must be a positive value. Please, check the Parameters."
             raise Exception(msg)
-        elif self.dam <= 0:
-            msg = label + "The dam position must be a positive value. Please, check the Parameters."
-            raise Exception(msg)
 
-    def Topography(self, coordinates):
+    @classmethod
+    def _GetBenchmarkDefaultSettings(cls):
+        return KM.Parameters("""
+            {
+                "dam_position"  : 5.0,
+                "left_height"   : 2.0,
+                "right_height"  : 1.0
+            }
+            """
+            )
+
+    def _Topography(self, coordinates):
         return 0.0
 
-    def Height(self, coordinates, time):
+    def _Height(self, coordinates, time):
         x = coordinates.X
 
         xa = self.__xa(time)
@@ -70,7 +79,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         else:
             return self.hr
 
-    def Velocity(self, coordinates, time):
+    def _Velocity(self, coordinates, time):
         x = coordinates.X
 
         xa = self.__xa(time)

@@ -211,7 +211,6 @@ namespace Kratos
 
     double Solve() override
     {
-      // Initialize BDF2 coefficients
       ModelPart &rModelPart = BaseType::GetModelPart();
       this->SetTimeCoefficients(rModelPart.GetProcessInfo());
       double NormDp = 0.0;
@@ -245,21 +244,8 @@ namespace Kratos
       bool continuityConverged = false;
       bool fixedTimeStep = false;
 
-      bool momentumAlreadyConverged = false;
-      bool continuityAlreadyConverged = false;
       double pressureNorm = 0;
       double velocityNorm = 0;
-      /* boost::timer solve_step_time; */
-
-      // Iterative solution for pressure
-      /* unsigned int timeStep = rCurrentProcessInfo[STEP]; */
-      /* if(timeStep==1){ */
-      /* 	unsigned int iter=0; */
-      /* 	continuityConverged = this->SolveContinuityIteration(iter,maxNonLinearIterations); */
-      /* }else if(timeStep==2){ */
-      /* 	unsigned int iter=0; */
-      /* 	momentumConverged = this->SolveMomentumIteration(iter,maxNonLinearIterations,fixedTimeStep); */
-      /* }else{ */
 
       this->SetBlockedFlag();
 
@@ -269,36 +255,13 @@ namespace Kratos
 
         this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
-        if ((momentumConverged == true || it == maxNonLinearIterations - 1) && momentumAlreadyConverged == false)
-        {
-          // std::ofstream myfile;
-          // myfile.open ("momentumConvergedIteration.txt",std::ios::app);
-          // myfile << currentTime << "\t" << it << "\n";
-          // myfile.close();
-          momentumAlreadyConverged = true;
-        }
-        if ((continuityConverged == true || it == maxNonLinearIterations - 1) && continuityAlreadyConverged == false)
-        {
-          // std::ofstream myfile;
-          // myfile.open ("continuityConvergedIteration.txt",std::ios::app);
-          // myfile << currentTime << "\t" << it << "\n";
-          // myfile.close();
-          continuityAlreadyConverged = true;
-        }
-
         if (fixedTimeStep == false)
         {
           continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
         }
         if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
         {
-          //this->ComputeErrorL2Norm();
-          //this->ComputeErrorL2NormCasePoiseuille();
           this->UpdateStressStrain();
-          // std::ofstream myfile;
-          // myfile.open ("maxConvergedIteration.txt",std::ios::app);
-          // myfile << currentTime << "\t" << it << "\n";
-          // myfile.close();
         }
 
         if ((continuityConverged && momentumConverged) && it > 2)
@@ -315,13 +278,10 @@ namespace Kratos
           break;
         }
       }
-
-      /* } */
+      
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
         std::cout << "Convergence tolerance not reached." << std::endl;
-
-      /* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
 
       if (mReformDofSet)
         this->Clear();
@@ -331,7 +291,6 @@ namespace Kratos
 
     void FinalizeSolutionStep() override
     {
-      /* this->UpdateStressStrain(); */
     }
 
     void InitializeSolutionStep() override
@@ -678,11 +637,7 @@ namespace Kratos
                                     const array_1d<double, 3> &PreviousVelocity,
                                     Vector &BDFcoeffs)
     {
-      /* noalias(PreviousAcceleration)=CurrentAcceleration; */
       noalias(CurrentAcceleration) = -BDFcoeffs[1] * (CurrentVelocity - PreviousVelocity) - PreviousAcceleration;
-      // std::cout<<"rBDFCoeffs[0] is "<<rBDFCoeffs[0]<<std::endl;//3/(2*delta_t)
-      // std::cout<<"rBDFCoeffs[1] is "<<rBDFCoeffs[1]<<std::endl;//-2/(delta_t)
-      // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
     }
 
     virtual void CalculateDisplacementsAndPorosity()
@@ -858,14 +813,11 @@ namespace Kratos
       // build momentum system and solve for fractional step velocity increment
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
 
-      /* std::cout<<"---- m o m e n t u m   e q u a t i o n s ----"<<std::endl; */
       if (it == 0)
       {
         mpMomentumStrategy->InitializeSolutionStep();
       }
-      /* else{ */
-      /* 	NormDv = mpMomentumStrategy->Solve(); */
-      /* } */
+
       NormDv = mpMomentumStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 1 && Rank == 0)
@@ -873,58 +825,26 @@ namespace Kratos
 
       if (it == 0)
       {
-        velocityNorm=this->ComputeVelocityNorm();
+        velocityNorm = this->ComputeVelocityNorm();
       }
+
       double DvErrorNorm = NormDv / velocityNorm;
-      // double DvErrorNorm = 0;
-      // ConvergedMomentum = this->CheckVelocityConvergence(NormDv, DvErrorNorm);
-
       unsigned int iterationForCheck = 2;
-      // KRATOS_INFO("TwoStepVPStrategy") << "iteration(" << it << ") Velocity error: " << DvErrorNorm  << " velTol: " << mVelocityTolerance << std::endl;
-
       // Check convergence
       if (it == maxIt - 1)
       {
         KRATOS_INFO("Iteration") << it << "  Final Velocity error: " << DvErrorNorm << std::endl;
-        fixedTimeStep = this->FixTimeStepMomentum(DvErrorNorm);
+        ConvergedMomentum = this->FixTimeStepMomentum(DvErrorNorm, fixedTimeStep);
       }
       else if (it > iterationForCheck)
       {
         KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
-        fixedTimeStep = this->CheckMomentumConvergence(DvErrorNorm);
+        ConvergedMomentum = this->CheckMomentumConvergence(DvErrorNorm, fixedTimeStep);
       }
       else
       {
         KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
       }
-
-      // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      // double currentTime = rCurrentProcessInfo[TIME];
-      // double tolerance=0.0000000001;
-      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
-      // 	std::ofstream myfile;
-      //   myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DvErrorNorm << "\n";
-      //   myfile.close();
-      // }
-      // else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
-      // 	std::ofstream myfile;
-      //   myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DvErrorNorm << "\n";
-      //   myfile.close();
-      // }
-      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
-      // 	std::ofstream myfile;
-      //   myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DvErrorNorm << "\n";
-      //   myfile.close();
-      // }
-      // else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
-      // 	std::ofstream myfile;
-      //   myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DvErrorNorm << "\n";
-      //   myfile.close();
-      // }
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
         std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
@@ -937,20 +857,16 @@ namespace Kratos
       ModelPart &rModelPart = BaseType::GetModelPart();
       int Rank = rModelPart.GetCommunicator().MyPID();
       bool ConvergedContinuity = false;
+      bool fixedTimeStep = false;
       double NormDp = 0;
 
       // 2. Pressure solution
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
 
-      /* std::cout<<"     ---- c o n t i n u i t y   e q u a t i o n ----"<<std::endl; */
-
       if (it == 0)
       {
         mpPressureStrategy->InitializeSolutionStep();
       }
-      /* else{ */
-      /* 	NormDp = mpPressureStrategy->Solve(); */
-      /* } */
       NormDp = mpPressureStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -958,53 +874,22 @@ namespace Kratos
 
       if (it == 0)
       {
-        NormP=this->ComputePressureNorm();
+        NormP = this->ComputePressureNorm();
       }
 
       double DpErrorNorm = NormDp / (NormP);
-
-      // double DpErrorNorm = 0;
-      // ConvergedContinuity = this->CheckPressureConvergence(NormDp, DpErrorNorm, NormP);
-      // KRATOS_INFO("TwoStepVPStrategy") << "                    iteration(" << it << ") Pressure error: " << DpErrorNorm  << " presTol: " << mPressureTolerance << std::endl;
 
       // Check convergence
       if (it == (maxIt - 1))
       {
         KRATOS_INFO("Iteration") << it << "  Final Pressure error: " << DpErrorNorm << std::endl;
-        ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm);
+        ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm, fixedTimeStep);
       }
       else
       {
         KRATOS_INFO("Iteration") << it << "  Pressure error: " << DpErrorNorm << std::endl;
+        ConvergedContinuity = this->CheckContinuityConvergence(DpErrorNorm, fixedTimeStep);
       }
-
-      // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      // double currentTime = rCurrentProcessInfo[TIME];
-      // double tolerance=0.0000000001;
-      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
-      // 	std::ofstream myfile;
-      //  myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DpErrorNorm << "\n";
-      //  myfile.close();
-      // }
-      // else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
-      // 	std::ofstream myfile;
-      //  myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DpErrorNorm << "\n";
-      //  myfile.close();
-      // }
-      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
-      // 	std::ofstream myfile;
-      //  myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DpErrorNorm << "\n";
-      //  myfile.close();
-      // }
-      // else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
-      // 	std::ofstream myfile;
-      //  myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
-      // 	myfile << it << "\t" << DpErrorNorm << "\n";
-      //  myfile.close();
-      // }
 
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
         std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
@@ -1058,10 +943,8 @@ namespace Kratos
           //ShapeFunctionDerivativesArrayType DN_DX;
           Matrix NContainer;
           NContainer = geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-          //this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
           const Vector &N = row(NContainer, 0);
-          //  itElem->EvaluateInPoint(elementalPressure,PRESSURE,N);
           const unsigned int NumNodes = geometry.size();
 
           double elementalPressure = N[0] * geometry(0)->FastGetSolutionStepValue(PRESSURE);
@@ -1079,29 +962,8 @@ namespace Kratos
           for (unsigned int i = 0; i < geometry.size(); i++)
           {
 
-            // index = i*dimension;
             const long double nodalPosX = geometry(i)->X();
             const long double nodalPosY = geometry(i)->Y();
-            // const long double velX      = geometry(i)->FastGetSolutionStepValue(VELOCITY_X);
-            // const long double velY      = geometry(i)->FastGetSolutionStepValue(VELOCITY_Y);
-            // const long double pressure  = geometry(i)->FastGetSolutionStepValue(PRESSURE);
-
-            // long double expectedVelocityX =  pow(posX,2) * (1.0-posX)*(1.0-posX) * ( 2.0*posY - 6.0*pow(posY,2) + 4.0*pow(posY,3) );
-            // long double expectedVelocityY = -pow(posY,2) * (1.0-posY)*(1.0-posY) * ( 2.0*posX - 6.0*pow(posX,2) + 4.0*pow(posX,3) );
-            // long double expectedPressure  = -posX * (1.0-posX);
-
-            // long double nodalErrorVelocityX = velX - expectedVelocityX;
-            // long double nodalErrorVelocityY = velY - expectedVelocityY;
-            // long double nodalErrorPressure  = pressure - expectedPressure;
-
-            // sumErrorL2Velocity  +=  (pow(nodalErrorVelocityX,2) + pow(nodalErrorVelocityY,2)) * nodalArea;
-            // sumErrorL2VelocityX +=  pow(nodalErrorVelocityX,2) * nodalArea;
-            // sumErrorL2VelocityY +=  pow(nodalErrorVelocityY,2) * nodalArea;
-            // sumErrorL2Pressure  +=  pow(nodalErrorPressure,2)  * nodalArea;
-            // eleErrorL2Velocity  +=  pow(nodalErrorVelocityX,2) + pow(nodalErrorVelocityY,2);
-            // eleErrorL2VelocityX +=  pow(nodalErrorVelocityX,2);
-            // eleErrorL2VelocityY +=  pow(nodalErrorVelocityY,2);
-            // eleErrorL2Pressure  +=  pow(nodalErrorPressure,2);
 
             bariPosX += nodalPosX / 3.0;
             bariPosY += nodalPosY / 3.0;
@@ -1121,11 +983,6 @@ namespace Kratos
           sumErrorL2VelocityY += pow(eleErrorL2VelocityY, 2) * geometry.Area();
           sumErrorL2Pressure += pow(eleErrorL2Pressure, 2) * geometry.Area();
 
-          // sumErrorL2Velocity  +=  eleErrorL2Velocity * geometry.Area();
-          // sumErrorL2VelocityX +=  eleErrorL2VelocityX * geometry.Area();
-          // sumErrorL2VelocityY +=  eleErrorL2VelocityY * geometry.Area();
-          // sumErrorL2Pressure  +=  eleErrorL2Pressure * geometry.Area();
-
           const long double tauXX = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
           const long double tauYY = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_YY);
           const long double tauXY = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XY);
@@ -1138,20 +995,12 @@ namespace Kratos
           long double nodalErrorTauYY = tauYY - expectedTauYY;
           long double nodalErrorTauXY = tauXY - expectedTauXY;
 
-          // std::cout<<"tauXX "<<tauXX<<"     expectedtauXX "<<expectedTauXX<<"     nodalErrorTauXX "<<nodalErrorTauXX<<std::endl;
-          // std::cout<<"tauyy "<<tauYY<<"     expectedtauYY "<<expectedTauYY<<"     nodalErrorTauYY "<<nodalErrorTauYY<<std::endl;
-          // std::cout<<"tauXY "<<tauXY<<"     expectedtauXY "<<expectedTauXY<<"     nodalErrorTauXY "<<nodalErrorTauXY<<std::endl;
-
           sumErrorL2TauXX += pow(nodalErrorTauXX, 2) * geometry.Area();
           sumErrorL2TauYY += pow(nodalErrorTauYY, 2) * geometry.Area();
           sumErrorL2TauXY += pow(nodalErrorTauXY, 2) * geometry.Area();
         }
       }
 
-      // long double errorL2Velocity  = sumErrorL2Velocity;
-      // long double errorL2VelocityX = sumErrorL2VelocityX;
-      // long double errorL2VelocityY = sumErrorL2VelocityY;
-      // long double errorL2Pressure  = sumErrorL2Pressure;
       long double errorL2Velocity = sqrt(sumErrorL2Velocity);
       long double errorL2VelocityX = sqrt(sumErrorL2VelocityX);
       long double errorL2VelocityY = sqrt(sumErrorL2VelocityY);
@@ -1446,43 +1295,44 @@ namespace Kratos
         return false;
     }
 
-		double ComputePressureNorm()
-		{
-			ModelPart &rModelPart = BaseType::GetModelPart();
+    double ComputePressureNorm()
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
 
-			double NormP = 0.00;
+      double NormP = 0.00;
 
 #pragma omp parallel reduction(+ \
-							   : NormP)
-			{
-				ModelPart::NodeIterator NodeBegin;
-				ModelPart::NodeIterator NodeEnd;
-				OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
-				for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
-				{
-					const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
-					NormP += Pr * Pr;
-				}
-			}
+                               : NormP)
+      {
+        ModelPart::NodeIterator NodeBegin;
+        ModelPart::NodeIterator NodeEnd;
+        OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), NodeBegin, NodeEnd);
+        for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+        {
+          const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
+          NormP += Pr * Pr;
+        }
+      }
 
-			BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
+      BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
 
-			NormP = sqrt(NormP);
+      NormP = sqrt(NormP);
 
-			if (NormP == 0.0)
-				NormP = 1.00;
+      if (NormP == 0.0)
+        NormP = 1.00;
 
-			return NormP;
-		}
+      return NormP;
+    }
 
-    bool FixTimeStepMomentum(const double DvErrorNorm)
+    bool FixTimeStepMomentum(const double DvErrorNorm, bool &fixedTimeStep)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       double minTolerance = 0.005;
-      bool fixedTimeStep = false;
+      bool converged = false;
+
       if (currentTime < 10 * timeInterval)
       {
         minTolerance = 10;
@@ -1516,18 +1366,22 @@ namespace Kratos
       else
       {
         rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
+        if (DvErrorNorm < mVelocityTolerance)
+        {
+          converged = true;
+        }
       }
-      return fixedTimeStep;
+      return converged;
     }
 
-    bool CheckMomentumConvergence(const double DvErrorNorm)
+    bool CheckMomentumConvergence(const double DvErrorNorm, bool &fixedTimeStep)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       double minTolerance = 0.99999;
-      bool fixedTimeStep = false;
+      bool converged = false;
 
       if ((DvErrorNorm > minTolerance || (DvErrorNorm < 0 && DvErrorNorm > 0) || (DvErrorNorm != DvErrorNorm)) &&
           DvErrorNorm != 0 &&
@@ -1553,18 +1407,22 @@ namespace Kratos
       else
       {
         rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
+        if (DvErrorNorm < mVelocityTolerance)
+        {
+          converged = true;
+        }
       }
-      return fixedTimeStep;
+      return converged;
     }
 
-    bool FixTimeStepContinuity(const double DvErrorNorm)
+    bool FixTimeStepContinuity(const double DvErrorNorm, bool &fixedTimeStep)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       double minTolerance = 0.01;
-      bool fixedTimeStep = false;
+      bool converged = false;
       if (currentTime < 10 * timeInterval)
       {
         minTolerance = 10;
@@ -1575,7 +1433,7 @@ namespace Kratos
           (DvErrorNorm != 1 || currentTime > timeInterval))
       {
         fixedTimeStep = true;
-        rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);
+        // rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, true);
         if (DvErrorNorm > 0.9999)
         {
           rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, true);
@@ -1596,12 +1454,28 @@ namespace Kratos
           }
         }
       }
-      else
+      else if (DvErrorNorm < mPressureTolerance)
       {
-        rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+        converged = true;
+        fixedTimeStep = false;
       }
       rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
-      return fixedTimeStep;
+      return converged;
+    }
+
+    bool CheckContinuityConvergence(const double DvErrorNorm, bool &fixedTimeStep)
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      bool converged = false;
+
+      if (DvErrorNorm < mPressureTolerance)
+      {
+        converged = true;
+        fixedTimeStep = false;
+      }
+      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+      return converged;
     }
 
     ///@}

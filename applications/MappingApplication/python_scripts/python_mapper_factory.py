@@ -8,6 +8,8 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.MappingApplication import MapperFactory
 
+from importlib import import_module
+
 def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
     if not isinstance(mapper_settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -17,6 +19,9 @@ def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
     # use the MappingApp if it has the requested mapper
     if MapperFactory.HasMapper(mapper_type):
         return MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_settings)
+    else:
+        mapper_module = import_module(mapper_type)
+        return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
 
     list_avail_mappers = MapperFactory.GetRegisteredMapperNames()
 
@@ -36,6 +41,9 @@ def CreateMPIMapper(model_part_origin, model_part_destination, mapper_settings):
     # use the MappingApp if it has the requested mapper
     if MapperFactory.HasMPIMapper(mapper_type):
         return MapperFactory.CreateMPIMapper(model_part_origin, model_part_destination, mapper_settings)
+    else:
+        mapper_module = import_module(mapper_type)
+        return mapper_module.Create(model_part_origin, model_part_destination, mapper_settings)
 
     list_avail_mappers = MapperFactory.GetRegisteredMPIMapperNames()
 
