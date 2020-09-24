@@ -217,6 +217,39 @@ bool CheckCSRGraphArrays(
     return true;
 }
 
+bool CheckCSRMatrix(
+    const CsrMatrix<>& rA,
+    const MatrixMapType& rReferenceGraph)
+{
+    const auto& rRowIndices = rA.index1_data();
+    const auto& rColIndices = rA.index2_data();
+    const auto& rValues = rA.value_data();
+
+    auto N = rRowIndices.size()-1;
+
+    KRATOS_CHECK_EQUAL(rReferenceGraph.size(), rA.nnz());
+
+    for (IndexType I = 0; I < N; ++I)
+    {
+        for (auto k = rRowIndices[I]; k < rRowIndices[I + 1]; ++k)
+        {
+            IndexType J = rColIndices[k];
+            double value = rValues[k];
+            if (rReferenceGraph.find({I, J}) == rReferenceGraph.end()) //implies it is not present
+                KRATOS_ERROR << "Entry " << I << "," << J << "not present in A graph" << std::endl;
+
+            KRATOS_CHECK_NEAR(rReferenceGraph.find({I, J})->second , value, 1e-14);
+
+            //check that that cols are ordered
+            if(k-rRowIndices[I] > 0)
+                if(rColIndices[k-1]>rColIndices[k])
+                    KRATOS_ERROR << "columns are not ordered in csr" << std::endl;
+        }
+    }
+    return true;
+}
+
+
 
 template<typename TGraphType>
 std::unique_ptr<TGraphType> AssembleGraph(
@@ -282,7 +315,7 @@ KRATOS_TEST_CASE_IN_SUITE(GraphContiguousRowConstruction, KratosCoreFastSuite)
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
-    SparseContiguousRowGraph Agraph(40);
+    SparseContiguousRowGraph<> Agraph(40);
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
     Agraph.Finalize();
@@ -310,12 +343,22 @@ KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
-    SparseContiguousRowGraph Agraph(40);
+    SparseContiguousRowGraph<> Agraph(40);
     for(const auto& c : connectivities)
         Agraph.AddEntries(c);
     Agraph.Finalize();
 
     CsrMatrix<double> A(Agraph);
+
+    for(const auto& c : connectivities)
+    {   
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+    }
+    //A.FinalizeAssemble();
+
+    CheckCSRMatrix(A, reference_A_map);
+
 
 
 }
@@ -326,11 +369,11 @@ KRATOS_TEST_CASE_IN_SUITE(OpenMPGraphContiguousRowConstruction, KratosCoreFastSu
     const auto connectivities = ElementConnectivities();
     auto reference_A_map = GetReferenceMatrixAsMap();
 
-    std::unique_ptr<SparseContiguousRowGraph> pAgraph(nullptr);
+    std::unique_ptr<SparseContiguousRowGraph<>> pAgraph(nullptr);
 
     #pragma omp parallel
     {
-        std::unique_ptr<SparseContiguousRowGraph> plocal_graph(new SparseContiguousRowGraph(40));
+        std::unique_ptr<SparseContiguousRowGraph<>> plocal_graph(new SparseContiguousRowGraph<>(40));
         #pragma omp for
         for(int i=0; i<static_cast<int>(connectivities.size()); ++i){
             plocal_graph->AddEntries(connectivities[i]);
@@ -377,7 +420,7 @@ KRATOS_TEST_CASE_IN_SUITE(PerformanceBenchmarkSparseContiguousRowGraph, KratosCo
 
     double start_graph = OpenMPUtils::GetCurrentTime();
 
-    SparseContiguousRowGraph Agraph(ndof*block_size);
+    SparseContiguousRowGraph<> Agraph(ndof*block_size);
     #pragma omp parallel for
     for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
         Agraph.AddEntries(connectivities[i]);

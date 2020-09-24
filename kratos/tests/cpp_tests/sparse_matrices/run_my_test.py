@@ -4,6 +4,9 @@ Tester.RunTestCases("TestGraphConstruction")
 Tester.RunTestCases("TestGraphContiguousRowConstruction")
 #Tester.RunTestCases("TestDistributedGraphConstruction")
 Tester.RunTestCases("TestCsrMatrixAssemble")
-Tester.RunTestCases("TestPerformanceBenchmarkSparseGraph")
-Tester.RunTestCases("TestPerformanceBenchmarkSparseContiguousRowGraph")
+
+Tester.RunTestCases("TestCSRConstruction")
+
+#Tester.RunTestCases("TestPerformanceBenchmarkSparseGraph")
+#Tester.RunTestCases("TestPerformanceBenchmarkSparseContiguousRowGraph")
 #Tester.RunTestSuite("KratosCoreFastSuite")
