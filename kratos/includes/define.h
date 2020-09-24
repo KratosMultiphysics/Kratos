@@ -147,8 +147,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_DEFINE_2D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(module, name) \
     KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<Kratos::array_1d<double, 2> > name; \
-    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_1;\
-    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_2;
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_X;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Y;
 
 #ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
@@ -170,8 +170,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_DEFINE_2D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
   KRATOS_API(application) extern Kratos::Variable<Kratos::array_1d<double, 2> > name; \
-  KRATOS_API(application) extern Kratos::Variable<double> name##_1;\
-  KRATOS_API(application) extern Kratos::Variable<double> name##_2;
+  KRATOS_API(application) extern Kratos::Variable<double> name##_X;\
+  KRATOS_API(application) extern Kratos::Variable<double> name##_Y;
 
 #ifdef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
@@ -316,6 +316,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     /*const*/ Kratos::Variable<double> \
                   component3(#component3, &name, 2);
 
+#ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(name) \
+     KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_X, name##_Y, name##_Z)
+
 #ifdef KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS
 #undef KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS
 #endif
@@ -328,17 +334,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     /*const*/ Kratos::Variable<double> \
                   component2(#component2, &name, 1);
 
-#ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
-#undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
-#endif
-#define KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(name) \
-     KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_X, name##_Y, name##_Z)
-
 #ifdef KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS
 #endif
 #define KRATOS_CREATE_2D_VARIABLE_WITH_COMPONENTS(name) \
-     KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_1, name##_2)
+     KRATOS_CREATE_2D_VARIABLE_WITH_THIS_COMPONENTS(name, name##_X, name##_Y)
 
 #ifdef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
