@@ -187,26 +187,6 @@ void VariableUtils::CopyVectorVar(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::CopyComponentVar(
-    const ComponentVarType& OriginVariable,
-    const ComponentVarType& DestinationVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->FastGetSolutionStepValue(DestinationVariable) = it_node->FastGetSolutionStepValue(OriginVariable);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void VariableUtils::CopyScalarVar(
     const DoubleVarType& OriginVariable,
     const DoubleVarType& DestinationVariable,
@@ -367,10 +347,6 @@ bool VariableUtils::CheckVariableKeys()
     CheckVariableKeysHelper< Variable<unsigned int> >();
     CheckVariableKeysHelper< Variable<Vector> >();
     CheckVariableKeysHelper< Variable<Matrix> >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >();
 
     return true;
 
