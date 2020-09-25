@@ -75,10 +75,9 @@ class ModelPartController:
 
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__IdentifyDampingRegions()
-            if not self.model_settings["damping"]["recalculate_damping"].GetBool():
-                self.damping_utility = KSO.DampingUtilities(
-                    self.design_surface, self.damping_regions, self.model_settings["damping"]
-                )
+            self.damping_utility = KSO.DampingUtilities(
+                self.design_surface, self.damping_regions, self.model_settings["damping"]
+            )
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
@@ -95,9 +94,7 @@ class ModelPartController:
         self.mesh_controller.UpdateMeshAccordingInputVariable(InputVariable)
 
         if self.model_settings["damping"]["recalculate_damping"].GetBool():
-            self.damping_utility = KSO.DampingUtilities(
-                self.design_surface, self.damping_regions, self.model_settings["damping"]
-            )
+            self.damping_utility = None
 
     # --------------------------------------------------------------------------
     def SetMeshToReferenceMesh(self):
@@ -126,6 +123,10 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):
         if self.model_settings["damping"]["apply_damping"].GetBool():
+            if not self.damping_utility:
+                self.damping_utility = KSO.DampingUtilities(
+                    self.design_surface, self.damping_regions, self.model_settings["damping"]
+                )
             self.damping_utility.DampNodalVariable(variable)
 
     # --------------------------------------------------------------------------
