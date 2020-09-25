@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <exception>
 #include <sstream>
+#include <iomanip>
 
 #include "testing/testing.h"
 #include "containers/model.h"
@@ -149,16 +150,23 @@ namespace NonLinearSpringMassDamper
  * sensitivity analysis for nonlinear transient problems.
  *
  *  |                _____                 _____
- *  |---[ Damper ]--|mass1|---[ Damper ]--|mass2|
+ *  |---[ Damper ]--|mass1|---[ Damper ]--|mass2|--> F
  *  |-----/\/\/\----|_____|-----/\/\/\----|_____|
  *  |
  *
  * Spring force: fe = x + stiffness * x^3
  * Damper force: fc = damping * x'
  *
- * Momentum equations:
+ * Following point load is only used in the Condition test case, otherwise this is zero
+ * F = stiffness * x^3 + 2.0 * damping * x' + mass1 * x''
+ *
+ * Momentum equations: (For element test case)
  * mass1 * acc1 + 2 * damping * vel1 - damping * vel2 + 2 * disp1 - disp2 + stiffness * disp1^3 - stiffness * (disp2 - disp1)^3 = 0,
  * mass2 * acc2 - damping * vel1 + damping * vel2 - disp1 + disp2 + stiffness * (disp2 - disp1)^3 = 0.
+ *
+ * Momentum equations: (For conditions test case)
+ * mass1 * acc1 + 2 * damping * vel1 - damping * vel2 + 2 * disp1 - disp2 + stiffness * disp1^3 - stiffness * (disp2 - disp1)^3 = 0,
+ * mass2 * acc2 - damping * vel1 + damping * vel2 - disp1 + disp2 + stiffness * (disp2 - disp1)^3 - stiffness * disp2^3 - 2.0 * damping * vel2 - mass1 * acc2 = 0.
  */
 class PrimalElement : public Element
 {
@@ -269,6 +277,97 @@ private:
     const double stiffness = 1.;
     const double damping = 0.1;
 };
+
+class PrimalCondition : public Condition
+{
+public:
+    typedef Kratos::intrusive_ptr<PrimalCondition> Pointer;
+    typedef Kratos::unique_ptr<PrimalCondition> UniquePointer;
+
+    static Pointer Create(Node<3>::Pointer pNode1)
+    {
+        auto nodes = PointerVector<Node<3>>{};
+        nodes.push_back(pNode1);
+        return Kratos::make_intrusive<PrimalCondition>(nodes);
+    }
+
+    PrimalCondition(const NodesArrayType& ThisNodes)
+        : Condition(0, ThisNodes)
+    {
+    }
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        rResult.resize(1);
+        rResult[0] = this->GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
+    }
+
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        rElementalDofList.resize(1);
+        rElementalDofList[0] = this->GetGeometry()[0].pGetDof(DISPLACEMENT_X);
+    }
+
+    void GetValuesVector(Vector& values, int Step = 0) const override
+    {
+        values.resize(1);
+        values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
+    }
+
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
+    {
+        values.resize(1);
+        values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X, Step);
+    }
+
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
+    {
+        values.resize(1);
+        values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION_X, Step);
+    }
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override
+    {
+        this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+        this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    }
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rLeftHandSideMatrix.resize(1, 1, false);
+        const double& x1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rLeftHandSideMatrix(0, 0) = x1 * x1 * stiffness;
+    }
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rRightHandSideVector.resize(1, false);
+        const double& x1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rRightHandSideVector(0) = -x1 * x1 * x1 * stiffness;
+    }
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rMassMatrix.resize(1, 1, false);
+        rMassMatrix(0, 0) = mass1;
+    }
+
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rDampingMatrix.resize(1, 1, false);
+        rDampingMatrix(0, 0) = 2. * damping;
+    }
+
+private:
+    const double mass1 = 1.;
+    const double stiffness = 1.;
+    const double damping = 0.1;
+};
+
 
 class AdjointElement : public Element
 {
@@ -451,6 +550,182 @@ private:
     PrimalElement mPrimalElement;
 };
 
+class AdjointCondition : public Condition
+{
+    class ThisExtensions : public AdjointExtensions
+    {
+        Condition* mpCondition;
+
+    public:
+        ThisExtensions(Condition* pCondition) : mpCondition{pCondition}
+        {
+        }
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override
+        {
+            auto& r_node = mpCondition->GetGeometry()[NodeId];
+            if (rVector.size() != 1)
+            {
+                rVector.resize(1);
+            }
+            rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+        }
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override
+        {
+            auto& r_node = mpCondition->GetGeometry()[NodeId];
+            if (rVector.size() != 1)
+            {
+                rVector.resize(1);
+            }
+            rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+        }
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override
+        {
+            auto& r_node = mpCondition->GetGeometry()[NodeId];
+            if (rVector.size() != 1)
+            {
+                rVector.resize(1);
+            }
+            rVector[0] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+        }
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
+        {
+            if (rVariables.size() != 1)
+            {
+                rVariables.resize(1);
+            }
+            rVariables[0] = &ADJOINT_VECTOR_2;
+        }
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
+        {
+            if (rVariables.size() != 1)
+            {
+                rVariables.resize(1);
+            }
+            rVariables[0] = &ADJOINT_VECTOR_3;
+        }
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override
+        {
+            if (rVariables.size() != 1)
+            {
+                rVariables.resize(1);
+            }
+            rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+        }
+    };
+
+public:
+    typedef Kratos::intrusive_ptr<AdjointCondition> Pointer;
+    typedef Kratos::unique_ptr<AdjointCondition> UniquePointer;
+
+
+    static Pointer Create(Node<3>::Pointer pNode1)
+    {
+        auto nodes = PointerVector<Node<3>>{};
+        nodes.push_back(pNode1);
+        return Kratos::make_intrusive<AdjointCondition>(nodes);
+    }
+
+    AdjointCondition(const NodesArrayType& ThisNodes)
+        : Condition(0, ThisNodes), mPrimalCondition(ThisNodes)
+    {
+        SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+    }
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        rResult.resize(1);
+        rResult[0] = this->GetGeometry()[0].GetDof(ADJOINT_VECTOR_1_X).EquationId();
+    }
+
+    void GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        rConditionalDofList.resize(1);
+        rConditionalDofList[0] = this->GetGeometry()[0].pGetDof(ADJOINT_VECTOR_1_X);
+    }
+
+    void GetValuesVector(Vector& values, int Step = 0) const override
+    {
+        values.resize(1);
+        values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_1_X, Step);
+    }
+
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override
+    {
+        values.resize(1);
+        values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_2_X, Step);
+    }
+
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override
+    {
+        values.resize(1);
+        values[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_VECTOR_3_X, Step);
+    }
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mPrimalCondition.CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+    }
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        mPrimalCondition.CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+        KRATOS_CATCH("");
+    }
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                       const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        mPrimalCondition.CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = -rLeftHandSideMatrix;
+        KRATOS_CATCH("");
+    }
+
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // KRATOS_TRY;
+        // if (rDesignVariable == SCALAR_SENSITIVITY)
+        // {
+        //     rOutput.resize(1, 2, false);
+        //     const double& x1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+
+        //     const double x21 = x2 - x1;
+        //     rOutput(0, 0) = -(x1 * x1 * x1 - x21 * x21 * x21);
+        //     rOutput(0, 1) = -(x21 * x21 * x21);
+        // }
+        // else
+        // {
+        //     KRATOS_ERROR << "Invalid variable: " << rDesignVariable << std::endl;
+        // }
+        // KRATOS_CATCH("");
+    }
+
+    ///@}
+
+private:
+    PrimalCondition mPrimalCondition;
+};
+
+
 class ResponseFunction : public AdjointResponseFunction
 {
     public:
@@ -501,6 +776,53 @@ class ResponseFunction : public AdjointResponseFunction
         }
 
         void CalculatePartialSensitivity(Element& rAdjointElement,
+                                         const Variable<array_1d<double, 3>>& rVariable,
+                                         const Matrix& rSensitivityMatrix,
+                                         Vector& rSensitivityGradient,
+                                         const ProcessInfo& rProcessInfo) override
+        {
+            rSensitivityGradient.resize(1, false);
+            rSensitivityGradient(0) = 0.;
+        }
+
+        void CalculateGradient(const Condition& rAdjointCondition,
+                               const Matrix& rResidualGradient,
+                               Vector& rResponseGradient,
+                               const ProcessInfo& rProcessInfo) override
+        {
+            rResponseGradient.resize(1, false);
+            rResponseGradient(0) = 0.0;
+        }
+
+        void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                               const Matrix& rResidualGradient,
+                                               Vector& rResponseGradient,
+                                               const ProcessInfo& rProcessInfo) override
+        {
+            rResponseGradient.resize(1, false);
+            rResponseGradient(0) = 0.0;
+        }
+
+        void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
+                                                const Matrix& rResidualGradient,
+                                                Vector& rResponseGradient,
+                                                const ProcessInfo& rProcessInfo) override
+        {
+            rResponseGradient.resize(1, false);
+            rResponseGradient(0) = 0.;
+        }
+
+        void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                         const Variable<double>& rVariable,
+                                         const Matrix& rSensitivityMatrix,
+                                         Vector& rSensitivityGradient,
+                                         const ProcessInfo& rProcessInfo) override
+        {
+            rSensitivityGradient.resize(1, false);
+            rSensitivityGradient(0) = 0.;
+        }
+
+        void CalculatePartialSensitivity(Condition& rAdjointCondition,
                                          const Variable<array_1d<double, 3>>& rVariable,
                                          const Matrix& rSensitivityMatrix,
                                          Vector& rSensitivityGradient,
@@ -599,7 +921,7 @@ struct PrimalResults : Base::PrimalResults
     }
 };
 
-void InitializePrimalModelPart(ModelPart& rModelPart)
+void InitializePrimalModelPart(ModelPart& rModelPart, const bool IsWithConditions = false)
 {
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -618,12 +940,16 @@ void InitializePrimalModelPart(ModelPart& rModelPart)
     rModelPart.AddElement(p_element);
     auto& node1 = rModelPart.GetNode(1);
     auto& node2 = rModelPart.GetNode(2);
+    if (IsWithConditions) {
+        auto p_condition = PrimalCondition::Create(rModelPart.pGetNode(2));
+        rModelPart.AddCondition(p_condition);
+    }
     node2.FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
     node1.FastGetSolutionStepValue(ACCELERATION_X) = 2.0;
     node2.FastGetSolutionStepValue(ACCELERATION_X) =-2.0;
 }
 
-void InitializeAdjointModelPart(ModelPart& rModelPart)
+void InitializeAdjointModelPart(ModelPart& rModelPart, const bool IsWithConditions = false)
 {
     rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -645,13 +971,18 @@ void InitializeAdjointModelPart(ModelPart& rModelPart)
     auto p_adjoint_element =
         AdjointElement::Create(rModelPart.pGetNode(1), rModelPart.pGetNode(2));
     rModelPart.AddElement(p_adjoint_element);
+
+    if (IsWithConditions) {
+        auto p_adjoint_condition = AdjointCondition::Create(rModelPart.pGetNode(2));
+        rModelPart.AddCondition(p_adjoint_condition);
+    }
 }
 
 }
 
 } // unnamed namespace
 
-KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem_Elements, KratosCoreFastSuite)
 {
     namespace Nlsmd = NonLinearSpringMassDamper;
     // Solve the primal problem.
@@ -713,5 +1044,78 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, 
     KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X), -1.0319132594e-02, 1e-6);
     KRATOS_CHECK_NEAR(adjoint_sensitivity, fd_sensitivity, 1e-7);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem_Conditions, KratosCoreFastSuite)
+{
+    namespace Nlsmd = NonLinearSpringMassDamper;
+    // Solve the primal problem.
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("test");
+
+    Nlsmd::InitializePrimalModelPart(model_part, true);
+
+    auto p_results_data = Kratos::make_shared<Nlsmd::PrimalResults>();
+    Base::PrimalStrategy solver(model_part, p_results_data);
+    solver.Initialize();
+
+    const double end_time = 0.1;
+    const double start_time = 0.;
+    const std::size_t N = 5;
+    const double delta_time = (end_time - start_time) / N;
+    model_part.CloneTimeStep(start_time - delta_time);
+    model_part.CloneTimeStep(start_time);
+
+    for (double current_time = start_time; current_time < end_time;)
+    {
+        current_time += delta_time;
+        model_part.CloneTimeStep(current_time);
+        solver.Solve();
+    }
+
+    // Solve the adjoint problem.
+    ModelPart& adjoint_model_part = current_model.CreateModelPart("test_adjoint");
+
+    Nlsmd::InitializeAdjointModelPart(adjoint_model_part, true);
+
+    auto p_response_function =
+        Kratos::make_shared<Nlsmd::ResponseFunction>(adjoint_model_part);
+    Base::AdjointStrategy adjoint_solver(adjoint_model_part, p_results_data, p_response_function);
+    adjoint_solver.Initialize();
+
+    SensitivityBuilder sensitivity_builder(
+        Parameters{R"(
+            {
+                "element_data_value_sensitivity_variables": ["SCALAR_SENSITIVITY"],
+                "build_mode": "integrate",
+                "nodal_solution_step_sensitivity_calculation_is_thread_safe" : true
+            })"},
+        adjoint_model_part, p_response_function);
+    sensitivity_builder.Initialize();
+    adjoint_model_part.CloneTimeStep(end_time + 2. * delta_time);
+    adjoint_model_part.CloneTimeStep(end_time + delta_time);
+
+    for (double current_time = end_time + delta_time; current_time >= start_time + 1.5 * delta_time;)
+    {
+        current_time -= delta_time;
+        adjoint_model_part.CloneTimeStep(current_time);
+        adjoint_solver.Solve();
+        sensitivity_builder.UpdateSensitivities();
+    }
+
+    // Check.
+    const double adjoint_sensitivity = adjoint_model_part.Elements().front().GetValue(SCALAR_SENSITIVITY);
+    auto p_primal_response_function =
+        Kratos::make_shared<Nlsmd::ResponseFunction>(model_part);
+    std::cout << std::scientific << std::setprecision(12) << p_primal_response_function->CalculateValue(model_part);
+    const double fd_sensitivity = (1.0251139877e-01 - 1.0251114465e-01) / 1.e-4;
+    // KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X), 2.1808885528e-02, 1e-6);
+    // KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_1_X), -1.3753669361e-02, 1e-6);
+    // KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X), -1.1404210281, 1e-6);
+    // KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_2_X), 7.5552893007e-01, 1e-6);
+    // KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(1).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X), 1.8155023724e-02, 1e-6);
+    // KRATOS_CHECK_NEAR(adjoint_model_part.GetNode(2).FastGetSolutionStepValue(ADJOINT_VECTOR_3_X), -1.0319132594e-02, 1e-6);
+    KRATOS_CHECK_NEAR(adjoint_sensitivity, fd_sensitivity, 1e-7);
+}
+
 }
 }
