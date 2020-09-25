@@ -30,6 +30,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/indirect_scalar.h"
 #include "utilities/adjoint_extensions.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -115,7 +116,7 @@ public:
         mAdjointIndirectVector3.resize(num_threads);
         mAuxAdjointIndirectVector1.resize(num_threads);
 
-        InitializeNodeNeighbourCount(rModelPart.Nodes());
+        VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_ELEMENTS, rModelPart.Nodes());
 
         rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
 
@@ -229,9 +230,34 @@ public:
                                       const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
-        // NOT TESTED !!!
-        rCurrentCondition.CalculateLocalSystem(
-            rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        const auto k = OpenMPUtils::ThisThread();
+        rCurrentCondition.GetValuesVector(mAdjointValuesVector[k]);
+        const auto local_size = mAdjointValuesVector[k].size();
+        if (rRHS_Contribution.size() != local_size)
+        {
+            rRHS_Contribution.resize(local_size, false);
+        }
+        if (rLHS_Contribution.size1() != local_size || rLHS_Contribution.size2() != local_size)
+        {
+            rLHS_Contribution.resize(local_size, local_size, false);
+        }
+        this->CheckAndResizeThreadStorage(local_size);
+
+        this->CalculateGradientContributions(rCurrentCondition, rLHS_Contribution,
+                                             rRHS_Contribution, rCurrentProcessInfo);
+
+        this->CalculateFirstDerivativeContributions(
+            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        this->CalculateSecondDerivativeContributions(
+            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        this->CalculateResidualLocalContributions(
+            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+
         KRATOS_CATCH("");
     }
 
@@ -365,51 +391,114 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateGradientContributions(Element& rCurrentElement,
+    /**
+     * @brief Calculates entity first derivative contributions for adjoint system
+     *
+     * \[
+     *      \mathbf{\underline{K}} = \mathbf{\underline{K}} + \frac{\partial \underline{R}^n}{\partial \underline{w}^n} \\
+     *      \underline{F} = \underline{F} - \frac{\partial J^n}{\partial \underline{w}^n}
+     * \]
+     *
+     * @tparam TEntityType
+     * @param rCurrentEntity            Current entity
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
+    template<class TEntityType>
+    void CalculateGradientContributions(TEntityType& rCurrentEntity,
                                         LocalSystemMatrixType& rLHS_Contribution,
                                         LocalSystemVectorType& rRHS_Contribution,
                                         const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
-        rCurrentElement.CalculateLeftHandSide(mLeftHandSide[k], rCurrentProcessInfo);
+        rCurrentEntity.CalculateLeftHandSide(mLeftHandSide[k], rCurrentProcessInfo);
         this->mpResponseFunction->CalculateGradient(
-            rCurrentElement, mLeftHandSide[k], mResponseGradient[k], rCurrentProcessInfo);
+            rCurrentEntity, mLeftHandSide[k], mResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) = mLeftHandSide[k];
         noalias(rRHS_Contribution) = -1. * mResponseGradient[k];
     }
 
-    void CalculateFirstDerivativeContributions(Element& rCurrentElement,
+    /**
+     * @brief Calculates element first derivative contributions to adjoint system
+     *
+     * \[
+     *      \mathbf{\underline{K}} =  \mathbf{\underline{K}} + \frac{\gamma}{\beta \Delta t} \frac{\partial \underline{R}^n}{\partial \underline{\dot{w}}^n} \\
+     *      \underline{F} = \underline{F} - \frac{\gamma}{\beta \Delta t} \frac{\partial J^n}{\partial \underline{\dot{w}}^n}
+     * \]
+     *
+     * @tparam TEntityType
+     * @param rCurrentEntity            Current entity
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
+    template<class TEntityType>
+    void CalculateFirstDerivativeContributions(TEntityType& rCurrentEntity,
                                                LocalSystemMatrixType& rLHS_Contribution,
                                                LocalSystemVectorType& rRHS_Contribution,
                                                const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
-        rCurrentElement.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rCurrentProcessInfo);
+        rCurrentEntity.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rCurrentProcessInfo);
         mpResponseFunction->CalculateFirstDerivativesGradient(
-            rCurrentElement, mFirstDerivsLHS[k],
+            rCurrentEntity, mFirstDerivsLHS[k],
             mFirstDerivsResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) += mBossak.C6 * mFirstDerivsLHS[k];
         noalias(rRHS_Contribution) -=
             mBossak.C6 * mFirstDerivsResponseGradient[k];
     }
 
-    void CalculateSecondDerivativeContributions(Element& rCurrentElement,
+    /**
+     * @brief Calculates element second derivative contributions for adjoint system
+     *
+     * \[
+     *      \mathbf{\underline{K}} =  \mathbf{\underline{K}} + \frac{1 - \alpha}{\beta\Delta t^2}\frac{\partial \underline{R}^n}{\partial \underline{\ddot{w}}^n} \\
+     *      \underline{F} = \underline{F} - \frac{1}{\beta\Delta t^2}\frac{\partial J^n}{\partial \underline{\ddot{w}}^n}
+     * \]
+     *
+     * @tparam TEntityType
+     * @param rCurrentEntity            Current entity
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
+    template<class TEntityType>
+    void CalculateSecondDerivativeContributions(TEntityType& rCurrentEntity,
                                                 LocalSystemMatrixType& rLHS_Contribution,
                                                 LocalSystemVectorType& rRHS_Contribution,
                                                 const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
         auto& r_response_function = *(this->mpResponseFunction);
-        rCurrentElement.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rCurrentProcessInfo);
+        rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rCurrentProcessInfo);
         mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
         r_response_function.CalculateSecondDerivativesGradient(
-            rCurrentElement, mSecondDerivsLHS[k],
+            rCurrentEntity, mSecondDerivsLHS[k],
             mSecondDerivsResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) += mBossak.C7 * mSecondDerivsLHS[k];
         noalias(rRHS_Contribution) -=
             mBossak.C7 * mSecondDerivsResponseGradient[k];
     }
 
+    /**
+     * @brief Calculates previous time step contributions from elements to adjoint system
+     *
+     * No need to use again conditions version of this since elements includes condition nodes as well.
+     * Therefore, this will add automatically condition contributions as well.
+     *
+     * \underline{F} =
+     *      \underline{F}
+     *      - \frac{1}{\beta\Delta t^2}\left[\frac{\partial \underline{R}^{n+1}}{\underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
+     *      - \frac{1}{\beta\Delta t^2}\frac{\partial J^{n+1}}{\underline{\ddot{w}}^n}
+     *      + \frac{\beta - \gamma\left(\gamma + \frac{1}{2}\right)}{\beta^2\Delta t}\underline{\lambda}_2^{n+1}
+     *      - \frac{\gamma + \frac{1}{2}}{\beta^2\Delta t}\underline{\lambda}_3^{n+1}
+     *
+     * @param rCurrentElement           Current element
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
     void CalculatePreviousTimeStepContributions(Element& rCurrentElement,
                                                 LocalSystemMatrixType& rLHS_Contribution,
                                                 LocalSystemVectorType& rRHS_Contribution,
@@ -440,50 +529,45 @@ private:
         }
     }
 
-    void CalculateResidualLocalContributions(Element& rCurrentElement,
+    /**
+     * @brief Calculates elemental residual
+     *
+     * \[
+     *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
+     * \]
+     *
+     * @tparam TEntityType
+     * @param rCurrentEntity            Current entity
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
+    template<class TEntityType>
+    void CalculateResidualLocalContributions(TEntityType& rCurrentEntity,
                                              LocalSystemMatrixType& rLHS_Contribution,
                                              LocalSystemVectorType& rRHS_Contribution,
                                              const ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
         auto& r_residual_adjoint = mAdjointValuesVector[k];
-        rCurrentElement.GetValuesVector(r_residual_adjoint);
+        rCurrentEntity.GetValuesVector(r_residual_adjoint);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
-    }
-
-    void InitializeNodeNeighbourCount(ModelPart::NodesContainerType& rNodes)
-    {
-        // This loop should not be omp parallel
-        // The operation is not threadsafe if the value is uninitialized
-        for (auto& r_node : rNodes)
-            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
     }
 
     void CalculateNodeNeighbourCount(ModelPart& rModelPart)
     {
         // Calculate number of neighbour elements for each node.
-        const int num_nodes = rModelPart.NumberOfNodes();
-#pragma omp parallel for
-        for (int i = 0; i < num_nodes; ++i)
-        {
-            Node<3>& r_node = *(rModelPart.Nodes().begin() + i);
-            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
-        }
+        VariableUtils().SetNonHistoricalVariableToZero(NUMBER_OF_NEIGHBOUR_ELEMENTS, rModelPart.Nodes());
 
-        const int num_elements = rModelPart.NumberOfElements();
-#pragma omp parallel for
-        for (int i = 0; i < num_elements; ++i)
-        {
-            Element& r_element = *(rModelPart.Elements().begin() + i);
-            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned j = 0; j < r_geometry.PointsNumber(); ++j)
-            {
+        block_for_each(rModelPart.Elements(), [&](ModelPart::ElementType& rElement) {
+            auto& r_geometry = rElement.GetGeometry();
+            for (unsigned j = 0; j < r_geometry.PointsNumber(); ++j) {
                 double& r_num_neighbour =
                     r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 #pragma omp atomic
                 r_num_neighbour += 1.0;
             }
-        }
+        });
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
     }
@@ -501,30 +585,79 @@ private:
                                       std::vector<const VariableData*>& rVec) {
                 return rExtensions.GetSecondDerivativesVariables(rVec);
             });
+        auto auxiliary_vars = GatherVariables(
+            rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
+                                      std::vector<const VariableData*>& rVec) {
+                return rExtensions.GetAuxiliaryVariables(rVec);
+            });
+
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
 
-        const int number_of_elements = rModelPart.NumberOfElements();
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        CalculateAndUpdateEntityTimeSchemeContributions(rModelPart.Elements(), r_process_info);
+        CalculateAndUpdateEntityTimeSchemeContributions(rModelPart.Conditions(), r_process_info);
+
+        KRATOS_ERROR_IF(lambda2_vars.size() != lambda3_vars.size())
+            << "First derivatives variable list and second derivatives "
+               "variables list size mismatch.\n";
+        KRATOS_ERROR_IF(lambda2_vars.size() != auxiliary_vars.size())
+            << "First derivatives variable list and auxiliary variables list "
+               "size mismatch.\n";
+
+        for (unsigned int i_var = 0; i_var < lambda2_vars.size(); ++i_var) {
+            const auto& r_lambda2_variable_name = lambda2_vars[i_var]->Name();
+            const auto& r_lambda3_variable_name = lambda3_vars[i_var]->Name();
+            const auto& r_auxiliary_variable_name = auxiliary_vars[i_var]->Name();
+
+            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_lambda2_variable_name)) {
+                UpdateTimeSchemeVariablesFromOldContributions<array_1d<double, 3>>(
+                    rModelPart.Nodes(), r_lambda2_variable_name,
+                    r_lambda3_variable_name, r_auxiliary_variable_name);
+            } else if (KratosComponents<Variable<double>>::Has(r_lambda2_variable_name)) {
+                UpdateTimeSchemeVariablesFromOldContributions<double>(
+                    rModelPart.Nodes(), r_lambda2_variable_name,
+                    r_lambda3_variable_name, r_auxiliary_variable_name);
+            } else {
+                KRATOS_ERROR << "Unsupported variable type "
+                             << r_lambda2_variable_name << ".";
+            }
+        }
+
+        // Finalize global assembly
+        Assemble_AdjointVars(lambda2_vars, rModelPart.GetCommunicator());
+        Assemble_AdjointVars(lambda3_vars, rModelPart.GetCommunicator());
+        KRATOS_CATCH("");
+    }
+
+    template <class TEntityContainerType>
+    void CalculateAndUpdateEntityTimeSchemeContributions(
+        TEntityContainerType& rEntityContainer,
+        const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY
+
+        const int number_of_elements = rEntityContainer.size();
+
         Vector adjoint2_aux, adjoint3_aux;
         std::vector<IndirectScalar<double>> adjoint2_old, adjoint3_old;
 #pragma omp parallel for private(adjoint2_aux, adjoint3_aux, adjoint2_old, adjoint3_old)
-        for (int i = 0; i < number_of_elements; ++i)
-        {
-            Element& r_element = *(rModelPart.ElementsBegin() + i);
+        for (int i = 0; i < number_of_elements; ++i) {
+            auto& r_entity = *(rEntityContainer.begin() + i);
             const int k = OpenMPUtils::ThisThread();
 
-            r_element.GetValuesVector(mAdjointValuesVector[k]);
+            r_entity.GetValuesVector(mAdjointValuesVector[k]);
             this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
 
-            r_element.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], r_process_info);
+            /// starting to build residual for next time step calculations
+            r_entity.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rProcessInfo);
             this->mpResponseFunction->CalculateFirstDerivativesGradient(
-                r_element, mFirstDerivsLHS[k], mFirstDerivsResponseGradient[k], r_process_info);
+                r_entity, mFirstDerivsLHS[k], mFirstDerivsResponseGradient[k], rProcessInfo);
 
-            r_element.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_process_info);
+            r_entity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rProcessInfo);
             mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
             this->mpResponseFunction->CalculateSecondDerivativesGradient(
-                r_element, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_process_info);
+                r_entity, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], rProcessInfo);
 
             if (adjoint2_aux.size() != mFirstDerivsResponseGradient[k].size())
                 adjoint2_aux.resize(mFirstDerivsResponseGradient[k].size(), false);
@@ -534,41 +667,81 @@ private:
                 adjoint3_aux.resize(mSecondDerivsResponseGradient[k].size(), false);
             noalias(adjoint3_aux) = -mSecondDerivsResponseGradient[k] -
                                     prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
-            auto& r_extensions = *r_element.GetValue(ADJOINT_EXTENSIONS);
+            auto& r_extensions = *r_entity.GetValue(ADJOINT_EXTENSIONS);
+
             // Assemble the contributions to the corresponding nodal unknowns.
             unsigned local_index = 0;
-            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                r_extensions.GetFirstDerivativesVector(
-                    i_node, mAdjointIndirectVector2[k], 0);
-                r_extensions.GetSecondDerivativesVector(
-                    i_node, mAdjointIndirectVector3[k], 0);
-                r_extensions.GetFirstDerivativesVector(i_node, adjoint2_old, 1);
-                r_extensions.GetSecondDerivativesVector(i_node, adjoint3_old, 1);
-                r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 1);
-                Node<3>& r_node = r_geometry[i_node];
-                const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+            auto& r_geometry = r_entity.GetGeometry();
+            for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+
+                r_extensions.GetFirstDerivativesVector(i_node, mAdjointIndirectVector2[k], 0);
+                r_extensions.GetSecondDerivativesVector(i_node, mAdjointIndirectVector3[k], 0);
+
+                auto& r_node = r_geometry[i_node];
                 r_node.SetLock();
-                for (unsigned d = 0; d < mAdjointIndirectVector2[k].size(); ++d)
-                {
+                for (unsigned d = 0; d < mAdjointIndirectVector2[k].size(); ++d) {
+                    /*
+                        \[
+                            mAdjointIndirectVector2 =
+                                - \frac{\partial J^{n}}{\partial \underline{\dot{w}}^n}
+                                - \left[\frac{\partial \underline{R}^{n}}{\partial \underline{\dot{w}}}\right]^T\underline{\lambda}_1^{n+1}
+                        \]
+                        \[
+                            mAdjointIndirectVector3 =
+                                - \frac{\partial J^{n}}{\partial \underline{\ddot{w}}^n}
+                                - \left(1-\alpha\right)\left[\frac{\partial \underline{R}^{n}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
+                        \]
+                    */
                     mAdjointIndirectVector2[k][d] += adjoint2_aux[local_index];
-                    mAdjointIndirectVector2[k][d] += mBossak.C0 * weight * adjoint2_old[d];
-                    mAdjointIndirectVector2[k][d] += mBossak.C1 * weight * adjoint3_old[d];
                     mAdjointIndirectVector3[k][d] += adjoint3_aux[local_index];
-                    mAdjointIndirectVector3[k][d] += mBossak.C2 * weight * adjoint2_old[d];
-                    mAdjointIndirectVector3[k][d] += mBossak.C3 * weight * adjoint3_old[d];
-                    mAdjointIndirectVector3[k][d] +=
-                        weight * mAuxAdjointIndirectVector1[k][d];
                     ++local_index;
                 }
                 r_node.UnSetLock();
             }
         }
 
-        // Finalize global assembly
-        Assemble_AdjointVars(lambda2_vars, rModelPart.GetCommunicator());
-        Assemble_AdjointVars(lambda3_vars, rModelPart.GetCommunicator());
+        KRATOS_CATCH("");
+    }
+
+    template<class TDataType>
+    void UpdateTimeSchemeVariablesFromOldContributions(
+        ModelPart::NodesContainerType& rNodes,
+        const std::string& rLambda2VariableName,
+        const std::string& rLambda3VariableName,
+        const std::string& rAuxiliaryVariableName)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rLambda2VariableName))
+            << "Adjoint variable " << rLambda2VariableName
+            << " is not found in variable list with required type.\n";
+
+        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rLambda3VariableName))
+            << "Adjoint variable " << rLambda3VariableName
+            << " is not found in variable list with required type.\n";
+
+        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rAuxiliaryVariableName))
+            << "Adjoint variable " << rAuxiliaryVariableName
+            << " is not found in variable list with required type.\n";
+
+        const auto& r_lambda2_variable = KratosComponents<Variable<TDataType>>::Get(rLambda2VariableName);
+        const auto& r_lambda3_variable = KratosComponents<Variable<TDataType>>::Get(rLambda3VariableName);
+        const auto& r_auxiliary_variable = KratosComponents<Variable<TDataType>>::Get(rAuxiliaryVariableName);
+
+        block_for_each(rNodes, [&](ModelPart::NodeType& rNode) {
+            const TDataType& r_old_lambda2_value = rNode.FastGetSolutionStepValue(r_lambda2_variable, 1);
+            const TDataType& r_old_lambda3_value = rNode.FastGetSolutionStepValue(r_lambda3_variable, 1);
+
+            TDataType& r_lambda2_value = rNode.FastGetSolutionStepValue(r_lambda2_variable);
+            r_lambda2_value += r_old_lambda2_value * mBossak.C0;
+            r_lambda2_value += r_old_lambda3_value * mBossak.C1;
+
+            TDataType& r_lambda3_value = rNode.FastGetSolutionStepValue(r_lambda3_variable);
+            r_lambda3_value += r_old_lambda2_value * mBossak.C2;
+            r_lambda3_value += r_old_lambda3_value * mBossak.C3;
+            r_lambda3_value += rNode.FastGetSolutionStepValue(r_auxiliary_variable, 1);
+        });
+
         KRATOS_CATCH("");
     }
 
@@ -580,43 +753,62 @@ private:
                                       std::vector<const VariableData*>& rOut) {
                 return rExtensions.GetAuxiliaryVariables(rOut);
             });
+
         SetToZero_AdjointVars(aux_vars, rModelPart.Nodes());
 
+        const auto& r_process_info = rModelPart.GetProcessInfo();
         // Loop over elements to assemble the remaining terms
-        const int number_of_elements = rModelPart.NumberOfElements();
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        CalculateAndUpdateEntityAuxiliaryVariableContributions(rModelPart.Elements(), r_process_info);
+        // Loop over conditions to assemble the remaining terms
+        CalculateAndUpdateEntityAuxiliaryVariableContributions(rModelPart.Conditions(), r_process_info);
+
+        // Finalize global assembly
+        Assemble_AdjointVars(aux_vars, rModelPart.GetCommunicator());
+        KRATOS_CATCH("");
+    }
+
+    template <class TEntityContainerType>
+    void CalculateAndUpdateEntityAuxiliaryVariableContributions(
+        TEntityContainerType& rEntityContainer,
+        const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY
+
+        const int number_of_entities = rEntityContainer.size();
         Vector aux_adjoint_vector;
 #pragma omp parallel for private(aux_adjoint_vector)
-        for (int i = 0; i < number_of_elements; ++i)
-        {
-            Element& r_element = *(rModelPart.ElementsBegin() + i);
+        for (int i = 0; i < number_of_entities; ++i) {
+            auto& r_entity = *(rEntityContainer.begin() + i);
             const int k = OpenMPUtils::ThisThread();
 
-            r_element.GetValuesVector(mAdjointValuesVector[k]);
+            r_entity.GetValuesVector(mAdjointValuesVector[k]);
             this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
 
-            r_element.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_process_info);
+            r_entity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rProcessInfo);
             mSecondDerivsLHS[k] *= mBossak.Alpha;
             this->mpResponseFunction->CalculateSecondDerivativesGradient(
-                r_element, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_process_info);
+                r_entity, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], rProcessInfo);
 
             if (aux_adjoint_vector.size() != mSecondDerivsLHS[k].size1())
                 aux_adjoint_vector.resize(mSecondDerivsLHS[k].size1(), false);
             noalias(aux_adjoint_vector) =
                 prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) +
                 mSecondDerivsResponseGradient[k];
-            auto& r_extensions = *r_element.GetValue(ADJOINT_EXTENSIONS);
+            auto& r_extensions = *r_entity.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
             unsigned local_index = 0;
-            Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            {
-                Node<3>& r_node = r_geometry[i_node];
+            auto& r_geometry = r_entity.GetGeometry();
+            /*
+                mAuxAdjointIndirectVector1 =
+                    - \frac{\partial J^{n+1}}{\partial \underline{\ddot{w}}^n}
+                    - \alpha \left[\frac{\partial \underline{R}^{n+1}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
+            */
+            for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+                auto& r_node = r_geometry[i_node];
                 r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 0);
 
                 r_node.SetLock();
-                for (unsigned d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d)
-                {
+                for (unsigned d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d) {
                     mAuxAdjointIndirectVector1[k][d] -= aux_adjoint_vector[local_index];
                     ++local_index;
                 }
@@ -624,8 +816,6 @@ private:
             }
         }
 
-        // Finalize global assembly
-        Assemble_AdjointVars(aux_vars, rModelPart.GetCommunicator());
         KRATOS_CATCH("");
     }
 
