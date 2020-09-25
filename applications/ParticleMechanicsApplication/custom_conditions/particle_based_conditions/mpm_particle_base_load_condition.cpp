@@ -38,11 +38,11 @@ namespace Kratos
      * @return Vector of double which is shape function vector \f$ N \f$ in given point.
      *
     */
-    Vector& MPMParticleBaseLoadCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
+    Vector& MPMParticleBaseLoadCondition::MPMShapeFunctionPointValues( Vector& rResult )
     {
         KRATOS_TRY
 
-        rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
+        rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
 
         // Additional check to eliminate loss of point load quantity
         GeometryType& r_geometry = GetGeometry();
@@ -57,7 +57,8 @@ namespace Kratos
             }
         }
 
-        rResult = rResult/denominator;
+        if (denominator > std::numeric_limits<double>::epsilon() )
+            rResult = rResult/denominator;
 
         return rResult;
 

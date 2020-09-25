@@ -35,7 +35,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
 
     // Prepare variables
     GeneralVariables Variables;
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N);
 
     // Get NODAL_AREA from MPC_Area
     GeometryType& r_geometry = GetGeometry();
@@ -118,11 +118,12 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     }
 }
 
-Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
+Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult)
 {
     KRATOS_TRY
 
-    rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
+    rResult =  MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
+    GeometryType& r_geometry = GetGeometry();
 
     // Additional check to modify zero shape function values
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -131,13 +132,18 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& 
     const double small_cut_instability_tolerance = 0.01;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rResult[i] < small_cut_instability_tolerance){
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            denominator -= rResult[i];
+            rResult[i] = 0;
+        }
+        else if (rResult[i] < small_cut_instability_tolerance){
             denominator += (small_cut_instability_tolerance - rResult[i]);
             rResult[i] = small_cut_instability_tolerance;
         }
     }
 
-    rResult = rResult / denominator;
+    if (denominator > std::numeric_limits<double>::epsilon() )
+        rResult = rResult / denominator;
 
     return rResult;
 

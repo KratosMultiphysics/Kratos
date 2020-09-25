@@ -190,7 +190,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     // Prepare variables
     GeneralVariables Variables;
     const double & r_mpc_area = this->GetIntegrationWeight();
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N);
 
     // Interpolate the force to mpc_force assuming linear shape function
     array_1d<double, 3 > mpc_force = ZeroVector(3);

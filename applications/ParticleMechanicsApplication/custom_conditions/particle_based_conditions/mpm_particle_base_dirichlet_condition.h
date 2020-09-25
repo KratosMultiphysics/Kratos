@@ -139,7 +139,7 @@ protected:
     ///@{
 
     /// Calculate Shape Function Values in a given point
-    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
+    Vector& MPMShapeFunctionPointValues(Vector& rResult) override;
 
     ///@}
 

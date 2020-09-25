@@ -41,25 +41,16 @@ void MPMParticleBaseCondition::EquationIdVector(
 
     const unsigned int pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
 
-    if(dimension == 2)
+    
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            const unsigned int index = i * 2;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-        }
+        const unsigned int index = i * dimension;
+        rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+        if ( dimension == 3 )
+            rResult[index + 2] = r_geometry[i].GetDof( DISPLACEMENT_Z,pos + 2 ).EquationId();
     }
-    else
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            const unsigned int index = i * 3;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-            rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
-        }
-    }
+   
     KRATOS_CATCH("")
 }
 
@@ -74,25 +65,17 @@ void MPMParticleBaseCondition::GetDofList(
 
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
-    const unsigned int dimension =  r_geometry.WorkingSpaceDimension();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     rElementalDofList.resize(0);
     rElementalDofList.reserve(dimension * number_of_nodes);
 
-    if(dimension == 2)
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
+        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+        if ( dimension == 3 )
         {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
         }
     }
     KRATOS_CATCH("")
@@ -111,11 +94,8 @@ void MPMParticleBaseCondition::GetValuesVector(
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
 
-    if (rValues.size() != matrix_size)
-    {
-        rValues.resize(matrix_size, false);
-    }
-
+    if (rValues.size() != matrix_size) rValues.resize(matrix_size, false);
+   
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
@@ -140,11 +120,8 @@ void MPMParticleBaseCondition::GetFirstDerivativesVector(
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
 
-    if (rValues.size() != matrix_size)
-    {
-        rValues.resize(matrix_size, false);
-    }
-
+    if (rValues.size() != matrix_size) rValues.resize(matrix_size, false);
+    
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
@@ -169,10 +146,7 @@ void MPMParticleBaseCondition::GetSecondDerivativesVector(
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int matrix_size = number_of_nodes * dimension;
 
-    if (rValues.size() != matrix_size)
-    {
-        rValues.resize(matrix_size, false);
-    }
+    if (rValues.size() != matrix_size) rValues.resize(matrix_size, false);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -285,59 +259,10 @@ int MPMParticleBaseCondition::Check( const ProcessInfo& rCurrentProcessInfo )
    * @return Vector of double which is shape function vector \f$ N \f$ in given point.
    *
  */
-Vector& MPMParticleBaseCondition::MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint)
+Vector& MPMParticleBaseCondition::MPMShapeFunctionPointValues(Vector& rResult)
 {
     KRATOS_TRY
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    rResult.resize(number_of_nodes, false);
-
-    // Get local point coordinate
-    array_1d<double,3> rPointLocal = ZeroVector(3);
-    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-    if (dimension == 2)
-    {
-        // Get Shape functions: N depending on number of nodes
-        switch (number_of_nodes)
-        {
-            case 3:
-                rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
-                rResult[1] = rPointLocal[0];
-                rResult[2] = rPointLocal[1];
-                break;
-            case 4:
-                rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-                rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-                rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-                rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-                break;
-        }
-    }
-    else if (dimension == 3)
-    {
-        // Get Shape functions: N depending on number of nodes
-        switch (number_of_nodes)
-        {
-            case 4:
-                rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
-                rResult[1] = rPointLocal[0];
-                rResult[2] = rPointLocal[1];
-                rResult[3] = rPointLocal[2];
-                break;
-            case 8:
-                rResult[0] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[1] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[2] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[3] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-                rResult[4] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                rResult[5] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                rResult[6] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                rResult[7] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
-                break;
-        }
-    }
+    rResult = row(GetGeometry().ShapeFunctionsValues(), 0);
 
     return rResult;
 
