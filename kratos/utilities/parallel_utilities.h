@@ -61,13 +61,22 @@ public:
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
                    int Nchunks = omp_get_max_threads())
-        : mNchunks(Nchunks)
     {
-        ptrdiff_t mBlockPartitionSize = (it_end-it_begin) / mNchunks;
+        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
+
+        const ptrdiff_t size_container = it_end-it_begin;
+
+        if (size_container == 0) {
+            mNchunks = Nchunks;
+        } else {
+            // in case the container is smaller than the number of chunks
+            mNchunks = std::min(static_cast<int>(size_container), Nchunks);
+        }
+        const ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
         for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
         }
     }
 
@@ -146,7 +155,7 @@ typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &
  *  @param TMaxThreads - maximum number of threads allowed in the partitioning.
  *                       must be known at compile time to avoid heap allocations in the partitioning
  */
-template<class TIndexType, int TMaxThreads=Globals::MaxAllowedThreads>
+template<class TIndexType=std::size_t, int TMaxThreads=Globals::MaxAllowedThreads>
 class IndexPartition
 {
 public:
@@ -157,13 +166,21 @@ public:
  */
     IndexPartition(TIndexType Size,
                    int Nchunks = omp_get_max_threads())
-        : mNchunks(Nchunks)
     {
-        int mBlockPartitionSize = Size / mNchunks;
+        KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
+
+        if (Size == 0) {
+            mNchunks = Nchunks;
+        } else {
+            // in case the container is smaller than the number of chunks
+            mNchunks = std::min(static_cast<int>(Size), Nchunks);
+        }
+
+        const int block_partition_size = Size / mNchunks;
         mBlockPartition[0] = 0;
         mBlockPartition[mNchunks] = Size;
         for (int i=1; i<mNchunks; i++) {
-            mBlockPartition[i] = mBlockPartition[i-1] + mBlockPartitionSize;
+            mBlockPartition[i] = mBlockPartition[i-1] + block_partition_size;
         }
 
     }

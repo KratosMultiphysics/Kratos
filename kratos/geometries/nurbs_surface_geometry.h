@@ -192,21 +192,40 @@ public:
     }
 
     ///@}
-    ///@name Information
+    ///@name Geometrical Information
     ///@{
 
     /// Returns number of points per direction.
-    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
     {
-        if (DirectionIndex == 0) {
+        if (LocalDirectionIndex == 0) {
             return this->NumberOfControlPointsU();
         }
-        else if (DirectionIndex == 1) {
+        else if (LocalDirectionIndex == 1) {
             return this->NumberOfControlPointsV();
         }
-        KRATOS_DEBUG_ERROR_IF(DirectionIndex > 2) << "Possible direction index in NurbsSurfaceGeometry reaches from 0-2. Given direction index: "
-            << DirectionIndex << std::endl;
-        return 1;
+        KRATOS_ERROR << "Possible direction index in NurbsSurfaceGeometry reaches from 0-1. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the surface in direction 0 or 1
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex > 1)
+            << "Trying to access polynomial degree in direction " << LocalDirectionIndex
+            << " from NurbsSurfaceGeometry #" << this->Id() << ". Nurbs surfaces have only two directions."
+            << std::endl;
+
+        if (LocalDirectionIndex == 0) {
+            return mPolynomialDegreeU;
+        }
+        else {
+            return mPolynomialDegreeV;
+        }
     }
 
     ///@}

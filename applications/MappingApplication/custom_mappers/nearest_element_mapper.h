@@ -275,6 +275,7 @@ private:
             "search_radius"                : -1.0,
             "search_iterations"            : 3,
             "local_coord_tolerance"        : 0.25,
+            "use_initial_configuration"    : false,
             "echo_level"                   : 0,
             "print_pairing_status_to_file" : true,
             "pairing_status_file_path"     : ""
