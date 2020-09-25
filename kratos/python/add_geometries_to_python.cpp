@@ -115,6 +115,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    .def("PointsNumberInDirection",&GeometryType::PointsNumberInDirection)
+    .def("PolynomialDegree",&GeometryType::PolynomialDegree)
     // Integration
     .def("IntegrationPointsNumber", [](GeometryType& self)
         { return(self.IntegrationPointsNumber()); })

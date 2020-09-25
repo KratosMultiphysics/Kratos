@@ -3,11 +3,14 @@
 # Author: Wei He
 # Date: Feb. 20, 2017
 
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info, SettingsTypeCheck
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
@@ -15,10 +18,9 @@ import numpy as np
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver_wrapper):
-    cs_tools.SettingsTypeCheck(settings)
-    raise NotImplementedError("This class needs some updates see MVQN and Aitken")
-    return IQNILSConvergenceAccelerator(settings, solver_wrapper)
+def Create(settings):
+    SettingsTypeCheck(settings)
+    return IQNILSConvergenceAccelerator(settings)
 
 ## Class IQNILSConvergenceAccelerator.
 # This class contains the implementation of the IQN-ILS method and helper functions.
@@ -28,20 +30,12 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param iteration_horizon Maximum number of vectors to be stored in each time step.
     # @param timestep_horizon Maximum number of time steps of which the vectors are used.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solver_wrapper):
-        super().__init__(settings, solver_wrapper)
-        if "iteration_horizon" in self.settings:
-            iteration_horizon = self.settings["iteration_horizon"]
-        else:
-            iteration_horizon = 20
-        if "timestep_horizon" in self.settings:
-            timestep_horizon = self.settings["timestep_horizon"]
-        else:
-            timestep_horizon = 1
-        if "alpha" in self.settings:
-            self.alpha = self.settings["alpha"]
-        else:
-            self.alpha = 0.125
+    def __init__( self, settings):
+        super().__init__(settings)
+
+        iteration_horizon = self.settings["iteration_horizon"].GetInt()
+        timestep_horizon = self.settings["timestep_horizon"].GetInt()
+        self.alpha = self.settings["alpha"].GetDouble()
 
         self.R = deque( maxlen = iteration_horizon )
         self.X = deque( maxlen = iteration_horizon )
@@ -163,3 +157,13 @@ class IQNILSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.X.clear()
         self.V_new = []
         self.W_new = []
+
+    @classmethod
+    def _GetDefaultParameters(cls):
+        this_defaults = KM.Parameters("""{
+            "iteration_horizon" : 20,
+            "timestep_horizon"  : 1,
+            "alpha"             : 0.125
+        }""")
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
+        return this_defaults
