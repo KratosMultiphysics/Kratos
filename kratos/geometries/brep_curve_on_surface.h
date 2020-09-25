@@ -307,6 +307,24 @@ public:
     }
 
     ///@}
+    ///@name Geometrical Informations
+    ///@{
+
+    /// Computes the length of a nurbs curve
+    double Length() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double length = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = mpCurveOnSurface->DeterminantOfJacobian(integration_points[i]);
+            length += integration_points[i].Weight() * determinant_jacobian;
+        }
+        return length;
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
