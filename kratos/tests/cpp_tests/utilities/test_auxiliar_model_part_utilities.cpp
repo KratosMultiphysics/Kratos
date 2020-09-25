@@ -26,833 +26,516 @@
 namespace Kratos {
 namespace Testing {
 
-/**
-* 1. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Node_historicalDatalocation
-*/
+/******************************************************************************************/
+/* Helper Functions */
+/******************************************************************************************/
+
+void Initialise(ModelPart& this_model_part)
+{ 
+    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    
+    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+}
+
+std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& this_model_part, int dim)
+{
+    //Assign random values to Displacement of each node and also save it in test_values for comparision
+    int i=0; //To create various values
+    double disp_test_value = 1.26;
+    std::vector<double> test_values;
+    
+    switch (DataLoc)
+        {
+            case (DataLocation::NodeHistorical):{
+                test_values.resize(this_model_part.NumberOfNodes() * dim);
+                for (auto& i_node : this_model_part.Nodes())
+                {
+                    for(int j=0; j<dim; j++)
+		            {   
+                        i_node.FastGetSolutionStepValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        test_values[i] = (disp_test_value * (i+j));
+                        i++;
+                    }
+                }
+                break;
+            }
+            case (DataLocation::NodeNonHistorical):{
+                test_values.resize(this_model_part.NumberOfNodes() * dim);
+                for (auto& i_node : this_model_part.Nodes())
+                {
+		            for(int j=0; j<dim; j++)
+		            {   
+                        i_node.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        test_values[i] = (disp_test_value * (i+j));
+                        i++;
+                    }
+                } 
+                break;
+            }
+            case (DataLocation::Element):{
+                test_values.resize(this_model_part.NumberOfElements() * dim);
+                for (auto& i_elem : this_model_part.Elements())
+                {
+                    for(int j=0; j<dim; j++)
+		            {   
+                        i_elem.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        test_values[i] = (disp_test_value * (i+j));
+                        i++;
+                    }   
+                }
+                break;
+            }
+            case (DataLocation::Condition):{
+                test_values.resize(this_model_part.NumberOfConditions() * dim);
+                for (auto i_cond : this_model_part.Conditions())
+                {
+                    for(int j=0; j<dim; j++)
+		            {   
+                        i_cond.GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * (i+j));
+                        test_values[i] = (disp_test_value * (i+j));
+                        i++;
+                    }  
+                }
+                break;
+            }
+            case (DataLocation::ModelPart):{
+                test_values.resize(1 * dim);
+                for(int j=0; j<dim; j++)
+		            {   
+                        this_model_part[DISPLACEMENT][j] = static_cast<double>(disp_test_value * (i+j));
+                        test_values[i] = (disp_test_value * (i+j));
+                        i++;
+                    }
+                break;
+            }
+            case (DataLocation::ProcessInfo):{
+                test_values.resize(1 * dim);
+                for(int j=0; j<dim; j++)
+		            {   
+                        this_model_part.GetProcessInfo()[DISPLACEMENT][j] = static_cast<double>(disp_test_value * (i+j));
+                        test_values[i] = (disp_test_value * (i+j));
+                        i++;
+                    }
+                break;
+            }
+            default:{
+                //Throw an error about invalid DataLocation
+                KRATOS_ERROR << "unknown Datalocation" << std::endl;
+                break;
+            }
+        }
+    return test_values;
+}
+
+std::vector<double> PreComputeSetData(int size, int dim)
+{
+    std::vector<double> rData;
+    rData.resize(size * dim);
+    double disp_test_value = 2.55;
+    int counter = 0 ;
+
+    for(int i=0; i<size; i++)
+    {
+        for(int j=0; j<dim; j++)
+        {
+            rData[counter++] = disp_test_value * (i+1+j);  //Addition of 1 for the case where size=1 && dim=1, to have non zero random value
+        }
+    }
+    
+    return rData;
+}
+
+std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& this_model_part, int dim)
+{
+    std::vector<double> output_values;
+    int counter=0;
+
+    switch (DataLoc)
+        {
+            case (DataLocation::NodeHistorical):{
+                output_values.resize(this_model_part.NumberOfNodes()* dim);
+                for (auto& i_node : this_model_part.Nodes())
+                {
+                    for(int j=0; j<dim; j++)
+		            {  
+                        output_values[counter++] = i_node.FastGetSolutionStepValue(DISPLACEMENT)[j];
+                    }
+                }
+                break;
+            }
+            case (DataLocation::NodeNonHistorical):{
+                output_values.resize(this_model_part.NumberOfNodes()* dim);
+                for (auto& i_node : this_model_part.Nodes())
+                {
+                    for(int j=0; j<dim; j++)
+		            {  
+                        output_values[counter++] = i_node.GetValue(DISPLACEMENT)[j];
+                    }
+                }
+                break;
+            }
+            case (DataLocation::Element):{
+                output_values.resize(this_model_part.NumberOfElements()* dim);
+                for (auto& i_elem : this_model_part.Elements())
+                {
+                    for(int j=0; j<dim; j++)
+		            {  
+                        output_values[counter++] = i_elem.GetValue(DISPLACEMENT)[j];
+                    }
+                }
+                break;
+            }
+            case (DataLocation::Condition):{
+                output_values.resize(this_model_part.NumberOfConditions()* dim);
+                for (auto& i_cond : this_model_part.Conditions())
+                {
+                    for(int j=0; j<dim; j++)
+		            {  
+                        output_values[counter++] = i_cond.GetValue(DISPLACEMENT)[j];
+                    }
+                }
+                break;
+            }
+            case (DataLocation::ModelPart):{
+                output_values.resize(1 * dim);
+                for(int j=0; j<dim; j++)
+		            {  
+                        output_values[counter++] = this_model_part(DISPLACEMENT)[j];
+                    }
+                break;
+            }
+            case (DataLocation::ProcessInfo):{
+                output_values.resize(1 * dim);
+                for(int j=0; j<dim; j++)
+		            {  
+                        output_values[counter++] = this_model_part.GetProcessInfo()(DISPLACEMENT)[j];
+                    }
+                break;
+            }
+            default:{
+                //Throw an error about invalid DataLocation
+                KRATOS_ERROR << "unknown Datalocation" << std::endl;
+                break;
+            }
+        }
+        return output_values;
+}
+
+
+/******************************************************************************************/
+/* Testing for GetData and SetData for 6 different DataLocations */
+/******************************************************************************************/
+
+//1. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Node_historicalDatalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Node_historical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
-
-    //Assign random values to x_direction displacement to each node, also save it in test_values to compare later
-    int i=0;
-    double disp_test_value = 1.26;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfNodes());
-
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-		i_node->FastGetSolutionStepValue(DISPLACEMENT_X) = static_cast<double>(disp_test_value * i);
-        test_values[i] = (disp_test_value * i);
-        i++;
-    }
-
+    auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::NodeHistorical);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 2. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Node_NonHistorical Datalocation
-*/
+//2. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Node_NonHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Node_Nonhistorical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
-
-    //Assign random values to x_direction displacement to each node, also save it in test_values to compare later
-    int i=0;
-    double disp_test_value = 1.26;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfNodes());
-
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-		i_node->GetValue(DISPLACEMENT_X) = static_cast<double>(disp_test_value * i);
-        test_values[i] = (disp_test_value * i);
-        i++;
-    }
-
+    auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 3. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Element Datalocation
-*/
+//3. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Element Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Element, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each element, also save it in test_values to compare later
-    int i=0;
-    double disp_test_value = 2.55;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfElements());
-
-    for (auto i_elem = this_model_part.ElementsBegin(); i_elem != this_model_part.ElementsEnd(); i_elem++)
-    {
-		i_elem->SetValue(DISPLACEMENT_X, static_cast<double>(disp_test_value * i));
-        test_values[i] = (disp_test_value * i);
-        i++;
-    }
-
+    Initialise(this_model_part);
+    
+    auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::Element);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 4. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Condition Datalocation
-*/
+//4. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Condition Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_Condition, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
-
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each condition, also save it in test_values to compare later
-    int i=0;
-    double disp_test_value = 2.55;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfConditions());
-
-    for (auto i_cond = this_model_part.ConditionsBegin(); i_cond != this_model_part.ConditionsEnd(); i_cond++)
-    {
-		i_cond->GetValue(DISPLACEMENT_X) = static_cast<double>(disp_test_value * i);
-        test_values[i] = (disp_test_value * i);
-        i++;
-    }
-
+    Initialise(this_model_part);
+    
+    auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::Condition);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 5. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ModelPart Datalocation
-*/
+//5. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ModelPart Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_ModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
-
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each modelpart, also save it in test_values to compare later
-    std::vector<double> test_values;
-    test_values.resize(1);
-    test_values[0] = 3.55;
-
-    this_model_part[DISPLACEMENT_X] = 3.55;
-
+    Initialise(this_model_part);
+    
+    auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::ModelPart);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 6. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ProcessInfo Datalocation
-*/
+//6. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ProcessInfo Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_double_ProcessInfo, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
-
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each ProcessInfo, also save it in test_values to compare later
-    std::vector<double> test_values;
-    test_values.resize(1);
-    test_values[0] = 3.55;
-
-    this_model_part.GetProcessInfo()[DISPLACEMENT_X] = 3.55;
-
+    Initialise(this_model_part);
+    
+    auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 1);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT_X, DataLocation::ProcessInfo);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 7. Checks the correct work of the Auxiliar model parts utility GetData for vector data on Node_historicalDatalocation
-*/
+//7. Checks the correct work of the Auxiliar model parts utility GetData for vector data on Node_historicalDatalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Node_historical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
-
-    //Assign random values to x_direction displacement to each node, also save it in test_values to compare later
-    int i=0; //To create random values
-    double disp_test_value = 1.26;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfNodes() * 3);
-
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-        for(int j=0; j<3; j++)
-        {
-            i_node->FastGetSolutionStepValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * i * j);
-            test_values[i++] = (disp_test_value * i *j);
-        }
-    }
-
+    auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 3);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::NodeHistorical);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 8. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on Node_NonHistorical Datalocation
-*/
+//8. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on Node_NonHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Node_Nonhistorical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
-
-    //Assign random values to x_direction displacement to each node, also save it in test_values to compare later
-    int i=0; //To create random values
-    double disp_test_value = 1.26;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfNodes() * 3);
-
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-        for(int j=0; j<3; j++)
-        {
-            i_node->GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * i * j);
-            test_values[i++] = (disp_test_value * i *j);
-        }
-    }
-
+    auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 3);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::NodeNonHistorical);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 9. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Element Datalocation
-*/
+//9. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Element Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Element, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each element, also save it in test_values to compare later
-    int i=0; //To create random values
-    double disp_test_value = 2.55;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfElements() * 3);
-
-    for (auto i_elem = this_model_part.ElementsBegin(); i_elem != this_model_part.ElementsEnd(); i_elem++)
-    {
-        for(int j=0; j<3; j++)
-        {
-            i_elem->GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * i * j);
-            test_values[i++] = (disp_test_value * i *j);
-        }
-    }
-
+    auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 3);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::Element);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 10. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on Condition Datalocation
-*/
+//10. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on Condition Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_Condition, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each condition, also save it in test_values to compare later
-    int i=0;
-    double disp_test_value = 2.55;
-    std::vector<double> test_values;
-    test_values.resize(this_model_part.NumberOfConditions() * 3);
-
-    for (auto i_cond = this_model_part.ConditionsBegin(); i_cond != this_model_part.ConditionsEnd(); i_cond++)
-    {
-        for(int j=0; j<3; j++)
-        {
-		    i_cond->GetValue(DISPLACEMENT)[j] = static_cast<double>(disp_test_value * i * j);
-            test_values[i++] = (disp_test_value * i *j);
-        }
-    }
-
+    auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 3);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::Condition);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 11. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on ModelPart Datalocation
-*/
+//11. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on ModelPart Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_ModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each modelpart, also save it in test_values to compare later
-    std::vector<double> test_values;
-    test_values.resize(3);
-
-    for(int j=0; j<3; j++)
-    {
-        this_model_part[DISPLACEMENT][j] = 3.55;
-        test_values[j] = 3.55;
-	}
-
+    auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 3);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::ModelPart);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 12. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on ProcessInfo Datalocation
-*/
+//12. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on ProcessInfo Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetData_Vector_ProcessInfo, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    // Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
-
-    //Assign random values to x_direction displacement to each ProcessInfo, also save it in test_values to compare later
-    std::vector<double> test_values;
-    test_values.resize(3);
-
-    for(int j=0; j<3; j++)
-    {
-        this_model_part.GetProcessInfo()[DISPLACEMENT][j] = 3.55;
-        test_values[j] = 3.55;
-	}
-
+    auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 3);
     auto data = AuxiliarModelPartUtilities(this_model_part).GetVariableData(DISPLACEMENT, DataLocation::ProcessInfo);
-
-    KRATOS_CHECK_VECTOR_NEAR(data, test_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
-/**
-* 13. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on NodeHistorical Datalocation
-*/
+//13. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on NodeHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Node_historical, KratosCoreFastSuite)
-{
+{  
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 1);
 
-    //Create some values to x_direction displacement to each node
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfNodes());
-    double disp_test_value = 1.26;
-
-    for(int i=0; i<this_model_part.NumberOfNodes(); i++)
-    {
-        rData[i] = disp_test_value * i ;
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfNodes());
-
-    int i=0;
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-		output_values[i++] = i_node->FastGetSolutionStepValue(DISPLACEMENT_X);
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 14. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Node_NonHistorical Datalocation
-*/
+//14. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Node_NonHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Node_Nonhistorical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::NodeNonHistorical, this_model_part, 1);
 
-    //Create some values to x_direction displacement to each node
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfNodes());
-    double disp_test_value = 1.26;
-
-    for(int i=0; i<this_model_part.NumberOfNodes(); i++)
-    {
-        rData[i] = disp_test_value * i ;
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfNodes());
-
-    int i=0;
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-		output_values[i++] = i_node->GetValue(DISPLACEMENT_X);
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 15. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Element Datalocation
-*/
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_element, KratosCoreFastSuite)
+//15. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Element Datalocation
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Element, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 1); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::Element, this_model_part, 1);
 
-    //Create some values to x_direction displacement to each element
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfElements());
-    double disp_test_value = 2.55;
-
-    for(int i=0; i<this_model_part.NumberOfElements(); i++)
-    {
-        rData[i] = disp_test_value * i ;
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Element, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfElements());
-
-    int i=0;
-    for (auto i_elem = this_model_part.ElementsBegin(); i_elem != this_model_part.ElementsEnd(); i_elem++)
-    {
-		output_values[i++] = i_elem->GetValue(DISPLACEMENT_X);
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 16. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Condition Datalocation
-*/
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_condition, KratosCoreFastSuite)
+//16. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Condition Datalocation
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_Condition, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 1); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::Condition, this_model_part, 1);
 
-    //Create some values to x_direction displacement to each condition
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfConditions());
-    double disp_test_value = 2.55;
-
-    for(int i=0; i<this_model_part.NumberOfConditions(); i++)
-    {
-        rData[i] = disp_test_value * i ;
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::Condition, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfConditions());
-
-    int i=0;
-    for (auto i_cond = this_model_part.ConditionsBegin(); i_cond != this_model_part.ConditionsEnd(); i_cond++)
-    {
-		output_values[i++] = i_cond->GetValue(DISPLACEMENT_X);
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 17. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ModelPart Datalocation
-*/
+//17. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ModelPart Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_ModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::ModelPart, this_model_part, 1);
 
-    //Create some values to x_direction displacement to each ModelPart
-    std::vector<double> rData;
-    rData.resize(1);
-    rData[0] = 3.55;
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ModelPart, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(1);
-
-    output_values[0] = this_model_part[DISPLACEMENT_X];
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 18. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ProcessInfo Datalocation
-*/
+//18. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ProcessInfo Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_double_ProcessInfo, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT_X);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(1, 1); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::ProcessInfo, this_model_part, 1);
 
-    //Create some values to x_direction displacement to each process info
-    std::vector<double> rData;
-    rData.resize(1);
-    rData[0] = 3.55;
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT_X, DataLocation::ProcessInfo, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(1);
-
-    output_values[0] = this_model_part.GetProcessInfo()[DISPLACEMENT_X];
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 19. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on NodeHistorical Datalocation
-*/
+//19. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on NodeHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Node_historical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 3);
 
-    //Create some random values to 3 dimensional displacement to each node
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfNodes() * 3);
-    double disp_test_value = 1.26;
-    int counter=0;
-
-    for(int i=0; i<this_model_part.NumberOfNodes(); i++)
-    {
-        for(int j=1; j<=3; j++)//for each node ther are 3 values
-        {
-            rData[counter++] = disp_test_value * i * j ;
-        }
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeHistorical, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfNodes() * 3);
-
-    counter=0;
-
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-        for(int j=0; j<3 ;j++)
-        {
-		    output_values[counter++] = i_node->FastGetSolutionStepValue(DISPLACEMENT)[j];
-        }
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 20. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Node_NonHistorical Datalocation
-*/
+//20. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Node_NonHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Node_Nonhistorical, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N");
+    auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::NodeNonHistorical, this_model_part, 3);
 
-    //Create some random values to 3 Dimensional displacement to each node
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfNodes() * 3);
-    double disp_test_value = 1.26;
-    int counter=0;
-
-    for(int i=0; i<this_model_part.NumberOfNodes(); i++)
-    {
-        for(int j=1; j<=3; j++)//for each node ther are 3 values
-        {
-            rData[counter++] = disp_test_value * i * j ;
-        }
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::NodeNonHistorical, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfNodes() * 3);
-
-    counter=0;
-
-    for (auto i_node = this_model_part.NodesBegin(); i_node != this_model_part.NodesEnd(); i_node++)
-    {
-        for(int j=0; j<3; j++)
-        {
-		    output_values[counter++] = i_node->GetValue(DISPLACEMENT)[j];
-        }
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 21. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Element Datalocation
-*/
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_element, KratosCoreFastSuite)
+//21. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Element Datalocation
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Element, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(this_model_part.NumberOfElements(), 3); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::Element, this_model_part, 3);
 
-    //Create some values to x_direction displacement to each element
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfElements() * 3);
-    double disp_test_value = 2.55;
-    int counter=0;
-
-    for(int i=0; i<this_model_part.NumberOfElements(); i++)
-    {
-        for(int j=1; j<=3; j++)//for each element ther are 3 values
-        {
-            rData[counter++] = disp_test_value * i * j ;
-        }
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Element, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfElements() * 3);
-
-    counter=0;
-
-    for (auto i_elem = this_model_part.ElementsBegin(); i_elem != this_model_part.ElementsEnd(); i_elem++)
-    {
-        for(int j=0; j<3; j++)
-        {
-		    output_values[counter++] = i_elem->GetValue(DISPLACEMENT)[j];
-        }
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 22. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Condition Datalocation
-*/
-KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_condition, KratosCoreFastSuite)
+//22. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Condition Datalocation
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_Condition, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(this_model_part.NumberOfConditions(), 3); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::Condition, this_model_part, 3);
 
-    //Create some values to x_direction displacement to each condition
-    std::vector<double> rData;
-    rData.resize(this_model_part.NumberOfConditions() * 3);
-    double disp_test_value = 2.55;
-    int counter=0;
-
-    for(int i=0; i<this_model_part.NumberOfConditions(); i++)
-    {
-        for(int j=1; j<=3; j++)//for each condition ther are 3 values
-        {
-            rData[counter++] = disp_test_value * i * j ;
-        }
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::Condition, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(this_model_part.NumberOfConditions() * 3);
-    counter=0;
-
-    for (auto i_cond = this_model_part.ConditionsBegin(); i_cond != this_model_part.ConditionsEnd(); i_cond++)
-    {
-        for(int j=0; j<3; j++)
-        {
-		    output_values[counter++] = i_cond->GetValue(DISPLACEMENT)[j];
-        }
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-/**
-* 23. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ModelPart Datalocation
-*/
+//23. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ModelPart Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_ModelPart, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::ModelPart, this_model_part, 3);
 
-    //Create some values to x_direction displacement to each ModelPart
-    std::vector<double> rData;
-    rData.resize(3);
-    int counter = 0;
-
-    for(int j=1; j<=3; j++)//for one ModelPart ther are 3 values
-    {
-        rData[counter++] = (3.55) * j ;
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ModelPart, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(3);
-
-    for(int j=0; j<3; j++)
-    {
-		output_values[j] = this_model_part[DISPLACEMENT][j];
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-
-/**
-* 24. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ProcessInfo Datalocation
-*/
+//24. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ProcessInfo Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetData_Vector_ProcessInfo, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& this_model_part = current_model.CreateModelPart("Main");
-    this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    Initialise(this_model_part);
 
-    //Variable addition
-    CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
+    auto rData = PreComputeSetData(1, 3); //To create an input Data "rData" to feed to SetVariableData()
+    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::ProcessInfo, this_model_part, 3);
 
-    //Create some values to x_direction displacement to each process info
-    std::vector<double> rData;
-    rData.resize(3);
-    int counter = 0;
-
-    for(int j=1; j<=3; j++)//for one Process Info ther are 3 values
-    {
-        rData[counter++] = (3.55) * j ;
-    }
-
-    //Run the Function SetVariable to Import a "rData" into the Model
-    AuxiliarModelPartUtilities(this_model_part).SetVariableData(DISPLACEMENT, DataLocation::ProcessInfo, rData);
-
-    std::vector<double> output_values;
-    output_values.resize(3);
-
-    for(int j=0; j<3; j++)
-    {
-		output_values[j] = this_model_part.GetProcessInfo()[DISPLACEMENT][j];
-    }
-
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 0.004);
-
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 } // namespace Testing
