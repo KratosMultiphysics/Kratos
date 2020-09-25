@@ -43,7 +43,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \"move_mesh_flag\"             : [GiD_AccessValue get gendata Move_Mesh],"
     # linear_solver_settings
     puts $FileVar "        \"linear_solver_settings\"   : \{"
-        puts $FileVar "            \"solver_type\"      : \"[GiD_AccessValue get gendata Solver_Type]\","
+        puts $FileVar "            \"solver_type\"      : \"[GiD_AccessValue get gendata Solver_Type]\""
     puts $FileVar "        \},"
     puts $FileVar "        \"time_stepping\"            : \{"
     if {[GiD_AccessValue get gendata Time_stepping] eq "Automatic"} {
@@ -51,7 +51,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
         puts $FileVar "            \"courant_number\"           : [GiD_AccessValue get gendata Courant_number]"
     } else {
         puts $FileVar "            \"automatic_time_step\"      : false,"
-        puts $FileVar "            \"time_step\"                : [GiD_AccessValue get gendata Time_step]"
+        puts $FileVar "            \"time_step\"                : [GiD_AccessValue get gendata Delta_time]"
     }
     puts $FileVar "        \}"
     puts $FileVar "    \},"
@@ -60,42 +60,34 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     ## output processes
     puts $FileVar "    \"output_processes\" : \{"
     puts $FileVar "        \"output_process_list\" : \[\{"
-    puts $FileVar "            \"kratos_module\"        : \"KratosMultiphysics\","
-    puts $FileVar "            \"python_module\"        : \"gid_output_process\","
-    puts $FileVar "            \"process_name\"         : \"GidOutputProcess\","
-    puts $FileVar "            \"Parameters\"           : \{"
-    puts $FileVar "                \"model_part_name\"        : \"model_part\","
-    puts $FileVar "                \"output_name\"            : \"$basename\","
-    puts $FileVar "                \"postprocess_parameters\" : \{"
-    puts $FileVar "                    \"result_file_configuration\" : \{"
-    puts $FileVar "                        \"gidpost_flags\"         : \{"
-    puts $FileVar "                            \"GiDPostMode\"           : \"[GiD_AccessValue get gendata GiD_post_mode]\","
-    puts $FileVar "                            \"WriteDeformedMeshFlag\" : \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
-    puts $FileVar "                            \"WriteConditionsFlag\"   : \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                            \"MultiFileFlag\"         : \"[GiD_AccessValue get gendata Multi_file_flag]\""
-    puts $FileVar "                        \},"
-    puts $FileVar "                        \"output_control_type\"   : \"[GiD_AccessValue get gendata Output_control_type]\","
-    puts $FileVar "                        \"output_interval\"       : [GiD_AccessValue get gendata Output_frequency],"
-    puts $FileVar "                        \"body_output\"           : [GiD_AccessValue get gendata Body_output],"
-    puts $FileVar "                        \"node_output\"           : [GiD_AccessValue get gendata Node_output],"
-    puts $FileVar "                        \"skin_output\"           : [GiD_AccessValue get gendata Skin_output],"
-    puts $FileVar "                        \"plane_output\"          : \[\],"
-    # nodal_results
-    set PutStrings \[
-    append PutStrings \"MOMENTUM\",\"VELOCITY\",\"HEIGHT\",\"FREE_SURFACE_ELEVATION\",\"TOPOGRAPHY\"
-    set PutStrings [string trimright $PutStrings ,]
-    append PutStrings \]
-    puts $FileVar "                        \"nodal_results\"         : $PutStrings,"
-    puts $FileVar "                        \"gauss_point_results\"   : \[\]"
-    puts $FileVar "                    \},"
-    puts $FileVar "                \}"
-    puts $FileVar "            \}"
+    set VariablesToPrint \"MOMENTUM\",\"VELOCITY\",\"HEIGHT\",\"FREE_SURFACE_ELEVATION\",\"TOPOGRAPHY\"
+    WriteGiDOutputProcess FileVar $basename $VariablesToPrint
+    if {[GiD_AccessValue get gendata Print_topography_as_separate_output] eq true} {
+    puts $FileVar "        \},\{"
+    set TopographyFile $basename
+    append TopographyFile _topography
+    set TopographyVars \"TOPOGRAPHY\"
+    WriteGiDOutputProcess FileVar $TopographyFile $TopographyVars
+    }
     puts $FileVar "        \}\]"
     puts $FileVar "    \},"
 
 
-    ## processes
+    ## regular processes
     puts $FileVar "    \"processes\"    : \{"
+
+    # topography
+    set Groups [GiD_Info conditions Topography groups]
+    set NumGroups [llength $Groups]
+    set Groups [GiD_Info conditions Bottom_friction groups]
+    incr NumGroups [llength $Groups]
+    set iGroup 0
+    puts $FileVar "        \"topography_process_list\"     : \[\{"
+    set Groups [GiD_Info conditions Topography groups]
+    WriteTopographyProcess FileVar iGroup $Groups surfaces $NumGroups
+    set Groups [GiD_Info conditions Bottom_friction groups]
+    WriteBottomFrictionProcess FileVar iGroup $Groups surfaces $NumGroups
+    puts $FileVar "        \}\],"
 
     # initial conditions
     set Groups [GiD_Info conditions Initial_water_level groups]
@@ -103,13 +95,14 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     set iGroup 0
     puts $FileVar "        \"initial_conditions_process_list\"   : \[\{"
     WriteInitialWaterLevelProcess FileVar iGroup $Groups surfaces $NumGroups
+    puts $FileVar "        \}\],"
 
     # boundary conditions
     set Groups [GiD_Info conditions Slip_condition groups]
     set NumGroups [llength $Groups]
     set Groups [GiD_Info conditions Water_height groups]
     incr NumGroups [llength $Groups]
-    set Groups [GiD_Info conditions Imposed_flux groups]
+    set Groups [GiD_Info conditions Imposed_flow_rate groups]
     incr NumGroups [llength $Groups]
     set iGroup 0
     puts $FileVar "        \"boundary_conditions_process_list\"  : \[\{"
@@ -120,15 +113,9 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     set Groups [GiD_Info conditions Water_height groups]
     WriteConstantScalarConditionProcess FileVar iGroup $Groups lines $NumGroups
     ## Imposed water flux
-    set Groups [GiD_Info conditions Imposed_flux groups]
+    set Groups [GiD_Info conditions Imposed_flow_rate groups]
     WriteConstantVectorConditionProcess FileVar iGroup $Groups lines $NumGroups
-
-    # bathymetry
-    set Groups [GiD_Info conditions Body_Part groups]
-    set NumGroups [llength $Groups]
-    set iGroup 0
-    puts $FileVar "        \"bathymetry_process_list\"     : \[\{"
-    WriteBathymetryProcess FileVar iGroup $Groups surfaces $NumGroups
+    puts $FileVar "        \}\]"
 
     # end of processes
     puts $FileVar "    \}"
