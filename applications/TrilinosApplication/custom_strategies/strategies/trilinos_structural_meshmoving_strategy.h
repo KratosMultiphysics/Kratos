@@ -74,10 +74,6 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
-
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-
     /*@} */
     /**@name Life Cycle
      */

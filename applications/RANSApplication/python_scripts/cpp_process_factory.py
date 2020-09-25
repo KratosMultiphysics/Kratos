@@ -117,7 +117,7 @@ class RansCheckScalarBoundsProcess(KratosRANS.RansFormulationProcess):
         settings (Kratos.Parameters): Settings for process
     """
     def __init__(self, model, settings):
-        super(RansCheckScalarBoundsProcess, self).__init__()
+        super().__init__()
 
         default_parameters = Kratos.Parameters("""
         {

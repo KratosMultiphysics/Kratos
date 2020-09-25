@@ -19,7 +19,7 @@
         },
         "echo_level"               : 0,
         "buffer_size"              : 2,
-        "dynamic_tau"              : 0.005,
+        "stabilization_factor"     : 0.005,
         "relative_tolerance"       : 1.0E-6,
         "absolute_tolerance"       : 1.0E-9,
         "maximum_iterations"       : 20,

@@ -19,7 +19,6 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/properties.h"
-#include "includes/cfd_variables.h"
 #include "custom_elements/swe.h"
 #include "shallow_water_application_variables.h"
 
@@ -52,10 +51,10 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
 
     // Process info creation
     const double delta_time = 0.1;
-    const double dyn_tau = 0.005;
+    const double stab_factor = 0.005;
     const double gravity = 9.81;
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-    model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, dyn_tau);
+    model_part.GetProcessInfo().SetValue(STABILIZATION_FACTOR, stab_factor);
     model_part.GetProcessInfo().SetValue(GRAVITY_Z, gravity);
     model_part.GetProcessInfo().SetValue(DRY_HEIGHT, 0.1);
     model_part.GetProcessInfo().SetValue(WATER_HEIGHT_UNIT_CONVERTER, 1.0);

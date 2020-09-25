@@ -53,7 +53,7 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     ModelPart& rModelPartCoupling,
     double Tolerance)
 {
-    const ModelPart& rParentModelPart = *(rModelPartCoupling.GetParentModelPart());
+    const ModelPart& rParentModelPart = rModelPartCoupling.GetParentModelPart();
 
     KRATOS_ERROR_IF(rModelPartCoupling.GeometriesBegin()->LocalSpaceDimension() != 1 &&
         rModelPartCoupling.GeometriesBegin()->Dimension() != 2)
