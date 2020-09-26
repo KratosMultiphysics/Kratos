@@ -149,7 +149,7 @@ def CreateSolver(model, custom_settings):
 class NavierStokesSolverMonolithic(FluidSolver):
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -201,7 +201,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultParameters())
         return default_settings
 
     def _BackwardsCompatibilityHelper(self,settings):

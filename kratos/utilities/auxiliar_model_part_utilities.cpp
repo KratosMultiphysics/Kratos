@@ -157,7 +157,7 @@ void AuxiliarModelPartUtilities::RemoveElementAndBelongings(Element::Pointer pTh
 void AuxiliarModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, Flags IdentifierFlag, IndexType ThisIndex)
 {
     if (mrModelPart.IsSubModelPart()) {
-        AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(*(mrModelPart.GetParentModelPart()));
+        AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(mrModelPart.GetParentModelPart());
         aux_utility.RemoveElementAndBelongings(ElementId, IdentifierFlag, ThisIndex);
     } else {
         RemoveElementAndBelongings(ElementId, IdentifierFlag, ThisIndex);
@@ -291,7 +291,7 @@ void AuxiliarModelPartUtilities::RemoveConditionAndBelongings(Condition::Pointer
 void AuxiliarModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, Flags IdentifierFlag, IndexType ThisIndex)
 {
     if (mrModelPart.IsSubModelPart()) {
-        AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(*(mrModelPart.GetParentModelPart()));
+        AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(mrModelPart.GetParentModelPart());
         aux_utility.RemoveConditionAndBelongings(ConditionId, IdentifierFlag, ThisIndex);
     } else {
         RemoveConditionAndBelongings(ConditionId, IdentifierFlag, ThisIndex);

@@ -21,7 +21,7 @@ namespace Kratos
 /// Short class definition.
 /** Cable Elements. 
 */
-class IgaEdgeCableElement
+class KRATOS_API(IGA_APPLICATION) IgaEdgeCableElement
     : public Element
 {
 protected:

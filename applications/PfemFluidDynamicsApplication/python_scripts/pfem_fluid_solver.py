@@ -38,7 +38,7 @@ class PfemFluidSolver(PythonSolver):
 
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
              "solver_type": "pfem_fluid_solver",
             "model_part_name": "PfemFluidModelPart",
@@ -111,7 +111,7 @@ class PfemFluidSolver(PythonSolver):
         "output_processes"         : {},
         "check_process_list": []
         }""")
-        this_defaults.AddMissingParameters(super(PfemFluidSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(PfemFluidSolver, cls).GetDefaultParameters())
         return this_defaults
 
 

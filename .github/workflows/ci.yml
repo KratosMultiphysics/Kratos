@@ -55,7 +55,7 @@ jobs:
         elif [ ${{ matrix.compiler }} = clang ]; then
           export CC=clang-9
           export CXX=clang++-9
-          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable"
+          export KRATOS_CMAKE_CXX_FLAGS="-Werror=delete-non-abstract-non-virtual-dtor -Werror=extra-tokens -Werror=defaulted-function-deleted -Werror=potentially-evaluated-expression -Werror=instantiation-after-specialization -Werror=undefined-var-template -Werror=unused-lambda-capture -Werror=unused-const-variable -Werror=parentheses"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
@@ -198,6 +198,26 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 python3 applications/RANSApplication/tests/test_RANSApplication_mpi.py --using-mpi
 
+    - name: Running MPI Python ParticleMechanicsApplication (2 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec -np 2 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python ParticleMechanicsApplication (3 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 3 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
+
+    - name: Running MPI Python ParticleMechanicsApplication (4 Cores)
+      run: |
+        . /opt/intel/mkl/bin/mklvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        mpiexec --oversubscribe -np 4 python3 applications/ParticleMechanicsApplication/tests/test_ParticleMechanicsApplication_mpi.py --using-mpi
 
   windows:
     runs-on: windows-latest

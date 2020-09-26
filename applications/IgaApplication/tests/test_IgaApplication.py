@@ -8,13 +8,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
-# Modelers tests
-from test_modelers import TestModelers as TTestModelers
+# Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailImplicitDynamic as MembraneSinglePatchFourPointSailImplicitDynamic
 
-# Import the tests o test_classes to create the suits
+# Modelers tests
+from test_modelers import TestModelers as TTestModelers
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -30,17 +30,21 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        SinglePatchTest
+        # Import test
+        SinglePatchTest,
+        # Membrane tests
+        MembraneSinglePatchFourPointSailLinearStatic,
+        MembraneSinglePatchFourPointSailNonLinearStatic,
+        # Modelers tests
+        TTestModelers
         ]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestModelers]))
-    #Membrane
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MembraneSinglePatchFourPointSailLinearStatic]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MembraneSinglePatchFourPointSailNonLinearStatic]))
-
     nightSuite = suites['nightly']
-    #Membrane
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MembraneSinglePatchFourPointSailImplicitDynamic]))
+    # Membrane
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        # Membrane tests
+        MembraneSinglePatchFourPointSailImplicitDynamic
+        ]))
     nightSuite.addTests(smallSuite)
 
     allSuite = suites['all']
