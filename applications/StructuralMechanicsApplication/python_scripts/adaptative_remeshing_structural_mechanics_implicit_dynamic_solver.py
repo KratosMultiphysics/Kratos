@@ -64,6 +64,6 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
 
     @classmethod
     def GetDefaultParameters(cls):
-        this_defaults = self.adaptative_remeshing_utilities.GetDefaultParameters()
+        this_defaults = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities().GetDefaultParameters()
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
