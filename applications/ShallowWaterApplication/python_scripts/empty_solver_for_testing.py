@@ -9,7 +9,11 @@ def CreateSolver(model, custom_settings):
     return EmptySolverForTesting(model, custom_settings)
 
 class EmptySolverForTesting(PythonSolver):
-    def __init__(self, model, settings):  # Constructor of the class
+    def __init__(self, model, settings):
+        """ A solver with the minimal methods to run an analysis.
+
+        This class can be used to test the processes.
+        """
         self._validate_settings_in_baseclass = True
         super().__init__(model, settings)
 
@@ -42,7 +46,6 @@ class EmptySolverForTesting(PythonSolver):
 
     def Initialize(self):
         # The time step utility needs the NODAL_H
-        print("here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         KM.FindNodalHProcess(self.GetComputingModelPart()).Execute()
         self.EstimateDeltaTimeUtility = SW.EstimateDtShallow(self.GetComputingModelPart(), self.settings["time_stepping"])
 
