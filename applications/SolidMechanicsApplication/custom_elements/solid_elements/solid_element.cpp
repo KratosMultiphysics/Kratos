@@ -278,7 +278,7 @@ void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -291,7 +291,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariabl
 //*********************************SET VECTOR VALUE***********************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -307,7 +307,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
 //************************************************************************************
 
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -323,7 +323,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
 //********************************SET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-void SolidElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+void SolidElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {

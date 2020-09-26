@@ -45,6 +45,9 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
+        typedef Geometry<Node<3>> GeometryType;
+        typedef typename GeometryType::Pointer GeometryPointerType;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -187,6 +190,10 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
+        void DeterminantOfJacobianInitial(
+            const GeometryType& rGeometry,
+            Vector& rDeterminantOfJacobian);
+
         ///@}
         ///@name Input and output
         ///@{
@@ -206,7 +213,8 @@ namespace Kratos
         }
 
         /// Print object's data.
-        void PrintData(std::ostream& rOStream) const {
+        void PrintData(std::ostream& rOStream) const override
+        {
             pGetGeometry()->PrintData(rOStream);
         }
 

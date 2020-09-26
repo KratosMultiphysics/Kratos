@@ -126,9 +126,22 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
+
     ///@}
-    ///@name Access
+    ///@name Access Get Values
     ///@{
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Access Set Values
+    ///@{
+
+    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -222,6 +235,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    array_1d<double, 3> m_contact_force;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -249,11 +264,15 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticlePenaltyDirichletCondition );
+        rSerializer.save("ContactForce", m_contact_force);
+        rSerializer.save("ReactionIsAdded", mReactionIsAdded);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticlePenaltyDirichletCondition );
+        rSerializer.load("ContactForce", m_contact_force);
+        rSerializer.load("ReactionIsAdded", mReactionIsAdded);
     }
 
 

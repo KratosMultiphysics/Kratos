@@ -41,7 +41,7 @@ def GetInputParameters():
     elif benchmark_number in listDISclRK:
         file_name = "ProjectParametersDISclRK.json"
     elif benchmark_number in listGeneric:
-            file_name = "ProjectParametersDEMGeneric.json"
+        file_name = "ProjectParametersDEMGeneric.json"
     else:
         Logger.PrintInfo("DEM",'Benchmark number does not exist')
         sys.exit()
@@ -94,6 +94,8 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         self.nodeplotter = False
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
+
+        self.DEM_parameters["problem_name"].SetString("benchmark_" + str(benchmark_number))
 
         super(DEMBenchmarksAnalysisStage, self).__init__(model, DEM_parameters)
 
@@ -149,12 +151,12 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
         super(DEMBenchmarksAnalysisStage, self).Finalize()
 
-    def FinalizeTimeStep(self, time):
-        super(DEMBenchmarksAnalysisStage, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super(DEMBenchmarksAnalysisStage, self).FinalizeSolutionStep()
         if self.nodeplotter:
             os.chdir(self.main_path)
-            self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
-            self.tang_plotter.plot_tangential_force(time)
+            self.plotter.plot_variables(self.time) #Related to the benchmark in Chung, Ooi
+            self.tang_plotter.plot_tangential_force(self.time)
 
     def CleanUpOperations(self):
         Logger.PrintInfo("DEM","running CleanUpOperations")

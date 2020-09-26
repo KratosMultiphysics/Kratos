@@ -70,11 +70,11 @@ void EmbeddedFluidElement<TBaseElement>::Initialize()
     // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
     const array_1d<double,3> zero_vel = ZeroVector(3);
     for (auto &r_node : this->GetGeometry()) {
+        r_node.SetLock();
         if (!r_node.Has(EMBEDDED_VELOCITY)) {
-            r_node.SetLock();
             r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
-            r_node.UnSetLock();
         }
+        r_node.UnSetLock();
     }
 
     KRATOS_CATCH("");
@@ -144,12 +144,23 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::Calculate(
     const Variable<double> &rVariable,
-    double& rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-
-    rOutput = 0.0;
-
-    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == CUTTED_AREA) {
+        // Initialize the embedded element data
+        EmbeddedElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        this->InitializeGeometryData(data);
+        // Calculate the intersection area as the Gauss weights summation
+        const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
+        rOutput = 0.0;
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+            rOutput += data.PositiveInterfaceWeights[g];
+        }
+    } else {
+        TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
 }
 
 template <class TBaseElement>
@@ -163,40 +174,19 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
     // If the element is split, integrate sigma.n over the interface
     // Note that in the ausas formulation, both interface sides need to be integrated
     if (rVariable == DRAG_FORCE) {
-
+        // Initialize the embedded element data
         EmbeddedElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
-        const unsigned int number_of_positive_gauss_points = data.PositiveSideWeights.size();
-
-        if ( data.IsCut() ){
-            // Integrate positive interface side drag
-            const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
-            for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
-
-                // Update the Gauss pt. data and the constitutive law
-                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,
-                   data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
-
-                // Get the interface Gauss pt. unit noromal
-                const auto &aux_unit_normal = data.PositiveInterfaceUnitNormals[g];
-
-                // Compute Gauss pt. pressure
-                const double p_gauss = inner_prod(data.N, data.Pressure);
-
-                // Get the normal projection matrix in Voigt notation
-                BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
-                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-
-                // Add the shear and pressure drag contributions
-                const array_1d<double, Dim> shear_proj = data.Weight * prod(voigt_normal_proj_matrix, data.ShearStress);
-                for (unsigned int i = 0; i < Dim ; ++i){
-                    rOutput(i) -= shear_proj(i);
-                }
-                rOutput += data.Weight * p_gauss * aux_unit_normal;
-            }
-        }
-
+        // Calculate the drag force
+        this->CalculateDragForce(data, rOutput);
+    } else if (rVariable == DRAG_FORCE_CENTER) {
+        // Initialize the embedded element data
+        EmbeddedElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        this->InitializeGeometryData(data);
+        // Calculate the drag force location
+        this->CalculateDragForceCenter(data, rOutput);
     } else {
         TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -969,6 +959,104 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::CalculateDragForce(
+    EmbeddedElementData& rData,
+    array_1d<double,3>& rDragForce) const
+{
+    const unsigned int n_pos_gauss = rData.PositiveSideWeights.size();
+
+    if (rData.IsCut()) {
+        // Integrate positive interface side drag
+        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+
+            // Update the Gauss pt. rData and the constitutive law
+            this->UpdateIntegrationPointData(
+                rData,
+                g + n_pos_gauss,
+                rData.PositiveInterfaceWeights[g],
+                row(rData.PositiveInterfaceN, g),
+                rData.PositiveInterfaceDNDX[g]);
+
+            // Get the interface Gauss pt. unit noromal
+            const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+            // Compute Gauss pt. pressure
+            const double p_gauss = inner_prod(rData.N, rData.Pressure);
+
+            // Get the normal projection matrix in Voigt notation
+            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+            // Add the shear and pressure drag contributions
+            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
+            for (unsigned int i = 0; i < Dim ; ++i) {
+                rDragForce(i) -= shear_proj(i);
+            }
+            rDragForce += rData.Weight * p_gauss * aux_unit_normal;
+        }
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::CalculateDragForceCenter(
+    EmbeddedElementData& rData,
+    array_1d<double,3>& rDragForceLocation) const
+{
+    const auto &r_geometry = this->GetGeometry();
+    array_1d<double,3> tot_drag = ZeroVector(3);
+    const unsigned int n_pos_gauss = rData.PositiveSideWeights.size();
+
+    if (rData.IsCut()) {
+        // Integrate positive interface side drag
+        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+            // Calculate the Gauss pt. coordinates
+            array_1d<double,3> g_coords = ZeroVector(3);
+            const auto g_shape_functions = row(rData.PositiveInterfaceN, g);
+            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+                g_coords += g_shape_functions[i_node] * r_geometry[i_node].Coordinates();
+            }
+
+            // Update the Gauss pt. rData and the constitutive law
+            this->UpdateIntegrationPointData(
+                rData,
+                g + n_pos_gauss,
+                rData.PositiveInterfaceWeights[g],
+                g_shape_functions,
+                rData.PositiveInterfaceDNDX[g]);
+
+            // Get the interface Gauss pt. unit noromal
+            const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+            // Compute Gauss pt. pressure
+            const double p_gauss = inner_prod(rData.N, rData.Pressure);
+
+            // Get the normal projection matrix in Voigt notation
+            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+            // Add the shear and pressure drag contributions
+            const array_1d<double, 3> p_proj = rData.Weight * p_gauss * aux_unit_normal;
+            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
+            for (unsigned int i = 0; i < Dim ; ++i) {
+                tot_drag(i) -= shear_proj(i);
+                rDragForceLocation(i) += g_coords(i) * p_proj(i);
+                rDragForceLocation(i) -= g_coords(i) * shear_proj(i);
+            }
+            tot_drag += p_proj;
+        }
+
+        // Divide the obtained result by the total drag
+        rDragForceLocation(0) /= tot_drag(0);
+        rDragForceLocation(1) /= tot_drag(1);
+        if (Dim == 3) {
+            rDragForceLocation(2) /= tot_drag(2);
+        }
+    }
+}
 
 // serializer
 

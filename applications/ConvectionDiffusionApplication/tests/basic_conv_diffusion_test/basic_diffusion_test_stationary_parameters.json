@@ -44,7 +44,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings":{
-            "solver_type": "ExternalSolversApplication.super_lu"
+            "solver_type": "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1","Check_Part"],

@@ -80,9 +80,13 @@ class bicgstab {
             /// Target absolute residual error.
             scalar_type abstol;
 
+            /// Always do at least one iteration.
+            bool check_after;
+
             params()
                 : pside(preconditioner::side::right), maxiter(100), tol(1e-8),
-                  abstol(std::numeric_limits<scalar_type>::min())
+                  abstol(std::numeric_limits<scalar_type>::min()),
+                  check_after(false)
             {}
 
 #ifndef AMGCL_NO_BOOST
@@ -90,9 +94,10 @@ class bicgstab {
                 : AMGCL_PARAMS_IMPORT_VALUE(p, pside),
                   AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, abstol),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, check_after)
             {
-                check_params(p, {"pside", "maxiter", "tol", "abstol"});
+                check_params(p, {"pside", "maxiter", "tol", "abstol", "check_after"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -100,6 +105,7 @@ class bicgstab {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, maxiter);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, check_after);
             }
 #endif
         };
@@ -144,7 +150,7 @@ class bicgstab {
             static const coef_type zero = math::zero<coef_type>();
 
             scalar_type norm_rhs = norm(rhs);
-            if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
+            if (norm_rhs < amgcl::detail::eps<scalar_type>(1)) {
                 backend::clear(x);
                 return std::make_tuple(0, norm_rhs);
             }
@@ -157,8 +163,8 @@ class bicgstab {
             }
             backend::copy(*r, *rh);
 
-            scalar_type res = norm(*r);
             scalar_type eps = std::max(norm_rhs * prm.tol, prm.abstol);
+            scalar_type res = prm.check_after ? 2 * eps : norm(*r);
 
             coef_type rho1  = zero;
             coef_type rho2  = zero;

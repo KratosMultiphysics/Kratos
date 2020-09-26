@@ -140,7 +140,7 @@ protected:
     /// Initialize the communicator's ghost, local and interface meshes for all communication pairs (colors).
     void InitializeParallelCommunicationMeshes(ModelPart& rModelPart,
                                                const std::vector<int>& rColors,
-                                               unsigned MyRank);
+                                               int MyRank);
 
     /// Generate the ghost, local and interface meshes for processes of a communication pair (color).
     void GenerateMeshes(int NeighbourPID, int MyPID, unsigned Color, ModelPart& rModelPart);
@@ -170,8 +170,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     ModelPart& mrBaseModelPart;
 
+    bool mPartitionIndexCheckPerformed = false;
 
     ///@}
     ///@name Private Operators

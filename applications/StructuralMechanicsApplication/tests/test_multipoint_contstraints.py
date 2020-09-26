@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication
@@ -8,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestMultipointConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self, mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -62,9 +61,9 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
     def _apply_BCs(self, mp):
         bcs = mp.GetSubModelPart("FixedEdgeNodes")
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_X, 0.0, bcs.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_Y, 0.0, bcs.Nodes)
 
         KratosMultiphysics.VariableUtils().ApplyFixity(
@@ -73,9 +72,9 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             KratosMultiphysics.DISPLACEMENT_Y, True, bcs.Nodes)
 
         bcmn = mp.GetSubModelPart("MovingNodes")
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_X, 0.01, bcmn.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(
+        KratosMultiphysics.VariableUtils().SetVariable(
             KratosMultiphysics.DISPLACEMENT_Y, 0.0, bcmn.Nodes)
         KratosMultiphysics.VariableUtils().ApplyFixity(
             KratosMultiphysics.DISPLACEMENT_X, True, bcmn.Nodes)
@@ -98,7 +97,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         reform_step_dofs = True
         move_mesh_flag = False
         self.strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-            mp, self.scheme, self.linear_solver, self.convergence_criterion,
+            mp, self.scheme, self.convergence_criterion,
             self.builder_and_solver, max_iters, compute_reactions,
             reform_step_dofs, move_mesh_flag)
         self.strategy.SetEchoLevel(0)
@@ -264,7 +263,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         cm = KratosMultiphysics.StructuralMechanicsApplication.ApplyMultipointConstraintsProcess(
             mp)
         self._apply_mpc_constraints(mp, cm)
-        # Solving the system of equations        
+        # Solving the system of equations
         self._setup_solver(mp)
 
         while (time <= end_time):

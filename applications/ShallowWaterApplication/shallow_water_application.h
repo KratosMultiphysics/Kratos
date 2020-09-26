@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED )
-#define  KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#ifndef KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
 
 ///@defgroup ShallowWaterApplication Kratos Shallow Water Application
 ///@brief Basic set of tools to solve the shallow water equations.
@@ -31,14 +31,8 @@
 #include "includes/kratos_application.h"
 
 // Shallow water includes
-#include "custom_elements/shallow_element.h"
-#include "custom_elements/rv_swe.h"
-#include "custom_elements/cv_swe.h"
 #include "custom_elements/swe.h"
-#include "custom_elements/primitive_var_element.hpp"
-#include "custom_elements/conserved_var_element.hpp"
-#include "custom_elements/euler_prim_var_element.hpp"
-#include "custom_elements/euler_cons_var_element.hpp"
+#include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/nothing_condition.hpp"
 
 
@@ -197,29 +191,12 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-        // Lagrangian elements
-        const ShallowElement mShallowElement2D3N;
-        const RV_SWE<3, Eulerian> mRVSWE2D3N;
-        const RV_SWE<4, Eulerian> mRVSWE2D4N;
-        const RV_SWE<3, PFEM2> mPFEM2RVSWE2D3N;
-        const RV_SWE<4, PFEM2> mPFEM2RVSWE2D4N;
-        const CV_SWE<3, Eulerian> mCVSWE2D3N;
-        const CV_SWE<4, Eulerian> mCVSWE2D4N;
-        const CV_SWE<3, PFEM2> mPFEM2CVSWE2D3N;
-        const CV_SWE<4, PFEM2> mPFEM2CVSWE2D4N;
+        // Elements
         const SWE<3, Eulerian> mSWE2D3N;
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;
         const SWE<4, PFEM2> mLagrangianSWE2D4N;
-        const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
-        const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
-        const ConservedVarElement<3> mConservedVarElement2D3N;
-        const ConservedVarElement<4> mConservedVarElement2D4N;
-        // Eulerian elements
-        const EulerPrimVarElement<3> mEulerPrimVarElement2D3N;
-        const EulerPrimVarElement<4> mEulerPrimVarElement2D4N;
-        const EulerConsVarElement<3> mEulerConsVarElement2D3N;
-        const EulerConsVarElement<4> mEulerConsVarElement2D4N;
+        const ShallowWater2D3 mShallowWater2D3N;
         // Condition
         const NothingCondition<2> mNothingCondition2D2N;
 

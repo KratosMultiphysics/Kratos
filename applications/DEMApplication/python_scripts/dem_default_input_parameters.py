@@ -6,6 +6,7 @@ def GetDefaultInputParameters():
     default_settings = KratosMultiphysics.Parameters("""
         {
             "do_print_results_option"          : true,
+            "WriteMdpaFromResults"             : false,
             "Dimension"                        : 3,
             "PeriodicDomainOption"             : false,
             "BoundingBoxOption"                : false,
@@ -74,6 +75,11 @@ def GetDefaultInputParameters():
             "SearchTolerance"                  : 0.0,
             "search_tolerance_against_walls"   : 0.0,
             "CoordinationNumber"               : 10,
+            "LocalCoordinationNumberOption"    : false,
+            "GlobalCoordinationNumberOption"   : true,
+            "respect_preprocessor_marked_skin" : true,
+            "AutomaticSkinComputation" : false,
+            "SkinFactorRadius" : 1.0,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
             "ModelDataInfo"                    : false,
@@ -82,6 +88,7 @@ def GetDefaultInputParameters():
             "ComputeStressTensorOption"        : false,
             "ImposeZStrainIn2DOption"          : false,
             "ZStrainValue"                     : "0.0*t",
+            "ImposeZStrainIn2DWithControlModule" : false,
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
@@ -114,15 +121,15 @@ def GetDefaultInputParameters():
             "output_processes"                 :{},
 
             "material_test_settings" : {
-            "TestType"                         : "None",
-            "ConfinementPressure"              : 0.0,
-            "LoadingVelocity"                  : -0.10,
-            "MeshType"                         : "1",
-            "MeshPath"                         : "0",
-            "SpecimenLength"                   : 0.3,
-            "SpecimenDiameter"                 : 0.15,
-            "MeasuringSurface"                 : 0.01767145867644375},
-
+                "TestType"                         : "None",
+                "ConfinementPressure"              : 0.0,
+                "LoadingVelocity"                  : -0.10,
+                "MeshType"                         : "1",
+                "MeshPath"                         : "0",
+                "SpecimenLength"                   : 0.3,
+                "SpecimenDiameter"                 : 0.15,
+                "MeasuringSurface"                 : 0.01767145867644375
+            },
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
             "OutputTimeStep"                   : 1e-2,
@@ -164,12 +171,14 @@ def GetDefaultInputParameters():
             "PostTangentialImpactVelocity"     : false,
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
+            "PostControlModule"                : false,
+            "output_configuration" : {
+                "print_number_of_neighbours_histogram" : false
+            },
             "post_vtk_option"                  : false,
-
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
             "LoadingVelocityTop"               : 0.0,
             "LoadingVelocityBot"               : 0.0,
-
             "problem_name" : "dummy_name.Provide_a_real_one",
             "processes" : {}
             }""")

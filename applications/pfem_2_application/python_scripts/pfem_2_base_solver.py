@@ -20,7 +20,7 @@ class PFEM2BaseSolver(PythonSolver):
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = self.settings["formulation"]["element_type"].GetString()
-        self.condition_name = "Condition2D3N"
+        self.condition_name = "LineCondition2D3N"
         self.min_buffer_size = 2
 
         # Either retrieve the model part from the model or create a new one
@@ -154,7 +154,7 @@ class PFEM2BaseSolver(PythonSolver):
         return delta_time
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""
         {
             "solver_type"              : "pfem_2_solver",
@@ -193,7 +193,7 @@ class PFEM2BaseSolver(PythonSolver):
                 "convection_type"          : "pfem_2"
             }
         }""")
-        default_settings.AddMissingParameters(super(PFEM2BaseSolver,cls).GetDefaultSettings())
+        default_settings.AddMissingParameters(super(PFEM2BaseSolver,cls).GetDefaultParameters())
         return default_settings
 
     def _ReplaceElementsAndConditions(self):

@@ -59,7 +59,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : publi
 public:
     ///@name Type Definitions
     ///@{
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3>> > ComponentType;
+    typedef Variable<double> ComponentType;
 
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);

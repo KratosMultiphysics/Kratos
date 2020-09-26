@@ -5,11 +5,7 @@ message("**** configuring KratosCableNetApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-if(NOT STRUCTURAL_MECHANICS_APPLICATION )
-    message(FATAL_ERROR
-        "StructuralMechsnicsApplication is not compiled and CableNetApplication depends on it!\n"
-        "  - Add '-DSTRUCTURAL_MECHANICS_APPLICATION=ON' to your build script")
-endif()
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
@@ -34,7 +30,7 @@ file(GLOB_RECURSE KRATOS_CABLE_NET_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_
 
 add_library(KratosCableNetCore SHARED ${KRATOS_CABLE_NET_APPLICATION_CORE} ${KRATOS_CABLE_NET_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosCableNetCore PRIVATE KratosCore KratosStructuralMechanicsCore)
-set_target_properties(KratosCableNetCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CABLE_NET_APPLICATION=EXPORT,API")
+set_target_properties(KratosCableNetCore PROPERTIES COMPILE_DEFINITIONS "CABLE_NET_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

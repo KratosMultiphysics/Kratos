@@ -121,7 +121,7 @@ class BuoyancyTest(UnitTest.TestCase):
 
             thermal_model_part = self.model.CreateModelPart("Thermal")
             conv_diff_element = "EulerianConvDiff2D"
-            conv_diff_condition = "Condition2D2N"
+            conv_diff_condition = "LineCondition2D2N"
 
             MergeVariableListsUtility().Merge(self.fluid_model_part, thermal_model_part)
 

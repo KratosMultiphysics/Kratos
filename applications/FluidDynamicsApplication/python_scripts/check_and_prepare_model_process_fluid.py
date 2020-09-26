@@ -14,7 +14,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "volume_model_part_name" : "",
             "skin_parts" : [],
-            "assign_neighbour_elements_to_conditions" : false
+            "assign_neighbour_elements_to_conditions" : true
         }''')
         Parameters.ValidateAndAssignDefaults(default_parameters)
         if Parameters["volume_model_part_name"].GetString() == "":
@@ -65,10 +65,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #verify the orientation of the skin
         tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
         throw_errors = False
-        flags = tmoc.NOT_COMPUTE_NODAL_NORMALS | tmoc.NOT_COMPUTE_CONDITION_NORMALS
+        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
         if self.assign_neighbour_elements:
             flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
         else:
-            flags |= tmoc.NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
         KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors, flags).Execute()
-

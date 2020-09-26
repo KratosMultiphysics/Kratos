@@ -446,7 +446,7 @@ public:
      * @brief This clears the database
      * @warning This conflicts with flags Clear
      */
-    virtual void Clear();
+    void Clear() override;
 
     /**
      * @brief Execute method is used to execute the Process algorithms.
@@ -467,6 +467,11 @@ public:
         GeometricalObject::Pointer pGeometricalObject,
         OtreeCellVectorType& rLeaves
         );
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -622,11 +627,6 @@ private:
         OtreeCellVectorType& rLeaves,
         PointerVector<GeometricalObject>& rResults
         );
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Un accessible methods

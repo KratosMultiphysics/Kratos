@@ -40,10 +40,9 @@ class PFEM2NavierStokesMonolithicSolver(NavierStokesSolverMonolithic):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
-        self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                     self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                     self.settings["absolute_pressure_tolerance"].GetDouble())
+        self.convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+            [(KratosMultiphysics.VELOCITY, self.settings["relative_velocity_tolerance"].GetDouble(), self.settings["absolute_velocity_tolerance"].GetDouble()),
+            (KratosMultiphysics.PRESSURE, self.settings["relative_pressure_tolerance"].GetDouble(), self.settings["absolute_pressure_tolerance"].GetDouble())])
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
@@ -60,7 +59,7 @@ class PFEM2NavierStokesMonolithicSolver(NavierStokesSolverMonolithic):
                                         self.settings["move_mesh_strategy"].GetInt(),
                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
             elif self.settings["time_scheme"].GetString() == "bdf2":
-                self.time_scheme = KratosCFD.GearScheme()
+                self.time_scheme = KratosCFD.BDF2TurbulentScheme()
             elif self.settings["time_scheme"].GetString() == "steady":
                 self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                                         self.settings["velocity_relaxation"].GetDouble(),

@@ -31,7 +31,6 @@ namespace Kratos {
         using BaseType::mListOfSphericParticles;
         using BaseType::mListOfGhostSphericParticles;
         using BaseType::SearchNeighbours;
-        using BaseType::SetSearchRadiiOnAllParticles;
 
         /// Pointer definition of ExplicitSolverStrategy
         KRATOS_CLASS_POINTER_DEFINITION(ContinuumExplicitSolverStrategy);
@@ -70,6 +69,7 @@ namespace Kratos {
         void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
+        void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
         void Check_MPI(bool& has_mpi);
         virtual void CalculateMaxSearchDistance();
@@ -81,6 +81,8 @@ namespace Kratos {
         void FinalizeSolutionStep() override;
         void FinalizeSolutionStepFEM();
         void MarkNewSkinParticles();
+        void ResetSkinParticles(ModelPart& r_model_part);
+        void ComputeSkin(ModelPart& rSpheresModelPart, const double factor_radius = 1.0);
         void BreakAlmostBrokenSpheres();
 
         virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element) {

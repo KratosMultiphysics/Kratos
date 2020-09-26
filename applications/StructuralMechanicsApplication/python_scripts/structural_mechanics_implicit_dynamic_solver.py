@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -26,7 +24,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method" : "implicit",
             "scheme_type"             : "bossak",
@@ -35,7 +33,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
             "rayleigh_alpha"          : 0.0,
             "rayleigh_beta"           : 0.0
         }""")
-        this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultParameters())
         return this_defaults
 
     def GetMinimumBufferSize(self):
@@ -95,9 +93,7 @@ class ImplicitMechanicalSolver(MechanicalSolver):
                 bdf_parameters = KratosMultiphysics.Parameters(""" {
                     "domain_size"           : 3,
                     "integration_order"     : 2,
-                    "variable"              : ["DISPLACEMENT","ROTATION"],
-                    "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
-                    "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
+                    "solution_variables"    : ["DISPLACEMENT","ROTATION"]
                 } """)
                 bdf_parameters["domain_size"].SetInt(process_info[KratosMultiphysics.DOMAIN_SIZE])
                 mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(order, bdf_parameters)

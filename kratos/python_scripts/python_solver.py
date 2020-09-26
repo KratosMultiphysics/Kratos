@@ -42,7 +42,7 @@ class PythonSolver(object):
         self.echo_level = self.settings["echo_level"].GetInt()
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         """This function returns the default-settings used by this class
         """
         return KratosMultiphysics.Parameters("""{
@@ -52,7 +52,7 @@ class PythonSolver(object):
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        default_settings = self.GetDefaultSettings()
+        default_settings = self.GetDefaultParameters()
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def AddVariables(self):
@@ -162,29 +162,41 @@ class PythonSolver(object):
 
         if (input_type == "mdpa"):
             problem_path = os.getcwd()
+
+            default_settings = KratosMultiphysics.Parameters("""{
+                "input_filename"                             : "",
+                "skip_timer"                                 : true,
+                "ignore_variables_not_in_solution_step_data" : false,
+                "reorder"                                    : false,
+                "reorder_consecutive"                        : false
+            }""")
+
+            # cannot validate as this might contain other settings too
+            model_part_import_settings.AddMissingParameters(default_settings)
+
             input_filename = model_part_import_settings["input_filename"].GetString()
 
             # Setting some mdpa-import-related flags
             import_flags = KratosMultiphysics.ModelPartIO.READ
-            if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
-                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
-                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
-            skip_timer = True
-            if model_part_import_settings.Has("skip_timer"):
-                skip_timer = model_part_import_settings["skip_timer"].GetBool()
-            if skip_timer:
+
+            if model_part_import_settings["skip_timer"].GetBool():
                 import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
+
+            if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
+                import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
 
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            if (model_part_import_settings.Has("reorder_consecutive") and model_part_import_settings["reorder_consecutive"].GetBool()):
+
+            if model_part_import_settings["reorder_consecutive"].GetBool():
                 KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
             else:
                 KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
 
-            if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
+            if model_part_import_settings["reorder"].GetBool():
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
+
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
 
         elif (input_type == "rest"):
@@ -224,7 +236,7 @@ class PythonSolver(object):
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
-        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultSettings"')
+        IssueDeprecationWarning('PythonSolver', '"validate_and_transfer_matching_settings" is deprecated, please use the functionalities provided by "GetDefaultParameters"')
 
         """Transfer matching settings from origin to destination.
 

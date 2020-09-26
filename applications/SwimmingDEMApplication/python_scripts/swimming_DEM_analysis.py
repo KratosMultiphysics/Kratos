@@ -28,7 +28,7 @@ def Say(*args):
 
 import KratosMultiphysics.DEMApplication.DEM_procedures as DP
 
-class SDEMLogger(object):
+class SDEMLogger():
     def __init__(self, do_print_file=False):
         self.terminal = sys.stdout
         self.console_output_file_name = 'console_output.txt'
@@ -376,13 +376,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
             gauge.ConstructArrayOfNodes(condition)
             Say(gauge.variables)
         # ANALYTICS END
-
-        import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
-
-        self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            self.project_parameters,
-            self.fluid_model_part,
-            self.custom_functions_tool)
 
         self.FillHistoryForcePrecalculatedVectors()
 

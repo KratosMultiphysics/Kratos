@@ -31,7 +31,7 @@ namespace Kratos {
         /**
 	     * Auxiliar function to generate a triangular element to be tested.
 	     */
-        void GenerateModelPartToTest(
+        void GenerateModelPartToTestDivergence(
             ModelPart& rModelPart) {
 
             // Variables addition
@@ -72,33 +72,33 @@ namespace Kratos {
             auto elements_begin = rModelPart.ElementsBegin();
             for (unsigned int i_elem = 0; i_elem < rModelPart.NumberOfElements(); ++i_elem){
                 auto it_elem = elements_begin + i_elem;
-                it_elem->SetValue(DIVERGENCE_WEIGHTED,0.5);
+                it_elem->SetValue(AVERAGED_DIVERGENCE,0.5);
                 it_elem->SetValue(VELOCITY_H1_SEMINORM,0.5);
             }
         }
 
 	    /**
-	     * Checks the body fitted drag computation utility.
+	     * Checks the time average divergence utility.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(CalculationWeightedDivergence, ExaquteSandboxApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
             Model model;
             ModelPart& model_part = model.CreateModelPart("Main", 3);
-            GenerateModelPartToTest(model_part);
+            GenerateModelPartToTestDivergence(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
             // Initialize the element
             p_element->Initialize();
 
-            // Call the body fitted drag utility
-            WeightedDivergenceCalculationProcess(model_part).Execute();
+            // Call the divergence time average process
+            WeightedDivergenceCalculationProcess(model_part).ExecuteFinalizeSolutionStep();
 
             // Check computed values over the elements
             auto elements_begin = model_part.ElementsBegin();
             for (unsigned int i_elem = 0; i_elem < model_part.NumberOfElements(); ++i_elem){
                 auto it_elem = elements_begin + i_elem;
-                double divergence_value = it_elem->GetValue(DIVERGENCE_WEIGHTED);
+                double divergence_value = it_elem->GetValue(AVERAGED_DIVERGENCE);
                 double velocity_seminorm_value = it_elem->GetValue(VELOCITY_H1_SEMINORM);
                 KRATOS_CHECK_NEAR(divergence_value, 1.3416407865, 1e-10);
                 KRATOS_CHECK_NEAR(velocity_seminorm_value, 1.3509256086, 1e-10);

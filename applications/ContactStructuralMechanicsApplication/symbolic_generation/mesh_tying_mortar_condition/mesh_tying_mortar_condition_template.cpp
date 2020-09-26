@@ -69,24 +69,25 @@ MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::~MeshTyingMor
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initialize( )
+void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    BaseType::Initialize();
+    BaseType::Initialize(rCurrentProcessInfo);
 
     // We get the unkown variable
-    const std::string variable_name = GetProperties().Has(TYING_VARIABLE) ? GetProperties().GetValue(TYING_VARIABLE) : "DISPLACEMENT";
-    if (KratosComponents<Variable<double>>::Has(variable_name)) {
-        mDoubleVariables.push_back(KratosComponents<Variable<double>>::Get(variable_name));
-    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
-        mArray1DVariables.push_back(KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name));
+    const std::string r_variable_name = GetProperties().Has(TYING_VARIABLE) ? GetProperties().GetValue(TYING_VARIABLE) : "DISPLACEMENT";
+    if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+        mpDoubleVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name));
+    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
+        mpArray1DVariables.push_back(&KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name));
     } else {
         KRATOS_ERROR << "Compatible variables are: double or array_1d<double, 3> " << std::endl;
     }
 
     // We define the integration method
-    const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    const auto& r_properties = this->GetProperties();
+    const IndexType integration_order = r_properties.Has(INTEGRATION_ORDER_CONTACT) ? r_properties.GetValue(INTEGRATION_ORDER_CONTACT) : 2;
 
     // The slave geometry
     GeometryType& r_slave_geometry = this->GetParentGeometry();
@@ -109,7 +110,10 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
     mrThisMortarConditionMatrices.Initialize();
 
     // We call the exact integration utility
-    IntegrationUtility integration_utility = IntegrationUtility (integration_order);
+    const double distance_threshold = 1.0e24;
+    const double zero_tolerance_factor = 1.0e0;
+    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+    IntegrationUtility integration_utility = IntegrationUtility (integration_order, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -173,7 +177,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -186,7 +190,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -199,7 +203,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -212,7 +216,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Finalize
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -228,13 +232,13 @@ template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
 
     // Compute the matrix size
-    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
     const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
 
     // Resizing as needed the LHS
@@ -257,11 +261,11 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Compute the matrix size
-    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
     const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
 
     // Resizing as needed the LHS
@@ -281,14 +285,14 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Creating an auxiliar matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
     // Compute the matrix size
-    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
     const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
 
     // Resizing as needed the RHS
@@ -305,7 +309,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -321,7 +325,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -346,7 +350,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
     KRATOS_TRY;
 
     // Create the current DoF data
-    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
 
     if (tensor_value ==  ScalarValue) {
         DofData<ScalarValue> dof_data;
@@ -355,7 +359,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
         this->InitializeDofData<ScalarValue>(dof_data);
 
         // Update slave element info
-        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mDoubleVariables, mArray1DVariables);
+        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mpDoubleVariables, mpArray1DVariables);
 
         // Assemble of the matrix is required
         if ( ComputeLHS ) {
@@ -375,7 +379,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
         this->InitializeDofData<static_cast<TensorValue>(TDim)>(dof_data);
 
         // Update slave element info
-        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mDoubleVariables, mArray1DVariables);
+        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mpDoubleVariables, mpArray1DVariables);
 
         // Assemble of the matrix is required
         if ( ComputeLHS ) {
@@ -401,8 +405,8 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     const array_1d<double, 3>& rNormalMaster,
     MatrixDualLM& rAe,
     GeneralVariables& rVariables,
-    ConditionArrayListType& rConditionsPointsSlave,
-    IntegrationMethod ThisIntegrationMethod
+    const ConditionArrayListType& rConditionsPointsSlave,
+    const IntegrationMethod ThisIntegrationMethod
     )
 {
     // We initilize the Ae components
@@ -470,7 +474,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     const array_1d<double, 3>& rNormalMaster,
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
-    GeometryPointType& rGeometryDecomp,
+    const GeometryPointType& rGeometryDecomp,
     const bool DualLM
     )
 {
@@ -535,13 +539,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::MasterSh
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
     // Compute the matrix size
-    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
     const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
 
     if (rResult.size() != matrix_size) {
@@ -552,55 +556,56 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
 
     /* ORDER - [ MASTER, SLAVE, LM ] */
     // Master Nodes DoF Equation IDs
-    GeometryType& r_current_master = this->GetPairedGeometry();
+    const GeometryType& r_current_master = this->GetPairedGeometry();
 
     if (tensor_value == ScalarValue) {
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
-            rResult[index++] = r_current_master[i_master].GetDof( mDoubleVariables[0] ).EquationId( );
+            rResult[index++] = r_current_master[i_master].GetDof( *mpDoubleVariables[0] ).EquationId( );
         }
     } else {
-        const std::string& variable_name = (mArray1DVariables[0]).Name();
-        const Array1DComponentsType& var_x = KratosComponents<Array1DComponentsType>::Get(variable_name+"_X");
-        const Array1DComponentsType& var_y = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Y");
-        const Array1DComponentsType& var_z = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Z");
+        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
+        const Array1DComponentsType& r_var_x = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_X");
+        const Array1DComponentsType& r_var_y = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Y");
+        const Array1DComponentsType& r_var_z = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Z");
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
-            NodeType& r_master_node = r_current_master[i_master];
-            rResult[index++] = r_master_node.GetDof( var_x ).EquationId( );
-            rResult[index++] = r_master_node.GetDof( var_y ).EquationId( );
-            if (TDim == 3) rResult[index++] = r_master_node.GetDof( var_z ).EquationId( );
+            const NodeType& r_master_node = r_current_master[i_master];
+            rResult[index++] = r_master_node.GetDof( r_var_x ).EquationId( );
+            rResult[index++] = r_master_node.GetDof( r_var_y ).EquationId( );
+            if (TDim == 3) rResult[index++] = r_master_node.GetDof( r_var_z ).EquationId( );
         }
     }
 
     // Slave Nodes DoF Equation IDs
+    const GeometryType& r_current_slave = this->GetParentGeometry();
     if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            rResult[index++] = this->GetParentGeometry()[i_slave].GetDof( mDoubleVariables[0] ).EquationId( );
+            rResult[index++] = r_current_slave[i_slave].GetDof( *mpDoubleVariables[0] ).EquationId( );
         }
     } else {
-        const std::string& variable_name = (mArray1DVariables[0]).Name();
-        const Array1DComponentsType& var_x = KratosComponents<Array1DComponentsType>::Get(variable_name+"_X");
-        const Array1DComponentsType& var_y = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Y");
-        const Array1DComponentsType& var_z = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Z");
+        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
+        const Array1DComponentsType& r_var_x = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_X");
+        const Array1DComponentsType& r_var_y = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Y");
+        const Array1DComponentsType& r_var_z = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Z");
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            NodeType& slave_node = this->GetParentGeometry()[i_slave];
-            rResult[index++] = slave_node.GetDof( var_x ).EquationId( );
-            rResult[index++] = slave_node.GetDof( var_y ).EquationId( );
-            if (TDim == 3) rResult[index++] = slave_node.GetDof( var_z ).EquationId( );
+            const NodeType& r_slave_node = r_current_slave[i_slave];
+            rResult[index++] = r_slave_node.GetDof( r_var_x ).EquationId( );
+            rResult[index++] = r_slave_node.GetDof( r_var_y ).EquationId( );
+            if (TDim == 3) rResult[index++] = r_slave_node.GetDof( r_var_z ).EquationId( );
         }
     }
 
     // Slave Nodes LM Equation IDs
     if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave )  {
-            NodeType& slave_node = this->GetParentGeometry()[i_slave];
-            rResult[index++] = slave_node.GetDof( SCALAR_LAGRANGE_MULTIPLIER ).EquationId( );
+            const NodeType& r_slave_node = r_current_slave[i_slave];
+            rResult[index++] = r_slave_node.GetDof( SCALAR_LAGRANGE_MULTIPLIER ).EquationId( );
         }
     } else {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            NodeType& slave_node = this->GetParentGeometry()[i_slave];
-            rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
-            rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
-            if (TDim == 3) rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
+            const NodeType& r_slave_node = r_current_slave[i_slave];
+            rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
+            rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
+            if (TDim == 3) rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
         }
     }
 
@@ -613,12 +618,12 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
-    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
     const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
 
     if (rConditionalDofList.size() != matrix_size) {
@@ -629,99 +634,60 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
 
     /* ORDER - [ MASTER, SLAVE, LM ] */
     // Master Nodes DoF Equation IDs
-    GeometryType& current_master = this->GetPairedGeometry();
+    const GeometryType& r_current_master = this->GetPairedGeometry();
 
     if (tensor_value == ScalarValue) {
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master )  {
-            rConditionalDofList[index++] = current_master[i_master].pGetDof( mDoubleVariables[0] );
+            rConditionalDofList[index++] = r_current_master[i_master].pGetDof( *mpDoubleVariables[0] );
         }
     } else {
-        const std::string& variable_name = (mArray1DVariables[0]).Name();
-        const Array1DComponentsType& var_x = KratosComponents< Array1DComponentsType>::Get(variable_name+"_X");
-        const Array1DComponentsType& var_y = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Y");
-        const Array1DComponentsType& var_z = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Z");
+        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
+        const Array1DComponentsType& r_var_x = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_X");
+        const Array1DComponentsType& r_var_y = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Y");
+        const Array1DComponentsType& r_var_z = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Z");
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
-            NodeType& master_node = current_master[i_master];
-            rConditionalDofList[index++] = master_node.pGetDof( var_x );
-            rConditionalDofList[index++] = master_node.pGetDof( var_y );
-            if (TDim == 3) rConditionalDofList[index++] = master_node.pGetDof( var_z );
+            const NodeType& r_master_node = r_current_master[i_master];
+            rConditionalDofList[index++] = r_master_node.pGetDof( r_var_x );
+            rConditionalDofList[index++] = r_master_node.pGetDof( r_var_y );
+            if (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( r_var_z );
         }
     }
 
     // Slave Nodes DoF Equation IDs
+    const GeometryType& r_current_slave = this->GetParentGeometry();
     if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            rConditionalDofList[index++] = this->GetParentGeometry()[i_slave].pGetDof( mDoubleVariables[0] );
+            rConditionalDofList[index++] = r_current_slave[i_slave].pGetDof( *mpDoubleVariables[0] );
         }
     } else {
-        const std::string& variable_name = (mArray1DVariables[0]).Name();
-        const Array1DComponentsType& var_x = KratosComponents< Array1DComponentsType>::Get(variable_name+"_X");
-        const Array1DComponentsType& var_y = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Y");
-        const Array1DComponentsType& var_z = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Z");
+        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
+        const Array1DComponentsType& r_var_x = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_X");
+        const Array1DComponentsType& r_var_y = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Y");
+        const Array1DComponentsType& r_var_z = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Z");
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            NodeType& slave_node = this->GetParentGeometry()[i_slave];
-            rConditionalDofList[index++] = slave_node.pGetDof( var_x );
-            rConditionalDofList[index++] = slave_node.pGetDof( var_y );
-            if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( var_z );
+            const NodeType& r_slave_node = r_current_slave[i_slave];
+            rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_x );
+            rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_y );
+            if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_z );
         }
     }
 
     // Slave Nodes LM Equation IDs
     if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            NodeType& slave_node = this->GetParentGeometry()[i_slave];
-            rConditionalDofList[index++] = slave_node.pGetDof( SCALAR_LAGRANGE_MULTIPLIER );
+            const NodeType& r_slave_node = r_current_slave[i_slave];
+            rConditionalDofList[index++] = r_slave_node.pGetDof( SCALAR_LAGRANGE_MULTIPLIER );
         }
     } else {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            NodeType& slave_node = this->GetParentGeometry()[i_slave];
-            rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
-            rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
-            if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
+            const NodeType& r_slave_node = r_current_slave[i_slave];
+            rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
+            rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
+            if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
         }
     }
 
     KRATOS_CATCH( "" );
-}
-
-
-//******************************* GET DOUBLE VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET ARRAY_1D VALUE *******************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-//******************************* GET VECTOR VALUE *********************************/
-/***********************************************************************************/
-
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
@@ -803,7 +769,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
+int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

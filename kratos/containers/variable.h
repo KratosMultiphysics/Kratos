@@ -49,13 +49,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Variable class contains all information needed to store and retrive data from a data container.
-/** Variable class contains all information needed to store and
-    retrive data from a data container.  It contains key value which
-    is needed for searching in data container. Also a zero value to
-    use as a default value in the container. Finally it has the type of
-    the Variable as its template parameter so the container can find it
-    in its relative part.
+/**
+ * @class Variable
+ * @brief Variable class contains all information needed to store and retrive data from a data container.
+ * @details Variable class contains all information needed to store and retrive data from a data container.  It contains key value which is needed for searching in data container. Also a zero value to use as a default value in the container. Finally it has the type of the Variable as its template parameter so the container can find it in its relative part.
+* @tparam TDataType The data type hold by the variable
+* @ingroup KratosCore
+* @author Pooyan Dadvand
 */
 template<class TDataType>
 class Variable : public VariableData
@@ -81,20 +81,84 @@ public:
     ///@{
 
     /**
-     * Constructor with specific name and zero value
+     * @brief Constructor with specific name and zero value
      * @param NewName The name to be assigned to the new variable
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
      */
-    Variable(const std::string& NewName, const TDataType Zero = TDataType())
-        : VariableData(NewName, sizeof(TDataType)), mZero(Zero)
+    explicit Variable(
+        const std::string& NewName,
+        const TDataType Zero = TDataType(),
+        const VariableType* pTimeDerivativeVariable = nullptr
+        )
+        : VariableData(NewName, sizeof(TDataType)),
+          mZero(Zero),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+    {
+    }
+    /**
+     * @brief Constructor with specific name and zero value
+     * @param NewName The name to be assigned to the new variable
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
+     */
+    explicit Variable(
+        const std::string& NewName,
+        const VariableType* pTimeDerivativeVariable
+        )
+        : VariableData(NewName, sizeof(TDataType)),
+          mZero(TDataType()),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
+    {
+    }
+
+    /**
+     * @brief Constructor for creating a component of other variable
+     * @param rNewName The name to be assigned to the compoenent
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero)
+    {
+    }
+
+    /**
+     * @brief Constructor for creating a component of other variable
+     * @param rNewName The name to be assigned to the compoenent
+     * @param pTimeDerivativeVariable Pointer to the time derivative variable
+     * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
+     */
+    template<typename TSourceVariableType>
+    explicit Variable(
+        const std::string& rNewName,
+        TSourceVariableType* pSourceVariable,
+        char ComponentIndex,
+        const VariableType* pTimeDerivativeVariable,
+        const TDataType Zero = TDataType()
+        )
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+          mZero(Zero),
+          mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
     }
 
     /**
      * Copy constructor.
+     * @brief Copy constructor.
      * @param rOtherVariable The old variable to be copied
      */
-    Variable(const VariableType& rOtherVariable) : VariableData(rOtherVariable), mZero(rOtherVariable.mZero) {}
+    explicit Variable(const VariableType& rOtherVariable) :
+        VariableData(rOtherVariable),
+        mZero(rOtherVariable.mZero),
+        mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
+    {
+    }
 
     /// Destructor.
     ~Variable() override {}
@@ -104,24 +168,17 @@ public:
     ///@{
 
     /**
-     * Assignment operator.
-     * @param rOtherVariable The old variable to be assigned
+     * @brief Assignment operator, deleted to avoid misuse which can lead to memory problems
      */
-    VariableType& operator=(const VariableType& rOtherVariable)
-    {
-        VariableData::operator=(rOtherVariable);
-        mZero = rOtherVariable.mZero;
-        return *this;
-    }
+    VariableType& operator=(const VariableType& rOtherVariable) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
     /**
-     * Clone creates a copy of the object using a copy constructor of the class.
-     * It is useful to avoid shallow copying of complex objects and also without
-     * actually having information about the variable type.
+     * @brief Clone creates a copy of the object using a copy constructor of the class.
+     * @details It is useful to avoid shallow copying of complex objects and also without actually having information about the variable type.
      * @param pSource The pointer of the variable to be cloned
      * @return A raw pointer of the variable
      */
@@ -131,9 +188,8 @@ public:
     }
 
     /**
-     * Copy is very similar to Clone except that it also the destination
-     * pointer also passed to it. It is a helpful method specially
-     * to create a copy of heterogeneous data arrays
+     * @brief Copy is very similar to Clone except that it also the destination pointer also passed to it.
+     * @details It is a helpful method specially to create a copy of heterogeneous data arrays
      * @param pSource The pointer of the variable to be copied
      * @param pDestination The pointer of the destination variable
      * @return A raw pointer of the variable
@@ -144,9 +200,8 @@ public:
     }
 
     /**
-     * Assign is very similar to Copy. It just differs in using an assignment
-     * operator besides the copy constructor. Copy creates a new object while
-     * Assign does the assignment for two existing objects.
+     * @brief Assign is very similar to Copy. It just differs in using an assignment operator besides the copy constructor. Copy creates a new object while
+     * @details Assign does the assignment for two existing objects.
      * @param pSource The pointer of the value to be assigned
      * @param pDestination The pointer of the destination value
      */
@@ -156,8 +211,8 @@ public:
     }
 
     /**
-     * AssignZero is a special case of Assign for which variable zero value used as source.
-     * This method is useful for initializing arrays or resetting values in memory.
+     * @brief AssignZero is a special case of Assign for which variable zero value used as source.
+     * @details This method is useful for initializing arrays or resetting values in memory.
      * @param pDestination The pointer of the destination variable
      */
     void AssignZero(void* pDestination) const override
@@ -167,9 +222,8 @@ public:
     }
 
     /**
-     *  Delete removes an object of variable type from memory. It calls a
-     * destructor of objects to prevent memory leak and frees the memory
-     * allocated for this object assuming that the object is allocated in heap.
+     * @brief Delete removes an object of variable type from memory.
+     * @details It calls a destructor of objects to prevent memory leak and frees the memory allocated for this object assuming that the object is allocated in heap.
      * @param pSource The pointer of the variable to be deleted
      */
     void Delete(void* pSource) const override
@@ -178,8 +232,8 @@ public:
     }
 
     /**
-     *  Destruct eliminates an object maintaining the memory it is using.
-     * However, the unlike Delete it does nothing with the memory allocated to it.
+     * @brief Destruct eliminates an object maintaining the memory it is using.
+     * @details However, the unlike Delete it does nothing with the memory allocated to it.
      * So it is very useful in case of reallocating a part of the memory.
      * @param pSource The pointer of the variable to be destructed
      */
@@ -189,23 +243,24 @@ public:
     }
 
     /**
-     *  Print is an auxiliary method to produce output of given variable
-     * knowing its address. For example writing an heterogenous container
-     * in an output stream can be done using this method. Point assumes
-     * that the streaming operator is defined for the variable type.
+     * @brief Print is an auxiliary method to produce output of given variable knowing its address.
+     * @details For example writing an heterogenous container in an output stream can be done using this method. Point assumes that the streaming operator is defined for the variable type.
      * @param pSource The pointer of the variable to be printed
      * @param rOStream The stream used to print the information
      */
     void Print(const void* pSource, std::ostream& rOStream) const override
     {
-        rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        if(IsComponent()) {
+            rOStream << Name() << " component of " <<  GetSourceVariable().Name() << " variable : " <<  *static_cast<const TDataType* >(pSource) ;
+        }
+        else {
+            rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
+        }
     }
 
     /**
-     * PrintData is an auxiliary method to produce output only the value of given variable
-     * knowing its address. For example writing an heterogenous container
-     * in an output stream can be done using this method. Point assumes
-     * that the streaming operator is defined for the variable type.
+     * @brief PrintData is an auxiliary method to produce output only the value of given variable knowing its address.
+     * @details For example writing an heterogenous container in an output stream can be done using this method. Point assumes that the streaming operator is defined for the variable type.
      * @param pSource The pointer of the variable to be printed
      * @param rOStream The stream used to print the information
      */
@@ -215,7 +270,7 @@ public:
     }
 
     /**
-     * The save operation which backups the data of the class
+     * @brief The save operation which backups the data of the class
      * @param rSerializer The serializer used to preserve the information
      * @param pData A pointer to the data to be saved
      */
@@ -226,7 +281,7 @@ public:
     }
 
     /**
-     * This method allocates the data of the variable
+     * @brief This method allocates the data of the variable
      * @param pData A pointer to the data to be allocated
      */
     void Allocate(void** pData) const override
@@ -235,7 +290,7 @@ public:
     }
 
     /**
-     * The load operation which restores the data of the class
+     * @brief The load operation which restores the data of the class
      * @param rSerializer The serializer used to preserve the information
      * @param pData A pointer to the data to be loaded
      */
@@ -245,12 +300,23 @@ public:
     }
 
     /**
-     * This method returns the variable type
+     * @brief This method returns the variable type
      * @return The type of the variable
      */
     static const VariableType& StaticObject()
     {
-        return msStaticObject;
+        const static Variable<TDataType> static_object("NONE");
+        return static_object;
+    }
+
+    TDataType& GetValue(void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
+    }
+
+    const TDataType& GetValue(const void* pSource) const
+    {
+        return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
     }
 
     ///@}
@@ -258,12 +324,26 @@ public:
     ///@{
 
     /**
-     * This method returns the zero value of the variable type
+     * @brief This method returns the time derivative variable
+     * @return The reference of the time derivative variable (if any)
+     */
+    const VariableType& GetTimeDerivative() const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpTimeDerivativeVariable == nullptr) << "Time derivative for Variable \"" << Name() << "\" was not assigned" << std::endl;
+        return *mpTimeDerivativeVariable;
+    }
+
+    /**
+     * @brief This method returns the zero value of the variable type
      * @return The zero value of the corresponding variable
      */
     const TDataType& Zero() const
     {
         return mZero;
+    }
+
+    const void* pZero() const override {
+       return &mZero;
     }
 
     ///@}
@@ -282,6 +362,12 @@ public:
     {
         std::stringstream buffer;
         buffer << Name() << " variable" <<" #" << static_cast<unsigned int>(Key());
+        if(IsComponent()){
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key()) << " component " << GetComponentIndex() << " of " <<  GetSourceVariable().Name();
+        }
+        else {
+            buffer << Name() << " variable #" << static_cast<unsigned int>(Key());
+        }
         return buffer.str();
     }
 
@@ -291,7 +377,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Name() << " variable";
+        rOStream << Info();
     }
 
     /// Print object's data.
@@ -347,13 +433,15 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static const VariableType msStaticObject;
+    static const VariableType msStaticObject;               /// Definition of the static variable
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    TDataType mZero; // The zero type contains the null value of the current variable type
+    TDataType mZero;                                        /// The zero type contains the null value of the current variable type
+
+    const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
 
     ///@}
     ///@name Private Operators
@@ -363,6 +451,21 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// This is the default function for getting a value by index considering continuous memory indexing
+    /** It is templated so one can create specialized version of this for types with different structure
+    **/
+    template<typename TValueType>
+    TDataType& GetValueByIndex(TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<TDataType*>(pValue + index);
+    }
+
+    template<typename TValueType>
+    const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
+    {
+        return *static_cast<const TDataType*>(pValue + index);
+    }
 
     ///@}
     ///@name Serialization
@@ -378,6 +481,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
         rSerializer.save("Zero",mZero);
+        rSerializer.save("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
     /**
@@ -388,6 +492,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
         rSerializer.load("Zero",mZero);
+        rSerializer.load("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
     ///@}
@@ -413,9 +518,6 @@ private:
 }; // Class Variable
 
 ///@}
-
-template<class TDataType>
-const Variable<TDataType> Variable<TDataType>::msStaticObject("NONE");
 
 ///@name Type Definitions
 ///@{
@@ -443,9 +545,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIABLE_H_INCLUDED  defined
-
-

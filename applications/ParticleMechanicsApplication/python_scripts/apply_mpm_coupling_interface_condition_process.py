@@ -54,11 +54,11 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
         for mpc in self.model_part.Conditions:
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 node_id         = mpc.Id
-                node_coordinate = mpc.GetValue(KratosParticle.MPC_COORD)
+                node_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
                 coupling_node   = self.coupling_model_part.CreateNewNode(node_id, node_coordinate[0], node_coordinate[1], node_coordinate[2])
 
                 ## Set Displacement and Normal
-                normal = mpc.GetValue(KratosParticle.MPC_NORMAL)
+                normal = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_NORMAL, self.model_part.ProcessInfo)[0]
                 coupling_node.SetSolutionStepValue(KratosMultiphysics.NORMAL,0,normal)
 
 
@@ -72,20 +72,20 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
 
             ## IMPOSED DISPLACEMENT
             total_displacement = coupling_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
-            old_displacement = self.model_part.GetCondition(coupling_id).GetValue(KratosParticle.MPC_DISPLACEMENT)
+            old_displacement = self.model_part.GetCondition(coupling_id).CalculateOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
             incremental_displacement = total_displacement - old_displacement
-            self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
+            self.model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT, [incremental_displacement], self.model_part.ProcessInfo)
 
             ## ADD VELOCITY
             current_velocity = coupling_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
-            self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_VELOCITY, current_velocity)
+            self.model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KratosParticle.MPC_VELOCITY, [current_velocity], self.model_part.ProcessInfo)
 
             ## ADD NORMAL
             normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL,0)
             # Check and see whether the normal is not zero
             norm_normal = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
             if norm_normal > 1.e-10:
-                self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
+                self.model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KratosParticle.MPC_NORMAL, [normal], self.model_part.ProcessInfo)
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -93,7 +93,7 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
         for mpc in self.model_part.Conditions:
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id
-                contact_force = mpc.GetValue(KratosParticle.MPC_CONTACT_FORCE)
+                contact_force = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_CONTACT_FORCE, self.model_part.ProcessInfo)[0]
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,0,contact_force)
 
 

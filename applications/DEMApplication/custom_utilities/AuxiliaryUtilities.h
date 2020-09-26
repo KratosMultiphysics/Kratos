@@ -36,7 +36,6 @@ namespace Kratos {
                 Element* p_element = &(*it);
                 SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
 
-                if (p_sphere->mNeighbourElements[k] == NULL) continue;
                 double z_tensor_value = (*p_sphere->mSymmStressTensor)(2,2);
                 sub_total += z_tensor_value;
             }
