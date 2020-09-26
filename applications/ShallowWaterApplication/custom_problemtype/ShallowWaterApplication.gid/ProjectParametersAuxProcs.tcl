@@ -1,12 +1,12 @@
 
-proc WriteGiDOutputProcess {FileVar FileName OutputVars} {
+proc WriteGiDOutputProcess {FileVar ModelPartName FileName OutputVars} {
     upvar $FileVar MyFileVar
     set OutputVars [string trimright $OutputVars ,]
 
     puts $MyFileVar "            \"kratos_module\"        : \"KratosMultiphysics\","
     puts $MyFileVar "            \"python_module\"        : \"gid_output_process\","
     puts $MyFileVar "            \"Parameters\"           : \{"
-    puts $MyFileVar "                \"model_part_name\"        : \"model_part\","
+    puts $MyFileVar "                \"model_part_name\"        : \"$ModelPartName\","
     puts $MyFileVar "                \"output_name\"            : \"$FileName\","
     puts $MyFileVar "                \"postprocess_parameters\" : \{"
     puts $MyFileVar "                    \"result_file_configuration\" : \{"
@@ -38,7 +38,7 @@ proc WriteTopographyProcess {FileVar GroupNum Groups EntityType NumGroups} {
             puts $MyFileVar "            \"python_module\"   : \"set_topography_process\","
             puts $MyFileVar "            \"kratos_module\"   : \"KratosMultiphysics.ShallowWaterApplication\","
             puts $MyFileVar "            \"Parameters\"      : \{"
-            puts $MyFileVar "                \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"model_part_name\" : \"model_part.[lindex [lindex $Groups $i] 1]\","
             if {[lindex [lindex $Groups $i] 3] eq "From_digital_model"} {
                 puts $MyFileVar "                \"value\"           : \"z\""
             } elseif {[lindex [lindex $Groups $i] 3] eq "By_function"} {
@@ -66,7 +66,7 @@ proc WriteBottomFrictionProcess {FileVar GroupNum Groups EntityType NumGroups} {
             puts $MyFileVar "            \"kratos_module\"   : \"KratosMultiphysics\","
             puts $MyFileVar "            \"process_name\"    : \"ApplyConstantScalarValueProcess\","
             puts $MyFileVar "            \"Parameters\"      : \{"
-            puts $MyFileVar "                \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"model_part_name\" : \"model_part.[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "                \"variable_name\"   : \"MANNING\","
             puts $MyFileVar "                \"value\"           : [lindex [lindex $Groups $i] 3],"
             puts $MyFileVar "                \"is_fixed\"        : \"false\""
@@ -89,8 +89,7 @@ proc WriteInitialWaterLevelProcess {FileVar GroupNum Groups EntityType NumGroups
             puts $MyFileVar "            \"python_module\"   : \"set_initial_water_level_process\","
             puts $MyFileVar "            \"kratos_module\"   : \"KratosMultiphysics.ShallowWaterApplication\","
             puts $MyFileVar "            \"Parameters\"      : \{"
-            puts $MyFileVar "                \"mesh_id\"         : 0,"
-            puts $MyFileVar "                \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"model_part_name\" : \"model_part.[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "                \"variable_name\"   : \"[lindex [lindex $Groups $i] 3]\","
             puts $MyFileVar "                \"value\"           : \"[lindex [lindex $Groups $i] 4]\""
             puts $MyFileVar "            \}"
@@ -112,7 +111,7 @@ proc WriteSlipConditionProcess {FileVar GroupNum Groups EntityType NumGroups} {
             puts $MyFileVar "            \"python_module\"   : \"apply_slip_process\","
             puts $MyFileVar "            \"kratos_module\"   : \"KratosMultiphysics.ShallowWaterApplication\","
             puts $MyFileVar "            \"Parameters\"      : \{"
-            puts $MyFileVar "                \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\""
+            puts $MyFileVar "                \"model_part_name\" : \"model_part.[lindex [lindex $Groups $i] 1]\""
             puts $MyFileVar "            \}"
             if {$MyGroupNum < $NumGroups} {
                 puts $MyFileVar "        \},\{"
@@ -133,7 +132,7 @@ proc WriteConstantScalarConditionProcess {FileVar GroupNum Groups EntityType Num
             puts $MyFileVar "            \"kratos_module\"   : \"KratosMultiphysics\","
             puts $MyFileVar "            \"process_name\"    : \"ApplyConstantScalarValueProcess\","
             puts $MyFileVar "            \"Parameters\"      : \{"
-            puts $MyFileVar "                \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"model_part_name\" : \"model_part.[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "                \"variable_name\"   : \"HEIGHT\","
             puts $MyFileVar "                \"value\"           : [lindex [lindex $Groups $i] 3],"
             puts $MyFileVar "                \"is_fixed\"        : [lindex [lindex $Groups $i] 4]"
@@ -157,7 +156,7 @@ proc WriteConstantVectorConditionProcess {FileVar GroupNum Groups EntityType Num
             puts $MyFileVar "            \"kratos_module\"   : \"KratosMultiphysics\","
             puts $MyFileVar "            \"process_name\"    : \"ApplyConstantVectorValueProcess\","
             puts $MyFileVar "            \"Parameters\"      : \{"
-            puts $MyFileVar "                \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
+            puts $MyFileVar "                \"model_part_name\" : \"model_part.[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "                \"variable_name\"   : \"MOMENTUM\","
             puts $MyFileVar "                \"modulus\"         : [lindex [lindex $Groups $i] 3],"
             set pi 3.1415926535897931

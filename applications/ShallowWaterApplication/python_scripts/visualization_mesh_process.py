@@ -115,16 +115,18 @@ class VisualizationMeshProcess(KM.Process):
                 self.free_surface_variable,
                 KM.DISPLACEMENT_Z,
                 self.computing_model_part,
-                self.computing_model_part)
+                self.computing_model_part,
+                0)
             if self.use_topographic_model_part:
                 KM.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
                     self.topography_variable,
                     KM.DISPLACEMENT_Z,
                     self.topographic_model_part,
-                    self.topographic_model_part)
+                    self.topographic_model_part,
+                    0)
 
         # Assigning the properties as a flag if need
-        if use_properties_as_dry_wet_flag:
+        if self.use_properties_as_dry_wet_flag:
             self.properties_utility.AssignDryWetProperties(self.wet_flag)
 
     def ExecuteAfterOutputStep(self):
