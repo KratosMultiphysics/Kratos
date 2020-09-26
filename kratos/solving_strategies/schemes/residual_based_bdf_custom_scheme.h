@@ -66,6 +66,8 @@ public:
 
     typedef ResidualBasedBDFScheme<TSparseSpace,TDenseSpace>               BDFBaseType;
 
+    typedef ResidualBasedBDFCustomScheme<TSparseSpace, TDenseSpace>          ClassType;
+
     typedef typename ImplicitBaseType::TDataType                             TDataType;
 
     typedef typename ImplicitBaseType::DofsArrayType                     DofsArrayType;
@@ -88,8 +90,6 @@ public:
 
     typedef typename BaseType::Pointer                                 BaseTypePointer;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > >              ComponentType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -100,13 +100,11 @@ public:
      * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
      */
     explicit ResidualBasedBDFCustomScheme(Parameters ThisParameters)
+        :BDFBaseType()
     {
-        // Getting default parameters
-        Parameters default_parameters = GetDefaultParameters();
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        // Now here call the base class constructor
-        BDFBaseType( ThisParameters["integration_order"].GetInt());
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         // Creating variables list
         CreateVariablesList(ThisParameters);
@@ -124,9 +122,9 @@ public:
         )
         :BDFBaseType(Order)
     {
-        // Getting default parameters
-        Parameters default_parameters = GetDefaultParameters();
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         // Creating variables list
         CreateVariablesList(ThisParameters);
@@ -162,6 +160,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief This is the place to initialize the Scheme.
@@ -363,6 +370,35 @@ public:
         KRATOS_CATCH( "" );
 
         return 0;
+    }
+
+        /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "bdf_scheme",
+            "domain_size"        : 3,
+            "integration_order"  : 2,
+            "solution_variables" : ["DISPLACEMENT"]
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BDFBaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "bdf_scheme";
     }
 
     ///@}
@@ -572,23 +608,6 @@ private:
                 KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
             }
         }
-    }
-
-    /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-    Parameters GetDefaultParameters()
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"                  : "ResidualBasedBDFCustomScheme",
-            "domain_size"           : 3,
-            "integration_order"     : 2,
-            "solution_variables"    : ["DISPLACEMENT"]
-        })" );
-
-        return default_parameters;
     }
 
     ///@}

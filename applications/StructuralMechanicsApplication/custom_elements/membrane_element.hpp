@@ -90,17 +90,17 @@ namespace Kratos
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo) override;
+      MatrixType& rLeftHandSideMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void GetValuesVector(
@@ -123,7 +123,8 @@ namespace Kratos
       const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix,ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLumpedMassVector(VectorType& rMassVector);
 
@@ -142,7 +143,8 @@ namespace Kratos
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+      const ProcessInfo& rCurrentProcessInfo) override;
 
   private:
      /**
