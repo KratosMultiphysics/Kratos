@@ -24,12 +24,13 @@
 There's plenty of other CSV parsers in the wild, but I had a hard time finding what I wanted. Inspired by Python's `csv` module, I wanted a library with **simple, intuitive syntax**. Furthermore, I wanted support for special use cases such as calculating statistics on very large files. Thus, this library was created with these following goals in mind.
 
 ### Performance
-This CSV parser uses multiple threads to simulatenously pull data from disk and parse it. Furthermore, it is capable of incremental streaming (parsing larger than RAM files), and quickly parsing data types.
+This CSV parser uses multiple threads to simulatenously pull and parse data from disks, memory mapped IO, and 
+efficient data structures. Furthermore, it is capable of incremental streaming (parsing larger than RAM files), and quickly parsing data types.
 
 #### Show me the numbers
-*(To be expanded)*
-
-On my computer (Intel Core i7-8550U @ 1.80GHz/Toshiba XG5 SSD), it is capable of parsing the [69.9 MB 2015_StateDepartment.csv](https://github.com/vincentlaucsb/csv-data/tree/master/real_data) in 0.33 seconds.
+On my computer (Intel Core i7-8550U @ 1.80GHz/Toshiba XG5 SSD), this parser can read
+ * the [69.9 MB 2015_StateDepartment.csv](https://github.com/vincentlaucsb/csv-data/tree/master/real_data) in 0.26 seconds (269 MBps)
+ * a [1.4 GB Craigslist Used Vehicles Dataset](https://www.kaggle.com/austinreese/craigslist-carstrucks-data/version/7) in 4 seconds (350 MBps)
 
 ### Robust Yet Flexible
 #### RFC 4180 and Beyond
@@ -52,7 +53,7 @@ do not hesitate to report it.
 
 ## Documentation
 
-In addition to the [Features & Examples](#features--examples) below, a [fully-fledged online documentation](https://vincentlaucsb.github.io/csv-parser/html/) contains more examples, details, interesting features, and instructions for less common use cases.
+In addition to the [Features & Examples](#features--examples) below, a [fully-fledged online documentation](http://vincela.com/csv/) contains more examples, details, interesting features, and instructions for less common use cases.
 
 ## Integration
 
@@ -64,7 +65,7 @@ While C++17 is recommended, C++11 is the minimum version required. This library 
 [Martin Moene's string view library](https://github.com/martinmoene/string-view-lite) if `std::string_view` is not available.
 
 ### Single Header
-This library is available as a single `.hpp` file under [`single_include/csv-parser/include/csv.hpp`](single_include/csv-parser/include/csv.hpp).
+This library is available as a single `.hpp` file under [`single_include/csv.hpp`](single_include/csv.hpp).
 
 ### CMake Instructions
 If you're including this in another CMake project, you can simply clone this repo into your project directory, 
@@ -88,7 +89,7 @@ With this library, you can easily stream over a large file without reading its e
 
 **C++ Style**
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv.hpp"
 
 using namespace csv;
 
@@ -126,7 +127,7 @@ while (reader.read_row(row)) {
 Retrieving values using a column name string is a cheap, constant time operation.
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv.hpp"
 
 using namespace csv;
 
@@ -153,7 +154,7 @@ convert them to the proper data type.
  * **Note:** Conversions to floating point types are not currently checked for loss of precision.
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv.hpp"
 
 using namespace csv;
 
@@ -181,7 +182,7 @@ assembled into a larger JSON document is an exercise left for the user.
 
 ```cpp
 # include <sstream>
-# include "csv-parser/include/csv.hpp"
+# include "csv.hpp"
 
 using namespace csv;
 
@@ -206,7 +207,7 @@ for (auto& row: reader) {
 Although the CSV parser has a decent guessing mechanism, in some cases it is preferrable to specify the exact parameters of a file.
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv.hpp"
 # include ...
 
 using namespace csv;
@@ -269,7 +270,7 @@ format.column_names(col_names);
 ### Parsing an In-Memory String
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv.hpp"
 
 using namespace csv;
 
@@ -301,7 +302,7 @@ for (auto& r: rows) {
 ### Writing CSV Files
 
 ```cpp
-# include "csv-parser/include/csv.hpp"
+# include "csv.hpp"
 # include ...
 
 using namespace csv;
