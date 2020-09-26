@@ -202,10 +202,10 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             return "multiplication"
     #
     def CheckVariableType(self,name):
-
-        self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
-        if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
-            raise Exception("Variable type is incorrect. Must be a scalar or a component")
+        pass
+        # self.var = KratosMultiphysics.KratosGlobals.GetVariable(name)
+        # if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
+        #     raise Exception("Variable type is incorrect. Must be a scalar or a component")
 
     #
     def SetFixAndFreeProcesses(self,params):

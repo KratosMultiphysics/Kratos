@@ -11,9 +11,14 @@
 //
 //
 
+// System includes
 #include <cstring>
 #include <limits>
 #include <cmath> // std::abs for double
+
+// External includes
+
+// Project includes
 #include "includes/exception.h"
 
 #if !defined(KRATOS_CHECKS_H_INCLUDED )

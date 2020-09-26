@@ -36,22 +36,23 @@ namespace Kratos
 
 namespace TemporalMethods
 {
-template <typename TContainerType, typename TContainerItemType, template <typename T> typename TDataRetrievalFunctor, template <typename T> typename TDataStorageFunctor>
+template <class TContainerType, class TContainerItemType, template <class T> class TDataRetrievalFunctor, template <class T> class TDataStorageFunctor>
 class TemporalVarianceMethod
 {
 public:
-    template <typename TDataType>
+    template <class TDataType>
     class ValueMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(ValueMethod);
 
-        ValueMethod(ModelPart& rModelPart,
-                    const std::string& rNormType,
-                    const Variable<TDataType>& rInputVariable,
-                    const int EchoLevel,
-                    const Variable<TDataType>& rOutputMeanVariable,
-                    const Variable<TDataType>& rOutputVarianceVariable)
+        ValueMethod(
+            ModelPart& rModelPart,
+            const std::string& rNormType,
+            const Variable<TDataType>& rInputVariable,
+            const int EchoLevel,
+            const Variable<TDataType>& rOutputMeanVariable,
+            const Variable<TDataType>& rOutputVarianceVariable)
             : TemporalMethod(rModelPart, EchoLevel),
               mrInputVariable(rInputVariable),
               mrOutputMeanVariable(rOutputMeanVariable),
@@ -113,8 +114,7 @@ public:
                 MethodUtilities::GetDataContainer<TContainerType>(this->GetModelPart());
 
             auto& initializer_method =
-                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor,
-                                                             TDataStorageFunctor, TDataType>;
+                TemporalMethodUtilities::InitializeVariables<TContainerType, TContainerItemType, TDataRetrievalFunctor, TDataStorageFunctor, TDataType>;
             initializer_method(r_container, mrOutputMeanVariable, mrInputVariable);
             initializer_method(r_container, mrOutputVarianceVariable, mrInputVariable);
 
@@ -132,18 +132,19 @@ public:
         const Variable<TDataType>& mrOutputVarianceVariable;
     };
 
-    template <typename TDataType>
+    template <class TDataType>
     class NormMethod : public TemporalMethod
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(NormMethod);
 
-        NormMethod(ModelPart& rModelPart,
-                   const std::string& rNormType,
-                   const Variable<TDataType>& rInputVariable,
-                   const int EchoLevel,
-                   const Variable<double>& rOutputMeanVariable,
-                   const Variable<double>& rOutputVarianceVariable)
+        NormMethod(
+            ModelPart& rModelPart,
+            const std::string& rNormType,
+            const Variable<TDataType>& rInputVariable,
+            const int EchoLevel,
+            const Variable<double>& rOutputMeanVariable,
+            const Variable<double>& rOutputVarianceVariable)
             : TemporalMethod(rModelPart, EchoLevel),
               mNormType(rNormType),
               mrInputVariable(rInputVariable),
@@ -292,13 +293,14 @@ public:
     }
 
 private:
-    template <typename TDataType>
-    void static CalculateMeanAndVariance(TDataType& rMean,
-                                         TDataType& rVariance,
-                                         const TDataType& rNewDataPoint,
-                                         const double DeltaTime,
-                                         const double OldTotalTime,
-                                         const double CurrentTotalTime)
+    template <class TDataType>
+    void static CalculateMeanAndVariance(
+        TDataType& rMean,
+        TDataType& rVariance,
+        const TDataType& rNewDataPoint,
+        const double DeltaTime,
+        const double OldTotalTime,
+        const double CurrentTotalTime)
     {
         const TDataType new_mean =
             (rMean * OldTotalTime + rNewDataPoint * DeltaTime) * (1.0 / CurrentTotalTime);
