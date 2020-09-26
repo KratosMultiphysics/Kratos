@@ -328,7 +328,7 @@ public:
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
-            double determinant_jacobian = DeterminantOfJacobian(integration_points[i]);
+            double determinant_jacobian = this->DeterminantOfJacobian(integration_points[i]);
             length += integration_points[i].Weight() * determinant_jacobian;
         }
         return length;
