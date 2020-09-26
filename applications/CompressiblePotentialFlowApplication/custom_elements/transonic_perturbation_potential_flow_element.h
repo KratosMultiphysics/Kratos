@@ -155,35 +155,35 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
-                          ProcessInfo& CurrentProcessInfo) override;
+                          const ProcessInfo& CurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& rElementalDofList,
-                    ProcessInfo& rCurrentProcessInfo) override;
+                    const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                      std::vector<double>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                      std::vector<int>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                      std::vector<array_1d<double, 3>>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -208,11 +208,6 @@ public:
 
     ///@}
 protected:
-
-    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeDensityDerivative(const double density,
-                                    const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
     ///@}
@@ -244,11 +239,17 @@ private:
 
     void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
-    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
+    void CalculateLeftHandSideSubsonicElement(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateLeftHandSideNormalElement(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
+    // void CalculateRightHandSideSupersonicElement(VectorType& rRightHandSideVector,
+    //                                         const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                           const ProcessInfo& rCurrentProcessInfo);
@@ -288,6 +289,17 @@ private:
                                     const BoundedVector<double, TNumNodes>& rWake_rhs,
                                     const ElementalData<TNumNodes, TDim>& rData,
                                     unsigned int& rRow) const;
+
+    void AssembleSupersonicLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                        const double densityDerivativeWRTVelocity,
+                                        const double densityDerivativeWRTUpwindVelocity,
+                                        const array_1d<double, TDim> velocity,
+                                        const array_1d<double, TDim> upwindVelocity,
+                                        const ProcessInfo& rCurrentProcessInfo);
+
+    BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+
+    array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom, const ProcessInfo& rCurrentProcessInfo);
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 

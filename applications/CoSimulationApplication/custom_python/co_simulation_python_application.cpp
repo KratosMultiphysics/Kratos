@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "co_simulation_application_variables.h"
 #include "co_simulation_application.h"
+#include "custom_python/add_co_sim_io_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 
 namespace Kratos {
@@ -35,6 +36,7 @@ PYBIND11_MODULE(KratosCoSimulationApplication,m)
         .def(py::init<>())
         ;
 
+    AddCoSimIOToPython(m);
     AddCustomIOToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_DISPLACEMENT );

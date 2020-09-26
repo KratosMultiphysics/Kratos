@@ -37,6 +37,7 @@ public:
     ///@{
 
     typedef typename TSurfaceContainerPointType::value_type NodeType;
+    typedef typename TCurveContainerPointType::value_type CurveNodeType;
 
     typedef Geometry<NodeType> BaseType;
 
@@ -155,8 +156,24 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the curve
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
+    }
+
+    ///@}
     ///@name Curve Properties
     ///@{
+
+    /// Returns number of points of NurbsCurve.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsCurve->PointsNumberInDirection(LocalDirectionIndex);
+    }
 
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
@@ -180,9 +197,9 @@ public:
         mpNurbsSurface->Spans(surface_spans_u, 0);
         mpNurbsSurface->Spans(surface_spans_v, 1);
 
-        CurveAxisIntersection<2, NodeType>::ComputeAxisIntersection(
+        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
             rSpans,
-            *this, Start, End,
+            *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
             1e-6);
     }

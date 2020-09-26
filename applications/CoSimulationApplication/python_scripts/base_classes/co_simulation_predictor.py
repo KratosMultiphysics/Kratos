@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -13,7 +11,7 @@ class CoSimulationPredictor(object):
     """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
-        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
 
@@ -61,7 +59,7 @@ class CoSimulationPredictor(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",

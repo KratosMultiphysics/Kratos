@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -11,6 +9,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 
 # Other imports
 from KratosMultiphysics import auxiliary_solver_utilities
+from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
 def CreateSolver(model, custom_settings):
     return MPMSolver(model, custom_settings)
@@ -31,7 +30,7 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "MPM_Material",
@@ -90,7 +89,7 @@ class MPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
-        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultParameters())
         return this_defaults
 
     ### Solver public functions
@@ -335,10 +334,15 @@ class MPMSolver(PythonSolver):
             R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
+        elif (convergence_criterion_parameters["convergence_criterion"].GetString() == "displacement_criterion"):
+            D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
+            D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+            convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
         else:
             err_msg  = "The requested convergence criteria \"" + convergence_criterion_parameters["convergence_criterion"].GetString()
             err_msg += "\" is not supported for ParticleMechanicsApplication!\n"
-            err_msg += "Available options are: \"residual_criterion\""
+            err_msg += "Available options are: \"residual_criterion\" or \"displacement_criterion\""
             raise Exception(err_msg)
 
         return convergence_criterion
@@ -346,32 +350,10 @@ class MPMSolver(PythonSolver):
     def _CreateLinearSolver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            # using a default linear solver (selecting the fastest one available)
-            import KratosMultiphysics.kratos_utilities as kratos_utils
-            if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-                from KratosMultiphysics import EigenSolversApplication
-            elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-                from KratosMultiphysics import ExternalSolversApplication
-
-            linear_solvers_by_speed = [
-                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
-                "sparse_lu",  # EigenSolversApplication
-                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-                "super_lu",   # ExternalSolversApplication
-                "skyline_lu_factorization" # in Core, always available, but slow
-            ]
-
-            for solver_name in linear_solvers_by_speed:
-                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
-                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                    KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: ',\
-                        'Using "' + solver_name + '" as default linear solver')
-                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
-
-        raise Exception("Linear-Solver could not be constructed!")
+            KratosMultiphysics.Logger.PrintInfo('::[MPMSolver]:: No linear solver was specified, using fastest available solver')
+            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()

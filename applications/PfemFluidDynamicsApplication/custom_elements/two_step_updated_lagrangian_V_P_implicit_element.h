@@ -350,12 +350,6 @@ protected:
                                              VectorType &rRightHandSideVector,
                                              ProcessInfo &rCurrentProcessInfo) override{};
 
-  void ComputeMaterialParametersGranularGas(double &Density,
-                                            double &DeviatoricCoeff,
-                                            double &VolumetricCoeff,
-                                            ProcessInfo &rCurrentProcessInfo,
-                                            ElementalVariables &rElementalVariables) override{};
-
   double GetThetaMomentum() override
   {
     std::cout << "I SHOULD NOT ENTER HERE!" << std::endl;
