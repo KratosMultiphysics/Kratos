@@ -19,10 +19,9 @@
 // External includes
 
 // Project includes
+#include "containers/variable.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 
 namespace Kratos
 {
