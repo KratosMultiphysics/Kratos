@@ -64,11 +64,11 @@ namespace Kratos
                 for (IndexType i = 0; i < number_of_nodes; i++)
                 {
                     IndexType index = 3 * i;
-                    if (Is(IgaFlags::FIX_DISPLACEMENT_X))
+                    //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
                         H(0, index) = N(point_number, i);
-                    if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
+                    //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
                         H(1, index + 1) = N(point_number, i);
-                    if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
+                    //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
                         H(2, index + 2) = N(point_number, i);
                 }
 
@@ -87,8 +87,8 @@ namespace Kratos
                         const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
                         IndexType index = 3 * i;
                         u[index]     = (disp[0] - displacement[0]);
-                        u[index + 1] = (disp[0] - displacement[0]);
-                        u[index + 2] = (disp[0] - displacement[0]);
+                        u[index + 1] = (disp[1] - displacement[1]);
+                        u[index + 2] = (disp[2] - displacement[2]);
                     }
 
                     noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
@@ -103,7 +103,7 @@ namespace Kratos
     {
         KRATOS_TRY;
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR)) << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyPointDiscreteCondition" << std::endl;
-        KRATOS_WATCH(GetGeometry())
+        //KRATOS_WATCH(GetGeometry())
         return 0;
         KRATOS_CATCH("");
     }   
