@@ -1,3 +1,3 @@
 from KratosMultiphysics import *
 Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)
-Tester.RunTestCases("*ResidualBasedAdjointBossak_TwoMassSpringDamperSystem*")
+Tester.RunAllTestCases()
