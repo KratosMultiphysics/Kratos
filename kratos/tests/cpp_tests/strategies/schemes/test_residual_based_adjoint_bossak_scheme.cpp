@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <exception>
 #include <sstream>
-#include <iomanip>
 
 #include "testing/testing.h"
 #include "containers/model.h"
