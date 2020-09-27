@@ -130,15 +130,19 @@ namespace Kratos
         rKinematicVariables.a_ab_covariant[2] = rKinematicVariables.a1[0] * rKinematicVariables.a2[0] + rKinematicVariables.a1[1] * rKinematicVariables.a2[1] + rKinematicVariables.a1[2] * rKinematicVariables.a2[2];
 
         //Compute the tangent and  the normal to the boundary vector
-        const array_1d<double, 3 > local_tangent = GetProperties()[TANGENTS];
+        array_1d<double, 2> local_tangents;
+        if (rPatch==PatchType::Master)
+        {
+            local_tangents  = GetProperties()[LOCAL_TANGENTS_MASTER];
+        }
+        else if (rPatch==PatchType::Slave)
+        {
+            local_tangents = GetProperties()[LOCAL_TANGENTS_SLAVE];
+        }
 
-        rKinematicVariables.t = local_tangent[0]*g1+local_tangent[1]*g2;
+        rKinematicVariables.t = local_tangents[0]*g1 + local_tangents[1]*g2;
         rKinematicVariables.t = rKinematicVariables.t/norm_2(rKinematicVariables.t);
 
-        if (rPatch==PatchType::Slave)
-        {
-            rKinematicVariables.t = -rKinematicVariables.t;
-        }
 
         MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t, rKinematicVariables.a3);
 
@@ -625,28 +629,6 @@ namespace Kratos
                     H(2, index + 2) = -N_slave(point_number, i);
             }
 
-            //first variation part
-            Matrix HH = ZeroMatrix(3, mat_size);
-            for (IndexType i = 0; i < number_of_nodes_master; i++)
-            {
-                IndexType index = 3 * i;
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    HH(0, index) = N_master(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    HH(1, index + 1) = N_master(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    HH(2, index + 2) = N_master(point_number, i);
-            }
-            for (IndexType i = 0; i < number_of_nodes_slave; i++)
-            {
-                IndexType index = 3 * (i + number_of_nodes_master);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    HH(0, index) = N_slave(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    HH(1, index + 1) = N_slave(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    HH(2, index + 2) = N_slave(point_number, i);
-            }
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
@@ -960,51 +942,6 @@ namespace Kratos
                 CalculateDDTraction(point_number, dd_traction_slave, kinematic_variables_slave, N_curvilinear_slave, traction_vector_master, traction_vector_slave, dd_traction_product_vector_slave, dd_traction_product_vector_master_slave, PatchType::Slave);
             }
             
-            //Penalty part & RHS
-            Matrix H = ZeroMatrix(3, mat_size);
-            for (IndexType i = 0; i < number_of_nodes_master; i++)
-            {
-                IndexType index = 3 * i;
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = N_master(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = N_master(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = N_master(point_number, i);
-            }
-            for (IndexType i = 0; i < number_of_nodes_slave; i++)
-            {
-                IndexType index = 3 * (i + number_of_nodes_master);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = -N_slave(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = -N_slave(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = -N_slave(point_number, i);
-            }
-
-            //first variation part
-            Matrix HH = ZeroMatrix(3, mat_size);
-            for (IndexType i = 0; i < number_of_nodes_master; i++)
-            {
-                IndexType index = 3 * i;
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    HH(0, index) = N_master(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    HH(1, index + 1) = N_master(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    HH(2, index + 2) = N_master(point_number, i);
-            }
-            for (IndexType i = 0; i < number_of_nodes_slave; i++)
-            {
-                IndexType index = 3 * (i + number_of_nodes_master);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    HH(0, index) = N_slave(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    HH(1, index + 1) = N_slave(point_number, i);
-                //if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    HH(2, index + 2) = N_slave(point_number, i);
-            }
 
             // Differential area
             const double integration_weight = integration_points[point_number].Weight();
