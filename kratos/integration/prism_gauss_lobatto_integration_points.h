@@ -47,12 +47,12 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.0 , 0.0 , 0.5 , 1.00 / 6.00 ),
             IntegrationPointType( 1.0 , 0.0 , 0.5 , 1.00 / 6.00 ),
             IntegrationPointType( 0.0 , 1.0 , 0.5 , 1.00 / 6.00 )
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -95,7 +95,7 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
             IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
             IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 ),
@@ -103,7 +103,7 @@ public:
             IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
             IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 )
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()

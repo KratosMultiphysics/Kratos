@@ -45,10 +45,10 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 1.00 / 2.00 )
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -92,12 +92,12 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00 , 1.00 / 6.00 ),
             IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00 , 1.00 / 6.00 ),
             IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00 , 1.00 / 6.00 )
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -141,13 +141,13 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
             IntegrationPointType( 3.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
             IntegrationPointType( 1.00 / 5.00 , 3.00 / 5.00 , 25.00 / 96.00 ),
             IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , -27.00 / 96.00 )
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -198,7 +198,7 @@ public:
         const double Na2 = 0.091576213509771;
         const double Nb2 = 0.445948490915965;
 
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( Na2, Na2, wa ),
             IntegrationPointType( Na1, Na2, wa ),
             IntegrationPointType( Na2, Na1, wa ),
@@ -206,7 +206,7 @@ public:
             IntegrationPointType( Nb1, Nb2, wb ),
             IntegrationPointType( Nb2, Nb1, wb )
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -261,7 +261,7 @@ public:
         const double N6 = 0.31035245103378440542;
         const double N7 = 0.63650249912139864723;
 
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( N1, N2, wa ),
             IntegrationPointType( N2, N1, wa ),
             IntegrationPointType( N2, N2, wa ),
@@ -275,7 +275,7 @@ public:
             IntegrationPointType( N7, N5, wc ),
             IntegrationPointType( N7, N6, wc )
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()

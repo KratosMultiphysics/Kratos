@@ -44,12 +44,12 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType(0.166666666667,0.166666666667,0.166666666667),
             IntegrationPointType(0.166666666667,0.666666666667,0.166666666667),
             IntegrationPointType(0.666666666667,0.666666666667,0.166666666667)
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -93,7 +93,7 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType(0.111111111111,0.111111111111,0.0833333333333),
             IntegrationPointType(0.111111111111,0.444444444444,0.0833333333333),
             IntegrationPointType(0.111111111111,0.777777777778,0.0833333333333),
@@ -101,7 +101,7 @@ public:
             IntegrationPointType(0.444444444444,0.777777777778,0.0833333333333),
             IntegrationPointType(0.777777777778,0.777777777778,0.0833333333333)
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -145,7 +145,7 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType(0.0833333333333,0.0833333333333,0.0500000000000),
             IntegrationPointType(0.0833333333333,0.333333333333,0.0500000000000),
             IntegrationPointType(0.0833333333333,0.583333333333,0.0500000000000),
@@ -157,7 +157,7 @@ public:
             IntegrationPointType(0.583333333333,0.833333333333,0.0500000000000),
             IntegrationPointType(0.833333333333,0.833333333333,0.0500000000000)
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -201,7 +201,7 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType(0.0666666666667,0.0666666666667,0.0333333333333),
             IntegrationPointType(0.0666666666667,0.266666666667,0.0333333333333),
             IntegrationPointType(0.0666666666667,0.466666666667,0.0333333333333),
@@ -218,7 +218,7 @@ public:
             IntegrationPointType(0.666666666667,0.866666666667,0.0333333333333),
             IntegrationPointType(0.866666666667,0.866666666667,0.0333333333333)
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -261,7 +261,7 @@ public:
 
     static const IntegrationPointsArrayType GenerateIntegrationPoints()
     {
-        const IntegrationPointsArrayType integration_points{{
+        static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType(0.0555555555556,0.0555555555556,0.0238095238095),
             IntegrationPointType(0.0555555555556,0.222222222222,0.0238095238095),
             IntegrationPointType(0.0555555555556,0.388888888889,0.0238095238095),
@@ -284,7 +284,7 @@ public:
             IntegrationPointType(0.722222222222,0.888888888889,0.0238095238095),
             IntegrationPointType(0.888888888889,0.888888888889,0.0238095238095)
         }};
-        return integration_points;
+        return s_integration_points;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
