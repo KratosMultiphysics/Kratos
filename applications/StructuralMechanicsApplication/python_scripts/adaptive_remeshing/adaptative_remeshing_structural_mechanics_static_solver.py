@@ -17,7 +17,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(AdaptativeRemeshingStaticMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####

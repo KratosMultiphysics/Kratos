@@ -51,7 +51,7 @@ Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Clon
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -77,7 +77,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
         rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -115,7 +115,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::AddPotentialGradientStabilizationTerm(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     array_1d<double, NumNodes> potential;
     potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);

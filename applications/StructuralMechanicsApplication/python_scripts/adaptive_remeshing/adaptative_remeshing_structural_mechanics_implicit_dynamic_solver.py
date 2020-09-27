@@ -17,7 +17,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(AdaptativeRemeshingImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
@@ -33,7 +33,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
         return self._remeshing_process
 
     def _create_remeshing_process(self):
-        return auxiliar_methods_adaptative_solvers.CreateRemeshingProcess(self.main_model_part, self.adaptative_remesh_parameters)
+        return auxiliar_methods_adaptative_solvers.CreateRemeshingProcess(self.main_model_part, self.settings)
 
     def get_metric_process(self):
         if not hasattr(self, '_metric_process'):
@@ -41,7 +41,7 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
         return self._metric_process
 
     def _create_metric_process(self):
-        return auxiliar_methods_adaptative_solvers.CreateMetricProcess(self.main_model_part, self.adaptative_remesh_parameters)
+        return auxiliar_methods_adaptative_solvers.CreateMetricProcess(self.main_model_part, self.settings)
 
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()

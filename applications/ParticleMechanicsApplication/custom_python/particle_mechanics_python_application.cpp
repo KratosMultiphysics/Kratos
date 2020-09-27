@@ -24,7 +24,9 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
-
+#ifdef KRATOS_USING_MPI // MPI-parallel compilation
+#include "custom_python/mpi/add_custom_mpi_utilities_to_python.h"
+#endif
 #include "particle_mechanics_application.h"
 
 namespace Kratos{
@@ -44,6 +46,9 @@ namespace Python{
         AddCustomUtilitiesToPython(m);
         AddCustomConstitutiveLawsToPython(m);
         AddCustomProcessesToPython(m);
+#ifdef KRATOS_USING_MPI // MPI-parallel compilation
+        AddCustomMPIUtilitiesToPython(m);
+#endif
 
         // Registering variables in python
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_COORD);
@@ -67,9 +72,13 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_HARDENING_RATIO);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_MATERIAL_ID);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_ELEMENT);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_SUB_POINTS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IGNORE_GEOMETRIC_STIFFNESS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_AXISYMMETRIC);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_COMPRESSIBLE);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_PQMPM);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PQMPM_SUBPOINT_MIN_VOLUME_FRACTION);
 
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_COORD);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_CONDITION_ID);
@@ -99,6 +108,7 @@ namespace Python{
 
         // Essential Boundary variables
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_FACTOR);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_BOUNDARY_CONDITION_TYPE);
 
         // Nodal load variables
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, POINT_LOAD )

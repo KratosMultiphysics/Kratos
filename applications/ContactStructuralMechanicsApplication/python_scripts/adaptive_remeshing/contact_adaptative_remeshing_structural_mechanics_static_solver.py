@@ -8,6 +8,9 @@ if kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication"):
 else:
     has_meshing_application = False
 
+# Import adaptive remeshing utilities
+import KratosMultiphysics.ContactStructuralMechanicsApplication.adaptative_remeshing_contact_structural_mechanics_utilities as adaptative_remeshing_contact_structural_mechanics_utilities
+
 # Import base class file
 import KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_static_solver as contact_structural_mechanics_static_solver
 

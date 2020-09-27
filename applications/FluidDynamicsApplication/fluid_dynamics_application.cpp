@@ -21,6 +21,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "geometries/prism_3d_6.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "fluid_dynamics_application.h"
@@ -47,6 +48,11 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mFIC3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mTimeIntegratedFIC2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTimeIntegratedFIC3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mSymbolicStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mSymbolicStokes2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mSymbolicStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mSymbolicStokes3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mSymbolicStokes3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
     mSymbolicNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSymbolicNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedSymbolicNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -78,6 +84,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mMonolithicWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mMonolithicWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mStokesWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mStokesWallCondition3D4N(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mFSPeriodicCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mFSPeriodicCondition3D(0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mFSPeriodicConditionEdge2D(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
@@ -134,6 +141,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(GAPS);
     KRATOS_REGISTER_VARIABLE(DIVERGENCE);
     KRATOS_REGISTER_VARIABLE(AUX_DISTANCE);
+    KRATOS_REGISTER_VARIABLE(FS_PRESSURE_GRADIENT_RELAXATION_FACTOR)
 
     // KRATOS_REGISTER_VARIABLE(Y_WALL);
     KRATOS_REGISTER_VARIABLE(SUBSCALE_PRESSURE);
@@ -212,6 +220,11 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("FIC3D8N",mFIC3D8N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC2D3N",mTimeIntegratedFIC2D3N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC3D4N",mTimeIntegratedFIC3D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes2D3N",mSymbolicStokes2D3N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes2D4N",mSymbolicStokes2D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D4N",mSymbolicStokes3D4N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D6N",mSymbolicStokes3D6N);
+    KRATOS_REGISTER_ELEMENT("SymbolicStokes3D8N",mSymbolicStokes3D8N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes2D3N",mSymbolicNavierStokes2D3N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes3D4N",mSymbolicNavierStokes3D4N);
     KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokes2D3N",mEmbeddedSymbolicNavierStokes2D3N);
@@ -299,6 +312,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition2D2N", mEmbeddedAusasNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition3D3N", mEmbeddedAusasNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D", mStokesWallCondition3D);
+    KRATOS_REGISTER_CONDITION("StokesWallCondition3D4N", mStokesWallCondition3D4N);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D", mFSPeriodicCondition2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D", mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D", mFSPeriodicConditionEdge2D);

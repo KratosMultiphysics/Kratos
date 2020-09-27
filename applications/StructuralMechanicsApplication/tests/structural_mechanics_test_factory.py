@@ -187,6 +187,9 @@ class MembranePreStressHorizontalTests(StructuralMechanicsTestFactory):
 class MembranePreStressDiagonalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_prestress_diagonal_test"
 
+class MembraneMultiLinearIsotropicPlaneStressTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/multi_linear_plane_stress_isotropic_membrane_test"
+
 class Simple3D2NTrussTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_test"
 

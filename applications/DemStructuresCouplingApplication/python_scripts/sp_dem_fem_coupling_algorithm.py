@@ -39,7 +39,7 @@ class SPAlgorithm(Algorithm):
         self.post_process_write_count = self.post_process_frequency
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         """This function returns the default-settings used by this class
         """
         return Kratos.Parameters("""{
@@ -85,7 +85,7 @@ class SPAlgorithm(Algorithm):
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
-        default_settings = self.GetDefaultSettings()
+        default_settings = self.GetDefaultParameters()
         self.TranslateLegacyVariablesAccordingToCurrentStandard(self.sp_parameters)
         self.sp_parameters.ValidateAndAssignDefaults(default_settings)
 

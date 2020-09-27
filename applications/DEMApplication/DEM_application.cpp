@@ -450,33 +450,32 @@ KRATOS_CREATE_LOCAL_FLAG(DEMFlags, POLYHEDRON_SKIN, 18);
 //ELEMENTS
 
 KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication"),
-      mCylinderParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mCylinderContinuumParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mAnalyticSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mPolyhedronSkinSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mIceContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mSinteringSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mBondingSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-      mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-      mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mRigidEdge2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mContactInfoSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
+    mCylinderParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mCylinderContinuumParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mAnalyticSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mPolyhedronSkinSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mIceContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSinteringSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mBondingSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mRigidEdge2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mContactInfoSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
 
 // Explicit instantiation of composed constitutive laws
 template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
@@ -490,7 +489,7 @@ void KratosDEMApplication::Register() {
                     << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      \n"
                     << "            | |_| | |___| |  | |  __/ (_| | (__|   <       \n"
                     << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      \n"
-                    << "Importing DEMApplication... ";                    
+                    << "Importing DEMApplication... ";
 
     KRATOS_REGISTER_VARIABLE(CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_VARIABLE(NODE_TO_NEIGH_ELEMENT_POINTER)
@@ -890,8 +889,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
-    KRATOS_REGISTER_CONDITION("RigidEdge3D", mRigidEdge3D2N)
-    KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge2D2N", mRigidEdge2D2N)
 
     // SERIALIZER
