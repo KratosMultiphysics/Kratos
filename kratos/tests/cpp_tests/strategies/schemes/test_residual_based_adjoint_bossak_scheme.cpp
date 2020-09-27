@@ -702,7 +702,6 @@ public:
         if (rDesignVariable == SCALAR_SENSITIVITY)
         {
             rOutput.resize(1, 1, false);
-            const double& x1 = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
             rOutput(0, 0) = 0.0;
         }
         else
