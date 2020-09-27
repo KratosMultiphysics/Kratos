@@ -115,6 +115,11 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     ## Imposed water flux
     set Groups [GiD_Info conditions Imposed_flow_rate groups]
     WriteConstantVectorConditionProcess FileVar iGroup $Groups lines $NumGroups
+    puts $FileVar "        \}\],"
+
+    # auxiliary processes
+    puts $FileVar "        \"auxiliary_process_list\"  : \[\{"
+    WriteVisualizationMeshProcess FileVar "model_part" "topographic_model_part"
     puts $FileVar "        \}\]"
 
     # end of processes
