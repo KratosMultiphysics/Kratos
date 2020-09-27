@@ -54,6 +54,3 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         this_defaults = AdaptativeRemeshingMechanicalUtilities().GetDefaultParameters()
         this_defaults.RecursivelyAddMissingParameters(super(AdaptativeRemeshingStaticMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
-
-
-
