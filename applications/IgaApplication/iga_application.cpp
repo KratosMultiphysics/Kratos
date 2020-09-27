@@ -30,6 +30,12 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mNitscheCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportNitscheCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -54,6 +60,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LagrangeCouplingCondition", mLagrangeCouplingCondition)
     KRATOS_REGISTER_CONDITION("NitscheCouplingCondition", mNitscheCouplingCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
+    KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
+    KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
 
@@ -86,6 +94,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(NITSCHE_STABILIZATION_PARAMETER)
 
     KRATOS_REGISTER_VARIABLE(CHARACTERISTIC_LENGTH)
+    KRATOS_REGISTER_VARIABLE(LOCAL_TANGENTS_MASTER)
+    KRATOS_REGISTER_VARIABLE(LOCAL_TANGENTS_SLAVE)
 
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
