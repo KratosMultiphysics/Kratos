@@ -47,6 +47,9 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
+# Setting the libs folder for the shared objects built in kratos
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
 message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
@@ -281,25 +284,40 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
 
-##*****************************
-#find and include OpenMP if possible
+# Select shared memory parallelization
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message("**********************************************************")
-	message("OpenMP calculation was excluced artificially. Remove the var")
-	message("KRATOS_EXCLUDE_OPENMP from the configuration script or set it to off to include it")
-    message("**********************************************************")
-    if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
-    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message(STATUS "OpenMP included")
+	message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
+endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+
+# default to OpenMP
+if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
+  message("\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
+  SET(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP")
+endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
+
+if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
+  message("Using OpenMP for shared memory parallelization")
+  add_definitions( -DKRATOS_SMP_OPENMP )
+
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 	endif (OPENMP_FOUND)
-endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
+  message("Using C++11 for shared memory parallelization")
+  add_definitions( -DKRATOS_SMP_CXX11 )
+  message("WARNING: Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
+  add_definitions( -DKRATOS_SMP_NONE )
+  message("Shared memory parallelization is disabled!")
+
+else()
+  message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
+endif ()
 
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
@@ -459,6 +477,8 @@ message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kra
 message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
 message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
 message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
+message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
+message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)

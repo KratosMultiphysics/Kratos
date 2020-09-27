@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -13,10 +11,9 @@ class CoSimulationConvergenceCriteria(object):
     """
     def __init__(self, settings):
         self.settings = settings
-        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.echo_level = self.settings["echo_level"].GetInt()
-
 
     def Initialize(self):
         pass
@@ -50,7 +47,7 @@ class CoSimulationConvergenceCriteria(object):
         return cls.__name__
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",
