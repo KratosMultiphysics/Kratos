@@ -1,8 +1,5 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
-
 import KratosMultiphysics.IgaApplication
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 def run_modelers(current_model, modelers_list):
