@@ -62,22 +62,22 @@ namespace Kratos
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
             Matrix N_slave = r_geometry_slave.ShapeFunctionsValues();
 
-            Vector N;
-            N.resize(number_of_nodes_master + number_of_nodes_slave);
+            Vector H;
+            H.resize(number_of_nodes_master + number_of_nodes_slave);
 
-            Vector NLambda;
-            NLambda.resize(number_of_nodes_master + number_of_nodes_slave);
-            NLambda = ZeroVector(number_of_nodes_master + number_of_nodes_slave);
+            Vector HLambda;
+            HLambda.resize(number_of_nodes_master + number_of_nodes_slave);
+            HLambda = ZeroVector(number_of_nodes_master + number_of_nodes_slave);
 
             for (IndexType i = 0; i < number_of_nodes_master; i++)
             {
-                N[i] = N_master(point_number, i);
-                NLambda[i] = N_master(point_number, i);
+                H[i] = N_master(point_number, i);
+                HLambda[i] = N_master(point_number, i);
             }
 
             for (IndexType i = 0; i < number_of_nodes_slave; i++)
             {
-                N[i + number_of_nodes_master] = -N_slave(point_number, i);
+                H[i + number_of_nodes_master] = -N_slave(point_number, i);
             }
 
             // Differential area
@@ -90,7 +90,7 @@ namespace Kratos
 	        {
 		        for (IndexType j = 0; j < number_of_nodes_master + number_of_nodes_slave; j++) // lopp over shape functions of displacements
 		        {
-                    double NN = N[j] * NLambda[i];
+                    double HH = H[j] * HLambda[i];
                         
                     const unsigned int ibase = i * 3 + 3 * (number_of_nodes_master + number_of_nodes_slave);
                     const unsigned int jbase = j * 3;
@@ -100,17 +100,17 @@ namespace Kratos
 			        // |H 0  |
 
 		            //lambda in X
-		            LHS(ibase,     jbase)     = NN;
+		            LHS(ibase,     jbase)     = HH;
 		            //lambda in Y
-			        LHS(ibase + 1, jbase + 1) = NN;
+			        LHS(ibase + 1, jbase + 1) = HH;
 			        //lambda in Z;
-			        LHS(ibase + 2, jbase + 2) = NN;
+			        LHS(ibase + 2, jbase + 2) = HH;
 		            //lambda in X
-		            LHS(jbase,     ibase)     = NN;
+		            LHS(jbase,     ibase)     = HH;
 		            //lambda in Y
-			        LHS(jbase + 1, ibase + 1) = NN;
+			        LHS(jbase + 1, ibase + 1) = HH;
 			        //lambda in Z;
-		            LHS(jbase + 2, ibase + 2) = NN;
+		            LHS(jbase + 2, ibase + 2) = HH;
 
                     // // Depending on the solver if needed. 
 		            // if (rLeftHandSideMatrix(3 * j, ibase) <= 0.000001)
