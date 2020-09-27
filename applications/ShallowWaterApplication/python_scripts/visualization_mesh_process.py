@@ -94,8 +94,10 @@ class VisualizationMeshProcess(KM.Process):
                 SW.ShallowWaterUtilities().SetMeshZCoordinate(self.topographic_model_part, self.topography_variable)
         else:
             SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.computing_model_part)
+            KM.VariableUtils().SetNonHistoricalVariableToZero(KM.DISPLACEMENT, self.computing_model_part.Nodes)
             if self.use_topographic_model_part:
                 SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.topographic_model_part)
+                KM.VariableUtils().SetNonHistoricalVariableToZero(KM.DISPLACEMENT, self.topographic_model_part.Nodes)
 
     def ExecuteBeforeOutputStep(self):
         # Transferring the nodal variables
