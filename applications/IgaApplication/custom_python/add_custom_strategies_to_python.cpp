@@ -21,6 +21,7 @@
 
 // Strategies
 #include "custom_strategies/custom_strategies/eigensolver_nitsche_strategy.hpp"
+#include "custom_strategies/custom_strategies/eigensolver_support_nitsche_strategy.hpp"
 
 // Schemes
 #include "custom_strategies/custom_schemes/eigensolver_nitsche_dynamic_scheme.hpp"
@@ -48,6 +49,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     
     // Custom strategy types
     typedef EigensolverNitscheStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverNitscheStrategyType;
+    typedef EigensolverSupportNitscheStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverSupportNitscheStrategyType;
 
     // Custom scheme types
     typedef EigensolverNitscheDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverNitscheDynamicSchemeType;
@@ -59,6 +61,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Eigensolver Strategy
     py::class_< EigensolverNitscheStrategyType, typename EigensolverNitscheStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverNitscheStrategy")
+        .def(py::init<ModelPart&,
+             BaseSchemeType::Pointer,
+             BuilderAndSolverPointer>(),
+                py::arg("model_part"),
+                py::arg("scheme"),
+                py::arg("builder_and_solver"))
+            ;
+
+    py::class_< EigensolverSupportNitscheStrategyType, typename EigensolverSupportNitscheStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverSupportNitscheStrategy")
         .def(py::init<ModelPart&,
              BaseSchemeType::Pointer,
              BuilderAndSolverPointer>(),
