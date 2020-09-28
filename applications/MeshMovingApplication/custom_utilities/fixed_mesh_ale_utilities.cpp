@@ -136,8 +136,8 @@ namespace Kratos
         auto orig_nodes_begin = mpOriginModelPart->NodesBegin();
         const unsigned int buffer_size = mpOriginModelPart->GetBufferSize();
 
-        IndexPartition<size_t>( static_cast<int>(mpOriginModelPart->NumberOfNodes()) ).for_each(
-            [&]( size_t index )
+        IndexPartition<std::size_t>( static_cast<int>(mpOriginModelPart->NumberOfNodes()) ).for_each(
+            [&]( std::size_t index )
             {
                 auto it_virt_node       = virt_nodes_begin + index;
                 const auto it_orig_node = orig_nodes_begin + index;
@@ -192,10 +192,8 @@ namespace Kratos
 
         // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
-        using Node = typename ModelPart::NodeType;
-
         block_for_each( rOriginModelPart.Nodes(),
-            [&]( Node& node )
+            [&]( Node<3>& node )
             {
                 // Find the origin model part node in the virtual mesh
                 Vector aux_N;
@@ -326,10 +324,8 @@ namespace Kratos
         // Note that both positions of the buffer are initialized to zero. This is important
         // in case the CloneTimeStep() is done in the virtual model part, since the method
         // assumes that the mesh is in the origin position when computing the MESH_VELOCITY.
-        using Node = typename ModelPart::NodeType;
-
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node& node )
+            []( Node<3>& node )
             {
                 node.FastGetSolutionStepValue(MESH_VELOCITY, 0) = ZeroVector(3);
                 node.FastGetSolutionStepValue(MESH_VELOCITY, 1) = ZeroVector(3);
@@ -340,10 +336,8 @@ namespace Kratos
 
     void FixedMeshALEUtilities::InitializeMeshDisplacementFixity()
     {
-        using Node = typename ModelPart::NodeType;
-
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node& node )
+            []( Node<3>& node )
             {
                 node.Free(MESH_DISPLACEMENT_X);
                 node.Free(MESH_DISPLACEMENT_Y);
@@ -353,8 +347,8 @@ namespace Kratos
 
     void FixedMeshALEUtilities::SetMeshDisplacementFixityFromOriginModelPart()
     {
-        IndexPartition<size_t>( static_cast<size_t>(mrVirtualModelPart.NumberOfNodes()) ).for_each(
-            [this]( size_t index )
+        IndexPartition<std::size_t>( static_cast<size_t>(mrVirtualModelPart.NumberOfNodes()) ).for_each(
+            []( std::size_t index )
             {
                 auto it_node = mrVirtualModelPart.NodesBegin() + index;
                 const auto it_orig_node = mpOriginModelPart->NodesBegin() + index;
@@ -373,11 +367,9 @@ namespace Kratos
 
     void FixedMeshALEUtilities::SetEmbeddedNodalMeshDisplacement()
     {
-        using Node = typename ModelPart::NodeType;
-
         // Initialize the DISPLACEMENT variable values
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node& node )
+        []( Node<3>& node )
         {
             node.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
             node.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
@@ -385,7 +377,7 @@ namespace Kratos
 
         // Place the structure in its previous position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node& node )
+        []( Node<3>& node )
         {
             const auto d_1 = node.FastGetSolutionStepValue(DISPLACEMENT, 1);
             node.X() = node.X0() + d_1[0];
@@ -449,7 +441,7 @@ namespace Kratos
 
         // Revert the structure movement to its current position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node& node )
+        []( Node<3>& node )
         {
             const auto d_0 = node.FastGetSolutionStepValue(DISPLACEMENT, 0);
             node.X() = node.X0() + d_0[0];
@@ -479,10 +471,8 @@ namespace Kratos
 
     void FixedMeshALEUtilities::RevertMeshDisplacementFixity()
     {
-        using Node = typename ModelPart::NodeType;
-
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node& node )
+        []( Node<3>& node )
         {
             if (node.IsFixed(MESH_DISPLACEMENT_X)) {
                 node.Free(MESH_DISPLACEMENT_X);
