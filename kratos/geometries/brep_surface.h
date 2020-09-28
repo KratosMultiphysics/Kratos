@@ -209,17 +209,17 @@ public:
         return (*mpNurbsSurface)[i];
     }
 
-    virtual PointType const& operator[](const SizeType& i) const override
+    PointType const& operator[](const SizeType& i) const override
     {
         return (*mpNurbsSurface)[i];
     }
 
-    virtual typename PointType::Pointer& operator()(const SizeType& i) override
+    typename PointType::Pointer& operator()(const SizeType& i) override
     {
         return (*mpNurbsSurface)(i);
     }
 
-    virtual const typename PointType::Pointer& operator()(const SizeType& i) const override
+    const typename PointType::Pointer& operator()(const SizeType& i) const override
     {
         return (*mpNurbsSurface)(i);
     }
@@ -314,6 +314,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the nurbs surface
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Information
     ///@{
 
@@ -388,6 +398,10 @@ public:
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
     }
 
     ///@}

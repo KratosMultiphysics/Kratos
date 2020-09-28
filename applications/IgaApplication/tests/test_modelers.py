@@ -1,7 +1,5 @@
 import KratosMultiphysics
-
 import KratosMultiphysics.IgaApplication
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 def run_modelers(current_model, modelers_list):

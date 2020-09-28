@@ -27,6 +27,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_utilities/fluid_post_process_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
@@ -85,17 +86,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Periodic boundary conditions utilities
     typedef void (PeriodicConditionUtilities::*AddDoubleVariableType)(Properties&,Variable<double>&);
-    typedef void (PeriodicConditionUtilities::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
 
     AddDoubleVariableType AddDoubleVariable = &PeriodicConditionUtilities::AddPeriodicVariable;
-    AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilities::AddPeriodicVariable;
 
     py::class_<PeriodicConditionUtilities>(m,"PeriodicConditionUtilities")
         .def(py::init<ModelPart&,unsigned int>())
         .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
         .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
         .def("AddPeriodicVariable",AddDoubleVariable)
-        .def("AddPeriodicVariable",AddVariableComponent)
     ;
 
     // Base settings
@@ -159,11 +157,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<
-        CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>,
-        CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>::Pointer>
-        (m,"CoordinateTransformationUtils");
-
-    py::class_<
         CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>,
         CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>::Pointer,
         CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double> >
@@ -178,6 +171,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, const double >())
         .def("SetLimitAsMultipleOfGravitionalAcceleration", &AccelerationLimitationUtilities::SetLimitAsMultipleOfGravitionalAcceleration)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
+        ;
+
+    // Post process utilities
+    py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
+        .def(py::init<>())
+        .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
         ;
 
 }
