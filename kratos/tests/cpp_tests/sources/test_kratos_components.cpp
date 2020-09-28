@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_components.h"
 #include "includes/condition.h"
+#include "processes/apply_ray_casting_process.h"
 
 
 namespace Kratos {
@@ -98,6 +99,12 @@ KRATOS_TEST_CASE_IN_SUITE(KratosComponentsRemove, KratosCoreFastSuite)
 
     // Clean up after ourselves
     KratosComponents<Condition>::Remove(registered_name);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosComponentsProcessRegistry, KratosCoreFastSuite)
+{
+    KRATOS_CHECK(KratosComponents<Process>::Has("ApplyRayCasting2DProcess"));
+    KRATOS_CHECK(KratosComponents<Process>::Has("ApplyRayCasting3DProcess"));
 }
 
 }
