@@ -17,7 +17,9 @@
 
 #include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
 #include "../FluidDynamicsApplication/custom_elements/fluid_element.cpp"
+#include "../FluidDynamicsApplication/custom_elements/fluid_element.h"
 #include "../FluidDynamicsApplication/custom_elements/qs_vms.cpp"
+#include "../FluidDynamicsApplication/custom_elements/qs_vms.h"
 #include "../FluidDynamicsApplication/fluid_dynamics_application.h"
 #include "../FluidDynamicsApplication/custom_utilities/fluid_element_utilities.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
