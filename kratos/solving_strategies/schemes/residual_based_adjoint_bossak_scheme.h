@@ -387,6 +387,36 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    struct BossakConstants
+    {
+        double Alpha;
+        double Beta;
+        double Gamma;
+        double C0;
+        double C1;
+        double C2;
+        double C3;
+        double C4;
+        double C5;
+        double C6;
+        double C7;
+    };
+
+    BossakConstants mBossak;
+
+    AdjointResponseFunction::Pointer mpResponseFunction;
+
+    std::vector<LocalSystemMatrixType> mLeftHandSide;
+    std::vector<LocalSystemVectorType> mResponseGradient;
+    std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
+    std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
+    std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
+    std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
+    std::vector<LocalSystemVectorType> mAdjointValuesVector;
+    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
+    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
+    std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -394,6 +424,41 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void CheckAndResizeThreadStorage(unsigned SystemSize)
+    {
+        const int k = OpenMPUtils::ThisThread();
+
+        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
+        {
+            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
+        {
+            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
+        {
+            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mResponseGradient[k].size() != SystemSize)
+        {
+            mResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
+        }
+    }
 
     /**
      * @brief Calculates entity first derivative contributions for adjoint system
@@ -648,21 +713,6 @@ protected:
     ///@}
 
 private:
-    struct BossakConstants
-    {
-        double Alpha;
-        double Beta;
-        double Gamma;
-        double C0;
-        double C1;
-        double C2;
-        double C3;
-        double C4;
-        double C5;
-        double C6;
-        double C7;
-    };
-
     ///@name Static Member Variables
     ///@{
 
@@ -670,21 +720,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    BossakConstants mBossak;
     typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
         TSparseSpace::CreateDofUpdater();
-    AdjointResponseFunction::Pointer mpResponseFunction;
-
-    std::vector<LocalSystemMatrixType> mLeftHandSide;
-    std::vector<LocalSystemVectorType> mResponseGradient;
-    std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
-    std::vector<LocalSystemVectorType> mFirstDerivsResponseGradient;
-    std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
-    std::vector<LocalSystemVectorType> mSecondDerivsResponseGradient;
-    std::vector<LocalSystemVectorType> mAdjointValuesVector;
-    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
-    std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
-    std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
 
     ///@}
     ///@name Private Operators
@@ -1071,41 +1108,6 @@ private:
             << rModelPart.Name() << ".\n";
 
         KRATOS_CATCH("");
-    }
-
-    void CheckAndResizeThreadStorage(unsigned SystemSize)
-    {
-        const int k = OpenMPUtils::ThisThread();
-
-        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
-        {
-            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
-        {
-            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
-        {
-            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mResponseGradient[k].size() != SystemSize)
-        {
-            mResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
-        }
     }
 
     static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
