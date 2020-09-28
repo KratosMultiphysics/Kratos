@@ -534,12 +534,12 @@ protected:
                     const auto remote_local_I = row_it.GetRowIndex();
                     const auto remote_global_I = RemoteGlobalId(remote_local_I, color);
 
-                    for(auto J : row_indices){
+                    for(auto J : *row_it){
                         TDataType& value = mNonLocalData[std::make_pair(remote_global_I,J)]; //here we create the I,J entry in the nonlocal data (entry was there in the graph!)
                         direct_senddata_access.push_back(&value); //storing a direct pointer to the value contained in the data structure
-z                    //    indices_senddata_access.push_back(std::make_pair(remote_global_I,J)); //TODO: remove, for debug
+                    //    indices_senddata_access.push_back(std::make_pair(remote_global_I,J)); //TODO: remove, for debug
 
-                        send_ij.push_back(remote_local_I);
+                        send_ij.push_back(remote_global_I);
                         send_ij.push_back(J);
                     }
                 }
@@ -549,33 +549,13 @@ z                    //    indices_senddata_access.push_back(std::make_pair(remo
 
                 auto& direct_recvdata_access = mPointersToRecvValues[color];
 
-                for(IndexType k=0; k<recv_ij.size(); ++=2)
+                for(IndexType k=0; k<recv_ij.size(); k+=2)
                 {
                     IndexType I = recv_ij[k];
                     IndexType J = recv_ij[k+1];
-                    auto& value = GetLocalDataByGlobalId(I,J)
+                    auto& value = GetLocalDataByGlobalId(I,J);
                     //      indices_recvdata_access.push_back(std::make_pair(I,J)); //TODO: remove, for debug
                     direct_recvdata_access.push_back(&value);
-                }
-
-                for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
-                {
-                    const auto local_I = row_it.GetRowIndex(); //note that the graph stores already the local_id in the row for non local data
-                    auto I = GlobalId(local_I);
-
-                    //must ensure iteration is done in the same order, so sort the entries
-                    std::vector<IndexType> row_indices((*row_it).size());
-                    unsigned int counter=0;
-                    for(auto J : *row_it){
-                        row_indices[counter++] = J;
-                    }
-                    std::sort(row_indices.begin(), row_indices.end());
-
-                    for(auto J : row_indices){
-                        auto& value = GetLocalDataByGlobalId(I,J);
-                        direct_recvdata_access.push_back(&value);
-                  
-                    }
                 }
             }
         }
