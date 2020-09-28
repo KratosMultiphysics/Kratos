@@ -246,11 +246,11 @@ public:
      */
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        KRATOS_ERROR << "QuadraturePointGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
+        KRATOS_ERROR << "QuadraturePointGeometry cannot be created with 'PointsArrayType const& PointsArrayType'. "
             << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
             << std::endl;
     }
-    
+
     /**
      * @brief Creates a new geometry pointer
      * @param NewGeometryId the ID of the new geometry
