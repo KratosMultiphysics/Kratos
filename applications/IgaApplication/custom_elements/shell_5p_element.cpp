@@ -561,8 +561,8 @@ namespace Kratos
 			rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos    ).EquationId();
 			rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
 			rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
-			rResult[index + 3] = GetGeometry()[i].GetDof(DIRECTORINC_1, pos + 3).EquationId();
-			rResult[index + 4] = GetGeometry()[i].GetDof(DIRECTORINC_2, pos + 4).EquationId();
+			rResult[index + 3] = GetGeometry()[i].GetDof(DIRECTORINC_X, pos + 3).EquationId();
+			rResult[index + 4] = GetGeometry()[i].GetDof(DIRECTORINC_Y, pos + 4).EquationId();
 		}
 
 		KRATOS_CATCH("")
@@ -584,8 +584,8 @@ namespace Kratos
 			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
 			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DIRECTORINC_1));
-			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DIRECTORINC_2));
+			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DIRECTORINC_X));
+			rElementalDofList.push_back(GetGeometry()[i].pGetDof(DIRECTORINC_Y));
 		}
 
 		KRATOS_CATCH("")
