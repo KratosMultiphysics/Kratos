@@ -446,12 +446,18 @@ void NormalCalculationUtils::CalculateNormalShapeDerivative3D(
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <>
 KRATOS_API(KRATOS_CORE) ModelPart::ConditionsContainerType& NormalCalculationUtils::GetContainer(
     ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <>
 KRATOS_API(KRATOS_CORE) ModelPart::ElementsContainerType& NormalCalculationUtils::GetContainer(
@@ -460,6 +466,8 @@ KRATOS_API(KRATOS_CORE) ModelPart::ElementsContainerType& NormalCalculationUtils
     return rModelPart.Elements();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<class TContainerType>
 void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
@@ -481,10 +489,10 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     auto& r_entities_array = GetContainer<TContainerType>(rModelPart);
     const auto it_entity_begin = r_entities_array.begin();
 
-    auto retrieve_normal = ConsiderUnitNormal 
-        ? [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) 
-            {return rGeometry.UnitNormal(rLocalCoordinates);} 
-        : [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) 
+    auto retrieve_normal = ConsiderUnitNormal
+        ? [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient)
+            {return rGeometry.UnitNormal(rLocalCoordinates);}
+        : [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient)
             {return Coefficient * rGeometry.Normal(rLocalCoordinates);};
 
     // TODO: Use TLS in ParallelUtilities
