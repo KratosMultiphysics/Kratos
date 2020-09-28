@@ -44,7 +44,7 @@ public:
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
-    KRATOS_REGISTER_PROCESS("ApplyRayCastingProcess", RegisterThisPrototype<ApplyRayCastingProcess<TDim>>("ApplyRayCastingProcess"))
+    // KRATOS_REGISTER_PROCESS("ApplyRayCastingProcess", RegisterThisPrototype<ApplyRayCastingProcess<TDim>>("ApplyRayCastingProcess"))
 
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
@@ -54,9 +54,6 @@ public:
 
     typedef Element::GeometryType IntersectionGeometryType;
     typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
-
-private:
-    static RegisterThisPrototype<ApplyRayCastingProcess<TDim>> s_dummy("ApplyRayCastingProcess");
 
 public:
     ///@}
@@ -104,9 +101,6 @@ public:
     ///@}
     ///@name Deleted
     ///@{
-
-    /// Default constructor.
-    ApplyRayCastingProcess() = delete;;
 
     /// Copy constructor.
     ApplyRayCastingProcess(ApplyRayCastingProcess const& rOther) = delete;
@@ -188,6 +182,8 @@ private:
     ///@{
 
 
+    static std::vector<Internals::RegisteredPrototypeBase<Process>> msPrototypes;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -196,7 +192,7 @@ private:
     double mExtraRayOffset = 1.0e-8;
     double mRelativeTolerance = 1.0e-12;
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
-    bool mIsSearchStructureAllocated;
+    bool mIsSearchStructureAllocated = false;
     double mCharacteristicLength = 1.0;
 
     ///@}
@@ -281,9 +277,18 @@ private:
     ///@name Un accessible methods
     ///@{
 
+    template <typename TClassType, typename TBaseCategoryType>
+    friend class Internals::RegisteredPrototype;
 
+    /// Default constructor for registering
+    ApplyRayCastingProcess() = default;
     ///@}
 }; // Class ApplyRayCastingProcess
+
+template<std::size_t TDim>
+std::vector<Internals::RegisteredPrototypeBase<Process>> ApplyRayCastingProcess<TDim>::msPrototypes{
+    Internals::RegisteredPrototype<ApplyRayCastingProcess<2>,Process>("ApplyRayCasting2DProcess"), 
+    Internals::RegisteredPrototype<ApplyRayCastingProcess<3>,Process>("ApplyRayCasting3DProcess")};
 
 ///@}
 ///@name Type Definitions
