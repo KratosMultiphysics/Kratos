@@ -481,47 +481,26 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     auto& r_entities_array = GetContainer<TContainerType>(rModelPart);
     const auto it_entity_begin = r_entities_array.begin();
 
-    if (ConsiderUnitNormal) {
-        // TODO: Use TLS in ParallelUtilities
-        #pragma omp parallel for firstprivate(aux_coords)
-        for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
-            auto it_entity = it_entity_begin + i;
-            auto& r_geometry = it_entity->GetGeometry();
+    auto retrieve_normal = ConsiderUnitNormal ? [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return rGeometry.UnitNormal(rLocalCoordinates);} : [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return Coefficient * rGeometry.Normal(rLocalCoordinates);};
 
-            // Avoid not "flat" elements
-            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
-                continue;
-            }
+    // TODO: Use TLS in ParallelUtilities
+    #pragma omp parallel for firstprivate(aux_coords)
+    for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
+        auto it_entity = it_entity_begin + i;
+        auto& r_geometry = it_entity->GetGeometry();
 
-            // Iterate over nodes
-            for (auto& r_node : r_geometry) {
-                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
-                r_node.SetLock();
-                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
-                r_node.UnSetLock();
-            }
+        // Avoid not "flat" elements
+        if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+            continue;
         }
-    } else {
-        // TODO: Use TLS in ParallelUtilities
-        #pragma omp parallel for firstprivate(aux_coords)
-        for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
-            auto it_entity = it_entity_begin + i;
-            auto& r_geometry = it_entity->GetGeometry();
 
-            // Avoid not "flat" elements
-            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
-                continue;
-            }
-
-            // Iterate over nodes
-            const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
-            for (auto& r_node : r_geometry) {
-                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
-                const auto normal = r_geometry.Normal(aux_coords);
-                r_node.SetLock();
-                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += normal * coefficient;
-                r_node.UnSetLock();
-            }
+        // Iterate over nodes
+        const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
+        for (auto& r_node : r_geometry) {
+            r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+            r_node.SetLock();
+            noalias(r_node.FastGetSolutionStepValue(NORMAL)) += retrieve_normal(r_geometry, aux_coords, coefficient);
+            r_node.UnSetLock();
         }
     }
 
