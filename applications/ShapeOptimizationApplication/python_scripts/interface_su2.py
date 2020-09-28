@@ -149,7 +149,7 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def ComputeValues(self, list_of_response_ids, update_mesh, design_number):
-        if self.interface_parameters["echo_level"].GetInt()==2:
+        if self.interface_parameters["echo_level"].GetInt()>1:
             return self.project.f(list_of_response_ids, update_mesh, design_number)
         else:
             with suppress_stdout():
@@ -165,7 +165,7 @@ class InterfaceSU2():
         self.project.config["CONV_RESIDUAL_MINVAL"] = self.interface_parameters["su2_related"]["residual_min_adjoint_run"].GetInt()
         self.project.config["RESTART_SOL"] = self.interface_parameters["su2_related"]["use_restart_in_adjoint_run"].GetString()
 
-        if self.interface_parameters["echo_level"].GetInt()==2:
+        if self.interface_parameters["echo_level"].GetInt()>1:
             su2_gradient = self.project.df(response_id, update_mesh, design_number)
         else:
             with suppress_stdout():
