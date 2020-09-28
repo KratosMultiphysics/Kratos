@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
-from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_analysis 
+from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_analysis
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
@@ -64,7 +64,7 @@ class SourceTermTestConvectionDiffusionAnalysis(convection_diffusion_analysis.Co
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.config.T_xmin)
             elif node.X == self.config.xmax:
                 node.Fix(KratosMultiphysics.TEMPERATURE)
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.config.T_xmax)        
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.config.T_xmax)
 
 class SourceTermTest(KratosUnittest.TestCase):
 
@@ -179,7 +179,6 @@ class SourceTermTest(KratosUnittest.TestCase):
             with open(self.reference_file+'.csv','r') as reference_file:
                 reference_file.readline() # skip header
                 line = reference_file.readline()
-                node_iter = model_part.Nodes
 
                 for node in model_part.Nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
