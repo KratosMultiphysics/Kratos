@@ -6,6 +6,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
+import KratosMultiphysics.DEMApplication.dem_default_input_parameters
+from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
 
 from importlib import import_module
 
@@ -51,7 +53,6 @@ class DEMAnalysisStage(AnalysisStage):
 
     @classmethod
     def GetDefaultInputParameters(self):
-        import KratosMultiphysics.DEMApplication.dem_default_input_parameters
         return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
@@ -91,11 +92,7 @@ class DEMAnalysisStage(AnalysisStage):
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFileName()
 
-        [self.post_path,
-        self.data_and_results,
-        self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path),
-                                                              str(self.problem_name),
-                                                              do_print_results=self.do_print_results_option)[:-1]
+        [self.post_path, self.data_and_results, self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)[:-1]
 
         # Prepare modelparts
         self.CreateModelParts()
@@ -140,13 +137,12 @@ class DEMAnalysisStage(AnalysisStage):
     def IsCountStep(self):
         self.step_count += 1
         if self.step_count == self.p_count:
-           self.p_count += self.p_frequency
-           return True
+            self.p_count += self.p_frequency
+            return True
 
         return False
 
     def SetAnalyticParticleWatcher(self):
-        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
 
         # is this being used? TODO
@@ -241,10 +237,10 @@ class DEMAnalysisStage(AnalysisStage):
             return imported_module
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
-                                                     self.creator_destructor,
-                                                     self.dem_fem_search,
-                                                     self.DEM_parameters,
-                                                     self.procedures)
+                                                    self.creator_destructor,
+                                                    self.dem_fem_search,
+                                                    self.DEM_parameters,
+                                                    self.procedures)
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self._GetSolver(), self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)

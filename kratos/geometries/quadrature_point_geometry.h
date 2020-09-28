@@ -70,7 +70,7 @@ public:
     /// using base class functions
     using BaseType::Jacobian;
     using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues; 
+    using BaseType::ShapeFunctionsValues;
     using BaseType::ShapeFunctionsLocalGradients;
     using BaseType::InverseOfJacobian;
 
@@ -115,7 +115,7 @@ public:
     /// Constructor with points and geometry shape function container
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -126,7 +126,7 @@ public:
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
@@ -281,6 +281,19 @@ public:
         return p_geometry;
     }
     
+    ///@}
+    ///@name  Geometry Shape Function Container
+    ///@{
+
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     */
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rGeometryShapeFunctionContainer) override
+    {
+        mGeometryData.SetGeometryShapeFunctionContainer(rGeometryShapeFunctionContainer);
+    }
+
     ///@}
     ///@name Parent
     ///@{
@@ -520,22 +533,31 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.save("pGeometryParent", mpGeometryParent);
-        rSerializer.save("GeometryData", mGeometryData);
+
+        rSerializer.save("IntegrationPoints", mGeometryData.IntegrationPoints());
+        rSerializer.save("ShapeFunctionsValues", mGeometryData.ShapeFunctionsValues());
+        rSerializer.save("ShapeFunctionsLocalGradients", mGeometryData.ShapeFunctionsLocalGradients());
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("pGeometryParent", mpGeometryParent);
 
-        GeometryDimension local(3, 3, 3);
-        GeometryDimension *temp = &local;
-        rSerializer.load("pGeometryDimension", temp);
+        IntegrationPointsContainerType integration_points;
+        ShapeFunctionsValuesContainerType shape_functions_values;
+        ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
 
-        rSerializer.load("GeometryData", mGeometryData);
+        rSerializer.load("IntegrationPoints", integration_points[GeometryData::GI_GAUSS_1]);
+        rSerializer.load("ShapeFunctionsValues", shape_functions_values[GeometryData::GI_GAUSS_1]);
+        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[GeometryData::GI_GAUSS_1]);
 
-        mGeometryData.SetGeometryDimension(&msGeometryDimension);
+        mGeometryData.SetGeometryShapeFunctionContainer(GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
+            GeometryData::GI_GAUSS_1,
+            integration_points,
+            shape_functions_values,
+            shape_functions_local_gradients));
+
+
     }
 
     ///@}

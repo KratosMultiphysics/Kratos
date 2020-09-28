@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -17,7 +15,7 @@ class ConstantRelaxationConvergenceAccelerator(CoSimulationConvergenceAccelerato
     ## The constructor.
     # @param alpha relaxation factor.
     def __init__(self, settings):
-        super(ConstantRelaxationConvergenceAccelerator, self).__init__(settings)
+        super().__init__(settings)
         self.alpha = self.settings["alpha"].GetDouble()
 
     ## UpdateSolution(r, x)
@@ -35,10 +33,10 @@ class ConstantRelaxationConvergenceAccelerator(CoSimulationConvergenceAccelerato
         return True
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "alpha" : 0.125
         }""")
-        this_defaults.AddMissingParameters(super(ConstantRelaxationConvergenceAccelerator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
