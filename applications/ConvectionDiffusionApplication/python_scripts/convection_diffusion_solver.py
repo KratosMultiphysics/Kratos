@@ -6,15 +6,11 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.base_convergence_criteria_factory as convergence_criteria_factory
 
 # Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
+import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
-
-# Other imports
-import os
-
 
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionBaseSolver(model, custom_settings)
@@ -459,7 +455,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         step =-buffer_size
         time = time - delta_time * buffer_size
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(0, buffer_size):
+        for _ in range(0, buffer_size):
             step = step + 1
             time = time + delta_time
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
@@ -546,11 +542,11 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
+    @classmethod
     def _create_solution_scheme(self):
         """Create the solution scheme for the structural problem.
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
-
 
     def _create_convection_diffusion_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
