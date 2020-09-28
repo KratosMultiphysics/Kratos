@@ -1,0 +1,87 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "structure_thicker",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"     : "static",
+        "echo_level"      : 0,
+        "analysis_type"   : "linear",
+        "model_part_name" : "CSM_model",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.0
+        },
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "CSM_model"
+        },
+        "move_mesh_flag": false,
+        "material_import_settings"           : {
+            "materials_filename" : "parameters_material.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type" : "EigenSolversApplication.pardiso_lu",
+            "scaling"     : false,
+            "verbosity"   : 0
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_structure"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_support","DISPLACEMENT_all_nodes","PointLoad3D_wet_interface"],
+        "rotation_dofs"                      : false
+    },
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "CSM_model.DISPLACEMENT_support",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "CSM_model.DISPLACEMENT_all_nodes",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,false,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : []
+    },
+    "output_processes" : {
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VTKOutputProcess",
+            "Parameters"    : {
+                "model_part_name": "CSM_model",
+                "file_format": "ascii",
+                "output_precision": 7,
+                "output_control_type": "step",
+                "output_frequency": 1.0,
+                "output_sub_model_parts": true,
+                "folder_name": "primal_csm_results",
+                "save_output_files_in_folder": true,
+                "nodal_solution_step_data_variables": ["DISPLACEMENT","REACTION","POINT_LOAD", "MESH_CHANGE","NORMAL"],
+                "nodal_data_value_variables": [],
+                "element_data_value_variables": ["VON_MISES_STRESS"],
+                "condition_data_value_variables": []
+            }
+        }]
+    }
+}

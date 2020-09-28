@@ -1,0 +1,105 @@
+{
+    "su2_interface_settings" : {
+        "su2_related": {
+            "config_file"                 : "ubend_coarse.cfg",
+            "number_of_cores"             : 4,
+            "gradient_method"             : "DISCRETE_ADJOINT",
+            "write_frequency_adjoint_run" : 500,
+            "residual_min_adjoint_run"    : -10,
+            "mesh_file"                   : "ubend_2d.su2",
+            "mesh_motion_file"            : "mesh_motion.dat",
+            "use_restart_in_adjoint_run"  : "YES",
+            "design_surface_tag"          : "WALL"
+        },
+        "kratos_related": {
+            "mdpa_file"      : "ubend_2d.mdpa",
+            "write_elements" : false
+        },
+        "echo_level" : 2
+    },
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "OPT_model",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "OPT_model"
+            },
+            "design_surface_sub_model_part_name" : "Parts_structure",
+            "damping" : {
+                "apply_damping"      : true,
+                "max_neighbor_nodes" : 50000,
+                "damping_regions" : [{
+                        "sub_model_part_name"   : "DISPLACEMENT_support",
+                        "damp_X"                : true,
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "cosine",
+                        "damping_radius"        : 0.04
+                    },
+                    {
+                        "sub_model_part_name"   : "Parts_structure",
+                        "damp_X"                : false,
+                        "damp_Y"                : false,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "cosine",
+                        "damping_radius"        : 0.0001
+                    }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+                "identifier" : "pressure_loss",
+                "type"       : "minimization",
+                "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [{
+            "identifier" : "mean_stress",
+            "type"       : "<",
+            "reference"  : "initial_value",
+            "reference_value" : 1e8
+        }],
+        "design_variables" : {
+            "type"                : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 0.03,
+                "max_nodes_in_filter_radius" : 50000,
+                "matrix_free_filtering"      : true
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                    : "penalized_projection",
+            "correction_scaling"      : 0.1,
+            "use_adaptive_correction" : true,
+            "max_iterations"          : 1,
+            "relative_tolerance"      : -1e-0,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.001
+            }
+        },
+        "output" : {
+            "design_output_mode" : "WriteOptimizationModelPart",
+            "nodal_results"      : [ "NORMALIZED_SURFACE_NORMAL",
+                                     "DF1DX",
+                                     "DF1DX_MAPPED",
+                                     "DC1DX",
+                                     "DC1DX_MAPPED",
+                                     "CONTROL_POINT_UPDATE",
+                                     "CONTROL_POINT_CHANGE",
+                                     "SHAPE_UPDATE",
+                                     "SHAPE_CHANGE",
+                                     "MESH_CHANGE",
+                                     "CFD_GRADIENT_MAPPED",
+                                     "CSM_GRADIENT_MAPPED",
+                                     "CSM_GRADIENT" ],
+            "output_format" : {
+                "name": "vtk"
+            }
+        }
+    }
+}
