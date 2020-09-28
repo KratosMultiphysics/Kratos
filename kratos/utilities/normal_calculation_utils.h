@@ -519,7 +519,6 @@ private:
 
     /**
      * @brief Calculates 2D condition area normals shape sensitivity
-     *
      * @param rCondition    Reference to the targe condition
      */
     static void CalculateNormalShapeDerivative2D(
@@ -542,16 +541,26 @@ private:
 
     /**
      * @brief Calculates 3D condition area normals shape sensitivity
-     *
      * @param rCondition    Reference to the targe condition
      */
     static void CalculateNormalShapeDerivative3D(
         ConditionType& rCondition
         );
 
+    /**
+     * @brief This method retrieves the containers
+     * @param  rModelPart The modelpart with the containers to retrieve
+     * @return The corresponding containers
+     * @tparam TContainerType The container type
+     */
     template<class TContainerType>
     TContainerType& GetContainer(ModelPart& rModelPart);
 
+    /**
+     * @brief This method computes the normals considering generic algorithm
+     * @param  rModelPart The modelpart with normals to compute
+     * @tparam TContainerType The container type
+     */
     template<class TContainerType>
     void CalculateNormalsUsingGenericAlgorithm(ModelPart& rModelPart);
 
