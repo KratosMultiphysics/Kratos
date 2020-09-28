@@ -27,6 +27,7 @@
 
 #include "includes/cfd_variables.h"
 #include "../../applications/FluidDynamicsApplication/custom_elements/qs_vms.h"
+#include "../../applications/FluidDynamicsApplication/custom_elements/fluid_element.h"
 #include "../../applications/FluidDynamicsApplication/fluid_dynamics_application_variables.h"
 
 namespace Kratos
