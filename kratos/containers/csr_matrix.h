@@ -156,10 +156,7 @@ public:
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
-        if(k >= 0)
-            return true;
-        else
-            return false;
+        return k >= 0;
     }
 
     ///@}
@@ -463,5 +460,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_CSR_MATRIX_H_INCLUDED  defined
-
 
