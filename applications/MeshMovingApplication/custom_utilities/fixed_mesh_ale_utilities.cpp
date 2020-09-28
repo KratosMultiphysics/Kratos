@@ -193,22 +193,22 @@ namespace Kratos
         // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
         block_for_each( rOriginModelPart.Nodes(),
-            [&]( Node<3>& node )
+            [&]( Node<3>& rNode )
             {
                 // Find the origin model part node in the virtual mesh
                 Vector aux_N;
                 Element::Pointer p_elem = nullptr;
-                const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(node.Coordinates(), aux_N, p_elem);
+                const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux_N, p_elem);
 
                 // Check if the node is found
                 if (is_found){
                     // Initialize MESH_VELOCITY
-                    noalias(node.FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
+                    noalias(rNode.FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
 
                     // Initialize historical data
                     for (unsigned int i_step = 1; i_step < BufferSize; ++i_step) {
-                        node.FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
-                        noalias(node.FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
+                        rNode.FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
+                        noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
                     }
 
                     // Interpolate the origin model part nodal values
@@ -216,19 +216,19 @@ namespace Kratos
                     for (std::size_t i_virt_node = 0; i_virt_node < r_geom.PointsNumber(); ++i_virt_node){
                         // Project MESH_VELOCITY
                         const auto i_virt_v_mesh = r_geom[i_virt_node].FastGetSolutionStepValue(MESH_VELOCITY);
-                        node.FastGetSolutionStepValue(MESH_VELOCITY) += aux_N(i_virt_node) * i_virt_v_mesh;
+                        rNode.FastGetSolutionStepValue(MESH_VELOCITY) += aux_N(i_virt_node) * i_virt_v_mesh;
 
                         // Project historical data
                         for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
                             const auto &i_virt_v = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY, i_step);
                             const double &i_virt_p = r_geom[i_virt_node].FastGetSolutionStepValue(PRESSURE, i_step);
-                            node.FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
-                            noalias(node.FastGetSolutionStepValue(VELOCITY, i_step)) += aux_N(i_virt_node) * i_virt_v;
+                            rNode.FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
+                            noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) += aux_N(i_virt_node) * i_virt_v;
                         }
                     }
                 } else {
                     KRATOS_WARNING("FixedMeshALEUtilities")
-                        << "Origin model part node " << node.Id() << " has not been found in any virtual model part element. Origin node coordinates: (" << node.X() << " , " << node.Y() << " , " << node.Z() << ")" << std::endl;
+                        << "Origin model part node " << rNode.Id() << " has not been found in any virtual model part element. Origin node coordinates: (" << rNode.X() << " , " << rNode.Y() << " , " << rNode.Z() << ")" << std::endl;
                 } // else ( is_found )
             } );
 
@@ -325,30 +325,30 @@ namespace Kratos
         // in case the CloneTimeStep() is done in the virtual model part, since the method
         // assumes that the mesh is in the origin position when computing the MESH_VELOCITY.
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node<3>& node )
+            []( Node<3>& rNode )
             {
-                node.FastGetSolutionStepValue(MESH_VELOCITY, 0) = ZeroVector(3);
-                node.FastGetSolutionStepValue(MESH_VELOCITY, 1) = ZeroVector(3);
-                node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0) = ZeroVector(3);
-                node.FastGetSolutionStepValue(MESH_DISPLACEMENT, 1) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(MESH_VELOCITY, 0) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(MESH_VELOCITY, 1) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT, 0) = ZeroVector(3);
+                rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT, 1) = ZeroVector(3);
             } );
     }
 
     void FixedMeshALEUtilities::InitializeMeshDisplacementFixity()
     {
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node<3>& node )
+            []( Node<3>& rNode )
             {
-                node.Free(MESH_DISPLACEMENT_X);
-                node.Free(MESH_DISPLACEMENT_Y);
-                node.Free(MESH_DISPLACEMENT_Z);
+                rNode.Free(MESH_DISPLACEMENT_X);
+                rNode.Free(MESH_DISPLACEMENT_Y);
+                rNode.Free(MESH_DISPLACEMENT_Z);
             } );
     }
 
     void FixedMeshALEUtilities::SetMeshDisplacementFixityFromOriginModelPart()
     {
         IndexPartition<std::size_t>( static_cast<size_t>(mrVirtualModelPart.NumberOfNodes()) ).for_each(
-            []( std::size_t index )
+            [this]( std::size_t index )
             {
                 auto it_node = mrVirtualModelPart.NodesBegin() + index;
                 const auto it_orig_node = mpOriginModelPart->NodesBegin() + index;
@@ -369,20 +369,20 @@ namespace Kratos
     {
         // Initialize the DISPLACEMENT variable values
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node<3>& node )
+        []( Node<3>& rNode )
         {
-            node.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
-            node.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
         } );
 
         // Place the structure in its previous position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& node )
+        []( Node<3>& rNode )
         {
-            const auto d_1 = node.FastGetSolutionStepValue(DISPLACEMENT, 1);
-            node.X() = node.X0() + d_1[0];
-            node.Y() = node.Y0() + d_1[1];
-            node.Z() = node.Z0() + d_1[2];
+            const auto d_1 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            rNode.X() = rNode.X0() + d_1[0];
+            rNode.Y() = rNode.Y0() + d_1[1];
+            rNode.Z() = rNode.Z0() + d_1[2];
         } );
 
         // Compute the DISPLACEMENT increment from the structure model part and save it in the origin mesh MESH_DISPLACEMENT
@@ -441,12 +441,12 @@ namespace Kratos
 
         // Revert the structure movement to its current position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& node )
+        []( Node<3>& rNode )
         {
-            const auto d_0 = node.FastGetSolutionStepValue(DISPLACEMENT, 0);
-            node.X() = node.X0() + d_0[0];
-            node.Y() = node.Y0() + d_0[1];
-            node.Z() = node.Z0() + d_0[2];
+            const auto d_0 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
+            rNode.X() = rNode.X0() + d_0[0];
+            rNode.Y() = rNode.Y0() + d_0[1];
+            rNode.Z() = rNode.Z0() + d_0[2];
         } );
     }
 
@@ -472,16 +472,16 @@ namespace Kratos
     void FixedMeshALEUtilities::RevertMeshDisplacementFixity()
     {
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node<3>& node )
+        []( Node<3>& rNode )
         {
-            if (node.IsFixed(MESH_DISPLACEMENT_X)) {
-                node.Free(MESH_DISPLACEMENT_X);
+            if (rNode.IsFixed(MESH_DISPLACEMENT_X)) {
+                rNode.Free(MESH_DISPLACEMENT_X);
             }
-            if (node.IsFixed(MESH_DISPLACEMENT_Y)) {
-                node.Free(MESH_DISPLACEMENT_Y);
+            if (rNode.IsFixed(MESH_DISPLACEMENT_Y)) {
+                rNode.Free(MESH_DISPLACEMENT_Y);
             }
-            if (node.IsFixed(MESH_DISPLACEMENT_Z)) {
-                node.Free(MESH_DISPLACEMENT_Z);
+            if (rNode.IsFixed(MESH_DISPLACEMENT_Z)) {
+                rNode.Free(MESH_DISPLACEMENT_Z);
             }
         } );
     }
