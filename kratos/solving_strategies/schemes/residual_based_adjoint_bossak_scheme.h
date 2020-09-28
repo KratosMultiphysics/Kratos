@@ -591,6 +591,13 @@ private:
                 return rExtensions.GetAuxiliaryVariables(rVec);
             });
 
+        KRATOS_ERROR_IF(lambda2_vars.size() != lambda3_vars.size())
+            << "First derivatives variable list and second derivatives "
+               "variables list size mismatch.\n";
+        KRATOS_ERROR_IF(lambda2_vars.size() != auxiliary_vars.size())
+            << "First derivatives variable list and auxiliary variables list "
+               "size mismatch.\n";
+
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
 
@@ -598,12 +605,9 @@ private:
         CalculateAndUpdateEntityTimeSchemeContributions(rModelPart.Elements(), r_process_info);
         CalculateAndUpdateEntityTimeSchemeContributions(rModelPart.Conditions(), r_process_info);
 
-        KRATOS_ERROR_IF(lambda2_vars.size() != lambda3_vars.size())
-            << "First derivatives variable list and second derivatives "
-               "variables list size mismatch.\n";
-        KRATOS_ERROR_IF(lambda2_vars.size() != auxiliary_vars.size())
-            << "First derivatives variable list and auxiliary variables list "
-               "size mismatch.\n";
+        // Finalize global assembly
+        Assemble_AdjointVars(lambda2_vars, rModelPart.GetCommunicator());
+        Assemble_AdjointVars(lambda3_vars, rModelPart.GetCommunicator());
 
         for (unsigned int i_var = 0; i_var < lambda2_vars.size(); ++i_var) {
             const auto& r_lambda2_variable_name = lambda2_vars[i_var]->Name();
@@ -624,9 +628,6 @@ private:
             }
         }
 
-        // Finalize global assembly
-        Assemble_AdjointVars(lambda2_vars, rModelPart.GetCommunicator());
-        Assemble_AdjointVars(lambda3_vars, rModelPart.GetCommunicator());
         KRATOS_CATCH("");
     }
 
