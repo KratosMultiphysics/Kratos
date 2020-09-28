@@ -271,7 +271,6 @@ proc DEMClusters::call_makeTreeMedial { } {
     set modelname [GiD_Info Project ModelName]
     set genericOBJFilename [file join ${modelname}.gid generic.obj]
 
-
     #set filename_obj $::DEMClusters::ProblemName ## custom names
     #append filename_obj .obj
     # set Young_Modulus [GiD_AccessValue get condition Body_Part Young_Modulus]
@@ -280,8 +279,6 @@ proc DEMClusters::call_makeTreeMedial { } {
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
-        # SphereTree should be installed the linux system (compiled and installed)
-        # set program makeTreeMedial
         set program [file join $::DEMClusters::ProblemTypePath exec makeTreeMedial]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
@@ -291,25 +288,20 @@ proc DEMClusters::call_makeTreeMedial { } {
     # catch { set ::DEMClusters::pid [exec $program {*}$argv] &} msg
 
     # proces can be canceled but not ouput on process info screen
-    catch {set ::DEMClusters::pid [open "|$program $argv"]} msg
+    catch {set ::DEMClusters::pid [open "|$program $argv |& cat"]} msg
 
     # set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
     # set outfl [open $ouputpath w]
 
-    #puts $outfl [read $::DEMClusters::pid]
-    #flush stdout
+    # puts $outfl [read $::DEMClusters::pid]
+    # flush stdout
     # close $outfl
-
-    #W [read $::DEMClusters::pid]
-    #W "SPH generation finished"
 
 
     # view output using view process info but process cannot be canceled. requires tk_exec modified version of exec proc:
     # set ouputpath [file join $::DEMClusters::ProblemPath $::DEMClusters::ProblemName.info]
     # set outfl [open $ouputpath w]
     # catch {tk_exec $program {*}$argv > $ouputpath} msg
-
-    # puts $outfl [set ::DEMClusters::pid [open "|$program $argv"]]
     # close $outfl
 
 
@@ -379,15 +371,12 @@ proc DEMClusters::call_makeTreeGrid { } {
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
-        # SphereTree should be installed the linux system (compiled and installed)
-        # set program makeTreeGrid
         set program [file join $::DEMClusters::ProblemTypePath exec makeTreeGrid]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    #exec $program {*}$argv
-    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
+    catch {set ::DEMClusters::pid [open "|$program $argv |& cat"]} msg
 
     # makeTreeGrid ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -419,15 +408,12 @@ proc DEMClusters::call_makeTreeSpawn { } {
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
-        # SphereTree should be installed the linux system (compiled and installed)
-        # set program makeTreeSpawn
         set program [file join $::DEMClusters::ProblemTypePath exec makeTreeSpawn]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    #exec $program {*}$argv
-    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
+    catch {set ::DEMClusters::pid [open "|$program $argv |& cat"]} msg
 
     # makeTreeSpawn ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -461,15 +447,12 @@ proc DEMClusters::call_makeTreeHubbard { } {
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
-        # SphereTree should be installed the linux system (compiled and installed)
-        # set program makeTreeHubbard
         set program [file join $::DEMClusters::ProblemTypePath exec makeTreeHubbard]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    #exec $program {*}$argv
-    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
+    catch {set ::DEMClusters::pid [open "|$program $argv |& cat"]} msg
 
     # makeTreeHubbard ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -492,15 +475,12 @@ proc DEMClusters::call_makeTreeOctree { } {
     package require platform
     set tcl_platform [platform::generic]
     if { $tcl_platform == "linux-x86_64" } {
-        # SphereTree should be installed the linux system (compiled and installed)
-        # set program makeTreeOctree
         set program [file join $::DEMClusters::ProblemTypePath exec makeTreeOctree]
     } else {
         set program [file join $::DEMClusters::ProblemTypePath exec $Algorithm]
     }
 
-    #exec $program {*}$argv
-    catch {set ::DEMClusters::pid [open "|$program $argv"]} res
+    catch {set ::DEMClusters::pid [open "|$program $argv |& cat"]} msg
 
     # makeTreeOctree ValidArgs:
     # -depth              Depth of the sphere-tree
@@ -512,7 +492,6 @@ proc CenterGeometry { } {
 
     # last component of the list
     set last_volume [lrange [GiD_Geometry list volume 1:] end end]
-
     set all [GiD_Tools geometry mass_properties $last_volume]
     # Only GID 14.9d+
 
