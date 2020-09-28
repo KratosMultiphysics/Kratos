@@ -49,35 +49,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         self._validate_settings_in_baseclass = True
         super(ConvectionDiffusionBaseSolver, self).__init__(model, custom_settings)
 
-        # Adding warnings
-        default_settings = self.GetDefaultParameters()
-        if not custom_settings.Has("convection_diffusion_variables"):
-            KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: CONVECTION DIFFUSION  VARIABLES NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"])
-        else:
-            if not custom_settings["convection_diffusion_variables"].Has("density_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DENSITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["density_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("diffusion_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DIFUSSION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["diffusion_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("unknown_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: UNKNOWN VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["unknown_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("volume_source_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: VOLUME SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["volume_source_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("surface_source_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: SURFACE SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["surface_source_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("projection_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: PROJECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["projection_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("convection_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: CONVECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["convection_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("mesh_velocity_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: MESH VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("transfer_coefficient_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: TRANSFER COEFFICIENT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["transfer_coefficient_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("velocity_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["velocity_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("specific_heat_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: SPECIFIC HEAT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["specific_heat_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("reaction_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: REACTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["reaction_variable"].GetString())
+        # Convection diffusion variables check
+        self._ConvectionDiffusionVariablesCheck(custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -177,40 +150,40 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         '''
         convention_diffusion_settings = KratosMultiphysics.ConvectionDiffusionSettings()
         density_variable = self.settings["convection_diffusion_variables"]["density_variable"].GetString()
-        if (density_variable is not ""):
+        if (density_variable != ""):
             convention_diffusion_settings.SetDensityVariable(KratosMultiphysics.KratosGlobals.GetVariable(density_variable))
         diffusion_variable = self.settings["convection_diffusion_variables"]["diffusion_variable"].GetString()
-        if (diffusion_variable is not ""):
+        if (diffusion_variable != ""):
             convention_diffusion_settings.SetDiffusionVariable(KratosMultiphysics.KratosGlobals.GetVariable(diffusion_variable))
         unknown_variable = self.settings["convection_diffusion_variables"]["unknown_variable"].GetString()
-        if (unknown_variable is not ""):
+        if (unknown_variable != ""):
             convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable(unknown_variable))
         volume_source_variable = self.settings["convection_diffusion_variables"]["volume_source_variable"].GetString()
-        if (volume_source_variable is not ""):
+        if (volume_source_variable != ""):
             convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable(volume_source_variable))
         surface_source_variable = self.settings["convection_diffusion_variables"]["surface_source_variable"].GetString()
-        if (surface_source_variable is not ""):
+        if (surface_source_variable != ""):
             convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable(surface_source_variable))
         projection_variable = self.settings["convection_diffusion_variables"]["projection_variable"].GetString()
-        if (projection_variable is not ""):
+        if (projection_variable != ""):
             convention_diffusion_settings.SetProjectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(projection_variable))
         convection_variable = self.settings["convection_diffusion_variables"]["convection_variable"].GetString()
-        if (convection_variable is not ""):
+        if (convection_variable != ""):
             convention_diffusion_settings.SetConvectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(convection_variable))
         mesh_velocity_variable = self.settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString()
-        if (mesh_velocity_variable is not ""):
+        if (mesh_velocity_variable != ""):
             convention_diffusion_settings.SetMeshVelocityVariable(KratosMultiphysics.KratosGlobals.GetVariable(mesh_velocity_variable))
         transfer_coefficient_variable = self.settings["convection_diffusion_variables"]["transfer_coefficient_variable"].GetString()
-        if (transfer_coefficient_variable is not ""):
+        if (transfer_coefficient_variable != ""):
             convention_diffusion_settings.SetTransferCoefficientVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_coefficient_variable))
         velocity_variable = self.settings["convection_diffusion_variables"]["velocity_variable"].GetString()
-        if (velocity_variable is not ""):
+        if (velocity_variable != ""):
             convention_diffusion_settings.SetVelocityVariable(KratosMultiphysics.KratosGlobals.GetVariable(velocity_variable))
         specific_heat_variable = self.settings["convection_diffusion_variables"]["specific_heat_variable"].GetString()
-        if (specific_heat_variable is not ""):
+        if (specific_heat_variable != ""):
             convention_diffusion_settings.SetSpecificHeatVariable(KratosMultiphysics.KratosGlobals.GetVariable(specific_heat_variable))
         reaction_variable = self.settings["convection_diffusion_variables"]["reaction_variable"].GetString()
-        if (reaction_variable is not ""):
+        if (reaction_variable != ""):
             convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
 
         target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
@@ -633,3 +606,28 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                             self.settings["compute_reactions"].GetBool(),
                             self.settings["reform_dofs_at_each_step"].GetBool(),
                             self.settings["move_mesh_flag"].GetBool())
+
+    def _ConvectionDiffusionVariablesCheck(self, custom_settings):
+        default_settings = self.GetDefaultParameters()
+        default_conv_diff_variables = default_settings["convection_diffusion_variables"]
+        if not custom_settings.Has("convection_diffusion_variables"):
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'convection_diffusion_variables\' not defined, taking default ", default_conv_diff_variables)
+        else:
+            custom_conv_diff_variables = custom_settings["convection_diffusion_variables"]
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "density_variable", default_conv_diff_variables["density_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "diffusion_variable", default_conv_diff_variables["diffusion_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "unknown_variable", default_conv_diff_variables["unknown_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "volume_source_variable", default_conv_diff_variables["volume_source_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "surface_source_variable", default_conv_diff_variables["surface_source_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "projection_variable", default_conv_diff_variables["projection_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "convection_variable", default_conv_diff_variables["convection_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "mesh_velocity_variable", default_conv_diff_variables["mesh_velocity_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "transfer_coefficient_variable", default_conv_diff_variables["transfer_coefficient_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "velocity_variable", default_conv_diff_variables["velocity_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "specific_heat_variable", default_conv_diff_variables["specific_heat_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "reaction_variable", default_conv_diff_variables["reaction_variable"].GetString())
+
+    def _ConvectionDiffusionSingleVariableCheck(self, custom_conv_diff_variables, variable_entry, variable_name):
+        if not custom_conv_diff_variables.Has(variable_entry):
+            custom_conv_diff_variables.AddEmptyValue(variable_entry).SetString(variable_name)
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'{0}\' in \'convection_diffusion_variables\' not defined, taking default \'{1}\'.".format(variable_entry, variable_name))
