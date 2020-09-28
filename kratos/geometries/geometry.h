@@ -703,7 +703,7 @@ public:
         p_geom->SetId(rNewGeometryName);
         return p_geom;
     }
-    
+
     /**
      * @brief Creates a new geometry pointer
      * @param pGeometry Pointer to an existing geometry
@@ -714,6 +714,7 @@ public:
     ) const
     {
         // Create geometry
+        KRATOS_DEBUG_ERROR_IF(pGeometry == nullptr) << "Null pointer for geometry provided" << std::endl;
         auto p_geom = this->Create(0, pGeometry);
 
         // Generate Id
