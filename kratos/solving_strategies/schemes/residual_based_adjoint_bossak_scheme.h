@@ -97,6 +97,56 @@ public:
     ///@name Operations
     ///@{
 
+    int Check(const ModelPart& rModelPart) const override
+    {
+        KRATOS_TRY
+
+        auto lambda2_vars = GatherVariables(
+            rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
+                                      std::vector<const VariableData*>& rVec) {
+                rExtensions.GetFirstDerivativesVariables(rVec);
+            });
+        auto lambda3_vars = GatherVariables(
+            rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
+                                      std::vector<const VariableData*>& rVec) {
+                return rExtensions.GetSecondDerivativesVariables(rVec);
+            });
+        auto auxiliary_vars = GatherVariables(
+            rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
+                                      std::vector<const VariableData*>& rVec) {
+                return rExtensions.GetAuxiliaryVariables(rVec);
+            });
+
+        KRATOS_ERROR_IF(lambda2_vars.size() != lambda3_vars.size())
+            << "First derivatives variable list and second derivatives "
+               "variables list size mismatch.\n";
+        KRATOS_ERROR_IF(lambda2_vars.size() != auxiliary_vars.size())
+            << "First derivatives variable list and auxiliary variables list "
+               "size mismatch.\n";
+
+        for (unsigned int i_var = 0; i_var < lambda2_vars.size(); ++i_var) {
+            const auto& r_lambda2_variable_name = lambda2_vars[i_var]->Name();
+            const auto& r_lambda3_variable_name = lambda3_vars[i_var]->Name();
+            const auto& r_auxiliary_variable_name = auxiliary_vars[i_var]->Name();
+
+            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_lambda2_variable_name)) {
+                CheckVariables<array_1d<double, 3>>(rModelPart, r_lambda2_variable_name,
+                                                    r_lambda3_variable_name,
+                                                    r_auxiliary_variable_name);
+            } else if (KratosComponents<Variable<double>>::Has(r_lambda2_variable_name)) {
+                CheckVariables<double>(rModelPart, r_lambda2_variable_name,
+                                       r_lambda3_variable_name, r_auxiliary_variable_name);
+            } else {
+                KRATOS_ERROR << "Unsupported variable type "
+                             << r_lambda2_variable_name << ".";
+            }
+        }
+
+        return BaseType::Check(rModelPart);
+
+        KRATOS_CATCH("");
+    }
+
     void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
@@ -591,13 +641,6 @@ private:
                 return rExtensions.GetAuxiliaryVariables(rVec);
             });
 
-        KRATOS_ERROR_IF(lambda2_vars.size() != lambda3_vars.size())
-            << "First derivatives variable list and second derivatives "
-               "variables list size mismatch.\n";
-        KRATOS_ERROR_IF(lambda2_vars.size() != auxiliary_vars.size())
-            << "First derivatives variable list and auxiliary variables list "
-               "size mismatch.\n";
-
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
 
@@ -713,18 +756,6 @@ private:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rLambda2VariableName))
-            << "Adjoint variable " << rLambda2VariableName
-            << " is not found in variable list with required type.\n";
-
-        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rLambda3VariableName))
-            << "Adjoint variable " << rLambda3VariableName
-            << " is not found in variable list with required type.\n";
-
-        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rAuxiliaryVariableName))
-            << "Adjoint variable " << rAuxiliaryVariableName
-            << " is not found in variable list with required type.\n";
-
         const auto& r_lambda2_variable = KratosComponents<Variable<TDataType>>::Get(rLambda2VariableName);
         const auto& r_lambda3_variable = KratosComponents<Variable<TDataType>>::Get(rLambda3VariableName);
         const auto& r_auxiliary_variable = KratosComponents<Variable<TDataType>>::Get(rAuxiliaryVariableName);
@@ -816,6 +847,47 @@ private:
                 r_node.UnSetLock();
             }
         }
+
+        KRATOS_CATCH("");
+    }
+
+    template<class TDataType>
+    void CheckVariables(
+        const ModelPart& rModelPart,
+        const std::string& rLambda2VariableName,
+        const std::string& rLambda3VariableName,
+        const std::string& rAuxiliaryVariableName) const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rLambda2VariableName))
+            << "Adjoint variable " << rLambda2VariableName
+            << " is not found in variable list with required type.\n";
+
+        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rLambda3VariableName))
+            << "Adjoint variable " << rLambda3VariableName
+            << " is not found in variable list with required type.\n";
+
+        KRATOS_ERROR_IF(!KratosComponents<Variable<TDataType>>::Has(rAuxiliaryVariableName))
+            << "Adjoint variable " << rAuxiliaryVariableName
+            << " is not found in variable list with required type.\n";
+
+        const auto& r_lambda2_variable = KratosComponents<Variable<TDataType>>::Get(rLambda2VariableName);
+        const auto& r_lambda3_variable = KratosComponents<Variable<TDataType>>::Get(rLambda3VariableName);
+        const auto& r_auxiliary_variable = KratosComponents<Variable<TDataType>>::Get(rAuxiliaryVariableName);
+
+        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(r_lambda2_variable))
+            << "Lambda 2 Variable " << rLambda2VariableName
+            << " not found in nodal solution step variables list of "
+            << rModelPart.Name() << ".\n";
+        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(r_lambda3_variable))
+            << "Lambda 3 Variable " << rLambda3VariableName
+            << " not found in nodal solution step variables list of "
+            << rModelPart.Name() << ".\n";
+        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(r_auxiliary_variable))
+            << "Auxiliary Variable " << r_auxiliary_variable
+            << " not found in nodal solution step variables list of "
+            << rModelPart.Name() << ".\n";
 
         KRATOS_CATCH("");
     }
