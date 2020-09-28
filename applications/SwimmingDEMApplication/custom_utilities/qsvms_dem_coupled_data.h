@@ -28,7 +28,7 @@ namespace Kratos {
 ///@{
 
 template< size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime = false>
-class KRATOS_API(SWIMMING_DEM_APPLICATION) QSVMSDEMCoupledData : public QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>
+class QSVMSDEMCoupledData : public QSVMSData<TDim, TNumNodes, TElementIntegratesInTime>
 {
 public:
 
