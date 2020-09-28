@@ -527,34 +527,36 @@ protected:
             {
                 const auto& send_graph = nonlocal_graphs[color];
                 auto& direct_senddata_access = mPointersToSendValues[color];
-                //auto& indices_senddata_access = mIndicesToSendValues[color]; //TODO: remove, for debug
+                std::vector<IndexType> send_ij;
 
                 for(auto row_it=send_graph.begin(); row_it!=send_graph.end(); ++row_it)
                 {
                     const auto remote_local_I = row_it.GetRowIndex();
                     const auto remote_global_I = RemoteGlobalId(remote_local_I, color);
 
-                    //must ensure iteration is done in the same order, so sort the entries
-                    //TODO: evaluate if it is better to communicate the I,Js once instead of doing the sorting (probably faster!)
-                    std::vector<IndexType> row_indices((*row_it).size());
-                    unsigned int counter=0;
-                    for(auto J : *row_it){
-                        row_indices[counter++] = J;
-                    }
-                    std::sort(row_indices.begin(), row_indices.end());
-
                     for(auto J : row_indices){
                         TDataType& value = mNonLocalData[std::make_pair(remote_global_I,J)]; //here we create the I,J entry in the nonlocal data (entry was there in the graph!)
                         direct_senddata_access.push_back(&value); //storing a direct pointer to the value contained in the data structure
-                    //    indices_senddata_access.push_back(std::make_pair(remote_global_I,J)); //TODO: remove, for debug
+z                    //    indices_senddata_access.push_back(std::make_pair(remote_global_I,J)); //TODO: remove, for debug
+
+                        send_ij.push_back(remote_local_I);
+                        send_ij.push_back(J);
                     }
                 }
                 
                 //TODO: this can be made nonblocking 
-                const auto recv_graph = rComm.SendRecv(send_graph, color, color);
+                const auto recv_ij = rComm.SendRecv(send_ij, color, color);
 
                 auto& direct_recvdata_access = mPointersToRecvValues[color];
-                //auto& indices_recvdata_access = mIndicesToRecvValues[color];
+
+                for(IndexType k=0; k<recv_ij.size(); ++=2)
+                {
+                    IndexType I = recv_ij[k];
+                    IndexType J = recv_ij[k+1];
+                    auto& value = GetLocalDataByGlobalId(I,J)
+                    //      indices_recvdata_access.push_back(std::make_pair(I,J)); //TODO: remove, for debug
+                    direct_recvdata_access.push_back(&value);
+                }
 
                 for(auto row_it=recv_graph.begin(); row_it!=recv_graph.end(); ++row_it)
                 {
@@ -572,7 +574,7 @@ protected:
                     for(auto J : row_indices){
                         auto& value = GetLocalDataByGlobalId(I,J);
                         direct_recvdata_access.push_back(&value);
-                  //      indices_recvdata_access.push_back(std::make_pair(I,J)); //TODO: remove, for debug
+                  
                     }
                 }
             }
