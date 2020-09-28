@@ -198,7 +198,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         // Quadrature points
         .def("CreateQuadraturePointGeometries", [](GeometryType& self,
             GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
-            { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+            { IntegrationInfo integration_info; return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info)); })
         // Normal
         .def("Normal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
             { return(self.Normal(LocalCoords)); })
@@ -217,7 +217,7 @@ void  AddGeometriesToPython(pybind11::module& m)
             { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
         // ShapeFunctionsValues
         .def("ShapeFunctionsValues", [](GeometryType& self)
-            { return(self.ShapeFunctionDerivatives()); })
+            { return(self.ShapeFunctionsValues()); })
         .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
             IndexType IntegrationPointIndex)
             { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
