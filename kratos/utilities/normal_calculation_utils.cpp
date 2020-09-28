@@ -93,7 +93,9 @@ void NormalCalculationUtils::InitializeNormals(ModelPart& rModelPart)
 template <>
 KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>(
     ModelPart& rModelPart,
-    const bool EnforceGenericGeometryAlgorithm)
+    const bool EnforceGenericGeometryAlgorithm,
+    const bool ConsiderUnitNormal
+    )
 {
     // Getting process info
     const auto& r_process_info = rModelPart.GetProcessInfo();
@@ -118,7 +120,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>
     if (use_simplex) {
         CalculateOnSimplex(rModelPart, dimension);
     } else {
-        CalculateNormalsUsingGenericAlgorithm<ModelPart::ConditionsContainerType>(rModelPart);
+        CalculateNormalsUsingGenericAlgorithm<ModelPart::ConditionsContainerType>(rModelPart, ConsiderUnitNormal);
     }
 }
 
@@ -128,10 +130,11 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition>
 template<>
 KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element>(
     ModelPart& rModelPart,
-    const bool
+    const bool EnforceGenericGeometryAlgorithm,
+    const bool ConsiderUnitNormal
     )
 {
-    CalculateNormalsUsingGenericAlgorithm<ModelPart::ElementsContainerType>(rModelPart);
+    CalculateNormalsUsingGenericAlgorithm<ModelPart::ElementsContainerType>(rModelPart, ConsiderUnitNormal);
 }
 
 /***********************************************************************************/
@@ -144,7 +147,7 @@ void NormalCalculationUtils::CalculateUnitNormals(
     )
 {
     // Compute area normals
-    CalculateNormals<TEntityType>(rModelPart, EnforceGenericGeometryAlgorithm);
+    CalculateNormals<TEntityType>(rModelPart, EnforceGenericGeometryAlgorithm, true);
 
     // Compute unit normals
     ComputeUnitNormalsFromAreaNormals(rModelPart);
