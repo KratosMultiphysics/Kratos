@@ -885,7 +885,7 @@ private:
             << " not found in nodal solution step variables list of "
             << rModelPart.Name() << ".\n";
         KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(r_auxiliary_variable))
-            << "Auxiliary Variable " << r_auxiliary_variable
+            << "Auxiliary Variable " << rAuxiliaryVariableName
             << " not found in nodal solution step variables list of "
             << rModelPart.Name() << ".\n";
 
