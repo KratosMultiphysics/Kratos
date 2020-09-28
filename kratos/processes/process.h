@@ -31,21 +31,6 @@
 
 namespace Kratos
 {
-    namespace Internals
-    {
-        template <typename ProcessType>
-        class RegisterThisPrototype {
-        public:
-            template <typename... TArgumentsType >
-            explicit RegisterThisPrototype(const std::string& rName, TArgumentsType ... TheseArguments)
-            {
-                typename ProcessType::Pointer p_process = Kratos::make_shared<ProcessType>(TheseArguments);
-                KratosComponents<Process>::Add(rName, p_process);
-                Serializer::Register(rName, p_process);
-            }
-        };
-
-    }
 
 ///@name Kratos Classes
 ///@{
@@ -288,6 +273,37 @@ inline std::ostream& operator << (std::ostream& rOStream,
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Process>;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Process const& ThisComponent);
+
+    namespace Internals
+    {
+        
+        template <typename TBaseCategoryType>
+        class RegisteredPrototypeBase {
+         public:
+            RegisteredPrototypeBase() = default;
+        };
+        
+        template <typename TClassType, typename TBaseCategoryType>
+        class RegisteredPrototype : public  RegisteredPrototypeBase<TBaseCategoryType> {
+            typename TClassType::Pointer mpPrototype;
+        public:
+             explicit RegisteredPrototype(const std::string& rName)
+            {
+                mpPrototype = typename TClassType::Pointer(new TClassType); // make_shared cannot access the private class constructor
+                KratosComponents<TBaseCategoryType>::Add(rName, *mpPrototype);
+                Serializer::Register(rName, mpPrototype);
+            }
+
+           template <typename... TArgumentsType >
+            explicit RegisteredPrototype(const std::string& rName, TArgumentsType ... TheseArguments)
+            {
+                mpPrototype = Kratos::make_shared<TClassType>(std::forward<TArgumentsType>(TheseArguments)...);
+                KratosComponents<TBaseCategoryType>::Add(rName, *mpPrototype);
+                Serializer::Register(rName, mpPrototype);
+            }
+        };
+
+    }
 
 }  // namespace Kratos.
 
