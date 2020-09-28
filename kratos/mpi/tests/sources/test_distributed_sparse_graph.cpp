@@ -17,6 +17,8 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/distributed_sparse_graph.h"
+#include "containers/distributed_csr_matrix.h"
+
 #include "includes/key_hash.h"
 #include "utilities/openmp_utils.h"
 
@@ -292,6 +294,51 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedGraphConstructionMPI, KratosCor
     CheckGraph(Agraph, reference_A_map);
 
 }
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosCoreFastSuite)
+{
+    typedef DistributedSparseGraph::IndexType IndexType;
+
+    DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator();
+    int world_size =rComm.Size();
+    int my_rank = rComm.Rank();
+
+    auto dofs_bounds = ComputeBounds<IndexType>(40, world_size, my_rank);
+    auto reference_A_map = GetReferenceMatrixAsMap(dofs_bounds);
+
+    auto el_bounds = ComputeBounds<IndexType>(31, world_size, my_rank);
+    const auto connectivities = ElementConnectivities(el_bounds);
+
+    DistributedSparseGraph Agraph(dofs_bounds, rComm);
+
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(connectivities.size()); ++i) //note that this version is threadsafe
+        Agraph.AddEntries(connectivities[i]);
+    Agraph.Finalize();
+
+    //FEM assembly
+    DistributedCsrMatrix<double,IndexType> A(Agraph);
+    A.BeginAssemble();
+    for(const auto& c : connectivities)
+    {   
+        Matrix data(c.size(),c.size(),1.0);
+        A.Assemble(data,c);
+    }
+    A.FinalizeAssemble();
+
+    for(const auto item : reference_A_map)
+    {
+        auto GlobalI = item.first.first;
+        auto GlobalJ = item.first.second;
+        const double reference_value = item.second;
+        const double value = A.GetLocalDataByGlobalId(GlobalI,GlobalJ);
+        KRATOS_CHECK_NEAR(reference_value , value, 1e-14);
+
+    }
+
+    
+}
+
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(BenchmarkDistributedGraphConstructionMPI, KratosCoreFastSuite)
 {

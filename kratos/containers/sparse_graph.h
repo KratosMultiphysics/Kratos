@@ -110,7 +110,7 @@ public:
         return mGraphSize; //note that this is only valid after Finalize has been called
     }
 
-    bool IsEmpty()
+    bool IsEmpty() const
     {
         return mGraph.empty();
     }

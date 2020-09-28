@@ -61,6 +61,9 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+    CsrMatrix()
+    {
+    }
 
     /// Default constructor.
     template<class TGraphType>
@@ -73,6 +76,7 @@ public:
         IndexType max_col = 0;
         for(IndexType i=0; i<mColIndices.size(); ++i)
             max_col = std::max(max_col,mColIndices[i]);
+        mNcols = max_col;
 
         //initialize mValuesVector to zero
         mValuesVector.resize(mColIndices.size(),false);
@@ -144,7 +148,18 @@ public:
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
         IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        KRATOS_DEBUG_ERROR_IF(k<0) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
+    }
+
+    bool Has(IndexType I, IndexType J) const {
+        const IndexType row_begin = index1_data()[I];
+        const IndexType row_end = index1_data()[I+1];
+        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        if(k >= 0)
+            return true;
+        else
+            return false;
     }
 
     ///@}
@@ -175,11 +190,19 @@ public:
         }
     }
 
+    void reserve(IndexType nrows, IndexType nnz){
+        index1_data().resize(nrows+1,false);
+        if(nrows > 0)
+            index1_data()[0] = 0;
+        index2_data().resize(nnz,false);
+        value_data().resize(nnz,false);
+        mNrows = nrows;
+    }
 
 
+    void BeginAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
-
-    void FinalizeAssembe(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
+    void FinalizeAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
 
 
@@ -297,7 +320,7 @@ protected:
     // otherwise -1
     template< class TVectorType > 
     inline IndexType BinarySearch(const TVectorType& arr, 
-                        IndexType l, IndexType r, IndexType x) 
+                        IndexType l, IndexType r, IndexType x) const
     { 
         while (l <= r) { 
             int m = l + (r - l) / 2; 
@@ -397,7 +420,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-    CsrMatrix(){};
 
 
 

@@ -350,12 +350,13 @@ KRATOS_TEST_CASE_IN_SUITE(CSRConstruction, KratosCoreFastSuite)
 
     CsrMatrix<double> A(Agraph);
 
+    A.BeginAssemble();
     for(const auto& c : connectivities)
     {   
         Matrix data(c.size(),c.size(),1.0);
         A.Assemble(data,c);
     }
-    //A.FinalizeAssemble();
+    A.FinalizeAssemble();
 
     CheckCSRMatrix(A, reference_A_map);
 

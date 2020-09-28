@@ -130,11 +130,16 @@ public:
     /// Destructor.
     virtual ~DistributedSparseGraph(){}
 
+    const DataCommunicator& GetComm() const
+    { 
+        return mrComm;
+    }
+
     IndexType Size() const{
         return mLocalGraph.Size(); //note that this is only valid after Finalize has been called
     }
 
-    bool IsLocal(const IndexType I)
+    bool IsLocal(const IndexType I) const
     {
         return (I>=mLocalBounds[0] && I<mLocalBounds[1]);
     }
@@ -247,8 +252,6 @@ public:
     {
         for(auto I : rIndices)
         {
-            // KRATOS_WATCH(I)
-            // KRATOS_WATCH(IsLocal(I))
             if(IsLocal(I)){
                 mLocalGraph.AddEntries(LocalId(I), rIndices);
             }
@@ -289,7 +292,6 @@ public:
         {
             if(color >= 0) //-1 would imply no communication
             {
-std::cout << "communication with " << color << std::endl;
                 //TODO: this can be made nonblocking
                 const auto recv_graph = mrComm.SendRecv(mNonLocalGraphs[color], color, color);
 
@@ -298,11 +300,9 @@ std::cout << "communication with " << color << std::endl;
                     auto I = row_it.GetRowIndex();
                     mLocalGraph.AddEntries(I,*row_it);
                 }
-std::cout << "finished communication with " << color << std::endl;
             }
         }
 
-KRATOS_WATCH("Finalize finished")
     }
 
     const LocalGraphType& GetLocalGraph() const{
@@ -313,7 +313,18 @@ KRATOS_WATCH("Finalize finished")
         return mNonLocalGraphs[Rank];
     }
 
+    const DenseVector<NonLocalGraphType>& GetNonLocalGraphs() const{
+        return mNonLocalGraphs;
+    }
 
+    const std::vector<IndexType> GetLocalBounds() const {
+        return mLocalBounds;
+    }
+
+
+    const std::vector<IndexType> GetCpuBounds() const {
+        return mCpuBounds;
+    }
     ///@}
     ///@name Operations
     ///@{
