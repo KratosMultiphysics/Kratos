@@ -460,7 +460,9 @@ KRATOS_API(KRATOS_CORE) ModelPart::ElementsContainerType& NormalCalculationUtils
 
 template<class TContainerType>
 void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
-    ModelPart& rModelPart)
+    ModelPart& rModelPart,
+    const bool ConsiderUnitNormal
+    )
 {
     KRATOS_TRY
 
@@ -476,25 +478,47 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     auto& r_entities_array = GetContainer<TContainerType>(rModelPart);
     const auto it_entity_begin = r_entities_array.begin();
 
-    // TODO: Use TLS in ParallelUtilities
-#pragma omp parallel for firstprivate(aux_coords)
-    for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
-        auto it_entity = it_entity_begin + i;
-        auto& r_geometry = it_entity->GetGeometry();
+    if (ConsiderUnitNormal) {
+        // TODO: Use TLS in ParallelUtilities
+        #pragma omp parallel for firstprivate(aux_coords)
+        for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
+            auto it_entity = it_entity_begin + i;
+            auto& r_geometry = it_entity->GetGeometry();
 
-        // Avoid not "flat" elements
-        if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
-            continue;
+            // Avoid not "flat" elements
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
+
+            // Iterate over nodes
+            for (auto& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+                r_node.SetLock();
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += r_geometry.UnitNormal(aux_coords);
+                r_node.UnSetLock();
+            }
         }
+    } else {
+        // TODO: Use TLS in ParallelUtilities
+        #pragma omp parallel for firstprivate(aux_coords)
+        for (int i = 0; i < static_cast<int>(r_entities_array.size()); ++i) {
+            auto it_entity = it_entity_begin + i;
+            auto& r_geometry = it_entity->GetGeometry();
 
-        // Iterate over nodes
-        const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
-        for (auto& r_node : r_geometry) {
-            r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
-            const auto normal = r_geometry.Normal(aux_coords);
-            r_node.SetLock();
-            noalias(r_node.FastGetSolutionStepValue(NORMAL)) += normal * coefficient;
-            r_node.UnSetLock();
+            // Avoid not "flat" elements
+            if (r_geometry.WorkingSpaceDimension() != r_geometry.LocalSpaceDimension() + 1) {
+                continue;
+            }
+
+            // Iterate over nodes
+            const double coefficient = 1.0 / static_cast<double>(r_geometry.PointsNumber());
+            for (auto& r_node : r_geometry) {
+                r_geometry.PointLocalCoordinates(aux_coords, r_node.Coordinates());
+                const auto normal = r_geometry.Normal(aux_coords);
+                r_node.SetLock();
+                noalias(r_node.FastGetSolutionStepValue(NORMAL)) += normal * coefficient;
+                r_node.UnSetLock();
+            }
         }
     }
 
@@ -507,8 +531,8 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
 
 // template instantiations
 
-template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm<ModelPart::ConditionsContainerType>(ModelPart&);
-template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm<ModelPart::ElementsContainerType>(ModelPart&);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm<ModelPart::ConditionsContainerType>(ModelPart&, const bool ConsiderUnitNormal);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm<ModelPart::ElementsContainerType>(ModelPart&, const bool ConsiderUnitNormal);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<ModelPart::ConditionsContainerType>(ModelPart&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<ModelPart::ElementsContainerType>(ModelPart&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ConditionsContainerType>(ModelPart&);

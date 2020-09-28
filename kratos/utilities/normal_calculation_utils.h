@@ -558,11 +558,15 @@ private:
 
     /**
      * @brief This method computes the normals considering generic algorithm
-     * @param  rModelPart The modelpart with normals to compute
+     * @param rModelPart The modelpart with normals to compute
+     * @param ConsiderUnitNormal If consider the unit normal
      * @tparam TContainerType The container type
      */
     template<class TContainerType>
-    void CalculateNormalsUsingGenericAlgorithm(ModelPart& rModelPart);
+    void CalculateNormalsUsingGenericAlgorithm(
+        ModelPart& rModelPart,
+        const bool ConsiderUnitNormal = false
+        );
 
     ///@}
     ///@name Private  Access
