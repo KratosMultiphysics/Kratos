@@ -489,11 +489,7 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     auto& r_entities_array = GetContainer<TContainerType>(rModelPart);
     const auto it_entity_begin = r_entities_array.begin();
 
-    auto retrieve_normal = ConsiderUnitNormal
-        ? [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient)
-            {return rGeometry.UnitNormal(rLocalCoordinates);}
-        : [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient)
-            {return Coefficient * rGeometry.Normal(rLocalCoordinates);};
+    auto retrieve_normal = ConsiderUnitNormal ? [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return rGeometry.UnitNormal(rLocalCoordinates);} : [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return Coefficient * rGeometry.Normal(rLocalCoordinates);};
 
     // TODO: Use TLS in ParallelUtilities
     #pragma omp parallel for firstprivate(aux_coords)
