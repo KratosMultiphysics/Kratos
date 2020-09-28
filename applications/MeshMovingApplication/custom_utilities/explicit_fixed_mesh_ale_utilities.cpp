@@ -149,7 +149,7 @@ void ExplicitFixedMeshALEUtilities::ComputeExplicitMeshDisplacement(
     const DistanceVectorContainerType &rSearchDistanceResults)
 {
     IndexPartition<std::size_t>( static_cast<std::size_t>(mrVirtualModelPart.NumberOfNodes()) ).for_each(
-    [&]( size_t i_fl )
+    [&]( std::size_t i_fl )
     {
         // Get auxiliar current fluid node info.
         auto it_node = mrVirtualModelPart.NodesBegin() + i_fl;
