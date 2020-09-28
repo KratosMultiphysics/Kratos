@@ -183,21 +183,22 @@ public:
 
     void SetValue(const TDataType value)
     {
-        //TODO
+        mDiagBlock.SetValue(value);
+        mOffDiagBlock.SetValue(value);
     }
 
     IndexType size1()
     {
-        //TODO
+        //TODO decide if we should give back the local or globale sizes
     }
 
     IndexType size2()
     {
-        //TODO
+        //TODO decide if we should give back the local or globale sizes
     }
 
     inline IndexType nnz() const{
-        //TODO
+        //TODO decide if we should give back the local or globale sizes
     }
 
     const DataCommunicator& GetComm(){
@@ -208,6 +209,13 @@ public:
         return mDiagBlock;
     }
     inline CsrMatrix<double,IndexType>& GetOffDiagBlock(){
+        return mOffDiagBlock;
+    }
+
+    inline const CsrMatrix<double,IndexType>& GetDiagBlock() const{
+        return mDiagBlock;
+    }
+    inline const CsrMatrix<double,IndexType>& GetOffDiagBlock() const{
         return mOffDiagBlock;
     }
 
@@ -342,7 +350,8 @@ public:
                 const auto& direct_senddata_access = mPointersToSendValues[color];
                 const auto& direct_recvdata_access = mPointersToRecvValues[color];
 
-                Vector send_data(direct_senddata_access.size()); //TODO allocate buffers once to avoid reallocation every time
+                auto& send_data = msend_buffers[color];
+                
                 for(IndexType i=0; i<send_data.size(); ++i)
                 {
                     send_data[i] = *(direct_senddata_access[i]);
@@ -355,10 +364,10 @@ public:
 
 
                 }
-                //TODO: this can be made nonblocking 
-                const auto recv_data = rComm.SendRecv(send_data, color, color); //TODO: use optimized version since we know the sizes
+                //NOTE: this can be made nonblocking 
+                auto& recv_data = mrecv_buffers[color];
+                rComm.SendRecv(send_data, color, 0, recv_data, color, 0);
 
-                KRATOS_ERROR_IF(recv_data.size() != direct_recvdata_access.size()) << " size of recv data does not match size of direct_access array" << std::endl;
                 for(IndexType i=0; i<recv_data.size(); ++i)
                 {
                     *(direct_recvdata_access[i]) += recv_data[i]; //here we assemble the nonlocal contribution to the local data
@@ -544,7 +553,7 @@ protected:
                     }
                 }
                 
-                //TODO: this can be made nonblocking 
+                //NOTE: this can be made nonblocking 
                 const auto recv_ij = rComm.SendRecv(send_ij, color, color);
 
                 auto& direct_recvdata_access = mPointersToRecvValues[color];
@@ -557,6 +566,11 @@ protected:
                     //      indices_recvdata_access.push_back(std::make_pair(I,J)); //TODO: remove, for debug
                     direct_recvdata_access.push_back(&value);
                 }
+
+                //resizing buffers to be later used for sending and receiving
+                msend_buffers[color].resize(direct_senddata_access.size());
+                mrecv_buffers[color].resize(direct_recvdata_access.size());
+
             }
         }
     }
@@ -607,6 +621,9 @@ private:
     
     // std::unordered_map< unsigned int, std::vector<std::pair<IndexType,IndexType>>> mIndicesToSendValues; //TODO remove, for debug
     // std::unordered_map< unsigned int, std::vector<std::pair<IndexType,IndexType>>> mIndicesToRecvValues; //TODO remove, for debug
+
+    std::unordered_map< unsigned int, std::vector<TDataType> > msend_buffers;
+    std::unordered_map< unsigned int, std::vector<TDataType> > mrecv_buffers;
 
     IndexType mNrows=0;
     IndexType mNcols=0;
