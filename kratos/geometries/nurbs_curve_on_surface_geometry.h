@@ -139,9 +139,24 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the curve
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsSurface->PolynomialDegree(0) + mpNurbsSurface->PolynomialDegree(1);
+    }
+
+    ///@}
     ///@name Curve Properties
     ///@{
 
+    /// Returns number of points of NurbsCurve.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        return mpNurbsCurve->PointsNumberInDirection(LocalDirectionIndex);
+    }
     /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
      * @return domain interval.
      */
@@ -149,7 +164,6 @@ public:
     {
         return mpNurbsCurve->DomainInterval();
     }
-
     /* @brief Provides intersections of the nurbs curve with the knots of the surface,
      *         using the interval of this curve.
      * @param vector of span intervals.

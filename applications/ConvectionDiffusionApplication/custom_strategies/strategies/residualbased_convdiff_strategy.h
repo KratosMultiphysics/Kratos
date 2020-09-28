@@ -166,7 +166,13 @@ public:
         typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 
         BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> > (pNewLinearSolver,rUnknownVar) );
-        mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver > 				(model_part,pscheme,pNewLinearSolver,componentwise_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+        mstep1 = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(
+            model_part,
+            pscheme,
+            componentwise_build,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag));
         mstep1->SetEchoLevel(2);
         Check();
         KRATOS_CATCH("")
@@ -479,4 +485,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY  defined */
-

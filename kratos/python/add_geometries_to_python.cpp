@@ -38,10 +38,10 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/prism_3d_6.h"
-// #include "geometries/prism_3d_15.h"
+#include "geometries/prism_3d_15.h"
 #include "geometries/hexahedra_3d_8.h"
-// #include "geometries/hexahedra_3d_20.h"
-// #include "geometries/hexahedra_3d_27.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
 // Nurbs Geometries
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
@@ -91,14 +91,8 @@ namespace Python
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives)
     {
-        IntegrationInfo integration_info;
         return(dummy.CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info));
-    }
-
-    double GetIntegrationPointsNumber(
-        GeometryType& dummy) {
-        return dummy.IntegrationPointsNumber();
+            rResultGeometries, NumberOfShapeFunctionDerivatives));
     }
 
     array_1d<double,3> GetNormal(
@@ -114,12 +108,6 @@ namespace Python
         CoordinatesArrayType LocalCoords;
         LocalCoords.clear();
         return( dummy.Normal(LocalCoords) );
-    }
-
-    array_1d<double, 3> GetNormalIntegrationPointIndex(
-        GeometryType& dummy, IndexType IntegrationPointIndex)
-    {
-        return(dummy.Normal(IntegrationPointIndex));
     }
 
     array_1d<double,3> GetUnitNormal(
@@ -173,66 +161,68 @@ void  AddGeometriesToPython(pybind11::module& m)
 
 
     py::class_<GeometryType, GeometryType::Pointer >(m, "Geometry")
-        .def(py::init<>())
-        .def(py::init< IndexType >())
-        .def(py::init< std::string >())
-        .def(py::init< GeometryType::PointsArrayType& >())
-        .def(py::init< IndexType, GeometryType::PointsArrayType& >())
-        .def(py::init< std::string, GeometryType::PointsArrayType& >())
-        // Id functions
-        .def_property("Id", &GeometryType::Id, SetId1)
-        .def("SetId", SetId1)
-        .def("SetId", SetId2)
-        .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
-        .def("IsIdSelfAssigned", IsIdSelfAssigned1)
-        .def_static("GenerateId", &GeometryType::GenerateId)
-        // Dimension access
-        .def("WorkingSpaceDimension", &GeometryType::WorkingSpaceDimension)
-        .def("LocalSpaceDimension", &GeometryType::LocalSpaceDimension)
-        .def("Dimension", &GeometryType::Dimension)
-        .def("DomainSize", &GeometryType::DomainSize)
-        .def("PointsNumber", &GeometryType::PointsNumber)
-        // Integration
-        .def("IntegrationPointsNumber", [](GeometryType& self)
-            { return(self.IntegrationPointsNumber()); })
-        // Quadrature points
-        .def("CreateQuadraturePointGeometries", [](GeometryType& self,
-            GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
-            { IntegrationInfo integration_info; return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info)); })
-        // Normal
-        .def("Normal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
-            { return(self.Normal(LocalCoords)); })
-        .def("Normal", [](GeometryType& self, IndexType IntegrationPointIndex)
-            { return(self.Normal(IntegrationPointIndex)); })
-        .def("UnitNormal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
-            { return(self.UnitNormal(LocalCoords)); })
-        .def("UnitNormal", [](GeometryType& self, IndexType IntegrationPointIndex)
-            { return(self.UnitNormal(IntegrationPointIndex)); })
-        // Jacobian
-        .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
-            { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
-        .def("DeterminantOfJacobian", [](GeometryType& self)
-            { Vector results; return(self.DeterminantOfJacobian(results)); })
-        .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
-            { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
-        // ShapeFunctionsValues
-        .def("ShapeFunctionsValues", [](GeometryType& self)
-            { return(self.ShapeFunctionsValues()); })
-        .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
-            IndexType IntegrationPointIndex)
-            { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
-        // Geometrical
-        .def("Center", &GeometryType::Center)
-        .def("Length", &GeometryType::Length)
-        .def("Area", &GeometryType::Area)
-        .def("Volume", &GeometryType::Volume)
-        // Print
-        .def("__str__", PrintObject<GeometryType>)
-        // Access to nodes
-        .def("__getitem__", [](GeometryType& self, unsigned int i) {return self(i); })
-        .def("__iter__", [](GeometryType& self) {return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0, 1>())
-        .def("__len__", [](GeometryType& self) {return self.PointsNumber(); })
-        ;
+    .def(py::init<>())
+    .def(py::init< IndexType >())
+    .def(py::init< std::string >())
+    .def(py::init< GeometryType::PointsArrayType& >())
+    .def(py::init< IndexType, GeometryType::PointsArrayType& >())
+    .def(py::init< std::string, GeometryType::PointsArrayType& >())
+    // Id functions
+    .def_property("Id", &GeometryType::Id, SetId1)
+    .def("SetId", SetId1)
+    .def("SetId", SetId2)
+    .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
+    .def("IsIdSelfAssigned", IsIdSelfAssigned1)
+    .def_static("GenerateId", &GeometryType::GenerateId)
+    // Dimension access
+    .def("WorkingSpaceDimension", &GeometryType::WorkingSpaceDimension)
+    .def("LocalSpaceDimension", &GeometryType::LocalSpaceDimension)
+    .def("Dimension", &GeometryType::Dimension)
+    .def("DomainSize", &GeometryType::DomainSize)
+    .def("PointsNumber", &GeometryType::PointsNumber)
+    .def("PointsNumberInDirection",&GeometryType::PointsNumberInDirection)
+    .def("PolynomialDegree",&GeometryType::PolynomialDegree)
+    // Integration
+    .def("IntegrationPointsNumber", [](GeometryType& self)
+        { return(self.IntegrationPointsNumber()); })
+    // Quadrature points
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
+        { IntegrationInfo integration_info; return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info)); })
+    // Normal
+    .def("Normal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.Normal(LocalCoords)); })
+    .def("Normal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.Normal(IntegrationPointIndex)); })
+    .def("UnitNormal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.UnitNormal(LocalCoords)); })
+    .def("UnitNormal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.UnitNormal(IntegrationPointIndex)); })
+    // Jacobian
+    .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self)
+        { Vector results; return(self.DeterminantOfJacobian(results)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
+    // ShapeFunctionsValues
+    .def("ShapeFunctionsValues", [](GeometryType& self)
+        { return(self.ShapeFunctionsValues()); })
+    .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex)
+        { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
+    // Geometrical
+    .def("Center", &GeometryType::Center)
+    .def("Length", &GeometryType::Length)
+    .def("Area", &GeometryType::Area)
+    .def("Volume", &GeometryType::Volume)
+    // Print
+    .def("__str__", PrintObject<GeometryType>)
+    // Access to nodes
+    .def("__getitem__", [](GeometryType& self, unsigned int i) {return self(i); })
+    .def("__iter__", [](GeometryType& self) {return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0, 1>())
+    .def("__len__", [](GeometryType& self) {return self.PointsNumber(); })
+    ;
 
     // 2D
     py::class_<Line2D2<NodeType>, Line2D2<NodeType>::Pointer,  GeometryType  >(m,"Line2D2").def(py::init<pNodeType, pNodeType>())
@@ -271,14 +261,14 @@ void  AddGeometriesToPython(pybind11::module& m)
     ;
     py::class_<Prism3D6<NodeType>, Prism3D6<NodeType>::Pointer,  GeometryType  >(m,"Prism3D6").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
-//     py::class_<Prism3D15<NodeType>, Prism3D15<NodeType>::Pointer,  GeometryType  >(m,"Prism3D15").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
-//     ;
+    py::class_<Prism3D15<NodeType>, Prism3D15<NodeType>::Pointer,  GeometryType  >(m,"Prism3D15").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
     py::class_<Hexahedra3D8<NodeType>, Hexahedra3D8<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D8").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
     ;
-//     py::class_<Hexahedra3D20<NodeType>, Hexahedra3D20<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D20").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
-//     ;
-//     py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
-//     ;
+    py::class_<Hexahedra3D20<NodeType>, Hexahedra3D20<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D20").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
+    py::class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def(py::init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
+    ;
 
     // Adding PointsArrayType to interface
     PointerVectorPythonInterface<PointsArrayType>().CreateInterface(m,"NodesVector");
@@ -332,4 +322,3 @@ void  AddGeometriesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

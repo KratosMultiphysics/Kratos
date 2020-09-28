@@ -36,6 +36,7 @@ class ModelPartController:
             "design_surface_sub_model_part_name" : "DESIGN_SURFACE_NAME",
             "damping" : {
                 "apply_damping"      : false,
+                "recalculate_damping": false,
                 "max_neighbor_nodes" : 10000,
                 "damping_regions"    : []
             },
@@ -74,7 +75,9 @@ class ModelPartController:
 
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__IdentifyDampingRegions()
-            self.damping_utility = KSO.DampingUtilities(self.design_surface, self.damping_regions, self.model_settings["damping"])
+            self.damping_utility = KSO.DampingUtilities(
+                self.design_surface, self.damping_regions, self.model_settings["damping"]
+            )
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
@@ -89,6 +92,11 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, InputVariable):
         self.mesh_controller.UpdateMeshAccordingInputVariable(InputVariable)
+
+        if self.model_settings["damping"]["recalculate_damping"].GetBool():
+            self.damping_utility = KSO.DampingUtilities(
+                self.design_surface, self.damping_regions, self.model_settings["damping"]
+            )
 
     # --------------------------------------------------------------------------
     def SetMeshToReferenceMesh(self):
