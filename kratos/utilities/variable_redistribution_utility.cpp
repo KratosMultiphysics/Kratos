@@ -103,6 +103,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     // Check if there is any condition in the current partition
     const int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
     int n_tot_conds = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_conds);
+
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_conds != 0){
         if (n_loc_conds != 0){
@@ -135,11 +136,6 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
                 MaximumIterations);
         }
     }
-    else
-    {
-        KRATOS_WATCH("CallSpecializedDistributePointValues -----------> ONLY OVER CONDITIONS")/* code */
-    }
-    
 
     // Synchronize the obtained resultas
     rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
@@ -224,6 +220,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
     ConsistentMassMatrix<TFamily,TPointNumber>(mass_matrix);
 
     const int number_of_nodes_in_model_part = rModelPart.NumberOfNodes();
+
     // Initial guess (NodalValue / NodalSize)
     #pragma omp parallel for
     for (int i = 0; i < number_of_nodes_in_model_part; i++) {
