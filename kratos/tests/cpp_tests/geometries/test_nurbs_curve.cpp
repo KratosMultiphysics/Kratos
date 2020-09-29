@@ -130,7 +130,7 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_EQUAL(curve.LocalSpaceDimension(), 1);
         KRATOS_CHECK_EQUAL(curve.IsRational(), false);
 
-        KRATOS_CHECK_EQUAL(curve.PolynomialDegree(), 3);
+        KRATOS_CHECK_EQUAL(curve.PolynomialDegree(0), 3);
         KRATOS_CHECK_EQUAL(curve.NumberOfKnots(), 6);
         KRATOS_CHECK_EQUAL(curve.PointsNumber(), 4);
 
@@ -163,7 +163,7 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_EQUAL(curve.LocalSpaceDimension(), 1);
         KRATOS_CHECK_EQUAL(curve.IsRational(), true);
 
-        KRATOS_CHECK_EQUAL(curve.PolynomialDegree(), 4);
+        KRATOS_CHECK_EQUAL(curve.PolynomialDegree(0), 4);
         KRATOS_CHECK_EQUAL(curve.NumberOfKnots(), 11);
         KRATOS_CHECK_EQUAL(curve.PointsNumber(), 8);
 

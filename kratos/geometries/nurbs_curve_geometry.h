@@ -154,17 +154,37 @@ public:
     }
 
     ///@}
-    ///@name Get and Set functions
+    ///@name Geometrical Information
     ///@{
 
-    /*
-    * @brief Polynomial degree of this curve.
-    * @return the polynomial degree.
-    */
-    SizeType PolynomialDegree() const
+    /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
     {
+        if (LocalDirectionIndex == 0) {
+            return this->PointsNumber();
+        }
+        KRATOS_ERROR << "Possible direction index in NurbsCurveGeometry is 0. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the curve
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(LocalDirectionIndex != 0)
+            << "Trying to access polynomial degree in direction " << LocalDirectionIndex
+            << " from NurbsCurveGeometry #" << this->Id() << ". However, nurbs curves have only one direction."
+            << std::endl;
+
         return mPolynomialDegree;
     }
+
+    ///@}
+    ///@name Get and Set functions
+    ///@{
 
     /* 
     * @brief Knot vector is defined to have a multiplicity of p
@@ -192,7 +212,7 @@ public:
     */
     SizeType NumberOfNonzeroControlPoints() const
     {
-        return PolynomialDegree() + 1;
+        return mPolynomialDegree + 1;
     }
 
     /*
@@ -365,8 +385,7 @@ public:
     {
         const SizeType points_per_span = (rIntegrationInfo.NumberOfIntegrationPointsPerSpan() != 0)
             ? rIntegrationInfo.NumberOfIntegrationPointsPerSpan()
-            : PolynomialDegree() + 1;
-
+            : PolynomialDegree(0) + 1;
         std::vector<double> spans;
         if (rIntegrationInfo.HasSpansInDirection(0)) {
             spans = rIntegrationInfo.GetSpans(0);

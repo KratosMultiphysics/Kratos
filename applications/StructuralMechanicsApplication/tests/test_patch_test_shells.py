@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -161,9 +160,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 
@@ -174,9 +173,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 
@@ -187,9 +186,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 
@@ -200,9 +199,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 

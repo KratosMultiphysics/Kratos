@@ -238,8 +238,6 @@ public:
     typedef Triangle3D3<PointType>                    TriangleType;
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    /// Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
     /// Linear solver
     typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
@@ -248,8 +246,6 @@ public:
     typedef typename SparseSpaceType::VectorType                 VectorType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    /// Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
 
     /// Index type definition
     typedef std::size_t                                          IndexType;
