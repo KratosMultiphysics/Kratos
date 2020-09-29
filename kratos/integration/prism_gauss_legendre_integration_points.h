@@ -44,7 +44,7 @@ public:
         return 3;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.50000000000000000000 , 0.16666666666666666667 ),
@@ -92,7 +92,7 @@ public:
         return 6;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.2113248654051871177 , 0.08333333333333333333 ),
@@ -143,7 +143,7 @@ public:
         return 9;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.11270166537925831148 , 0.04629629629629629630 ),
@@ -197,7 +197,7 @@ public:
         return 12;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.06943184420297371239 , 0.02898790376145448812 ),
@@ -254,7 +254,7 @@ public:
         return 15;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , 0.04691007703066800360 , 0.01974390708801575729 ),
@@ -316,7 +316,7 @@ public:
         return 2;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.2113248654051871177454 , 0.25000000000000000000000 ),
@@ -363,7 +363,7 @@ public:
         return 3;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.1127016653792583114821 , 0.1388888888888888889 ),
@@ -411,7 +411,7 @@ public:
         return 5;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0469100770306680036012 , 0.0592317212640472718 ),
@@ -461,7 +461,7 @@ public:
         return 7;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0254460438286207377369 , 0.0261224489795918367347 ),
@@ -513,7 +513,7 @@ public:
         return 11;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.0108856709269715035981 , 0.0139171417790434166207 ),

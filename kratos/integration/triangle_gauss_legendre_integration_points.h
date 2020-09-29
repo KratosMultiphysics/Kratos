@@ -43,7 +43,7 @@ public:
         return 1;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 1.00 / 2.00 )
@@ -90,7 +90,7 @@ public:
         return 3;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00 , 1.00 / 6.00 ),
@@ -139,7 +139,7 @@ public:
         return 4;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 1.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
@@ -189,7 +189,7 @@ public:
         return 6;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         const double wa = 0.054975871827661;
         const double wb = 0.1116907948390055;
@@ -247,7 +247,7 @@ public:
         return 12;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         const double wa = 0.025422453185103408460;
         const double wb = 0.058393137863189683013;

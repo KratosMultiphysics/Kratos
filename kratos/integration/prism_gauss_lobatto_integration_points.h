@@ -45,7 +45,7 @@ public:
         return 3;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.0 , 0.0 , 0.5 , 1.00 / 6.00 ),
@@ -93,7 +93,7 @@ public:
         return 6;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
             IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 ),

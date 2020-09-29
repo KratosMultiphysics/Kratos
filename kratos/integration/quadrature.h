@@ -122,21 +122,21 @@ public:
         return msIntegrationPointsVector;
     }
 
-    static const IntegrationPointsArrayType GenerateIntegrationPoints()
+    static const IntegrationPointsArrayType IntegrationPoints()
     {
         IntegrationPointsArrayType results;
-        GenerateIntegrationPoints(results, Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>());
+        IntegrationPoints(results, Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>());
         return results;
     }
 
     template<class TIntegrationPointsArrayType>
-    static void GenerateIntegrationPoints(TIntegrationPointsArrayType& Result,
+    static void IntegrationPoints(TIntegrationPointsArrayType& Result,
                                           Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType> const& Dummy)
     {
         typename Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>::IntegrationPointsArrayType points;
-        Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>::GenerateIntegrationPoints(points, Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>());
+        Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>::IntegrationPoints(points, Quadrature<TQuadraturePointsType, TDimension - 1, TIntegrationPointType>());
 
-        const auto integration_points = TQuadraturePointsType::GenerateIntegrationPoints();
+        const auto integration_points = TQuadraturePointsType::IntegrationPoints();
         for(SizeType i = 0 ; i < TQuadraturePointsType::IntegrationPointsNumber() ; i++)
             for(SizeType j = 0 ; j < points.size() ; j++)
             {
@@ -147,10 +147,10 @@ public:
             }
     }
 
-    static void GenerateIntegrationPoints(IntegrationPointsArrayType& Result,
+    static void IntegrationPoints(IntegrationPointsArrayType& Result,
                                           Quadrature<TQuadraturePointsType, TQuadraturePointsType::Dimension, TIntegrationPointType> const& Dummy)
     {
-        const auto integration_points = TQuadraturePointsType::GenerateIntegrationPoints();
+        const auto integration_points = TQuadraturePointsType::IntegrationPoints();
         for(SizeType i = 0 ; i < TQuadraturePointsType::IntegrationPointsNumber() ; i++)
         {
             Result.push_back(integration_points[i]);
@@ -289,9 +289,9 @@ private:
 template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType>
 const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType
 Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector =
-    Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::GenerateIntegrationPoints();
+    Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPoints();
 #else
-template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType> const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType 		Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector( Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::GenerateIntegrationPoints());
+template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType> const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType 		Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector( Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPoints());
 #endif
 ///@name Type Definitions
 ///@{
