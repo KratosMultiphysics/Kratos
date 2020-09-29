@@ -55,11 +55,6 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
-    }
-
     std::string Info() const
     {
         std::stringstream buffer;
@@ -104,11 +99,6 @@ public:
             IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 )
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const

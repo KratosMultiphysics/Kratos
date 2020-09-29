@@ -50,11 +50,6 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
-    }
-
     std::string Info() const
     {
         std::stringstream buffer;
@@ -96,11 +91,6 @@ public:
             IntegrationPointType( std::sqrt(1.00 / 3.00), 1.00)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const
@@ -147,11 +137,6 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
-    }
-
     std::string Info() const
     {
         std::stringstream buffer;
@@ -196,11 +181,6 @@ public:
             IntegrationPointType( 0.861136311594053, 0.347854845137454)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const
@@ -250,11 +230,6 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
-    }
-
     std::string Info() const
     {
         std::stringstream buffer;
@@ -301,11 +276,6 @@ public:
             IntegrationPointType( 0.9324695142031521, 0.1713244923791704)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const
@@ -357,11 +327,6 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
-    }
-
     std::string Info() const
     {
         std::stringstream buffer;
@@ -410,11 +375,6 @@ public:
             IntegrationPointType( 0.9602898564975363, 0.1012285362903763)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const
@@ -468,11 +428,6 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
-    }
-
     std::string Info() const
     {
         std::stringstream buffer;
@@ -523,11 +478,6 @@ public:
             IntegrationPointType( 0.9739065285171717, 0.0666713443086881)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const

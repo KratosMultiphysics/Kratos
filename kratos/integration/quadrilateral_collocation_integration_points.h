@@ -56,11 +56,6 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
-    }
-
     std::string Info() const
     {
         std::stringstream buffer;
@@ -108,11 +103,6 @@ public:
             IntegrationPointType(0.666666666667,0.666666666667,0.444444444444)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const
@@ -169,11 +159,6 @@ public:
             IntegrationPointType(0.750000000000,0.750000000000,0.250000000000)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const
@@ -239,11 +224,6 @@ public:
             IntegrationPointType(0.800000000000,0.800000000000,0.160000000000)
         }};
         return s_integration_points;
-    }
-
-    static IntegrationPointsArrayType& IntegrationPoints()
-    {
-        return msIntegrationPoints;
     }
 
     std::string Info() const
@@ -321,22 +301,17 @@ public:
         return s_integration_points;
     }
 
-    static IntegrationPointsArrayType& IntegrationPoints()
+    std::string Info() const
     {
-        return msIntegrationPoints;
-	}
-
-	std::string Info() const
-	{
-		std::stringstream buffer;
-		buffer << "Quadrilateral Collocation quadrature 5 ";
-		return buffer.str();
-	}
+        std::stringstream buffer;
+        buffer << "Quadrilateral Collocation quadrature 5 ";
+        return buffer.str();
+    }
 protected:
 
 private:
 
-	static IntegrationPointsArrayType msIntegrationPoints;
+    static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class QuadrilateralCollocationIntegrationPoints5
 
