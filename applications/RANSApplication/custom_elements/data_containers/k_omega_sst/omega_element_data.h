@@ -42,8 +42,6 @@ public:
     using GeomtryType = BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();
-    static const Variable<double>& GetScalarRateVariable();
-    static const Variable<double>& GetScalarRelaxedRateVariable();
 
     static void Check(
         const GeometryType& rGeometry,
@@ -85,6 +83,7 @@ public:
 
 protected:
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
+    array_1d<double, 3> mEffectiveVelocity;
     array_1d<double, 3> mTurbulentKineticEnergyGradient;
     array_1d<double, 3> mTurbulentSpecificEnergyDissipationRateGradient;
 

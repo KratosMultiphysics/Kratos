@@ -1570,7 +1570,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
 
     if(KratosComponents<Flags >::Has(variable_name))
     {
-        ReadNodalFlags(rThisNodes, static_cast<Flags const& >(KratosComponents<Flags >::Get(variable_name)));
+        ReadNodalFlags(rThisNodes, KratosComponents<Flags >::Get(variable_name));
     }
     else if(KratosComponents<Variable<int> >::Has(variable_name))
     {
@@ -1581,7 +1581,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
         }
         else {
             KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
-            ReadNodalScalarVariableData(rThisNodes, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+            ReadNodalScalarVariableData(rThisNodes, KratosComponents<Variable<int> >::Get(variable_name));
         }
     }
     else if(KratosComponents<Variable<double> >::Has(variable_name))
@@ -1593,7 +1593,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
         }
         else {
             KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
-            ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
+            ReadNodalDofVariableData(rThisNodes, KratosComponents<Variable<double> >::Get(variable_name));
         }
     }
     else if(KratosComponents<array_1d_component_type>::Has(variable_name))
@@ -1605,7 +1605,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
         }
         else {
             KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
-            ReadNodalDofVariableData(rThisNodes, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
+            ReadNodalDofVariableData(rThisNodes, KratosComponents<array_1d_component_type>::Get(variable_name));
         }
     }
     else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
@@ -1616,7 +1616,7 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
         }
         else {
             KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
-            ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+            ReadNodalVectorialVariableData(rThisNodes, KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name), Vector(3));
         }
     }
     else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
@@ -1627,16 +1627,16 @@ void ModelPartIO::ReadNodalDataBlock(ModelPart& rThisModelPart)
         }
         else {
             KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
-            ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
+            ReadNodalVectorialVariableData(rThisNodes, KratosComponents<Variable<Quaternion<double> > >::Get(variable_name), Vector(4));
         }
     }
     else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
     {
-        ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+        ReadNodalVectorialVariableData(rThisNodes, KratosComponents<Variable<Matrix> >::Get(variable_name), Matrix(3,3));
     }
     else if(KratosComponents<Variable<Vector> >::Has(variable_name))
     {
-        ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+        ReadNodalVectorialVariableData(rThisNodes, KratosComponents<Variable<Vector> >::Get(variable_name), Vector(3));
     }
     else if(KratosComponents<VariableData>::Has(variable_name))
     {
@@ -1860,7 +1860,7 @@ void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContain
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadNodalDofVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
+void ModelPartIO::ReadNodalDofVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -1919,7 +1919,7 @@ void ModelPartIO::ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rF
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
+void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -1959,7 +1959,7 @@ void ModelPartIO::ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TV
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 
@@ -2051,7 +2051,7 @@ void ModelPartIO::ReadElementalDataBlock(ElementsContainerType& rThisElements)
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable)
+void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -2083,7 +2083,7 @@ void ModelPartIO::ReadElementalScalarVariableData(ElementsContainerType& rThisEl
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 
@@ -2167,7 +2167,7 @@ void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditi
 }
 
 template<class TVariableType>
-void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable)
+void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable)
 {
     KRATOS_TRY
 
@@ -2199,7 +2199,7 @@ void ModelPartIO::ReadConditionalScalarVariableData(ConditionsContainerType& rTh
 }
 
 template<class TVariableType, class TDataType>
-void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable, TDataType Dummy)
+void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable, TDataType Dummy)
 {
     KRATOS_TRY
 

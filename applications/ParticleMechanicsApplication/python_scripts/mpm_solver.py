@@ -30,7 +30,7 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "MPM_Material",
@@ -89,7 +89,7 @@ class MPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
-        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultParameters())
         return this_defaults
 
     ### Solver public functions

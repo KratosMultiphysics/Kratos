@@ -36,6 +36,11 @@ ModelPart& RansKOmegaK2D3NSetUp(
 ModelPart& RansKOmegaOmega2D3NSetUp(
     Model& rModel,
     const std::string& rElementName);
+
+ModelPart& RansKOmegaOmega2D2NSetUp(
+    Model& rModel,
+    const std::string& rConditionName);
+
 } // namespace KOmegaTestUtilities
 } // namespace Kratos
 
