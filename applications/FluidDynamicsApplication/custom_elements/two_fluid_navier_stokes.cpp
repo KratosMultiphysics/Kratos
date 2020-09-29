@@ -91,8 +91,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
         const double zeta = 7.0e-1;
-        const double surface_tension_coefficient = 0.0311; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
-        const double contact_line_coefficient = 0.779337965*surface_tension_coefficient;
+        const double surface_tension_coefficient = 0.072; //0.1; //0.0322; //0.0728; //Surface tension coefficient, TODO: get from properties
+        const double contact_line_coefficient = -0.4539905*surface_tension_coefficient;
         const double micro_length_scale = 1.0e-9;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
@@ -3813,7 +3813,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         }
         const double effective_density = 0.5*(positive_density + negative_density);
         const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
-        const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
+        //const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
 
         const unsigned int NumCLGP = (rCLShapeFunctions[i_cl]).size1();
         MathUtils<double>::UnitCrossProduct(contact_vector_macro, rTangential[i_cl], normal_avg);
@@ -3831,6 +3831,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
                             (*p_geom)[j].FastGetSolutionStepValue(VELOCITY);
             }
             MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal_gp, rTangential[i_cl]);
+            const double element_size = ElementSizeCalculator<3,4>::ProjectedElementSize(*p_geom, wall_normal_gp);
 
             const double contact_angle_macro_gp = std::acos(inner_prod(wall_tangent,contact_vector_macro));
             double contact_angle_micro_gp = contact_angle_macro_gp;
@@ -3838,7 +3839,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
             const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
 
-            const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
+            //const double reynolds_number = effective_density*std::abs(contact_velocity_gp)*element_size/effective_viscosity;
             const double capilary_number = effective_viscosity*contact_velocity_gp/coefficient;
 
             //KRATOS_INFO("two fluids NS") << "capilary_number= " << capilary_number << std::endl;

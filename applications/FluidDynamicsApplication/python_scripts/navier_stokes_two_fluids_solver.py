@@ -470,7 +470,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ###############################
 
             if self.model.HasModelPart("FluidModelPart.Slip3D"):
-                x_center = 3.0e-3
+                x_center = 1.5e-3
                 y_center = x_center
                 z_center = 0.0
                 mean_radius = 0.0
@@ -537,8 +537,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Zero Disance - Structured #
             #############################
 
-            X_c = 3.0e-3
-            Z_max = 2.0e-3
+            X_c = 1.5e-3
+            Z_max = 1.0e-3
             X_min = 0.0
             X_max = 2*X_c
             Y_c = X_c

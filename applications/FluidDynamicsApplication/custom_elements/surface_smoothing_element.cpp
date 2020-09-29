@@ -234,8 +234,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     //GeometryType::Pointer p_geom = this->pGetGeometry();
     //const double he = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
-    const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry()); //this->GetValue(ELEMENT_H);
-    const double epsilon = 1.0e0*dt*he;//1.0e4*dt*he*he;
+    //const double he = ElementSizeCalculator<3,4>::AverageElementSize(GetGeometry()); //this->GetValue(ELEMENT_H);
+    //const double epsilon = 2.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
     //KRATOS_INFO("smoothing coefficient:") << epsilon << std::endl;
 
     BoundedMatrix<double,num_nodes,num_dim> DN_DX;  // Gradients matrix 
@@ -264,7 +264,9 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     // Getting data for the given geometry
     double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info 
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
+    const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
+    const double epsilon = 2.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     // Main loop (one Gauss point)
     //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -420,10 +422,10 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
 
                             const double zeta = 7.0e-1;
-                            const double gamma = 0.0311;
+                            const double gamma = 0.072;
                             const double micro_length_scale = 1.0e-9;
 
-                            const double cos_theta_s = 0.779337965;
+                            const double cos_theta_s = -0.4539905;
                             const double theta_s = std::acos(cos_theta_s);
 
                             const double cos_theta_d = cos_theta_s - zeta/gamma * slip_velocity;//Check the sign of slip velocity
