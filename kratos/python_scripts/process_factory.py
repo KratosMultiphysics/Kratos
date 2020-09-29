@@ -22,8 +22,8 @@ class KratosProcessFactory(object):
             # python-script that contains the process
             python_module_name = item["python_module"].GetString()
 
-            if KM.ProcessFactory.Has(python_module_name):
-                constructed_processes.append( KM.ProcessFactory.Create(python_module_name) )
+            if KM.HasProcess(python_module_name):
+                constructed_processes.append( KM.CreateProcess(python_module_name) )
 
             elif item.Has("kratos_module"): # for Kratos-processes
                 """Location of the process in Kratos; e.g.:
