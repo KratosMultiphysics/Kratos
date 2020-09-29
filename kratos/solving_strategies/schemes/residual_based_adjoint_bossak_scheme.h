@@ -345,14 +345,6 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -380,10 +372,6 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
@@ -402,8 +390,145 @@ protected:
         double C7;
     };
 
-    BossakConstants mBossak;
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
+    /**
+     * @brief Calculates elemental residual
+     *
+     * \[
+     *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
+     * \]
+     *
+     * @param rCurrentElement           Current element
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
+    virtual void CalculateResidualLocalContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityResidualLocalContributions(
+            rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Calculates condition residual
+     *
+     * \[
+     *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
+     * \]
+     *
+     * @param rCurrentCondition         Current condition
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
+    virtual void CalculateResidualLocalContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityResidualLocalContributions(
+            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Calculate time scheme contributions from elements
+     *
+     * @param rElement
+     * @param rAdjointTimeSchemeValues1
+     * @param rAdjointTimeSchemeValues2
+     * @param rCurrentProcessInfo
+     */
+    virtual void CalculateTimeSchemeContributions(
+        Element& rElement,
+        LocalSystemVectorType& rAdjointTimeSchemeValues1,
+        LocalSystemVectorType& rAdjointTimeSchemeValues2,
+        AdjointResponseFunction& rAdjointResponseFunction,
+        const BossakConstants& rBossakConstants,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityTimeSchemeContributions(rElement, rAdjointTimeSchemeValues1,
+                                               rAdjointTimeSchemeValues2,
+                                               rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Calculates time scheme contributions from conditions
+     *
+     * @param rCondition
+     * @param rAdjointTimeSchemeValues1
+     * @param rAdjointTimeSchemeValues2
+     * @param rCurrentProcessInfo
+     */
+    virtual void CalculateTimeSchemeContributions(
+        Condition& rCondition,
+        LocalSystemVectorType& rAdjointTimeSchemeValues1,
+        LocalSystemVectorType& rAdjointTimeSchemeValues2,
+        AdjointResponseFunction& rAdjointResponseFunction,
+        const BossakConstants& rBossakConstants,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityTimeSchemeContributions(rCondition, rAdjointTimeSchemeValues1,
+                                               rAdjointTimeSchemeValues2,
+                                               rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Calculates auxiliary variable contributions from elements
+     *
+     * @param rElement
+     * @param rAdjointAuxiliaryValues
+     * @param rCurrentProcessInfo
+     */
+    virtual void CalculateAuxiliaryVariableContributions(
+        Element& rElement,
+        LocalSystemVectorType& rAdjointAuxiliaryValues,
+        AdjointResponseFunction& rAdjointResponseFunction,
+        const BossakConstants& rBossakConstants,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityAuxiliaryVariableContributions(
+            rElement, rAdjointAuxiliaryValues, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Calculates auxiliary contributions from conditions
+     *
+     * @param rCondition
+     * @param rAdjointAuxiliaryValues
+     * @param rCurrentProcessInfo
+     */
+    virtual void CalculateAuxiliaryVariableContributions(
+        Condition& rCondition,
+        LocalSystemVectorType& rAdjointAuxiliaryValues,
+        AdjointResponseFunction& rAdjointResponseFunction,
+        const BossakConstants& rBossakConstants,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        CalculateEntityAuxiliaryVariableContributions(
+            rCondition, rAdjointAuxiliaryValues, rCurrentProcessInfo);
+    }
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    BossakConstants mBossak;
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
+        TSparseSpace::CreateDofUpdater();
     AdjointResponseFunction::Pointer mpResponseFunction;
 
     std::vector<LocalSystemMatrixType> mLeftHandSide;
@@ -418,46 +543,33 @@ protected:
     std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
 
     ///@}
-    ///@name Protected Operators
+    ///@name Private Operations
     ///@{
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    void CheckAndResizeThreadStorage(unsigned SystemSize)
+    /**
+     * @brief Calculates entity residual
+     *
+     * \[
+     *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
+     * \]
+     *
+     * @tparam TEntityType
+     * @param rCurrentEntity            Current Entity
+     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
+     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
+     * @param rCurrentProcessInfo       Current process info
+     */
+    template<class TEntityType>
+    void CalculateEntityResidualLocalContributions(
+        TEntityType& rCurrentEntity,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        const ProcessInfo& rCurrentProcessInfo)
     {
-        const int k = OpenMPUtils::ThisThread();
-
-        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
-        {
-            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
-        {
-            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
-        {
-            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
-        }
-
-        if (mResponseGradient[k].size() != SystemSize)
-        {
-            mResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
-        }
-
-        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
-        {
-            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
-        }
+        int k = OpenMPUtils::ThisThread();
+        auto& r_residual_adjoint = mAdjointValuesVector[k];
+        rCurrentEntity.GetValuesVector(r_residual_adjoint);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
     }
 
     /**
@@ -603,133 +715,101 @@ protected:
     }
 
     /**
-     * @brief Calculates elemental residual
+     * @brief Calculates entity time scheme contributions as depicted.
      *
-     * \[
-     *      \underline{F} = \underline{F} - \mathbf{\underline{K}}\underline{\lambda}_1
-     * \]
+     *   \[
+     *       rAdjointTimeSchemeValues1 =
+     *           - \frac{\partial J^{n}}{\partial \underline{\dot{w}}^n}
+     *           - \left[\frac{\partial \underline{R}^{n}}{\partial \underline{\dot{w}}}\right]^T\underline{\lambda}_1^{n+1}
+     *   \]
+     *   \[
+     *       rAdjointTimeSchemeValues2 =
+     *           - \frac{\partial J^{n}}{\partial \underline{\ddot{w}}^n}
+     *           - \left(1-\alpha\right)\left[\frac{\partial \underline{R}^{n}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
+     *   \]
      *
      * @tparam TEntityType
-     * @param rCurrentEntity            Current entity
-     * @param rLHS_Contribution         Left hand side matrix (i.e. $\mathbf{\underline{K}}$)
-     * @param rRHS_Contribution         Right hand side vector (i.e. $\underline{F}$)
-     * @param rCurrentProcessInfo       Current process info
+     * @param rCurrentEntity
+     * @param rAdjointTimeSchemeValues1
+     * @param rAdjointTimeSchemeValues2
+     * @param rProcessInfo
      */
     template<class TEntityType>
-    void CalculateResidualLocalContributions(
+    void CalculateEntityTimeSchemeContributions(
         TEntityType& rCurrentEntity,
-        LocalSystemMatrixType& rLHS_Contribution,
-        LocalSystemVectorType& rRHS_Contribution,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        int k = OpenMPUtils::ThisThread();
-        auto& r_residual_adjoint = mAdjointValuesVector[k];
-        rCurrentEntity.GetValuesVector(r_residual_adjoint);
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
-    }
-
-    /**
-     * @brief Calculate time scheme contributions from elements
-     *
-     * @param rElement
-     * @param rAdjointTimeSchemeValues1
-     * @param rAdjointTimeSchemeValues2
-     * @param rCurrentProcessInfo
-     */
-    virtual void CalculateTimeSchemeContributions(
-        Element& rElement,
         LocalSystemVectorType& rAdjointTimeSchemeValues1,
         LocalSystemVectorType& rAdjointTimeSchemeValues2,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rProcessInfo)
     {
-        CalculateEntityTimeSchemeContributions(rElement, rAdjointTimeSchemeValues1,
-                                               rAdjointTimeSchemeValues2,
-                                               rCurrentProcessInfo);
+        KRATOS_TRY
+
+        const int k = OpenMPUtils::ThisThread();
+
+        rCurrentEntity.GetValuesVector(mAdjointValuesVector[k]);
+        this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
+
+        /// starting to build residual for next time step calculations
+        rCurrentEntity.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rProcessInfo);
+        this->mpResponseFunction->CalculateFirstDerivativesGradient(
+            rCurrentEntity, mFirstDerivsLHS[k], mFirstDerivsResponseGradient[k], rProcessInfo);
+
+        rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rProcessInfo);
+        mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
+        this->mpResponseFunction->CalculateSecondDerivativesGradient(
+            rCurrentEntity, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], rProcessInfo);
+
+        if (rAdjointTimeSchemeValues1.size() != mFirstDerivsResponseGradient[k].size())
+            rAdjointTimeSchemeValues1.resize(mFirstDerivsResponseGradient[k].size(), false);
+        noalias(rAdjointTimeSchemeValues1) =
+            -mFirstDerivsResponseGradient[k] -
+            prod(mFirstDerivsLHS[k], mAdjointValuesVector[k]);
+        if (rAdjointTimeSchemeValues2.size() != mSecondDerivsResponseGradient[k].size())
+            rAdjointTimeSchemeValues2.resize(mSecondDerivsResponseGradient[k].size(), false);
+        noalias(rAdjointTimeSchemeValues2) =
+            -mSecondDerivsResponseGradient[k] -
+            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
+
+        KRATOS_CATCH("");
     }
 
     /**
-     * @brief Calculates time scheme contributions from conditions
+     * @brief Calculates contributions from each entity for auxiliary variable as depicted
      *
-     * @param rCondition
-     * @param rAdjointTimeSchemeValues1
-     * @param rAdjointTimeSchemeValues2
-     * @param rCurrentProcessInfo
-     */
-    virtual void CalculateTimeSchemeContributions(
-        Condition& rCondition,
-        LocalSystemVectorType& rAdjointTimeSchemeValues1,
-        LocalSystemVectorType& rAdjointTimeSchemeValues2,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        CalculateEntityTimeSchemeContributions(rCondition, rAdjointTimeSchemeValues1,
-                                               rAdjointTimeSchemeValues2,
-                                               rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Calculates auxiliary variable contributions from elements
+     *  rAdjointAuxiliaryValues =
+     *     - \frac{\partial J^{n+1}}{\partial \underline{\ddot{w}}^n}
+     *     - \alpha \left[\frac{\partial \underline{R}^{n+1}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
      *
-     * @param rElement
+     * @tparam TEntityType
+     * @param rCurrentEntity
      * @param rAdjointAuxiliaryValues
-     * @param rCurrentProcessInfo
+     * @param rProcessInfo
      */
-    virtual void CalculateAuxiliaryVariableContributions(
-        Element& rElement,
+    template <class TEntityType>
+    void CalculateEntityAuxiliaryVariableContributions(
+        TEntityType& rCurrentEntity,
         LocalSystemVectorType& rAdjointAuxiliaryValues,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rProcessInfo)
     {
-        CalculateEntityAuxiliaryVariableContributions(
-            rElement, rAdjointAuxiliaryValues, rCurrentProcessInfo);
+        KRATOS_TRY
+
+        const int k = OpenMPUtils::ThisThread();
+
+        rCurrentEntity.GetValuesVector(mAdjointValuesVector[k]);
+        this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
+
+        rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rProcessInfo);
+        mSecondDerivsLHS[k] *= mBossak.Alpha;
+        this->mpResponseFunction->CalculateSecondDerivativesGradient(
+            rCurrentEntity, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], rProcessInfo);
+
+        if (rAdjointAuxiliaryValues.size() != mSecondDerivsLHS[k].size1())
+            rAdjointAuxiliaryValues.resize(mSecondDerivsLHS[k].size1(), false);
+        noalias(rAdjointAuxiliaryValues) =
+            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) +
+            mSecondDerivsResponseGradient[k];
+
+        KRATOS_CATCH("");
     }
-
-    /**
-     * @brief Calculates auxiliary contributions from conditions
-     *
-     * @param rCondition
-     * @param rAdjointAuxiliaryValues
-     * @param rCurrentProcessInfo
-     */
-    virtual void CalculateAuxiliaryVariableContributions(
-        Condition& rCondition,
-        LocalSystemVectorType& rAdjointAuxiliaryValues,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        CalculateEntityAuxiliaryVariableContributions(
-            rCondition, rAdjointAuxiliaryValues, rCurrentProcessInfo);
-    }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
-        TSparseSpace::CreateDofUpdater();
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     void CalculateNodeNeighbourCount(ModelPart& rModelPart)
     {
@@ -802,65 +882,6 @@ private:
     }
 
     /**
-     * @brief Calculates entity time scheme contributions as depicted.
-     *
-     *
-     *   \[
-     *       rAdjointTimeSchemeValues1 =
-     *           - \frac{\partial J^{n}}{\partial \underline{\dot{w}}^n}
-     *           - \left[\frac{\partial \underline{R}^{n}}{\partial \underline{\dot{w}}}\right]^T\underline{\lambda}_1^{n+1}
-     *   \]
-     *   \[
-     *       rAdjointTimeSchemeValues2 =
-     *           - \frac{\partial J^{n}}{\partial \underline{\ddot{w}}^n}
-     *           - \left(1-\alpha\right)\left[\frac{\partial \underline{R}^{n}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
-     *   \]
-     *
-     * @tparam TEntityType
-     * @param rCurrentEntity
-     * @param rAdjointTimeSchemeValues1
-     * @param rAdjointTimeSchemeValues2
-     * @param rProcessInfo
-     */
-    template<class TEntityType>
-    void CalculateEntityTimeSchemeContributions(
-        TEntityType& rCurrentEntity,
-        LocalSystemVectorType& rAdjointTimeSchemeValues1,
-        LocalSystemVectorType& rAdjointTimeSchemeValues2,
-        const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY
-
-        const int k = OpenMPUtils::ThisThread();
-
-        rCurrentEntity.GetValuesVector(mAdjointValuesVector[k]);
-        this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
-
-        /// starting to build residual for next time step calculations
-        rCurrentEntity.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rProcessInfo);
-        this->mpResponseFunction->CalculateFirstDerivativesGradient(
-            rCurrentEntity, mFirstDerivsLHS[k], mFirstDerivsResponseGradient[k], rProcessInfo);
-
-        rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rProcessInfo);
-        mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
-        this->mpResponseFunction->CalculateSecondDerivativesGradient(
-            rCurrentEntity, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], rProcessInfo);
-
-        if (rAdjointTimeSchemeValues1.size() != mFirstDerivsResponseGradient[k].size())
-            rAdjointTimeSchemeValues1.resize(mFirstDerivsResponseGradient[k].size(), false);
-        noalias(rAdjointTimeSchemeValues1) =
-            -mFirstDerivsResponseGradient[k] -
-            prod(mFirstDerivsLHS[k], mAdjointValuesVector[k]);
-        if (rAdjointTimeSchemeValues2.size() != mSecondDerivsResponseGradient[k].size())
-            rAdjointTimeSchemeValues2.resize(mSecondDerivsResponseGradient[k].size(), false);
-        noalias(rAdjointTimeSchemeValues2) =
-            -mSecondDerivsResponseGradient[k] -
-            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
-
-        KRATOS_CATCH("");
-    }
-
-    /**
      * @brief Updates time scheme variables in nodes of model part
      *
      * @tparam TEntityContainerType
@@ -883,8 +904,9 @@ private:
             auto& r_entity = *(rEntityContainer.begin() + i);
             const int k = OpenMPUtils::ThisThread();
 
-            this->CalculateTimeSchemeContributions(r_entity, adjoint2_aux,
-                                                   adjoint3_aux, rProcessInfo);
+            this->CalculateTimeSchemeContributions(
+                r_entity, adjoint2_aux, adjoint3_aux, *this->mpResponseFunction,
+                mBossak, rProcessInfo);
 
             auto& r_extensions = *r_entity.GetValue(ADJOINT_EXTENSIONS);
 
@@ -977,45 +999,6 @@ private:
     }
 
     /**
-     * @brief Calculates contributions from each entity for auxiliary variable as depicted
-     *
-     *  rAdjointAuxiliaryValues =
-     *     - \frac{\partial J^{n+1}}{\partial \underline{\ddot{w}}^n}
-     *     - \alpha \left[\frac{\partial \underline{R}^{n+1}}{\partial \underline{\ddot{w}}^n}\right]^T\underline{\lambda}_1^{n+1}
-     *
-     * @tparam TEntityType
-     * @param rCurrentEntity
-     * @param rAdjointAuxiliaryValues
-     * @param rProcessInfo
-     */
-    template <class TEntityType>
-    void CalculateEntityAuxiliaryVariableContributions(
-        TEntityType& rCurrentEntity,
-        LocalSystemVectorType& rAdjointAuxiliaryValues,
-        const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY
-
-        const int k = OpenMPUtils::ThisThread();
-
-        rCurrentEntity.GetValuesVector(mAdjointValuesVector[k]);
-        this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
-
-        rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rProcessInfo);
-        mSecondDerivsLHS[k] *= mBossak.Alpha;
-        this->mpResponseFunction->CalculateSecondDerivativesGradient(
-            rCurrentEntity, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], rProcessInfo);
-
-        if (rAdjointAuxiliaryValues.size() != mSecondDerivsLHS[k].size1())
-            rAdjointAuxiliaryValues.resize(mSecondDerivsLHS[k].size1(), false);
-        noalias(rAdjointAuxiliaryValues) =
-            prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) +
-            mSecondDerivsResponseGradient[k];
-
-        KRATOS_CATCH("");
-    }
-
-    /**
      * @brief Updates auxiliary variables in the model part
      *
      * @tparam TEntityContainerType
@@ -1037,7 +1020,7 @@ private:
             const int k = OpenMPUtils::ThisThread();
 
             this->CalculateAuxiliaryVariableContributions(
-                r_entity, aux_adjoint_vector, rProcessInfo);
+                r_entity, aux_adjoint_vector, *this->mpResponseFunction, mBossak, rProcessInfo);
 
             auto& r_extensions = *r_entity.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
@@ -1108,6 +1091,41 @@ private:
             << rModelPart.Name() << ".\n";
 
         KRATOS_CATCH("");
+    }
+
+    void CheckAndResizeThreadStorage(unsigned SystemSize)
+    {
+        const int k = OpenMPUtils::ThisThread();
+
+        if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
+        {
+            mLeftHandSide[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mFirstDerivsLHS[k].size1() != SystemSize || mFirstDerivsLHS[k].size2() != SystemSize)
+        {
+            mFirstDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mSecondDerivsLHS[k].size1() != SystemSize || mSecondDerivsLHS[k].size2() != SystemSize)
+        {
+            mSecondDerivsLHS[k].resize(SystemSize, SystemSize, false);
+        }
+
+        if (mResponseGradient[k].size() != SystemSize)
+        {
+            mResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mFirstDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mFirstDerivsResponseGradient[k].resize(SystemSize, false);
+        }
+
+        if (mSecondDerivsResponseGradient[k].size() != SystemSize)
+        {
+            mSecondDerivsResponseGradient[k].resize(SystemSize, false);
+        }
     }
 
     static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
