@@ -186,9 +186,6 @@ template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSp
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 
-// Specialize array of compenents for VariableData
-// KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
-
 }  // namespace Kratos.
 
 

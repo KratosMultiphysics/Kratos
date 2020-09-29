@@ -44,8 +44,6 @@ public:
     /// Pointer definition of ApplyRayCastingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyRayCastingProcess);
 
-    // KRATOS_REGISTER_PROCESS("ApplyRayCastingProcess", RegisterThisPrototype<ApplyRayCastingProcess<TDim>>("ApplyRayCastingProcess"))
-
     //TODO: These using statements have been included to make the old functions able to compile. It is still pending to update them.
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
     using CellType = OctreeBinaryCell<ConfigurationType>;

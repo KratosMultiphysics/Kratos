@@ -100,7 +100,6 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mpElements(KratosComponents<Element>::pGetComponents()),
       mpConditions(KratosComponents<Condition>::pGetComponents()),
       mpModelers(KratosComponents<Modeler>::pGetComponents()),
-      mpProcesses(KratosComponents<Process>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
       mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {}
 
@@ -120,7 +119,6 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
     Serializer::Register("Modeler", Modeler());
-    Serializer::Register("Process", Process());
     Serializer::Register("Properties", Properties());
     Serializer::Register("GeometricalObject", GeometricalObject());
 
