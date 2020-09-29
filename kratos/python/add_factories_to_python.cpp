@@ -63,8 +63,8 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def("Has",&PreconditionerFactoryType::Has)
     ;
 
-    m.def("ProcessFactory.Create", &ProcessFactory::Create);
-    m.def("ProcessFactory.Has", &ProcessFactory::Has);
+    m.def("CreateProcess", &ProcessFactory::Create);
+    m.def("HasProcess", &ProcessFactory::Has);
 }
 
 }  // namespace Python.

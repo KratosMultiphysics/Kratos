@@ -724,13 +724,6 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<Modeler>::Add(name, reference); \
     Serializer::Register(name, reference);
 
-#ifdef KRATOS_REGISTER_PROCESS
-#undef KRATOS_REGISTER_PROCESS
-#endif
-#define KRATOS_REGISTER_PROCESS(name, reference) \
-    KratosComponents<Process>::Add(name, reference); \
-    Serializer::Register(name, reference);
-
 #ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #undef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #endif
