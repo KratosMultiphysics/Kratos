@@ -35,7 +35,7 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-Parameters EmbeddedSkinVisualizationProcess::GetDefaultSettings()
+Parameters EmbeddedSkinVisualizationProcess::StaticGetDefaultParameters()
 {
     Parameters default_settings(R"(
     {
@@ -71,7 +71,7 @@ ModelPart& EmbeddedSkinVisualizationProcess::CreateAndPrepareVisualizationModelP
 
     // Create the visualization model part
     auto& r_visualization_model_part = rModel.CreateModelPart(visualization_mp_name, buffer_size);
-    
+
     // Set visualization model part ProcessInfo
     // Note that the visualization model part and the origin model part share the ProcessInfo container
     const auto p_process_info = r_origin_model_part.pGetProcessInfo();
@@ -208,7 +208,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     , mrVisualizationModelPart(rVisualizationModelPart)
     , mLevelSetType(
         [&] (Parameters& x) {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             LevelSetType aux_level_set_type;
             CheckAndSetLevelSetType(x, aux_level_set_type);
             return aux_level_set_type;
@@ -216,7 +216,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mShapeFunctionsType(
         [&] (Parameters& x) {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             ShapeFunctionsType aux_shape_func_type;
             CheckAndSetShapeFunctionsType(x, aux_shape_func_type);
             return aux_shape_func_type;
@@ -224,7 +224,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mReformModelPartAtEachTimeStep(
         [&] (Parameters& x) {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             return x["reform_model_part_at_each_time_step"].GetBool();
         } (rParameters)
     )
@@ -233,7 +233,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
             const Variable<double>* p_aux;
             switch (mLevelSetType) {
                 case LevelSetType::Continuous: {
-                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
                     const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
                     p_aux = &(KratosComponents<Variable<double>>::Get(dist_var_name));
                     return p_aux;
@@ -249,7 +249,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
             const Variable<Vector>* p_aux;
             switch (mLevelSetType) {
                 case LevelSetType::Discontinuous: {
-                    x.ValidateAndAssignDefaults(GetDefaultSettings());
+                    x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
                     const std::string dist_var_name(CheckAndReturnDistanceVariableName(x, mLevelSetType));
                     p_aux = &(KratosComponents<Variable<Vector>>::Get(dist_var_name));
                     return p_aux;
@@ -262,7 +262,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationScalarVariables(
         [&] (Parameters& x) -> std::vector<const Variable<double>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<double>*> aux_list;
             FillVariablesList<double>(x["visualization_variables"], aux_list);
             return aux_list;
@@ -270,7 +270,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationVectorVariables(
         [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<array_1d<double,3>>*> aux_list;
             FillVariablesList<array_1d<double,3>>(x["visualization_variables"], aux_list);
             return aux_list;
@@ -278,7 +278,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationNonHistoricalScalarVariables(
         [&] (Parameters& x) -> std::vector<const Variable<double>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<double>*> aux_list;
             FillVariablesList<double>(x["visualization_nonhistorical_variables"], aux_list);
             return aux_list;
@@ -286,7 +286,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     )
     , mVisualizationNonHistoricalVectorVariables(
         [&] (Parameters& x) -> std::vector<const Variable<array_1d<double,3>>*> {
-            x.ValidateAndAssignDefaults(GetDefaultSettings());
+            x.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             std::vector<const Variable<array_1d<double,3>>*> aux_list;
             FillVariablesList<array_1d<double,3>>(x["visualization_nonhistorical_variables"], aux_list);
             return aux_list;
@@ -300,12 +300,12 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     Parameters rParameters)
     : EmbeddedSkinVisualizationProcess(
         [&] (Model& x, Parameters& y) -> ModelPart& {
-            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            y.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             KRATOS_ERROR_IF(y["model_part_name"].GetString() == "") << "\'model_part_name\' is empty. Please provide the origin model part name." << std::endl;
             return x.GetModelPart(y["model_part_name"].GetString());
         } (rModel, rParameters),
         [&] (Model& x, Parameters& y) -> ModelPart& {
-            y.ValidateAndAssignDefaults(GetDefaultSettings());
+            y.ValidateAndAssignDefaults(StaticGetDefaultParameters());
             return CreateAndPrepareVisualizationModelPart(x, y);
         } (rModel, rParameters),
         rParameters)
