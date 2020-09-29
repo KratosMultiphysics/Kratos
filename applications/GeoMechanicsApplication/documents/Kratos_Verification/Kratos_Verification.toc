@@ -1,0 +1,30 @@
+\babel@toc {english}{}
+\contentsline {chapter}{List of Figures}{v}{chapter*.2}% 
+\contentsline {chapter}{List of Tables}{vii}{chapter*.3}% 
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}% 
+\contentsline {chapter}{\numberline {2}Benchmark 1: Bi-axial shearing test with linear elastic model}{3}{chapter.2}% 
+\contentsline {section}{\numberline {2.1}Geometry and boundary conditions}{3}{section.2.1}% 
+\contentsline {section}{\numberline {2.2}Material}{4}{section.2.2}% 
+\contentsline {section}{\numberline {2.3}Mesh Generation}{4}{section.2.3}% 
+\contentsline {section}{\numberline {2.4}Results}{4}{section.2.4}% 
+\contentsline {chapter}{\numberline {3}Benchmark 2: Bending of plates}{7}{chapter.3}% 
+\contentsline {section}{\numberline {3.1}Bending of plate when point load is applied}{7}{section.3.1}% 
+\contentsline {subsection}{\numberline {3.1.1}Geometry}{7}{subsection.3.1.1}% 
+\contentsline {subsection}{\numberline {3.1.2}Material}{7}{subsection.3.1.2}% 
+\contentsline {subsection}{\numberline {3.1.3}Results}{8}{subsection.3.1.3}% 
+\contentsline {section}{\numberline {3.2}Bending of plate when line load is applied}{8}{section.3.2}% 
+\contentsline {subsection}{\numberline {3.2.1}Geometry}{8}{subsection.3.2.1}% 
+\contentsline {subsection}{\numberline {3.2.2}Material}{8}{subsection.3.2.2}% 
+\contentsline {subsection}{\numberline {3.2.3}Results}{8}{subsection.3.2.3}% 
+\contentsline {chapter}{\numberline {4}Benchmark 3: Smooth rigid footing on elastic soil}{11}{chapter.4}% 
+\contentsline {section}{\numberline {4.1}Geometry}{11}{section.4.1}% 
+\contentsline {section}{\numberline {4.2}Material}{11}{section.4.2}% 
+\contentsline {section}{\numberline {4.3}Meshing}{11}{section.4.3}% 
+\contentsline {section}{\numberline {4.4}Results}{11}{section.4.4}% 
+\contentsline {chapter}{\numberline {5}Benchmark 4: 1D consolidation on elastic soil}{13}{chapter.5}% 
+\contentsline {section}{\numberline {5.1}Geometry}{13}{section.5.1}% 
+\contentsline {section}{\numberline {5.2}Materials}{13}{section.5.2}% 
+\contentsline {section}{\numberline {5.3}Meshing}{13}{section.5.3}% 
+\contentsline {section}{\numberline {5.4}Calculation}{13}{section.5.4}% 
+\contentsline {section}{\numberline {5.5}Results}{13}{section.5.5}% 
+\contentsline {chapter}{Bibliography}{15}{chapter*.18}% 

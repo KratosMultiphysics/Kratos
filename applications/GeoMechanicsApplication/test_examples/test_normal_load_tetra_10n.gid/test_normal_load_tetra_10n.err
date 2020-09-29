@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "MainKratos.py", line 18, in <module>
+    simulation.Run()
+  File "D:\software_development\Kratos\kratos\python_scripts\analysis_stage.py", line 49, in Run
+    self.Initialize()
+  File "D:\software_development\Kratos\applications\GeoMechanicsApplication\python_scripts\geomechanics_analysis.py", line 146, in Initialize
+    super(GeoMechanicsAnalysisBase,self).Initialize()
+  File "D:\software_development\Kratos\kratos\python_scripts\analysis_stage.py", line 77, in Initialize
+    self._GetSolver().ImportModelPart()
+  File "D:\software_development\Kratos\applications\GeoMechanicsApplication\python_scripts\geomechanics_U_Pw_solver.py", line 131, in ImportModelPart
+    self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
+  File "D:\software_development\Kratos\kratos\python_scripts\python_solver.py", line 183, in _ImportModelPart
+    KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
+RuntimeError: Error: Properties #16 is not found. [Line 188 ]
+
+
+
+in kratos/sources/model_part_io.cpp:4449:ModelPartIO::FindKey
+   kratos/sources/model_part_io.cpp:1556:ModelPartIO::ReadConditionsBlock
+   kratos/sources/model_part_io.cpp:511:ModelPartIO::ReadModelPart
+

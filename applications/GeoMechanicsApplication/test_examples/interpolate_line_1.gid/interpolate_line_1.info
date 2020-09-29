@@ -1,0 +1,110 @@
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 7.0.0-1b382327-FullDebug
+Compiled with OpenMP support.
+Maximum OpenMP threads: 12.
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication...
+Importing    KratosStructuralMechanicsApplication 
+    KRATOS   ___|  |                   |                   |
+           \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+                 | |   |    |   | (    |   |   | |   (   | |
+           _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+Initializing KratosStructuralMechanicsApplication...
+Importing    KratosGeoMechanicsApplication 
+ KRATOS___                             
+     //   ) )                          
+    //         ___      ___            
+   //  ____  //___) ) //   ) )         
+  //    / / //       //   / /          
+ ((____/ / ((____   ((___/ /  MECHANICS
+ Initializing KratosGeoMechanicsApplication...
+GeoMechanics Analysis: Tue Jan 28 17:13:05 2020 
+GeoMechanics Analysis: OpenMP parallel configuration. OMP_NUM_THREADS = 1 
+::[GeoMechanicalSolver]:: : Construction finished 
+geomechanics_solver: is not a restarted model 
+UPwSolver: Construction of UPwSolver finished. 
+::[GeoMechanicalSolver]:: : Variables ADDED 
+::[PythonSolver]::: Reading model part. 
+::[PythonSolver]::: Reading model part from file: D:\src\Kratos\applications\GeoMechanicsApplication\test_examples\interpolate_line_1.gid\interpolate_line_1.mdpa 
+ModelPartIO:   [Reading Nodes    : 360 nodes read]
+ModelPartIO:   [Reading Elements : 648 elements read] [Type: UPwSmallStrainElement2D3N]
+ModelPartIO:   [Total Lines Read : 3139]
+::[PythonSolver]::: Finished reading model part from mdpa file. 
+ModelPart: -PorousDomain- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Current solution step index : 0
+    DOMAIN_SIZE : 2
+    IS_RESTARTED : 0
+
+    Mesh 0 :
+        Number of Nodes       : 360
+        Number of Properties  : 1
+        Number of Elements    : 648
+        Number of Conditions  : 0
+        Number of Constraints : 0
+
+    -Solid_Displacement-auto-1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 15
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -bottom- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 127
+            Number of Properties  : 0
+            Number of Elements    : 210
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -drained_el- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 360
+            Number of Properties  : 0
+            Number of Elements    : 648
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -middle- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 132
+            Number of Properties  : 0
+            Number of Elements    : 220
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -top- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 131
+            Number of Properties  : 0
+            Number of Elements    : 218
+            Number of Conditions  : 0
+            Number of Constraints : 0
+ 
+::[PythonSolver]:: : Finished reading model part. 
+::[GeoMechanicalSolver]:: importing constitutive law: MaterialParameters.json 
+Read materials: Started
+Read materials: Finished
+::[GeoMechanicalSolver]:: : Constitutive law was successfully imported. 
+UPwSolver: Model reading finished. 
+UPwSolver: DOFs added correctly. 
+::[GeoMechanics_U_Pw_Solver]:: : Initialisation ... 
+Linear-Solver-Factory: Constructing a

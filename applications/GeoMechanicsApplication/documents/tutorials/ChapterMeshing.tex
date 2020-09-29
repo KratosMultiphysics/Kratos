@@ -1,0 +1,22 @@
+
+Before a calculation can be done with KratosGeoMechanics, it is required to generate the mesh. Every time something is changed in the geometry, the mesh has to be regenerated. So for example:
+
+\begin{itemize}
+	\setlength\itemsep{2mm}
+	\item The geometry has been changed
+	\item A new or different boundary condition is assigned
+	\item A different material is assigned to an existing surface or volume
+\end{itemize}
+
+\begin{enumerate}
+	\setlength\itemsep{2mm}
+	\item In the top menu bar click: Mesh->Element type to choose the element type of your mesh. For a 2D domain choose either triangle elements or quadrilateral elements. For a 3D domain choose either Tetrahedra, hexahedra or Prism elements. Line elements are automatically set as Bar elements.
+	\item The size of the mesh can be set locally.
+\begin{itemize}	
+	\setlength\itemsep{2mm}
+	\item In the top menu bar click: "Mesh->Unstructured->Assign sizes on lines/surfaces/volumes" to assign the size of the unstructured mesh on respectively lines,surfaces or volumes. 
+	\item In the top menu bar click: "Mesh->Structured->Assign sizes on lines/surfaces/volumes" to assign the size of the structured mesh on respectively lines,surfaces or volumes. 		
+\end{itemize}
+	\item To alter the size transition from small elements to large elements in an unstructured mesh, In the top menu bar click: Utilities->Preferences. In the Preferences window, go to Meshing->Unstructured. In this window, the "Unstructured size transition" can be altered. It controls whether the transitions between different element sizes are slow (near to 0) or fast (near to 1), where the default is 0.6. Select the preferred size transition number and click on apply. 
+	 
+\end{enumerate}

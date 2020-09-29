@@ -1,0 +1,1595 @@
+Parameters Object {
+    "output_processes": {
+        "gid_output": [
+            {
+                "Parameters": {
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
+                    "output_name": "test_normal_load_triangle_3n_fic",
+                    "postprocess_parameters": {
+                        "point_data_configuration": [],
+                        "result_file_configuration": {
+                            "body_output": true,
+                            "file_label": "step",
+                            "gauss_point_results": [
+                                "MOMENT",
+                                "FORCE",
+                                "GREEN_LAGRANGE_STRAIN_TENSOR",
+                                "CAUCHY_STRESS_TENSOR",
+                                "TOTAL_STRESS_TENSOR",
+                                "VON_MISES_STRESS",
+                                "FLUID_FLUX_VECTOR",
+                                "PERMEABILITY_MATRIX",
+                                "DAMAGE_VARIABLE",
+                                "JOINT_WIDTH",
+                                "LOCAL_STRESS_VECTOR",
+                                "LOCAL_RELATIVE_DISPLACEMENT_VECTOR",
+                                "LOCAL_FLUID_FLUX_VECTOR",
+                                "LOCAL_PERMEABILITY_MATRIX"
+                            ],
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostBinary",
+                                "MultiFileFlag": "SingleFile",
+                                "WriteConditionsFlag": "WriteElementsOnly",
+                                "WriteDeformedMeshFlag": "WriteUndeformed"
+                            },
+                            "nodal_results": [
+                                "DISPLACEMENT",
+                                "TOTAL_DISPLACEMENT",
+                                "ROTATION",
+                                "WATER_PRESSURE",
+                                "REACTION",
+                                "REACTION_WATER_PRESSURE",
+                                "POINT_LOAD",
+                                "LINE_LOAD",
+                                "SURFACE_LOAD",
+                                "NORMAL_CONTACT_STRESS",
+                                "TANGENTIAL_CONTACT_STRESS",
+                                "NORMAL_FLUID_FLUX",
+                                "VOLUME_ACCELERATION",
+                                "NODAL_CAUCHY_STRESS_TENSOR",
+                                "NODAL_DAMAGE_VARIABLE",
+                                "NODAL_JOINT_WIDTH",
+                                "NODAL_JOINT_DAMAGE"
+                            ],
+                            "node_output": false,
+                            "output_control_type": "step",
+                            "output_frequency": 1,
+                            "plane_output": [],
+                            "skin_output": false
+                        }
+                    }
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "python_module": "gid_output_process"
+            }
+        ]
+    },
+    "problem_data": {
+        "echo_level": 1,
+        "end_time": 1.0,
+        "number_of_threads": 1,
+        "parallel_type": "OpenMP",
+        "problem_name": "test_normal_load_triangle_3n_fic",
+        "start_time": 0.0
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "Parameters": {
+                    "active": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "is_fixed": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "model_part_name": "PorousDomain.Solid_Displacement-auto-1",
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "DISPLACEMENT"
+                },
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "python_module": "apply_vector_constraint_table_process"
+            },
+            {
+                "Parameters": {
+                    "active": [
+                        true,
+                        false,
+                        true
+                    ],
+                    "is_fixed": [
+                        true,
+                        false,
+                        true
+                    ],
+                    "model_part_name": "PorousDomain.sides",
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "DISPLACEMENT"
+                },
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "python_module": "apply_vector_constraint_table_process"
+            },
+            {
+                "Parameters": {
+                    "fluid_pressure_type": "Hydrostatic",
+                    "gravity_direction": 1,
+                    "is_fixed": true,
+                    "model_part_name": "PorousDomain.Fluid_Pressure-auto-1",
+                    "reference_coordinate": 2,
+                    "specific_weight": 10000.0,
+                    "table": 0,
+                    "value": 0.0,
+                    "variable_name": "WATER_PRESSURE"
+                },
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyScalarConstraintTableProcess",
+                "python_module": "apply_scalar_constraint_table_process"
+            }
+        ],
+        "loads_process_list": [
+            {
+                "Parameters": {
+                    "active": [
+                        true,
+                        false
+                    ],
+                    "fluid_pressure_type": "Hydrostatic",
+                    "gravity_direction": 1,
+                    "model_part_name": "PorousDomain.Normal_Load-auto-1",
+                    "reference_coordinate": 2,
+                    "specific_weight": 10000.0,
+                    "table": [
+                        0,
+                        0
+                    ],
+                    "value": [
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "NORMAL_CONTACT_STRESS"
+                },
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyNormalLoadTableProcess",
+                "python_module": "apply_normal_load_table_process"
+            }
+        ]
+    },
+    "solver_settings": {
+        "block_builder": true,
+        "body_domain_sub_model_part_list": [
+            "Soil_drained-auto-1"
+        ],
+        "buffer_size": 2,
+        "calculate_reactions": true,
+        "clear_storage": false,
+        "compute_reactions": true,
+        "convergence_criterion": "displacement_criterion",
+        "desired_iterations": 4,
+        "displacement_absolute_tolerance": 1e-15,
+        "displacement_relative_tolerance": 1e-15,
+        "domain_size": 2,
+        "echo_level": 1,
+        "first_alpha_value": 0.5,
+        "increase_factor": 1,
+        "line_search_tolerance": 0.5,
+        "linear_solver_settings": {
+            "scaling": true,
+            "solver_type": "ExternalSolversApplication.super_lu"
+        },
+        "material_import_settings": {
+            "materials_filename": "MaterialParameters.json"
+        },
+        "max_alpha": 2.0,
+        "max_iterations": 15,
+        "max_line_search_iterations": 5,
+        "max_radius_factor": 10.0,
+        "min_alpha": 0.1,
+        "min_iterations": 6,
+        "min_radius_factor": 0.1,
+        "model_import_settings": {
+            "input_filename": "test_normal_load_triangle_3n_fic",
+            "input_type": "mdpa"
+        },
+        "model_part_name": "PorousDomain",
+        "move_mesh_flag": true,
+        "newmark_beta": 0.25,
+        "newmark_gamma": 0.5,
+        "newmark_theta": 0.5,
+        "nodal_smoothing": true,
+        "number_cycles": 100,
+        "problem_domain_sub_model_part_list": [
+            "Soil_drained-auto-1"
+        ],
+        "processes_sub_model_part_list": [
+            "Solid_Displacement-auto-1",
+            "sides",
+            "Fluid_Pressure-auto-1",
+            "Normal_Load-auto-1"
+        ],
+        "rayleigh_k": 0.0,
+        "rayleigh_m": 0.0,
+        "realised_factor": 0.9999,
+        "reduction_factor": 0.5,
+        "reform_dofs_at_each_step": false,
+        "reset_displacements": true,
+        "residual_absolute_tolerance": 1e-09,
+        "residual_relative_tolerance": 0.0001,
+        "rotation_dofs": true,
+        "scheme_type": "Newmark",
+        "second_alpha_value": 1.0,
+        "solution_type": "Quasi-Static",
+        "solver_type": "U_Pw",
+        "start_time": 0.0,
+        "strategy_type": "newton_raphson",
+        "time_stepping": {
+            "end_time": 1.0,
+            "time_step": 0.01
+        }
+    }
+}
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 7.0.0-23ae48d6-Release
+Compiled with OpenMP support.
+Maximum OpenMP threads: 4.
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication...
+Importing    KratosStructuralMechanicsApplication 
+    KRATOS   ___|  |                   |                   |
+           \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+                 | |   |    |   | (    |   |   | |   (   | |
+           _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+Initializing KratosStructuralMechanicsApplication...
+Importing    KratosGeoMechanicsApplication 
+ KRATOS___                             
+     //   ) )                          
+    //         ___      ___            
+   //  ____  //___) ) //   ) )         
+  //    / / //       //   / /          
+ ((____/ / ((____   ((___/ /  MECHANICS
+ Initializing KratosGeoMechanicsApplication...
+GeoMechanics Analysis: Fri Apr 17 10:32:07 2020 
+GeoMechanics Analysis: OpenMP parallel configuration. OMP_NUM_THREADS = 1 
+::[GeoMechanicalSolver]:: : Construction finished 
+geomechanics_solver: is not a restarted model 
+UPwSolver: Construction of UPwSolver finished. 
+::[GeoMechanicalSolver]:: : Variables ADDED 
+::[PythonSolver]::: Reading model part. 
+::[PythonSolver]::: Reading model part from file: D:\software_development\Kratos\applications\GeoMechanicsApplication\test_examples\test_normal_load_triangle_3n_fic.gid\test_normal_load_triangle_3n_fic.mdpa 
+ModelPartIO:   [Reading Nodes    : 9 nodes read]
+ModelPartIO:   [Reading Elements : 8 elements read] [Type: UPwSmallStrainFICElement2D3N]
+ModelPartIO:   [Reading Conditions : 2 conditions read] [Type: UPwNormalFaceLoadCondition2D2N]
+ModelPartIO:   [Total Lines Read : 140]
+::[PythonSolver]::: Finished reading model part from mdpa file. 
+ModelPart: -PorousDomain- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Current solution step index : 0
+    DOMAIN_SIZE : 2
+    IS_RESTARTED : 0
+
+    Mesh 0 :
+        Number of Nodes       : 9
+        Number of Properties  : 1
+        Number of Elements    : 8
+        Number of Conditions  : 2
+        Number of Constraints : 0
+
+    -Fluid_Pressure-auto-1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 9
+            Number of Properties  : 0
+            Number of Elements    : 8
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Normal_Load-auto-1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 3
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 2
+            Number of Constraints : 0
+    -Soil_drained-auto-1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 9
+            Number of Properties  : 0
+            Number of Elements    : 8
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Solid_Displacement-auto-1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 3
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -sides- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 6
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+ 
+::[PythonSolver]:: : Finished reading model part. 
+::[GeoMechanicalSolver]:: importing constitutive law: MaterialParameters.json 
+Read materials: Started
+Read materials: Finished
+::[GeoMechanicalSolver]:: : Constitutive law was successfully imported. 
+UPwSolver: Model reading finished. 
+UPwSolver: DOFs added correctly. 
+::[GeoMechanics_U_Pw_Solver]:: : Initialisation ... 
+Linear-Solver-Factory: Constructing a regular (non-complex) linear-solver 
+UPwSolver, solution_type: Quasi-Static 
+UPwSolver, scheme: Quasi-UnDamped. 
+UPwSolver: solver.Initialize is set successfully 
+UPwSolver: Solver initialization finished. 
+GeoMechanics Analysis: Analysis -START-  
+GeoMechanics Analysis: cycle:  1 
+Setup Dofs Time: 0.000671481
+Setup System Time: 1.579e-06
+System Matrix Resize Time: 0.000364755
+System Construction Time: 0.00115624
+GeoMechanics Analysis: STEP:  1 
+GeoMechanics Analysis: TIME:  0.01 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00098018
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.000151586
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 1; Expected ratio = 1e-15; Absolute norm = 0.0001278; Expected norm =  1e-15]
+ResidualBasedBlockBuilderAndSolver: Build time: 8.92149e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.42128e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0.000224608; Expected ratio = 1e-15; Absolute norm = 2.87114e-08; Expected norm =  1e-15]
+ResidualBasedBlockBuilderAndSolver: Build time: 8.40831e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.06599e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 5.41016e-08; Expected ratio = 1e-15; Absolute norm = 6.91575e-12; Expected norm =  1e-15]
+ResidualBasedBlockBuilderAndSolver: Build time: 8.40831e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.68449e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 1.33603e-11; Expected ratio = 1e-15; Absolute norm = 1.70784e-15; Expected norm =  1e-15]
+ResidualBasedBlockBuilderAndSolver: Build time: 8.52674e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 3.82913e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.56099e-19; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 5 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  2 
+GeoMechanics Analysis: TIME:  0.02 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.63205e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.56606e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.85233e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  3 
+GeoMechanics Analysis: TIME:  0.03 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.75048e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.52658e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.62135e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  4 
+GeoMechanics Analysis: TIME:  0.04 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000257776
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.000101058
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.49707e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  5 
+GeoMechanics Analysis: TIME:  0.05 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000103821
+ResidualBasedBlockBuilderAndSolver: System solve time: 6.51347e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.75451e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  6 
+GeoMechanics Analysis: TIME:  0.060000000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.39519e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.3292e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.14273e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  7 
+GeoMechanics Analysis: TIME:  0.07 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.56606e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.75711e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.94e-07
+GeoMechanics Analysis: STEP:  8 
+GeoMechanics Analysis: TIME:  0.08 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000116058
+ResidualBasedBlockBuilderAndSolver: System solve time: 7.97408e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.92544e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  9 
+GeoMechanics Analysis: TIME:  0.09 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.75047e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.72397e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.66152e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  10 
+GeoMechanics Analysis: TIME:  0.09999999999999999 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.90839e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.5266e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.25335e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.94e-07
+GeoMechanics Analysis: STEP:  11 
+GeoMechanics Analysis: TIME:  0.10999999999999999 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.03992e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.93445e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.99932e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  12 
+GeoMechanics Analysis: TIME:  0.11999999999999998 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.03992e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 6.98718e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.2577e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  13 
+GeoMechanics Analysis: TIME:  0.12999999999999998 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.86891e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.64501e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.21129e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  14 
+GeoMechanics Analysis: TIME:  0.13999999999999999 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000116453
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.13183e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.17428e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  15 
+GeoMechanics Analysis: TIME:  0.15 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.03992e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.93446e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.46887e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  16 
+GeoMechanics Analysis: TIME:  0.16 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.88201e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 7.30299e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.4628e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  17 
+GeoMechanics Analysis: TIME:  0.17 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.19781e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.09236e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.20418e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  18 
+GeoMechanics Analysis: TIME:  0.18000000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.31624e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.97393e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.23845e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  19 
+GeoMechanics Analysis: TIME:  0.19000000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.98733e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.76343e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.38547e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  20 
+GeoMechanics Analysis: TIME:  0.20000000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000189483
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.60554e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.22411e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  21 
+GeoMechanics Analysis: TIME:  0.21000000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.5531e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.5266e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.18745e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  22 
+GeoMechanics Analysis: TIME:  0.22000000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.27676e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.09236e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.04507e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  23 
+GeoMechanics Analysis: TIME:  0.23000000000000007 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.03992e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.89497e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.42616e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  24 
+GeoMechanics Analysis: TIME:  0.24000000000000007 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96096e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.85551e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.13714e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  25 
+GeoMechanics Analysis: TIME:  0.25000000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.85551e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.90869e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  26 
+GeoMechanics Analysis: TIME:  0.26000000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.15835e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.97393e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.3747e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  27 
+GeoMechanics Analysis: TIME:  0.2700000000000001 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.59258e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.52658e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.73207e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  28 
+GeoMechanics Analysis: TIME:  0.2800000000000001 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.92149e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.8555e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.51154e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  29 
+GeoMechanics Analysis: TIME:  0.2900000000000001 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.92149e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.8555e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.73424e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  30 
+GeoMechanics Analysis: TIME:  0.3000000000000001 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.82942e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.60554e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.7316e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  31 
+GeoMechanics Analysis: TIME:  0.3100000000000001 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.63204e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.60554e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.51119e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  32 
+GeoMechanics Analysis: TIME:  0.3200000000000001 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.51362e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.48711e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.98137e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  33 
+GeoMechanics Analysis: TIME:  0.3300000000000001 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.89497e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.56105e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.94e-07
+GeoMechanics Analysis: STEP:  34 
+GeoMechanics Analysis: TIME:  0.34000000000000014 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000107768
+ResidualBasedBlockBuilderAndSolver: System solve time: 6.03977e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.37007e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  35 
+GeoMechanics Analysis: TIME:  0.35000000000000014 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.92149e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.85551e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.08321e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  36 
+GeoMechanics Analysis: TIME:  0.36000000000000015 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.88202e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.8555e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.31057e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  37 
+GeoMechanics Analysis: TIME:  0.37000000000000016 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000164613
+ResidualBasedBlockBuilderAndSolver: System solve time: 8.40831e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.76689e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  38 
+GeoMechanics Analysis: TIME:  0.38000000000000017 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000100663
+ResidualBasedBlockBuilderAndSolver: System solve time: 6.35558e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.64428e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  39 
+GeoMechanics Analysis: TIME:  0.3900000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.90839e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.76344e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.92754e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  40 
+GeoMechanics Analysis: TIME:  0.4000000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000310278
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.000119611
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.53131e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  41 
+GeoMechanics Analysis: TIME:  0.4100000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.63205e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.40817e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.9679e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  42 
+GeoMechanics Analysis: TIME:  0.4200000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.8555e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.46787e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  43 
+GeoMechanics Analysis: TIME:  0.4300000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.2373e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.0134e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.46785e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  44 
+GeoMechanics Analysis: TIME:  0.4400000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96096e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.89497e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.83002e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  45 
+GeoMechanics Analysis: TIME:  0.45000000000000023 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.19782e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.17131e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.50132e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  46 
+GeoMechanics Analysis: TIME:  0.46000000000000024 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96096e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.93446e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.61907e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  47 
+GeoMechanics Analysis: TIME:  0.47000000000000025 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000143691
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.8555e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.65477e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  48 
+GeoMechanics Analysis: TIME:  0.48000000000000026 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.2373e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.13183e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.01477e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  49 
+GeoMechanics Analysis: TIME:  0.49000000000000027 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00046897
+ResidualBasedBlockBuilderAndSolver: System solve time: 8.25041e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.91972e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  50 
+GeoMechanics Analysis: TIME:  0.5000000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000157902
+ResidualBasedBlockBuilderAndSolver: System solve time: 8.28988e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.16333e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  51 
+GeoMechanics Analysis: TIME:  0.5100000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.98733e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.96083e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.20614e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  52 
+GeoMechanics Analysis: TIME:  0.5200000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.78996e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.64501e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.68567e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  53 
+GeoMechanics Analysis: TIME:  0.5300000000000002 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.15835e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.21078e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.27559e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  54 
+GeoMechanics Analysis: TIME:  0.5400000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96096e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.8555e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.31677e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  55 
+GeoMechanics Analysis: TIME:  0.5500000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000146849
+ResidualBasedBlockBuilderAndSolver: System solve time: 7.53985e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.1697e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  56 
+GeoMechanics Analysis: TIME:  0.5600000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.89497e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.21026e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  57 
+GeoMechanics Analysis: TIME:  0.5700000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.11887e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.05288e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.86499e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  58 
+GeoMechanics Analysis: TIME:  0.5800000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96098e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.85551e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.01647e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  59 
+GeoMechanics Analysis: TIME:  0.5900000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000157508
+ResidualBasedBlockBuilderAndSolver: System solve time: 9.51363e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.64496e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.94e-07
+GeoMechanics Analysis: STEP:  60 
+GeoMechanics Analysis: TIME:  0.6000000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000101452
+ResidualBasedBlockBuilderAndSolver: System solve time: 6.0003e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.92754e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  61 
+GeoMechanics Analysis: TIME:  0.6100000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.71101e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.60554e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.53131e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  62 
+GeoMechanics Analysis: TIME:  0.6200000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.27678e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.88186e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.9679e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  63 
+GeoMechanics Analysis: TIME:  0.6300000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96096e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.97393e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.46916e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  64 
+GeoMechanics Analysis: TIME:  0.6400000000000003 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.07939e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.89498e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.46785e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  65 
+GeoMechanics Analysis: TIME:  0.6500000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.92149e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.89497e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.83002e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  66 
+GeoMechanics Analysis: TIME:  0.6600000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96098e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.77656e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.50132e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  67 
+GeoMechanics Analysis: TIME:  0.6700000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96096e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.85551e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.61907e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  68 
+GeoMechanics Analysis: TIME:  0.6800000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.77656e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.65477e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  69 
+GeoMechanics Analysis: TIME:  0.6900000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96098e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.77654e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.01598e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  70 
+GeoMechanics Analysis: TIME:  0.7000000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.35573e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.40816e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.91869e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  71 
+GeoMechanics Analysis: TIME:  0.7100000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00011369
+ResidualBasedBlockBuilderAndSolver: System solve time: 6.03977e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.16333e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  72 
+GeoMechanics Analysis: TIME:  0.7200000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.97393e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.20614e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  73 
+GeoMechanics Analysis: TIME:  0.7300000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.2373e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.05288e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.68567e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  74 
+GeoMechanics Analysis: TIME:  0.7400000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.93445e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.27724e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  75 
+GeoMechanics Analysis: TIME:  0.7500000000000004 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.96096e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.77656e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.31677e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  76 
+GeoMechanics Analysis: TIME:  0.7600000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.00044e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.85551e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.1697e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  77 
+GeoMechanics Analysis: TIME:  0.7700000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.11887e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 7.61879e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.50856e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  78 
+GeoMechanics Analysis: TIME:  0.7800000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.23729e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.17131e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.87767e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  79 
+GeoMechanics Analysis: TIME:  0.7900000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.84254e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.85551e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.01706e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  80 
+GeoMechanics Analysis: TIME:  0.8000000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.68464e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.6976e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.64302e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.94e-07
+GeoMechanics Analysis: STEP:  81 
+GeoMechanics Analysis: TIME:  0.8100000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000105795
+ResidualBasedBlockBuilderAndSolver: System solve time: 6.11872e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.48815e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  82 
+GeoMechanics Analysis: TIME:  0.8200000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000158692
+ResidualBasedBlockBuilderAndSolver: System solve time: 8.52674e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.57608e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  83 
+GeoMechanics Analysis: TIME:  0.8300000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000100663
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.92134e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.21988e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  84 
+GeoMechanics Analysis: TIME:  0.8400000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.94785e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.80292e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.68971e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  85 
+GeoMechanics Analysis: TIME:  0.8500000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.82942e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.68449e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.08435e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  86 
+GeoMechanics Analysis: TIME:  0.8600000000000005 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000101847
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.8424e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.28751e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  87 
+GeoMechanics Analysis: TIME:  0.8700000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000102637
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.8424e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.13625e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  88 
+GeoMechanics Analysis: TIME:  0.8800000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.82943e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.8424e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.90923e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  89 
+GeoMechanics Analysis: TIME:  0.8900000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.000144086
+ResidualBasedBlockBuilderAndSolver: System solve time: 7.30299e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.2592e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  90 
+GeoMechanics Analysis: TIME:  0.9000000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.67153e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.68448e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.09453e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  91 
+GeoMechanics Analysis: TIME:  0.9100000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.15835e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 5.09236e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.04275e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  92 
+GeoMechanics Analysis: TIME:  0.9200000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.68464e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.73707e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.22906e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  93 
+GeoMechanics Analysis: TIME:  0.9300000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.92149e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.89497e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.28751e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  94 
+GeoMechanics Analysis: TIME:  0.9400000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.68464e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.81602e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.13625e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  95 
+GeoMechanics Analysis: TIME:  0.9500000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.64516e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.6976e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.90923e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  96 
+GeoMechanics Analysis: TIME:  0.9600000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 9.15834e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.65813e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 2.2592e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  97 
+GeoMechanics Analysis: TIME:  0.9700000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.76358e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.7765
+6e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 1.9009e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 7.9e-07
+GeoMechanics Analysis: STEP:  98 
+GeoMechanics Analysis: TIME:  0.9800000000000006 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.64515e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.6976e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.33571e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 3.95e-07
+GeoMechanics Analysis: STEP:  99 
+GeoMechanics Analysis: TIME:  0.9900000000000007 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.72412e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.73708e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 4.60034e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: cycle:  1 
+System Construction Time: 0
+GeoMechanics Analysis: STEP:  100 
+GeoMechanics Analysis: TIME:  1.0 
+SolvingStrategy:  MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 8.68464e-05
+ResidualBasedBlockBuilderAndSolver: System solve time: 4.61865e-05
+SolvingStrategy:  MESH MOVED 
+DISPLACEMENT CRITERION:  :: [ Obtained ratio = 0; Expected ratio = 1e-15; Absolute norm = 3.22411e-20; Expected norm =  1e-15]
+DISPLACEMENT CRITERION: Convergence is achieved
+NR-Strategy: Convergence achieved after 1 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  1.0 
+GeoMechanics Analysis: Analysis -END-  
+BuilderAndSolver: Clear Function called
+GeoMechanics Analysis: Analysis Completed. Elapsed Time = 0.418  seconds. 
+GeoMechanics Analysis: Fri Apr 17 10:32:07 2020 
+BuilderAndSolver: Clear Function called
+KRATOS TERMINATED CORRECTLY

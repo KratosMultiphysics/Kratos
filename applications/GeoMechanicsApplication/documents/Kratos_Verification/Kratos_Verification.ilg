@@ -1,0 +1,8 @@
+This is makeindex, version 2.15 [MiKTeX 2.9.6960 64-bit] (kpathsea + Thai support).
+Scanning style file C:/resources/latex/makeindex/deltares/deltares_nomentbl.ist...............
+** Input style error (file = C:/resources/latex/makeindex/deltares/deltares_nomentbl.ist, line = 51):
+   -- Unknown specifier \endinput.
+done (15 attributes redefined, 1 ignored).
+Scanning input file Kratos_Verification.nlo...done (0 entries accepted, 0 rejected).
+Nothing written in Kratos_Verification.nls.
+Transcript written in Kratos_Verification.ilg.

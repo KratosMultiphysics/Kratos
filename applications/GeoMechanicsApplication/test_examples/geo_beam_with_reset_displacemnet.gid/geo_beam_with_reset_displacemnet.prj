@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="13.5">
+  <pre>
+    <layer_to_use name="Layer0"/>
+    <groups>
+      <group id="3" name="Structural_Rotation-auto-1" color="#ff00ffff"/>
+      <group id="4" name="Solid_Displacement-auto-1" color="#00ffffff"/>
+      <group id="7" name="Beam-auto-1" color="#996600ff"/>
+      <group id="8" name="Load" color="#b33366ff"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="points">
+        <vector name="entity_ids" length="2" type="integer">1 2</vector>
+        <vector name="entity_num_groups" length="2" type="ushort">2 1</vector>
+        <vector name="entity_groups" length="3" type="ushort">3 4 8</vector>
+      </entities_group>
+      <entities_group name="lines">
+        <vector name="entity_ids" length="1" type="integer">1</vector>
+        <vector name="entity_num_groups" length="1" type="ushort">1</vector>
+        <vector name="entity_groups" length="1" type="ushort">7</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="11" type="integer">1:11</vector>
+        <vector name="entity_num_groups" length="11" type="ushort">3 1x9 2</vector>
+        <vector name="entity_groups" length="14" type="ushort">3 4 7x10 8 7</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="10" type="integer">1:10</vector>
+        <vector name="entity_num_groups" length="10" type="ushort">1x10</vector>
+        <vector name="entity_groups" length="10" type="ushort">7x10</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>

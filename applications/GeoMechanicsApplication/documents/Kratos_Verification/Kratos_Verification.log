@@ -1,0 +1,1767 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.6960 64-bit) (preloaded format=pdflatex 2019.2.18)  27 AUG 2019 17:56
+entering extended mode
+**./Kratos_Verification.tex
+(Kratos_Verification.tex
+LaTeX2e <2018-12-01>
+(C:/resources/latex\tex/latex/deltares\deltares_manual_style.cls
+Document Class: deltares_manual_style 2011/07/26 v0.1 Deltares Manual style cla
+ss
+) (C:/resources/latex\tex/latex/deltares\deltares_manual.cls
+Document Class: deltares_manual 2014/04/01 v1.0 Standard LaTeX document class
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\report.cls"
+Document Class: report 2018/09/03 v1.4i Standard LaTeX document class
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\size11.clo"
+File: size11.clo 2018/09/03 v1.4i Standard LaTeX file (size option)
+)
+\c@part=\count80
+\c@chapter=\count81
+\c@section=\count82
+\c@subsection=\count83
+\c@subsubsection=\count84
+\c@paragraph=\count85
+\c@subparagraph=\count86
+\c@figure=\count87
+\c@table=\count88
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\helvet.st
+y"
+Package: helvet 2005/04/12 PSNFSS-v9.2a (WaS) 
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\keyval.
+sty"
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks14
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/sectsty\sectsty.
+sty"
+Package: sectsty 2002/02/25 v2.0.2 Commands to change all sectional heading sty
+les
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\inputenc.st
+y"
+Package: inputenc 2018/08/11 v1.3c Input encoding file
+\inpenc@prehook=\toks15
+\inpenc@posthook=\toks16
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\fontenc.sty
+"
+Package: fontenc 2018/08/11 v2.0j Standard LaTeX package
+ ("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\t1enc.def"
+File: t1enc.def 2018/08/11 v2.0j Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 48.
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphic
+x.sty"
+Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphic
+s.sty"
+Package: graphics 2017/06/25 v1.2c Standard LaTeX Graphics (DPC,SPQR)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\trig.st
+y"
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\gra
+phics.cfg"
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 99.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-def\pdf
+tex.def"
+File: pdftex.def 2018/01/08 v1.0l Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\epstopd
+f.sty"
+Package: epstopdf 2016/05/15 v2.6 Conversion with epstopdf on the fly (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\epstopd
+f-base.sty"
+Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\infwa
+rerr.sty"
+Package: infwarerr 2016/05/16 v1.4 Providing info/warning/error messages (HO)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\grfext.
+sty"
+Package: grfext 2016/05/16 v1.2 Manage graphics extensions (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\kvdef
+inekeys.sty"
+Package: kvdefinekeys 2016/05/16 v1.4 Define keys (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ltxcm
+ds.sty"
+Package: ltxcmds 2016/05/16 v1.23 LaTeX kernel commands for general use (HO)
+)))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\kvoptio
+ns.sty"
+Package: kvoptions 2016/05/16 v3.12 Key value format for package options (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\kvset
+keys.sty"
+Package: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\etexc
+mds.sty"
+Package: etexcmds 2016/05/16 v1.6 Avoid name clashes with e-TeX commands (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\iflua
+tex.sty"
+Package: ifluatex 2016/05/16 v1.4 Provides the ifluatex switch (HO)
+Package ifluatex Info: LuaTeX not detected.
+))))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\pdfte
+xcmds.sty"
+Package: pdftexcmds 2018/09/10 v0.29 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ifpdf
+.sty"
+Package: ifpdf 2018/09/07 v3.3 Provides the ifpdf switch
+)
+Package pdftexcmds Info: LuaTeX not detected.
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+38.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 456.
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\color.s
+ty"
+Package: color 2016/07/10 v1.1e Standard LaTeX Color (DPC)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\col
+or.cfg"
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package color Info: Driver file: pdftex.def on input line 147.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/frcursive\frcurs
+ive.sty"
+Package: frcursive 2004/02/01 v1.2 support package for French Cursive
+\seyesThickness=\skip43
+\seyes@box=\box27
+\seyes@ln=\skip44
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/float\float.sty"
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count89
+\float@exts=\toks17
+\float@box=\box28
+\@float@everytoks=\toks18
+\@floatcapt=\box29
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\textcomp.st
+y"
+Package: textcomp 2018/08/11 v2.0j Standard LaTeX package
+Package textcomp Info: Sub-encoding information:
+(textcomp)               5 = only ISO-Adobe without \textcurrency
+(textcomp)               4 = 5 + \texteuro
+(textcomp)               3 = 4 + \textohm
+(textcomp)               2 = 3 + \textestimated + \textcurrency
+(textcomp)               1 = TS1 - \textcircled - \t
+(textcomp)               0 = TS1 (full)
+(textcomp)             Font families with sub-encoding setting implement
+(textcomp)             only a restricted character set as indicated.
+(textcomp)             Family '?' is the default used for unknown fonts.
+(textcomp)             See the documentation for details.
+Package textcomp Info: Setting ? sub-encoding to TS1/1 on input line 79.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1enc.def"
+File: ts1enc.def 2001/06/05 v3.0e (jk/car/fm) Standard LaTeX file
+Now handling font encoding TS1 ...
+... processing UTF-8 mapping file for font encoding TS1
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1enc.dfu"
+File: ts1enc.dfu 2018/10/05 v1.2f UTF-8 support for inputenc
+   defining Unicode char U+00A2 (decimal 162)
+   defining Unicode char U+00A3 (decimal 163)
+   defining Unicode char U+00A4 (decimal 164)
+   defining Unicode char U+00A5 (decimal 165)
+   defining Unicode char U+00A6 (decimal 166)
+   defining Unicode char U+00A7 (decimal 167)
+   defining Unicode char U+00A8 (decimal 168)
+   defining Unicode char U+00A9 (decimal 169)
+   defining Unicode char U+00AA (decimal 170)
+   defining Unicode char U+00AC (decimal 172)
+   defining Unicode char U+00AE (decimal 174)
+   defining Unicode char U+00AF (decimal 175)
+   defining Unicode char U+00B0 (decimal 176)
+   defining Unicode char U+00B1 (decimal 177)
+   defining Unicode char U+00B2 (decimal 178)
+   defining Unicode char U+00B3 (decimal 179)
+   defining Unicode char U+00B4 (decimal 180)
+   defining Unicode char U+00B5 (decimal 181)
+   defining Unicode char U+00B6 (decimal 182)
+   defining Unicode char U+00B7 (decimal 183)
+   defining Unicode char U+00B9 (decimal 185)
+   defining Unicode char U+00BA (decimal 186)
+   defining Unicode char U+00BC (decimal 188)
+   defining Unicode char U+00BD (decimal 189)
+   defining Unicode char U+00BE (decimal 190)
+   defining Unicode char U+00D7 (decimal 215)
+   defining Unicode char U+00F7 (decimal 247)
+   defining Unicode char U+0192 (decimal 402)
+   defining Unicode char U+02C7 (decimal 711)
+   defining Unicode char U+02D8 (decimal 728)
+   defining Unicode char U+02DD (decimal 733)
+   defining Unicode char U+0E3F (decimal 3647)
+   defining Unicode char U+2016 (decimal 8214)
+   defining Unicode char U+2020 (decimal 8224)
+   defining Unicode char U+2021 (decimal 8225)
+   defining Unicode char U+2022 (decimal 8226)
+   defining Unicode char U+2030 (decimal 8240)
+   defining Unicode char U+2031 (decimal 8241)
+   defining Unicode char U+203B (decimal 8251)
+   defining Unicode char U+203D (decimal 8253)
+   defining Unicode char U+2044 (decimal 8260)
+   defining Unicode char U+204E (decimal 8270)
+   defining Unicode char U+2052 (decimal 8274)
+   defining Unicode char U+20A1 (decimal 8353)
+   defining Unicode char U+20A4 (decimal 8356)
+   defining Unicode char U+20A6 (decimal 8358)
+   defining Unicode char U+20A9 (decimal 8361)
+   defining Unicode char U+20AB (decimal 8363)
+   defining Unicode char U+20AC (decimal 8364)
+   defining Unicode char U+20B1 (decimal 8369)
+   defining Unicode char U+2103 (decimal 8451)
+   defining Unicode char U+2116 (decimal 8470)
+   defining Unicode char U+2117 (decimal 8471)
+   defining Unicode char U+211E (decimal 8478)
+   defining Unicode char U+2120 (decimal 8480)
+   defining Unicode char U+2122 (decimal 8482)
+   defining Unicode char U+2126 (decimal 8486)
+   defining Unicode char U+2127 (decimal 8487)
+   defining Unicode char U+212E (decimal 8494)
+   defining Unicode char U+2190 (decimal 8592)
+   defining Unicode char U+2191 (decimal 8593)
+   defining Unicode char U+2192 (decimal 8594)
+   defining Unicode char U+2193 (decimal 8595)
+   defining Unicode char U+2329 (decimal 9001)
+   defining Unicode char U+232A (decimal 9002)
+   defining Unicode char U+2422 (decimal 9250)
+   defining Unicode char U+25E6 (decimal 9702)
+   defining Unicode char U+25EF (decimal 9711)
+   defining Unicode char U+266A (decimal 9834)
+   defining Unicode char U+FEFF (decimal 65279)
+))
+LaTeX Info: Redefining \oldstylenums on input line 334.
+Package textcomp Info: Setting cmr sub-encoding to TS1/0 on input line 349.
+Package textcomp Info: Setting cmss sub-encoding to TS1/0 on input line 350.
+Package textcomp Info: Setting cmtt sub-encoding to TS1/0 on input line 351.
+Package textcomp Info: Setting cmvtt sub-encoding to TS1/0 on input line 352.
+Package textcomp Info: Setting cmbr sub-encoding to TS1/0 on input line 353.
+Package textcomp Info: Setting cmtl sub-encoding to TS1/0 on input line 354.
+Package textcomp Info: Setting ccr sub-encoding to TS1/0 on input line 355.
+Package textcomp Info: Setting ptm sub-encoding to TS1/4 on input line 356.
+Package textcomp Info: Setting pcr sub-encoding to TS1/4 on input line 357.
+Package textcomp Info: Setting phv sub-encoding to TS1/4 on input line 358.
+Package textcomp Info: Setting ppl sub-encoding to TS1/3 on input line 359.
+Package textcomp Info: Setting pag sub-encoding to TS1/4 on input line 360.
+Package textcomp Info: Setting pbk sub-encoding to TS1/4 on input line 361.
+Package textcomp Info: Setting pnc sub-encoding to TS1/4 on input line 362.
+Package textcomp Info: Setting pzc sub-encoding to TS1/4 on input line 363.
+Package textcomp Info: Setting bch sub-encoding to TS1/4 on input line 364.
+Package textcomp Info: Setting put sub-encoding to TS1/5 on input line 365.
+Package textcomp Info: Setting uag sub-encoding to TS1/5 on input line 366.
+Package textcomp Info: Setting ugq sub-encoding to TS1/5 on input line 367.
+Package textcomp Info: Setting ul8 sub-encoding to TS1/4 on input line 368.
+Package textcomp Info: Setting ul9 sub-encoding to TS1/4 on input line 369.
+Package textcomp Info: Setting augie sub-encoding to TS1/5 on input line 370.
+Package textcomp Info: Setting dayrom sub-encoding to TS1/3 on input line 371.
+Package textcomp Info: Setting dayroms sub-encoding to TS1/3 on input line 372.
+
+Package textcomp Info: Setting pxr sub-encoding to TS1/0 on input line 373.
+Package textcomp Info: Setting pxss sub-encoding to TS1/0 on input line 374.
+Package textcomp Info: Setting pxtt sub-encoding to TS1/0 on input line 375.
+Package textcomp Info: Setting txr sub-encoding to TS1/0 on input line 376.
+Package textcomp Info: Setting txss sub-encoding to TS1/0 on input line 377.
+Package textcomp Info: Setting txtt sub-encoding to TS1/0 on input line 378.
+Package textcomp Info: Setting lmr sub-encoding to TS1/0 on input line 379.
+Package textcomp Info: Setting lmdh sub-encoding to TS1/0 on input line 380.
+Package textcomp Info: Setting lmss sub-encoding to TS1/0 on input line 381.
+Package textcomp Info: Setting lmssq sub-encoding to TS1/0 on input line 382.
+Package textcomp Info: Setting lmvtt sub-encoding to TS1/0 on input line 383.
+Package textcomp Info: Setting lmtt sub-encoding to TS1/0 on input line 384.
+Package textcomp Info: Setting qhv sub-encoding to TS1/0 on input line 385.
+Package textcomp Info: Setting qag sub-encoding to TS1/0 on input line 386.
+Package textcomp Info: Setting qbk sub-encoding to TS1/0 on input line 387.
+Package textcomp Info: Setting qcr sub-encoding to TS1/0 on input line 388.
+Package textcomp Info: Setting qcs sub-encoding to TS1/0 on input line 389.
+Package textcomp Info: Setting qpl sub-encoding to TS1/0 on input line 390.
+Package textcomp Info: Setting qtm sub-encoding to TS1/0 on input line 391.
+Package textcomp Info: Setting qzc sub-encoding to TS1/0 on input line 392.
+Package textcomp Info: Setting qhvc sub-encoding to TS1/0 on input line 393.
+Package textcomp Info: Setting futs sub-encoding to TS1/4 on input line 394.
+Package textcomp Info: Setting futx sub-encoding to TS1/4 on input line 395.
+Package textcomp Info: Setting futj sub-encoding to TS1/4 on input line 396.
+Package textcomp Info: Setting hlh sub-encoding to TS1/3 on input line 397.
+Package textcomp Info: Setting hls sub-encoding to TS1/3 on input line 398.
+Package textcomp Info: Setting hlst sub-encoding to TS1/3 on input line 399.
+Package textcomp Info: Setting hlct sub-encoding to TS1/5 on input line 400.
+Package textcomp Info: Setting hlx sub-encoding to TS1/5 on input line 401.
+Package textcomp Info: Setting hlce sub-encoding to TS1/5 on input line 402.
+Package textcomp Info: Setting hlcn sub-encoding to TS1/5 on input line 403.
+Package textcomp Info: Setting hlcw sub-encoding to TS1/5 on input line 404.
+Package textcomp Info: Setting hlcf sub-encoding to TS1/5 on input line 405.
+Package textcomp Info: Setting pplx sub-encoding to TS1/3 on input line 406.
+Package textcomp Info: Setting pplj sub-encoding to TS1/3 on input line 407.
+Package textcomp Info: Setting ptmx sub-encoding to TS1/4 on input line 408.
+Package textcomp Info: Setting ptmj sub-encoding to TS1/4 on input line 409.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdfpages\pdfpage
+s.sty"
+Package: pdfpages 2017/10/31 v0.5l Insert pages of external PDF documents (AM)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ifthen.sty"
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+) ("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\calc.sty
+"
+Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count90
+\calc@Bcount=\count91
+\calc@Adimen=\dimen105
+\calc@Bdimen=\dimen106
+\calc@Askip=\skip45
+\calc@Bskip=\skip46
+LaTeX Info: Redefining \setlength on input line 80.
+LaTeX Info: Redefining \addtolength on input line 81.
+\calc@Ccount=\count92
+\calc@Cskip=\skip47
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/eso-pic\eso-pic.
+sty"
+Package: eso-pic 2018/04/12 v2.0h eso-pic (RN)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\atbeg
+shi.sty"
+Package: atbegshi 2016/06/09 v1.18 At begin shipout hook (HO)
+))
+\AM@pagewidth=\dimen107
+\AM@pageheight=\dimen108
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdfpages\pppdfte
+x.def"
+File: pppdftex.def 2017/10/31 v0.5l Pdfpages driver for pdfTeX (AM)
+)
+\AM@pagebox=\box30
+\AM@global@opts=\toks19
+\AM@toc@title=\toks20
+\c@AM@survey=\count93
+\AM@templatesizebox=\box31
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\babel.st
+y"
+Package: babel 2018/11/13 3.27 The Babel package
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\switch.d
+ef"
+File: switch.def 2018/11/13 3.27 Babel switching mechanism
+)
+*************************************
+* Local config file bblopts.cfg used
+*
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/arabi\bblopts.cf
+g"
+File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
+ babel
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/babel-english\en
+glish.ldf"
+Language: english 2017/06/06 v3.3r English support from the babel system
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\babel.de
+f"
+File: babel.def 2018/11/13 3.27 Babel common definitions
+\babel@savecnt=\count94
+\U@D=\dimen109
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/babel\txtbabel
+.def")
+\bbl@dirlevel=\count95
+)
+\l@canadian = a dialect from \language\l@american 
+\l@australian = a dialect from \language\l@british 
+\l@newzealand = a dialect from \language\l@british 
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/svn-multi\svn-mu
+lti.sty"
+Package: svn-multi 2011/08/30 v2.4d SVN Keywords for multi-file LaTeX documents
+
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\tabularx.s
+ty"
+Package: tabularx 2016/02/03 v2.11b `tabularx' package (DPC)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\array.sty"
+Package: array 2018/12/30 v2.4k Tabular extension package (FMi)
+\col@sep=\dimen110
+\ar@mcellbox=\box32
+\extrarowheight=\dimen111
+\NC@list=\toks21
+\extratabsurround=\skip48
+\backup@length=\skip49
+\ar@cellbox=\box33
+)
+\TX@col@width=\dimen112
+\TX@old@table=\dimen113
+\TX@old@col=\dimen114
+\TX@target=\dimen115
+\TX@delta=\dimen116
+\TX@cols=\count96
+\TX@ftn=\toks22
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\longtable.
+sty"
+Package: longtable 2014/10/28 v4.11 Multi-page Table package (DPC)+ FMi change
+\LTleft=\skip50
+\LTright=\skip51
+\LTpre=\skip52
+\LTpost=\skip53
+\LTchunksize=\count97
+\LTcapwidth=\dimen117
+\LT@head=\box34
+\LT@firsthead=\box35
+\LT@foot=\box36
+\LT@lastfoot=\box37
+\LT@cols=\count98
+\LT@rows=\count99
+\c@LT@tables=\count100
+\c@LT@chunks=\count101
+\LT@p@ftn=\toks23
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\verbatim.s
+ty"
+Package: verbatim 2014/10/28 v1.5q LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks24
+\verbatim@line=\toks25
+\verbatim@in@stream=\read1
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/fancyvrb\fancyvr
+b.sty"
+Package: fancyvrb 2019/01/15
+ Style option: `fancyvrb' v3.2a <2019/01/15> (tvz)
+\FV@CodeLineNo=\count102
+\FV@InFile=\read2
+\FV@TabBox=\box38
+\c@FancyVerbLine=\count103
+\FV@StepNumber=\count104
+\FV@OutFile=\write3
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/wrapfig\wrapfig.
+sty"
+\wrapoverhang=\dimen118
+\WF@size=\dimen119
+\c@WF@wrappedlines=\count105
+\WF@box=\box39
+\WF@everypar=\toks26
+Package: wrapfig 2003/01/31  v 3.6
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\caption.
+sty"
+Package: caption 2018/10/06 v3.3-154 Customizing captions (AR)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\caption3
+.sty"
+Package: caption3 2018/09/12 v1.8c caption3 kernel (AR)
+Package caption3 Info: TeX engine: e-TeX on input line 64.
+\captionmargin=\dimen120
+\captionmargin@=\dimen121
+\captionwidth=\dimen122
+\caption@tempdima=\dimen123
+\caption@indent=\dimen124
+\caption@parindent=\dimen125
+\caption@hangindent=\dimen126
+)
+\c@caption@flags=\count106
+\c@ContinuedFloat=\count107
+Package caption Info: float package is loaded.
+Package caption Info: longtable package is loaded.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\ltcaptio
+n.sty"
+Package: ltcaption 2018/08/26 v1.4-95 longtable captions (AR)
+)
+Package caption Info: wrapfig package is loaded.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/caption\subcapti
+on.sty"
+Package: subcaption 2018/05/01 v1.1-162 Sub-captions (AR)
+\c@subfigure=\count108
+\c@subtable=\count109
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/url\url.sty"
+\Urlmuskip=\muskip10
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/moreverb\morever
+b.sty"
+Package: moreverb 2008/06/03 v2.3a `more' verbatim facilities
+\tab@position=\count110
+\tab@size=\count111
+\listing@line=\count112
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/moresize\moresiz
+e.sty"
+Package: moresize 1999/07/26 v1.9 (more font sizes)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\rotatin
+g.sty"
+Package: rotating 2016/08/11 v2.16d rotated objects in LaTeX
+\c@r@tfl@t=\count113
+\rotFPtop=\skip54
+\rotFPbot=\skip55
+\rot@float@box=\box40
+\rot@mess@toks=\toks27
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\nameref
+.sty"
+Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\refcoun
+t.sty"
+Package: refcount 2016/05/16 v3.5 Data extraction from label references (HO)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\getti
+tlestring.sty"
+Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
+)
+\c@section@level=\count114
+LaTeX Info: Redefining \ref on input line 355.
+LaTeX Info: Redefining \pageref on input line 355.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/import\import.st
+y"
+Package: import 2009/03/23  v 5.1
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/marginnote\margi
+nnote.sty"
+Package: marginnote 2018/08/09 v1.4b non floating margin notes for LaTeX
+\c@mn@abspage=\count115
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amstext.
+sty"
+Package: amstext 2000/06/29 v2.01 AMS text
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsgen.s
+ty"
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks28
+\ex@=\dimen127
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsmath.
+sty"
+Package: amsmath 2018/12/01 v2.17b AMS math features
+\@mathmargin=\skip56
+
+For additional information on amsmath, use the `?' option.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsbsy.s
+ty"
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen128
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsopn.s
+ty"
+Package: amsopn 2016/03/08 v2.02 operator names
+)
+\inf@bad=\count116
+LaTeX Info: Redefining \frac on input line 223.
+\uproot@=\count117
+\leftroot@=\count118
+LaTeX Info: Redefining \overline on input line 385.
+\classnum@=\count119
+\DOTSCASE@=\count120
+LaTeX Info: Redefining \ldots on input line 482.
+LaTeX Info: Redefining \dots on input line 485.
+LaTeX Info: Redefining \cdots on input line 606.
+\Mathstrutbox@=\box41
+\strutbox@=\box42
+\big@size=\dimen129
+LaTeX Font Info:    Redeclaring font encoding OML on input line 729.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 730.
+\macc@depth=\count121
+\c@MaxMatrixCols=\count122
+\dotsspace@=\muskip11
+\c@parentequation=\count123
+\dspbrk@lvl=\count124
+\tag@help=\toks29
+\row@=\count125
+\column@=\count126
+\maxfields@=\count127
+\andhelp@=\toks30
+\eqnshift@=\dimen130
+\alignsep@=\dimen131
+\tagshift@=\dimen132
+\tagwidth@=\dimen133
+\totwidth@=\dimen134
+\lineht@=\dimen135
+\@envbody=\toks31
+\multlinegap=\skip57
+\multlinetaggap=\skip58
+\mathdisplay@stack=\toks32
+LaTeX Info: Redefining \[ on input line 2844.
+LaTeX Info: Redefining \] on input line 2845.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\amssymb
+.sty"
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\amsfont
+s.sty"
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/paralist\paralis
+t.sty"
+Package: paralist 2017/01/22 v2.7 Extended list environments
+\pltopsep=\skip59
+\plpartopsep=\skip60
+\plitemsep=\skip61
+\plparsep=\skip62
+\pl@lab=\toks33
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/siunitx\siunitx.
+sty"
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\expl3.s
+ty"
+Package: expl3 2019-05-07 L3 programming layer (loader) 
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\expl3-c
+ode.tex"
+Package: expl3 2019-05-07 L3 programming layer (code)
+\c_max_int=\count128
+\l_tmpa_int=\count129
+\l_tmpb_int=\count130
+\g_tmpa_int=\count131
+\g_tmpb_int=\count132
+\g__kernel_prg_map_int=\count133
+\c__ior_term_ior=\count134
+\c_log_iow=\count135
+\l_iow_line_count_int=\count136
+\l__iow_line_target_int=\count137
+\l__iow_one_indent_int=\count138
+\l__iow_indent_int=\count139
+\c_zero_dim=\dimen136
+\c_max_dim=\dimen137
+\l_tmpa_dim=\dimen138
+\l_tmpb_dim=\dimen139
+\g_tmpa_dim=\dimen140
+\g_tmpb_dim=\dimen141
+\c_zero_skip=\skip63
+\c_max_skip=\skip64
+\l_tmpa_skip=\skip65
+\l_tmpb_skip=\skip66
+\g_tmpa_skip=\skip67
+\g_tmpb_skip=\skip68
+\c_zero_muskip=\muskip12
+\c_max_muskip=\muskip13
+\l_tmpa_muskip=\muskip14
+\l_tmpb_muskip=\muskip15
+\g_tmpa_muskip=\muskip16
+\g_tmpb_muskip=\muskip17
+\l_keys_choice_int=\count140
+\l__intarray_loop_int=\count141
+\c__intarray_sp_dim=\dimen142
+\g__intarray_font_int=\count142
+\c__fp_leading_shift_int=\count143
+\c__fp_middle_shift_int=\count144
+\c__fp_trailing_shift_int=\count145
+\c__fp_big_leading_shift_int=\count146
+\c__fp_big_middle_shift_int=\count147
+\c__fp_big_trailing_shift_int=\count148
+\c__fp_Bigg_leading_shift_int=\count149
+\c__fp_Bigg_middle_shift_int=\count150
+\c__fp_Bigg_trailing_shift_int=\count151
+\c__kernel_randint_max_int=\count152
+\g__fp_array_int=\count153
+\l__fp_array_loop_int=\count154
+\l__sort_length_int=\count155
+\l__sort_min_int=\count156
+\l__sort_top_int=\count157
+\l__sort_max_int=\count158
+\l__sort_true_max_int=\count159
+\l__sort_block_int=\count160
+\l__sort_begin_int=\count161
+\l__sort_end_int=\count162
+\l__sort_A_int=\count163
+\l__sort_B_int=\count164
+\l__sort_C_int=\count165
+\l__tl_analysis_normal_int=\count166
+\l__tl_analysis_index_int=\count167
+\l__tl_analysis_nesting_int=\count168
+\l__tl_analysis_type_int=\count169
+\l__regex_internal_a_int=\count170
+\l__regex_internal_b_int=\count171
+\l__regex_internal_c_int=\count172
+\l__regex_balance_int=\count173
+\l__regex_group_level_int=\count174
+\l__regex_mode_int=\count175
+\c__regex_cs_in_class_mode_int=\count176
+\c__regex_cs_mode_int=\count177
+\l__regex_catcodes_int=\count178
+\l__regex_default_catcodes_int=\count179
+\c__regex_catcode_D_int=\count180
+\c__regex_catcode_S_int=\count181
+\c__regex_catcode_L_int=\count182
+\c__regex_catcode_O_int=\count183
+\c__regex_catcode_A_int=\count184
+\c__regex_all_catcodes_int=\count185
+\l__regex_show_lines_int=\count186
+\l__regex_min_state_int=\count187
+\l__regex_max_state_int=\count188
+\l__regex_left_state_int=\count189
+\l__regex_right_state_int=\count190
+\l__regex_capturing_group_int=\count191
+\l__regex_min_pos_int=\count192
+\l__regex_max_pos_int=\count193
+\l__regex_curr_pos_int=\count194
+\l__regex_start_pos_int=\count195
+\l__regex_success_pos_int=\count196
+\l__regex_curr_char_int=\count197
+\l__regex_curr_catcode_int=\count198
+\l__regex_last_char_int=\count199
+\l__regex_case_changed_char_int=\count266
+\l__regex_curr_state_int=\count267
+\l__regex_step_int=\count268
+\l__regex_min_active_int=\count269
+\l__regex_max_active_int=\count270
+\l__regex_replacement_csnames_int=\count271
+\l__regex_match_count_int=\count272
+\l__regex_min_submatch_int=\count273
+\l__regex_submatch_int=\count274
+\l__regex_zeroth_submatch_int=\count275
+\g__regex_trace_regex_int=\count276
+\c_empty_box=\box43
+\l_tmpa_box=\box44
+\l_tmpb_box=\box45
+\g_tmpa_box=\box46
+\g_tmpb_box=\box47
+\l__box_top_dim=\dimen143
+\l__box_bottom_dim=\dimen144
+\l__box_left_dim=\dimen145
+\l__box_right_dim=\dimen146
+\l__box_top_new_dim=\dimen147
+\l__box_bottom_new_dim=\dimen148
+\l__box_left_new_dim=\dimen149
+\l__box_right_new_dim=\dimen150
+\l__box_internal_box=\box48
+\l__coffin_internal_box=\box49
+\l__coffin_internal_dim=\dimen151
+\l__coffin_offset_x_dim=\dimen152
+\l__coffin_offset_y_dim=\dimen153
+\l__coffin_x_dim=\dimen154
+\l__coffin_y_dim=\dimen155
+\l__coffin_x_prime_dim=\dimen156
+\l__coffin_y_prime_dim=\dimen157
+\c_empty_coffin=\box50
+\l__coffin_aligned_coffin=\box51
+\l__coffin_aligned_internal_coffin=\box52
+\l_tmpa_coffin=\box53
+\l_tmpb_coffin=\box54
+\g_tmpa_coffin=\box55
+\g_tmpb_coffin=\box56
+\l__coffin_bounding_shift_dim=\dimen158
+\l__coffin_left_corner_dim=\dimen159
+\l__coffin_right_corner_dim=\dimen160
+\l__coffin_bottom_corner_dim=\dimen161
+\l__coffin_top_corner_dim=\dimen162
+\l__coffin_scaled_total_height_dim=\dimen163
+\l__coffin_scaled_width_dim=\dimen164
+\c__coffin_empty_coffin=\box57
+\l__coffin_display_coffin=\box58
+\l__coffin_display_coord_coffin=\box59
+\l__coffin_display_pole_coffin=\box60
+\l__coffin_display_offset_dim=\dimen165
+\l__coffin_display_x_dim=\dimen166
+\l__coffin_display_y_dim=\dimen167
+\g__file_internal_ior=\read3
+\l__seq_internal_a_int=\count277
+\l__seq_internal_b_int=\count278
+\c__deprecation_minus_one=\count279
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3kernel\l3pdfmo
+de.def"
+File: l3pdfmode.def 2019-04-06 v L3 Experimental driver: PDF mode
+\l__driver_color_stack_int=\count280
+\l__driver_pdf_tmp_box=\box61
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3packages/xpars
+e\xparse.sty"
+Package: xparse 2019-05-03 L3 Experimental document command parser
+\l__xparse_current_arg_int=\count281
+\g__xparse_grabber_int=\count282
+\l__xparse_m_args_int=\count283
+\l__xparse_v_nesting_int=\count284
+)
+Package: siunitx 2018/05/17 v2.7s A comprehensive (SI) units package
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3packages/l3key
+s2e\l3keys2e.sty"
+Package: l3keys2e 2019-05-03 LaTeX2e option processing using LaTeX3 keys
+)
+\l__siunitx_tmp_box=\box62
+\l__siunitx_tmp_dim=\dimen168
+\l__siunitx_tmp_int=\count285
+\l__siunitx_number_mantissa_length_int=\count286
+\l__siunitx_number_uncert_length_int=\count287
+\l__siunitx_round_int=\count288
+\l__siunitx_process_decimal_int=\count289
+\l__siunitx_process_uncertainty_int=\count290
+\l__siunitx_process_fixed_int=\count291
+\l__siunitx_process_integer_min_int=\count292
+\l__siunitx_process_precision_int=\count293
+\l__siunitx_group_min_int=\count294
+\l__siunitx_angle_marker_box=\box63
+\l__siunitx_angle_unit_box=\box64
+\l__siunitx_angle_marker_dim=\dimen169
+\l__siunitx_angle_unit_dim=\dimen170
+\l__siunitx_unit_int=\count295
+\l__siunitx_unit_denominator_int=\count296
+\l__siunitx_unit_numerator_int=\count297
+\l__siunitx_unit_prefix_int=\count298
+\l__siunitx_unit_prefix_base_int=\count299
+\l__siunitx_unit_prefix_gram_int=\count300
+\l__siunitx_number_product_int=\count301
+\c__siunitx_one_fill_skip=\skip69
+\l__siunitx_table_unit_align_skip=\skip70
+\l__siunitx_table_exponent_dim=\dimen171
+\l__siunitx_table_integer_dim=\dimen172
+\l__siunitx_table_mantissa_dim=\dimen173
+\l__siunitx_table_marker_dim=\dimen174
+\l__siunitx_table_result_dim=\dimen175
+\l__siunitx_table_uncert_dim=\dimen176
+\l__siunitx_table_fill_pre_dim=\dimen177
+\l__siunitx_table_fill_post_dim=\dimen178
+\l__siunitx_table_fill_mid_dim=\dimen179
+\l__siunitx_table_pre_box=\box65
+\l__siunitx_table_post_box=\box66
+\l__siunitx_table_mantissa_box=\box67
+\l__siunitx_table_result_box=\box68
+\l__siunitx_table_number_align_skip=\skip71
+\l__siunitx_table_text_align_skip=\skip72
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/translator\trans
+lator.sty"
+Package: translator 2018/01/04 v1.12 Easy translation of strings in LaTeX
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\xspace.sty
+"
+Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/colortbl\colortb
+l.sty"
+Package: colortbl 2018/12/12 v1.0d Color table columns (DPC)
+\everycr=\toks34
+\minrowclearance=\skip73
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/lastpage\lastpag
+e.sty"
+Package: lastpage 2015/03/29 v1.2m Refers to last page's name (HMM; JPG)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/etoolbox\etoolbo
+x.sty"
+Package: etoolbox 2018/08/19 v2.5f e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count302
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/nomencl\nomencl.
+sty"
+Package: nomencl 2019/02/08 v5.1 Nomenclature package
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/xkeyval\xkeyval.
+sty"
+Package: xkeyval 2014/12/03 v2.7a package option processing (HA)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/xkeyval\xkeyva
+l.tex"
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/xkeyval\xkvuti
+ls.tex"
+\XKV@toks=\toks35
+\XKV@tempa@toks=\toks36
+)
+\XKV@depth=\count303
+File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\tocb
+asic.sty"
+Package: tocbasic 2019/02/01 v3.26b KOMA-Script package (handling toc-files)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\scrb
+ase.sty"
+Package: scrbase 2019/02/01 v3.26b KOMA-Script package (KOMA-Script-independent
+ basics and keyval usage)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/koma-script\scrl
+file.sty"
+Package: scrlfile 2019/02/01 v3.26b KOMA-Script package (loading files)
+))
+\scr@dte@tocline@numberwidth=\skip74
+\scr@dte@tocline@numbox=\box69
+)
+Package tocbasic Info: setting babel extension for `nlo' on input line 24.
+Package tocbasic Info: setting babel extension for `nls' on input line 25.
+\nomlabelwidth=\dimen180
+\nom@tempdim=\dimen181
+\nomitemsep=\skip75
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/nomentbl\nomentb
+l.sty"
+Package: nomentbl 2006/04/14 v0.4 Nomenclature in a longtable environment
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\bookmar
+k.sty"
+Package: bookmark 2016/05/17 v1.26 PDF bookmarks (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\pdfes
+cape.sty"
+Package: pdfescape 2016/05/16 v1.14 Implements pdfTeX's escape features (HO)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/ifxetex\ifxete
+x.sty"
+Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\ifvte
+x.sty"
+Package: ifvtex 2016/05/16 v1.6 Detect VTeX and its facilities (HO)
+Package ifvtex Info: VTeX not detected.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hyperre
+f.sty"
+Package: hyperref 2018/11/30 v6.88e Hypertext links for LaTeX
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\hobsu
+b-hyperref.sty"
+Package: hobsub-hyperref 2016/05/16 v1.14 Bundle oberdiek, subset hyperref (HO)
+
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/generic/oberdiek\hobsu
+b-generic.sty"
+Package: hobsub-generic 2016/05/16 v1.14 Bundle oberdiek, subset generic (HO)
+Package: hobsub 2016/05/16 v1.14 Construct package bundles (HO)
+Package hobsub Info: Skipping package `infwarerr' (already loaded).
+Package hobsub Info: Skipping package `ltxcmds' (already loaded).
+Package hobsub Info: Skipping package `ifluatex' (already loaded).
+Package hobsub Info: Skipping package `ifvtex' (already loaded).
+Package: intcalc 2016/05/16 v1.2 Expandable calculations with integers (HO)
+Package hobsub Info: Skipping package `ifpdf' (already loaded).
+Package hobsub Info: Skipping package `etexcmds' (already loaded).
+Package hobsub Info: Skipping package `kvsetkeys' (already loaded).
+Package hobsub Info: Skipping package `kvdefinekeys' (already loaded).
+Package hobsub Info: Skipping package `pdftexcmds' (already loaded).
+Package hobsub Info: Skipping package `pdfescape' (already loaded).
+Package: bigintcalc 2016/05/16 v1.4 Expandable calculations on big integers (HO
+)
+Package: bitset 2016/05/16 v1.2 Handle bit-vector datatype (HO)
+Package: uniquecounter 2016/05/16 v1.3 Provide unlimited unique counter (HO)
+)
+Package hobsub Info: Skipping package `hobsub' (already loaded).
+Package: letltxmacro 2016/05/16 v1.5 Let assignment for LaTeX macros (HO)
+Package: hopatch 2016/05/16 v1.3 Wrapper for package hooks (HO)
+Package: xcolor-patch 2016/05/16 xcolor patch
+Package: atveryend 2016/05/16 v1.9 Hooks at the very end of document (HO)
+Package hobsub Info: Skipping package `atbegshi' (already loaded).
+Package hobsub Info: Skipping package `refcount' (already loaded).
+Package: hycolor 2016/05/16 v1.8 Color options for hyperref/bookmark (HO)
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\auxhook
+.sty"
+Package: auxhook 2016/05/16 v1.4 Hooks for auxiliary files (HO)
+)
+\@linkdim=\dimen182
+\Hy@linkcounter=\count304
+\Hy@pagecounter=\count305
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\pd1enc.
+def"
+File: pd1enc.def 2018/11/30 v6.88e Hyperref: PDFDocEncoding definition (HO)
+Now handling font encoding PD1 ...
+... no UTF-8 mapping file for font encoding PD1
+)
+\Hy@SavedSpaceFactor=\count306
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/00miktex\hyperre
+f.cfg"
+File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
+)
+Package hyperref Info: Hyper figures OFF on input line 4519.
+Package hyperref Info: Link nesting OFF on input line 4524.
+Package hyperref Info: Hyper index ON on input line 4527.
+Package hyperref Info: Plain pages OFF on input line 4534.
+Package hyperref Info: Backreferencing OFF on input line 4539.
+Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
+Package hyperref Info: Bookmarks ON on input line 4772.
+\c@Hy@tempcnt=\count307
+LaTeX Info: Redefining \url on input line 5125.
+\XeTeXLinkMargin=\dimen183
+\Fld@menulength=\count308
+\Field@Width=\dimen184
+\Fld@charsize=\dimen185
+Package hyperref Info: Hyper figures OFF on input line 6380.
+Package hyperref Info: Link nesting OFF on input line 6385.
+Package hyperref Info: Hyper index ON on input line 6388.
+Package hyperref Info: backreferencing OFF on input line 6395.
+Package hyperref Info: Link coloring OFF on input line 6400.
+Package hyperref Info: Link coloring with OCG OFF on input line 6405.
+Package hyperref Info: PDF/A mode OFF on input line 6410.
+LaTeX Info: Redefining \ref on input line 6450.
+LaTeX Info: Redefining \pageref on input line 6454.
+\Hy@abspage=\count309
+\c@Item=\count310
+\c@Hfootnote=\count311
+)
+Package hyperref Info: Driver (autodetected): hpdftex.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/hyperref\hpdftex
+.def"
+File: hpdftex.def 2018/11/30 v6.88e Hyperref driver for pdfTeX
+\Fld@listcount=\count312
+\c@bookmark@seq@number=\count313
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\rerunfi
+lecheck.sty"
+Package: rerunfilecheck 2016/05/16 v1.8 Rerun checks for auxiliary files (HO)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+82.
+)
+\Hy@SectionHShift=\skip76
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\bkm-pdf
+tex.def"
+File: bkm-pdftex.def 2016/05/17 v1.26 bookmark driver for pdfTeX (HO)
+\BKM@id=\count314
+))
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/currfile\currfil
+e.sty"
+Package: currfile 2015/04/23 v0.7c Provides the file path elements of the curre
+nt input file
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/filehook\filehoo
+k.sty"
+Package: filehook 2011/10/12 v0.5d Hooks for input files
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/filehook\filehoo
+k-scrlfile.sty"
+Package: filehook-scrlfile 2011/01/03 v0.1 filehook patch for scrlfile package
+Package filehook Info: Package 'scrlfile' detected and compensated for on input
+ line 102.
+))
+\c@currfiledepth=\count315
+)
+
+Package hyperref Warning: Option `destlabel' has already been used,
+(hyperref)                setting the option has no effect on input line 141.
+
+
+Package hyperref Warning: Option `pagebackref' has already been used,
+(hyperref)                setting the option has no effect on input line 141.
+
+Package hyperref Info: Option `bookmarksnumbered' set `true' on input line 141.
+
+Package hyperref Info: Option `colorlinks' set `true' on input line 141.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\transpa
+rent.sty"
+Package: transparent 2018/11/18 v1.3 Transparency via pdfTeX's color stack (HO)
+
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/fancyhdr\fancyhd
+r.sty"
+Package: fancyhdr 2019/01/31 v3.10 Extensive control of page headers and footer
+s
+\f@nch@headwidth=\skip77
+\f@nch@O@elh=\skip78
+\f@nch@O@erh=\skip79
+\f@nch@O@olh=\skip80
+\f@nch@O@orh=\skip81
+\f@nch@O@elf=\skip82
+\f@nch@O@erf=\skip83
+\f@nch@O@olf=\skip84
+\f@nch@O@orf=\skip85
+)
+\maxfoottitlewidth=\skip86
+\foottitlewidth=\skip87
+\c@n_sp_blocks=\count316
+\c@n_sp_items=\count317
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\makeidx.sty
+"
+Package: makeidx 2014/09/29 v1.0m Standard LaTeX package
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/idxlayout\idxlay
+out.sty"
+Package: idxlayout 2012/03/30 v0.4d Configurable index layout
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tools\multicol.s
+ty"
+Package: multicol 2018/12/27 v1.8v multicolumn formatting (FMi)
+\c@tracingmulticols=\count318
+\mult@box=\box70
+\multicol@leftmargin=\dimen186
+\c@unbalance=\count319
+\c@collectmore=\count320
+\doublecol@number=\count321
+\multicoltolerance=\count322
+\multicolpretolerance=\count323
+\full@width=\dimen187
+\page@free=\dimen188
+\premulticols=\dimen189
+\postmulticols=\dimen190
+\multicolsep=\skip88
+\multicolbaselineskip=\skip89
+\partial@page=\box71
+\last@line=\box72
+\maxbalancingoverflow=\dimen191
+\mult@rightbox=\box73
+\mult@grightbox=\box74
+\mult@gfirstbox=\box75
+\mult@firstbox=\box76
+\@tempa=\box77
+\@tempa=\box78
+\@tempa=\box79
+\@tempa=\box80
+\@tempa=\box81
+\@tempa=\box82
+\@tempa=\box83
+\@tempa=\box84
+\@tempa=\box85
+\@tempa=\box86
+\@tempa=\box87
+\@tempa=\box88
+\@tempa=\box89
+\@tempa=\box90
+\@tempa=\box91
+\@tempa=\box92
+\@tempa=\box93
+\c@columnbadness=\count324
+\c@finalcolumnbadness=\count325
+\last@try=\dimen192
+\multicolovershoot=\dimen193
+\multicolundershoot=\dimen194
+\mult@nat@firstbox=\box94
+\colbreak@box=\box95
+\mc@col@check@num=\count326
+)
+\c@idxcols=\count327
+\indexcolsep=\skip90
+\indexrule=\skip91
+\ila@indentunit=\skip92
+\ila@initsep=\skip93
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/natbib\natbib.st
+y"
+Package: natbib 2010/09/13 8.31b (PWD, AO)
+\bibhang=\skip94
+\bibsep=\skip95
+LaTeX Info: Redefining \cite on input line 694.
+\c@NAT@ctr=\count328
+)
+runsystem(makeindex -q Kratos_Verification.nlo -s deltares_nomentbl.ist -o Krat
+os_Verification.nls)...executed (allowed).
+
+\@nomenclaturefile=\write4
+\openout4 = `Kratos_Verification.nlo'.
+
+Package nomencl Info: Writing nomenclature file Kratos_Verification.nlo on inpu
+t line 1877.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/enumitem\enumite
+m.sty"
+Package: enumitem 2019/02/04 v3.8 Customized lists
+\labelindent=\skip96
+\enit@outerparindent=\dimen195
+\enit@toks=\toks37
+\enit@inbox=\box96
+\enit@count@id=\count329
+\enitdp@description=\count330
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/xcolor\xcolor.st
+y"
+Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\col
+or.cfg"
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: pdftex.def on input line 225.
+LaTeX Info: Redefining \color on input line 709.
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1348.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1352.
+Package xcolor Info: Model `RGB' extended on input line 1364.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1366.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1367.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1370.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/tabulary\tabular
+y.sty"
+Package: tabulary 2014/06/11 v0.10 tabulary package (DPC)
+\TY@count=\count331
+\TY@linewidth=\dimen196
+\tymin=\dimen197
+\tymax=\dimen198
+\TY@tablewidth=\dimen199
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/placeins\placein
+s.sty"
+Package: placeins 2005/04/18  v 2.2
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/ms\ragged2e.sty"
+Package: ragged2e 2009/05/21 v2.1 ragged2e Package (MS)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/ms\everysel.sty"
+Package: everysel 2011/10/28 v1.2 EverySelectfont Package (MS)
+)
+\CenteringLeftskip=\skip97
+\RaggedLeftLeftskip=\skip98
+\RaggedRightLeftskip=\skip99
+\CenteringRightskip=\skip100
+\RaggedLeftRightskip=\skip101
+\RaggedRightRightskip=\skip102
+\CenteringParfillskip=\skip103
+\RaggedLeftParfillskip=\skip104
+\RaggedRightParfillskip=\skip105
+\JustifyingParfillskip=\skip106
+\CenteringParindent=\skip107
+\RaggedLeftParindent=\skip108
+\RaggedRightParindent=\skip109
+\JustifyingParindent=\skip110
+) (Kratos_Verification.aux
+
+LaTeX Warning: Label `fig:was:used:in:doc' multiply defined.
+
+
+LaTeX Warning: Label `table:was:used:in:doc' multiply defined.
+
+
+LaTeX Warning: Label `fig:was:used:in:doc' multiply defined.
+
+
+LaTeX Warning: Label `table:was:used:in:doc' multiply defined.
+
+
+LaTeX Warning: Label `fig:was:used:in:doc' multiply defined.
+
+
+LaTeX Warning: Label `table:was:used:in:doc' multiply defined.
+
+
+LaTeX Warning: Label `fig:was:used:in:doc' multiply defined.
+
+
+LaTeX Warning: Label `fig:was:used:in:doc' multiply defined.
+
+)
+\openout1 = `Kratos_Verification.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 43.
+LaTeX Font Info:    Try loading font information for TS1+cmr on input line 43.
+ ("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\ts1cmr.fd"
+File: ts1cmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Try loading font information for T1+phv on input line 43.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\t1phv.fd"
+File: t1phv.fd 2001/06/04 scalable font definitions for T1/phv.
+)
+LaTeX Font Info:    Font shape `T1/phv/m/n' will be
+(Font)              scaled to size 10.07397pt on input line 43.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/context/base\supp-pdf.
+mkii"
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count332
+\scratchdimen=\dimen256
+\scratchbox=\box97
+\nofMPsegments=\count333
+\nofMParguments=\count334
+\everyMPshowfont=\toks38
+\MPscratchCnt=\count335
+\MPscratchDim=\dimen257
+\MPnumerator=\count336
+\makeMPintoPDFobject=\count337
+\everyMPtoPDFconversion=\toks39
+)
+\AtBeginShipoutBox=\box98
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/oberdiek\pdflsca
+pe.sty"
+Package: pdflscape 2016/05/14 v0.11 Display of landscape pages in PDF (HO)
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\lscape.
+sty"
+Package: lscape 2000/10/22 v3.01 Landscape Pages (DPC)
+)
+Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
+)
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: hyperref package is loaded.
+Package caption Info: rotating package is loaded.
+Package caption Info: End \AtBeginDocument code.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/translator\trans
+lator-basic-dictionary-English.dict"
+Dictionary: translator-basic-dictionary, Language: English 
+)
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/siunitx\siunitx-
+abbreviations.cfg"
+File: siunitx-abbreviations.cfg 2017/11/26 v2.7k siunitx: Abbreviated units
+)
+Package lastpage Info: Please have a look at the pageslts package at
+(lastpage)             https://www.ctan.org/pkg/pageslts
+(lastpage)             ! on input line 43.
+Package hyperref Info: Link coloring ON on input line 43.
+LaTeX Info: Redefining \ref on input line 43.
+LaTeX Info: Redefining \pageref on input line 43.
+LaTeX Info: Redefining \nameref on input line 43.
+ ABD: EverySelectfont initializing macros
+LaTeX Info: Redefining \selectfont on input line 43.
+LaTeX Font Info:    Try loading font information for U+msa on input line 43.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\umsa.fd
+"
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 43.
+
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsfonts\umsb.fd
+"
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+LaTeX Font Info:    Font shape `T1/phv/m/n' will be
+(Font)              scaled to size 15.89755pt on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <17.28> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/b/n' will be
+(Font)              scaled to size 15.89755pt on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/m/n' will be
+(Font)              scaled to size 27.47115pt on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <29.86> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/b/n' will be
+(Font)              scaled to size 27.47115pt on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/bx/sc' in size <29.86> not available
+(Font)              Font shape `T1/phv/b/sc' tried instead on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/b/sc' will be
+(Font)              scaled to size 27.47115pt on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/m/n' will be
+(Font)              scaled to size 13.24796pt on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <14.4> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/b/n' will be
+(Font)              scaled to size 13.24796pt on input line 53.
+ [1
+
+
+{C:/Users/noordam/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/b/n' will be
+(Font)              scaled to size 10.07397pt on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/bx/sc' in size <10.95> not available
+(Font)              Font shape `T1/phv/b/sc' tried instead on input line 53.
+LaTeX Font Info:    Font shape `T1/phv/b/sc' will be
+(Font)              scaled to size 10.07397pt on input line 53.
+
+Overfull \hbox (18.0pt too wide) in paragraph at lines 53--53
+[][] 
+ []
+
+
+Overfull \hbox (18.0pt too wide) in paragraph at lines 53--53
+[][] 
+ []
+
+LaTeX Font Info:    Try loading font information for TS1+phv on input line 53.
+("C:\Users\noordam\AppData\Local\Programs\MiKTeX 2.9\tex/latex/psnfss\ts1phv.fd
+"
+File: ts1phv.fd 2001/06/04 scalable font definitions for TS1/phv.
+)
+LaTeX Font Info:    Font shape `TS1/phv/m/n' will be
+(Font)              scaled to size 10.07397pt on input line 53.
+ [2
+
+] (Kratos_Verification.toc
+
+Package xcolor Warning: Incompatible color definition on input line 2.
+
+
+Package xcolor Warning: Incompatible color definition on input line 3.
+
+
+Package xcolor Warning: Incompatible color definition on input line 4.
+
+
+Package xcolor Warning: Incompatible color definition on input line 5.
+
+
+Package xcolor Warning: Incompatible color definition on input line 6.
+
+
+Package xcolor Warning: Incompatible color definition on input line 7.
+
+
+Package xcolor Warning: Incompatible color definition on input line 8.
+
+
+Package xcolor Warning: Incompatible color definition on input line 9.
+
+
+Package xcolor Warning: Incompatible color definition on input line 10.
+
+
+Package xcolor Warning: Incompatible color definition on input line 11.
+
+
+Package xcolor Warning: Incompatible color definition on input line 12.
+
+
+Package xcolor Warning: Incompatible color definition on input line 13.
+
+
+Package xcolor Warning: Incompatible color definition on input line 14.
+
+
+Package xcolor Warning: Incompatible color definition on input line 15.
+
+
+Package xcolor Warning: Incompatible color definition on input line 16.
+
+
+Package xcolor Warning: Incompatible color definition on input line 17.
+
+
+Package xcolor Warning: Incompatible color definition on input line 18.
+
+
+Package xcolor Warning: Incompatible color definition on input line 19.
+
+
+Package xcolor Warning: Incompatible color definition on input line 20.
+
+
+Package xcolor Warning: Incompatible color definition on input line 21.
+
+
+Package xcolor Warning: Incompatible color definition on input line 22.
+
+
+Package xcolor Warning: Incompatible color definition on input line 23.
+
+
+Package xcolor Warning: Incompatible color definition on input line 24.
+
+
+Package xcolor Warning: Incompatible color definition on input line 25.
+
+
+Package xcolor Warning: Incompatible color definition on input line 26.
+
+
+Package xcolor Warning: Incompatible color definition on input line 27.
+
+
+Package xcolor Warning: Incompatible color definition on input line 28.
+
+
+Package xcolor Warning: Incompatible color definition on input line 29.
+
+
+Package xcolor Warning: Incompatible color definition on input line 30.
+
+)
+\tf@toc=\write5
+\openout5 = `Kratos_Verification.toc'.
+
+ [3
+
+
+]
+LaTeX Font Info:    Font shape `T1/phv/m/sc' will be
+(Font)              scaled to size 10.07397pt on input line 53.
+ [4
+
+] (Kratos_Verification.lof
+
+Package xcolor Warning: Incompatible color definition on input line 4.
+
+
+Package xcolor Warning: Incompatible color definition on input line 6.
+
+
+Package xcolor Warning: Incompatible color definition on input line 7.
+
+
+Package xcolor Warning: Incompatible color definition on input line 9.
+
+
+Package xcolor Warning: Incompatible color definition on input line 10.
+
+
+Package xcolor Warning: Incompatible color definition on input line 12.
+
+)
+\tf@lof=\write6
+\openout6 = `Kratos_Verification.lof'.
+
+ [5] [6
+
+] (Kratos_Verification.lot
+
+Package xcolor Warning: Incompatible color definition on input line 4.
+
+
+Package xcolor Warning: Incompatible color definition on input line 5.
+
+
+Package xcolor Warning: Incompatible color definition on input line 6.
+
+
+Package xcolor Warning: Incompatible color definition on input line 8.
+
+
+Package xcolor Warning: Incompatible color definition on input line 9.
+
+
+Package xcolor Warning: Incompatible color definition on input line 10.
+
+
+Package xcolor Warning: Incompatible color definition on input line 11.
+
+
+Package xcolor Warning: Incompatible color definition on input line 13.
+
+)
+\tf@lot=\write7
+\openout7 = `Kratos_Verification.lot'.
+
+ (Kratos_Verification.nls) [7] [8
+
+]
+Chapter 1.
+
+Overfull \hbox (7.64561pt too wide) in paragraph at lines 56--58
+\T1/phv/m/n/10.95 achieve this dif-fer-ent bench-marks are cre-ated to test dif
+-fer-ent parts of the Kratos-Geomechanics
+ []
+
+[1
+
+] [2
+
+]
+Chapter 2.
+LaTeX Font Info:    Font shape `T1/phv/m/it' in size <10.95> not available
+(Font)              Font shape `T1/phv/m/sl' tried instead on input line 64.
+LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
+(Font)              scaled to size 10.07397pt on input line 64.
+
+Package xcolor Warning: Incompatible color definition on input line 65.
+
+LaTeX Font Info:    Font shape `T1/phv/m/n' will be
+(Font)              scaled to size 9.19998pt on input line 68.
+LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
+(Font)              scaled to size 9.19998pt on input line 68.
+LaTeX Font Info:    Font shape `T1/phv/bx/sl' in size <10> not available
+(Font)              Font shape `T1/phv/b/sl' tried instead on input line 68.
+LaTeX Font Info:    Font shape `T1/phv/b/sl' will be
+(Font)              scaled to size 9.19998pt on input line 68.
+
+Package xcolor Warning: Incompatible color definition on input line 90.
+
+
+Package xcolor Warning: Incompatible color definition on input line 108.
+
+
+Package caption Warning: \label without proper reference on input line 112.
+See the caption package documentation for explanation.
+
+
+LaTeX Warning: Reference `fig:material_bm_1' on page 3 undefined on input line 
+108.
+
+<figures/material_bm_1.png, id=137, 327.47343pt x 359.09157pt>
+File: figures/material_bm_1.png Graphic file (type png)
+<use figures/material_bm_1.png>
+Package pdftex.def Info: figures/material_bm_1.png  used on input line 111.
+(pdftex.def)             Requested size: 206.28249pt x 226.20148pt.
+[3]
+
+Package xcolor Warning: Incompatible color definition on input line 124.
+
+
+Package xcolor Warning: Incompatible color definition on input line 124.
+
+
+Package xcolor Warning: Incompatible color definition on input line 134.
+
+[4 <./figures/material_bm_1.png>] [5] [6
+
+]
+Chapter 3.
+
+Package xcolor Warning: Incompatible color definition on input line 157.
+
+
+Package xcolor Warning: Incompatible color definition on input line 179.
+
+<figures/beam_bm_2_1.png, id=173, 327.47343pt x 275.52937pt>
+File: figures/beam_bm_2_1.png Graphic file (type png)
+<use figures/beam_bm_2_1.png>
+Package pdftex.def Info: figures/beam_bm_2_1.png  used on input line 183.
+(pdftex.def)             Requested size: 206.28249pt x 173.56339pt.
+
+Package xcolor Warning: Incompatible color definition on input line 191.
+
+[7 <./figures/beam_bm_2_1.png>]
+
+Package xcolor Warning: Incompatible color definition on input line 198.
+
+
+Package xcolor Warning: Incompatible color definition on input line 215.
+
+
+Package xcolor Warning: Incompatible color definition on input line 236.
+
+<figures/beam_bm_2_2.png, id=183, 327.47343pt x 275.52937pt>
+File: figures/beam_bm_2_2.png Graphic file (type png)
+<use figures/beam_bm_2_2.png>
+Package pdftex.def Info: figures/beam_bm_2_2.png  used on input line 240.
+(pdftex.def)             Requested size: 206.28249pt x 173.56339pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Package xcolor Warning: Incompatible color definition on input line 248.
+
+
+Package xcolor Warning: Incompatible color definition on input line 254.
+
+[8] [9 <./figures/beam_bm_2_2.png>] [10
+
+]
+Chapter 4.
+
+Package xcolor Warning: Incompatible color definition on input line 279.
+
+<figures/mesh_rigid_footing_elastic_soil.png, id=202, 721.19438pt x 444.15938pt
+>
+File: figures/mesh_rigid_footing_elastic_soil.png Graphic file (type png)
+<use figures/mesh_rigid_footing_elastic_soil.png>
+Package pdftex.def Info: figures/mesh_rigid_footing_elastic_soil.png  used on i
+nput line 283.
+(pdftex.def)             Requested size: 206.28249pt x 127.0408pt.
+
+Package xcolor Warning: Incompatible color definition on input line 323.
+
+<figures/vertical_stress_rigid_footing_elastic_soil.png, id=204, 462.528pt x 34
+5.4506pt>
+File: figures/vertical_stress_rigid_footing_elastic_soil.png Graphic file (type
+ png)
+<use figures/vertical_stress_rigid_footing_elastic_soil.png>
+Package pdftex.def Info: figures/vertical_stress_rigid_footing_elastic_soil.png
+  used on input line 327.
+(pdftex.def)             Requested size: 206.28249pt x 154.07028pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[11 <./figures/mesh_rigid_footing_elastic_soil.png>] [12 <./figures/vertical_st
+ress_rigid_footing_elastic_soil.png>]
+Chapter 5.
+
+Overfull \hbox (2.19734pt too wide) in paragraph at lines 334--335
+\T1/phv/m/n/10.95 In this bench-mark 1D con-sol-i-da-tion is tested on lin-ear 
+elas-tic soil, us-ing Kratos-Geomechanics.
+ []
+
+<figures/1d_consolidation_result.png, id=217, 462.528pt x 345.4506pt>
+File: figures/1d_consolidation_result.png Graphic file (type png)
+<use figures/1d_consolidation_result.png>
+Package pdftex.def Info: figures/1d_consolidation_result.png  used on input lin
+e 359.
+(pdftex.def)             Requested size: 206.28249pt x 154.07028pt.
+[13
+
+ <./figures/1d_consolidation_result.png>] [14
+
+] (Kratos_Verification.bbl
+
+Package natbib Warning: Empty `thebibliography' environment on input line 8.
+
+) 
+AED: lastpage setting LastPage
+[15]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 379.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 379.
+ (Kratos_Verification.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 379.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 379.
+
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: There were multiply-defined labels.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 26164 strings out of 492946
+ 477672 string characters out of 3125378
+ 587254 words of memory out of 3000000
+ 29563 multiletter control sequences out of 15000+200000
+ 586407 words of font info for 85 fonts, out of 3000000 for 9000
+ 1143 hyphenation exceptions out of 8191
+ 55i,12n,77p,828b,764s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/base/8r.e
+nc}<C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfo
+nts/cm/cmbsy10.pfb><C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/ty
+pe1/public/amsfonts/cm/cmex10.pfb><C:/Users/noordam/AppData/Local/Programs/MiKT
+eX 2.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Users/noordam/AppData/Loca
+l/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/noorda
+m/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C
+:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/c
+m/cmr8.pfb><C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/publ
+ic/amsfonts/cm/cmsy10.pfb><C:/Users/noordam/AppData/Local/Programs/MiKTeX 2.9/f
+onts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/noordam/AppData/Local/Program
+s/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvb8a.pfb><C:/Users/noordam/AppData/Loca
+l/Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvbo8a.pfb><C:/Users/noordam/Ap
+pData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Users/n
+oordam/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvro8a.pfb>
+Output written on Kratos_Verification.pdf (23 pages, 309513 bytes).
+PDF statistics:
+ 378 PDF objects out of 1000 (max. 8388607)
+ 74 named destinations out of 1000 (max. 500000)
+ 263 words of extra memory for PDF output out of 10000 (max. 10000000)
+

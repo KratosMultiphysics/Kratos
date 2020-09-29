@@ -1,0 +1,37 @@
+BeginZE D:/software_development/Kratos/applications/GeoMechanicsApplication/test_examples/test_tetra_4n.gid/test_tetra_4n.vv
+   x -0.867408633232116699 1.8674088716506958
+   y 1.36602544784545898 -0.366025388240814209
+   z -3.09807610511779785 2.09807610511779785
+   e 0.866025388240814209
+   v -0.16618247450109222 -0.219998016237166749 -0.0170658828057041571
+   r 0.961089486118184122
+   m 0.902619242668151855 0.105923309922218323 -0.417203456163406372 0 0.0403159484267234802 0.944184303283691406 0.326941370964050293 0 0.428547650575637817 -0.31192353367805481 0.847968518733978271 0 0 0 0 1
+   c 0.5 0.5 0.5
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE D:/software_development/Kratos/applications/GeoMechanicsApplication/test_examples/test_tetra_4n.gid/test_tetra_4n.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

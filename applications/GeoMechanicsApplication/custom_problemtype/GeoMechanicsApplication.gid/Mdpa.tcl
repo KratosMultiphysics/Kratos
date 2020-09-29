@@ -1,0 +1,794 @@
+proc WriteMdpa { basename dir problemtypedir } {
+
+    ## Source auxiliar procedures
+    source [file join $problemtypedir MdpaAuxProcs.tcl]
+
+    ## Start MDPA file
+    set filename [file join $dir ${basename}.mdpa]
+    set FileVar [open $filename w]
+
+    ## ModelPart Data
+    #puts $FileVar "Begin ModelPartData"
+    #puts $FileVar "  // VARIABLE_NAME value"
+    #puts $FileVar "End ModelPartData"
+    #puts $FileVar ""
+    #puts $FileVar ""
+    
+    
+    ## Tables
+    set TableId 0
+    set TableDict [dict create]
+    # Solid_Displacement
+    ConstraintVectorTable FileVar TableId TableDict Solid_Displacement DISPLACEMENT
+    # Structural_Rotation
+    ConstraintVectorTable FileVar TableId TableDict Structural_Rotation ROTATION
+    # Fluid_Pressure
+    PressureTable FileVar TableId TableDict Fluid_Pressure WATER_PRESSURE
+    # Point_Load
+    VectorTable FileVar TableId TableDict Point_Load POINT_LOAD
+    # Line_Load
+    VectorTable FileVar TableId TableDict Line_Load LINE_LOAD
+    # Surface_Load
+    VectorTable FileVar TableId TableDict Surface_Load SURFACE_LOAD
+    # Normal_Load
+    NormalTangentialTable FileVar TableId TableDict Normal_Load NORMAL_CONTACT_STRESS TANGENTIAL_CONTACT_STRESS
+    # Normal_Fluid_Flux
+    ScalarTable FileVar TableId TableDict Normal_Fluid_Flux NORMAL_FLUID_FLUX
+    # Interface_Face_Load
+    VectorTable FileVar TableId TableDict Interface_Face_Load FACE_LOAD
+    # Interface_Normal_Fluid_Flux
+    ScalarTable FileVar TableId TableDict Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
+    # Body_Acceleration
+    VectorTable FileVar TableId TableDict Body_Acceleration VOLUME_ACCELERATION
+    puts $FileVar ""
+
+
+    ## Properties
+    set PropertyId 0
+    set PropertyDict [dict create]
+    # Soil_two_phase part
+    set Groups [GiD_Info conditions Soil_two_phase groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        incr PropertyId
+        dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+        puts $FileVar "Begin Properties $PropertyId"
+        puts $FileVar "End Properties"
+        puts $FileVar ""
+    }
+
+    # Soil_drained part
+    set Groups [GiD_Info conditions Soil_drained groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        incr PropertyId
+        dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+        puts $FileVar "Begin Properties $PropertyId"
+        puts $FileVar "End Properties"
+        puts $FileVar ""
+    }
+
+    # Soil_undrained part
+    set Groups [GiD_Info conditions Soil_undrained groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        incr PropertyId
+        dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+        puts $FileVar "Begin Properties $PropertyId"
+        puts $FileVar "End Properties"
+        puts $FileVar ""
+    }
+
+    # Non_porous part
+    set Groups [GiD_Info conditions Non_porous groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        incr PropertyId
+        dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+        puts $FileVar "Begin Properties $PropertyId"
+        puts $FileVar "End Properties"
+        puts $FileVar ""
+    }
+
+
+    # Beam part
+    set Groups [GiD_Info conditions Beam groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
+    }
+
+    # Shell_thin_corotational part
+    set Groups [GiD_Info conditions Shell_thin_corotational groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
+    }
+
+    # Shell_thick_corotational part
+    set Groups [GiD_Info conditions Shell_thick_corotational groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
+    }
+
+    # Truss part
+    set Groups [GiD_Info conditions Truss groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
+    }
+
+    # Cable part
+    set Groups [GiD_Info conditions Cable groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
+    }
+
+    # Interface drained and interface undrained part
+    set interface_Groups [list   [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
+    foreach Groups $interface_Groups {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 4] eq "BilinearCohesive3DLaw"} {
+                incr PropertyId
+                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                puts $FileVar "Begin Properties $PropertyId"
+                puts $FileVar "End Properties"
+                puts $FileVar ""
+            } elseif {[lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStress2DLaw"} {
+                incr PropertyId
+                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                puts $FileVar "Begin Properties $PropertyId"
+                puts $FileVar "End Properties"
+                puts $FileVar ""
+            } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM3DInterfaceLaw"} {         
+                incr PropertyId
+                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                puts $FileVar "Begin Properties $PropertyId"
+                puts $FileVar "End Properties"
+                puts $FileVar ""
+            }
+        }
+    }
+    
+    puts $FileVar ""
+
+    ## Nodes
+    set Nodes [GiD_Info Mesh Nodes]
+    puts $FileVar "Begin Nodes"
+    for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
+        # puts $FileVar "  [lindex $Nodes $i]  [lindex $Nodes [expr { $i+1 }]] [lindex $Nodes [expr { $i+2 }]] [lindex $Nodes [expr { $i+3 }]]"
+        puts -nonewline $FileVar "  [lindex $Nodes $i]  "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
+        puts -nonewline $FileVar " "
+        puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+2 }]]]
+        puts -nonewline $FileVar " "
+        puts $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+3 }]]]
+    }
+    puts $FileVar "End Nodes"
+    puts $FileVar ""
+    puts $FileVar ""
+
+
+    ## Elements
+    set FIC [GiD_AccessValue get gendata FIC_Stabilization]
+    set IsQuadratic [GiD_Info Project Quadratic]
+    set Dim [GiD_AccessValue get gendata Domain_Size]
+
+    # Soil_two_phase part
+    set Groups [GiD_Info conditions Soil_two_phase groups]   
+    if {$IsQuadratic eq 0} {
+        if {$FIC eq false} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # UPwSmallStrainElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # UPwSmallStrainElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # UPwSmallStrainFICElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # UPwSmallStrainFICElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainFICElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainFICElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallStrainUPwDiffOrderElement2D6N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+            # SmallStrainUPwDiffOrderElement2D8N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+            # SmallStrainUPwDiffOrderElement3D10N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+            # SmallStrainUPwDiffOrderElement3D20N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+        }
+    } else {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallStrainUPwDiffOrderElement2D6N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+            # SmallStrainUPwDiffOrderElement2D9N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+            # SmallStrainUPwDiffOrderElement3D10N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+            # SmallStrainUPwDiffOrderElement3D27N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+        }
+    }
+
+    # Soil_drained part
+    set Groups [GiD_Info conditions Soil_drained groups]  
+    if {$IsQuadratic eq 0} {
+        if {$FIC eq false} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # UPwSmallStrainElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # UPwSmallStrainElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # UPwSmallStrainFICElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # UPwSmallStrainFICElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainFICElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainFICElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallStrainUPwDiffOrderElement2D6N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+            # SmallStrainUPwDiffOrderElement2D8N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+            # SmallStrainUPwDiffOrderElement3D10N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+            # SmallStrainUPwDiffOrderElement3D20N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+        }
+    } else {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallStrainUPwDiffOrderElement2D6N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+            # SmallStrainUPwDiffOrderElement2D9N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+            # SmallStrainUPwDiffOrderElement3D10N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+            # SmallStrainUPwDiffOrderElement3D27N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+        }
+    }
+
+    # Soil_undrained part
+    set Groups [GiD_Info conditions Soil_undrained groups]
+    if {$IsQuadratic eq 0} {
+        if {$FIC eq false} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # UPwSmallStrainElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # UPwSmallStrainElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # UPwSmallStrainFICElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # UPwSmallStrainFICElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainFICElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainFICElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallStrainUPwDiffOrderElement2D6N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+            # SmallStrainUPwDiffOrderElement2D8N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+            # SmallStrainUPwDiffOrderElement3D10N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+            # SmallStrainUPwDiffOrderElement3D20N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+        }
+    } else {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallStrainUPwDiffOrderElement2D6N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
+            # SmallStrainUPwDiffOrderElement2D9N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallStrainUPwDiffOrderElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+            # SmallStrainUPwDiffOrderElement3D10N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallStrainUPwDiffOrderElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+            # SmallStrainUPwDiffOrderElement3D27N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallStrainUPwDiffOrderElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+        }
+    }
+
+    # Non_porous part
+    set Groups [GiD_Info conditions Non_porous groups]
+    if {$IsQuadratic eq 0} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallDisplacement2D3N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallDisplacementElement2D3N $BodyElemsProp Triangle2D3Connectivities
+            # SmallDisplacement2D4N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallDisplacementElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+            # SmallDisplacement3D4N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallDisplacementElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+            # SmallDisplacement3D8N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallDisplacementElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+        }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SmallDisplacement2D6N
+            WriteElements FileVar [lindex $Groups $i] triangle SmallDisplacementElement2D6N $BodyElemsProp Triangle2D6Connectivities
+            # SmallDisplacement2D8N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SmallDisplacementElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+            # SmallDisplacement3D10N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SmallDisplacementElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+            # SmallDisplacement3D20N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SmallDisplacementElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+        }
+    }
+    
+    # Beam_Part
+    set Groups [GiD_Info conditions Beam groups]
+    if {$IsQuadratic eq 0} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            if {$Dim eq 2} {
+              # CrBeamElement2D2N
+              WriteElements FileVar [lindex $Groups $i] line GeoCrBeamElementLinear2D2N $BodyElemsProp Line2D2Connectivities
+            } else {
+              # CrBeamElement3D2N
+              WriteElements FileVar [lindex $Groups $i] line GeoCrBeamElementLinear3D2N $BodyElemsProp Line2D2Connectivities
+            }
+        }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            if {$Dim eq 2} {
+              # CrLinearBeamElement2D3N
+              WriteElements FileVar [lindex $Groups $i] line GeoCrBeamElementLinear2D3N $BodyElemsProp Line2D3Connectivities
+            } else {
+              # CrLinearBeamElement3D3N
+              WriteElements FileVar [lindex $Groups $i] line GeoCrBeamElementLinear3D3N $BodyElemsProp Line3D3Connectivities
+            }
+        }
+    }
+
+
+    # Shell_thin_corotational_Part
+    set Groups [GiD_Info conditions Shell_thin_corotational groups]
+      for {set i 0} {$i < [llength $Groups]} {incr i} {
+          # Elements Property
+          set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+          # ShellThinElementCorotational3D3N
+          WriteElements FileVar [lindex $Groups $i] triangle ShellThinElementCorotational3D3N $BodyElemsProp Triangle3D3Connectivities
+
+          # ShellThinElementCorotational3D4N
+          WriteElements FileVar [lindex $Groups $i] quadrilateral ShellThinElementCorotational3D4N $BodyElemsProp Quadrilateral3D4Connectivities
+      }
+
+    # Shell_thick_corotational_Part
+    set Groups [GiD_Info conditions Shell_thick_corotational groups]
+      for {set i 0} {$i < [llength $Groups]} {incr i} {
+          # Elements Property
+          set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+          # ShellThickElementCorotational3D3N
+          WriteElements FileVar [lindex $Groups $i] triangle ShellThickElementCorotational3D3N $BodyElemsProp Triangle3D3Connectivities
+
+          # ShellThickElementCorotational3D4N
+          WriteElements FileVar [lindex $Groups $i] quadrilateral ShellThickElementCorotational3D4N $BodyElemsProp Quadrilateral3D4Connectivities
+      }
+
+
+    set CableId 0
+    set CableElementDict [dict create]
+    
+    # Truss_Part
+    set Groups [GiD_Info conditions Truss groups]
+    if {$IsQuadratic eq 0} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # TrussLinearElement3D2N
+            WriteElements FileVar [lindex $Groups $i] line GeoTrussLinearElement3D2N $BodyElemsProp Line2D2Connectivities
+        }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # TrussLinearElement3D3N
+            WriteElements FileVar [lindex $Groups $i] line GeoTrussLinearElement3D3N $BodyElemsProp Line2D3Connectivities
+        }
+    }
+
+    # Cable_Part
+    set Groups [GiD_Info conditions Cable groups]
+    if {$IsQuadratic eq 0} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+            
+            # CableElement3D2N
+            dict set CableElementDict $CableId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D2N $BodyElemsProp Line2D2Connectivities] 
+            incr CableId
+        }
+    } elseif {$IsQuadratic eq 1} {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # CableElement3D3N
+            dict set CableElementDict $CableId [WriteAnchorElements FileVar [lindex $Groups $i] line GeoCableElement3D3N $BodyElemsProp Line2D3Connectivities]
+            incr CableId
+        }
+    }
+
+    # Interface drained and interface undrained part
+    set interface_Groups [list   [GiD_Info conditions Interface_drained groups] [GiD_Info conditions Interface_undrained groups]]
+    foreach Groups $interface_Groups {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 3] eq false} {
+                # Elements Property
+                set InterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                # UPwSmallStrainInterfaceElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainInterfaceElement2D4N $InterfaceElemsProp Quadrilateral2D4Connectivities
+                # UPwSmallStrainInterfaceElement3D6N
+                WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainInterfaceElement3D6N $InterfaceElemsProp PrismInterface3D6Connectivities
+                # UPwSmallStrainInterfaceElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainInterfaceElement3D8N $InterfaceElemsProp HexahedronInterface3D8Connectivities
+            } else {
+                # Elements Property
+                set LinkInterfaceElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                # UPwSmallStrainLinkInterfaceElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp QuadrilateralInterface2D4Connectivities
+                WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainLinkInterfaceElement2D4N $LinkInterfaceElemsProp TriangleInterface2D4Connectivities
+                # UPwSmallStrainLinkInterfaceElement3D6N
+                WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp Triangle2D6Connectivities
+                WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp TetrahedronInterface3D6Connectivities
+                # UPwSmallStrainLinkInterfaceElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainLinkInterfaceElement3D8N $LinkInterfaceElemsProp Hexahedron3D8Connectivities
+            }
+        }
+    }
+
+    # PropagationUnion (InterfaceElement)
+    if {[GiD_Groups exists PropagationUnion_3d_6] eq 1} {
+        # UPwSmallStrainInterfaceElement3D6N
+        set PropUnionElementList [WritePropUnionElements FileVar $InterfaceElemsProp]
+    }
+    puts $FileVar ""
+
+    ## Conditions
+    set ConditionId 0
+    set ConditionDict [dict create]
+    # Point_Load
+    set Groups [GiD_Info conditions Point_Load groups]
+    if {$Dim eq 2} {
+        # UPwForceCondition2D1N
+        WriteNodalConditions FileVar ConditionId ConditionDict $Groups PointLoadCondition2D1N $BodyElemsProp
+    } else {
+        # UPwForceCondition3D1N
+        WriteNodalConditions FileVar ConditionId ConditionDict $Groups PointLoadCondition2D1N $BodyElemsProp
+    }
+
+    # Line_Load
+    set Groups [GiD_Info conditions Line_Load groups]
+    if {$Dim eq 2} {
+        if {$IsQuadratic eq 0} {
+            # LineLoadCondition2D2N
+            WriteLineConditions FileVar ConditionId ConditionDict $Groups UPwFaceLoadCondition2D2N $PropertyDict
+        } else {
+            # LineLoadCondition2D3N
+            WriteLineConditions FileVar ConditionId ConditionDict $Groups LineLoadDiffOrderCondition2D3N $PropertyDict
+        }
+    } else {
+        #TODO: needs to developed or adopted from SolidMechanicsApplication
+        if {$IsQuadratic eq 0} {
+            # LineLoadCondition3D2N
+            WriteLineConditions FileVar ConditionId ConditionDict $Groups LineLoadCondition3D2N $PropertyDict
+        } else {
+            # LineLoadCondition3D3N
+            WriteLineConditions FileVar ConditionId ConditionDict $Groups LineLoadCondition3D3N $PropertyDict
+        }
+    }
+    
+
+    # Surface_Load
+    set Groups [GiD_Info conditions Surface_Load groups]
+        if {$IsQuadratic eq 0} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # UPwFaceLoadCondition3D3N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra UPwFaceLoadCondition3D3N $PropertyDict
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] prism UPwFaceLoadCondition3D3N $PropertyDict
+                # UPwFaceLoadCondition3D4N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra UPwFaceLoadCondition3D4N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        } elseif {$IsQuadratic eq 1} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # SurfaceLoadDiffOrderCondition3D6N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceLoadDiffOrderCondition3D6N $PropertyDict
+                # SurfaceLoadDiffOrderCondition3D8N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceLoadDiffOrderCondition3D8N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # SurfaceLoadDiffOrderCondition3D6N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceLoadDiffOrderCondition3D6N $PropertyDict
+                # SurfaceLoadDiffOrderCondition3D9N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceLoadDiffOrderCondition3D9N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        }
+
+    # Normal_Load
+    set Groups [GiD_Info conditions Normal_Load groups]
+    if {$Dim eq 2} {
+        if {$IsQuadratic eq 0} {
+            # UPwNormalFaceLoadCondition2D2N
+            WriteFaceConditions FileVar ConditionId ConditionDict $Groups UPwNormalFaceLoadCondition2D2N $PropertyDict
+        } else {
+            # LineNormalLoadDiffOrderCondition2D3N
+            WriteFaceConditions FileVar ConditionId ConditionDict $Groups LineNormalLoadDiffOrderCondition2D3N $PropertyDict
+        }
+    } else {
+        if {$IsQuadratic eq 0} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # UPwNormalFaceLoadCondition3D3N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra UPwNormalFaceLoadCondition3D3N $PropertyDict
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] prism UPwNormalFaceLoadCondition3D3N $PropertyDict
+                # UpwNormalFaceLoadCondition3D4N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra UpwNormalFaceLoadCondition3D4N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        } elseif {$IsQuadratic eq 1} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # SurfaceNormalLoadDiffOrderCondition3D6N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceNormalLoadDiffOrderCondition3D6N $PropertyDict
+                # SurfaceNormalLoadDiffOrderCondition3D8N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceNormalLoadDiffOrderCondition3D8N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # SurfaceNormalLoadDiffOrderCondition3D6N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceNormalLoadDiffOrderCondition3D6N $PropertyDict
+                # SurfaceNormalLoadDiffOrderCondition3D9N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceNormalLoadDiffOrderCondition3D9N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        }
+    }
+    # Normal_Fluid_Flux
+    set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
+    if {$Dim eq 2} {
+        if {$IsQuadratic eq 0} {
+            if {$FIC eq false} {
+                # UPwNormalFluxCondition2D2N
+                WriteFaceConditions FileVar ConditionId ConditionDict $Groups UPwNormalFluxCondition2D2N $PropertyDict
+            } else {
+                # UPwNormalFluxFICCondition2D2N
+                WriteFaceConditions FileVar ConditionId ConditionDict $Groups UPwNormalFluxFICCondition2D2N $PropertyDict
+            }
+        } else {
+            # LineNormalFluidFluxDiffOrderCondition2D3N
+            WriteFaceConditions FileVar ConditionId ConditionDict $Groups LineNormalFluidFluxDiffOrderCondition2D3N $PropertyDict
+        }
+    } else {
+        if {$IsQuadratic eq 0} {
+            if {$FIC eq false} {
+                for {set i 0} {$i < [llength $Groups]} {incr i} {
+                    set MyConditionList [list]
+                    # UPwNormalFluxCondition3D3N
+                    WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra UPwNormalFluxCondition3D3N $PropertyDict
+                    WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] prism UPwNormalFluxCondition3D3N $PropertyDict
+                    # UPwNormalFluxCondition3D4N
+                    WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra UPwNormalFluxCondition3D4N $PropertyDict
+                    dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+                }
+            } else {
+                for {set i 0} {$i < [llength $Groups]} {incr i} {
+                    set MyConditionList [list]
+                    # UPwNormalFluxFICCondition3D3N
+                    WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra UPwNormalFluxFICCondition3D3N $PropertyDict
+                    WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] prism UPwNormalFluxFICCondition3D3N $PropertyDict
+                    # UPwNormalFluxFICCondition3D4N
+                    WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra UPwNormalFluxFICCondition3D4N $PropertyDict
+                    dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+                }
+            }
+        } elseif {$IsQuadratic eq 1} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # SurfaceNormalFluidFluxDiffOrderCondition3D6N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceNormalFluidFluxDiffOrderCondition3D6N $PropertyDict
+                # SurfaceNormalFluidFluxDiffOrderCondition3D8N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceNormalFluidFluxDiffOrderCondition3D8N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                set MyConditionList [list]
+                # SurfaceNormalFluidFluxDiffOrderCondition3D6N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceNormalFluidFluxDiffOrderCondition3D6N $PropertyDict
+                # SurfaceNormalFluidFluxDiffOrderCondition3D9N
+                WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] hexahedra SurfaceNormalFluidFluxDiffOrderCondition3D9N $PropertyDict
+                dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+            }
+        }
+    }
+    # Interface_Face_Load
+    set Groups [GiD_Info conditions Interface_Face_Load groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        set MyConditionList [list]
+        # UPwFaceLoadInterfaceCondition2D2N
+        WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] linear UPwFaceLoadInterfaceCondition2D2N $InterfaceElemsProp Line2D2Connectivities
+        # UPwFaceLoadInterfaceCondition3D4N
+        WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] triangle UPwFaceLoadInterfaceCondition3D4N $InterfaceElemsProp TriangleInterface3D4Connectivities
+        WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] quadrilateral UPwFaceLoadInterfaceCondition3D4N $InterfaceElemsProp QuadrilateralInterface3D4Connectivities
+        dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+    }
+    # Interface_Normal_Fluid_Flux
+    set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        set MyConditionList [list]
+        # UPwNormalFluxInterfaceCondition2D2N
+        WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] linear UPwNormalFluxInterfaceCondition2D2N $InterfaceElemsProp Line2D2Connectivities
+        # UPwNormalFluxInterfaceCondition3D4N
+        WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] triangle UPwNormalFluxInterfaceCondition3D4N $InterfaceElemsProp TriangleInterface3D4Connectivities
+        WriteInterfaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] quadrilateral UPwNormalFluxInterfaceCondition3D4N $InterfaceElemsProp QuadrilateralInterface3D4Connectivities
+        dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+    }
+
+    puts $FileVar ""
+
+    ## SubModelParts
+    # Soil_two_phase part
+    WriteElementSubmodelPart FileVar Soil_two_phase
+    # Soil_drained part
+    WriteElementSubmodelPart FileVar Soil_drained
+    # Soil_undrained part
+    WriteElementSubmodelPart FileVar Soil_undrained
+    # Non_porous part
+    WriteElementSubmodelPart FileVar Non_porous
+    # Beam part
+    WriteElementSubmodelPart FileVar Beam
+    # Shell_thin_corotational part
+    WriteElementSubmodelPart FileVar Shell_thin_corotational
+    # Shell_thick_corotational part
+    WriteElementSubmodelPart FileVar Shell_thick_corotational
+    # Truss part
+    WriteElementSubmodelPart FileVar Truss
+    # Cable part
+    WriteCableElementSubmodelPart FileVar Cable $CableElementDict
+    # Interface drained Part
+    WriteElementSubmodelPart FileVar Interface_drained
+    # Interface undrained Part
+    WriteElementSubmodelPart FileVar Interface_undrained
+    # PropagationUnion (InterfaceElement)
+    if {[GiD_Groups exists PropagationUnion_3d_6] eq 1} {
+        WritePropUnionElementSubmodelPart FileVar $PropUnionElementList
+    }
+    # Solid_Displacement
+    WriteConstraintSubmodelPart FileVar Solid_Displacement $TableDict
+    # Structural_Rotation
+    WriteConstraintSubmodelPart FileVar Structural_Rotation $TableDict
+    # Fluid_Pressure
+    WriteConstraintSubmodelPart FileVar Fluid_Pressure $TableDict
+    # Excavation, todo add conditions to excavation
+    WriteExcavationSubmodelPart FileVar Excavation $CableElementDict
+    # Point_Load
+    WriteLoadSubmodelPart FileVar Point_Load $TableDict $ConditionDict
+    # Line_Load
+    WriteLoadSubmodelPart FileVar Line_Load $TableDict $ConditionDict
+    # Surface_Load
+    WriteLoadSubmodelPart FileVar Surface_Load $TableDict $ConditionDict
+    # Normal_Load
+    WriteLoadSubmodelPart FileVar Normal_Load $TableDict $ConditionDict
+    # Normal_Fluid_Flux
+    WriteLoadSubmodelPart FileVar Normal_Fluid_Flux $TableDict $ConditionDict
+    # Interface_Face_Load
+    WriteLoadSubmodelPart FileVar Interface_Face_Load $TableDict $ConditionDict
+    # Interface_Normal_Fluid_Flux
+    WriteLoadSubmodelPart FileVar Interface_Normal_Fluid_Flux $TableDict $ConditionDict
+    # Body_Acceleration
+    WriteConstraintSubmodelPart FileVar Body_Acceleration $TableDict
+
+
+
+    close $FileVar
+
+    return $TableDict
+}

@@ -1,0 +1,7 @@
+Kratos - GeoMechanics Application
+
+Copyright (c) 2020 Deltares - All Rights Reserved
+
+Dissemination and Usage without the written permission of Deltares is not permitted, other than for Academic \ Research purposes. 
+This Source Code is provided "AS IS", without warranty and without even the implied warranty of fitness for a particular purpose.
+In no event will Deltares be held liable for any claim, damages or other liability arising from the use of this code.

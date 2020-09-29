@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="13.5">
+  <pre>
+    <layer_to_use name="Layer0"/>
+    <groups>
+      <group id="7" name="Soil_drained-auto-2" color="#996600ff"/>
+      <group id="8" name="Surface_Load-auto-1" color="#b33366ff"/>
+      <group id="9" name="Solid_Displacement-auto-2" color="#804d4dff"/>
+      <group id="10" name="Solid_Displacement-auto-1" color="#338080ff"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="surfaces">
+        <vector name="entity_ids" length="6" type="integer">1:6</vector>
+        <vector name="entity_num_groups" length="6" type="ushort">1x6</vector>
+        <vector name="entity_groups" length="6" type="ushort">9 10 9 8 9 9</vector>
+      </entities_group>
+      <entities_group name="volumes">
+        <vector name="entity_ids" length="1" type="integer">1</vector>
+        <vector name="entity_num_groups" length="1" type="ushort">1</vector>
+        <vector name="entity_groups" length="1" type="ushort">7</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="27" type="integer">1:27</vector>
+        <vector name="entity_num_groups" length="27" type="ushort">3 2 3 3 2x3 1 3x4 2 3 3 2 3 2x3 3x3 2 3x3</vector>
+        <vector name="entity_groups" length="69" type="ushort">8 9 7 9 7 8 9 7 8 9 7 9 7 9 7 8 7 7 9 8 7 9 8 7 10 9 7 10 9 7 9 7 9 8 7 9 8 7 9 7 10 9 7 9 7 9 7 10 7 9 8 7 10 9 7 9 10 7 9 7 10 9 7 9 10 7 9 10 7</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="48" type="integer">1:48</vector>
+        <vector name="entity_num_groups" length="48" type="ushort">1x48</vector>
+        <vector name="entity_groups" length="48" type="ushort">7x48</vector>
+      </entities_group>
+      <entities_group name="faces">
+        <vector name="entity_ids" length="48" type="integer">1:48</vector>
+        <vector name="entity_num_faces" length="48" type="uchar">1x48</vector>
+        <vector name="entity_faces" length="48" type="uchar">4 1 4 1 1 4 4 1 4 1 1 4 1 2 1 2 2 1 1 2 1 2 2 1 4 1 4 1 1 4 4 1 4 1 1 4 1 2 1 2 2 1 1 2 1 2 2 1</vector>
+        <vector name="face_num_groups" length="48" type="ushort">1x48</vector>
+        <vector name="face_groups" length="48" type="ushort">10 9x3 10 9x3 10 10 9x5 10 9 10x3 9x6 8 8 9 9 8 9x3 8 9 8 8 9x7 8 9 8</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>

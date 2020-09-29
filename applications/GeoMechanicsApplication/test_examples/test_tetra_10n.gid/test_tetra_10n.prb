@@ -1,0 +1,200 @@
+PROBLEM DATA
+TITLE: Problem_Data
+QUESTION: Domain_Size#CB#(2,3)
+VALUE: 2
+QUESTION: Start_Time
+VALUE: 0.0
+HELP: Units in IS: s
+QUESTION: End_Time
+VALUE: 1.0
+HELP: Units in IS: s
+QUESTION: Delta_Time
+VALUE: 0.25
+HELP: Units in IS: s
+QUESTION: Echo_Level
+VALUE: 1
+HELP: Echo level for logs on the screen.
+QUESTION: Parallel_Configuration#CB#(OpenMP,MPI)
+VALUE: OpenMP
+HELP: For the moment, MPI only works in Linux and requires compiling METIS_APPLICATION and TRILINOS_APPLICATION.
+DEPENDENCIES: (OpenMP,RESTORE,Number_of_threads,#CURRENT#)(MPI,HIDE,Number_of_threads,1)
+QUESTION: Number_of_threads
+VALUE: 1
+HELP: Number of threads used for parallel calculation.
+QUESTION: FIC_Stabilization#CB#(true,false)
+VALUE: true
+HELP: Only for linear elements with equal order interpolation for displacements and pressures.
+TITLE: Solver_Settings
+QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic,K0-Procedure)
+VALUE: Quasi-Static
+QUESTION: Scheme_Type#CB#(Newmark)
+VALUE: Newmark
+QUESTION: Newmark_Beta
+VALUE: 0.25
+QUESTION: Newmark_Gamma
+VALUE: 0.5
+QUESTION: Newmark_Theta
+VALUE: 0.5
+HELP: 0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson
+QUESTION: Rayleigh_Mass
+VALUE: 0.0
+QUESTION: Rayleigh_Stiffness
+VALUE: 0.0
+QUESTION: Strategy_Type#CB#(newton_raphson,arc_length,line_search)
+VALUE: newton_raphson
+DEPENDENCIES: (newton_raphson, RESTORE,Min_Iterations,#CURRENT#, RESTORE,Number_Of_Cycles,#CURRENT#, HIDE,Desired_Iterations,#CURRENT#,    HIDE,Max_Radius_Factor,#CURRENT#,    HIDE,Min_Radius_Factor,#CURRENT#,    RESTORE,Increase_Factor,#CURRENT#, RESTORE,Reduction_Factor,#CURRENT#, HIDE,Realised_Factor,#CURRENT#, HIDE,Max_Line_Search_Iterations,#CURRENT#,    HIDE,First_Alpha_Value,#CURRENT#,    HIDE,Second_Alpha_Value,#CURRENT#,    HIDE,Min_Alpha,#CURRENT#,    HIDE,Max_Alpha,#CURRENT#,    HIDE,Line_Search_Tolerance,#CURRENT#,RESTORE,Calculate_Reactions ,#CURRENT#)
+DEPENDENCIES: (arc_length,     RESTORE,Min_Iterations,#CURRENT#, RESTORE,Number_Of_Cycles,#CURRENT#, RESTORE,Desired_Iterations,#CURRENT#, RESTORE,Max_Radius_Factor,#CURRENT#, RESTORE,Min_Radius_Factor,#CURRENT#, RESTORE,Increase_Factor,#CURRENT#, RESTORE,Reduction_Factor,#CURRENT#, HIDE,Realised_Factor,#CURRENT#, HIDE,Max_Line_Search_Iterations,#CURRENT#,    HIDE,First_Alpha_Value,#CURRENT#,    HIDE,Second_Alpha_Value,#CURRENT#,    HIDE,Min_Alpha,#CURRENT#,    HIDE,Max_Alpha,#CURRENT#,    HIDE,Line_Search_Tolerance,#CURRENT#,RESTORE,Calculate_Reactions,#CURRENT#)
+DEPENDENCIES: (line_search,    RESTORE,Min_Iterations,#CURRENT#, RESTORE,Number_Of_Cycles,#CURRENT#, HIDE,Desired_Iterations,#CURRENT#,    HIDE,Max_Radius_Factor,#CURRENT#,    HIDE,Min_Radius_Factor,#CURRENT#,    RESTORE,Increase_Factor,#CURRENT#, RESTORE,Reduction_Factor,#CURRENT#, HIDE,Realised_Factor,#CURRENT#, RESTORE,Max_Line_Search_Iterations,#CURRENT#, RESTORE,First_Alpha_Value,#CURRENT#, RESTORE,Second_Alpha_Value,#CURRENT#, RESTORE,Min_Alpha,#CURRENT#, RESTORE,Max_Alpha,#CURRENT#, RESTORE,Line_Search_Tolerance,#CURRENT#,RESTORE,Calculate_Reactions,#CURRENT#)
+QUESTION: Convergence_Criterion#CB#(displacement_criterion,residual_criterion,and_criterion,or_criterion)
+VALUE: displacement_criterion
+DEPENDENCIES: (displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(and_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(or_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
+QUESTION: Displacement_Relative_Tolerance
+VALUE: 1.0E-9
+QUESTION: Displacement_Absolute_Tolerance
+VALUE: 1.0E-9
+QUESTION: Residual_Relative_Tolerance
+VALUE: 1.0E-4
+QUESTION: Residual_Absolute_Tolerance
+VALUE: 1.0E-9
+QUESTION: Min_Iterations
+VALUE: 6
+HELP: If the number of iterations is less than this value, up-scaling is applied for the next load step.
+QUESTION: Max_Iterations
+VALUE: 15
+HELP: Maximum iterations used for convergence per step.
+QUESTION: Desired_Iterations
+VALUE: 4
+HELP: The larger this number, the larger the radius
+QUESTION: Number_Of_Cycles
+VALUE: 100
+HELP: Number of tries per step to find solution in case of no convergence. In each try, the time step is further reduced with the specified reduction factor.
+QUESTION: Reduction_Factor
+VALUE: 0.5
+HELP: The time step is reduced with this factor, if the solution is not found within the maximum iterations.
+QUESTION: Increase_Factor
+VALUE: 2.0
+HELP: The time step is increased with this factor, if the solution is found within the minimum iterations.
+QUESTION: Realised_Factor
+VALUE: 0.9999
+HELP: Calculation phase is considered as finished (realised), if the realised time is higher than the spedified end time muliplied by this factor. It should be a factor very close to 1.
+QUESTION: Max_Radius_Factor
+VALUE: 10.0
+HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
+QUESTION: Min_Radius_Factor
+VALUE: 0.1
+HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
+QUESTION: Max_Line_Search_Iterations
+VALUE: 5
+HELP: Maximum number of interations used for line search method.
+QUESTION: First_Alpha_Value
+VALUE: 0.5
+HELP: First alpha guess value used for the first iteration.
+QUESTION: Second_Alpha_Value
+VALUE: 1.0
+HELP: Second alpha guess value used for the first iteration.
+QUESTION: Min_Alpha
+VALUE: 0.1
+HELP: Minimum possible alpha value at the end of the algorithm.
+QUESTION: Max_Alpha
+VALUE: 2.0
+HELP: Maximum possible alpha value at the end of the algorithm.
+QUESTION: Line_Search_Tolerance
+VALUE: 0.5
+HELP: Tolerance of the line search algorithm, defined as the ratio between maximum residual*alpha*dx and current iteration residual*alpha*dx.
+QUESTION: Calculate_Reactions#CB#(true,false)
+VALUE: true
+HELP: Calculate reaction forces.
+QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
+VALUE: false
+QUESTION: Move_Mesh#CB#(true,false)
+VALUE: true
+HELP: Allows to move nodes (Updated Lagrangian), no movement (Fixed mesh)
+QUESTION: Block_Builder#CB#(true,false)
+VALUE: true
+QUESTION: Reset_Displacements#CB#(true,false)
+VALUE: true
+QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
+VALUE: SuperLUSolver
+HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
+QUESTION: Scaling#CB#(true,false)
+VALUE: true
+QUESTION: Verbosity
+VALUE: 0
+TITLE: Output_Configuration
+QUESTION: Write_Solid_Displacement#CB#(true,false)
+VALUE: true
+QUESTION: Write_Structural_Rotation#CB#(true,false)
+VALUE: true
+QUESTION: Write_Structural_Moment#CB#(true,false)
+VALUE: true
+QUESTION: Write_Structural_Force#CB#(true,false)
+VALUE: true
+QUESTION: Write_Fluid_Pressure#CB#(true,false)
+VALUE: true
+QUESTION: Write_Reactions#CB#(true,false)
+VALUE: true
+QUESTION: Write_Point_Load#CB#(true,false)
+VALUE: true
+QUESTION: Write_Line_Load#CB#(true,false)
+VALUE: true
+QUESTION: Write_Surface_Load#CB#(true,false)
+VALUE: true
+QUESTION: Write_Normal_Load#CB#(true,false)
+VALUE: true
+QUESTION: Write_Tangential_Load#CB#(true,false)
+VALUE: true
+QUESTION: Write_Normal_Fluid_Flux#CB#(true,false)
+VALUE: true
+QUESTION: Write_Body_Acceleration#CB#(true,false)
+VALUE: true
+QUESTION: Write_Strain#CB#(true,false)
+VALUE: true
+QUESTION: Write_Effective_Stress#CB#(true,false)
+VALUE: true
+QUESTION: Write_Total_Stress#CB#(true,false)
+VALUE: true
+QUESTION: Write_Von_Mises_Stress#CB#(true,false)
+VALUE: true
+QUESTION: Write_Fluid_Flux#CB#(true,false)
+VALUE: true
+QUESTION: Write_Permeability#CB#(true,false)
+VALUE: true
+QUESTION: Write_Damage#CB#(true,false)
+VALUE: true
+QUESTION: Write_Joint_Width#CB#(true,false)
+VALUE: true
+QUESTION: Write_Local_Stress_Vector#CB#(true,false)
+VALUE: true
+QUESTION: Write_Local_Relative_Displacement#CB#(true,false)
+VALUE: true
+QUESTION: Write_Local_Fluid_Flux#CB#(true,false)
+VALUE: true
+QUESTION: Write_Local_Permeability#CB#(true,false)
+VALUE: true
+QUESTION: Nodal_Smoothing#CB#(true,false)
+VALUE: true
+QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
+VALUE: GiD_PostBinary
+QUESTION: Write_deformed_mesh#CB#(WriteUndeformed,WriteDeformed)
+VALUE: WriteUndeformed
+HELP: Write the coordinates of the mesh in its deformed position. Note: With the DISPLACEMENT variable GiD allows obtaining the deformed mesh regardless of this flag.
+QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditionsOnly)
+VALUE: WriteElementsOnly
+HELP: Write Gauss points results also on the conditions.
+QUESTION: Multi_file_flag#CB#(SingleFile,MultipleFiles)
+VALUE: SingleFile
+QUESTION: File_label#CB#(step,time)
+VALUE: step
+QUESTION: Output_control_type#CB#(step,time)
+VALUE: step
+QUESTION: Output_frequency
+VALUE: 1
+QUESTION: Body_output#CB#(true,false)
+VALUE: true
+QUESTION: Node_output#CB#(true,false)
+VALUE: false
+QUESTION: Skin_output#CB#(true,false)
+VALUE: false
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA
