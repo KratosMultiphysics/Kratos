@@ -6,19 +6,24 @@ from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusi
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-import os
+"""Auxiliary class to configure the test
 
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
+This auxiliary class customizes the material propertiesand
+boundary conditions for each test variant.
 
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
+Public member variables:
+xmin -- Minimum x-coordinate
+xmax -- Maximum x-coordinate
+ymin -- Minimum y-coordinate
+ymax -- Maximum y-coordinate
+T_xmin -- Temperature at minimum x-coordinate
+T_xmax -- Temperature at maximum x-coordinate
+rho -- Density
+c -- Specific heat
+k -- Thermal conductivity
+ux -- Convective velocity
+source -- Source term value
+"""
 class TestCaseConfiguration(object):
     def __init__(self):
         self.xmin = 0.0
@@ -33,6 +38,7 @@ class TestCaseConfiguration(object):
         self.ux = 0.0
         self.source = 0.0
 
+"""Derived convection-diffusion analysis stage to set the test material properties and boundary conditions."""
 class SourceTermTestConvectionDiffusionAnalysis(convection_diffusion_analysis.ConvectionDiffusionAnalysis):
     def __init__(self, model, project_parameters, test_config):
         super().__init__(model, project_parameters)
@@ -83,7 +89,7 @@ class SourceTermTest(KratosUnittest.TestCase):
         self.config = TestCaseConfiguration()
 
     def tearDown(self):
-        with KratosUnittest.WorkFolderScope("SourceTermTest",__file__):
+        with KratosUnittest.WorkFolderScope("SourceTermTest", __file__):
             KratosUtilities.DeleteFileIfExisting(self.input_file+'.time')
 
     def testPureDiffusion(self):
@@ -148,7 +154,7 @@ class SourceTermTest(KratosUnittest.TestCase):
         self.testSourceTerm()
 
     def testSourceTerm(self):
-        with WorkFolderScope("SourceTermTest"):
+        with KratosUnittest.WorkFolderScope("SourceTermTest", __file__):
             ## Set up the custom source term input
             self.model = KratosMultiphysics.Model()
             with open("SourceTermTestProjectParameters.json",'r') as parameter_file:

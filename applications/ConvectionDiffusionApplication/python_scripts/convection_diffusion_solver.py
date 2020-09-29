@@ -232,8 +232,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
-        """This function imports the ModelPart
-        """
+        """This function imports the ModelPart"""
         if self.solver_imports_model_part:
             self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
@@ -255,7 +254,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
-        """Perform initialization after adding nodal variables and dofs to the main model part. """
+        """Perform initialization after adding nodal variables and dofs to the main model part."""
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Initializing ...")
         # The convection_diffusion solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
@@ -424,7 +423,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             return False
 
     def _execute_after_reading(self):
-        """Prepare computing model part and import constitutive laws. """
+        """Prepare computing model part and import constitutive laws."""
         # Auxiliary parameters object for the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
@@ -441,7 +440,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Materials were not imported.")
 
     def _set_and_fill_buffer(self):
-        """Prepare nodal solution step data containers and time step information. """
+        """Prepare nodal solution step data containers and time step information."""
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
         required_buffer_size = self.GetMinimumBufferSize()
@@ -544,8 +543,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     @classmethod
     def _create_solution_scheme(self):
-        """Create the solution scheme for the structural problem.
-        """
+        """Create the solution scheme for the convection-diffusion problem."""
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
     def _create_convection_diffusion_solution_strategy(self):
