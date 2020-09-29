@@ -489,7 +489,7 @@ void NormalCalculationUtils::CalculateNormalsUsingGenericAlgorithm(
     auto& r_entities_array = GetContainer<TContainerType>(rModelPart);
     const auto it_entity_begin = r_entities_array.begin();
 
-    auto retrieve_normal = ConsiderUnitNormal ?
+    std::function<array_1d<double, 3>(const GeometryType&, const GeometryType::CoordinatesArrayType&, const double)> retrieve_normal = ConsiderUnitNormal ?
     [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return rGeometry.UnitNormal(rLocalCoordinates);} :
     [](const GeometryType& rGeometry, const GeometryType::CoordinatesArrayType& rLocalCoordinates, const double Coefficient) -> array_1d<double, 3> {return Coefficient * rGeometry.Normal(rLocalCoordinates);};
 
