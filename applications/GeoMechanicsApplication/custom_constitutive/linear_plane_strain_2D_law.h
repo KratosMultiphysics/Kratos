@@ -71,8 +71,11 @@ public:
     // for the time being
     static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSizePlaneStress = VOIGT_SIZE_2D_PLANE_STRESS;
+
     /// Counted pointer of LinearPlaneStrainK0Law
-    KRATOS_CLASS_POINTER_DEFINITION(     LinearPlaneStrain2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain2DLaw );
 
     ///@name Life Cycle
     ///@{
@@ -80,7 +83,7 @@ public:
     /**
      * @brief Default constructor.
      */
-        LinearPlaneStrain2DLaw();
+    LinearPlaneStrain2DLaw();
 
     /**
      * @brief The clone operation
@@ -90,13 +93,13 @@ public:
     /**
      * Copy constructor.
      */
-        LinearPlaneStrain2DLaw (const     LinearPlaneStrain2DLaw& rOther);
+    LinearPlaneStrain2DLaw (const LinearPlaneStrain2DLaw& rOther);
 
 
     /**
      * @brief Destructor.
      */
-    ~    LinearPlaneStrain2DLaw() override;
+    ~LinearPlaneStrain2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -118,8 +121,8 @@ public:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 2;
-    };
+        return Dimension;
+    }
 
     /**
      * @brief Voigt tensor size:
@@ -127,7 +130,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 3;
+        return VoigtSizePlaneStress;
     }
 
     ///@}

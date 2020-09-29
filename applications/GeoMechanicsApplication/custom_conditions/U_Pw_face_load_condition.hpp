@@ -50,33 +50,40 @@ public:
     UPwFaceLoadCondition() : UPwCondition<TDim,TNumNodes>() {}
     
     // Constructor 1
-    UPwFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwFaceLoadCondition( IndexType NewId,
+                          GeometryType::Pointer pGeometry ) :
+                        UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
     
     // Constructor 2
-    UPwFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwFaceLoadCondition( IndexType NewId,
+                          GeometryType::Pointer pGeometry,
+                          PropertiesType::Pointer pProperties ) :
+                        UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
     // Destructor
     ~UPwFaceLoadCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
-  
+    Condition::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties ) const override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:   
-    
+protected:
+
     // Member Variables
-        
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     void CalculateRHS(VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
                                          const Matrix& Jacobian,
                                          const double& Weight);
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

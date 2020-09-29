@@ -87,7 +87,8 @@ void LineLoad2DDiffOrderCondition::
 {
     KRATOS_TRY
 
-    double dx_dxi = rVariables.JContainer[PointNumber](0,0), dy_dxi = rVariables.JContainer[PointNumber](1,0);
+    double dx_dxi = rVariables.JContainer[PointNumber](0,0);
+    double dy_dxi = rVariables.JContainer[PointNumber](1,0);
 
     double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
 
@@ -103,11 +104,10 @@ void LineLoad2DDiffOrderCondition::
                                   ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();
-    SizeType Index;
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
-        Index = i * 2;
+        SizeType Index = i * 2;
 
         rRightHandSideVector[Index]   += rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[Index+1] += rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;

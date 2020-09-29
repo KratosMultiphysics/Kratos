@@ -48,7 +48,9 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+    Condition::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties ) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,11 +69,11 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
@@ -81,7 +83,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
     }
-    
+
 }; // class LineLoad2DDiffOrderCondition.
 
 } // namespace Kratos.

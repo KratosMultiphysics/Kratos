@@ -29,7 +29,7 @@ public:
 
     //----------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void CalculateNuMatrix(BoundedMatrix<double,TDim,TDim*TNumNodes>& rNu,
+    static inline void CalculateNuMatrix(BoundedMatrix<double, TDim, TDim*TNumNodes>& rNu,
                                          const Matrix& NContainer,
                                          const unsigned int& GPoint)
     {
@@ -217,7 +217,7 @@ public:
         for (unsigned int i=0; i<TNumNodes; i++)
         {
             noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(LINE_LOAD);
-            for (unsigned int idim=0; idim<TDim; idim++)
+            for (unsigned int idim=0; idim < TDim; idim++)
             {
                 rFaceLoadVector[index++] = FaceLoadAux[idim];
             }
@@ -316,7 +316,7 @@ public:
     //----------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
-                                            const array_1d<double,TDim*TNumNodes>& UBlockVector)
+                                            const array_1d<double, TDim*TNumNodes>& UBlockVector)
     {
         unsigned int Global_i, Local_i;
 
@@ -326,7 +326,7 @@ public:
             Local_i  = i * TDim;
             for (unsigned int idim = 0; idim < TDim; ++idim)
             {
-              rRightHandSideVector[Global_i+idim] += UBlockVector[Local_i+idim];
+              rRightHandSideVector[Global_i + idim] += UBlockVector[Local_i + idim];
             }
         }
     }

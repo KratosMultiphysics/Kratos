@@ -16,7 +16,7 @@ def CreateSolver(model, custom_settings):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "dynamic" or solver_type == "Dynamic"):
+        if (solver_type.lower() == "dynamic"):
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "geomechanics_implicit_dynamic_solver"
@@ -27,8 +27,8 @@ def CreateSolver(model, custom_settings):
                 err_msg += "Available options are: \"implicit\", \"explicit\""
                 raise Exception(err_msg)
 
-        elif (solver_type == "U_Pw" or solver_type == "geomechanics_U_Pw_solver" or
-              solver_type == "TwoPhase" or solver_type == "twoPhase"):
+        elif (solver_type.lower() == "u_pw" or solver_type.lower() == "geomechanics_u_pw_solver" or
+              solver_type.lower() == "twophase"):
             custom_settings["solver_settings"]["time_stepping"].AddValue("end_time", custom_settings["problem_data"]["end_time"])
             solver_module_name = "geomechanics_U_Pw_solver"
 
@@ -39,7 +39,7 @@ def CreateSolver(model, custom_settings):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        if (solver_type == "dynamic" or solver_type == "Dynamic"):
+        if (solver_type.lower() == "dynamic"):
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "trilinos_geomechanics_implicit_dynamic_solver"

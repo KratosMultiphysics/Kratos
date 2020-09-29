@@ -33,16 +33,15 @@ void UPwCondition<TDim,TNumNodes>::
                const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
+
     const GeometryType& rGeom = GetGeometry();
+    const unsigned int nDof = TDim + 1;
+    const unsigned int conditionSize = TNumNodes * nDof;
+    if (rConditionDofList.size() != conditionSize)
+        rConditionDofList.resize( conditionSize );
 
     if (TDim == 3)
     {
-        const unsigned int nDof = 3 + 1;
-        const unsigned int condition_size = TNumNodes * nDof;
-        
-        if (rConditionDofList.size() != condition_size)
-          rConditionDofList.resize( condition_size );
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -54,11 +53,6 @@ void UPwCondition<TDim,TNumNodes>::
     }
     else if (TDim == 2)
     {
-        const unsigned int nDof = 2 + 1;
-        const unsigned int condition_size = TNumNodes * nDof;
-        
-        if (rConditionDofList.size() != condition_size)
-          rConditionDofList.resize( condition_size );
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -85,11 +79,11 @@ void UPwCondition<2,1>::
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const unsigned int condition_size = 2 + 1;
+    const unsigned int conditionSize = 2 + 1;
     unsigned int index = 0;
     
-    if (rConditionDofList.size() != condition_size)
-      rConditionDofList.resize( condition_size );
+    if (rConditionDofList.size() != conditionSize)
+      rConditionDofList.resize( conditionSize );
 
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_X);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Y);
@@ -108,11 +102,11 @@ void UPwCondition<2,2>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    const unsigned int condition_size = 2 * (2 + 1);
+    const unsigned int conditionSize = 2 * (2 + 1);
     unsigned int index = 0;
     
-    if (rConditionDofList.size() != condition_size)
-      rConditionDofList.resize( condition_size );
+    if (rConditionDofList.size() != conditionSize)
+      rConditionDofList.resize( conditionSize );
     
     for (unsigned int i = 0; i < 2; i++)
     {
@@ -134,11 +128,11 @@ void UPwCondition<3,1>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    const unsigned int condition_size = 3 + 1;
+    const unsigned int conditionSize = 3 + 1;
     unsigned int index = 0;
     
-    if (rConditionDofList.size() != condition_size)
-      rConditionDofList.resize( condition_size );
+    if (rConditionDofList.size() != conditionSize)
+      rConditionDofList.resize( conditionSize );
     
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_X);
     rConditionDofList[index++] = rGeom[0].pGetDof(DISPLACEMENT_Y);
@@ -158,11 +152,11 @@ void UPwCondition<3,3>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int condition_size = 3 * (3 + 1);
+    unsigned int conditionSize = 3 * (3 + 1);
     unsigned int index = 0;
     
-    if (rConditionDofList.size() != condition_size)
-      rConditionDofList.resize( condition_size );
+    if (rConditionDofList.size() != conditionSize)
+      rConditionDofList.resize( conditionSize );
     
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -185,11 +179,11 @@ void UPwCondition<3,4>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int condition_size = 4 * (3 + 1);
+    unsigned int conditionSize = 4 * (3 + 1);
     unsigned int index = 0;
     
-    if (rConditionDofList.size() != condition_size)
-      rConditionDofList.resize( condition_size );
+    if (rConditionDofList.size() != conditionSize)
+      rConditionDofList.resize( conditionSize );
     
     for (unsigned int i = 0; i < 4; i++)
     {
@@ -213,18 +207,18 @@ void UPwCondition<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    unsigned int condition_size = TNumNodes * (TDim + 1);
-    
+    unsigned int conditionSize = TNumNodes * (TDim + 1);
+
     //Resetting the LHS
-    if ( rLeftHandSideMatrix.size1() != condition_size )
-        rLeftHandSideMatrix.resize( condition_size, condition_size, false );
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size );
-    
+    if ( rLeftHandSideMatrix.size1() != conditionSize )
+        rLeftHandSideMatrix.resize( conditionSize, conditionSize, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( conditionSize, conditionSize );
+
     //Resetting the RHS
-    if ( rRightHandSideVector.size() != condition_size )
-        rRightHandSideVector.resize( condition_size, false );
-    noalias( rRightHandSideVector ) = ZeroVector( condition_size );
-    
+    if ( rRightHandSideVector.size() != conditionSize )
+        rRightHandSideVector.resize( conditionSize, false );
+    noalias( rRightHandSideVector ) = ZeroVector( conditionSize );
+
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
         
     KRATOS_CATCH( "" )
@@ -238,30 +232,30 @@ void UPwCondition<TDim,TNumNodes>::
                            const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    
+
     KRATOS_THROW_ERROR(std::logic_error,"UPwCondition::CalculateLeftHandSide not implemented","");
-    
+
     KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwCondition<TDim,TNumNodes>::
+void UPwCondition<TDim, TNumNodes>::
     CalculateRightHandSide( VectorType& rRightHandSideVector,
                             const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
-    unsigned int condition_size = TNumNodes * (TDim + 1);
-        
+
+    unsigned int conditionSize = TNumNodes * (TDim + 1);
+
     //Resetting the RHS
-    if ( rRightHandSideVector.size() != condition_size )
-        rRightHandSideVector.resize( condition_size, false );
-    noalias( rRightHandSideVector ) = ZeroVector( condition_size );
-    
+    if ( rRightHandSideVector.size() != conditionSize )
+        rRightHandSideVector.resize( conditionSize, false );
+    noalias( rRightHandSideVector ) = ZeroVector( conditionSize );
+
     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -272,38 +266,34 @@ void UPwCondition<TDim,TNumNodes>::
                      const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    
+
     const GeometryType& rGeom = GetGeometry();
+
+    unsigned int nDof = TDim + 1;
+    unsigned int conditionSize = TNumNodes * nDof;
+
+    if (rResult.size() != conditionSize)
+        rResult.resize( conditionSize );
 
     if (TDim == 3)
     {
-        unsigned int nDof = 3 + 1;
-        unsigned int condition_size = TNumNodes * nDof;
-        
-        if (rResult.size() != condition_size)
-          rResult.resize( condition_size );
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Z).EquationId();
-            rResult[index++] = rGeom[0].GetDof(WATER_PRESSURE).EquationId();
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
+            rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
     }
     else if (TDim == 2)
     {
-        unsigned int nDof = 2 + 1;
-        unsigned int condition_size = TNumNodes * nDof;
-        
-        if (rResult.size() != condition_size)
-          rResult.resize( condition_size );
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = rGeom[0].GetDof(WATER_PRESSURE).EquationId();
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
     }
     else
@@ -324,11 +314,11 @@ void UPwCondition<2,1>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int condition_size = 2 + 1;
+    unsigned int conditionSize = 2 + 1;
     unsigned int index = 0;
     
-    if (rResult.size() != condition_size)
-      rResult.resize( condition_size, false );
+    if (rResult.size() != conditionSize)
+      rResult.resize( conditionSize, false );
 
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_X).EquationId();
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Y).EquationId();
@@ -347,11 +337,11 @@ void UPwCondition<2,2>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int condition_size = 2 * (2 + 1);
+    unsigned int conditionSize = 2 * (2 + 1);
     unsigned int index = 0;
     
-    if (rResult.size() != condition_size)
-      rResult.resize( condition_size, false );
+    if (rResult.size() != conditionSize)
+      rResult.resize( conditionSize, false );
 
     for (unsigned int i = 0; i < 2; i++)
     {
@@ -373,11 +363,11 @@ void UPwCondition<3,1>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int condition_size = 3 + 1;
+    unsigned int conditionSize = 3 + 1;
     unsigned int index = 0;
     
-    if (rResult.size() != condition_size)
-      rResult.resize( condition_size, false );
+    if (rResult.size() != conditionSize)
+      rResult.resize( conditionSize, false );
 
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_X).EquationId();
     rResult[index++] = rGeom[0].GetDof(DISPLACEMENT_Y).EquationId();
@@ -397,11 +387,11 @@ void UPwCondition<3,3>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int condition_size = 3 * (3 + 1);
+    unsigned int conditionSize = 3 * (3 + 1);
     unsigned int index = 0;
     
-    if (rResult.size() != condition_size)
-      rResult.resize( condition_size, false );
+    if (rResult.size() != conditionSize)
+      rResult.resize( conditionSize, false );
 
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -424,11 +414,11 @@ void UPwCondition<3,4>::
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int condition_size = 4 * (3 + 1);
+    unsigned int conditionSize = 4 * (3 + 1);
     unsigned int index = 0;
     
-    if (rResult.size() != condition_size)
-      rResult.resize( condition_size, false );
+    if (rResult.size() != conditionSize)
+      rResult.resize( conditionSize, false );
 
     for (unsigned int i = 0; i < 4; i++)
     {

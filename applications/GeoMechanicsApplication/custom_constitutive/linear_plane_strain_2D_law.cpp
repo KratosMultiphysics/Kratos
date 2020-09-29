@@ -34,15 +34,13 @@ namespace Kratos
 //******************************COPY CONSTRUCTOR**************************************
 /***********************************************************************************/
 
-    LinearPlaneStrain2DLaw::    LinearPlaneStrain2DLaw(const     LinearPlaneStrain2DLaw& rOther)
-    : LinearPlaneStrainK0Law(rOther)
-{
-}
+LinearPlaneStrain2DLaw::
+    LinearPlaneStrain2DLaw(const LinearPlaneStrain2DLaw& rOther): LinearPlaneStrainK0Law(rOther) {}
 
 //********************************CLONE***********************************************
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer     LinearPlaneStrain2DLaw::Clone() const
+ConstitutiveLaw::Pointer LinearPlaneStrain2DLaw::Clone() const
 {
     return Kratos::make_shared<    LinearPlaneStrain2DLaw>(*this);
 }
@@ -50,9 +48,7 @@ ConstitutiveLaw::Pointer     LinearPlaneStrain2DLaw::Clone() const
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
 
-    LinearPlaneStrain2DLaw::~    LinearPlaneStrain2DLaw()
-{
-}
+    LinearPlaneStrain2DLaw::~LinearPlaneStrain2DLaw() {}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -70,7 +66,7 @@ bool&     LinearPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 /***********************************************************************************/
 
-void     LinearPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+void LinearPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
     rFeatures.mOptions.Set( PLANE_STRAIN_LAW);

@@ -44,12 +44,14 @@ public:
 
     // Default constructor
     UPwCondition() : Condition() {}
-    
+
     // Constructor 1
     UPwCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : Condition(NewId, pGeometry) {}
     
     // Constructor 2
-    UPwCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties) 
+    UPwCondition( IndexType NewId,
+                  GeometryType::Pointer pGeometry,
+                  PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties)
     {
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
@@ -59,7 +61,9 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
+    Condition::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties ) const override;
  
     void GetDofList(DofsVectorType& rConditionDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
@@ -81,10 +85,10 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:   
-        
+protected:
+
     // Member Variables
-    
+
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -28,12 +28,17 @@ GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition() : Condition() {}
 //----------------------------------------------------------------------------------------
 
 //Constructor 1
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : Condition(NewId, pGeometry) {}
+GeneralUPwDiffOrderCondition::
+    GeneralUPwDiffOrderCondition(IndexType NewId,
+                                 GeometryType::Pointer pGeometry) : Condition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 2
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Condition(NewId, pGeometry, pProperties)
+GeneralUPwDiffOrderCondition::
+    GeneralUPwDiffOrderCondition(IndexType NewId,
+                                 GeometryType::Pointer pGeometry,
+                                 PropertiesType::Pointer pProperties) : Condition(NewId, pGeometry, pProperties)
 {
     mThisIntegrationMethod = this->GetIntegrationMethod();
 }
@@ -45,7 +50,10 @@ GeneralUPwDiffOrderCondition::~GeneralUPwDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer GeneralUPwDiffOrderCondition::
+    Create(IndexType NewId,
+           NodesArrayType const& ThisNodes,
+           PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new GeneralUPwDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }

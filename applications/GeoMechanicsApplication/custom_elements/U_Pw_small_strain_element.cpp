@@ -107,13 +107,13 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
         << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
 
     // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    const SizeType strainSize = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
     if ( TDim == 2 ) {
-        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) 
+        KRATOS_ERROR_IF( strainSize < 3 || strainSize > 4) 
         << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) "
         << this->Id() << std::endl;
     } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6)
+        KRATOS_ERROR_IF_NOT(strainSize == 6)
         << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "
         <<  this->Id() << std::endl;
     }
@@ -202,6 +202,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -261,6 +262,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeSolutionStep(const Process
     KRATOS_CATCH("");
 }
 
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
@@ -317,6 +319,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         noalias(StrainVector) = prod(B, DisplacementVector);
         UpdateElementalVariableStressVector(StressVector, GPoint);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+        UpdateStressVector(StressVector, GPoint);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::InitializeNonLinearIteration()") << std::endl;
@@ -339,7 +342,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
@@ -427,6 +429,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             //compute constitutive tensor and/or stresses
             UpdateElementalVariableStressVector(StressVector, GPoint);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
+            mStateVariablesFinalized[GPoint] = 
+                mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
+                                                          mStateVariablesFinalized[GPoint] );
         }
     }
 
@@ -436,7 +441,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::SaveGPStress(Matrix& rStressContainer,
                                                          const Vector& StressVector,
@@ -797,7 +801,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-        // const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
 
@@ -834,18 +838,18 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            // noalias(GradNpT) = DN_DXContainer[GPoint];
+            noalias(GradNpT) = DN_DXContainer[GPoint];
 
-            // this->CalculateBMatrix(B, GradNpT);
+            this->CalculateBMatrix(B, GradNpT);
 
-            // noalias(StrainVector) = prod(B,DisplacementVector);
+            noalias(StrainVector) = prod(B,DisplacementVector);
 
-            // noalias(Np) = row(NContainer,GPoint);
+            noalias(Np) = row(NContainer,GPoint);
 
             //compute constitutive tensor and/or stresses
             UpdateElementalVariableStressVector(StressVector, GPoint);
-            // mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            // UpdateStressVector(StressVector, GPoint);
+            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+            UpdateStressVector(StressVector, GPoint);
 
             ComparisonUtilities EquivalentStress;
             rOutput[GPoint] = EquivalentStress.CalculateVonMises(StressVector);
@@ -1230,7 +1234,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                                    this->GetIntegrationMethod() );
 
     //Constitutive Law parameters
-    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, CurrentProcessInfo);
     if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);

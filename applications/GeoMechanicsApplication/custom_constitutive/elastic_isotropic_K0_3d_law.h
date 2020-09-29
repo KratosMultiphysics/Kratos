@@ -67,10 +67,10 @@ public:
     typedef std::size_t             SizeType;
 
     /// Static definition of the dimension
-    static constexpr SizeType Dimension = 3;
+    static constexpr SizeType Dimension = N_DIM_3D;
 
     /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = 6;
+    static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
 
     /// Counted pointer of ElasticIsotropicK03DLaw
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropicK03DLaw );

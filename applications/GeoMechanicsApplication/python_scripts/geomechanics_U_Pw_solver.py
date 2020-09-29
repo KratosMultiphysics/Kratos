@@ -401,7 +401,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_ALPHA, rayleigh_m)
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA, rayleigh_k)
             KratosMultiphysics.Logger.PrintInfo("UPwSolver, solution_type", solution_type)
-            if (solution_type.lower() == "quasi-static"):
+            if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
                     KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Quasi-UnDamped.")
                     scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
@@ -411,7 +411,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             elif (solution_type.lower() == "dynamic"):
                 KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Dynamic.")
                 scheme = KratosGeo.NewmarkDynamicUPwScheme(beta,gamma,theta)
-            elif (solution_type.lower() == "k0-procedure"):
+            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
                 if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
                     KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Quasi-UnDamped.")
                     scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)

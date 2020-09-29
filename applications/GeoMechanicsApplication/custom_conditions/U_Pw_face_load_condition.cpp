@@ -20,7 +20,10 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwFaceLoadCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwFaceLoadCondition<TDim,TNumNodes>::
+    Create( IndexType NewId,
+            NodesArrayType const& ThisNodes,
+            PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer(new UPwFaceLoadCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
@@ -37,17 +40,17 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
-    
+
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
     for(unsigned int i = 0; i<NumGPoints; i++)
-        (JContainer[i]).resize(TDim,LocalDim,false);
+        (JContainer[i]).resize(TDim, LocalDim, false);
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
 
     //Condition variables
     array_1d<double,TNumNodes*TDim> FaceLoadVector;
-    ConditionUtilities::GetFaceLoadVector<TNumNodes>(FaceLoadVector,Geom);
+    ConditionUtilities::GetFaceLoadVector<TNumNodes>(FaceLoadVector, Geom);
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> TractionVector;
     array_1d<double,TNumNodes*TDim> UVector;
@@ -57,8 +60,11 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute traction vector 
-        ConditionUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(TractionVector,NContainer,FaceLoadVector,GPoint);
-        
+        ConditionUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(TractionVector,
+                                                                               NContainer,
+                                                                               FaceLoadVector,
+                                                                               GPoint);
+
         //Compute Nu Matrix
         ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu,NContainer,GPoint);
         
@@ -66,11 +72,12 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
         this->CalculateIntegrationCoefficient(IntegrationCoefficient,
                                               JContainer[GPoint],
                                               integration_points[GPoint].Weight());
-                
+
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
-        ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,UVector);
+        ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector, UVector);
     }
+
 }
 
 //----------------------------------------------------------------------------------------
