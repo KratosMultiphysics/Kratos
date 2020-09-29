@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 
@@ -127,13 +127,11 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH(r_model_part)
-
         ModelPart::ElementsContainerType& rElements = r_model_part.Elements();
 
         //resetting the normals - only for the nodes on which we will do the calculate
         array_1d<double,3> zero = ZeroVector(3);
-	
+
 	for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin();
                 it !=r_model_part.NodesEnd(); it++)
         {
@@ -187,7 +185,6 @@ public:
                     for(unsigned int j=0; j<3; j++)
                     {
                         normal[j] += Volume*DN_DX(i,j);
-                        KRATOS_WATCH ("HOLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                     }
                 }
             }
