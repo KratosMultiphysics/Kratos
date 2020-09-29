@@ -1485,15 +1485,15 @@ private:
         {
             {
                 Quadrature < HexahedronGaussLegendreIntegrationPoints1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < HexahedronGaussLegendreIntegrationPoints2,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < HexahedronGaussLegendreIntegrationPoints3,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < HexahedronGaussLegendreIntegrationPoints4,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < HexahedronGaussLegendreIntegrationPoints5,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                3, IntegrationPoint<3> >::IntegrationPoints()
             }
         };
         return integration_points;

@@ -1871,16 +1871,16 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints1, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints2, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::IntegrationPoints()
             }
         };
         return integration_points;

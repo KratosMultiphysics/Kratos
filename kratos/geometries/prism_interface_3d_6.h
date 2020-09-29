@@ -1464,9 +1464,9 @@ private:
         {
             {
                 Quadrature<PrismGaussLobattoIntegrationPoints1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature<PrismGaussLobattoIntegrationPoints2,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }

@@ -1538,11 +1538,11 @@ private:
         {
             {
                 Quadrature < PrismGaussLegendreIntegrationPoints1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < PrismGaussLegendreIntegrationPoints2,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                3, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < PrismGaussLegendreIntegrationPoints3,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                3, IntegrationPoint<3> >::IntegrationPoints()
             }
         };
         return integration_points;

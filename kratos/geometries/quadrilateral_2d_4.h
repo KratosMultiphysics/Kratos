@@ -1003,25 +1003,25 @@ private:
         {
             {
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints1,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints2,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints3,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints1,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints2,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints3,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints4,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                2, IntegrationPoint<3> >::IntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints5,
-                2, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                2, IntegrationPoint<3> >::IntegrationPoints()
             }
         };
         return integration_points;
