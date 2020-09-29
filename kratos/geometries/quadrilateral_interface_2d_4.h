@@ -1298,9 +1298,9 @@ private:
         {
             {
                 Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
-                2, IntegrationPoint<3> >::IntegrationPoints(),
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,
-                2, IntegrationPoint<3> >::IntegrationPoints(),
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }

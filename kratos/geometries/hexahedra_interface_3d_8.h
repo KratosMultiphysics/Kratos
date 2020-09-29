@@ -1763,9 +1763,9 @@ private:
         {
             {
                 Quadrature < HexahedronGaussLobattoIntegrationPoints1,
-                3, IntegrationPoint<3> >::IntegrationPoints(),
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < HexahedronGaussLobattoIntegrationPoints2,
-                3, IntegrationPoint<3> >::IntegrationPoints(),
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }

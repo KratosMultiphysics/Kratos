@@ -831,16 +831,16 @@ private:
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points = {{
-                Quadrature<LineGaussLobattoIntegrationPoints1, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints2, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints3, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints4, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints5, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints6, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints7, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints8, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints9, 1, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<LineGaussLobattoIntegrationPoints10,1, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints6, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints7, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints8, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints9, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints10,1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
             }
         };
         return integration_points;

@@ -1201,13 +1201,13 @@ private:
         {
             {
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints1,
-                2, IntegrationPoint<3> >::IntegrationPoints(),
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints2,
-                2, IntegrationPoint<3> >::IntegrationPoints(),
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints3,
-                2, IntegrationPoint<3> >::IntegrationPoints(),
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
-                2, IntegrationPoint<3> >::IntegrationPoints()
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;

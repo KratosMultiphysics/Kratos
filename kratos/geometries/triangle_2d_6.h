@@ -1042,10 +1042,10 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::IntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::IntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
             }
         };
         return integration_points;
