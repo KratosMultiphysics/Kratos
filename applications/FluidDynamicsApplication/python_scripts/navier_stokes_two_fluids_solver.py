@@ -434,7 +434,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-        if (TimeStep % 20 == 0):
+        if (TimeStep % 10 == 0):
 
             ##############################
             # Contact Angle and Velocity #
