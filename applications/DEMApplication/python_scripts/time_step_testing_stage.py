@@ -3,7 +3,7 @@ from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
 
-class TimeStepTester(object):
+class TimeStepTester():
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
         self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet"]

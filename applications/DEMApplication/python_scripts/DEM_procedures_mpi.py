@@ -19,23 +19,18 @@ class MdpaCreator(DEM_procedures.MdpaCreator):
     def __init__(self, path, DEM_parameters):
         super(MdpaCreator,self).__init__(path, DEM_parameters)
 
-
-class GranulometryUtils(DEM_procedures.GranulometryUtils):
-
-    def __init__(self, domain_volume, model_part):
-        super(GranulometryUtils,self).__init__(domain_volume, model_part)
-
+GranulometryUtils = DEM_procedures.GranulometryUtils
 
 class PostUtils(DEM_procedures.PostUtils):
 
     def __init__(self, DEM_parameters, balls_model_part):
-        super(PostUtils,self).__init__(DEM_parameters, balls_model_part)
+        super(PostUtils, self).__init__(DEM_parameters, balls_model_part)
 
 
 class Procedures(DEM_procedures.Procedures):
 
     def __init__(self, DEM_parameters):
-        super(Procedures,self).__init__(DEM_parameters)
+        super(Procedures, self).__init__(DEM_parameters)
 
     def Barrier(self):
         mpi.world.barrier()
@@ -44,13 +39,13 @@ class Procedures(DEM_procedures.Procedures):
         model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(PARTITION_MASK)
 
-    def CreateDirectories(self, main_path, problem_name, do_print_results=True):
+    def CreateDirectories(self, main_path, problem_name, run_code='', do_print_results=True):
 
-        root             = main_path + '/' + problem_name
-        post_path        = root + '_Post_Files'
+        root = main_path + '/' + problem_name
+        post_path = root + '_Post_Files'
         data_and_results = root + '_Results_and_Data'
-        graphs_path      = root + '_Graphs'
-        MPI_results      = root + '_MPI_results'
+        graphs_path = root + '_Graphs'
+        MPI_results = root + '_MPI_results'
 
         if mpi.rank == 0 and do_print_results:
             for directory in [post_path, data_and_results, graphs_path, MPI_results]:
@@ -62,7 +57,7 @@ class Procedures(DEM_procedures.Procedures):
         return [post_path, data_and_results, graphs_path, MPI_results]
 
     def PreProcessModel(self, DEM_parameters):
-        if (mpi.rank == 0):
+        if mpi.rank == 0:
             print("Creating MPIer...")
             #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters["problem_name"].GetString()) + "DEM.mdpa")
             print("done.")
@@ -76,13 +71,13 @@ class Procedures(DEM_procedures.Procedures):
         return total_max
 
     def DeleteFiles(self):
-        if (mpi.rank == 0):
+        if mpi.rank == 0:
             files_to_delete_list = glob('*.time')
             for to_erase_file in files_to_delete_list:
                 os.remove(to_erase_file)
 
     def KratosPrintInfo(self, message):
-        if (mpi.rank == 0):
+        if mpi.rank == 0:
             Logger.Print(*args, label="DEM")
             Logger.Flush()
 
@@ -117,12 +112,12 @@ class MaterialTest(DEM_procedures.MaterialTest):
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part):
         self.TestType = DEM_parameters["TestType"].GetString()
 
-        if (self.TestType != "None"):
+        if self.TestType != "None":
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
             self.script.Initialize()
 
 
-class MultifileList(object):
+class MultifileList():
 
     def __init__(self,name,step):
         self.index = 0

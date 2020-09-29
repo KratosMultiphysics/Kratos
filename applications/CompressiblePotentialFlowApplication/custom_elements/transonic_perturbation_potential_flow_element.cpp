@@ -67,7 +67,7 @@ template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
@@ -76,7 +76,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalS
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -92,7 +92,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -125,7 +125,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo)
+    const ProcessInfo& CurrentProcessInfo) const
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -157,7 +157,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
 
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                                 ProcessInfo& CurrentProcessInfo)
+                                                                 const ProcessInfo& CurrentProcessInfo) const
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -193,7 +193,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofList(Dofs
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const bool active = Is(ACTIVE);
 
@@ -237,7 +237,7 @@ int TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Check(const Proc
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -274,7 +274,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<int>& rVariable,
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -310,7 +310,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnInteg
 }
 
 template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetValueOnIntegrationPoints(
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -1086,13 +1086,12 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
     const ProcessInfo& rCurrentProcessInfo)
 {
     array_1d<size_t, TNumNodes> upwind_node_key;
-    auto current_process_info = rCurrentProcessInfo;
     EquationIdVectorType upwind_element_ids, current_element_ids;
 
     upwind_node_key.clear();
 
-    pGetUpwindElement()->EquationIdVector(upwind_element_ids, current_process_info);
-    this->EquationIdVector(current_element_ids, current_process_info);
+    pGetUpwindElement()->EquationIdVector(upwind_element_ids, rCurrentProcessInfo);
+    this->EquationIdVector(current_element_ids, rCurrentProcessInfo);
 
     for (int i = 0; i < TNumNodes; i++) {
         auto current_id = std::find(current_element_ids.begin(), current_element_ids.end(),

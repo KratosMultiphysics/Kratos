@@ -733,6 +733,11 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+            if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
             // getting information for integration
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
@@ -764,6 +769,12 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
                 if (rVariable==PRINCIPAL_PK2_STRESS_VECTOR){
                     Vector principal_stresses = ZeroVector(2);
+
+                    if (rOutput[point_number].size() != 2) {
+                        rOutput[point_number].resize(2);
+                    }
+
+
                     PrincipalVector(principal_stresses,stress);
                     noalias(rOutput[point_number]) = principal_stresses;
                 }  else {
@@ -791,6 +802,12 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         double det_deformation_gradient = 0.0;
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
+
+
+            if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
             // getting information for integration
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
@@ -823,6 +840,11 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
             if (rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
                 Vector principal_stresses = ZeroVector(2);
+
+                if (rOutput[point_number].size() != 2) {
+                    rOutput[point_number].resize(2);
+                }
+
                 PrincipalVector(principal_stresses,stress);
                 rOutput[point_number] = principal_stresses;
             }  else {

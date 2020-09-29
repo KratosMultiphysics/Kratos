@@ -346,6 +346,17 @@ public:
     /**
      * Information
      */
+
+     /// Returns number of points per direction.
+    SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const override
+    {
+        if ((LocalDirectionIndex == 0) || (LocalDirectionIndex == 1)) {
+            return 3;
+        }
+        KRATOS_ERROR << "Possible direction index reaches from 0-1. Given direction index: "
+            << LocalDirectionIndex << std::endl;
+    }
+
     /**
      * This method calculates and returns Length or charactereistic
      * length of this geometry depending on it's dimension. For one

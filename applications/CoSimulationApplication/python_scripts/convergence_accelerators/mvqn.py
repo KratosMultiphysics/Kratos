@@ -106,10 +106,10 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.X.clear()
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "horizon" : 15,
             "alpha"   : 0.125
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
