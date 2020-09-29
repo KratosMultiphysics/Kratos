@@ -79,9 +79,16 @@ namespace Kratos
             mean_stress /= stress_vec_size;
             mean_stresses.push_back(mean_stress);
 
-            if(mean_stress > max_mean_stress)
+            if (mean_stress < 0.0) {
+                 mStressSigns[elem.Id()] = -1.0;
+            }
+            else {
+                mStressSigns[elem.Id()] = 1.0;
+            }
+
+            if(std::abs(mean_stress) > max_mean_stress)
             {
-                max_mean_stress = mean_stress;
+                max_mean_stress = std::abs(mean_stress);
                 elem_id_at_max = elem.Id();
             }
         }
@@ -98,7 +105,7 @@ namespace Kratos
 
         for(auto& elem : primal_aggregation_part.Elements())
         {
-            double KS_value_contribution = std::exp(mRho * mean_stresses[elem_index] / mStressScalingFactor);
+            double KS_value_contribution = std::exp(mRho * mean_stresses[elem_index] * mStressSigns[elem.Id()] / mStressScalingFactor);
             mKSPrefactors[elem.Id()] = KS_value_contribution;
             mSumPrefactors += KS_value_contribution;
             elem_index++;
@@ -134,7 +141,7 @@ namespace Kratos
             KRATOS_ERROR_IF(rResponseGradient.size() != rResidualGradient.size1())
                 << "Size of stress displacement derivative does not fit!" << std::endl;
 
-            rResponseGradient *= (-1) * mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors);
+            rResponseGradient *= (-1) * mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors) * mStressSigns[rAdjointElement.Id()];
         }
         else
         {
@@ -165,7 +172,7 @@ namespace Kratos
             ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
                                                                     rSensitivityGradient, process_info);
-            rSensitivityGradient *= mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors);
+            rSensitivityGradient *= mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors) * mStressSigns[rAdjointElement.Id()];
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -205,7 +212,7 @@ namespace Kratos
             ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
                                                                     rSensitivityGradient, process_info);
-            rSensitivityGradient *= mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors);
+            rSensitivityGradient *= mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors) * mStressSigns[rAdjointElement.Id()];
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());

@@ -25,6 +25,7 @@ namespace Kratos
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
         mResponseDirection = ResponseSettings["direction"].GetVector();
         mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
+        mTakeAbsoluteValues = ResponseSettings["take_absolute_values"].GetBool();
 
         if ( norm_2( mResponseDirection ) > 1.0e-7 ) {
             mResponseDirection /= norm_2( mResponseDirection );
@@ -73,9 +74,9 @@ namespace Kratos
                 for(IndexType i = 0; i < dofs_of_element.size(); ++i) {
                     if (dofs_of_element[i]->Id() == node_id &&
                         dofs_of_element[i]->GetVariable() == *adjoint_solution_variable) {
-                        rResponseGradient[i]   = -1 * mResponseDirection[0];
-                        rResponseGradient[i+1] = -1 * mResponseDirection[1];
-                        rResponseGradient[i+2] = -1 * mResponseDirection[2];
+                        rResponseGradient[i]   = -1 * mResponseDirection[0] * mDisplacementSigns[node_id];
+                        rResponseGradient[i+1] = -1 * mResponseDirection[1] * mDisplacementSigns[node_id];
+                        rResponseGradient[i+2] = -1 * mResponseDirection[2] * mDisplacementSigns[node_id];
                         break;
                     }
                 }
@@ -185,7 +186,17 @@ namespace Kratos
         for(auto& node_i : response_part.Nodes()){
             // project displacement vector in the traced direction. As mResponseDirection is a normalized vector
             // the result of the inner product is already the displacement value in the traced direction.
-            response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
+            double disp_in_traced_direction;
+            disp_in_traced_direction = inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
+            if (mTakeAbsoluteValues && disp_in_traced_direction < 0.0) {
+                mDisplacementSigns[node_i.Id()] = -1.0;
+                disp_in_traced_direction *= -1.0;
+            }
+            else {
+                mDisplacementSigns[node_i.Id()] = 1.0;
+            }
+
+            response_value += disp_in_traced_direction;
         }
 
         return response_value;

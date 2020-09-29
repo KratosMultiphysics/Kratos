@@ -174,6 +174,7 @@ private:
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
     SizeType mEchoLevel = 0;
+    std::map<int,double> mStressSigns;
 
 
     ///@}
